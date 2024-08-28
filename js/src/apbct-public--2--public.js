@@ -1094,12 +1094,16 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 // handler for mailto
                 if (
                     typeof encodedEmailNodes[i].href !== 'undefined' &&
-                    encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
+                    encodedEmailNodes[i].href.indexOf('mailto:') === 0
+                ) {
                     let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
                     let baseElementContent = encodedEmailNodes[i].innerHTML;
-                    encodedEmailNodes[i].innerHTML =
-                        baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
+                    let decodedEmail = currentResultData.decoded_email.split('&')[0];
+                    encodedEmailNodes[i].innerHTML = baseElementContent.replace(encodedEmail, decodedEmail);
                     encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
+                    encodedEmailNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((span) => {
+                        span.innerHTML = decodedEmail;
+                    });
                 } else {
                     // fill the nodes
                     ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
@@ -1124,7 +1128,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
             ctShowDecodeComment('Blocked: ' + result.data[0].comment);
         } else {
             resetEncodedNodes();
-            ctShowDecodeComment('Cannot connect with CleanTalk server: ' + result.data[0].comment);
+            ctShowDecodeComment('Cannot connect with CleanTalk server: ' + result.comment);
         }
     }
 }
