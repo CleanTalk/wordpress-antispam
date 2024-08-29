@@ -3813,7 +3813,8 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     const inputsTarget = formTarget.querySelectorAll('button, input, textarea, select');
 
     if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1 ||
-        isFormHasDiviRedirect(formSource)
+        isFormHasDiviRedirect(formSource) ||
+        formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1
     ) {
         inputsSource.forEach((elemSource) => {
             inputsTarget.forEach((elemTarget) => {
