@@ -58,9 +58,11 @@ class CleantalkRealPerson
         $trp_link_img_shield = APBCT_URL_PATH . '/css/images/shield.svg';
 
         $trp_style_class_admin = '';
+        $trp_style_class_admin_img = '';
         $trp_admin_popup_promo_page_text = '';
         if (is_admin()) {
             $trp_style_class_admin = '-admin';
+            $trp_style_class_admin_img = '-admin-size';
             $trp_admin_popup_promo_page_text = __('Learn more', 'cleantalk-spam-protect');
         }
 
@@ -73,6 +75,7 @@ class CleantalkRealPerson
         $template = str_replace('{{TRP_LINK_IMG_PERSON}}', $trp_link_img_person, $template);
         $template = str_replace('{{TRP_LINK_IMG_SHIELD}}', $trp_link_img_shield, $template);
         $template = str_replace('{{TRP_STYLE_CLASS_ADMIN}}', $trp_style_class_admin, $template);
+        $template = str_replace('{{TRP_STYLE_CLASS_ADMIN_IMG}}', $trp_style_class_admin_img, $template);
         $template = str_replace('{{TRP_ADMIN_PROMO_PAGE_TEXT}}', $trp_admin_popup_promo_page_text, $template);
 
         $ct_comment_ids[] = $comment_id;
