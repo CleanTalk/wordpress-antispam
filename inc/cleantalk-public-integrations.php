@@ -233,11 +233,11 @@ function apbct_integration__buddyPres__activityWall($is_spam, $activity_obj = nu
     $allowed_post_actions = array('post_update', 'new_activity_comment');
 
     if ( ! in_array(Post::get('action'), $allowed_post_actions) ||
-         $activity_obj === null ||
-         ! Post::get('action') ||
-         $activity_obj->privacy == 'media' ||
-         apbct_exclusions_check() ||
-         ! $apbct->settings['forms__contact_forms_test']
+        $activity_obj === null ||
+        ! Post::get('action') ||
+        (isset($activity_obj->privacy) && $activity_obj->privacy == 'media') ||
+        apbct_exclusions_check() ||
+        ! $apbct->settings['forms__contact_forms_test']
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
