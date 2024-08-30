@@ -139,7 +139,8 @@ function ct_contact_form_validate()
     foreach ($input_array as $key => $value) {
         if (is_string($key) &&
             strpos($key, 'et_pb_contact_email') !== false &&
-            strpos($key, 'et_pb_contact_email_fields') === false
+            strpos($key, 'et_pb_contact_email_fields') === false &&
+            strpos($key, 'et_pb_contact_email_hidden_fields') === false
         ) {
             $ct_tmp_email = preg_replace('/[^a-zA-Z0-9@\.\-_]/', '', $value);
             break;
