@@ -55,7 +55,7 @@
     display: none;
     width: auto;
     height: max-content;
-    margin-left: 3px;
+    margin-left: 21px;
     padding: 21px 16px 16px 16px;
     font-weight: normal;
     background: white;
@@ -64,6 +64,12 @@
     box-shadow: 5px 5px 24px -11px #444;
     z-index: 1000;
     cursor: default;
+}
+
+@media (min-width: 768px) {
+    .apbct-real-user-popup {
+        position: absolute;
+    }
 }
 
 .apbct-real-user-title {

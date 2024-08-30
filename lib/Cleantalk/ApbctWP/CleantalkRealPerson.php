@@ -57,10 +57,12 @@ class CleantalkRealPerson
 
         $trp_comment_id = 'apbct_trp_comment_id_' . $comment_id;
         $trp_title_popup_open_script = "apbctRealUserBadgeViewPopup('$trp_comment_id');";
+        $trp_title_popup_close_script = "apbctRealUserBadgeClosePopup(event);";
         $trp_link_img_person = '/wp-content/plugins/cleantalk-spam-protect/css/images/real_user.svg';
         $trp_link_img_shield = '/wp-content/plugins/cleantalk-spam-protect/css/images/shield.svg';
 
         $template = str_replace('{{TRP_POPUP_OPEN_SCRIPT}}', $trp_title_popup_open_script, $template);
+        $template = str_replace('{{TRP_POPUP_CLOSE_SCRIPT}}', $trp_title_popup_close_script, $template);
         $template = str_replace('{{TRP_POPUP_COMMENT_ID}}', $trp_comment_id, $template);
         $template = str_replace('{{TRP_POPUP_HEADER}}', $trp_popup_header, $template);
         $template = str_replace('{{TRP_POPUP_TEXT_PERSON}}', $trp_popup_text_person, $template);
