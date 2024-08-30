@@ -599,6 +599,7 @@ function ct_ajax_hook($message_obj = null)
     $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '';
+    $sender_emails_array = isset($ct_temp_msg_data['emails_array']) ? $ct_temp_msg_data['emails_array'] : '';
     $sender_nickname = isset($ct_temp_msg_data['nickname']) ? $ct_temp_msg_data['nickname'] : '';
     $subject         = isset($ct_temp_msg_data['subject']) ? $ct_temp_msg_data['subject'] : '';
     $contact_form    = isset($ct_temp_msg_data['contact']) ? $ct_temp_msg_data['contact'] : true;
@@ -667,6 +668,7 @@ function ct_ajax_hook($message_obj = null)
     if ( apbct_is_exception_arg_request() ) {
         $base_call_params['exception_action'] = 1;
         $base_call_params['sender_info']['exception_description'] = apbct_is_exception_arg_request();
+        $base_call_params['sender_info']['$sender_emails_array'] = $sender_emails_array;
     }
 
     // EZ Form Calculator - clearing the message
