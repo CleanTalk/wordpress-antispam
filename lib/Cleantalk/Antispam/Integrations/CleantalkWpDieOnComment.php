@@ -102,7 +102,10 @@ class CleantalkWpDieOnComment extends IntegrationBase
                         )
                     )
             ),
-            'page_url' => $request_uri
+            'page_url' => $request_uri,
+            'post_info' => array(
+                'comment_type' => 'contact_form_wordpress_' . strtolower('CleantalkWpDieOnComment'),
+            )
         );
     }
 
