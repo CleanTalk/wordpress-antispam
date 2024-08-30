@@ -2549,6 +2549,7 @@ function ctFillDecodedEmailHandler(event) {
         popupText.style.color = 'black';
         popupText.innerText = 'Please wait while ' + ctPublic.wl_brandname + ' is decoding the email addresses.';
         waitingPopup.append(popupText);
+        waitingPopup.append(apbctSetEmailDecoderPopupAnimation());
         document.body.append(waitingPopup);
     } else {
         encoderPopup.setAttribute('style', 'display: inherit');
@@ -2557,6 +2558,21 @@ function ctFillDecodedEmailHandler(event) {
     }
 
     apbctAjaxEmailDecodeBulk(event, ctPublic.encodedEmailNodes, clickSource);
+}
+/**
+ * @return {HTMLElement} event
+ */
+function apbctSetEmailDecoderPopupAnimation() {
+    const animtionElements = ['apbct_dog_one', 'apbct_dog_two', 'apbct_dog_three'];
+    const animtaionWrapper = document.createElement('div');
+    animtaionWrapper.classList = 'apbct-ee-animation-wrapper';
+    for (let i = 0; i < animtionElements.length; i++) {
+        const apbctEEAnimationDogOne = document.createElement('span');
+        apbctEEAnimationDogOne.classList = 'apbct_dog ' + animtionElements[i];
+        apbctEEAnimationDogOne.innerText = '@';
+        animtaionWrapper.append(apbctEEAnimationDogOne);
+    }
+    return animtaionWrapper;
 }
 
 /**
@@ -2667,6 +2683,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                     // fill the nodes
                     ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
                 }
+                ctPerformMagicBlur(encodedEmailNodes[i]);
                 // remove listeners
                 encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
             }
@@ -2822,6 +2839,13 @@ function ctProcessDecodedDataResult(response, targetElement) {
     targetElement.removeAttribute('style');
     ctFillDecodedEmail(targetElement, response.decoded_email);
 }
+/**
+ * @param {HTMLElement} targetElement
+ */
+function ctPerformMagicBlur(targetElement) {
+    targetElement.getElementsByClassName('apbct-ee-static-blur')[0].style.display = 'none';
+    targetElement.getElementsByClassName('apbct-ee-animate-blur')[0].style.display = 'inherit';
+}
 
 /**
  * @param {mixed} target
@@ -2831,7 +2855,7 @@ function ctFillDecodedEmail(target, email) {
     apbct(target).html(
         apbct(target)
             .html()
-            .replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1'),
+            .replace(/.?<span class=["']apbct-ee-blur_email-text["'].*>(.+?)<\/span>/, email),
     );
 }
 
