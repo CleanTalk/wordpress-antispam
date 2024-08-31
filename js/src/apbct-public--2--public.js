@@ -1564,6 +1564,10 @@ function ctCheckHiddenFieldsExclusions(form, hiddenFieldType) {
     if (Boolean(form.querySelector('fieldset.asl_sett_scroll'))) {
         return true;
     }
+    // Super WooCommerce Product Filter
+    if (form.classList.contains('swpf-instant-filtering')) {
+        return true;
+    }
     if (typeof (hiddenFieldType) === 'string' &&
         ['visible_fields', 'no_cookie'].indexOf(hiddenFieldType) !== -1) {
         const exclusions = ctGetHiddenFieldExclusionsType(form);
