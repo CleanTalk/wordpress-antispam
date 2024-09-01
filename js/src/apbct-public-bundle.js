@@ -2843,8 +2843,16 @@ function ctProcessDecodedDataResult(response, targetElement) {
  * @param {HTMLElement} targetElement
  */
 function ctPerformMagicBlur(targetElement) {
-    targetElement.getElementsByClassName('apbct-ee-static-blur')[0].style.display = 'none';
-    targetElement.getElementsByClassName('apbct-ee-animate-blur')[0].style.display = 'inherit';
+    const staticBlur = targetElement.getElementsByClassName('apbct-ee-static-blur').length > 0 &&
+            targetElement.getElementsByClassName('apbct-ee-static-blur');
+    const animateBlur = targetElement.getElementsByClassName('apbct-ee-animate-blur').length > 0 &&
+            targetElement.getElementsByClassName('apbct-ee-animate-blur');
+    if (staticBlur[0] !== undefined) {
+        staticBlur[0].style.display = 'none';
+    }
+    if (animateBlur[0] !== undefined) {
+        animateBlur[0].style.display = 'inherit';
+    }
 }
 
 /**
