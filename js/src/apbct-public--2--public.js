@@ -508,6 +508,9 @@ function startForcedAltEventTokenChecker() {
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 function apbct_ready() {
+    if ( ! ctPublic.wc_ajax_add_to_cart ) {
+        apbctCheckAddToCartByGet();
+    }
     // this way calls a lot of apbct_ready(), needs to find another way
     // if (typeof jQuery !== 'undefined') {
     //     jQuery(document).on('gform_page_loaded', function() {
@@ -1766,3 +1769,25 @@ function apbctWriteReferrersToSessionStorage() {
     apbctSessionStorage.set('apbct_session_current_page', document.location.href, false);
 }
 
+/**
+ * WooCommerce add to cart by GET request params collecting
+ */
+// 1) Collect all links with add_to_cart_button class
+const apbctCheckAddToCartByGet = () => (
+    document.querySelectorAll('a.add_to_cart_button:not(.product_type_variable):not(.wc-interactive)').forEach((el) => {
+        el.addEventListener('click', function(e) {
+            let href = el.getAttribute('href');
+            // 2) Add to href attribute additional parameter ct_bot_detector_event_token gathered from apbctLocalStorage
+            let eventToken = apbctLocalStorage.get('bot_detector_event_token');
+            if ( eventToken !== null ) {
+                if ( href.indexOf('?') === -1 ) {
+                    href += '?';
+                } else {
+                    href += '&';
+                }
+                href += 'ct_bot_detector_event_token=' + eventToken;
+                el.setAttribute('href', href);
+            }
+        });
+    })
+);
