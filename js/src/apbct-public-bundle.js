@@ -3325,6 +3325,7 @@ function apbctRealUserBadgeViewPopup(id) {
  * Closes The Real Person popup when the cursor leaves the badge element area
  * @param {object} event
  */
+// @ToDo Replace js logic with css
 // eslint-disable-next-line no-unused-vars,require-jsdoc
 function apbctRealUserBadgeClosePopup(event) {
     if (
