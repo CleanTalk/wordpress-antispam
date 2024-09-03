@@ -1652,6 +1652,29 @@ function apbctRealUserBadgeViewPopup(id) {
 }
 
 /**
+ * Closes The Real Person popup when the cursor leaves the badge element area
+ * @param {object} event
+ */
+// @ToDo Replace js logic with css
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function apbctRealUserBadgeClosePopup(event) {
+    if (
+        event.relatedTarget.className &&
+        ((event.relatedTarget.className.search(/apbct/) < 0 &&
+        event.relatedTarget.className.search(/real-user/) < 0) ||
+        (event.relatedTarget.className.search(/wrapper/) > 0)) &&
+        window.innerWidth > 768
+
+    ) {
+        document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
+            setTimeout(() => {
+                el.style.display = 'none';
+            }, 1000);
+        });
+    }
+}
+
+/**
  * Handle real user badge for woocommerce
  * @param template
  * @param id
