@@ -23,7 +23,7 @@ abstract class IntegrationBase
     /**
      * Prepare actions
      * @param $argument
-     * @return bool
+     * @return mixed|bool
      */
     public function doPrepareActions($argument)
     {
