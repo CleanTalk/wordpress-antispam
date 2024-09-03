@@ -94,7 +94,9 @@ class CleantalkPreprocessComment extends IntegrationBase
         $this->post_info['post_url']     = ct_post_url(null, $this->wp_comment_post_id);
 
         // Comment type
-        $this->post_info['comment_type'] = empty($this->post_info['comment_type']) ? 'general_comment' : $this->post_info['comment_type'];
+        $this->post_info['comment_type'] = empty($this->post_info['comment_type'])
+            ? 'contact_form_wordpress_' . strtolower('CleantalkPreprocessComment')
+            : $this->post_info['comment_type'];
 
         $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
 

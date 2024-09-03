@@ -90,8 +90,14 @@ class Integrations
                 /**
                  * Run prepare actions.
                  */
-                if ( $integration->doPrepareActions($argument) === false ) {
-                    //if integration returns false on this state - exit and return incomed argument
+                $prepare_actions_result = $integration->doPrepareActions($argument);
+                if ( !is_bool($prepare_actions_result) ) {
+                    //if integration returns not a bool value on this state - exit and return modified argument
+                    return $prepare_actions_result;
+                }
+
+                if ( $prepare_actions_result === false ) {
+                    //if integration returns false on this state - exit and return income argument
                     return $argument;
                 }
 

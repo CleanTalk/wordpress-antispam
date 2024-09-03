@@ -35,6 +35,7 @@ class CtPublicLocalize
             'bot_detector_forms_excluded'  => base64_encode(apbct__bot_detector_get_prepared_exclusion()),
             'advancedCacheExists' => apbct_is_advanced_cache_exists(),
             'varnishCacheExists' => apbct_is_varnish_cache_exists(),
+            'wc_ajax_add_to_cart' => get_option('woocommerce_enable_ajax_add_to_cart') === 'yes'
         );
     }
 
