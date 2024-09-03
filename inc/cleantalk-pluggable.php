@@ -1180,6 +1180,22 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'learndash-elementor';
         }
+
+        // skip klaviyo coupon service request
+        if (
+            apbct_is_plugin_active('klaviyo-coupons/kl-coupons.php') &&
+            Post::get('action') === 'klc_generate_coupon'
+        ) {
+            return 'klc_generate_coupon';
+        }
+
+        // skip Super WooCommerce Product Filter
+        if (
+            apbct_is_plugin_active('super-woocommerce-product-filter/super-woocommerce-product-filter.php') &&
+            Post::get('action') === 'swpf_get_product_list'
+        ) {
+            return 'Super WooCommerce Product Filter';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

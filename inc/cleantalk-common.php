@@ -798,6 +798,7 @@ function apbct_is_cache_plugins_exists($return_names = false)
         'CE_FILE'                                     => 'Cache Enabler – WordPress Cache',
         'SiteGround_Optimizer\VERSION'                => 'SG Optimizer',
         'NITROPACK_VERSION'                           => 'NitroPack',
+        'TWO_PLUGIN_FILE'                             => '10Web Booster',
     );
 
     $classes_of_cache_plugins = array (
@@ -842,6 +843,11 @@ function apbct_is_varnish_cache_exists()
 function apbct_is_advanced_cache_exists()
 {
     return apbct_is_cache_plugins_exists() && file_exists(untrailingslashit(WP_CONTENT_DIR) . '/advanced-cache.php');
+}
+
+function apbct_is_10web_booster_exists()
+{
+    return apbct_is_cache_plugins_exists() && apbct_is_plugin_active('tenweb-speed-optimizer/tenweb_speed_optimizer.php');
 }
 
 /**

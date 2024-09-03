@@ -508,6 +508,19 @@ function startForcedAltEventTokenChecker() {
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 function apbct_ready() {
+    if (typeof jQuery !== 'undefined') {
+        jQuery(document).on('gform_page_loaded', function() {
+            if (
+                typeof ctPublic.force_alt_cookies == 'undefined' ||
+                (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
+            ) {
+                ctNoCookieAttachHiddenFieldsToForms();
+                if (typeof setEventTokenField === 'function' && typeof botDetectorLocalStorage === 'function') {
+                    setEventTokenField(botDetectorLocalStorage.get('bot_detector_event_token'));
+                }
+            }
+        });
+    }
     if ( ! ctPublic.wc_ajax_add_to_cart ) {
         apbctCheckAddToCartByGet();
     }
@@ -1675,6 +1688,10 @@ function ctGetHiddenFieldExclusionsType(form) {
 function ctCheckHiddenFieldsExclusions(form, hiddenFieldType) {
     // Ajax Search Lite
     if (Boolean(form.querySelector('fieldset.asl_sett_scroll'))) {
+        return true;
+    }
+    // Super WooCommerce Product Filter
+    if (form.classList.contains('swpf-instant-filtering')) {
         return true;
     }
     if (typeof (hiddenFieldType) === 'string' &&
