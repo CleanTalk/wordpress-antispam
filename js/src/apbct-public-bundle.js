@@ -2583,11 +2583,13 @@ function ctFillDecodedEmailHandler(event) {
         // construct text first node
         // todo make translateable
         let popupTextDecoding = document.createElement('p');
+        popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_first';
         popupTextDecoding.innerText = 'Decoding ' + obfuscatedEmail + ' to the original contact.';
 
         // construct text first node
         // todo make translateable
         let popupTextWaiting = document.createElement('p');
+        popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_second';
         popupTextWaiting.innerText = 'The magic is on the way, please wait for a few seconds!';
 
         // appendings
@@ -2713,18 +2715,19 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                         currentResultData = row;
                     }
                 });
-
-                let body = popup.querySelector('#apbct_popup_text');
+                // change text
                 let email = currentResultData.decoded_email.split(/[&?]/)[0];
-                body.innerHTML = 'The original contact is ' + email + '. Happy conversations!';
-                let br = document.createElement('br');
-                body.append(br);
-                body.append(br);
+                let firstNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_first');
+                let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
+                firstNode.innerText = 'The original contact is ' + email + '.';
+                secondNode.innerText = 'Happy conversations!';
+                // remove antimation
                 popup.querySelector('.apbct-ee-animation-wrapper').remove();
+                // add button
                 let buttonWrapper = document.createElement('span');
-                buttonWrapper.classList = 'apbct-email-encoder-elements_center';
+                buttonWrapper.classList = 'apbct-email-encoder-elements_center top-margin-long';
                 let button = document.createElement('button');
-                button.innerHTML = 'Got it';
+                button.innerText = 'Got it';
                 button.addEventListener('click', function() {
                     document.body.classList.remove('apbct-popup-fade');
                     popup.setAttribute('style', 'display:none');
@@ -2736,7 +2739,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 });
                 button.style.cursor = 'pointer';
                 buttonWrapper.append(button);
-                body.append(buttonWrapper);
+                popup.append(buttonWrapper);
             }
         }, 3000);
     } else {
