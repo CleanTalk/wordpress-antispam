@@ -586,6 +586,8 @@ function apbct_wc__add_to_cart_unlogged_user()
     $data = Post::get('data');
     if (is_array($data) && isset($data['ct_bot_detector_event_token'])) {
         $event_token = $data['ct_bot_detector_event_token'];
+    } elseif ( Get::get('ct_bot_detector_event_token') ) {
+        $event_token = Get::get('ct_bot_detector_event_token');
     } else {
         $event_token = null;
     }
