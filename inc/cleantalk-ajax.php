@@ -668,7 +668,7 @@ function ct_ajax_hook($message_obj = null)
     if ( apbct_is_exception_arg_request() ) {
         $base_call_params['exception_action'] = 1;
         $base_call_params['sender_info']['exception_description'] = apbct_is_exception_arg_request();
-        $base_call_params['sender_info']['$sender_emails_array'] = $sender_emails_array;
+        $base_call_params['sender_info']['sender_emails_array'] = $sender_emails_array;
     }
 
     // EZ Form Calculator - clearing the message

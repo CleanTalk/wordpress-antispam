@@ -836,7 +836,6 @@ function apbct_form__formidable__testSpam($errors, $_form)
         array(
             'message'         => $message,
             'sender_email'    => $sender_email,
-            'sender_emails_array' => $sender_emails_array,
             'sender_nickname' => $sender_nickname,
             'post_info'       => array('comment_type' => 'contact_form_wordpress_formidable'),
             'sender_info'     => array(
@@ -1927,6 +1926,7 @@ function apbct_form__mo_subscribe_to_email_list__testSpam()
 {
     $input_array = apply_filters('apbct__filter_post', $_POST);
     $params = ct_get_fields_any($input_array);
+    $sender_emails_array = isset($params['emails_array']) ? $params['emails_array'] : '';
 
     $base_call_result = apbct_base_call(
         array(
@@ -1934,7 +1934,7 @@ function apbct_form__mo_subscribe_to_email_list__testSpam()
             'sender_nickname' => isset($input_array['mo-name']) ? $input_array['mo-name'] : '',
             'post_info'       => array('comment_type' => 'subscribe_form_wordpress_mailoptin'),
             'sender_info'     => array(
-                isset($params['emails_array']) ? $params['emails_array'] : '',
+                'sender_emails_array' => $sender_emails_array,
             ),
         )
     );
