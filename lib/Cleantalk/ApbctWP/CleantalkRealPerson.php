@@ -53,6 +53,7 @@ class CleantalkRealPerson
         $trp_popup_text_shield = __('Passed all tests against spam bots. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect');
 
         $trp_comment_id = 'apbct_trp_comment_id_' . $comment_id;
+        $trp_title_popup_open_script = "apbctRealUserBadgeViewPopup('$trp_comment_id');";
         $trp_title_popup_close_script = "apbctRealUserBadgeClosePopup(event);";
         $trp_link_img_person = APBCT_URL_PATH . '/css/images/real_user.svg';
         $trp_link_img_shield = APBCT_URL_PATH . '/css/images/shield.svg';
