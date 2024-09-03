@@ -9,15 +9,20 @@ class Forminator extends IntegrationBase
         $data = $_POST;
 
         $username = '';
+        $email = '';
         foreach ($_POST as $key => $value) {
             if (is_string($key) && strpos($key, 'name-') === 0) {
                 $username = $value;
-                break;
+                continue;
+            }
+            if (is_string($key) && strpos($key, 'email-') === 0) {
+                $email = $value;
+                continue;
             }
         }
         $data['username'] = $username;
 
-        return ct_gfa(apply_filters('apbct__filter_post', $data));
+        return ct_gfa(apply_filters('apbct__filter_post', $data), $email);
     }
 
     public function doBlock($message)

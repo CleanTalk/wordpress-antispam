@@ -6,6 +6,7 @@ use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\TT;
 
 /**
  * Getting current user by cookie
@@ -74,31 +75,31 @@ function apbct_wp_validate_auth_cookie($cookie = '', $scheme = '')
         return false;
     }
 
-    $scheme     = $cookie_elements['scheme'];
-    $username   = $cookie_elements['username'];
-    $hmac       = $cookie_elements['hmac'];
-    $token      = $cookie_elements['token'];
-    $expiration = $cookie_elements['expiration'];
+    $scheme     = isset($cookie_elements['scheme']) ? $cookie_elements['scheme'] : '';
+    $username   = isset($cookie_elements['username']) ? $cookie_elements['username'] : '';
+    $hmac       = isset($cookie_elements['hmac']) ? $cookie_elements['hmac'] : '';
+    $token      = isset($cookie_elements['token']) ? $cookie_elements['token'] : '';
+    $expiration = isset($cookie_elements['expiration']) ? $cookie_elements['expiration'] : '';
 
     // Allow a grace period for POST and Ajax requests
     $expired = apbct_is_ajax() || apbct_is_post()
         ? $expiration + HOUR_IN_SECONDS
-        : $cookie_elements['expiration'];
+        : (isset($cookie_elements['expiration']) ? $cookie_elements['expiration'] : '');
 
     // Quick check to see if an honest cookie has expired
     if ( $expired >= time() ) {
         $user = apbct_wp_get_user_by('login', $username);
-        if ( $user ) {
+        if ( $user && is_object($user) ) {
             $pass_frag = substr($user->user_pass, 8, 4);
             $key       = apbct_wp_hash($username . '|' . $pass_frag . '|' . $expiration . '|' . $token, $scheme);
             // If ext/hash is not present, compat.php's hash_hmac() does not support sha256.
             $algo = function_exists('hash') ? 'sha256' : 'sha1';
             $hash = hash_hmac($algo, $username . '|' . $expiration . '|' . $token, $key);
-            if ( hash_equals($hash, $hmac) ) {
+            if ( hash_equals($hash, $hmac) && is_object($user) ) {
                 $sessions = get_user_meta($user->ID, 'session_tokens', true);
                 $sessions = is_array($sessions) ? current($sessions) : $sessions;
                 if ( is_array($sessions) ) {
-                    if ( is_int($sessions['expiration']) && $sessions['expiration'] > time() ) {
+                    if ( isset($sessions['expiration']) && is_int($sessions['expiration']) && $sessions['expiration'] > time() ) {
                         return $user->ID;
                     } else {
                         return false;
@@ -357,7 +358,7 @@ function apbct_is_ajax()
         (defined('DOING_AJAX') && DOING_AJAX) || // by standart WP functions
         (
             Server::get('HTTP_X_REQUESTED_WITH') &&
-            strtolower(Server::get('HTTP_X_REQUESTED_WITH')) === 'xmlhttprequest'
+            strtolower(TT::toString(Server::get('HTTP_X_REQUESTED_WITH'))) === 'xmlhttprequest'
         ) || // by Request type
         ! empty(Post::get('quform_ajax')) || // special. QForms
         ! empty(Post::get('iphorm_ajax')) || // special. IPHorm
@@ -410,12 +411,12 @@ function apbct_is_get()
 
 function apbct_is_in_referer($str)
 {
-    return stripos(Server::get('HTTP_REFERER'), $str) !== false;
+    return stripos(TT::toString(Server::get('HTTP_REFERER')), $str) !== false;
 }
 
 function apbct_is_in_uri($str)
 {
-    return stripos(Server::get('REQUEST_URI'), $str) !== false;
+    return stripos(TT::toString(Server::get('REQUEST_URI')), $str) !== false;
 }
 
 /**
@@ -466,7 +467,7 @@ function apbct_wp_blacklist_check($author, $email, $url, $comment, $user_ip, $us
 function apbct_is_customize_preview()
 {
     // Maybe not enough to check the Customizer preview
-    $uri = parse_url(Server::get('REQUEST_URI'));
+    $uri = parse_url(TT::toString(Server::get('REQUEST_URI')));
 
     return $uri && isset($uri['query']) && strpos($uri['query'], 'customize_changeset_uuid') !== false;
 }
@@ -521,8 +522,8 @@ function apbct_is_skip_request($ajax = false)
     }
 
     if (
-        Post::get('action') === 'apbct_alt_session__save__AJAX' &&
-        wp_verify_nonce(Post::get('_ajax_nonce'), 'ct_secret_stuff')
+        TT::toString(Post::get('action')) === 'apbct_alt_session__save__AJAX' &&
+        wp_verify_nonce(TT::toString(Post::get('_ajax_nonce')), 'ct_secret_stuff')
     ) {
         return 'CleanTalk AltCookies request.';
     }
@@ -539,8 +540,8 @@ function apbct_is_skip_request($ajax = false)
         // Paid Memberships Pro - Login Form
         if (
             apbct_is_plugin_active('paid-memberships-pro/paid-memberships-pro.php') &&
-            Post::get('rm_slug') === 'rm_login_form' &&
-            Post::get('rm_form_sub_id')
+            TT::toString(Post::get('rm_slug')) === 'rm_login_form' &&
+            TT::toString(Post::get('rm_form_sub_id'))
         ) {
             return 'paid_memberships_pro__login_form';
         }
@@ -548,7 +549,7 @@ function apbct_is_skip_request($ajax = false)
         // Thrive Ultimatum
         if (
             apbct_is_plugin_active('thrive-ultimatum/thrive-ultimatum.php') &&
-            Post::get('action') === 'tve_dash_front_ajax'
+            TT::toString(Post::get('action')) === 'tve_dash_front_ajax'
         ) {
             return 'thrive-ultimatum__links_from_email';
         }
@@ -556,51 +557,51 @@ function apbct_is_skip_request($ajax = false)
         // wpDiscuz - Online Users Addon for wpDiscuz
         if (
             apbct_is_plugin_active('wpdiscuz-online-users/wpdiscuz-ou.php') &&
-            Post::get('action') === 'wouPushNotification'
+            TT::toString(Post::get('action')) === 'wouPushNotification'
         ) {
             return 'wpdiscuz_online_users__push_notification';
         }
 
         // Bookly Plugin admin actions skip
         if ( apbct_is_plugin_active('bookly-responsive-appointment-booking-tool/main.php') &&
-            strpos(Post::get('action'), 'bookly') !== false &&
+            strpos(TT::toString(Post::get('action')), 'bookly') !== false &&
             is_admin() ) {
             return 'bookly_pro_update_staff_advanced';
         }
         // Youzier login form skip
         if ( apbct_is_plugin_active('youzer/youzer.php') &&
-            Post::get('action') === 'yz_ajax_login' ) {
+            TT::toString(Post::get('action')) === 'yz_ajax_login' ) {
             return 'youzier_login_form';
         }
         // Youzify login form skip
         if ( apbct_is_plugin_active('youzify/youzify.php') &&
-            Post::get('action') === 'youzify_ajax_login' ) {
+            TT::toString(Post::get('action')) === 'youzify_ajax_login' ) {
             return 'youzify_login_form';
         }
         // InJob theme lost password skip
         if ( apbct_is_plugin_active('iwjob/iwjob.php') &&
-            Post::get('action') === 'iwj_lostpass' ) {
+            TT::toString(Post::get('action')) === 'iwj_lostpass' ) {
             return 'injob_theme_plugin';
         }
         // Divi builder skip
         if ( apbct_is_theme_active('Divi') &&
-            (Post::get('action') === 'save_epanel' || Post::get('action') === 'et_fb_ajax_save') ) {
+            (TT::toString(Post::get('action')) === 'save_epanel' || TT::toString(Post::get('action')) === 'et_fb_ajax_save') ) {
             return 'divi_builder_skip';
         }
         // Email Before Download plugin https://wordpress.org/plugins/email-before-download/ action skip
         if ( apbct_is_plugin_active('email-before-download/email-before-download.php') &&
-            Post::get('action') === 'ebd_inline_links' ) {
+            TT::toString(Post::get('action')) === 'ebd_inline_links' ) {
             return 'ebd_inline_links';
         }
         // WP Discuz skip service requests. The plugin have the direct integration
         if ( apbct_is_plugin_active('wpdiscuz/class.WpdiscuzCore.php') &&
-            strpos(Post::get('action'), 'wpd') !== false ) {
+            strpos(TT::toString(Post::get('action')), 'wpd') !== false ) {
             return 'WpdiscuzCore';
         }
         // Exception for plugin https://ru.wordpress.org/plugins/easy-login-woocommerce/ login form
         if (
             apbct_is_plugin_active('easy-login-woocommerce/xoo-el-main.php') &&
-            Post::get('_xoo_el_form') === 'login'
+            TT::toString(Post::get('_xoo_el_form')) === 'login'
         ) {
             return 'xoo_login';
         }
@@ -608,179 +609,179 @@ function apbct_is_skip_request($ajax = false)
         if (
             apbct_is_plugin_active('jackmail-newsletters/jackmail-newsletters.php') &&
             is_admin() &&
-            strpos(Server::get('HTTP_REFERER'), 'jackmail_') !== false
+            strpos(TT::toString(Server::get('HTTP_REFERER')), 'jackmail_') !== false
         ) {
             return 'jackmail_admin_actions';
         }
         // Newspaper theme login form
         if ( apbct_is_theme_active('Newspaper') &&
-            (Post::get('action') === 'td_mod_login' || Post::get('action') === 'td_mod_remember_pass') ) {
+            (TT::toString(Post::get('action')) === 'td_mod_login' || TT::toString(Post::get('action')) === 'td_mod_remember_pass') ) {
             return 'Newspaper_theme_login_form';
         }
         // Save abandoned cart checking skip
         if ( apbct_is_plugin_active('woo-save-abandoned-carts/cartbounty-abandoned-carts.php') &&
-             Post::get('action') === 'cartbounty_save' ) {
+             TT::toString(Post::get('action')) === 'cartbounty_save' ) {
             return 'cartbounty_save';
         }
         // SUMODISCOUNT discout request skip
         if ( apbct_is_plugin_active('sumodiscounts/sumodiscounts.php') &&
-             Post::get('action') === 'fp_apply_discount_for_first_purchase' ) {
+             TT::toString(Post::get('action')) === 'fp_apply_discount_for_first_purchase' ) {
             return 'fp_apply_discount_for_first_purchase';
         }
         // WP eMember login form skip
         if ( apbct_is_plugin_active('wp-eMember/wp_eMember.php') &&
-             Post::get('action') === 'emember_ajax_login' ) {
+             TT::toString(Post::get('action')) === 'emember_ajax_login' ) {
             return 'emember_ajax_login';
         }
         // Avada theme saving settings
         if ( apbct_is_theme_active('Avada') &&
-             Post::get('action') === 'fusion_options_ajax_save' ) {
+             TT::toString(Post::get('action')) === 'fusion_options_ajax_save' ) {
             return 'Avada_theme_saving_settings';
         }
         // Formidable skip - this is the direct integration
         if ( apbct_is_plugin_active('formidable/formidable.php') &&
-            (Post::get('frm_action') === 'update' ||
-            (Post::get('frm_action') === 'create' &&
+            (TT::toString(Post::get('frm_action')) === 'update' ||
+            (TT::toString(Post::get('frm_action')) === 'create' &&
             $apbct->settings['forms__contact_forms_test'] == 1 &&
-            Post::get('form_id') !== '' &&
-            Post::get('form_key') !== ''))
+            TT::toString(Post::get('form_id')) !== '' &&
+            TT::toString(Post::get('form_key')) !== ''))
         ) {
             return 'formidable_skip';
         }
         // Artbees Jupiter theme saving settings
-        if ( Post::get('action') === 'mk_theme_save' && strpos(get_template(), 'jupiter') !== false ) {
+        if ( TT::toString(Post::get('action')) === 'mk_theme_save' && strpos(get_template(), 'jupiter') !== false ) {
             return 'artbees_jupiter_6_skip';
         }
         // fix conflict with wiloke theme and unknown plugin, that removes standard authorization cookies
-        if ( Post::get('action') === 'wiloke_themeoptions_ajax_save' && apbct_is_theme_active('wilcity') ) {
+        if ( TT::toString(Post::get('action')) === 'wiloke_themeoptions_ajax_save' && apbct_is_theme_active('wilcity') ) {
             return 'wiloke_themeoptions_ajax_save_skip';
         }
         // Essentials addons for elementor - light and pro
         if (
             (apbct_is_plugin_active('essential-addons-for-elementor-lite/essential_adons_elementor.php') ||
              apbct_is_plugin_active('essential-addons-elementor/essential_adons_elementor.php')) &&
-            (Post::get('eael-login-submit') !== '' && Post::get('eael-user-login') !== '') ) {
+            (TT::toString(Post::get('eael-login-submit')) !== '' && TT::toString(Post::get('eael-user-login')) !== '') ) {
             return 'eael_login_skipped';
         }
         // WPForms check restricted email skipped
         if (
             apbct_is_plugin_active('wpforms/wpforms.php') &&
-            Post::get('action') === 'wpforms_restricted_email'
+            TT::toString(Post::get('action')) === 'wpforms_restricted_email'
         ) {
             return 'wpforms_check_restricted_email';
         }
         // FluentForm multistep skip
         if (
             (apbct_is_plugin_active('fluentformpro/fluentformpro.php') ||  apbct_is_plugin_active('fluentform/fluentform.php')) &&
-            Post::get('action') === 'active_step'
+            TT::toString(Post::get('action')) === 'active_step'
         ) {
             return 'fluentform_skip';
         }
 
         // W2DC - https://codecanyon.net/item/web-20-directory-plugin-for-wordpress/6463373
         if ( apbct_is_plugin_active('w2dc/w2dc.php') &&
-             Post::get('action') === 'vp_w2dc_ajax_vpt_option_save' &&
+             TT::toString(Post::get('action')) === 'vp_w2dc_ajax_vpt_option_save' &&
              is_admin() ) {
             return 'w2dc_skipped';
         }
         if ( (apbct_is_plugin_active('elementor/elementor.php') || apbct_is_plugin_active('elementor-pro/elementor-pro.php')) &&
-             Post::get('actions_save_builder_action') === 'save_builder' &&
+             TT::toString(Post::get('actions_save_builder_action')) === 'save_builder' &&
              is_admin() ) {
             return 'elementor_skip';
         }
         // Enfold theme saving settings
         if ( apbct_is_theme_active('Enfold') &&
-             Post::get('action') === 'avia_ajax_save_options_page' ) {
+             TT::toString(Post::get('action')) === 'avia_ajax_save_options_page' ) {
             return 'Enfold_theme_saving_settings';
         }
         //SiteOrigin pagebuilder skip save
         if (
             apbct_is_plugin_active('siteorigin-panels/siteorigin-panels.php') &&
-            Post::get('action') === 'save-widget'
+            TT::toString(Post::get('action')) === 'save-widget'
         ) {
             return 'SiteOrigin pagebuilder';
         }
         //Skip classfields email check
         if (
             (apbct_is_theme_active('classified-child') || apbct_is_theme_active('classified'))
-            && Post::get('action') === 'tmpl_ajax_check_user_email'
+            && TT::toString(Post::get('action')) === 'tmpl_ajax_check_user_email'
         ) {
             return 'Classified checkemail';
         }
         if (
             (apbct_is_plugin_active('uncanny-toolkit-pro/uncanny-toolkit-pro.php') || apbct_is_plugin_active('uncanny-learndash-toolkit'))
-            && Post::get('action') === 'ult-forgot-password'
+            && TT::toString(Post::get('action')) === 'ult-forgot-password'
         ) {
             return 'Uncanny Toolkit';
         }
         if (
             apbct_is_plugin_active('popup-builder/popup-builder.php') &&
-            Post::get('action') === 'sgpb_send_to_open_counter'
+            TT::toString(Post::get('action')) === 'sgpb_send_to_open_counter'
         ) {
             return 'Popup builder service actions';
         }
         if (
             apbct_is_plugin_active('security-malware-firewall/security-malware-firewall.php') &&
-            Post::get('action') === 'spbc_get_authorized_users'
+            TT::toString(Post::get('action')) === 'spbc_get_authorized_users'
         ) {
             return 'SPBCT service actions';
         }
         // APBCT service actions
         if (
             apbct_is_plugin_active('cleantalk-spam-protect/cleantalk.php') &&
-            ( Post::get('action') === 'apbct_get_pixel_url' && wp_verify_nonce(Post::get('_ajax_nonce'), 'ct_secret_stuff') )
+            ( TT::toString(Post::get('action')) === 'apbct_get_pixel_url' && wp_verify_nonce(TT::toString(Post::get('_ajax_nonce')), 'ct_secret_stuff') )
         ) {
             return 'APBCT service actions';
         }
         // Entry Views plugin service requests
         if (
             apbct_is_plugin_active('entry-views/entry-views.php') &&
-            Post::get('action') === 'entry_views' &&
-            Post::get('post_id') !== ''
+            TT::toString(Post::get('action')) === 'entry_views' &&
+            TT::toString(Post::get('post_id')) !== ''
         ) {
             return 'Entry Views service actions';
         }
         // Woo Gift Wrapper plugin service requests
         if (
             apbct_is_plugin_active('woocommerce-gift-wrapper/woocommerce-gift-wrapper.php') &&
-            Post::get('action') === 'wcgwp_remove_from_cart'
+            TT::toString(Post::get('action')) === 'wcgwp_remove_from_cart'
         ) {
             return 'Woo Gift Wrapper service actions';
         }
         // iThemes Security plugin service requests
         if (
             apbct_is_plugin_active('better-wp-security/better-wp-security.php') &&
-            Post::get('action') === 'itsec-login-interstitial-ajax'
+            TT::toString(Post::get('action')) === 'itsec-login-interstitial-ajax'
         ) {
             return 'iThemes Security service actions';
         }
         // Microsoft Azure Storage plugin service requests
         if (
             apbct_is_plugin_active('windows-azure-storage/windows-azure-storage.php') &&
-            Post::get('action') === 'get-azure-progress'
+            TT::toString(Post::get('action')) === 'get-azure-progress'
         ) {
             return 'Microsoft Azure Storage service actions';
         }
         // AdRotate plugin service requests
         if (
             apbct_is_plugin_active('adrotate/adrotate.php') &&
-            Post::get('action') === 'adrotate_impression' &&
-            Post::get('track') !== ''
+            TT::toString(Post::get('action')) === 'adrotate_impression' &&
+            TT::toString(Post::get('track')) !== ''
         ) {
             return 'AdRotate service actions';
         }
         // WP Booking System Premium
         if (
             (apbct_is_plugin_active('wp-booking-system-premium/index.php') &&
-            Post::get('action') === 'wpbs_calculate_pricing') ||
-            Post::get('action') === 'wpbs_validate_date_selection'
+            TT::toString(Post::get('action')) === 'wpbs_calculate_pricing') ||
+            TT::toString(Post::get('action')) === 'wpbs_validate_date_selection'
         ) {
             return 'WP Booking System Premium';
         }
         // GiveWP - having the direct integration
         if (
             (apbct_is_plugin_active('give/give.php') &&
-            Post::get('action') === 'give_process_donation')
+            TT::toString(Post::get('action')) === 'give_process_donation')
         ) {
             return 'GiveWP';
         }
@@ -788,7 +789,7 @@ function apbct_is_skip_request($ajax = false)
         // MultiStep Checkout for WooCommerce
         if (
             apbct_is_plugin_active('woo-multistep-checkout/woo-multistep-checkout.php') &&
-            Post::get('action') === 'thwmsc_step_validation'
+            TT::toString(Post::get('action')) === 'thwmsc_step_validation'
         ) {
             return 'MultiStep Checkout for WooCommerce - step validation';
         }
@@ -796,7 +797,7 @@ function apbct_is_skip_request($ajax = false)
         // Skip Login Form for Wishlist Member
         if (
             apbct_is_plugin_active('wishlist-member/wpm.php') &&
-            Post::get('action') === 'wishlistmember_ajax_login'
+            TT::toString(Post::get('action')) === 'wishlistmember_ajax_login'
         ) {
             return 'Wishlist Member - skip login';
         }
@@ -805,8 +806,8 @@ function apbct_is_skip_request($ajax = false)
         if (
             apbct_is_plugin_active('smartquizbuilder/smartquizbuilder.php') &&
             (
-                Post::get('action') === 'sqb_lead_save' ||
-                Post::get('action') === 'SQBSendNotificationAjax'
+                TT::toString(Post::get('action')) === 'sqb_lead_save' ||
+                TT::toString(Post::get('action')) === 'SQBSendNotificationAjax'
             )
         ) {
             return 'Smart Quiz Builder - skip some requests';
@@ -817,12 +818,12 @@ function apbct_is_skip_request($ajax = false)
             apbct_is_plugin_active('woo-abandoned-cart-recovery/woo-abandoned-cart-recovery.php') &&
             Post::hasString('action', 'wacv_') &&
             (
-                wp_verify_nonce(Post::get('nonce'), 'wacv_nonce') ||
-                wp_verify_nonce(Get::get('nonce'), 'wacv_nonce') ||
-                wp_verify_nonce(Post::get('security'), 'wacv_nonce')
+                wp_verify_nonce(TT::toString(Post::get('nonce')), 'wacv_nonce') ||
+                wp_verify_nonce(TT::toString(Get::get('nonce')), 'wacv_nonce') ||
+                wp_verify_nonce(TT::toString(Post::get('security')), 'wacv_nonce')
             )
         ) {
-            return 'Abandoned Cart Recovery for WooCommerce: skipped ' . Post::get('action');
+            return 'Abandoned Cart Recovery for WooCommerce: skipped ' . TT::toString(Post::get('action'));
         }
 
         //Skip smart_forms because of direct integration
@@ -1121,8 +1122,8 @@ function apbct_is_skip_request($ajax = false)
         //this is theme request, no way to get active child theme correctly
         $current_theme_uri = wp_get_theme()->get('ThemeURI');
         if (
-            strpos($current_theme_uri, 'porto') !== false &&
-            Post::get('action') === 'porto_account_login_popup_login'
+            strpos(TT::toString($current_theme_uri), 'porto') !== false &&
+            TT::toString(Post::get('action')) === 'porto_account_login_popup_login'
         ) {
             return 'Proto theme login popup form';
         }
@@ -1169,6 +1170,16 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'kaliforms_form_process_skip';
         }
+
+        // skip learndash-elementor
+        if (
+            apbct_is_plugin_active('learndash-elementor/learndash-elementor.php') &&
+            (
+                Post::get('course_id') !== '' && Post::get('lesson_id') !== ''
+            )
+        ) {
+            return 'learndash-elementor';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1185,7 +1196,7 @@ function apbct_is_skip_request($ajax = false)
         }
         // UltimateMember password reset skip
         if ( apbct_is_plugin_active('ultimate-member/ultimate-member.php') &&
-            (int) Post::get('_um_password_reset') === 1 ) {
+            TT::toInt(Post::get('_um_password_reset')) === 1 ) {
             return 'ultimatemember_password_reset';
         }
         // UltimateMember password reset skip
@@ -1237,7 +1248,7 @@ function apbct_is_skip_request($ajax = false)
             Post::get('do_backups') !== '' &&
             Get::get('vaultpress') === 'true' &&
             Get::get('action') !== '' &&
-            preg_match('%Automattic\/VaultPress\/\d.\d$%', Server::get('HTTP_USER_AGENT'))
+            preg_match('%Automattic\/VaultPress\/\d.\d$%', TT::toString(Server::get('HTTP_USER_AGENT')))
         ) {
             return 'Vault Press service actions';
         }
@@ -1253,14 +1264,14 @@ function apbct_is_skip_request($ajax = false)
         if (
             apbct_is_plugin_active('ws-form-pro/ws-form.php') &&
             ( ( Post::get('wsf_form_id') !== '' && Post::get('wsf_post_id') !== '' ) ||
-            (int) Post::get('wsffid') > 0 )
+            TT::toInt(Post::get('wsffid')) > 0 )
         ) {
             return 'WSForms skip';
         }
         // Checkout For WC - service requests skip
         if (
             apbct_is_plugin_active('checkout-for-woocommerce/checkout-for-woocommerce.php') &&
-            ( ( apbct_is_in_uri('wc-ajax=update_checkout') && wp_verify_nonce(Post::get('security'), 'update-order-review') ) ||
+            ( ( apbct_is_in_uri('wc-ajax=update_checkout') && wp_verify_nonce(TT::toString(Post::get('security')), 'update-order-review') ) ||
             apbct_is_in_uri('wc-ajax=account_exists') ||
             apbct_is_in_uri('wc-ajax=complete_order') )
         ) {
@@ -1340,7 +1351,7 @@ function apbct_is_skip_request($ajax = false)
         // Skip Indeed Ultimate Membership Pro - have the direct integration
         if (
             apbct_is_plugin_active('indeed-membership-pro/indeed-membership-pro.php') &&
-            wp_verify_nonce(Post::get('ihc_user_add_edit_nonce'), 'ihc_user_add_edit_nonce')
+            wp_verify_nonce(TT::toString(Post::get('ihc_user_add_edit_nonce')), 'ihc_user_add_edit_nonce')
         ) {
             return 'Indeed Ultimate Membership Pro - have the direct integration';
         }
@@ -1366,7 +1377,7 @@ function apbct_is_skip_request($ajax = false)
 
         // WP Discuz skip service requests. The plugin have the direct integration
         if ( apbct_is_plugin_active('wpdiscuz/class.WpdiscuzCore.php') &&
-            strpos(Post::get('action'), 'wpdCheckNotificationType') !== false ) {
+            strpos(TT::toString(Post::get('action')), 'wpdCheckNotificationType') !== false ) {
             return 'no_ajax_wpdCheckNotificationType';
         }
     }
@@ -1410,7 +1421,7 @@ function apbct_is_skip_request($ajax = false)
     if (
         apbct_is_plugin_active('events-manager/events-manager.php') &&
         Post::get('action') === 'booking_add' &&
-        wp_verify_nonce(Post::get('_wpnonce'), 'booking_add')
+        wp_verify_nonce(TT::toString(Post::get('_wpnonce')), 'booking_add')
     ) {
         return 'Event Manager skip';
     }
@@ -1500,7 +1511,7 @@ function apbct_settings__get_ajax_type()
             'plugin_name' => 'apbct',
             '_rest_nonce' => $localize['_rest_nonce']
         );
-        $res = json_decode(Helper::httpRequest(get_option('home'), $rc_params), true);
+        $res = json_decode(TT::toString(Helper::httpRequest(get_option('home'), $rc_params)), true);
         if ( is_array($res) && isset($res['success']) ) {
             return 'rest';
         }
@@ -1508,7 +1519,7 @@ function apbct_settings__get_ajax_type()
         $res_rest = Helper::httpRequestGetResponseCode(esc_url(apbct_get_rest_url()));
         $res_body = Helper::httpRequestGetContent(esc_url(apbct_get_rest_url()));
 
-        if ( $res_rest == 200 && Helper::isJson($res_body) ) {
+        if ( $res_rest == 200 && Helper::isJson(TT::toString($res_body)) ) {
             return 'rest';
         }
     }
@@ -1532,7 +1543,11 @@ function apbct__get_cookie_prefix()
 
 function apbct__is_rest_api_request()
 {
-    return strpos($_SERVER['REQUEST_URI'], '/wp-json/') !== false;
+    if (isset($_SERVER['REQUEST_URI'])) {
+        return strpos(TT::toString($_SERVER['REQUEST_URI']), '/wp-json/') !== false;
+    }
+
+    return false;
 }
 
 function apbct__check_admin_ajax_request($query_arg = 'security')

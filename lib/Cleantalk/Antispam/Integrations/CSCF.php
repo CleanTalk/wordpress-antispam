@@ -19,13 +19,19 @@ class CSCF extends IntegrationBase
         if (isset($data['ct_bot_detector_event_token'])) {
             $gfa_checked_data['event_token'] = $data['ct_bot_detector_event_token'];
         }
-        if (array_key_exists('cscf_name', $gfa_checked_data['message']) && empty($gfa_checked_data['nickname'])) {
+        if (
+            isset($gfa_checked_data['message']) &&
+            array_key_exists('cscf_name', $gfa_checked_data['message']) &&
+            empty($gfa_checked_data['nickname'])
+        ) {
             $gfa_checked_data['nickname'] = $gfa_checked_data['message']['cscf_name'];
         }
 
-        foreach ($gfa_checked_data['message'] as $key => $value) {
-            if ($key == 'cscf_message' && !empty($value)) {
-                $gfa_checked_data['message'] = $value;
+        if (isset($gfa_checked_data['message'])) {
+            foreach ($gfa_checked_data['message'] as $key => $value) {
+                if ($key == 'cscf_message' && !empty($value)) {
+                    $gfa_checked_data['message'] = $value;
+                }
             }
         }
 

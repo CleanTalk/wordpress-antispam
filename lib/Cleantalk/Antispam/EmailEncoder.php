@@ -149,22 +149,23 @@ class EmailEncoder
 
         $replacing_result = preg_replace_callback('/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
 
-            if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
+            if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) && isset($matches[0]) ) {
                 return $matches[0];
             }
 
             //chek if email is placed in excluded attributes and return unchanged if so
-            if ( $this->hasAttributeExclusions($matches[0]) ) {
+            if ( isset($matches[0]) && $this->hasAttributeExclusions($matches[0]) ) {
                 return $matches[0];
             }
 
-            if ( $this->isMailto($matches[0]) ) {
+            if ( isset($matches[0]) &&  $this->isMailto($matches[0]) ) {
                 return $this->encodeMailtoLink($matches[0]);
             }
 
             $this->handlePrivacyPolicyHook();
-
-            return $this->encodePlainEmail($matches[0]);
+            if ( isset($matches[0])) {
+                return $this->encodePlainEmail($matches[0]);
+            }
         }, $content);
         //please keep this var (do not simplify the code) for further debug
         return $replacing_result;
@@ -204,9 +205,11 @@ class EmailEncoder
      */
     public function decodeEmailFromPost()
     {
-        $encoded_emails_array = Post::get('encodedEmails');
-        $encoded_emails_array = str_replace('\\', '', $encoded_emails_array);
-        $this->encoded_emails_array = json_decode($encoded_emails_array, true);
+        $encoded_emails_array = Post::get('encodedEmails') ? Post::get('encodedEmails') : false;
+        if ( $encoded_emails_array ) {
+            $encoded_emails_array = str_replace('\\', '', $encoded_emails_array);
+            $this->encoded_emails_array = json_decode($encoded_emails_array, true);
+        }
 
         foreach ( $this->encoded_emails_array as $_key => $encoded_email) {
             $this->decoded_emails_array[$encoded_email] = $this->decodeString($encoded_email, $this->secret_key);
@@ -225,6 +228,7 @@ class EmailEncoder
         return true;
     }
 
+    /** @psalm-suppress PossiblyUnusedParam */
     protected function compileResponse($decoded_emails_array, $is_allowed)
     {
         $result = array();
@@ -286,12 +290,16 @@ class EmailEncoder
      */
     private function obfuscateEmail($email)
     {
+        /** @psalm-suppress PossiblyFalseOperand, PossiblyFalseArgument */
         $first_part = strpos($email, '@') > 2
             ? substr($email, 0, 2) . str_pad('', strpos($email, '@') - 2, '*')
             : str_pad('', strpos($email, '@'), '*');
+        /** @psalm-suppress PossiblyFalseOperand, PossiblyFalseArgument */
         $second_part = substr($email, strpos($email, '@') + 1, 2)
-                       . str_pad('', strpos($email, '.', strpos($email, '@')) - 3 - strpos($email, '@'), '*');
+                    . str_pad('', strpos($email, '.', strpos($email, '@')) - 3 - strpos($email, '@'), '*');
+        /** @psalm-suppress PossiblyFalseOperand, PossiblyFalseArgument */
         $last_part = substr($email, (int) strrpos($email, '.', -1) - strlen($email));
+
         return $first_part . '@' . $second_part . $last_part;
     }
 
@@ -339,7 +347,9 @@ class EmailEncoder
         preg_match('/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/', $mailto_link_str, $matches);
         if ( isset($matches[1]) ) {
             $mailto_inner_text = preg_replace_callback('/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/', function ($matches) {
-                return $this->obfuscateEmail($matches[0]);
+                if (isset($matches[0])) {
+                    return $this->obfuscateEmail($matches[0]);
+                }
             }, $matches[1]);
         }
         $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
@@ -412,6 +422,7 @@ class EmailEncoder
         if (
             apbct_is_plugin_active('ultimate-member/ultimate-member.php') &&
             isset($_POST['um_request']) &&
+            array_key_exists('REQUEST_METHOD', $_SERVER) &&
             strtoupper($_SERVER['REQUEST_METHOD']) === 'POST' &&
             empty(Post::get('encodedEmail'))
         ) {

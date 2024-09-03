@@ -34,9 +34,9 @@ class ThriveLeads extends IntegrationBase
             if ( empty($sender_email) ) {
                 $sender_email = ! empty($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '';
             }
-            $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
-            $subject         = $ct_temp_msg_data['subject'] ?: '';
-            $message         = $ct_temp_msg_data['message'] ?: array();
+            $sender_nickname = isset($ct_temp_msg_data['nickname']) && $ct_temp_msg_data['nickname'] ?: '';
+            $subject         = isset($ct_temp_msg_data['subject']) && $ct_temp_msg_data['subject'] ?: '';
+            $message         = isset($ct_temp_msg_data['message']) && $ct_temp_msg_data['message'] ?: array();
             if ( $subject !== '' ) {
                 $message = array_merge(array('subject' => $subject), $message);
             }

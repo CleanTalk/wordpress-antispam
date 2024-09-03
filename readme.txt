@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.6
 Requires PHP: 5.6
-Stable tag: 6.38
+Stable tag: 6.39.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -443,6 +443,28 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.39.1 26 Aug 2024 =
+* Fix. Params. Fixed honeypot handler.
+
+= 6.39 22 Aug 2024 =
+* New. Integration. Otter blocks integration implemented.
+* New. GetFieldsAny. Sender emails array
+* Upd. Pub-Integration. Adding sender_emails_array
+* Upd. The Real Person. Pop-up changes, layout correction
+* Fix. The Real Person. Overflow changes for the Spacious theme, Icon size changes
+* Fix. The Real Person. Checking against undefined
+* Fix. Adjust. Checking for LiteSpeed activity, review edits
+* Fix. Integrations. Added EmailOctopus handler.
+* Fix. Integrations. Updated email gathering on forminator.
+* Fix. Integrations. Updated skip statement.
+* Fix. TRP. No TRP badges on inactive licenses
+* Fix. Anti-spam. Parameter sender_emails_array moved to the `sender_info` block.
+* Fix. Anti-spam. Emails array support for CF7 integration.
+* Fix. Integration. Elementor Pro Form integration fixed.
+* Fix. Integration. WP Forms integration fixed.
+* Fix. Anti-spam. Honeypot logic fixed.
+* Fix. Integrations. Updated gathering email handler.
 
 = 6.38 =
 * Code. Compatibility. Unnecessary WP Rocket text removed.
