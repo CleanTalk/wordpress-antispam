@@ -15,7 +15,7 @@ function apbctRealUserBadgeViewPopup(id) {
         el.style.display = 'none';
     });
     let popup = document.getElementById(id);
-    if (popup != 'undefined') {
+    if (popup !== undefined) {
         popup.style.display = 'inline-flex';
     }
 }
