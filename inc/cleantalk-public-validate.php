@@ -137,7 +137,11 @@ function ct_contact_form_validate()
 
     $ct_tmp_email = null;
     foreach ($input_array as $key => $value) {
-        if ( is_string($key) && strpos($key, 'et_pb_contact_email') !== false ) {
+        if (is_string($key) &&
+            strpos($key, 'et_pb_contact_email') !== false &&
+            strpos($key, 'et_pb_contact_email_fields') === false &&
+            strpos($key, 'et_pb_contact_email_hidden_fields') === false
+        ) {
             $ct_tmp_email = preg_replace('/[^a-zA-Z0-9@\.\-_]/', '', $value);
             break;
         }
@@ -146,6 +150,7 @@ function ct_contact_form_validate()
     $ct_temp_msg_data = ct_get_fields_any($input_array, $ct_tmp_email);
 
     $sender_email    = (isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '');
+    $sender_emails_array = (isset($ct_temp_msg_data['emails_array']) ? $ct_temp_msg_data['emails_array'] : '');
     $sender_nickname = (isset($ct_temp_msg_data['nickname']) ? $ct_temp_msg_data['nickname'] : '');
     $subject         = (isset($ct_temp_msg_data['subject']) ? $ct_temp_msg_data['subject'] : '');
     $contact_form    = (isset($ct_temp_msg_data['contact']) ? $ct_temp_msg_data['contact'] : '');
@@ -184,14 +189,14 @@ function ct_contact_form_validate()
         $tmp = Sanitize::cleanTextField(Post::get('TellAFriend_Link'));
         unset($_POST['TellAFriend_Link']);
     }
-
+    $sender_info = array('sender_email' => urlencode($sender_email), 'sender_emails_array' => urlencode($sender_emails_array));
     $base_call_result = apbct_base_call(
         array(
             'message'         => $message,
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
             'post_info'       => $post_info,
-            'sender_info'     => array('sender_email' => urlencode($sender_email)),
+            'sender_info'     => $sender_info,
         )
     );
 
@@ -399,6 +404,7 @@ function ct_contact_form_validate_postdata()
     $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '';
+    $sender_emails_array = isset($ct_temp_msg_data['emails_array']) ? $ct_temp_msg_data['emails_array'] : '';
     $sender_nickname = isset($ct_temp_msg_data['nickname']) ? $ct_temp_msg_data['nickname'] : '';
     $subject         = isset($ct_temp_msg_data['subject']) ? $ct_temp_msg_data['subject'] : '';
     $message         = isset($ct_temp_msg_data['message']) ? $ct_temp_msg_data['message'] : array();
@@ -434,6 +440,9 @@ function ct_contact_form_validate_postdata()
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
             'post_info'       => array('comment_type' => 'feedback_general_postdata'),
+            'sender_info'     => array(
+                'sender_emails_array'    => $sender_emails_array,
+            ),
         )
     );
 

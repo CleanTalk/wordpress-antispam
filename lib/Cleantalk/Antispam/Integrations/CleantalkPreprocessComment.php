@@ -94,7 +94,9 @@ class CleantalkPreprocessComment extends IntegrationBase
         $this->post_info['post_url']     = ct_post_url(null, $this->wp_comment_post_id);
 
         // Comment type
-        $this->post_info['comment_type'] = empty($this->post_info['comment_type']) ? 'general_comment' : $this->post_info['comment_type'];
+        $this->post_info['comment_type'] = empty($this->post_info['comment_type'])
+            ? 'contact_form_wordpress_' . strtolower('CleantalkPreprocessComment')
+            : $this->post_info['comment_type'];
 
         $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs')));
 
@@ -203,8 +205,6 @@ class CleantalkPreprocessComment extends IntegrationBase
      */
     public function allow()
     {
-        add_action('comment_post', 'ct_set_real_user_badge_hash', 999, 2);
-
         $wp_comment_moderation_enabled = get_option('comment_moderation') === '1';
         $wp_auto_approve_for_user_who_has_approved_comment = get_option('comment_previously_approved') === '1';
         $clentalk_option_skip_moderation_for_first_comment = get_option('cleantalk_allowed_moderation', 1) == 1;
@@ -221,15 +221,24 @@ class CleantalkPreprocessComment extends IntegrationBase
 
         //check moderation status for inactive license
         if (!empty($this->base_call_result['ct_result']) && !empty($this->base_call_result['ct_result']->codes)) {
+            $codes = $this->base_call_result['ct_result']->codes;
             $is_allowed_because_of_inactive_license = (
-                is_array($this->base_call_result['ct_result']->codes) &&
-                in_array('SERVICE_DISABLED', $this->base_call_result['ct_result']->codes)
+                is_array($codes) &&
+                (
+                    in_array('SERVICE_DISABLED', $codes) ||
+                    in_array('TRIAL_EXPIRED', $codes) ||
+                    in_array('KEY_NOT_FOUND', $codes)
+                )
             );
         }
 
         // If moderation is required - exit with no changes
         if ( $wp_comment_moderation_enabled ) {
             return;
+        }
+
+        if (!$is_allowed_because_of_inactive_license) {
+            add_action('comment_post', 'ct_set_real_user_badge_hash', 999, 2);
         }
 
         // if anu of options is disabled - standard WP recheck and exit

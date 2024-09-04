@@ -1171,6 +1171,32 @@ function apbct_is_skip_request($ajax = false)
             return 'kaliforms_form_process_skip';
         }
 
+        // skip learndash-elementor
+        if (
+            apbct_is_plugin_active('learndash-elementor/learndash-elementor.php') &&
+            (
+                Post::get('course_id') !== '' && Post::get('lesson_id') !== ''
+            )
+        ) {
+            return 'learndash-elementor';
+        }
+
+        // skip klaviyo coupon service request
+        if (
+            apbct_is_plugin_active('klaviyo-coupons/kl-coupons.php') &&
+            Post::get('action') === 'klc_generate_coupon'
+        ) {
+            return 'klc_generate_coupon';
+        }
+
+        // skip Super WooCommerce Product Filter
+        if (
+            apbct_is_plugin_active('super-woocommerce-product-filter/super-woocommerce-product-filter.php') &&
+            Post::get('action') === 'swpf_get_product_list'
+        ) {
+            return 'Super WooCommerce Product Filter';
+        }
+
         // skip Check email before POST request
         if (
                 Post::get('action') === 'apbct_email_check_exist_post'
