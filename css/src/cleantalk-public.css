@@ -1,27 +1,3 @@
-/*.apbct-email-encoder{*/
-/*    position: relative;*/
-/*}*/
-/*.apbct-tooltip{*/
-/*    position: relative;*/
-/*}*/
-/*    .apbct-tooltip--text{*/
-/*        position: absolute;*/
-/*        background: lightgray;*/
-/*        border-radius: 10px;*/
-/*        padding: 5px;*/
-/*        color: white;*/
-/*        top: 4px;*/
-/*    }*/
-/*    .apbct-tooltip--arrow{*/
-/*        position: absolute;*/
-/*        top: 0px;*/
-/*        left: 15px;*/
-/*        width: 10px;*/
-/*        height: 10px;*/
-/*        background: #5a5a5a;*/
-/*        transform: rotate(135deg);*/
-/*    }*/
-
 .apbct-real-user-wrapper {
     display: inline-flex;
     color: #000;
@@ -55,7 +31,7 @@
     display: none;
     width: auto;
     height: max-content;
-    margin-left: 3px;
+    margin-left: 21px;
     padding: 21px 16px 16px 16px;
     font-weight: normal;
     background: white;
@@ -64,6 +40,12 @@
     box-shadow: 5px 5px 24px -11px #444;
     z-index: 1000;
     cursor: default;
+}
+
+@media (min-width: 768px) {
+    .apbct-real-user-popup {
+        position: absolute;
+    }
 }
 
 .apbct-real-user-title {
@@ -114,9 +96,6 @@ input[class*='apbct'].apbct_special_field{
     display: none !important;
 }
 
-.apbct-email-encoder{
-    position: relative;
-}
 .apbct-tooltip{
     display: none;
     position: inherit;
@@ -265,10 +244,12 @@ input[class*='apbct'].apbct_special_field{
 
 .apbct-check_email_exist-good_email {
     background-image: url(../css/images/good_email.svg);
+    margin-right: 10px;
 }
 
 .apbct-check_email_exist-bad_email {
     background-image: url(../css/images/bad_email.svg);
+    margin-right: 10px;
 }
 
 .apbct-check_email_exist-popup_description {
