@@ -73,7 +73,7 @@ class RestController extends \WP_REST_Controller
         // REST route for checking email exist before POST
         register_rest_route($this->namespace, "/check_email_exist_post", array(
             array(
-                'methods'             => 'POST',
+                'methods'             => 'GET',
                 'callback'            => 'apbct_email_check_exist_post',
                 'args'                => array(
                     'email' => array(
