@@ -233,11 +233,11 @@ function apbct_integration__buddyPres__activityWall($is_spam, $activity_obj = nu
     $allowed_post_actions = array('post_update', 'new_activity_comment');
 
     if ( ! in_array(Post::get('action'), $allowed_post_actions) ||
-         $activity_obj === null ||
-         ! Post::get('action') ||
-         $activity_obj->privacy == 'media' ||
-         apbct_exclusions_check() ||
-         ! $apbct->settings['forms__contact_forms_test']
+        $activity_obj === null ||
+        ! Post::get('action') ||
+        (isset($activity_obj->privacy) && $activity_obj->privacy == 'media') ||
+        apbct_exclusions_check() ||
+        ! $apbct->settings['forms__contact_forms_test']
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
@@ -584,6 +584,8 @@ function apbct_wc__add_to_cart_unlogged_user()
     $data = Post::get('data');
     if (is_array($data) && isset($data['ct_bot_detector_event_token'])) {
         $event_token = $data['ct_bot_detector_event_token'];
+    } elseif ( Get::get('ct_bot_detector_event_token') ) {
+        $event_token = Get::get('ct_bot_detector_event_token');
     } else {
         $event_token = null;
     }
@@ -968,79 +970,6 @@ function ct_bbp_new_pre_content($comment)
     }, 1);
 
     return $comment;
-}
-
-function apbct_comment__sanitize_data__before_wp_die($function)
-{
-    global $apbct;
-
-    $comment_data = wp_unslash($_POST);
-
-    $user_ID = 0;
-
-    $comment_type = '';
-
-    $comment_content = isset($comment_data['comment']) ? (string)$comment_data['comment'] : null;
-    $comment_parent  = isset($comment_data['comment_parent']) ? absint($comment_data['comment_parent']) : null;
-
-    $comment_author       = isset($comment_data['author']) ? trim(strip_tags($comment_data['author'])) : null;
-    $comment_author_email = isset($comment_data['email']) ? trim($comment_data['email']) : null;
-    $comment_author_url   = isset($comment_data['url']) ? trim($comment_data['url']) : null;
-    $comment_post_ID      = isset($comment_data['comment_post_ID']) ? (int)$comment_data['comment_post_ID'] : null;
-
-    if ( isset($comment_content, $comment_parent) ) {
-        $user = function_exists('apbct_wp_get_current_user') ? apbct_wp_get_current_user() : null;
-
-        if ( $user && $user->exists() ) {
-            $comment_author       = empty($user->display_name) ? $user->user_login : $user->display_name;
-            $comment_author_email = $user->user_email;
-            $comment_author_url   = $user->user_url;
-            $user_ID              = $user->ID;
-        }
-
-        $apbct->comment_data = compact(
-            'comment_post_ID',
-            'comment_author',
-            'comment_author_email',
-            'comment_author_url',
-            'comment_content',
-            'comment_type',
-            'comment_parent',
-            'user_ID'
-        );
-
-        $function = 'apbct_comment__check_via_wp_die';
-    }
-
-    return $function;
-}
-
-function apbct_comment__check_via_wp_die($message, $title, $args)
-{
-    global $apbct;
-    if ( $title == __('Comment Submission Failure') ) {
-        $apbct->validation_error = $message;
-        ct_preprocess_comment($apbct->comment_data);
-    }
-    _default_wp_die_handler($message, $title, $args);
-}
-
-/**
- * Public filter 'preprocess_comment' - Checks comment by cleantalk server
- *
- * @param array $comment Comment data array
- *
- * @return array|true New data array of comment
- * @psalm-suppress UnusedVariable
- * @deprecated
- */
-function ct_preprocess_comment($comment)
-{
-    global $apbct;
-
-    $integrations = new \Cleantalk\Antispam\Integrations(array(), $apbct->settings);
-    $result = $integrations->checkSpam($comment, 'CleantalkPreprocessComment');
-    return true === $result ? $comment : $result;
 }
 
 /**

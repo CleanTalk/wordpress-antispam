@@ -1345,6 +1345,17 @@ function ct_enqueue_styles_public()
             array(),
             APBCT_VERSION
         );
+
+        if ($apbct->settings['data__email_decoder']) {
+            // Common public styles
+            wp_enqueue_style(
+                'ct_email_decoder_css',
+                APBCT_CSS_ASSETS_PATH . '/cleantalk-email-decoder.min.css',
+                array(),
+                APBCT_VERSION
+            );
+        }
+
         // Public admin styles
         if ( in_array("administrator", $current_user->roles) ) {
             // Admin style for managing comments on public pages

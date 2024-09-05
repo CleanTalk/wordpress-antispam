@@ -293,7 +293,8 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     const inputsTarget = formTarget.querySelectorAll('button, input, textarea, select');
 
     if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1 ||
-        isFormHasDiviRedirect(formSource)
+        isFormHasDiviRedirect(formSource) ||
+        formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1
     ) {
         inputsSource.forEach((elemSource) => {
             inputsTarget.forEach((elemTarget) => {
@@ -611,7 +612,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('eloqua.com') !== -1 || // Eloqua integration
         formAction.indexOf('kulahub.net') !== -1 || // Kulahub integration
         isFormHasDiviRedirect(formObj) || // Divi contact form
-        formAction.indexOf('eocampaign1.com') !== -1 // EmailOctopus Campaign form
+        formAction.indexOf('eocampaign1.com') !== -1 || // EmailOctopus Campaign form
+        formAction.indexOf('wufoo.com') !== -1 // Wufoo form
     ) {
         return true;
     }
