@@ -1196,6 +1196,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Super WooCommerce Product Filter';
         }
+
+        if (
+            Post::get('action') === 'ct_check_internal' &&
+            $apbct->settings['forms__check_internal'] &&
+            class_exists('Cleantalk\Antispam\Integrations\CleantalkInternalForms')
+        ) {
+            return 'APBCT Internal Forms Class';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
