@@ -181,18 +181,7 @@ function checkEmailExist(e) {
                     method: 'POST',
                     data: {'email': currentEmail},
                     callback: function(result) {
-                        if (result.result) {
-                            ctCheckedEmailsExist[currentEmail] = {
-                                'result': result.result,
-                                'timestamp': Date.now() / 1000 |0,
-                            };
-                            if (result.result == 'EXISTS') {
-                                viewCheckEmailExist(e, 'good_email', result.text_result);
-                            } else {
-                                viewCheckEmailExist(e, 'bad_email', result.text_result);
-                            }
-                            // ctSetCookie('ct_checked_emails_exist', JSON.stringify(ctCheckedEmailsExist));
-                        }
+                        getResultCheckEmailExist(e, result, currentEmail);
                     },
                 },
             );
@@ -205,33 +194,40 @@ function checkEmailExist(e) {
                 },
                 {
                     callback: function(result) {
-                        result = result.result;
-
-                        if (result) {
-                            ctCheckedEmailsExist[currentEmail] = {
-                                'result': result,
-                                'timestamp': Date.now() / 1000 |0,
-                            };
-
-                            if (result.result == 'EXISTS') {
-                                viewCheckEmailExist(e, 'good_email', result.text_result);
-                            } else {
-                                viewCheckEmailExist(e, 'bad_email', result.text_result);
-                            }
-                        }
+                        getResultCheckEmailExist(e, result, currentEmail);
                     },
                 },
             );
         }
     } else if (currentEmail && ctCheckedEmailsExist) {
-        result = ctCheckedEmailsExist[currentEmail].result;
+        result = ctCheckedEmailsExist[currentEmail];
+        getResultCheckEmailExist(e, result, currentEmail);
+    } else {
+        viewCheckEmailExist(e, '', '');
+    }
+}
+
+/**
+ * @param {mixed} e
+ * @param {mixed} result
+ * @param {string} currentEmail
+ */
+function getResultCheckEmailExist(e, result, currentEmail) {
+    result = result.result;
+
+    if (result) {
+        ctCheckedEmailsExist[currentEmail] = {
+            'result': result,
+            'timestamp': Date.now() / 1000 |0,
+        };
+
         if (result.result == 'EXISTS') {
             viewCheckEmailExist(e, 'good_email', result.text_result);
         } else {
             viewCheckEmailExist(e, 'bad_email', result.text_result);
         }
-    } else {
-        viewCheckEmailExist(e, '', '');
+
+        ctSetCookie('ct_checked_emails_exist', JSON.stringify(ctCheckedEmailsExist));
     }
 }
 
@@ -766,6 +762,7 @@ function apbct_ready() {
     }
 
     if ( +ctPublic.data__email_check_exist_post) {
+        initCookies.push(['ct_checked_emails_exist', '0']);
         apbct('comment-form input[type = \'email\'], #email').on('blur', checkEmailExist);
     }
 
@@ -1412,6 +1409,7 @@ function getJavascriptClientData(commonCookies = []) {
 
     resultDataJson.apbct_headless = !!ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_headless');
     resultDataJson.ct_checked_emails = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails');
+    resultDataJson.ct_checked_emails_exist = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails_exist');
     resultDataJson.ct_checkjs = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checkjs');
     resultDataJson.ct_fkp_timestamp = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_fkp_timestamp');
     resultDataJson.ct_pointer_data = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_pointer_data');

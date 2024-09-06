@@ -23,7 +23,6 @@ class API
     const URL = 'https://api.cleantalk.org';
     const AGENT = 'ct-api-3.2';
 
-    protected static $url;
     /**
      * Wrapper for 2s_blacklists_db API method.
      * Gets data for SpamFireWall.

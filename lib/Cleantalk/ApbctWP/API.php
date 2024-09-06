@@ -56,8 +56,6 @@ class API extends \Cleantalk\Common\API
      */
     public static function methodEmailCheckExist($email, $api_key = '')
     {
-        static::$url = static::URL;
-
         $request = array(
             'method_name' => 'email_check_cms',
             'auth_key' => $api_key,
