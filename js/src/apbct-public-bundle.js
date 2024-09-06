@@ -1737,6 +1737,7 @@ function checkEmailExist(e) {
     if (currentEmail && !(currentEmail in ctCheckedEmailsExist)) {
         viewCheckEmailExist(e, 'load');
         // Using REST API handler
+        ctPublicFunctions.data__ajax_type = 'rest';
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
             apbct_public_sendREST(
                 'check_email_exist_post',
