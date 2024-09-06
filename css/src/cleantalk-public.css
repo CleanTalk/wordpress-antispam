@@ -231,6 +231,10 @@ input[class*='apbct'].apbct_special_field{
 
 }
 
+.apbct-check_email_exist-block {
+    position: relative;
+}
+
 .apbct-check_email_exist-good_email, .apbct-check_email_exist-bad_email {
     height: 48px;
     width: 26px;

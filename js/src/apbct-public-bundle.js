@@ -1803,23 +1803,29 @@ function getResultCheckEmailExist(e, result, currentEmail) {
 function viewCheckEmailExist(e, state, textResult) {
     let parentElement = e.target.parentElement;
     let allInputEmail = document.querySelectorAll('[type*="email"]');
-
-    if (!document.getElementById('apbct-check_email_exist-popup_description')) {
-        let divPopup = document.createElement('div');
-        divPopup.setAttribute('class', 'apbct-check_email_exist-popup_description');
-        divPopup.setAttribute('id', 'apbct-check_email_exist-popup_description');
+    let divPopup = '';
+    let lable = '';
+    if (!document.getElementById('apbct-check_email_exist-block')) {
+        let divBlock = document.createElement('div');
+        divBlock.setAttribute('class', 'apbct-check_email_exist-block');
+        divBlock.setAttribute('id', 'apbct-check_email_exist-block');
+        if (!document.getElementById('apbct-check_email_exist-popup_description')) {
+            divPopup = document.createElement('div');
+            divPopup.setAttribute('class', 'apbct-check_email_exist-popup_description');
+            divPopup.setAttribute('id', 'apbct-check_email_exist-popup_description');
+        }
+        if (!document.getElementById('apbct-check_email_exist-lable')) {
+            lable = document.createElement('lable');
+            lable.setAttribute('for', 'email');
+            lable.setAttribute('class', 'apbct-check_email_exist-load');
+            lable.setAttribute('id', 'apbct-check_email_exist-lable');
+        }
+        divBlock.append(divPopup ? divPopup : '');
+        divBlock.append(lable ? lable : '');
         allInputEmail.forEach((input) => {
-            parentElement.insertBefore(divPopup, input);
-        });
-    }
-
-    if (!document.getElementById('apbct-check_email_exist-lable')) {
-        let lable = document.createElement('lable');
-        lable.setAttribute('for', 'email');
-        lable.setAttribute('class', 'apbct-check_email_exist-load');
-        lable.setAttribute('id', 'apbct-check_email_exist-lable');
-        allInputEmail.forEach((input) => {
-            parentElement.insertBefore(lable, input);
+            let heightInput = input.offsetHeight;
+            lable.setAttribute('style', `height: ${heightInput}px;`);
+            parentElement.insertBefore(divBlock, input);
         });
     }
 
