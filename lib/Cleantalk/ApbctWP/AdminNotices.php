@@ -4,6 +4,7 @@ namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\UniversalBanner\UniversalBanner;
 
 class AdminNotices
 {
@@ -31,7 +32,8 @@ class AdminNotices
         'notice_renew',
         'notice_incompatibility',
         'notice_review',
-        'notice_email_decoder_changed'
+        'notice_email_decoder_changed',
+        'notice_universal'
     );
 
     /**
@@ -121,6 +123,24 @@ class AdminNotices
         } else {
             $admin_notices->settings_link = 'options-general.php?page=cleantalk';
         }
+    }
+
+    /**
+     * @throws \Exception
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function notice_universal() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        $universal_banner = new ApbctUniversalBanner(
+            'test_banner_name',
+            'test_token',
+            'This is a test banner, lorem ipsum bla bla n]bla, renew the best of the best of the plugins immediately!',
+            'Renew',
+            'https://cleantalk.org?user_token=%s',
+            'warning'
+        );
+
+        $universal_banner->echoBannerBody();
     }
 
     /**
