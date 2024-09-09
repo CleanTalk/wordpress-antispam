@@ -16,13 +16,22 @@ class Forminator extends IntegrationBase
                 continue;
             }
             if (is_string($key) && strpos($key, 'email-') === 0) {
-                $email = $value;
+                $email = trim(str_replace(' ', '', $value));
                 continue;
             }
         }
-        $data['username'] = $username;
 
-        return ct_gfa(apply_filters('apbct__filter_post', $data), $email);
+        $tmp_data = ct_gfa(apply_filters('apbct__filter_post', $data));
+
+        if ($username !== '') {
+            $tmp_data['username'] = $username;
+        }
+
+        if ($email !== '') {
+            $tmp_data['email'] = $email;
+        }
+
+        return $tmp_data;
     }
 
     public function doBlock($message)
