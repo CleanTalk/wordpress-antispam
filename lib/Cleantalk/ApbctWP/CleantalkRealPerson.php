@@ -29,7 +29,7 @@ class CleantalkRealPerson
         if (isset($comment->comment_author_email)) {
             $user = get_user_by('email', $comment->comment_author_email);
             if ($user) {
-               return $comment_author;
+                return $comment_author;
             }
         }
 
