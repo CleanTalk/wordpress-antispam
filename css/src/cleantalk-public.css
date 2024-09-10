@@ -32,7 +32,7 @@
     width: auto;
     height: max-content;
     margin-left: 21px;
-    padding: 21px 16px 16px 16px;
+    padding: 16px 16px 16px 16px;
     font-weight: normal;
     background: white;
     border: 1px #ccc solid;
@@ -50,16 +50,17 @@
 
 .apbct-real-user-title {
     display: grid;
-    gap: 16px;
+    gap: 4px!important;
 }
 
 .apbct-real-user-popup-content_row {
     display: flex;
-    gap: 4px;
+    gap: 1px;
 }
 
 .apbct-real-user-popup-img {
     align-self: start;
+    margin: 0!important;
 }
 
 .apbct-real-user-popup-header {
@@ -77,6 +78,8 @@
     .apbct-real-user-popup-text {
         user-select: all;
         margin: 2px 0 2px 0;
+        background: white!important;
+        color: black!important;
     }
 }
 

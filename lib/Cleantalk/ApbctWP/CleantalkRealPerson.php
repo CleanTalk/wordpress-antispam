@@ -26,6 +26,12 @@ class CleantalkRealPerson
             return $comment_author;
         }
 
+        if (isset($comment->comment_author_email)) {
+            $user = get_user_by('email', $comment->comment_author_email);
+            if ($user) {
+               return $comment_author;
+            }
+        }
 
         $ct_hash = get_comment_meta((int)$comment_id, 'ct_real_user_badge_hash', true);
         if (!$ct_hash && $comment->user_id == 0) {
