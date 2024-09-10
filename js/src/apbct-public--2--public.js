@@ -1922,8 +1922,8 @@ function apbctWriteReferrersToSessionStorage() {
 /**
  * WooCommerce add to cart by GET request params collecting
  */
-// 1) Collect all links with add_to_cart_button class
-const apbctCheckAddToCartByGet = () => (
+function apbctCheckAddToCartByGet() {
+    // 1) Collect all links with add_to_cart_button class
     document.querySelectorAll('a.add_to_cart_button:not(.product_type_variable):not(.wc-interactive)').forEach((el) => {
         el.addEventListener('click', function(e) {
             let href = el.getAttribute('href');
@@ -1940,4 +1940,4 @@ const apbctCheckAddToCartByGet = () => (
             }
         });
     })
-);
+}
