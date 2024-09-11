@@ -3513,6 +3513,7 @@ let cleantalkModal = {
     loading: false,
     opened: false,
     opening: false,
+    ignoreURLConvert: false,
 
     // Methods
     load: function( action ) {
@@ -3652,7 +3653,7 @@ let cleantalkModal = {
         if ( this.loaded ) {
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             const serviceContentRegex = /.*\/inc/g;
-            if (serviceContentRegex.test(this.loaded)) {
+            if (serviceContentRegex.test(this.loaded) || this.ignoreURLConvert) {
                 content.innerHTML = this.loaded;
             } else {
                 content.innerHTML = this.loaded.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
