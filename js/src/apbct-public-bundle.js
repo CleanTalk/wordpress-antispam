@@ -3502,7 +3502,7 @@ function apbctCheckAddToCartByGet() {
                 el.setAttribute('href', href);
             }
         });
-    })
+    });
 }
 
 /* Cleantalk Modal object */

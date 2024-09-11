@@ -1939,5 +1939,5 @@ function apbctCheckAddToCartByGet() {
                 el.setAttribute('href', href);
             }
         });
-    })
+    });
 }
