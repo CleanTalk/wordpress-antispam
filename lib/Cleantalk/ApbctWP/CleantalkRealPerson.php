@@ -138,7 +138,6 @@ class CleantalkRealPerson
             $comment_author = $curr_comment->comment_author;
 
             $trp_popup_header = __('The Real Person!', 'cleantalk-spam-protect');
-            $trp_author = $comment_author;
             $trp_author_bold = '<b>' . $comment_author . '</b>';
             $trp_popup_text_person = __('Author %s acts as a real person and verified as not a bot.', 'cleantalk-spam-protect');
             $trp_popup_text_person = sprintf($trp_popup_text_person, $trp_author_bold);
