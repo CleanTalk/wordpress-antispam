@@ -55,12 +55,15 @@
 
 .apbct-real-user-popup-content_row {
     display: flex;
+    align-items: center;
     gap: 1px;
 }
 
 .apbct-real-user-popup-img {
     align-self: start;
     margin: 0!important;
+    height: max-content;
+    vertical-align: center;
 }
 
 .apbct-real-user-popup-header {
@@ -76,6 +79,7 @@
         width: max-content;
     }
     .apbct-real-user-popup-text {
+        display: inline-block;
         user-select: all;
         margin: 2px 0 2px 0;
         background: white!important;
