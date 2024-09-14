@@ -3098,9 +3098,6 @@ function apbct_cron_clear_old_session_data()
 {
     global $apbct;
 
-    if ( $apbct->data['cookies_type'] === 'none' ) {
-        \Cleantalk\ApbctWP\Variables\NoCookie::cleanFromOld();
-    }
     if ( $apbct->data['cookies_type'] === 'alternative' ) {
         \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
     }

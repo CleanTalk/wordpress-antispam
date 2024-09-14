@@ -431,18 +431,6 @@ function ctSetHasKeyUp() {
     }
 }
 
-/**
- * ctPreloadLocalStorage
- */
-function ctPreloadLocalStorage() {
-    if (ctPublic.data__to_local_storage) {
-        let data = Object.entries(ctPublic.data__to_local_storage);
-        data.forEach(([key, value]) => {
-            apbctLocalStorage.set(key, value);
-        });
-    }
-}
-
 if (ctPublic.data__key_is_ok) {
     apbct_attach_event_handler(document, 'mousemove', ctFunctionMouseMove);
     apbct_attach_event_handler(document, 'mousedown', ctFunctionFirstKey);
@@ -532,8 +520,6 @@ function apbct_ready() {
     // }
 
     apbctPrepareBlockForAjaxForms();
-
-    ctPreloadLocalStorage();
 
     // set session ID
     if (!apbctSessionStorage.isSet('apbct_session_id')) {
