@@ -589,6 +589,11 @@ function ct_ajax_hook($message_obj = null)
         Cookie::$force_alt_cookies_global = true;
     }
 
+    // thriveleads modification to check gravity forms
+    if ( Post::get('action') === 'tve_api_form_submit' ) {
+        unset($_POST['ct_checkjs']);
+    }
+
     /**
      * Filter for POST
      */
