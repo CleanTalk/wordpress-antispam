@@ -1421,6 +1421,11 @@ function apbct_sfw_update__init($delay = 0)
         $apbct->data['sfw_load_type'] = 'common';
     }
 
+    if ( $apbct->network_settings['multisite__work_mode'] == 3) {
+        $apbct->data['sfw_load_type'] = 'all';
+        $apbct->save('data');
+    }
+
     if (apbct_sfw_update__switch_to_direct()) {
         return SFWUpdateHelper::directUpdate();
     }
@@ -1828,11 +1833,19 @@ function apbct_sfw_update__create_tables($direct_update = false, $return_new_tab
     $table_name_personal = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
     $db_tables_creator->createTable($table_name_personal);
     $apbct->data['sfw_personal_table_name'] = $table_name_personal;
+    //ua table
+    $personal_ua_bl_table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'ua_bl';
+    $db_tables_creator->createTable($personal_ua_bl_table_name);
+    $apbct->data['sfw_personal_ua_bl_table_name'] = $personal_ua_bl_table_name;
 
     $apbct->saveData();
 
     if ( $return_new_tables_names ) {
-        return array('sfw_common_table_name' => $common_table_name, 'sfw_personal_table_name' => $table_name_personal);
+        return array(
+            'sfw_common_table_name' => $common_table_name,
+            'sfw_personal_table_name' => $table_name_personal,
+            'sfw_personal_ua_bl_table_name' => $personal_ua_bl_table_name,
+            );
     }
 
     return $direct_update ? true : array(
@@ -1851,12 +1864,12 @@ function apbct_sfw_update__create_temp_tables($direct_update = false)
     global $apbct;
 
     // Create common table
-    $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
+    $result = SFW::createTempTables(DB::getInstance(), $apbct->data['sfw_common_table_name']);
     if ( ! empty($result['error']) ) {
         return $result;
     }
     // Create personal table
-    $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL);
+    $result = SFW::createTempTables(DB::getInstance(), $apbct->data['sfw_personal_table_name']);
     if ( ! empty($result['error']) ) {
         return $result;
     }
