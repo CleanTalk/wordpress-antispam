@@ -1033,6 +1033,41 @@ class ApbctRest extends ApbctXhr {
     }
 }
 
+// eslint-disable-next-line no-unused-vars, require-jsdoc
+class apbctSessionFlags {
+    static prefix = 'apbct_s_flag_';
+
+    /**
+    @param {string} name
+    @return {boolean}
+    */
+    static prevalidate(name) {
+        return typeof name === 'string' && typeof apbctSessionStorage !== 'undefined';
+    };
+
+    /**
+     @param {string} name
+     */
+    static set(name) {
+        this.prevalidate(name) && apbctSessionStorage.set(this.prefix + name, 1, false);
+    };
+
+    /**
+     @param {string} name
+     */
+    static unset(name) {
+        this.prevalidate(name) && apbctSessionStorage.delete(this.prefix + name);
+    };
+
+    /**
+     @param {string} name
+     @return {boolean}
+     */
+    static get(name) {
+        return this.prevalidate(name) && apbctSessionStorage.get(this.prefix + name) === 1;
+    };
+}
+
 // add hasOwn
 if (!Object.prototype.hasOwn) {
     Object.defineProperty(Object.prototype, 'hasOwn', { // eslint-disable-line
@@ -1571,6 +1606,9 @@ let ctCheckedEmails = {};
 let ctMouseReadInterval;
 let ctMouseWriteDataInterval;
 let tokenCheckerIntervalId;
+
+apbctSessionFlags.unset('important_parameters_set');
+
 
 // eslint-disable-next-line require-jsdoc,camelcase
 function apbct_attach_event_handler(elem, event, callback) {
@@ -2366,11 +2404,18 @@ function apbctCatchXmlHttpRequest() {
     }
 
     // Set important parameters via ajax
-    if ( ctPublic.advancedCacheExists || ctPublic.varnishCacheExists ) {
+    if (
+        ( ctPublic.advancedCacheExists || ctPublic.varnishCacheExists ) &&
+        !apbctSessionFlags.get('important_parameters_set')
+    ) {
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
-            apbct_public_sendREST('apbct_set_important_parameters', {});
+            apbct_public_sendREST('apbct_set_important_parameters', {
+                callback: apbctSessionFlags.set('important_parameters_set'),
+            });
         } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
-            apbct_public_sendAJAX({action: 'apbct_set_important_parameters'}, {});
+            apbct_public_sendAJAX({action: 'apbct_set_important_parameters'}, {
+                callback: apbctSessionFlags.set('important_parameters_set'),
+            });
         }
     }
 }

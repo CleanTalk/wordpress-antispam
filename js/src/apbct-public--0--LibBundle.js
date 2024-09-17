@@ -1032,3 +1032,38 @@ class ApbctRest extends ApbctXhr {
         super(args);
     }
 }
+
+// eslint-disable-next-line no-unused-vars, require-jsdoc
+class apbctSessionFlags {
+    static prefix = 'apbct_s_flag_';
+
+    /**
+    @param {string} name
+    @return {boolean}
+    */
+    static prevalidate(name) {
+        return typeof name === 'string' && typeof apbctSessionStorage !== 'undefined';
+    };
+
+    /**
+     @param {string} name
+     */
+    static set(name) {
+        this.prevalidate(name) && apbctSessionStorage.set(this.prefix + name, 1, false);
+    };
+
+    /**
+     @param {string} name
+     */
+    static unset(name) {
+        this.prevalidate(name) && apbctSessionStorage.delete(this.prefix + name);
+    };
+
+    /**
+     @param {string} name
+     @return {boolean}
+     */
+    static get(name) {
+        return this.prevalidate(name) && apbctSessionStorage.get(this.prefix + name) === 1;
+    };
+}
