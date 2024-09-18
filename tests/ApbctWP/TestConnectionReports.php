@@ -6,6 +6,8 @@ use Cleantalk\ApbctWP\HTTP\Request;
 use Cleantalk\ApbctWP\State;
 use PHPUnit\Framework\TestCase;
 
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-updater.php');
+
 class TestConnectionReports extends TestCase
 {
     private $connection_reports;
