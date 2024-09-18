@@ -156,9 +156,14 @@ class Helper extends \Cleantalk\Common\Helper
             unset($patterns[$key]);
         }
 
+        $request_params = array_merge($request_params, array('test' => 'test'));
+        $url = substr(get_option('home'), -1) === '/'
+            ? get_option('home')
+            : get_option('home') . '/';
+
         $result = static::httpRequest(
-            substr(get_option('home'), -1) === '/' ? get_option('home') : get_option('home') . '/',
-            array_merge($request_params, array('test' => 'test')),
+            $url,
+            $request_params,
             $patterns
         );
 

@@ -742,6 +742,9 @@ function apbct_ready() {
 
     // Check any XMLHttpRequest connections
     apbctCatchXmlHttpRequest();
+
+    // Set important paramaters via ajax if problematic cache solutions found
+    apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
 }
 
 /**
@@ -787,9 +790,15 @@ function apbctCatchXmlHttpRequest() {
             return originalSend.apply(this, [body]);
         };
     }
+}
 
+/**
+ * Run AJAX to set important_parameters on the site backend if problematic cache solutions are defined.
+ * @param {boolean} cacheExist
+ */
+function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) {
     // Set important parameters via ajax
-    if ( ctPublic.advancedCacheExists || ctPublic.varnishCacheExists ) {
+    if ( cacheExist ) {
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
             apbct_public_sendREST('apbct_set_important_parameters', {});
         } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
@@ -1908,8 +1917,8 @@ function apbctWriteReferrersToSessionStorage() {
 /**
  * WooCommerce add to cart by GET request params collecting
  */
-// 1) Collect all links with add_to_cart_button class
-const apbctCheckAddToCartByGet = () => (
+function apbctCheckAddToCartByGet() {
+    // 1) Collect all links with add_to_cart_button class
     document.querySelectorAll('a.add_to_cart_button:not(.product_type_variable):not(.wc-interactive)').forEach((el) => {
         el.addEventListener('click', function(e) {
             let href = el.getAttribute('href');
@@ -1925,5 +1934,5 @@ const apbctCheckAddToCartByGet = () => (
                 el.setAttribute('href', href);
             }
         });
-    })
-);
+    });
+}
