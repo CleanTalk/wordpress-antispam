@@ -895,6 +895,17 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
     add_filter('get_search_query', 'apbct_forms__search__testSpam');
     add_action('wp_head', 'apbct_search_add_noindex', 1);
 
+    if (apbct_is_plugin_active('fluentformpro/fluentformpro.php') && apbct_is_in_uri('ff_landing=')) {
+        add_action('wp_head', function () {
+            echo '<script data-pagespeed-no-defer="" src="'
+                . APBCT_URL_PATH
+                . '/js/apbct-public-bundle.min.js'
+                . '?ver=' . APBCT_VERSION . '" id="ct_public_functions-js"></script>';
+            echo '<script src="https://moderate.cleantalk.org/ct-bot-detector-wrapper.js?ver='
+                . APBCT_VERSION . '" id="ct_bot_detector-js"></script>';
+        }, 100);
+    }
+
     // SpamFireWall check
     if ( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
          $apbct->settings['sfw__enabled'] == 1 &&
