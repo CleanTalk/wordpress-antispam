@@ -724,9 +724,9 @@ function apbct_email_check_exist_post()
         if ( isset($result['result']) ) {
             $text_result = '';
             if ( $result['result'] != 'EXISTS' ) {
-                $text_result = __('The Email is not exists, double check the address. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect');
+                $text_result = __('The email doesn`t exist, double check the address. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect');
             } else {
-                $text_result = __('The Email is exists and good to use! Anti-Spam by CleanTalk', 'cleantalk-spam-protect');
+                $text_result = __('The email exists and is good to use! Anti-Spam by CleanTalk', 'cleantalk-spam-protect');
             }
             $result['text_result'] = $text_result;
             die(json_encode(array('result' => $result)));
