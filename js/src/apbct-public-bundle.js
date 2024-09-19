@@ -3487,7 +3487,7 @@ function apbctCheckAddToCartByGet() {
             let href = el.getAttribute('href');
             // 2) Add to href attribute additional parameter ct_bot_detector_event_token gathered from apbctLocalStorage
             let eventToken = apbctLocalStorage.get('bot_detector_event_token');
-            if ( eventToken !== null ) {
+            if ( eventToken ) {
                 if ( href.indexOf('?') === -1 ) {
                     href += '?';
                 } else {
