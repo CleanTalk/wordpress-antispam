@@ -834,7 +834,7 @@ function apbct_settings__set_fields()
         'misc'                  => array(
             'title'      => __('Miscellaneous', 'cleantalk-spam-protect'),
             'section'    => 'hidden_section',
-            'html_after' => '</div><div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}</div></div>',
+            'html_after' => '</div><div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}<div class="apbct_hidden_section_nav_mob_btn"></div></div></div>',
             'fields'     => array(
                 'misc__send_connection_reports' => array(
                     'type'        => 'checkbox',
@@ -1324,6 +1324,7 @@ function apbct_settings__display()
     do_settings_fields('cleantalk', 'cleantalk_section_settings_main');
 
     $hidden_groups = '<ul>';
+    $hidden_groups .= '<li><div class="apbct_hidden_section_nav_mob_btn-close"></div></li>';
     foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
         if ( isset($group['section']) && $group['section'] === 'hidden_section' ) {
             $hidden_groups .= '<li><a href="#apbct_setting_group__' . $group_name . '">' .
