@@ -71,15 +71,6 @@ class Schema
             '__indexes' => 'PRIMARY KEY (`name`(40), `id`(64))',
             '__createkey' => 'VARCHAR(64) NOT NULL primary KEY FIRST'
         ),
-        'no_cookie_data' => array(
-            'id' => 'VARCHAR(64) NOT NULL',
-            'name' => 'VARCHAR(40) NOT NULL',
-            'value' => 'TEXT NULL DEFAULT NULL',
-            'last_update' => 'DATETIME NULL DEFAULT NULL',
-            'prev_value' => 'TEXT NULL DEFAULT NULL',
-            '__indexes' => 'PRIMARY KEY (`name`(40), `id`(64))',
-            '__createkey' => 'VARCHAR(64) NOT NULL primary KEY FIRST'
-        ),
         'spamscan_logs' => array(
             'id' => 'INT NOT NULL AUTO_INCREMENT',
             'scan_type' => 'VARCHAR(11) NOT NULL',

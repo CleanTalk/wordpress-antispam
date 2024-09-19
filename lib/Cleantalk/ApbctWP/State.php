@@ -485,10 +485,6 @@ class State extends \Cleantalk\Common\State
             // Table with session data.
             define('APBCT_TBL_SESSIONS', $db_prefix . 'cleantalk_sessions');
         }
-        if ( ! defined('APBCT_TBL_NO_COOKIE')) {
-            // Table with session data.
-            define('APBCT_TBL_NO_COOKIE', $db_prefix . 'cleantalk_no_cookie_data');
-        }
         if ( ! defined('APBCT_TBL_CONNECTION_REPORTS')) {
             // Table with connection reports data.
             define('APBCT_TBL_CONNECTION_REPORTS', $db_prefix . 'cleantalk_connection_reports');

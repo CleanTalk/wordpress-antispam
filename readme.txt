@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.6
 Requires PHP: 5.6
-Stable tag: 6.40
+Stable tag: 6.41
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -443,6 +443,17 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.41 19 Sep 2024 =
+* Upd. Params. Removed nocookie table.
+* Upd. Integrations. Updated handler for FluentFormPro addon.
+* Upd. TRP. Updated layout.
+* Fix. Integrations. Updated Forminator handler.
+* Fix. Integrations. WC add to cart. Use function instead of const to handle GET cards.
+* Fix. Admin. CleanTalk deactivation popup layout fixed.
+* Fix. WPMS. SFW update fixed on WPMS mode 3.
+* Fix. HTTP. Headers collection for WordPress HTTP API fixed.
+* Fix. Public JS. Reduce setting important parameters AJAX calls.
 
 = 6.40 05 Sep 2024 =
 * New. Email encoder. Animations and blur emails added.

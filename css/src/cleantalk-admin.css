@@ -136,6 +136,15 @@
     position: relative;
 }
 
+.apbct-real-user-badge {
+	display: inline-flex;
+	margin-left: 12px;
+	margin-right: 3px;
+	height: 15px;
+	cursor: pointer;
+	position: relative;
+}
+
 .apbct-admin-real-user-popup {
     display: none;
     width: auto;
@@ -156,7 +165,7 @@
 .apbct-admin-real-user-title {
     display: grid;
 	width: max-content;
-    gap: 16px;
+    gap: 4px!important;
 }
 
 .apbct-admin-real-user-popup-content_row {
