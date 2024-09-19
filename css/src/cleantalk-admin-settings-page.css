@@ -332,6 +332,18 @@ button[value="save_changes"]:disabled {
     gap: 10px;
 }
 
+.apbct_hidden_section_nav_mob_btn {
+    display: none;
+    background-image: url("images/menu.svg");
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position-y: center;
+}
+
+.apbct_hidden_section_nav_mob_btn-close {
+    display: none;
+}
+
 @media (max-width: 768px) {
     .apbct_settings_top_info__btn {
         display: inline-grid;
@@ -355,6 +367,7 @@ button[value="save_changes"]:disabled {
     }
 
     #apbct_hidden_section_nav ul {
+        display: none;
         background-color: #dadee3bd;
         margin: 0;
         padding: 10px;
@@ -363,7 +376,7 @@ button[value="save_changes"]:disabled {
 
     #apbct_hidden_section_nav {
         right: 0;
-        min-width: 100px;
+        min-width: 167px;
     }
 
     .apbct_setting_radio::before {
@@ -382,6 +395,29 @@ button[value="save_changes"]:disabled {
     .apbct_setting_radio {
         height: 16px !important;
         width: 16px !important;
+    }
+
+    .apbct_hidden_section_nav_mob_btn {
+        display: block;
+        width: 32px;
+        height: 28px;
+        right: -120px;
+        position: relative;
+    }
+
+    .apbct_hidden_section_nav_mob_btn-close {
+        display: block;
+        position: relative;
+        float: right;
+        width: 20px;
+        height: 22px;
+        top: -5px;
+        right: -5px;
+        background-image: url(images/cancel.svg);
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-position-y: center;
+        text-align: center;
     }
 }
 
