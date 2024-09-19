@@ -121,7 +121,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
                 if ( static::$force_alt_cookies_global || in_array($name, static::$force_to_use_alternative_cookies, true) ) {
                     AltSessions::set($name, $value);
                 } else {
-                    return NoCookie::set($name, $value, $no_cookie_to_db);
+                    return NoCookie::set($name, $value);
                 }
             } elseif ($apbct->data['cookies_type'] === 'alternative') {
                 AltSessions::set($name, $value);

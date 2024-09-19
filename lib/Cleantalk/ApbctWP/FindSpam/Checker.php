@@ -125,6 +125,9 @@ abstract class Checker
                     'cleantalk-spam-protect'
                 ); ?>
             </p>
+            <p class="ct_check_params_desc">
+                <?php _e('Process of verification is designed to check IP addresses and emails against our blacklist database. Please note that this check only verifies whether the IP address or email is listed in our blacklist at the time of the request. If the IP address or email was not on the blacklist at the time of the query, the system will not flag the user or comment as suspicious. Therefore, this is not an anti-spam feature but rather a check against a static database of blacklisted entries.', 'cleantalk-spam-protect'); ?>
+            </p>
             <br/>
             <div class="ct_check_params_elem ct_check_params_elem_sub">
                 <input id="ct_accurate_check" type="checkbox" value="1"/><label for="ct_accurate_check"><strong><?php

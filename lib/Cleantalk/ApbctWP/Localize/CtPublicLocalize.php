@@ -26,7 +26,6 @@ class CtPublicLocalize
             'data__cookies_type'              => $apbct->data['cookies_type'],
             'data__key_is_ok'                 => $apbct->data['key_is_ok'],
             'data__visible_fields_required'   => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
-            'data__to_local_storage' => \Cleantalk\ApbctWP\Variables\NoCookie::preloadForScripts(),
 
             'wl_brandname'          => $apbct->data['wl_brandname'],
             'wl_brandname_short'    => $apbct->data['wl_brandname_short'],

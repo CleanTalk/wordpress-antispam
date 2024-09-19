@@ -1994,18 +1994,6 @@ function ctSetHasKeyUp() {
     }
 }
 
-/**
- * ctPreloadLocalStorage
- */
-function ctPreloadLocalStorage() {
-    if (ctPublic.data__to_local_storage) {
-        let data = Object.entries(ctPublic.data__to_local_storage);
-        data.forEach(([key, value]) => {
-            apbctLocalStorage.set(key, value);
-        });
-    }
-}
-
 if (ctPublic.data__key_is_ok) {
     apbct_attach_event_handler(document, 'mousemove', ctFunctionMouseMove);
     apbct_attach_event_handler(document, 'mousedown', ctFunctionFirstKey);
@@ -2095,8 +2083,6 @@ function apbct_ready() {
     // }
 
     apbctPrepareBlockForAjaxForms();
-
-    ctPreloadLocalStorage();
 
     // set session ID
     if (!apbctSessionStorage.isSet('apbct_session_id')) {
@@ -2319,6 +2305,9 @@ function apbct_ready() {
 
     // Check any XMLHttpRequest connections
     apbctCatchXmlHttpRequest();
+
+    // Set important paramaters via ajax if problematic cache solutions found
+    apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
 }
 
 /**
@@ -2364,9 +2353,15 @@ function apbctCatchXmlHttpRequest() {
             return originalSend.apply(this, [body]);
         };
     }
+}
 
+/**
+ * Run AJAX to set important_parameters on the site backend if problematic cache solutions are defined.
+ * @param {boolean} cacheExist
+ */
+function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) {
     // Set important parameters via ajax
-    if ( ctPublic.advancedCacheExists || ctPublic.varnishCacheExists ) {
+    if ( cacheExist ) {
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
             apbct_public_sendREST('apbct_set_important_parameters', {});
         } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
@@ -3485,14 +3480,14 @@ function apbctWriteReferrersToSessionStorage() {
 /**
  * WooCommerce add to cart by GET request params collecting
  */
-// 1) Collect all links with add_to_cart_button class
-const apbctCheckAddToCartByGet = () => (
+function apbctCheckAddToCartByGet() {
+    // 1) Collect all links with add_to_cart_button class
     document.querySelectorAll('a.add_to_cart_button:not(.product_type_variable):not(.wc-interactive)').forEach((el) => {
         el.addEventListener('click', function(e) {
             let href = el.getAttribute('href');
             // 2) Add to href attribute additional parameter ct_bot_detector_event_token gathered from apbctLocalStorage
             let eventToken = apbctLocalStorage.get('bot_detector_event_token');
-            if ( eventToken !== null ) {
+            if ( eventToken ) {
                 if ( href.indexOf('?') === -1 ) {
                     href += '?';
                 } else {
@@ -3502,8 +3497,8 @@ const apbctCheckAddToCartByGet = () => (
                 el.setAttribute('href', href);
             }
         });
-    })
-);
+    });
+}
 
 /* Cleantalk Modal object */
 let cleantalkModal = {
@@ -3513,6 +3508,7 @@ let cleantalkModal = {
     loading: false,
     opened: false,
     opening: false,
+    ignoreURLConvert: false,
 
     // Methods
     load: function( action ) {
@@ -3652,7 +3648,7 @@ let cleantalkModal = {
         if ( this.loaded ) {
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             const serviceContentRegex = /.*\/inc/g;
-            if (serviceContentRegex.test(this.loaded)) {
+            if (serviceContentRegex.test(this.loaded) || this.ignoreURLConvert) {
                 content.innerHTML = this.loaded;
             } else {
                 content.innerHTML = this.loaded.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
