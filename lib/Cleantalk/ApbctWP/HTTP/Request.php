@@ -233,14 +233,14 @@ class Request extends \Cleantalk\Common\HTTP\Request
                     $found_delimiter = stripos($header, ': ');
                     if ($found_delimiter !== false) {
                         $sub1 = substr($header, 0, $found_delimiter);
-                        $sub2 = substr($header, $found_delimiter + 1);
+                        $sub2 = substr($header, $found_delimiter + 2);
                         $mod_header = $sub1 . $separator . $sub2;
                     } else {
                         //Check if header has a delimiter ":" without space  - very first
                         $found_delimiter = stripos($header, ':');
                         if ($found_delimiter !== false) {
                             $sub1 = substr($header, 0, $found_delimiter);
-                            $sub2 = substr($header, $found_delimiter);
+                            $sub2 = substr($header, $found_delimiter + 1);
                             $mod_header = $sub1 . $separator . $sub2;
                         }
                     }

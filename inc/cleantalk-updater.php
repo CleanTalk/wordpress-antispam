@@ -1275,3 +1275,10 @@ function apbct_update_to_6_17_2()
     $cron->removeTask('clear_old_session_data');
     $cron->addTask('clear_old_session_data', 'apbct_cron_clear_old_session_data', 86400);
 }
+
+function apbct_update_to_6_41_0()
+{
+    global $wpdb;
+
+    $wpdb->query('DROP TABLE IF EXISTS `' . $wpdb->prefix . 'cleantalk_no_cookie_data`;');
+}

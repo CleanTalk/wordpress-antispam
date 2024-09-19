@@ -1876,7 +1876,7 @@ function apbct_settings__field__apikey()
         return;
     }
 
-    if ( ! (apbct_api_key__is_correct($apbct->api_key) && $apbct->data["key_changed"]) ) {
+    if ( ! (apbct_api_key__is_correct($apbct->api_key) && isset($apbct->data["key_changed"]) && $apbct->data["key_changed"]) ) {
         echo '<label class="apbct_settings__label" for="cleantalk_apkey">' . __(
             'Access key',
             'cleantalk-spam-protect'
@@ -1887,7 +1887,7 @@ function apbct_settings__field__apikey()
         id="apbct_setting_apikey"
         class="apbct_setting_text apbct_setting---apikey"
         type="'
-        . ( ! (apbct_api_key__is_correct($apbct->api_key) && $apbct->data["key_changed"]) ? 'text' : 'hidden')
+        . ( ! (apbct_api_key__is_correct($apbct->api_key) && isset($apbct->data["key_changed"]) && $apbct->data["key_changed"]) ? 'text' : 'hidden')
         . '"
         name="cleantalk_settings[apikey]"
         value="'
@@ -1912,13 +1912,15 @@ function apbct_settings__field__apikey()
     };
 
     // Show Access key button
-    if ( apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok && ! $apbct->data["key_changed"] ) {
+    if ( apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok &&
+        (!isset($apbct->data["key_changed"]) || !$apbct->data["key_changed"])
+    ) {
         echo '<a id="apbct_showApiKey" class="ct_support_link" style="display: block" href="#">'
              . __('Show the Access key', 'cleantalk-spam-protect')
              . '</a>';
     }
 
-    if ( ! (apbct_api_key__is_correct($apbct->api_key) && $apbct->data["key_changed"]) ) {
+    if ( ! (apbct_api_key__is_correct($apbct->api_key) && isset($apbct->data["key_changed"]) && $apbct->data["key_changed"]) ) {
         // "Auto Get Key" buttons. License agreement
         echo '<div id="apbct_button__get_key_auto__wrapper">';
 
@@ -2821,11 +2823,6 @@ function apbct_settings__validate($settings)
     // Alt sessions table clearing
     if ( $apbct->data['cookies_type'] !== 'alternative' ) {
         \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
-    }
-
-    // NoCookie table clearing
-    if ( $apbct->data['cookies_type'] !== 'none' ) {
-        \Cleantalk\ApbctWP\Variables\NoCookie::wipe();
     }
 
     /**
