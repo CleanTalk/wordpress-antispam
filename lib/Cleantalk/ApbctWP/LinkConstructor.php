@@ -149,6 +149,14 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_medium' => 'settings',
             'utm_content' => 'apbct_hint_exclusions__form_signs',
         ),
+        'faq_admin_bar_apbct' => array(
+            'utm_id' => '',
+            'utm_campaign' => 'help',
+            'utm_term' => 'faq',
+            'utm_source' => 'cleantalk.org',
+            'utm_medium' => 'dashboard',
+            'utm_content' => 'top_menu_link',
+        ),
     );
 
     public static function buildCleanTalkLink($utm_preset, $uri = '', $get_params = array(), $domain = 'https://cleantalk.org')
