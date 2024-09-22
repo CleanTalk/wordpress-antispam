@@ -239,12 +239,8 @@ function getResultCheckEmailExist(e, result, currentEmail) {
  */
 function viewCheckEmailExist(e, state, textResult) {
     let parentElement = e.target.parentElement;
-    let allInputEmail = '';
-    if (document.querySelectorAll('[type*="email"]').length > 0) {
-        allInputEmail = document.querySelectorAll('[type*="email"]');
-    } else if (document.querySelectorAll('#email').length > 0) {
-        allInputEmail = document.querySelectorAll('#email');
-    }
+    let inputEmail = parentElement.querySelector('[name*="email"]');
+
     let divPopup = '';
     let lable = '';
     if (!document.getElementById('apbct-check_email_exist-block')) {
@@ -264,11 +260,9 @@ function viewCheckEmailExist(e, state, textResult) {
         }
         divBlock.append(divPopup ? divPopup : '');
         divBlock.append(lable ? lable : '');
-        allInputEmail.forEach((input) => {
-            let heightInput = input.offsetHeight;
-            lable.setAttribute('style', `height: ${heightInput}px;`);
-            parentElement.insertBefore(divBlock, input);
-        });
+        let heightInput = inputEmail.offsetHeight;
+        lable.setAttribute('style', `height: ${heightInput}px;`);
+        parentElement.insertBefore(divBlock, inputEmail);
     }
 
     let lableIcon = document.getElementById('apbct-check_email_exist-lable');
