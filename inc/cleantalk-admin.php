@@ -776,6 +776,15 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
     if ( $spbc_title_node ) {
         $wp_admin_bar->add_node($spbc_title_node);
     }
+
+    /**
+     * Adding FAQ node
+     */
+    $faq_title_node = apbct__admin_bar__get_title_for_faq();
+
+    if ( $faq_title_node ) {
+        $wp_admin_bar->add_node($faq_title_node);
+    }
 }
 
 /**
@@ -868,6 +877,22 @@ function apbct__admin_bar__get_title_for_spbc($spbc, $user_token, $is_apbct_wl_m
     $node_data['title'] = '<div class="cleantalk-admin_bar__parent">' . $spbc_title . $attention_mark . '</div>';
 
     return $node_data;
+}
+
+function apbct__admin_bar__get_title_for_faq()
+{
+    $faq_link_url = LinkConstructor::buildCleanTalkLink('faq_admin_bar_apbct', 'help/introduction');
+    $faq_link_layout = sprintf(
+        '<a href="%s" target="_blank">%s</a>',
+        $faq_link_url,
+        esc_html__('Manuals and FAQ', 'cleantalk-spam-protect')
+    );
+    $title = '<div class="cleantalk-admin_bar__parent"><span>' . $faq_link_layout . '</span></div>';
+    return array(
+        'parent' => 'cleantalk_admin_bar__parent_node',
+        'id' => 'faq__parent_node',
+        'title' => $title,
+    );
 }
 
 /**

@@ -150,7 +150,17 @@ function ct_contact_form_validate()
     $ct_temp_msg_data = ct_get_fields_any($input_array, $ct_tmp_email);
 
     $sender_email    = (isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '');
+    //prepare emails array
     $sender_emails_array = (isset($ct_temp_msg_data['emails_array']) ? $ct_temp_msg_data['emails_array'] : '');
+    if ( !empty($sender_emails_array) ) {
+        $sender_emails_array = json_encode($sender_emails_array);
+        $sender_emails_array = TT::toString($sender_emails_array);
+    }
+    $sender_info = array(
+        'sender_email' => urlencode($sender_email),
+        'sender_emails_array' => urlencode($sender_emails_array)
+    );
+
     $sender_nickname = (isset($ct_temp_msg_data['nickname']) ? $ct_temp_msg_data['nickname'] : '');
     $subject         = (isset($ct_temp_msg_data['subject']) ? $ct_temp_msg_data['subject'] : '');
     $contact_form    = (isset($ct_temp_msg_data['contact']) ? $ct_temp_msg_data['contact'] : '');
@@ -189,7 +199,7 @@ function ct_contact_form_validate()
         $tmp = Sanitize::cleanTextField(Post::get('TellAFriend_Link'));
         unset($_POST['TellAFriend_Link']);
     }
-    $sender_info = array('sender_email' => urlencode($sender_email), 'sender_emails_array' => urlencode($sender_emails_array));
+
     $base_call_result = apbct_base_call(
         array(
             'message'         => $message,

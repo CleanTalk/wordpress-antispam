@@ -40,7 +40,20 @@ class Activator
                 switch_to_blog($initial_blog);
             } else {
                 self::setCronJobs();
-                $db_tables_creator->createAllTables();
+                // fix for standalone sub-site when anitispam is inactive on the main site
+                if ( APBCT_WPMS && !is_main_site() ) {
+                    //save current blog id
+                    $initial_blog = get_current_blog_id();
+                    //create all the tables except sfw
+                    $db_tables_creator->createAllTables('', array('sfw'));
+                    // switch to main and create sfw
+                    switch_to_blog(get_main_site_id());
+                    $db_tables_creator->createTable($wpdb->prefix . 'cleantalk_sfw');
+                    // switch back
+                    switch_to_blog($initial_blog);
+                } else {
+                    $db_tables_creator->createAllTables();
+                }
                 self::maybeGetApiKey();
                 ct_account_status_check(null, false);
             }
