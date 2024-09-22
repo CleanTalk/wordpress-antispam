@@ -4,6 +4,7 @@ namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\LinkConstructor;
 
 class AdminNotices
 {
@@ -131,8 +132,8 @@ class AdminNotices
     {
         if ( $this->apbct->notice_show && ! empty($this->apbct->errors['key_get']) && ! $this->apbct->white_label ) {
             //HANDLE LINK
-            $register_link =
-                'https://cleantalk.org/register?platform=wordpress&email=' . urlencode(ct_get_admin_email()) .
+            $register_link = LinkConstructor::buildCleanTalkLink('get_access_key_link', 'wordpress-anti-spam-plugin') .
+                '&platform=wordpress&email=' . urlencode(ct_get_admin_email()) .
                 '&website=' . urlencode(get_option('home'));
             $content       =
                 sprintf(

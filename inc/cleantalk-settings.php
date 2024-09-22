@@ -1938,6 +1938,7 @@ function apbct_settings__field__apikey()
             echo '<br />';
         }
 
+        $register_link = LinkConstructor::buildCleanTalkLink('get_access_key_link', 'wordpress-anti-spam-plugin');
         // Warnings
         printf(
             __(
@@ -1950,7 +1951,7 @@ function apbct_settings__field__apikey()
             apbct_settings__btn_change_account_email_html(),
             '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="'
             . sprintf(
-                'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
+                $register_link . '&platform=wordpress&email=%s&website=%s',
                 urlencode(ct_get_admin_email()),
                 urlencode(get_bloginfo('url'))
             )
@@ -3115,8 +3116,9 @@ function apbct_settings__update_account_email()
 
     // Link GET ACCESS KEY MANUALLY
     //HANDLE LINK
+    $register_link = LinkConstructor::buildCleanTalkLink('get_access_key_link', 'wordpress-anti-spam-plugin');
     $manually_link = sprintf(
-        'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
+        $register_link . '&platform=wordpress&email=%s&website=%s',
         urlencode(ct_get_admin_email()),
         urlencode(get_bloginfo('url'))
     );
