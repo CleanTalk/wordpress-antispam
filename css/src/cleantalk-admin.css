@@ -112,3 +112,98 @@
 	font-size: 16px;
 	line-height: 2rem;
 }
+
+/* Styles for displaying the TRP badge on the comments page in the admin */
+.apbct-admin-real-user-wrapper {
+    display: inline-flex;
+    color: #000;
+    flex-wrap: nowrap;
+    justify-content: center;
+    flex-direction: row;
+    align-items: center;
+}
+
+.apbct-admin-real-user-author-name{
+    display: inline-flex;
+}
+
+.apbct-admin-real-user-badge {
+    display: inline-flex;
+    margin-left: 12px;
+    margin-right: 3px;
+    height: 15px;
+    cursor: pointer;
+    position: relative;
+}
+
+.apbct-real-user-badge {
+	display: inline-flex;
+	margin-left: 12px;
+	margin-right: 3px;
+	height: 15px;
+	cursor: pointer;
+	position: relative;
+}
+
+.apbct-admin-real-user-popup {
+    display: none;
+    width: auto;
+    height: max-content;
+	position: absolute;
+	left: 20px;
+    margin-left: 3px;
+    padding: 21px 16px 16px 16px;
+    font-weight: normal;
+    background: white;
+    border: 1px #ccc solid;
+    border-radius: 4px;
+    box-shadow: 5px 5px 24px -11px #444;
+    z-index: 1000;
+    cursor: default;
+}
+
+.apbct-admin-real-user-title {
+    display: grid;
+	width: max-content;
+    gap: 4px!important;
+}
+
+.apbct-admin-real-user-popup-content_row {
+    display: flex;
+    gap: 4px;
+}
+
+.apbct-admin-real-user-popup-img {
+    align-self: start;
+}
+
+.apbct-admin-size-real-user-popup-img{
+	width: 15px;
+}
+
+.apbct-admin-real-user-popup-header {
+    font-weight: bolder;
+    margin: 0;
+}
+
+@media (min-width: 768px) {
+    .apbct-admin-real-user-popup-text {
+        user-select: all;
+        margin: 2px 0 2px 0;
+    }
+}
+
+@media (max-width: 768px) {
+	.apbct-trp-popup-desktop {
+		display: none;
+	}
+
+	.apbct-admin-real-user-title {
+		width: 100%;
+	}
+
+	.apbct-admin-real-user-popup {
+		width: auto;
+        top: 31px;
+	}
+}

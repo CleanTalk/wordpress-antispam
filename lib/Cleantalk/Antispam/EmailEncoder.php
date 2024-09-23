@@ -319,7 +319,27 @@ class EmailEncoder
         return '<span 
                 data-original-string="' . $encoded . '"
                 class="apbct-email-encoder"
-                title="' . esc_attr($this->getTooltip()) . '">' . $obfuscated . '</span>';
+                title="' . esc_attr($this->getTooltip()) . '">' . $this->addMagicBlur($obfuscated) . '</span>';
+    }
+
+    private function addMagicBlur($obfuscated)
+    {
+        $template = '
+        <span class="apbct-ee-blur-group">
+            <span class="apbct-ee-blur_email-text">%s</span>
+            <span class="apbct-ee-static-blur">
+                <span class="apbct-ee-blur apbct-ee-blur_rectangle-init"></span>
+                <span class="apbct-ee-blur apbct-ee-blur_rectangle-soft"></span>
+                <span class="apbct-ee-blur apbct-ee-blur_rectangle-hard"></span>
+            </span>
+            <span class="apbct-ee-animate-blur">
+                <span class="apbct-ee-blur apbct-ee-blur_rectangle-init apbct-ee-blur_animate-init"></span>
+                <span class="apbct-ee-blur apbct-ee-blur_rectangle-soft apbct-ee-blur_animate-soft "></span>
+                <span class="apbct-ee-blur apbct-ee-blur_rectangle-hard apbct-ee-blur_animate-hard"></span>
+            </span>
+        </span>
+';
+        return sprintf($template, $obfuscated);
     }
 
     /**
