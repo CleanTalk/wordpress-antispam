@@ -889,7 +889,7 @@ function apbct_settings__set_fields()
                 ),
                 'misc__action_adjust'        => array(
                     'callback' => 'apbct_settings_field__action_adjust',
-                    'display' => apbct_is_plugin_active('w3-total-cache/w3-total-cache.php')
+                    'display' => apbct_is_plugin_active('w3-total-cache/w3-total-cache.php') || apbct_is_plugin_active('litespeed-cache/litespeed-cache.php')
                 ),
                 'misc__complete_deactivation'   => array(
                     'type'        => 'checkbox',
