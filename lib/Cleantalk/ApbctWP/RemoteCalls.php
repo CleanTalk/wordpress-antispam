@@ -505,9 +505,21 @@ class RemoteCalls
      */
     public static function action__get_fresh_wpnonce() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        if ( ! isset($_POST['nonce_prev']) ) {
+            return json_encode(array('error' => 'No nonce provided'));
+        }
+
+        $nonce_prev = $_POST['nonce_prev'];
         $nonce_name = apbct_settings__get_ajax_type() === 'rest'
             ? 'wp_rest'
             : 'ct_secret_stuff';
+
+        add_filter('nonce_life', [self::class, 'increaseNonceLife']);
+        if ( ! wp_verify_nonce($nonce_prev, $nonce_name) ) {
+            return json_encode(array('error' => 'Provided nonce is not valid'));
+        }
+        remove_filter('nonce_life', [self::class, 'increaseNonceLife']);
+
         return TT::toString(
             json_encode(
                 array(
@@ -515,5 +527,11 @@ class RemoteCalls
                 )
             )
         );
+    }
+
+    public static function increaseNonceLife()
+    {
+        // One month in seconds
+        return 60 * 60 * 24 * 30;
     }
 }

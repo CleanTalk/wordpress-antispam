@@ -951,13 +951,30 @@ class ApbctXhr {
      * @param {[]} initialRequestParams
      */
     getFreshNonceAndRerunXHR(initialRequestParams) {
+        let noncePrev = '';
+
+        // Check if initialRequestParams['headers']['X-WP-Nonce'] exists.
+        if ( initialRequestParams.hasOwnProperty('headers') && initialRequestParams.headers.hasOwnProperty('X-WP-Nonce') ) {
+            noncePrev = initialRequestParams['headers']['X-WP-Nonce'];
+        }
+
+        // Check if initialRequestParams['data']['_ajax_nonce'] exists.
+        if ( initialRequestParams.hasOwnProperty('data') && initialRequestParams.data.hasOwnProperty('_ajax_nonce') ) {
+            noncePrev = initialRequestParams['data']['_ajax_nonce'];
+        }
+
+        // Nonce is not provided. Exit.
+        if ( noncePrev === '' ) {
+            return;
+        }
+
         // prepare params for refreshing nonce
         let params = {};
         params.method = 'POST';
         params.data = {
             'spbc_remote_call_action': 'get_fresh_wpnonce',
             'plugin_name': 'antispam',
-            'initial_request_params': initialRequestParams,
+            'nonce_prev': noncePrev,
         };
         params.notJson = true;
         params.url = ctPublicFunctions.host_url;
@@ -1123,7 +1140,7 @@ class ApbctRest extends ApbctXhr {
     // eslint-disable-next-line require-jsdoc
     constructor(...args) {
         args = args[0];
-        nonce = selectActualNonce();
+        const nonce = selectActualNonce();
         args.url = ApbctRest.default_route + args.route;
         args.headers = {
             'X-WP-Nonce': nonce,
