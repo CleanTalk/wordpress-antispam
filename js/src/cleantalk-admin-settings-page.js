@@ -417,6 +417,16 @@ jQuery(document).ready(function() {
 
         apbct_admin_sendAJAX(data, params);
     });
+
+    document.querySelector('.apbct_hidden_section_nav_mob_btn').addEventListener('click', () => {
+        document.querySelector('#apbct_hidden_section_nav ul').style.display = 'block';
+        document.querySelector('.apbct_hidden_section_nav_mob_btn').style.display = 'none';
+    });
+
+    document.querySelector('.apbct_hidden_section_nav_mob_btn-close').addEventListener('click', () => {
+        document.querySelector('#apbct_hidden_section_nav ul').style.display = 'none';
+        document.querySelector('.apbct_hidden_section_nav_mob_btn').style.display = 'block';
+    });
 });
 
 /**
@@ -658,7 +668,7 @@ function apbctSettingsShowDescription(label, settingId) {
 }
 
 /**
- * save button position
+ * save button, navigation menu, navigation button position
  */
 function apbctSaveButtonPosition() {
     if (
@@ -693,6 +703,13 @@ function apbctSaveButtonPosition() {
         jQuery('#apbct_settings__main_save_button').show();
     }
 
+    if (window.innerWidth <= 768 && advSettingsOffset < 0) {
+        document.querySelector('#apbct_hidden_section_nav').style.display = 'grid';
+        document.querySelector('#apbct_hidden_section_nav').style.top = docInnerHeight + 'px';
+    } else if (window.innerWidth <= 768) {
+        document.querySelector('#apbct_hidden_section_nav').style.display = 'none';
+    }
+
     // Set nav position
     if ( advSettingsOffset <= 0 ) {
         navBlock.style.top = - advSettingsOffset + 30 + 'px';
@@ -700,7 +717,6 @@ function apbctSaveButtonPosition() {
         navBlock.style.top = 0;
     }
 }
-
 
 /**
  * Hightlights element
