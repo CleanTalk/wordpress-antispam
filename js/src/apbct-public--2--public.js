@@ -261,7 +261,10 @@ function viewCheckEmailExist(e, state, textResult) {
         divBlock.append(divPopup ? divPopup : '');
         divBlock.append(lable ? lable : '');
         let heightInput = inputEmail.offsetHeight;
+        let widthBlock = e.target.offsetWidth;
+
         lable.setAttribute('style', `height: ${heightInput}px;`);
+        divBlock.setAttribute('style', `width: ${widthBlock}px;`);
         parentElement.insertBefore(divBlock, inputEmail);
     }
 
