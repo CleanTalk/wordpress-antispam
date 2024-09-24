@@ -9,6 +9,7 @@ use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
+use Cleantalk\ApbctWP\LinkConstructor;
 
 /**
  * Init functions
@@ -1592,9 +1593,9 @@ function apbct_generate_trusted_text_html($type = 'div')
     }
 
     $css_class = 'apbct-trusted-text--' . $type;
+    $register_link = LinkConstructor::buildCleanTalkLink('footer_trusted_link', 'wordpress-anti-spam-plugin', $query_data);
     //HANDLE LINK
-    $cleantalk_tag_with_ref_link = '<a href="https://cleantalk.org/register?'
-        . http_build_query($query_data)
+    $cleantalk_tag_with_ref_link = '<a href="' . $register_link
         . '" target="_blank" rel="nofollow">'
         . 'CleanTalk Anti-Spam'
         . '</a>';
