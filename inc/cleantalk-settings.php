@@ -2047,11 +2047,9 @@ function apbct_settings__field__action_buttons()
     echo '<div class="apbct_settings-field_wrapper apbct_settings_top_info__sub_btn">';
 
     if ( apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok ) {
-        //echo '<div>';
         foreach ( $links as $link ) {
             echo Escape::escKsesPreset($link, 'apbct_settings__display__groups');
         }
-        //echo '</div>';
     } elseif ( apbct__is_hosting_license() ) {
         echo '<a href="#" class="ct_support_link" onclick="apbctShowHideElem(\'apbct_statistics\')">'
              . __('Statistics & Reports', 'cleantalk-spam-protect')
