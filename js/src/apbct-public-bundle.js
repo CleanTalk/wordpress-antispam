@@ -1824,10 +1824,13 @@ function viewCheckEmailExist(e, state, textResult) {
         divBlock.append(divPopup ? divPopup : '');
         divBlock.append(lable ? lable : '');
         let heightInput = inputEmail.offsetHeight;
+        let sizeImg = inputEmail.offsetHeight > 30 ? 30 : inputEmail.offsetHeight;
         let widthBlock = e.target.offsetWidth;
 
-        lable.setAttribute('style', `height: ${heightInput}px;`);
+        lable.setAttribute('style', `height: ${heightInput}px;width: ${sizeImg}px;background-size: ${sizeImg}px;`);
         divBlock.setAttribute('style', `width: ${widthBlock}px;`);
+        parentElement.setAttribute('style', `display: inline-grid;margin: 0;`);
+        
         parentElement.insertBefore(divBlock, inputEmail);
     }
 
@@ -2320,8 +2323,8 @@ function apbct_ready() {
     }
 
     if ( +ctPublic.data__email_check_exist_post) {
-        initCookies.push(['ct_checked_emails_exist', '0']);
-        apbct('comment-form input[type = \'email\'], #email').on('blur', checkEmailExist);
+        initCookies.push(['ct_checked_emails_exist', '0']);        
+        apbct('comment-form input[name = \'email\'], #email').on('blur', checkEmailExist);
     }
 
     if (apbctLocalStorage.isSet('ct_checkjs')) {
