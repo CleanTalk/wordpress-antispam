@@ -267,7 +267,7 @@ function viewCheckEmailExist(e, state, textResult) {
         lable.setAttribute('style', `height: ${heightInput}px;width: ${sizeImg}px;background-size: ${sizeImg}px;`);
         divBlock.setAttribute('style', `width: ${widthBlock}px;`);
         parentElement.setAttribute('style', `display: inline-grid;margin: 0;`);
-        
+
         parentElement.insertBefore(divBlock, inputEmail);
     }
 
@@ -760,7 +760,7 @@ function apbct_ready() {
     }
 
     if ( +ctPublic.data__email_check_exist_post) {
-        initCookies.push(['ct_checked_emails_exist', '0']);        
+        initCookies.push(['ct_checked_emails_exist', '0']);
         apbct('comment-form input[name = \'email\'], #email').on('blur', checkEmailExist);
     }
 
