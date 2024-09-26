@@ -838,7 +838,7 @@ function apbct_settings__set_fields()
         'misc'                  => array(
             'title'      => __('Miscellaneous', 'cleantalk-spam-protect'),
             'section'    => 'hidden_section',
-            'html_after' => '</div><div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}</div></div>',
+            'html_after' => '</div><div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}<div class="apbct_hidden_section_nav_mob_btn"></div></div></div>',
             'fields'     => array(
                 'misc__send_connection_reports' => array(
                     'type'        => 'checkbox',
@@ -893,7 +893,7 @@ function apbct_settings__set_fields()
                 ),
                 'misc__action_adjust'        => array(
                     'callback' => 'apbct_settings_field__action_adjust',
-                    'display' => apbct_is_plugin_active('w3-total-cache/w3-total-cache.php')
+                    'display' => apbct_is_plugin_active('w3-total-cache/w3-total-cache.php') || apbct_is_plugin_active('litespeed-cache/litespeed-cache.php')
                 ),
                 'misc__complete_deactivation'   => array(
                     'type'        => 'checkbox',
@@ -1249,7 +1249,7 @@ function apbct_settings__display()
             __('Hosting Anti-Spam', 'cleantalk-spam-protect') . '</h4>';
     }
 
-    echo '<form action="options.php" method="post">';
+    echo '<form action="options.php" method="post" class="apbct_settings-page">';
     apbct_settings__error__output();
 
     // Output spam count
@@ -1274,7 +1274,7 @@ function apbct_settings__display()
     //echo Escape::escKsesPreset(apbct_settings__get_top_info());
     echo apbct_settings__get_top_info();
 
-
+    echo '<div class="apbct_settings_top_info__btn">';
     // Output spam count
     if ( $apbct->key_is_ok && apbct_api_key__is_correct() && ! $apbct->data["wl_mode_enabled"] ) {
         if ( $apbct->network_settings['multisite__work_mode'] != 2 || is_main_site() ) {
@@ -1283,7 +1283,6 @@ function apbct_settings__display()
             echo '<a class="cleantalk_link cleantalk_link-manual" target="__blank" href="https://cleantalk.org/my?user_token=' . Escape::escHtml($apbct->user_token) . '&cp_mode=antispam">'
                  . __('Click here to get Anti-Spam statistics', 'cleantalk-spam-protect')
                  . '</a>';
-            echo '&nbsp;&nbsp;';
         }
     }
 
@@ -1294,12 +1293,11 @@ function apbct_settings__display()
         // Sync button
         if ( (apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok) || apbct__is_hosting_license() ) {
             echo '<button type="button" class="cleantalk_link cleantalk_link-auto" id="apbct_button__sync" title="' . esc_html__('Synchronizing account status, SpamFireWall database, all kind of journals', 'cleantalk-spam-protect') . '">'
-                . '<i class="apbct-icon-upload-cloud"></i>&nbsp;&nbsp;'
+                . '<i class="apbct-icon-upload-cloud"></i>'
                 . __('Synchronize with Cloud', 'cleantalk-spam-protect')
                 . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif') . '" />'
                 . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/yes.png') . '" />'
                 . '</button>';
-            echo '&nbsp;&nbsp;';
         } else {
             echo '<button type="button" class="--invisible" id="apbct_button__sync"></button><br>';
             echo '<div class="key_changed_wrapper">'
@@ -1321,18 +1319,16 @@ function apbct_settings__display()
     if ( $apbct->key_is_ok && apbct_api_key__is_correct() ) {
         if ( $apbct->network_settings['multisite__work_mode'] != 2 || is_main_site() ) {
             // Support button
-            echo '<a class="cleantalk_link cleantalk_link-auto" target="__blank" href="' . $apbct->data['wl_support_url'] . '">' .
+            echo '<a class="cleantalk_link cleantalk_link-auto" target="__blank" href="' . $apbct->data['wl_support_url'] . '" style="text-align: center;">' .
                  __('Support', 'cleantalk-spam-protect') . '</a>';
-            echo '&nbsp;&nbsp;';
-            echo '<br>'
-                 . '<br>';
         }
     }
-
+    echo '</div>';
     settings_fields('cleantalk_settings');
     do_settings_fields('cleantalk', 'cleantalk_section_settings_main');
 
     $hidden_groups = '<ul>';
+    $hidden_groups .= '<li><div class="apbct_hidden_section_nav_mob_btn-close"></div></li>';
     foreach ( $apbct->settings_fields_in_groups as $group_name => $group ) {
         if ( isset($group['section']) && $group['section'] === 'hidden_section' ) {
             $hidden_groups .= '<li><a href="#apbct_setting_group__' . $group_name . '">' .
@@ -1383,7 +1379,7 @@ function apbct_settings__display()
     echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
 
     //title
-    $out = ! empty($group['title']) ? '<h3 style="margin-left: 220px;" id="apbct_setting_group__' . (isset($group_name) ? $group_name : 'trusted_and_affiliate') . '">' . $group['title'] . '</h3>' : '';
+    $out = ! empty($group['title']) ? '<h3 style="text-align: center;" id="apbct_setting_group__' . (isset($group_name) ? $group_name : 'trusted_and_affiliate') . '">' . $group['title'] . '</h3>' : '';
     $out = '<span id="trusted_and_affiliate__special_span" style="display: none">' . $out;
     echo Escape::escKsesPreset($out, 'apbct_settings__display__groups');
 
@@ -1942,6 +1938,7 @@ function apbct_settings__field__apikey()
             echo '<br />';
         }
 
+        $register_link = LinkConstructor::buildCleanTalkLink('get_access_key_link', 'wordpress-anti-spam-plugin');
         // Warnings
         printf(
             __(
@@ -1954,7 +1951,7 @@ function apbct_settings__field__apikey()
             apbct_settings__btn_change_account_email_html(),
             '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="'
             . sprintf(
-                'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
+                $register_link . '&platform=wordpress&email=%s&website=%s',
                 urlencode(ct_get_admin_email()),
                 urlencode(get_bloginfo('url'))
             )
@@ -2052,14 +2049,12 @@ function apbct_settings__field__action_buttons()
 
     $links = apply_filters('apbct_settings_action_buttons', array());
 
-    echo '<div class="apbct_settings-field_wrapper">';
+    echo '<div class="apbct_settings-field_wrapper apbct_settings_top_info__sub_btn">';
 
     if ( apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok ) {
-        echo '<div>';
         foreach ( $links as $link ) {
-            echo Escape::escKsesPreset($link, 'apbct_settings__display__groups') . '&nbsp;&nbsp;&nbsp;&nbsp;';
+            echo Escape::escKsesPreset($link, 'apbct_settings__display__groups');
         }
-        echo '</div>';
     } elseif ( apbct__is_hosting_license() ) {
         echo '<a href="#" class="ct_support_link" onclick="apbctShowHideElem(\'apbct_statistics\')">'
              . __('Statistics & Reports', 'cleantalk-spam-protect')
@@ -3119,8 +3114,9 @@ function apbct_settings__update_account_email()
 
     // Link GET ACCESS KEY MANUALLY
     //HANDLE LINK
+    $register_link = LinkConstructor::buildCleanTalkLink('get_access_key_link', 'wordpress-anti-spam-plugin');
     $manually_link = sprintf(
-        'https://cleantalk.org/register?platform=wordpress&email=%s&website=%s',
+        $register_link . '&platform=wordpress&email=%s&website=%s',
         urlencode(ct_get_admin_email()),
         urlencode(get_bloginfo('url'))
     );
@@ -3569,7 +3565,7 @@ function apbct_get_spoilers_links()
           . '</span>'
         : '';
 
-    return '<br>' . $advanced_settings . $import_export . $affiliate_section;
+    return '<br><div class="apbct_settings_top_info__sub_btn">' . $advanced_settings . $import_export . $affiliate_section . '</div>';
 }
 
 /**
