@@ -169,23 +169,6 @@ function apbct_settings__set_fields()
             'html_before'    => '<hr>',
             'html_after'     => '',
             'fields'         => array(
-                'sfw__enabled' => array(
-                    'type'        => 'checkbox',
-                    'title'       => 'SpamFireWall', // Do not to localize this phrase
-                    'description' =>
-                        __(
-                            "This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.",
-                            'cleantalk-spam-protect'
-                        )
-                        . '<br>'
-                        . esc_html__(
-                            'If the setting is turned on, plugin will automatically add IP address for each session with administration rights to Personal list in the cloud.',
-                            'cleantalk-spam-protect'
-                        )
-                        . $additional_sfw_description,
-                    'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler'),
-                    'long_description' => true,
-                ),
                 'comments__hide_website_field'             => array(
                     'type'        => 'checkbox',
                     'title'       => __('Hide the "Website" field', 'cleantalk-spam-protect'),
@@ -769,6 +752,23 @@ function apbct_settings__set_fields()
             'html_after'     => '',
             'section'        => 'hidden_section',
             'fields'         => array(
+                'sfw__enabled' => array(
+                    'type'        => 'checkbox',
+                    'title'       => 'SpamFireWall', // Do not to localize this phrase
+                    'description' =>
+                        __(
+                            "This option allows to filter spam bots before they access website. Also reduces CPU usage on hosting server and accelerates pages load time.",
+                            'cleantalk-spam-protect'
+                        )
+                        . '<br>'
+                        . esc_html__(
+                            'If the setting is turned on, plugin will automatically add IP address for each session with administration rights to Personal list in the cloud.',
+                            'cleantalk-spam-protect'
+                        )
+                        . $additional_sfw_description,
+                    'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler', 'sfw__random_get'),
+                    'long_description' => true,
+                ),
                 'sfw__random_get'             => array(
                     'type'        => 'radio',
                     'options'     => array(
