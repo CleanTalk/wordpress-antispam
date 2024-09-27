@@ -202,6 +202,14 @@ function apbct_settings__set_fields()
                     'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect'),
                     'long_description' => true,
                 ),
+                'comments__the_real_person' => array(
+                    'type'        => 'checkbox',
+                    'title'       => __('The Real Person', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'Plugin shows special benchmark for author of a comment or review, that the author passed all anti-spam filters and acts as a real person. It improves quality of users generated content on your website by proving that the content is not from spambots.',
+                        'cleantalk-spam-protect'
+                    ),
+                ),
             ),
         ),
 
@@ -430,13 +438,6 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                     'display'     => ! $apbct->white_label,
-                ),
-                'comments__the_real_person' => array(
-                    'title'       => __('The Real Person', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        'Plugin shows special benchmark for author of a comment or review, that the author passed all anti-spam filters and acts as a real person. It improves quality of users generated content on your website by proving that the content is not from spambots.',
-                        'cleantalk-spam-protect'
-                    ),
                 ),
             ),
         ),
