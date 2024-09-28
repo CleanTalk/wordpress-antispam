@@ -740,6 +740,11 @@ function apbct_ready() {
 
     // Check any XMLHttpRequest connections
     apbctCatchXmlHttpRequest();
+
+    // Init form skin
+    if (ctPublic.settings__comments__form_decoration) {
+        new ApbctFormSkin();
+    }
 }
 
 /**
@@ -1466,7 +1471,7 @@ function ctNoCookieConstructHiddenField(type) {
 
 /**
  * Retrieves the clentalk "cookie" data from starages.
- * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo}.
+ * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataSkin}.
  * @return {string}
  */
 function getCleanTalkStorageDataArray() {
@@ -1477,7 +1482,16 @@ function getCleanTalkStorageDataArray() {
     if (document.ctTypoData && document.ctTypoData.data) {
         noCookieDataTypo = {typo: document.ctTypoData.data};
     }
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo};
+
+    let noCookieDataSkin = {skin: []};
+    if (document.ctFormSkinData) {
+        let skinData = JSON.parse(JSON.stringify(document.ctFormSkinData));
+        if (skinData.mouseMovements) {
+            delete skinData.mouseMovements;
+        }
+        noCookieDataSkin = {skin: skinData};
+    }
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataSkin};
 }
 
 /**
