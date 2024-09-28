@@ -3481,6 +3481,14 @@ function apbct_custom_forms_trappings()
         return true;
     }
 
+    // Registration form of masteriyo registration
+    if ( $apbct->settings['forms__registrations_test'] &&
+         Post::get('masteriyo-registration') === 'yes' &&
+         apbct_is_plugin_active('learning-management-system/lms.php')
+    ) {
+        return true;
+    }
+
     // Registration form of eMember plugin
     if (
         $apbct->settings['forms__registrations_test'] &&
