@@ -362,6 +362,10 @@ function apbct_integration__buddyPres__private_msg_check($bp_message_obj)
     $sender_user_obj = get_user_by('id', $bp_message_obj->sender_id);
 
     //Making a call
+
+    $event_token = Post::get('meta') && isset(Post::get('meta')['ct_bot_detector_event_token'])
+        ? Post::get('meta')['ct_bot_detector_event_token']
+        : null;
     $base_call_result = apbct_base_call(
         array(
             'message'         => $bp_message_obj->subject . " " . $bp_message_obj->message,
@@ -373,7 +377,8 @@ function apbct_integration__buddyPres__private_msg_check($bp_message_obj)
             ),
             'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs'))),
             'sender_info'     => array('sender_url' => null),
-            'exception_action' => $exception_action === true ? 1 : null
+            'exception_action' => $exception_action === true ? 1 : null,
+            'event_token' => $event_token,
         )
     );
 
@@ -381,17 +386,26 @@ function apbct_integration__buddyPres__private_msg_check($bp_message_obj)
         $ct_result = $base_call_result['ct_result'];
 
         if ( $ct_result->allow == 0 ) {
-            wp_die(
-                "<h1>"
-                . __('Spam protection by CleanTalk', 'cleantalk-spam-protect')
-                . "</h1><h2>" . $ct_result->comment . "</h2>",
-                '',
-                array(
-                    'response'       => 403,
-                    "back_link"      => true,
-                    "text_direction" => 'ltr'
-                )
-            );
+            if (apbct_is_ajax() ) {
+                wp_send_json_error(
+                    array(
+                        'feedback' => $ct_result->comment,
+                        'type' => 'error'
+                    )
+                );
+            } else {
+                wp_die(
+                    "<h1>"
+                    . __('Spam protection by CleanTalk', 'cleantalk-spam-protect')
+                    . "</h1><h2>" . $ct_result->comment . "</h2>",
+                    '',
+                    array(
+                        'response'       => 403,
+                        "back_link"      => true,
+                        "text_direction" => 'ltr'
+                    )
+                );
+            }
         }
     }
 }
