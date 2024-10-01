@@ -363,9 +363,7 @@ function apbct_integration__buddyPres__private_msg_check($bp_message_obj)
 
     //Making a call
 
-    $event_token = Post::get('meta') && isset(Post::get('meta')['ct_bot_detector_event_token'])
-        ? Post::get('meta')['ct_bot_detector_event_token']
-        : null;
+    $event_token = TT::getArrayValueAsString(Post::get('meta'), 'ct_bot_detector_event_token');
     $base_call_result = apbct_base_call(
         array(
             'message'         => $bp_message_obj->subject . " " . $bp_message_obj->message,

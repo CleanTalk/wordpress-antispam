@@ -4,6 +4,7 @@ namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class GetFieldsAny
 {
@@ -526,7 +527,7 @@ class GetFieldsAny
     private function stripShortcodes($value)
     {
         if (function_exists('strip_shortcodes')) {
-            return strip_shortcodes($value);
+            return strip_shortcodes(TT::toString($value));
         }
 
         return $value;
