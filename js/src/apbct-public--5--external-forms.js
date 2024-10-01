@@ -91,6 +91,10 @@ function formIsExclusion(currentForm) {
         'et_pb_searchform', // integration with elementor-search-form
     ];
 
+    const exclusionsByAction = [
+        'paypal.com/cgi-bin/webscr', // search forms
+    ];
+
     let result = false;
 
     try {
@@ -99,6 +103,14 @@ function formIsExclusion(currentForm) {
             currentForm.parentElement.classList.length > 0 &&
             currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1) {
             result = true;
+        }
+
+        if (currentForm.getAttribute('action') !== null) {
+            exclusionsByAction.forEach(function(exclusionAction) {
+                if (currentForm.getAttribute('action').indexOf(exclusionAction) !== -1) {
+                    result = true;
+                }
+            });
         }
 
         exclusionsById.forEach(function(exclusionId) {
