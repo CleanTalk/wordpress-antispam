@@ -549,8 +549,21 @@ class GetFieldsAny
             return $fields;
         }
 
+        // Foreach by $_POST and convert nested array to the inline variable like variable[nested_variable]
+        $fields = array();
+        foreach ($_POST as $key => $value) {
+            if (is_array($value)) {
+                foreach ($value as $nested_key => $nested_value) {
+                    // @todo Make recursive converting here
+                    $fields[$key . '[' . $nested_key . ']'] = $nested_value;
+                }
+            } else {
+                $fields[$key] = $value;
+            }
+        }
+
         // @ToDo we have to implement a logic to find form fields (fields names, fields count) in serialized/nested/encoded items. not only $_POST.
-        return $_POST;
+        return $fields;
     }
 
     /**
