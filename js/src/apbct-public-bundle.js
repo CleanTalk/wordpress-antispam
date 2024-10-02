@@ -936,10 +936,8 @@ class ApbctXhr {
             restErrror = (
                 typeof this.xhr.response === 'object' && this.xhr.response !== null &&
                 this.xhr.response.hasOwnProperty('data') &&
-                this.xhr.response.hasOwnProperty('code') &&
                 this.xhr.response.data.hasOwnProperty('status') &&
-                this.xhr.response.data.status === 403 &&
-                this.xhr.response.code === 'rest_cookie_invalid_nonce'
+                this.xhr.response.data.status === 403
             );
         }
         // todo check AJAX error
@@ -975,6 +973,7 @@ class ApbctXhr {
             'spbc_remote_call_action': 'get_fresh_wpnonce',
             'plugin_name': 'antispam',
             'nonce_prev': noncePrev,
+            'initial_request_params': initialRequestParams,
         };
         params.notJson = true;
         params.url = ctPublicFunctions.host_url;
