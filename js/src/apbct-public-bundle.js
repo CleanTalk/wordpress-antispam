@@ -939,6 +939,7 @@ class ApbctXhr {
                 this.xhr.response.data.hasOwnProperty('status') &&
                 this.xhr.response.data.status === 403
             );
+            ajaxErrror = this.xhr.response === '-1' && this.xhr.status === 403;
         }
         // todo check AJAX error
         return restErrror || ajaxErrror;
@@ -1128,7 +1129,9 @@ class ApbctXhr {
 class ApbctAjax extends ApbctXhr {
     // eslint-disable-next-line require-jsdoc
     constructor(...args) {
-        super(args[0]);
+        args = args[0];
+        args.data._ajax_nonce = selectActualNonce();
+        super(args);
     }
 }
 // eslint-disable-next-line require-jsdoc

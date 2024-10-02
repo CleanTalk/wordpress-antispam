@@ -521,6 +521,8 @@ class RemoteCalls
             return json_encode(array('error' => 'Wrong nonce provided'));
         }
 
+        // set response type 'json'
+        header('Content-Type: application/json');
         return TT::toString(
             json_encode(
                 array(
