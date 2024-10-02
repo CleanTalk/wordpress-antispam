@@ -214,10 +214,10 @@ abstract class Checker
                 E-mail - >=5 spam</br>
                 <br/>
                 <strong>Total count of comments - </strong>the number of active comments with the status 'comment',
-                'approve', 'disapprove', without statuses 'spam', 'trash' and only on existing pages.<br/>
-                <strong>Number of checked comments - </strong>the number of all comments with all statuses except
-                spam and trash, such as review, trackback, ping, and comments from deleted pages.
-                Therefore, this number may be more than the total number of comments.<br/>
+                'approve', 'disapprove', without statuses 'spam', 'trash', and only on existing pages.<br/>
+                <strong>Number of checked comments - </strong>all comments with all statuses except spam and
+                trash, such as review, trackback, ping, and comments from deleted pages. Therefore, this
+                number may be more than the total number of comments.<br/>
             </p>
         </div>
         <?php
