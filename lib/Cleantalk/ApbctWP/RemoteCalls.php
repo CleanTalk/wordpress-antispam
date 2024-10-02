@@ -516,11 +516,10 @@ class RemoteCalls
             ? 'wp_rest'
             : 'ct_secret_stuff';
 
-        add_filter('nonce_life', [self::class, 'increaseNonceLife']);
-        if ( ! wp_verify_nonce($nonce_prev, $nonce_name) ) {
-            return json_encode(array('error' => 'Provided nonce is not valid'));
+        // Check $nonce_prev by regexp '^[a-f0-9]{10}$'
+        if ( ! preg_match('/^[a-f0-9]{10}$/', $nonce_prev) ) {
+            return json_encode(array('error' => 'Wrong nonce provided'));
         }
-        remove_filter('nonce_life', [self::class, 'increaseNonceLife']);
 
         return TT::toString(
             json_encode(
@@ -529,11 +528,5 @@ class RemoteCalls
                 )
             )
         );
-    }
-
-    public static function increaseNonceLife()
-    {
-        // One month in seconds
-        return 60 * 60 * 24 * 30;
     }
 }
