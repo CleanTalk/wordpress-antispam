@@ -213,6 +213,10 @@ function apbct_init()
         $hook    = WPCF7_VERSION >= '3.0.0' ? 'wpcf7_spam' : 'wpcf7_acceptance';
         $num_arg = WPCF7_VERSION >= '5.3.0' ? 2 : 1;
         add_filter($hook, 'apbct_form__contactForm7__testSpam', 9999, $num_arg);
+        //ignore other wpcf7_skip_spam_check filters to prevent submissions if APBCT check performs
+        add_filter('wpcf7_skip_spam_check', function () {
+            return false;
+        }, 999, 2);
         add_action('wpcf7_before_send_mail', 'apbct_form__contactForm7__testSpam', 999);
     }
 
