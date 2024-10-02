@@ -499,6 +499,11 @@ function apbct__filter_form_data($form_data)
 {
     global $apbct;
 
+    // modification to correctly check gravity forms attacks
+    if ( !empty($form_data['action']) && !empty($form_data['gform_ajax']) ) {
+        unset($form_data['ct_checkjs']);
+    }
+
     if (isset($form_data['data']) && is_array($form_data['data'])) {
         $form_data['data'] = apbct__filter_form_data($form_data['data']);
     }
