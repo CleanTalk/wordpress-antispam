@@ -261,7 +261,6 @@ class GetFieldsAny
              */
 
             if ( ! is_array($value) && ! is_object($value) ) {
-
                 // If $this->prev_name is not empty it is a recursion. So wrap the key with the '[]' brackets
                 $nested_array_key = $this->prev_name === '' ? $key : $this->prev_name . '[' . $key . ']';
 
