@@ -185,7 +185,8 @@ class AdjustToEnvLiteSpeedCache extends AdjustToEnvAbstract
 
         if (!(
             apbct_is_plugin_active('litespeed-cache/litespeed-cache.php') &&
-            get_option('litespeed.conf.optm-js_exc')
+            get_option('litespeed.conf.optm-js_exc') &&
+            is_string(get_option('litespeed.conf.optm-js_exc'))
         )) {
             return;
         }
