@@ -1282,3 +1282,10 @@ function apbct_update_to_6_41_0()
 
     $wpdb->query('DROP TABLE IF EXISTS `' . $wpdb->prefix . 'cleantalk_no_cookie_data`;');
 }
+
+function apbct_update_to_6_42_0()
+{
+    delete_option('cleantalk_adjust_to_env');
+    $adjust = new Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler();
+    $adjust->handle();
+}

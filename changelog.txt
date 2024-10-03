@@ -1,5 +1,24 @@
 == Changelog ==
 
+= 6.42 03 Oct 2024 =
+* Fix. Integrations. Uni-Cpo pruducts actions - service fields skipping improved.
+* Fix. EmailEncoder. CSS. Hide wpautopt breaks between magic blur elements.
+* Fix. Integration. Add to cart by get bot detector fixed.
+* Mod. Settings. Adaptive version of the settings
+* Mod. Settings. Burger menu
+* New. Admin bar. Promotion link Manuals and FAQ added.
+* Fix. Contact form validate. Emails array urlencoding fixed.
+* Fix. External Forms. Skip PayPal redirection form.
+* Mod. ReferralLink. Changing the referral link
+* Fix. Integrations. TVE plugin affliction to gravity forms fixed.
+* Upd. Integrations. Updated adjust module for litespeed.
+* Fix. Settings. Removing excess
+* Fix. Integrations. Masteriyo LMS plugin. Ignore login events.
+* Fix. Integrations. Masteriyo LMS plugin. Registration POST check improved.
+* Fix. Code. GetFieldsAny. PHP 8.0 compatibility.
+* Fix. Integrations. BuddyPres private messages. Nouveau AJAX messages handled.
+* Fix. Settings. TRP and SFW settings minor fixes.
+
 = 6.38 Jul 12 2024
 * Code. Compatibility. Unnecessary WP Rocket text removed.
 * Fix. Integrations. Updated gathering email on Divi.
