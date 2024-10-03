@@ -445,6 +445,11 @@ function ct_ajax_hook($message_obj = null)
         }
     }
 
+    if ( class_exists('BuddyPress') ) {
+        add_action('messages_message_before_save', 'apbct_integration__buddyPres__private_msg_check', 1);
+        return false;
+    }
+
     //NSL integration
     if ( Post::get('action') === 'cleantalk_nsl_ajax_check' ) {
         $post_info['comment_type'] = 'contact_form_wordpress_nsl';
@@ -587,6 +592,11 @@ function ct_ajax_hook($message_obj = null)
     //divi subscription form needs to force alt cookies
     if ( Post::hasString('action', 'et_pb_submit_subscribe_form') ) {
         Cookie::$force_alt_cookies_global = true;
+    }
+
+    // thriveleads modification to check gravity forms
+    if ( Post::get('action') === 'tve_api_form_submit' ) {
+        unset($_POST['ct_checkjs']);
     }
 
     /**
