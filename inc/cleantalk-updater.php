@@ -1285,7 +1285,9 @@ function apbct_update_to_6_41_0()
 
 function apbct_update_to_6_42_0()
 {
-    delete_option('cleantalk_adjust_to_env');
-    $adjust = new Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler();
-    $adjust->handle();
+    add_action('plugins_loaded', function() {
+        delete_option('cleantalk_adjust_to_env');
+        $adjust = new Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler();
+        $adjust->handle();
+    });
 }
