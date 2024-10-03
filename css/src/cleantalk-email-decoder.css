@@ -16,6 +16,10 @@
 .apbct-email-encoder{
     position: relative;
 }
+/*fix for wpautopt when brs added between blur magic fields*/
+.apbct-email-encoder br{
+    display: none !important;
+}
 /* email text wrapper */
 .apbct-ee-blur_email-text {
     position: relative;
