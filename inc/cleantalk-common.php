@@ -1041,17 +1041,13 @@ function ct_delete_spam_comments()
  * Get data from an ARRAY recursively
  *
  * @param array $arr
- * @param array $message
- * @param null|string $email
- * @param array $nickname
- * @param null $subject
- * @param bool $contact
- * @param string $prev_name
+ * @param string $email
+ * @param string|array $nickname
  *
  * @return array
  * @deprecated Use ct_gfa()
  */
-function ct_get_fields_any($arr, $email = null, $nickname = array('nick' => '', 'first' => '', 'last' => ''))
+function ct_get_fields_any($arr, $email = '', $nickname = '')
 {
     if ( is_array($nickname) ) {
         $nickname_str = '';

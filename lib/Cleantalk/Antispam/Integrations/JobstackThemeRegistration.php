@@ -2,15 +2,19 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\Common\TT;
+use Cleantalk\Variables\Post;
+
 class JobstackThemeRegistration extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        if ( isset($_POST['new_user_submit']) ) {
+        if ( Post::get('new_user_submit') ) {
             return null;
         }
 
-        $form_data['email'] = isset($_POST['new_user_email']) ? $_POST['new_user_email'] : '';
+        $form_data = [];
+        $form_data['email'] = TT::toString(Post::get('new_user_email'));
 
         /**
          * Filter for POST

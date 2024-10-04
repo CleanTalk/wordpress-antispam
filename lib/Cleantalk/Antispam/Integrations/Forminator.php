@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\Common\TT;
+
 class Forminator extends IntegrationBase
 {
     public function getDataForChecking($argument)
@@ -16,8 +18,7 @@ class Forminator extends IntegrationBase
                 continue;
             }
             if (is_string($key) && strpos($key, 'email-') === 0) {
-                $email = trim(str_replace(' ', '', $value));
-                continue;
+                $email = trim(str_replace(' ', '', TT::toString($value)));
             }
         }
 
