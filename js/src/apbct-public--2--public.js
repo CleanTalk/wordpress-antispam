@@ -1734,66 +1734,8 @@ const defaultSend = XMLHttpRequest.prototype.send;
 
 if (document.readyState !== 'loading') {
     checkFormsExistForCatching();
-    apbctRealUserBadge();
 } else {
     apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatching);
-    apbct_attach_event_handler(document, 'DOMContentLoaded', apbctRealUserBadge);
-}
-
-/**
- * Handle real user badge
- */
-function apbctRealUserBadge() {
-    document.querySelectorAll('.apbct-real-user-badge').forEach((el) => {
-        el.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.currentTarget.querySelector('.apbct-real-user-popup').style.display = 'inline-flex';
-        });
-    });
-    document.querySelector('body').addEventListener('click', function(e) {
-        document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
-            el.style.display = 'none';
-        });
-    });
-}
-
-/**
- * Shows a popup The Real Person when hovering over the cursor
- * @param {string} id
- */
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctRealUserBadgeViewPopup(id) {
-    document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
-        el.style.display = 'none';
-    });
-    let popup = document.getElementById(id);
-    if (popup != 'undefined') {
-        popup.style.display = 'inline-flex';
-    }
-}
-
-/**
- * Closes The Real Person popup when the cursor leaves the badge element area
- * @param {object} event
- */
-// @ToDo Replace js logic with css
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctRealUserBadgeClosePopup(event) {
-    if (
-        event.relatedTarget.className &&
-        ((event.relatedTarget.className.search(/apbct/) < 0 &&
-        event.relatedTarget.className.search(/real-user/) < 0) ||
-        (event.relatedTarget.className.search(/wrapper/) > 0)) &&
-        window.innerWidth > 768
-
-    ) {
-        document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
-            setTimeout(() => {
-                el.style.display = 'none';
-            }, 1000);
-        });
-    }
 }
 
 /**
