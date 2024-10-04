@@ -3,6 +3,7 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class StrongTestimonials extends IntegrationBase
 {
@@ -14,9 +15,9 @@ class StrongTestimonials extends IntegrationBase
              */
             $input_array = apply_filters('apbct__filter_post', $_POST);
 
-            $nickname = Post::get('client_name');
+            $nickname = TT::toString(Post::get('client_name'));
 
-            return ct_get_fields_any($input_array, null, $nickname);
+            return ct_get_fields_any($input_array, '', $nickname);
         }
 
         return null;

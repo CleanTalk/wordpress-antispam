@@ -43,8 +43,8 @@ class OtterBlocksForm extends IntegrationBase
                     if ( $event_token ) {
                         $gfa_result['event_token'] = $event_token;
                     }
+                    return $gfa_result;
                 }
-                return $gfa_result;
             }
         }
         return $argument;
