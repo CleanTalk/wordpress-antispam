@@ -15,7 +15,7 @@ class BackInStockNotifier extends IntegrationBase
         $data = array();
         if ( empty($email) || empty($nickname) ) {
             $input_array = apply_filters('apbct__filter_post', $_POST);
-            $data = ct_get_fields_any($input_array, is_string($email) ? $email : null, is_array($nickname) ? $nickname : array());
+            $data = ct_get_fields_any($input_array, is_string($email) ? $email : '', is_array($nickname) ? $nickname : array());
         } else {
             $data['email'] = $email;
             $data['nickname'] = $nickname;

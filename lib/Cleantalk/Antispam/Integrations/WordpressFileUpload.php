@@ -2,6 +2,9 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\ApbctWP\Variables\Request;
+use Cleantalk\Common\TT;
+
 class WordpressFileUpload extends IntegrationBase
 {
     private $return_argument;
@@ -9,8 +12,8 @@ class WordpressFileUpload extends IntegrationBase
     public function getDataForChecking($argument)
     {
         $this->return_argument = $argument;
-        if ( ! empty($_REQUEST['userdata']) && function_exists('wfu_plugin_decode_string') ) {
-            $userdata = explode(";", $_REQUEST['userdata']);
+        if ( Request::get('userdata') && function_exists('wfu_plugin_decode_string') ) {
+            $userdata = explode(";", TT::toString(Request::get('userdata')));
             $parsed_userdata = [];
             foreach ($userdata as $_user) {
                 $parsed_userdata[] = strip_tags(wfu_plugin_decode_string(trim(substr($_user, 1))));

@@ -3,6 +3,7 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class KaliForms extends IntegrationBase
 {
@@ -13,14 +14,14 @@ class KaliForms extends IntegrationBase
         }
 
         // Kali form integration
-        $data = Post::get('data');
+        $data = TT::toArray(Post::get('data'));
         apbct_form__get_no_cookie_data($data);
         $gfa_checked_data = ct_get_fields_any($data);
         if (isset($data['ct_bot_detector_event_token'])) {
             $gfa_checked_data['event_token'] = $data['ct_bot_detector_event_token'];
         }
 
-        $gfa_checked_data['message'] = apbct__filter_form_data($gfa_checked_data['message']);
+        $gfa_checked_data['message'] = isset($gfa_checked_data['message']) ? apbct__filter_form_data($gfa_checked_data['message']) : '';
 
         return $gfa_checked_data;
     }

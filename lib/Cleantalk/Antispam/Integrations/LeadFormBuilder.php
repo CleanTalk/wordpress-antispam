@@ -2,6 +2,9 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
+
 class LeadFormBuilder extends IntegrationBase
 {
     public function getDataForChecking($argument)
@@ -16,8 +19,8 @@ class LeadFormBuilder extends IntegrationBase
         $email = '';
         $nickname = '';
         // The string was created by the http_build_query function
-        if (!empty($_POST['fdata'])) {
-            $fdata = $_POST['fdata'];
+        if (Post::get('fdata')) {
+            $fdata = TT::toString(Post::get('fdata'));
             parse_str($fdata, $query_array);
             foreach ($query_array as $param => $param_value) {
                 $nickname = empty($nickname) && strpos($param, 'name_') !== false ? $param_value : $nickname;
