@@ -2,17 +2,19 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\Common\TT;
+use Cleantalk\Variables\Post;
+
 class WpBookingSystem extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
         global $apbct;
 
-        if ( ! isset($_POST['form_data']) ) {
+        if ( ! Post::get('form_data') ) {
             return null;
         }
-        $data = $_POST['form_data'];
-        parse_str($_POST['form_data'], $data);
+        parse_str(TT::toString(Post::get('form_data')), $data);
         $input_array = apply_filters('apbct__filter_post', $data);
 
         if ( ! $apbct->stats['no_cookie_data_taken'] ) {

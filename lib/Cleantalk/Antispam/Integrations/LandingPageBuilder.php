@@ -20,6 +20,7 @@ class LandingPageBuilder extends IntegrationBase
 
     public function doBlock($message)
     {
+        $return = [];
         $return['Error']    = $message;
         $return['database'] = 'false';
         echo json_encode($return);

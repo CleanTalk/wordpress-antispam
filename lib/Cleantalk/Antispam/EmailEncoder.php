@@ -66,7 +66,7 @@ class EmailEncoder
     private $temp_content;
     protected $has_connection_error;
     protected $privacy_policy_hook_handled = false;
-    protected $aria_regex = '/aria-label.*=.*[\'"].+@.+?[\'"]/';
+    protected $aria_regex = '/aria-label.?=.?[\'"].+?[\'"]/';
     protected $aria_matches = array();
 
     /**

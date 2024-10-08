@@ -3,6 +3,7 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class WpGeoDirectory extends IntegrationBase
 {
@@ -19,12 +20,13 @@ class WpGeoDirectory extends IntegrationBase
             )
         ) {
             apbct_form__get_no_cookie_data($_POST);
-            $gfa_checked_data = ct_gfa($_POST, Post::get('email'));
+            $email = TT::toString(Post::get('email'));
+            $gfa_checked_data = ct_gfa($_POST, $email);
             if ( Post::get('ct_bot_detector_event_token') ) {
                 $gfa_checked_data['event_token'] = Post::get('ct_bot_detector_event_token');
             }
 
-            $gfa_checked_data['message'] = apbct__filter_form_data($gfa_checked_data['message']);
+            $gfa_checked_data['message'] = isset($gfa_checked_data['message']) ? apbct__filter_form_data($gfa_checked_data['message']) : '';
             if ( isset($gfa_checked_data['message']['apbct_visible_fields']) ) {
                 unset($gfa_checked_data['message']['apbct_visible_fields']);
             }

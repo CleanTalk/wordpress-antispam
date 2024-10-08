@@ -3,6 +3,7 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\Common\TT;
 
 class EventsManager extends IntegrationBase
 {
@@ -19,7 +20,7 @@ class EventsManager extends IntegrationBase
     public function doBlock($message)
     {
         if ( Get::get('callback') ) {
-            $callback = htmlspecialchars(Get::get('callback'));
+            $callback = htmlspecialchars(TT::toString(Get::get('callback')), ENT_QUOTES);
             $output = array(
                 'result' => false,
                 'message' => '',

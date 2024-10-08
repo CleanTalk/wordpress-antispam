@@ -3,6 +3,7 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class IndeedUltimateMembershipPro extends IntegrationBase
 {
@@ -14,7 +15,7 @@ class IndeedUltimateMembershipPro extends IntegrationBase
 
         $input_array = apply_filters('apbct__filter_post', $_POST);
 
-        $user_email = Post::get('user_email') ?: '';
+        $user_email = TT::toString(Post::get('user_email'));
 
         $data = ct_gfa($input_array, $user_email);
 
