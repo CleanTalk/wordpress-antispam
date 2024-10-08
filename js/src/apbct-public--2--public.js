@@ -1213,7 +1213,7 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
         });
         // quit case on cloud block
         if (currentResultData.is_allowed === false) {
-            break;
+            return;
         }
         // handler for mailto
         if (
