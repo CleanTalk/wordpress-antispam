@@ -662,7 +662,7 @@ function apbct_wc_store_api_add_to_cart_data($add_to_cart_data, $request)
  * @param $customer
  * @param $request
  * @return void
- * @psalm-suppress UndefinedFunction
+ * @psalm-suppress UnusedParam
  */
 function apbct_wc_store_api_checkout_update_customer_from_request($customer, $request)
 {
@@ -680,7 +680,7 @@ function apbct_wc_store_api_checkout_update_customer_from_request($customer, $re
  * @param $order
  * @return void
  * @throws \Automattic\WooCommerce\StoreApi\Exceptions\RouteException
- * @psalm-suppress UndefinedFunction
+ * @psalm-suppress UndefinedClass, UnusedParam, InvalidThrow
  */
 function apbct_wc_store_api_checkout_order_processed($order)
 {
