@@ -1575,12 +1575,13 @@ function apbct_clear_query_from_service_fields($query_string, $service_field_nam
 /**
  * Main entry function to collect no cookie data.
  */
-function apbct_form__get_no_cookie_data($preprocessed_data = null)
+function apbct_form__get_no_cookie_data($preprocessed_data = null, $need_filter = true)
 {
     global $apbct;
     $flag = null;
     $no_cookie_data = apbct_check_post_for_no_cookie_data($preprocessed_data);
-    if ( !empty($no_cookie_data['mapping']) ) {
+
+    if ( $need_filter && !empty($no_cookie_data['mapping']) ) {
         apbct_filter_post_no_cookie_data($no_cookie_data['mapping']);
     }
     if ( $no_cookie_data && !empty($no_cookie_data['data']) && $apbct->data['cookies_type'] === 'none' ) {

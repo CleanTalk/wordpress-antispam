@@ -639,6 +639,44 @@ function apbct_wc__add_to_cart_unlogged_user()
 }
 
 /**
+ * @param $add_to_cart_data
+ * @param $request
+ * @return mixed
+ * @psalm-suppress UndefinedFunction
+ */
+function apbct_wc_store_api_add_to_cart_data($add_to_cart_data, $request)
+{
+    global $apbct;
+
+    if ( ! $apbct->stats['no_cookie_data_taken'] && $request->get_param('ct_no_cookie_hidden_field') ) {
+        apbct_form__get_no_cookie_data(
+            ['ct_no_cookie_hidden_field' => $request->get_param('ct_no_cookie_hidden_field')],
+            false
+        );
+    }
+
+    return $add_to_cart_data;
+}
+
+/**
+ * @param $customer
+ * @param $request
+ * @return void
+ * @psalm-suppress UndefinedFunction
+ */
+function apbct_wc_store_api_checkout_update_customer_from_request($customer, $request)
+{
+    global $apbct;
+
+    if ( ! $apbct->stats['no_cookie_data_taken'] ) {
+        apbct_form__get_no_cookie_data(
+            ['ct_no_cookie_hidden_field' => $request->get_param('ct_no_cookie_hidden_field')],
+            false
+        );
+    }
+}
+
+/**
  * Public function - Tests for Pirate contact forms
  * return NULL
  */
