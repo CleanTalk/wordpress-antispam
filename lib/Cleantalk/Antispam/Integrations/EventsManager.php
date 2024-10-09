@@ -20,7 +20,7 @@ class EventsManager extends IntegrationBase
     public function doBlock($message)
     {
         if ( Get::get('callback') ) {
-            $callback = htmlspecialchars(TT::toString(Get::get('callback')));
+            $callback = htmlspecialchars(TT::toString(Get::get('callback')), ENT_QUOTES);
             $output = array(
                 'result' => false,
                 'message' => '',

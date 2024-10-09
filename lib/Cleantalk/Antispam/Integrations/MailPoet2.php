@@ -43,7 +43,7 @@ class MailPoet2 extends IntegrationBase
     public function doBlock($message)
     {
         $result = array('result' => false, 'msgs' => array('updated' => array($message)));
-        print TT::toString(Get::get('callback')) . '(' . json_encode($result) . ');';
+        print htmlspecialchars(TT::toString(Get::get('callback')), ENT_QUOTES) . '(' . json_encode($result) . ');';
         die();
     }
 }
