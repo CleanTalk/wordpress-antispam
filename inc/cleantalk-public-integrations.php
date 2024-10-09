@@ -677,6 +677,25 @@ function apbct_wc_store_api_checkout_update_customer_from_request($customer, $re
 }
 
 /**
+ * @param $order
+ * @return void
+ * @throws \Automattic\WooCommerce\StoreApi\Exceptions\RouteException
+ * @psalm-suppress UndefinedFunction
+ */
+function apbct_wc_store_api_checkout_order_processed($order)
+{
+    global $ct_registration_error_comment;
+
+    if (class_exists('\Automattic\WooCommerce\StoreApi\Exceptions\RouteException')) {
+        throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
+            'woocommerce_store_api_checkout_order_processed',
+            $ct_registration_error_comment,
+            403
+        );
+    }
+}
+
+/**
  * Public function - Tests for Pirate contact forms
  * return NULL
  */
@@ -1377,69 +1396,72 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         $reg_flag
     );
 
-    if ( isset($base_call_result['ct_result']) ) {
-        $ct_result = $base_call_result['ct_result'];
-        ct_hash($ct_result->id);
-        // Change mail notification if license is out of date
-        if ( $apbct->data['moderate'] == 0 &&
-            ($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
+    if ( ! isset($base_call_result['ct_result']) ) {
+        return $errors;
+    }
+
+    $ct_result = $base_call_result['ct_result'];
+    ct_hash($ct_result->id);
+
+    // Change mail notification if license is out of date
+    if ( $apbct->data['moderate'] == 0 &&
+        ($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
+    ) {
+        $apbct->sender_email = $user_email;
+        $apbct->sender_ip    = Helper::ipGet('real');
+        add_filter(
+            'wp_new_user_notification_email_admin',
+            'apbct_registration__Wordpress__changeMailNotification',
+            100,
+            3
+        );
+    }
+
+    $ct_signup_done = true;
+    $cleantalk_executed = true;
+
+    if ( $ct_result->inactive != 0 ) {
+        ct_send_error_notice($ct_result->comment);
+        return $errors;
+    }
+
+    if ( $ct_result->allow == 0 ) {
+        $ct_negative_comment = $ct_result->comment;
+        $ct_registration_error_comment = $ct_result->comment;
+
+        if (current_filter() === 'woocommerce_registration_errors') {
+            add_action('woocommerce_store_api_checkout_order_processed', 'apbct_wc_store_api_checkout_order_processed', 10, 2);
+        }
+
+        if ( $buddypress === true ) {
+            $bp->signup->errors['signup_username'] = $ct_result->comment;
+        }
+
+        if ( $facebook ) {
+            /** @psalm-suppress InvalidArrayOffset */
+            $_POST['FB_userdata']['email'] = '';
+            /** @psalm-suppress InvalidArrayOffset */
+            $_POST['FB_userdata']['name']  = '';
+            return;
+        }
+
+        if ((defined('MGM_PLUGIN_NAME') || apbct_is_plugin_active('bbpress/bbpress.php')) &&
+            current_filter() !== 'woocommerce_registration_errors'
         ) {
-            $apbct->sender_email = $user_email;
-            $apbct->sender_ip    = Helper::ipGet('real');
-            add_filter(
-                'wp_new_user_notification_email_admin',
-                'apbct_registration__Wordpress__changeMailNotification',
-                100,
-                3
-            );
+            ct_die_extended($ct_result->comment);
         }
 
-        $ct_signup_done = true;
-
-        $cleantalk_executed = true;
-
-        if ( $ct_result->inactive != 0 ) {
-            ct_send_error_notice($ct_result->comment);
-
-            return $errors;
+        if ( is_wp_error($errors) ) {
+            $errors->add('ct_error', $ct_result->comment);
         }
 
-        if ( $ct_result->allow == 0 ) {
-            if ( $buddypress === true ) {
-                $bp->signup->errors['signup_username'] = $ct_result->comment;
-            } elseif ( $facebook ) {
-                /** @psalm-suppress InvalidArrayOffset */
-                $_POST['FB_userdata']['email'] = '';
-                /** @psalm-suppress InvalidArrayOffset */
-                $_POST['FB_userdata']['name']  = '';
+        return $errors;
+    }
 
-                return;
-            } elseif (
-                /**
-                 * present conditions there if we need to set a custom registration break for a plugin
-                 **/
-                (
-                    defined('MGM_PLUGIN_NAME')
-                    || apbct_is_plugin_active('bbpress/bbpress.php')
-                )
-                && current_filter() !== 'woocommerce_registration_errors'
-            ) {
-                ct_die_extended($ct_result->comment);
-            } else {
-                if ( is_wp_error($errors) ) {
-                    $errors->add('ct_error', $ct_result->comment);
-                }
-                $ct_negative_comment = $ct_result->comment;
-            }
-
-            $ct_registration_error_comment = $ct_result->comment;
-        } else {
-            if ( $ct_result->id !== null ) {
-                $apbct_cookie_request_id = $ct_result->id;
-                Cookie::set($apbct_cookie_register_ok_label, $ct_result->id, time() + 10, '/');
-                Cookie::set($apbct_cookie_request_id_label, $ct_result->id, time() + 10, '/');
-            }
-        }
+    if ( $ct_result->id !== null ) {
+        $apbct_cookie_request_id = $ct_result->id;
+        Cookie::set($apbct_cookie_register_ok_label, $ct_result->id, time() + 10, '/');
+        Cookie::set($apbct_cookie_request_id_label, $ct_result->id, time() + 10, '/');
     }
 
     return $errors;
