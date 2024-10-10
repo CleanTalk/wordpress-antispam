@@ -19,7 +19,7 @@ class UlitmateFormBuilder extends IntegrationBase
         if ( !empty($ct_post_temp['form_data']) && is_array($ct_post_temp['form_data']) ) {
             foreach ( $ct_post_temp['form_data'] as $_key => $value ) {
                 //parse nocookie data
-                if ( isset($value['name']) && $value['name'] === 'ct_no_cookie_hidden_field' ) {
+                if ( isset($value['name'], $value['value']) && $value['name'] === 'ct_no_cookie_hidden_field' ) {
                     unset($ct_post_temp['form_data'][$_key]);
                     // prepare POST data to get parameters
                     $direct_no_cookie_data[$value['name']] = $value['value'];
@@ -29,7 +29,7 @@ class UlitmateFormBuilder extends IntegrationBase
                     unset($ct_post_temp['form_data'][$_key]);
                 }
 
-                if ( isset($value['name']) && $value['name'] === 'ct_bot_detector_event_token' ) {
+                if ( isset($value['name'], $value['value']) && $value['name'] === 'ct_bot_detector_event_token' ) {
                     $event_token = $value['value'];
                     unset($ct_post_temp['form_data'][$_key]);
                 }

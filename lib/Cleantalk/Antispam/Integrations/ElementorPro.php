@@ -3,6 +3,7 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class ElementorPro extends IntegrationBase
 {
@@ -46,12 +47,12 @@ class ElementorPro extends IntegrationBase
         //Doboard 6583 - skip this to avoid repeats
         unset($message['referer_title']);
 
-        $form_data = Post::get('form_fields');
+        $form_data = TT::toArray(Post::get('form_fields'));
         if ( $form_data ) {
-            if ( !$sender_email ) {
+            if ( ! $sender_email ) {
                 $sender_email = !empty($form_data['email']) ? $form_data['email'] : '';
             }
-            if ( !$sender_nickname ) {
+            if ( ! $sender_nickname ) {
                 $sender_nickname = !empty($form_data['name']) ? $form_data['name'] : '';
                 if ( !$sender_nickname ) {
                     $re = '/[fF]irst_[nN]ame|[lL]ast_[nN]ame/m';
