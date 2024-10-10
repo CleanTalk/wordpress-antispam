@@ -2108,15 +2108,50 @@ function apbct_form__ninjaForms__testSpam()
 
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
 
-    /**
-     * Filter for POST
-     */
-    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $form_data = json_decode($_POST['formData'], true);
+    if( ! $form_data ) {
+        $form_data = json_decode(stripslashes($_POST['formData']), true);
+    }
+    if ( class_exists('Ninja_Forms') && isset($form_data['fields']) ) {
+        $nf_form_fields_info = Ninja_Forms()->form()->get_fields();
+        $nf_form_fields_info_array = [];
+        foreach ($nf_form_fields_info as $field) {
+            $nf_form_fields_info_array[$field->get_id()] = [
+                'field_key' => $field->get_setting('key'),
+                'field_type' => $field->get_setting('type'),
+                'field_label' => $field->get_setting('label'),
+            ];
+        }
 
-    // Choosing between POST and GET
-    $params = ct_get_fields_any(
-        Get::get('ninja_forms_ajax_submit') || Get::get('nf_ajax_submit') ? $_GET : $input_array
-    );
+        $nf_form_fields = $form_data['fields'];
+        $nickname = '';
+        $email = '';
+        $fields = [];
+        foreach ($nf_form_fields as $field) {
+            $field_info = $nf_form_fields_info_array[$field['id']];
+            $fields['nf-field-' . $field['id'] . '-' . $field_info['field_type']] = $field['value'];
+            if ( $field_info['field_key'] === 'name' ) {
+                $nickname = $field['value'];
+            }
+            if ( $field_info['field_key'] === 'email' ) {
+                $email = $field['value'];
+            }
+        }
+
+        $params = ct_gfa($fields, $email, $nickname);
+    } else {
+        // Old way to collecting NF fields data.
+        /**
+         * Filter for POST
+         */
+        $form_data = json_decode(stripslashes( $_POST['formData'] ), true);
+        $input_array = apply_filters('apbct__filter_post', $form_data);
+
+        // Choosing between POST and GET
+        $params = ct_get_fields_any(
+            Get::get('ninja_forms_ajax_submit') || Get::get('nf_ajax_submit') ? $_GET : $input_array
+        );
+    }
 
     $sender_email    = isset($params['email']) ? $params['email'] : '';
     $sender_emails_array = isset($params['emails_array']) ? $params['emails_array'] : '';
