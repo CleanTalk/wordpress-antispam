@@ -2113,6 +2113,7 @@ function apbct_form__ninjaForms__testSpam()
         $form_data = json_decode(stripslashes($_POST['formData']), true);
     }
     if ( class_exists('Ninja_Forms') && isset($form_data['fields']) ) {
+        /** @psalm-suppress UndefinedFunction */
         $nf_form_fields_info = Ninja_Forms()->form()->get_fields();
         $nf_form_fields_info_array = [];
         foreach ($nf_form_fields_info as $field) {
