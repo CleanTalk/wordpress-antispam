@@ -561,11 +561,10 @@ function apbct__filter_form_data($form_data)
  * POST parameter 'action' is set and comply to an expected by rules. If these conditions are met, the
  * function returns true, indicating that the request should bypass certain processing.
  *
- * @param array $post The $_POST array.
  * @return false|string Returns string of the data container mapping if the request is related to the specific plugin
  * and the POST parameter is set. Otherwise, returns false.
  */
-function apbct_get_bypassed_request_data_container($post)
+function apbct_get_bypassed_request_data_container()
 {
     $result = false;
     $ruleset = [];
@@ -581,13 +580,37 @@ function apbct_get_bypassed_request_data_container($post)
         'post_action' => 'uni_cpo_add_to_cart',
         'data_container_name' => 'data'
     );
+    $ruleset[] = array(
+        'plugin_slug' => 'uni-woo-custom-product-options-premium/uni-cpo.php',
+        'post_action' => 'uni_cpo_order_item_update',
+        'data_container_name' => 'post'
+    );
+    $ruleset[] = array(
+        'plugin_slug' => 'uni-woo-custom-product-options-premium/uni-cpo.php',
+        'post_signs_obligatory' => array(
+            'add-to-cart',
+            'cpo_product_id'
+        ),
+        'data_container_name' => 'post'
+    );
+    //cpo_product_id
 
     // Iterate over the ruleset
     foreach ($ruleset as $rule) {
         // If the plugin is active and the POST parameter is set, return true
         if ( apbct_is_plugin_active($rule['plugin_slug']) ) {
-            if (Post::get('action') === $rule['post_action'] && isset($post[$rule['data_container_name']])) {
+            $container_exists = !empty(Post::get($rule['data_container_name'])) || $rule['data_container_name'] === 'post';
+            if (isset($rule['post_action']) && Post::get('action') === $rule['post_action'] && $container_exists) {
                 $result = $rule['data_container_name'];
+            } else {
+                if ($container_exists && !empty($rule['post_signs_obligatory']) ) {
+                    foreach ($rule['post_signs_obligatory'] as $sign) {
+                        if (!Post::get($sign)) {
+                            continue(2);
+                        }
+                    }
+                    $result = $rule['data_container_name'];
+                }
             }
         }
     }
@@ -613,28 +636,38 @@ function apbct_clear_bypassed_requests_post_data()
     $post = $_POST;
 
     // Get the data container mapping if the request is bypassed
-    $data_container = apbct_get_bypassed_request_data_container($post);
+    $data_container = apbct_get_bypassed_request_data_container();
+
+    $container_is_post = $data_container === 'post';
+    if ( !empty($data_container) && is_string($data_container) ) {
+        $data = $container_is_post ? $post : $post[$data_container];
+    }
 
     // If $post is empty or the request is not bypassed, return without executing the rest of the function
-    if ( !is_string($data_container) || empty($post[$data_container])) {
+    if ( empty($data) ) {
         return;
     }
 
     // If the 'ct_bot_detector_event_token' field is set in $post, it is removed.
-    if ( isset($post[$data_container]['ct_bot_detector_event_token']) ) {
-        unset($post[$data_container]['ct_bot_detector_event_token']);
+    if ( isset($data['ct_bot_detector_event_token']) ) {
+        unset($data['ct_bot_detector_event_token']);
     }
 
     // If the 'ct_no_cookie_hidden_field' field is set in $post, it is removed.
-    if ( isset($post[$data_container]['ct_no_cookie_hidden_field']) ) {
-        unset($post[$data_container]['ct_no_cookie_hidden_field']);
+    if ( isset($data['ct_no_cookie_hidden_field']) ) {
+        unset($data['ct_no_cookie_hidden_field']);
     }
 
     // If the 'apbct_visible_fields' field is set in $post, it is removed.
-    if ( isset($post[$data_container]['apbct_visible_fields']) ) {
-        unset($post[$data_container]['apbct_visible_fields']);
+    if ( isset($data['apbct_visible_fields']) ) {
+        unset($data['apbct_visible_fields']);
     }
 
+    if ($container_is_post) {
+        $post = $data;
+    } else {
+        $post[$data_container] = $data;
+    }
     // Assign the cleaned $post back to the $_POST global variable
     $_POST = $post;
 }

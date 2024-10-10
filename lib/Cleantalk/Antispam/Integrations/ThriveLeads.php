@@ -37,7 +37,7 @@ class ThriveLeads extends IntegrationBase
             $sender_nickname = isset($ct_temp_msg_data['nickname']) && $ct_temp_msg_data['nickname'] ?: '';
             $subject         = isset($ct_temp_msg_data['subject']) && $ct_temp_msg_data['subject'] ?: '';
             $message         = isset($ct_temp_msg_data['message']) && $ct_temp_msg_data['message'] ?: array();
-            if ( $subject !== '' ) {
+            if ( $subject !== '' && is_array($message) ) {
                 $message = array_merge(array('subject' => $subject), $message);
             }
         }

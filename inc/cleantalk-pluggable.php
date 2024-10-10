@@ -1197,6 +1197,14 @@ function apbct_is_skip_request($ajax = false)
             return 'Super WooCommerce Product Filter';
         }
 
+        // skip masteriyo_login LMS
+        if (
+            apbct_is_plugin_active('learning-management-system/lms.php') &&
+            Post::get('action') === 'masteriyo_login'
+        ) {
+            return 'masteriyo_login LMS';
+        }
+
         if (
             Post::get('action') === 'ct_check_internal' &&
             $apbct->settings['forms__check_internal'] &&

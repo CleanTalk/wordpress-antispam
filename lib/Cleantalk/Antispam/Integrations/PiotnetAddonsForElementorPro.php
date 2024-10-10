@@ -4,6 +4,7 @@ namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class PiotnetAddonsForElementorPro extends IntegrationBase
 {
@@ -13,7 +14,7 @@ class PiotnetAddonsForElementorPro extends IntegrationBase
         $nickname = '';
         $email = '';
         if ( Post::get('fields') ) {
-            $fields = Post::get('fields');
+            $fields = TT::toString(Post::get('fields'));
             $fields = stripslashes($fields);
             $fields = json_decode($fields, true);
             $fields = array_unique($fields, SORT_REGULAR);
