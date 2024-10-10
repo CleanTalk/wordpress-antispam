@@ -146,7 +146,7 @@
 }
 
 .apbct-admin-real-user-popup {
-    display: none;
+    position: absolute;
     width: auto;
     height: max-content;
 	position: absolute;
@@ -158,8 +158,17 @@
     border: 1px #ccc solid;
     border-radius: 4px;
     box-shadow: 5px 5px 24px -11px #444;
-    z-index: 1000;
+    z-index: -1;
     cursor: default;
+	opacity: 0;
+    transition-property: opacity, z-index;
+    transition-delay: 1s;
+}
+
+.apbct-real-user-badge:hover .apbct-admin-real-user-popup {
+    z-index: 1;
+    opacity: 1;
+    transition-delay: 0s;
 }
 
 .apbct-admin-real-user-title {
