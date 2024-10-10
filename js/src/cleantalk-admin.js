@@ -109,6 +109,30 @@ jQuery(document).ready(function($) {
             el.style.display = 'none';
         });
     });
+    if (window.location.pathname.includes('wp-admin/edit-comments.php')) {
+        const trashElements = document.querySelectorAll('.row-actions .trash');
+        if (trashElements.length) {
+            trashElements.forEach((el) => {
+                el.addEventListener('click', (c) => {
+                    const name = c.target.parentElement.parentElement.parentElement
+                        .querySelector('.apbct-admin-real-user-author-name');
+                    if (!name || !name.textContent) {
+                        return;
+                    }
+                    setTimeout(() => {
+                        const nameForUndo = document.querySelector('.untrash .trash-undo-inside');
+                        if (!nameForUndo) {
+                            return;
+                        }
+                        const nameUndo = nameForUndo.querySelector('strong');
+                        if (nameUndo) {
+                            nameUndo.textContent = name.textContent;
+                        }
+                    }, 10);
+                });
+            });
+        }
+    }
 });
 
 // eslint-disable-next-line camelcase,require-jsdoc,no-unused-vars

@@ -63,8 +63,6 @@ class CleantalkRealPerson
         $trp_popup_text_shield = __('Passed all tests against spam bots. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect');
 
         $trp_comment_id = 'apbct_trp_comment_id_' . $comment_id;
-        $trp_title_popup_open_script = "apbctRealUserBadgeViewPopup('$trp_comment_id');";
-        $trp_title_popup_close_script = "apbctRealUserBadgeClosePopup(event);";
         $trp_link_img_person = APBCT_URL_PATH . '/css/images/real_user.svg';
         $trp_link_img_shield = APBCT_URL_PATH . '/css/images/shield.svg';
 
@@ -77,8 +75,6 @@ class CleantalkRealPerson
             $trp_admin_popup_promo_page_text = __('Learn more', 'cleantalk-spam-protect');
         }
 
-        $template = str_replace('{{TRP_POPUP_OPEN_SCRIPT}}', $trp_title_popup_open_script, $template);
-        $template = str_replace('{{TRP_POPUP_CLOSE_SCRIPT}}', $trp_title_popup_close_script, $template);
         $template = str_replace('{{TRP_POPUP_COMMENT_ID}}', $trp_comment_id, $template);
         $template = str_replace('{{TRP_POPUP_HEADER}}', $trp_popup_header, $template);
         $template = str_replace('{{TRP_POPUP_TEXT_PERSON}}', $trp_popup_text_person, $template);
@@ -148,8 +144,6 @@ class CleantalkRealPerson
             $trp_popup_text_shield = __('Passed all tests against spam bots. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect');
 
             $trp_comment_id = 'apbct_trp_comment_id_' . $curr_comment->comment_ID;
-            $trp_title_popup_open_script = "apbctRealUserBadgeViewPopup('$trp_comment_id');";
-            $trp_title_popup_close_script = "apbctRealUserBadgeClosePopup(event);";
             $trp_link_img_person = APBCT_URL_PATH . '/css/images/real_user.svg';
             $trp_link_img_shield = APBCT_URL_PATH . '/css/images/shield.svg';
 
@@ -162,8 +156,6 @@ class CleantalkRealPerson
                 $trp_admin_popup_promo_page_text = __('Learn more', 'cleantalk-spam-protect');
             }
 
-            $template = str_replace('{{TRP_POPUP_OPEN_SCRIPT}}', $trp_title_popup_open_script, $template);
-            $template = str_replace('{{TRP_POPUP_CLOSE_SCRIPT}}', $trp_title_popup_close_script, $template);
             $template = str_replace('{{TRP_POPUP_COMMENT_ID}}', $trp_comment_id, $template);
             $template = str_replace('{{TRP_POPUP_HEADER}}', $trp_popup_header, $template);
             $template = str_replace('{{TRP_POPUP_TEXT_PERSON}}', $trp_popup_text_person, $template);
