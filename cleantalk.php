@@ -218,6 +218,9 @@ add_action('wp_ajax_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
 // Checking email before POST
 add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_before_post');
 
+// Checking email exist POST
+add_action('wp_ajax_nopriv_apbct_email_check_exist_post', 'apbct_email_check_exist_post');
+
 // Force ajax set important parameters (apbct_timestamp etc)
 add_action('wp_ajax_nopriv_apbct_set_important_parameters', 'apbct_cookie');
 add_action('wp_ajax_apbct_set_important_parameters', 'apbct_cookie');

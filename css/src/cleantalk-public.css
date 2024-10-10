@@ -241,3 +241,54 @@ input[class*='apbct'].apbct_special_field{
     75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
     100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
 }
+
+.apbct-check_email_exist-load, .apbct-check_email_exist-good_email, .apbct-check_email_exist-bad_email {
+    z-index: 9999;
+    margin: 0 6px 0 6px;
+    transition: none !important;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position-x: right;
+    background-position-y: center;
+    cursor: pointer;
+}
+
+.apbct-check_email_exist-load {
+    background-size: contain;
+}
+
+.apbct-check_email_exist-block {
+    position: fixed;
+    display: block;
+}
+
+.apbct-check_email_exist-load {
+    background-image: url(../css/images/checking_email.gif);
+}
+
+.apbct-check_email_exist-good_email {
+    background-image: url(../css/images/good_email.svg);
+}
+
+.apbct-check_email_exist-bad_email {
+    background-image: url(../css/images/bad_email.svg);
+}
+
+.apbct-check_email_exist-popup_description {
+    display: none;
+    position: fixed;
+    padding: 2px;
+    border: 1px solid #E5E8ED;
+    border-radius: 16px 16px 0px 16px;
+    background: #FFFFFF;
+    background-position-x: right;
+    font-size: 14px;
+    text-align: center;
+    transition: all 1s ease-out;
+}
+
+@media screen and (max-width: 782px) {
+    .apbct-check_email_exist-popup_description {
+        width: 100%;
+    }
+}
