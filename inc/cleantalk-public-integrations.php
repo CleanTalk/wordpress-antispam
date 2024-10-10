@@ -2109,7 +2109,7 @@ function apbct_form__ninjaForms__testSpam()
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
 
     $form_data = json_decode($_POST['formData'], true);
-    if( ! $form_data ) {
+    if ( ! $form_data ) {
         $form_data = json_decode(stripslashes($_POST['formData']), true);
     }
     if ( class_exists('Ninja_Forms') && isset($form_data['fields']) ) {
@@ -2144,8 +2144,7 @@ function apbct_form__ninjaForms__testSpam()
         /**
          * Filter for POST
          */
-        $form_data = json_decode(stripslashes( $_POST['formData'] ), true);
-        $input_array = apply_filters('apbct__filter_post', $form_data);
+        $input_array = apply_filters('apbct__filter_post', $_POST);
 
         // Choosing between POST and GET
         $params = ct_get_fields_any(
