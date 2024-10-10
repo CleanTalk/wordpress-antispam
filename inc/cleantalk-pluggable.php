@@ -1212,6 +1212,13 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'APBCT Internal Forms Class';
         }
+
+        // skip tourmaster order
+        if ( apbct_is_plugin_active('tourmaster/tourmaster.php') &&
+            Post::get('action') === 'tourmaster_payment_template'
+        ) {
+            return 'tourmaster_payment_template';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
