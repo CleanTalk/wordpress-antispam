@@ -2108,9 +2108,9 @@ function apbct_form__ninjaForms__testSpam()
 
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
 
-    $form_data = json_decode(TT::toString($_POST['formData']), true);
+    $form_data = json_decode(TT::toString(Post::get('formData')), true);
     if ( ! $form_data ) {
-        $form_data = json_decode(stripslashes(TT::toString($_POST['formData'])), true);
+        $form_data = json_decode(stripslashes(TT::toString(Post::get('formData'))), true);
     }
     if ( function_exists('Ninja_Forms') && isset($form_data['fields']) ) {
         /** @psalm-suppress UndefinedFunction */
