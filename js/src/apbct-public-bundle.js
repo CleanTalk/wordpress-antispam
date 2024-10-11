@@ -953,12 +953,18 @@ class ApbctXhr {
         let noncePrev = '';
 
         // Check if initialRequestParams['headers']['X-WP-Nonce'] exists.
-        if ( initialRequestParams.hasOwnProperty('headers') && initialRequestParams.headers.hasOwnProperty('X-WP-Nonce') ) {
+        if (
+            initialRequestParams.hasOwnProperty('headers') &&
+            initialRequestParams.headers.hasOwnProperty('X-WP-Nonce')
+        ) {
             noncePrev = initialRequestParams['headers']['X-WP-Nonce'];
         }
 
         // Check if initialRequestParams['data']['_ajax_nonce'] exists.
-        if ( initialRequestParams.hasOwnProperty('data') && initialRequestParams.data.hasOwnProperty('_ajax_nonce') ) {
+        if (
+            initialRequestParams.hasOwnProperty('data') &&
+            initialRequestParams.data.hasOwnProperty('_ajax_nonce')
+        ) {
             noncePrev = initialRequestParams['data']['_ajax_nonce'];
         }
 
