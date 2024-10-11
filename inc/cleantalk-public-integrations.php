@@ -2131,10 +2131,10 @@ function apbct_form__ninjaForms__testSpam()
         foreach ($nf_form_fields as $field) {
             $field_info = $nf_form_fields_info_array[$field['id']];
             $fields['nf-field-' . $field['id'] . '-' . $field_info['field_type']] = $field['value'];
-            if ( $field_info['field_key'] === 'name' ) {
+            if ( stripos($field_info['field_key'], 'name') !== false ) {
                 $nickname = $field['value'];
             }
-            if ( $field_info['field_key'] === 'email' ) {
+            if ( stripos($field_info['field_key'], 'email') !== false ) {
                 $email = $field['value'];
             }
         }
