@@ -2309,6 +2309,57 @@ function apbct_ready() {
 
     // Set important paramaters via ajax if problematic cache solutions found
     apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
+
+    if (typeof apbctTrpBrokenIntervalId !== 'undefined') {
+        setTimeout(() => {
+            clearInterval(apbctTrpBrokenIntervalId);
+        }, 1000);
+    }
+}
+
+const apbctTrpBrokenIntervalId = setInterval(apbctFixBrokenTRP, 100);
+
+/**
+ * Fix broken TRP - clean author names from html tags
+ */
+function apbctFixBrokenTRP() {
+    console.log(new Date().toISOString());
+
+    let author;
+    let comments;
+    let reviews;
+    let pattern = '<div class="apbct-real-user-author-name">';
+
+    if (document.documentElement.textContent.indexOf(pattern) > -1) {
+        author = document.documentElement.textContent.match(new RegExp(pattern + '(.*?)<\/div>'))[1];
+        console.log('author', author);
+
+        comments = document.querySelectorAll('.comment-author');
+        for (let i = 0; i < comments.length; i++) {
+            comments[i].childNodes.forEach((node) => {
+                console.log('node', node);
+
+                if (node.textContent.includes(pattern)) {
+                    console.log('comment', node.textContent);
+                    node.textContent = author;
+                    apbctFixBrokenTRP();
+                }
+            });
+        }
+
+        reviews = document.querySelectorAll('.woocommerce-review__author');
+        for (let i = 0; i < reviews.length; i++) {
+            reviews[i].childNodes.forEach((node) => {
+                console.log('node', node);
+
+                if (node.textContent.includes(pattern)) {
+                    console.log('review', node.textContent);
+                    node.textContent = author;
+                    apbctFixBrokenTRP();
+                }
+            });
+        }
+    }
 }
 
 /**
