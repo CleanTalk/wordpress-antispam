@@ -2,8 +2,8 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class FluentForm extends IntegrationBase
 {
@@ -12,8 +12,8 @@ class FluentForm extends IntegrationBase
         global $apbct;
         $event_token = '';
 
-        if ( isset($_POST['data']) ) {
-            parse_str($_POST['data'], $form_data);
+        if ( Post::get('data') ) {
+            parse_str(TT::toString(Post::get('data')), $form_data);
             foreach ($form_data as $param => $param_value) {
                 if (strpos((string)$param, 'ct_no_cookie_hidden_field') !== false || (is_string($param_value) && strpos($param_value, '_ct_no_cookie_data_') !== false)) {
                     if ($apbct->data['cookies_type'] === 'none') {

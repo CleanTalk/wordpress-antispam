@@ -1,3 +1,7 @@
+.apbct_settings-page {
+    padding-right: 10px;
+}
+
 .apbct_settings-field_content,
 .cleantalk_link-auto,
 .cleantalk_link-manual,
@@ -5,7 +9,7 @@
 .ct_rate_block,
 .ct_settings_banner,
 i.animate-spin {
-    display: inline-block
+    display: inline-block;
 }
 
 #apbctTopWarning {margin-bottom: 5px;}
@@ -22,7 +26,9 @@ i.animate-spin {
 }
 
 /* Setting fields */
-.apbct_settings-field_wrapper{ margin: 15px 0; }
+.apbct_settings-field_wrapper{
+    margin: 15px 0; 
+}
 .apbct_settings-field_wrapper--sub{ margin-left: 30px !important; }
 
 .apbct_settings-field_title{  }
@@ -283,6 +289,7 @@ button[value="save_changes"]:disabled {
 }
 #apbct_settings__after_advanced_settings{
     margin-bottom: 20px;
+    width: 70%;
 }
 #apbct_settings__button_section {
     position: fixed;
@@ -318,4 +325,105 @@ button[value="save_changes"]:disabled {
 .apbct_settings_top_info__p {
     padding: 0;
     margin: 2px;
+}
+
+.apbct_settings_top_info__btn {
+    display: inline-flex;
+    gap: 10px;
+}
+
+.apbct_hidden_section_nav_mob_btn {
+    display: none;
+    background-image: url("images/menu.svg");
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position-y: center;
+}
+
+.apbct_hidden_section_nav_mob_btn-close {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .apbct_settings_top_info__btn {
+        display: inline-grid;
+        width: 100%;
+        gap: 5px;
+    }
+    #apbct_settings__after_advanced_settings,
+    #apbct_settings__advanced_settings_inner {
+        width: 100%;
+    }
+
+    .apbct_settings-field_content--radio,
+    .apbct_settings-field_wrapper > .apbct_settings-field_description {
+        width: 100%;
+    }
+
+    .apbct_settings_top_info__sub_btn .apbct_bottom_links--left,
+    .apbct_settings_top_info__sub_btn .apbct_bottom_links--other {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    #apbct_hidden_section_nav ul {
+        display: none;
+        background-color: #dadee3bd;
+        margin: 0;
+        padding: 10px;
+        border-radius: 3px;
+    }
+
+    #apbct_hidden_section_nav {
+        right: 0;
+        min-width: 167px;
+    }
+
+    .apbct_setting_radio::before {
+        height: 6px !important;
+        width: 6px !important;
+        margin: 4px !important;
+    }
+
+    .apbct_setting_checkbox::before {
+        height: 15px !important;
+        width: 15px !important;
+        margin: 0 -.05rem !important;
+    }
+
+    .apbct_setting_checkbox,
+    .apbct_setting_radio {
+        height: 16px !important;
+        width: 16px !important;
+    }
+
+    .apbct_hidden_section_nav_mob_btn {
+        display: block;
+        width: 32px;
+        height: 28px;
+        right: -120px;
+        position: relative;
+    }
+
+    .apbct_hidden_section_nav_mob_btn-close {
+        display: block;
+        position: relative;
+        float: right;
+        width: 20px;
+        height: 22px;
+        top: -5px;
+        right: -5px;
+        background-image: url(images/cancel.svg);
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-position-y: center;
+        text-align: center;
+    }
+}
+
+.apbct_settings_top_info__sub_btn {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
 }
