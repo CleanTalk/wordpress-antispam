@@ -2317,14 +2317,15 @@ function apbct_ready() {
     }
 }
 
+/**
+ * Check broken TRP every 100ms until the page is loaded
+ */
 const apbctTrpBrokenIntervalId = setInterval(apbctFixBrokenTRP, 100);
 
 /**
  * Fix broken TRP - clean author names from html tags
  */
 function apbctFixBrokenTRP() {
-    console.log(new Date().toISOString());
-
     let author;
     let comments;
     let reviews;
@@ -2332,15 +2333,11 @@ function apbctFixBrokenTRP() {
 
     if (document.documentElement.textContent.indexOf(pattern) > -1) {
         author = document.documentElement.textContent.match(new RegExp(pattern + '(.*?)<\/div>'))[1];
-        console.log('author', author);
 
         comments = document.querySelectorAll('.comment-author');
         for (let i = 0; i < comments.length; i++) {
             comments[i].childNodes.forEach((node) => {
-                console.log('node', node);
-
                 if (node.textContent.includes(pattern)) {
-                    console.log('comment', node.textContent);
                     node.textContent = author;
                     apbctFixBrokenTRP();
                 }
@@ -2350,10 +2347,7 @@ function apbctFixBrokenTRP() {
         reviews = document.querySelectorAll('.woocommerce-review__author');
         for (let i = 0; i < reviews.length; i++) {
             reviews[i].childNodes.forEach((node) => {
-                console.log('node', node);
-
                 if (node.textContent.includes(pattern)) {
-                    console.log('review', node.textContent);
                     node.textContent = author;
                     apbctFixBrokenTRP();
                 }
