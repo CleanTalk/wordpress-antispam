@@ -3,6 +3,8 @@
 namespace Cleantalk\Antispam;
 
 use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\TT;
 use Cleantalk\Templates\Singleton;
 use Cleantalk\ApbctWP\Variables\Post;
 
@@ -137,6 +139,10 @@ class EmailEncoder
 
         //skip empty or invalid content
         if ( empty($content) || !is_string($content) ) {
+            return $content;
+        }
+
+        if ( static::skipEncodingOnHooks() ) {
             return $content;
         }
 
@@ -485,5 +491,31 @@ class EmailEncoder
             });
             $this->privacy_policy_hook_handled = true;
         }
+    }
+
+    /**
+     * Skip encoder run on hooks.
+     *
+     * 1. Applies filter "apbct_hook_skip_email_encoder_on_url_list" to get modified list of URI chunks that needs to skip.
+     * @return bool
+     */
+    private static function skipEncodingOnHooks()
+    {
+        $skip_encode = false;
+        $url_chunk_list = array();
+
+        // Apply filter "apbct_hook_skip_email_encoder_on_url_list" to get the URI chunk list.
+        $url_chunk_list = apply_filters('apbct_skip_email_encoder_on_uri_chunk_list', $url_chunk_list);
+
+        if ( !empty($url_chunk_list) && is_array($url_chunk_list) ) {
+            foreach ($url_chunk_list as $chunk) {
+                if (is_string($chunk) && strpos(TT::toString(Server::get('REQUEST_URI')), $chunk) !== false) {
+                    $skip_encode = true;
+                    break;
+                }
+            }
+        }
+
+        return $skip_encode;
     }
 }

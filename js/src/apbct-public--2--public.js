@@ -644,6 +644,7 @@ function apbct_ready() {
             ctPublic.data__cookies_type === 'none'
         ) {
             ctAjaxSetupAddCleanTalkDataBeforeSendAjax();
+            ctAddWCMiddlewares();
         }
 
         for (let i = 0; i < document.forms.length; i++) {
@@ -745,6 +746,42 @@ function apbct_ready() {
 
     // Set important paramaters via ajax if problematic cache solutions found
     apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
+}
+
+/**
+ * Insert no_cookies_data to rest request
+ */
+function ctAddWCMiddlewares() {
+    const ctPinDataToRequest = (options, next) => {
+        if (typeof options !== 'object' || options === null ||
+            !options.hasOwnProperty('data') || !options.hasOwnProperty('path')
+        ) {
+            return next(options);
+        }
+
+        // add to cart
+        if (options.data.hasOwnProperty('requests') &&
+            options.data.requests.length > 0 &&
+            options.data.requests[0].hasOwnProperty('path') &&
+            options.data.requests[0].path === '/wc/store/v1/cart/add-item'
+        ) {
+            options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+        }
+
+        // checkout
+        if (options.path === '/wc/store/v1/checkout') {
+            options.data.ct_no_cookie_hidden_field = getNoCookieData();
+        }
+
+        return next(options);
+    };
+
+    if (window.hasOwnProperty('wp') &&
+        window.wp.hasOwnProperty('apiFetch') &&
+        typeof window.wp.apiFetch.use === 'function'
+    ) {
+        window.wp.apiFetch.use(ctPinDataToRequest);
+    }
 }
 
 /**
@@ -1734,66 +1771,8 @@ const defaultSend = XMLHttpRequest.prototype.send;
 
 if (document.readyState !== 'loading') {
     checkFormsExistForCatching();
-    apbctRealUserBadge();
 } else {
     apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatching);
-    apbct_attach_event_handler(document, 'DOMContentLoaded', apbctRealUserBadge);
-}
-
-/**
- * Handle real user badge
- */
-function apbctRealUserBadge() {
-    document.querySelectorAll('.apbct-real-user-badge').forEach((el) => {
-        el.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.currentTarget.querySelector('.apbct-real-user-popup').style.display = 'inline-flex';
-        });
-    });
-    document.querySelector('body').addEventListener('click', function(e) {
-        document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
-            el.style.display = 'none';
-        });
-    });
-}
-
-/**
- * Shows a popup The Real Person when hovering over the cursor
- * @param {string} id
- */
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctRealUserBadgeViewPopup(id) {
-    document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
-        el.style.display = 'none';
-    });
-    let popup = document.getElementById(id);
-    if (popup != 'undefined') {
-        popup.style.display = 'inline-flex';
-    }
-}
-
-/**
- * Closes The Real Person popup when the cursor leaves the badge element area
- * @param {object} event
- */
-// @ToDo Replace js logic with css
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctRealUserBadgeClosePopup(event) {
-    if (
-        event.relatedTarget.className &&
-        ((event.relatedTarget.className.search(/apbct/) < 0 &&
-        event.relatedTarget.className.search(/real-user/) < 0) ||
-        (event.relatedTarget.className.search(/wrapper/) > 0)) &&
-        window.innerWidth > 768
-
-    ) {
-        document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
-            setTimeout(() => {
-                el.style.display = 'none';
-            }, 1000);
-        });
-    }
 }
 
 /**
