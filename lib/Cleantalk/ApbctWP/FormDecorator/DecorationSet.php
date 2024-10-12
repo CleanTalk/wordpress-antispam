@@ -41,7 +41,7 @@ class DecorationSet
     private function getHeaderSVG()
     {
         return '
-        <svg width="auto" height="auto" viewBox="0 0 595 76" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 595 76" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M0 22H91V49V76H0L25 49L0 22Z" fill="' . $this->darkenHexColor($this->color, 10) . '"/>
         <path d="M595 22H504V49V76H595L570 49L595 22Z" fill="' . $this->darkenHexColor($this->color, 10) . '"/>
         <path d="M48 22H91V49V76L48 60V45V22Z" fill="' . $this->darkenHexColor($this->color, 32) . '"/>

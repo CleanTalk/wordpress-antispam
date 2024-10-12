@@ -4,6 +4,9 @@ namespace Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnv;
 
 class AdjustToEnvW3TotalCache extends AdjustToEnvAbstract
 {
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function __construct($info)
     {
         parent::__construct($info);
@@ -99,7 +102,7 @@ class AdjustToEnvW3TotalCache extends AdjustToEnvAbstract
                 $original_config = \W3TC\Dispatcher::config();
                 $state = (bool)$original_config->get('pgcache.cache.query');
             } catch (\Exception $e) {
-                error_log('Security by CleanTalk error: ' . __METHOD__ . ' ' . $e->getMessage());
+                error_log('Antispam by CleanTalk error: ' . __METHOD__ . ' ' . $e->getMessage());
             }
         }
         return $state;
@@ -133,7 +136,7 @@ class AdjustToEnvW3TotalCache extends AdjustToEnvAbstract
                 $this->changed = !$state;
                 $this->keepEnvChangesByModule();
             } catch (\Exception $e) {
-                error_log('Security by CleanTalk error: ' . __METHOD__ . ' ' . $e->getMessage());
+                error_log('Antispam by CleanTalk error: ' . __METHOD__ . ' ' . $e->getMessage());
             }
         }
     }

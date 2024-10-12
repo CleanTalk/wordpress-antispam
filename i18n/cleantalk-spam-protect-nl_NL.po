@@ -161,10 +161,6 @@ msgstr ""
 msgid "Blocked"
 msgstr ""
 
-#: inc/cleantalkWidget.php:95
-msgid "blocked by"
-msgstr ""
-
 #: inc/cleantalk-admin.php:1179
 msgid "Blocked login attempts in the local database for past 24 hours."
 msgstr ""
@@ -228,23 +224,6 @@ msgstr ""
 msgid "CleanTalk Status"
 msgstr ""
 
-#. Widget name will appear in UI
-#: inc/cleantalkWidget.php:25
-msgid "CleanTalk Widget"
-msgstr ""
-
-#: inc/cleantalkWidget.php:27
-msgid "CleanTalk widget"
-msgstr ""
-
-#: inc/cleantalkWidget.php:88
-msgid "CleanTalk's main page"
-msgstr ""
-
-#: inc/cleantalkWidget.php:130
-msgid "CleanTalk's Style"
-msgstr ""
-
 #: inc/cleantalk-admin.php:1386
 msgid ""
 "CleanTalk: Your feedback will be sent to the cloud within the next hour. "
@@ -277,10 +256,6 @@ msgstr ""
 
 #: lib/Cleantalk/ApbctWP/WcSpamOrdersListTable.php:113
 msgid "Customer details"
-msgstr ""
-
-#: inc/cleantalkWidget.php:142
-msgid "Dark"
 msgstr ""
 
 #: inc/cleantalk-admin.php:1018
@@ -397,10 +372,6 @@ msgstr ""
 
 #: lib/Cleantalk/ApbctWP/CleantalkSettingsTemplates.php:227
 msgid "Export settings to selected template"
-msgstr ""
-
-#: inc/cleantalkWidget.php:138
-msgid "Extremely Light"
 msgstr ""
 
 #: lib/Cleantalk/ApbctWP/FindSpam/CommentsChecker.php:44
@@ -529,10 +500,6 @@ msgstr ""
 msgid ""
 "Last check %s: checked %s users (excluding admins), found %s spam users and "
 "%s non-checkable users (no IP and email found)."
-msgstr ""
-
-#: inc/cleantalkWidget.php:134
-msgid "Light"
 msgstr ""
 
 #: inc/cleantalk-admin.php:1174
@@ -713,10 +680,6 @@ msgstr ""
 msgid "Posts"
 msgstr ""
 
-#: inc/cleantalkWidget.php:151
-msgid "Referal link ID:"
-msgstr ""
-
 #: lib/Cleantalk/ApbctWP/AdminNotices.php:246
 msgid "RENEW ANTI-SPAM"
 msgstr ""
@@ -825,14 +788,6 @@ msgstr ""
 msgid "Something went wrong! Error: \"%s\"."
 msgstr ""
 
-#: inc/cleantalkWidget.php:92
-msgid "spam"
-msgstr ""
-
-#: inc/cleantalkWidget.php:37 inc/cleantalkWidget.php:107
-msgid "Spam blocked"
-msgstr ""
-
 #: inc/cleantalk-public.php:844 inc/cleantalk-public.php:897
 #: lib/Cleantalk/Antispam/Integrations/CleantalkPreprocessComment.php:296
 msgid "Spam protection"
@@ -878,10 +833,6 @@ msgstr ""
 
 #: lib/Cleantalk/ApbctWP/AdminNotices.php:278
 msgid "Still have spam?"
-msgstr ""
-
-#: inc/cleantalkWidget.php:125
-msgid "Style:"
 msgstr ""
 
 #: inc/cleantalk-wpcli.php:155
@@ -991,10 +942,6 @@ msgstr ""
 #: lib/Cleantalk/ApbctWP/Firewall/SFW.php:376
 #: lib/Cleantalk/ApbctWP/Firewall/SFW.php:439
 msgid "This is the testing page for SpamFireWall"
-msgstr ""
-
-#: inc/cleantalkWidget.php:112
-msgid "Title:"
 msgstr ""
 
 #: lib/Cleantalk/ApbctWP/Firewall/AntiFlood.php:231

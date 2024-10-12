@@ -71,7 +71,7 @@ class State extends \Cleantalk\Common\State
         'comments__remove_comments_links'          => 0, // Remove links from approved comments
         'comments__show_check_links'               => 1, // Shows check link to Cleantalk's DB.
         'comments__manage_comments_on_public_page' => 0, // Allows to control comments on public page.
-        'comments__the_real_person'                => 1, // Shows badge on each approved by cloud comments on public page.
+        'comments__the_real_person'                => 0, // Shows badge on each approved by cloud comments on public page.
         'comments__hide_website_field'             => 0, // Hide website field from comment form
         'comments__form_decoration'                => 0, // Holiday form decoration
         'comments__form_decoration_text'           => '', // Holiday form decoration text
@@ -87,7 +87,7 @@ class State extends \Cleantalk\Common\State
         'data__pixel'                              => '3',
         'data__email_check_before_post'            => 1,
         'data__honeypot_field'                     => 1,
-        'data__email_decoder'                      => 0,
+        'data__email_decoder'                      => 1,
         'data__email_decoder_buffer'               => 0,
         'data__wc_store_blocked_orders'            => 0,
 
@@ -488,10 +488,6 @@ class State extends \Cleantalk\Common\State
             // Table with session data.
             define('APBCT_TBL_SESSIONS', $db_prefix . 'cleantalk_sessions');
         }
-        if ( ! defined('APBCT_TBL_NO_COOKIE')) {
-            // Table with session data.
-            define('APBCT_TBL_NO_COOKIE', $db_prefix . 'cleantalk_no_cookie_data');
-        }
         if ( ! defined('APBCT_TBL_CONNECTION_REPORTS')) {
             // Table with connection reports data.
             define('APBCT_TBL_CONNECTION_REPORTS', $db_prefix . 'cleantalk_connection_reports');
@@ -547,10 +543,7 @@ class State extends \Cleantalk\Common\State
 
             // Setting default options
             if ($wpdb_option_name === 'cleantalk_settings') {
-                // A/B testing for the Encode contact data setting: randomly on or off
-                // @ToDo remove this after testing
-                $this->default_settings['data__email_decoder'] = rand(0, 1);
-                // A/B testing for the RealUserBadge setting: randomly on or off
+                // A/B testing here
                 $option = is_array($option) ? array_merge($this->default_settings, $option) : $this->default_settings;
             }
 

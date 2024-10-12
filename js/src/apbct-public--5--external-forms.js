@@ -91,6 +91,10 @@ function formIsExclusion(currentForm) {
         'et_pb_searchform', // integration with elementor-search-form
     ];
 
+    const exclusionsByAction = [
+        'paypal.com/cgi-bin/webscr', // search forms
+    ];
+
     let result = false;
 
     try {
@@ -99,6 +103,14 @@ function formIsExclusion(currentForm) {
             currentForm.parentElement.classList.length > 0 &&
             currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1) {
             result = true;
+        }
+
+        if (currentForm.getAttribute('action') !== null) {
+            exclusionsByAction.forEach(function(exclusionAction) {
+                if (currentForm.getAttribute('action').indexOf(exclusionAction) !== -1) {
+                    result = true;
+                }
+            });
         }
 
         exclusionsById.forEach(function(exclusionId) {
@@ -293,7 +305,8 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     const inputsTarget = formTarget.querySelectorAll('button, input, textarea, select');
 
     if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1 ||
-        isFormHasDiviRedirect(formSource)
+        isFormHasDiviRedirect(formSource) ||
+        formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1
     ) {
         inputsSource.forEach((elemSource) => {
             inputsTarget.forEach((elemTarget) => {
@@ -610,7 +623,9 @@ function isIntegratedForm(formObj) {
         // ) || // Hubspot integration in Elementor form// Hubspot integration in Elementor form
         formAction.indexOf('eloqua.com') !== -1 || // Eloqua integration
         formAction.indexOf('kulahub.net') !== -1 || // Kulahub integration
-        isFormHasDiviRedirect(formObj) // Divi contact form
+        isFormHasDiviRedirect(formObj) || // Divi contact form
+        formAction.indexOf('eocampaign1.com') !== -1 || // EmailOctopus Campaign form
+        formAction.indexOf('wufoo.com') !== -1 // Wufoo form
     ) {
         return true;
     }

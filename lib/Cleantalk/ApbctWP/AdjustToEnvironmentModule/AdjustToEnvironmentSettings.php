@@ -10,9 +10,9 @@ class AdjustToEnvironmentSettings
         $view_buttons = '';
 
         $view .= '<div class="apbct_settings-field_wrapper" id="apbct-action-adjust-env">';
-        $view__adjusted = __('We changed some settings of third party plugins to make compatibility. ', 'security-malware-firewall');
-        $view__adjusted .= __('You are free to reverse it, but it may lead to incorrect operation of the software.', 'security-malware-firewall');
-        $view__adjust_suggestion = __('We suggest you to change some settings of third party plugins to make compatibility. ', 'security-malware-firewall');
+        $view__adjusted = __('We changed some settings of third party plugins to make compatibility. ', 'cleantalk-spam-protect');
+        $view__adjusted .= __('You are free to reverse it, but it may lead to incorrect operation of the software.', 'cleantalk-spam-protect');
+        $view__adjust_suggestion = __('We suggest you to change some settings of third party plugins to make compatibility. ', 'cleantalk-spam-protect');
 
         $info = AdjustToEnvironmentHandler::getInfoWhatWeChanged();
 
@@ -22,7 +22,6 @@ class AdjustToEnvironmentSettings
             if (!class_exists($class) || false === $key_of_adjust) {
                 continue;
             }
-
 
             if (isset($info[$class]['changed'])) {
                 $adjust_obj = new $class($info);
@@ -59,12 +58,15 @@ class AdjustToEnvironmentSettings
         switch ($key) {
             case 'w3tc':
                 $title = 'W3 Total Cache';
-                $description = __('Next button will disable "Cache URIs with query string variables" option.', 'security-malware-firewall');
+                $description = __('Next button will disable "Cache URIs with query string variables" option.', 'cleantalk-spam-protect');
+                break;
+            case 'litespeed':
+                $title = 'LiteSpeed Cache';
                 break;
         }
 
         $replaces = [
-            '{TITLE}' => sprintf(__("Make adjust for %s", 'security-malware-firewall'), $title),
+            '{TITLE}' => sprintf(__("Make adjust for %s", 'cleantalk-spam-protect'), $title),
             '{DESCRIPTION}' => $description,
             '{KEY}' => 'change-' . $key,
             '{ADJUST}' => $key,
@@ -88,7 +90,10 @@ class AdjustToEnvironmentSettings
         switch ($key) {
             case 'w3tc':
                 $title = 'W3 Total Cache';
-                $description = __('Next button will enable "Cache URIs with query string variables" option back.', 'security-malware-firewall');
+                $description = __('Next button will enable "Cache URIs with query string variables" option back.', 'cleantalk-spam-protect');
+                break;
+            case 'litespeed':
+                $title = 'LiteSpeed Cache';
                 break;
         }
 

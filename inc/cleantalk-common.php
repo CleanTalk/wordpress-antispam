@@ -201,6 +201,10 @@ function apbct_base_call($params = array(), $reg_flag = false)
         $default_params['sender_info']['typo'] = Cookie::get('typo');
     }
 
+    if (Cookie::get('skin')) {
+        $default_params['sender_info']['skin'] = Cookie::get('skin');
+    }
+
     /**
      * Add exception_action sender email is empty
      */
@@ -225,17 +229,23 @@ function apbct_base_call($params = array(), $reg_flag = false)
     }
 
     /**
-     * Add honeypot_field if exists in params
+     * Add honeypot_field to $base_call_data if forms__wc_honeypot on
+     * --------------------------------------------------------------
+     * Description:
+     * $params['honeypot_field'] = 0 - means that honeypot field is dirty (was updated by bot)
+     * $params['honeypot_field'] = 1 - means that honeypot field is clean (was not updated by bot)
+     * $params['honeypot_field'] = null - means that honeypot field is not supported for current form
+     * --------------------------------------------------------------
      */
     if ( isset($params['honeypot_field']) ) {
         $default_params['honeypot_field'] = $params['honeypot_field'];
-    }
-    /**
-     * Add honeypot_field to $base_call_data if forms__wc_honeypot on
-     */
-    if ( $apbct->settings['data__honeypot_field'] && !isset($params['honeypot_field']) ) {
+    } else if ( $apbct->settings['data__honeypot_field'] ) {
         $honeypot_filled_fields = apbct_get_honeypot_filled_fields();
-        $params['honeypot_field'] = $honeypot_filled_fields === false ? null : 1;
+        if ( isset($honeypot_filled_fields) ) {
+            $params['honeypot_field'] = ! (bool) $honeypot_filled_fields;
+        } else {
+            $params['honeypot_field'] = null;
+        }
 
         if ( isset($honeypot_filled_fields['field_value'], $honeypot_filled_fields['field_source'], $params['sender_info']) ) {
             $params['sender_info']['honeypot_field_value'] = $honeypot_filled_fields['field_value'];
@@ -792,6 +802,7 @@ function apbct_is_cache_plugins_exists($return_names = false)
         'CE_FILE'                                     => 'Cache Enabler – WordPress Cache',
         'SiteGround_Optimizer\VERSION'                => 'SG Optimizer',
         'NITROPACK_VERSION'                           => 'NitroPack',
+        'TWO_PLUGIN_FILE'                             => '10Web Booster',
     );
 
     $classes_of_cache_plugins = array (
@@ -836,6 +847,11 @@ function apbct_is_varnish_cache_exists()
 function apbct_is_advanced_cache_exists()
 {
     return apbct_is_cache_plugins_exists() && file_exists(untrailingslashit(WP_CONTENT_DIR) . '/advanced-cache.php');
+}
+
+function apbct_is_10web_booster_exists()
+{
+    return apbct_is_cache_plugins_exists() && apbct_is_plugin_active('tenweb-speed-optimizer/tenweb_speed_optimizer.php');
 }
 
 /**
@@ -1029,17 +1045,13 @@ function ct_delete_spam_comments()
  * Get data from an ARRAY recursively
  *
  * @param array $arr
- * @param array $message
- * @param null|string $email
- * @param array $nickname
- * @param null $subject
- * @param bool $contact
- * @param string $prev_name
+ * @param string $email
+ * @param string|array $nickname
  *
  * @return array
  * @deprecated Use ct_gfa()
  */
-function ct_get_fields_any($arr, $email = null, $nickname = array('nick' => '', 'first' => '', 'last' => ''))
+function ct_get_fields_any($arr, $email = '', $nickname = '')
 {
     if ( is_array($nickname) ) {
         $nickname_str = '';
@@ -1347,15 +1359,15 @@ function apbct_need_to_process_unknown_post_request()
 
 /**
  * Handles gained POST and GET data to find filled honeypot fields.
- * @return array|false
+ * @return array|false|null
  * - array [honeypot_field_value, honeypot_field_source] if we have filled field,
- * - empty array if we have not
+ * - null if we have not
  * - false if POST has no honeypot signs
  */
 function apbct_get_honeypot_filled_fields()
 {
     global $apbct;
-    $apbct_event_id = false;
+    $apbct_event_id = $honeypot_exists = false;
     $result = array();
 
     /**
@@ -1391,9 +1403,10 @@ function apbct_get_honeypot_filled_fields()
      */
 
     // if source is filled then pass them to params as additional fields
-    if ( !empty($honeypot_potential_values) ) {
+    if ( ! empty($honeypot_potential_values) ) {
         foreach ( $honeypot_potential_values as $source_name => $source_value ) {
             if ( $source_value ) {
+                $honeypot_exists = true;
                 // use the apbct_event_id from search if form is search form
                 $apbct_event_id = $source_name === 'apbct__email_id__search_form'
                     ? (isset($alt_search_event_id) ? $alt_search_event_id : $apbct_event_id)
@@ -1406,6 +1419,10 @@ function apbct_get_honeypot_filled_fields()
                 }
             }
         }
+    }
+
+    if ( ! $honeypot_exists ) {
+        return null;
     }
 
     return empty($result) ? false : $result;
@@ -1562,12 +1579,13 @@ function apbct_clear_query_from_service_fields($query_string, $service_field_nam
 /**
  * Main entry function to collect no cookie data.
  */
-function apbct_form__get_no_cookie_data($preprocessed_data = null)
+function apbct_form__get_no_cookie_data($preprocessed_data = null, $need_filter = true)
 {
     global $apbct;
     $flag = null;
     $no_cookie_data = apbct_check_post_for_no_cookie_data($preprocessed_data);
-    if ( !empty($no_cookie_data['mapping']) ) {
+
+    if ( $need_filter && !empty($no_cookie_data['mapping']) ) {
         apbct_filter_post_no_cookie_data($no_cookie_data['mapping']);
     }
     if ( $no_cookie_data && !empty($no_cookie_data['data']) && $apbct->data['cookies_type'] === 'none' ) {

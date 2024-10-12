@@ -137,7 +137,11 @@ function ct_contact_form_validate()
 
     $ct_tmp_email = null;
     foreach ($input_array as $key => $value) {
-        if ( is_string($key) && strpos($key, 'et_pb_contact_email') !== false ) {
+        if (is_string($key) &&
+            strpos($key, 'et_pb_contact_email') !== false &&
+            strpos($key, 'et_pb_contact_email_fields') === false &&
+            strpos($key, 'et_pb_contact_email_hidden_fields') === false
+        ) {
             $ct_tmp_email = preg_replace('/[^a-zA-Z0-9@\.\-_]/', '', $value);
             break;
         }
@@ -146,6 +150,17 @@ function ct_contact_form_validate()
     $ct_temp_msg_data = ct_get_fields_any($input_array, $ct_tmp_email);
 
     $sender_email    = (isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '');
+    //prepare emails array
+    $sender_emails_array = (isset($ct_temp_msg_data['emails_array']) ? $ct_temp_msg_data['emails_array'] : '');
+    if ( !empty($sender_emails_array) ) {
+        $sender_emails_array = json_encode($sender_emails_array);
+        $sender_emails_array = TT::toString($sender_emails_array);
+    }
+    $sender_info = array(
+        'sender_email' => urlencode($sender_email),
+        'sender_emails_array' => urlencode($sender_emails_array)
+    );
+
     $sender_nickname = (isset($ct_temp_msg_data['nickname']) ? $ct_temp_msg_data['nickname'] : '');
     $subject         = (isset($ct_temp_msg_data['subject']) ? $ct_temp_msg_data['subject'] : '');
     $contact_form    = (isset($ct_temp_msg_data['contact']) ? $ct_temp_msg_data['contact'] : '');
@@ -191,7 +206,7 @@ function ct_contact_form_validate()
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
             'post_info'       => $post_info,
-            'sender_info'     => array('sender_email' => urlencode($sender_email)),
+            'sender_info'     => $sender_info,
         )
     );
 
@@ -399,6 +414,7 @@ function ct_contact_form_validate_postdata()
     $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '';
+    $sender_emails_array = isset($ct_temp_msg_data['emails_array']) ? $ct_temp_msg_data['emails_array'] : '';
     $sender_nickname = isset($ct_temp_msg_data['nickname']) ? $ct_temp_msg_data['nickname'] : '';
     $subject         = isset($ct_temp_msg_data['subject']) ? $ct_temp_msg_data['subject'] : '';
     $message         = isset($ct_temp_msg_data['message']) ? $ct_temp_msg_data['message'] : array();
@@ -434,6 +450,9 @@ function ct_contact_form_validate_postdata()
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
             'post_info'       => array('comment_type' => 'feedback_general_postdata'),
+            'sender_info'     => array(
+                'sender_emails_array'    => $sender_emails_array,
+            ),
         )
     );
 
@@ -542,11 +561,10 @@ function apbct__filter_form_data($form_data)
  * POST parameter 'action' is set and comply to an expected by rules. If these conditions are met, the
  * function returns true, indicating that the request should bypass certain processing.
  *
- * @param array $post The $_POST array.
  * @return false|string Returns string of the data container mapping if the request is related to the specific plugin
  * and the POST parameter is set. Otherwise, returns false.
  */
-function apbct_get_bypassed_request_data_container($post)
+function apbct_get_bypassed_request_data_container()
 {
     $result = false;
     $ruleset = [];
@@ -562,13 +580,37 @@ function apbct_get_bypassed_request_data_container($post)
         'post_action' => 'uni_cpo_add_to_cart',
         'data_container_name' => 'data'
     );
+    $ruleset[] = array(
+        'plugin_slug' => 'uni-woo-custom-product-options-premium/uni-cpo.php',
+        'post_action' => 'uni_cpo_order_item_update',
+        'data_container_name' => 'post'
+    );
+    $ruleset[] = array(
+        'plugin_slug' => 'uni-woo-custom-product-options-premium/uni-cpo.php',
+        'post_signs_obligatory' => array(
+            'add-to-cart',
+            'cpo_product_id'
+        ),
+        'data_container_name' => 'post'
+    );
+    //cpo_product_id
 
     // Iterate over the ruleset
     foreach ($ruleset as $rule) {
         // If the plugin is active and the POST parameter is set, return true
         if ( apbct_is_plugin_active($rule['plugin_slug']) ) {
-            if (Post::get('action') === $rule['post_action'] && isset($post[$rule['data_container_name']])) {
+            $container_exists = !empty(Post::get($rule['data_container_name'])) || $rule['data_container_name'] === 'post';
+            if (isset($rule['post_action']) && Post::get('action') === $rule['post_action'] && $container_exists) {
                 $result = $rule['data_container_name'];
+            } else {
+                if ($container_exists && !empty($rule['post_signs_obligatory']) ) {
+                    foreach ($rule['post_signs_obligatory'] as $sign) {
+                        if (!Post::get($sign)) {
+                            continue(2);
+                        }
+                    }
+                    $result = $rule['data_container_name'];
+                }
             }
         }
     }
@@ -594,28 +636,38 @@ function apbct_clear_bypassed_requests_post_data()
     $post = $_POST;
 
     // Get the data container mapping if the request is bypassed
-    $data_container = apbct_get_bypassed_request_data_container($post);
+    $data_container = apbct_get_bypassed_request_data_container();
+
+    $container_is_post = $data_container === 'post';
+    if ( !empty($data_container) && is_string($data_container) ) {
+        $data = $container_is_post ? $post : $post[$data_container];
+    }
 
     // If $post is empty or the request is not bypassed, return without executing the rest of the function
-    if ( !is_string($data_container) || empty($post[$data_container])) {
+    if ( empty($data) ) {
         return;
     }
 
     // If the 'ct_bot_detector_event_token' field is set in $post, it is removed.
-    if ( isset($post[$data_container]['ct_bot_detector_event_token']) ) {
-        unset($post[$data_container]['ct_bot_detector_event_token']);
+    if ( isset($data['ct_bot_detector_event_token']) ) {
+        unset($data['ct_bot_detector_event_token']);
     }
 
     // If the 'ct_no_cookie_hidden_field' field is set in $post, it is removed.
-    if ( isset($post[$data_container]['ct_no_cookie_hidden_field']) ) {
-        unset($post[$data_container]['ct_no_cookie_hidden_field']);
+    if ( isset($data['ct_no_cookie_hidden_field']) ) {
+        unset($data['ct_no_cookie_hidden_field']);
     }
 
     // If the 'apbct_visible_fields' field is set in $post, it is removed.
-    if ( isset($post[$data_container]['apbct_visible_fields']) ) {
-        unset($post[$data_container]['apbct_visible_fields']);
+    if ( isset($data['apbct_visible_fields']) ) {
+        unset($data['apbct_visible_fields']);
     }
 
+    if ($container_is_post) {
+        $post = $data;
+    } else {
+        $post[$data_container] = $data;
+    }
     // Assign the cleaned $post back to the $_POST global variable
     $_POST = $post;
 }

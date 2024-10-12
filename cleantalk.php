@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.38-dev
+  Version: 6.42.2-dev
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -161,13 +161,6 @@ $apbct->settings_link = is_network_admin() ? 'settings.php?page=cleantalk' : 'op
 $apbct->setConnectionReports();
 // SFW update sentinel
 $apbct->setSFWUpdateSentinel();
-
-/**
- * Init features.
- */
-if ( ! $apbct->white_label ) {
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalkWidget.php');
-}
 
 // Disabling comments
 if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['comments__disable_comments__posts'] || $apbct->settings['comments__disable_comments__pages'] || $apbct->settings['comments__disable_comments__media'] ) {
@@ -373,6 +366,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__comments_test',
         'ajax'    => true,
         'ajax_and_post' => true
+    ),
+    'CleantalkWpDieOnComment'         => array(
+        'hook'    => 'wp_die_handler',
+        'setting' => 'forms__comments_test',
+        'ajax'    => false,
     ),
     'ContactBank'         => array(
         'hook'    => 'contact_bank_frontend_ajax_call',
@@ -903,6 +901,17 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
     add_filter('get_search_query', 'apbct_forms__search__testSpam');
     add_action('wp_head', 'apbct_search_add_noindex', 1);
 
+    if (apbct_is_plugin_active('fluentformpro/fluentformpro.php') && apbct_is_in_uri('ff_landing=')) {
+        add_action('wp_head', function () {
+            echo '<script data-pagespeed-no-defer="" src="'
+                . APBCT_URL_PATH
+                . '/js/apbct-public-bundle.min.js'
+                . '?ver=' . APBCT_VERSION . '" id="ct_public_functions-js"></script>';
+            echo '<script src="https://moderate.cleantalk.org/ct-bot-detector-wrapper.js?ver='
+                . APBCT_VERSION . '" id="ct_bot_detector-js"></script>';
+        }, 100);
+    }
+
     // SpamFireWall check
     if ( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
          $apbct->settings['sfw__enabled'] == 1 &&
@@ -1111,9 +1120,7 @@ if ( is_admin() || is_network_admin() ) {
     add_action('plugins_loaded', 'apbct_init', 1);
 
     // Comments
-    //add_filter('preprocess_comment', 'ct_preprocess_comment', 1, 1);     // param - comment data array
     add_filter('comment_text', 'ct_comment_text');
-    add_filter('wp_die_handler', 'apbct_comment__sanitize_data__before_wp_die', 1); // Check comments after validation
 
     // Registrations
     if ( ! Post::get('wp-submit') ) {
@@ -1429,6 +1436,11 @@ function apbct_sfw_update__init($delay = 0)
     //update only common tables if moderate 0
     if ( ! $apbct->moderate ) {
         $apbct->data['sfw_load_type'] = 'common';
+    }
+
+    if ( $apbct->network_settings['multisite__work_mode'] == 3) {
+        $apbct->data['sfw_load_type'] = 'all';
+        $apbct->save('data');
     }
 
     if (apbct_sfw_update__switch_to_direct()) {
@@ -1838,11 +1850,19 @@ function apbct_sfw_update__create_tables($direct_update = false, $return_new_tab
     $table_name_personal = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
     $db_tables_creator->createTable($table_name_personal);
     $apbct->data['sfw_personal_table_name'] = $table_name_personal;
+    //ua table
+    $personal_ua_bl_table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'ua_bl';
+    $db_tables_creator->createTable($personal_ua_bl_table_name);
+    $apbct->data['sfw_personal_ua_bl_table_name'] = $personal_ua_bl_table_name;
 
     $apbct->saveData();
 
     if ( $return_new_tables_names ) {
-        return array('sfw_common_table_name' => $common_table_name, 'sfw_personal_table_name' => $table_name_personal);
+        return array(
+            'sfw_common_table_name' => $common_table_name,
+            'sfw_personal_table_name' => $table_name_personal,
+            'sfw_personal_ua_bl_table_name' => $personal_ua_bl_table_name,
+            );
     }
 
     return $direct_update ? true : array(
@@ -1861,12 +1881,12 @@ function apbct_sfw_update__create_temp_tables($direct_update = false)
     global $apbct;
 
     // Create common table
-    $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA);
+    $result = SFW::createTempTables(DB::getInstance(), $apbct->data['sfw_common_table_name']);
     if ( ! empty($result['error']) ) {
         return $result;
     }
     // Create personal table
-    $result = SFW::createTempTables(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL);
+    $result = SFW::createTempTables(DB::getInstance(), $apbct->data['sfw_personal_table_name']);
     if ( ! empty($result['error']) ) {
         return $result;
     }
@@ -3108,9 +3128,6 @@ function apbct_cron_clear_old_session_data()
 {
     global $apbct;
 
-    if ( $apbct->data['cookies_type'] === 'none' ) {
-        \Cleantalk\ApbctWP\Variables\NoCookie::cleanFromOld();
-    }
     if ( $apbct->data['cookies_type'] === 'alternative' ) {
         \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
     }

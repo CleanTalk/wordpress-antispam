@@ -73,19 +73,24 @@ jQuery(document).ready(function($) {
     // Deactivation banner
     jQuery('#deactivate-cleantalk-spam-protect').on('click', function(e) {
         e.preventDefault();
-        const deactivationLink = this.getAttribute('href');
-
+        let deactivationLink = this.getAttribute('href');
         if ( typeof cleantalkModal !== 'undefined' && ctAdminCommon.deactivation_banner_is_needed === '1') {
+            // force replace raw link to the href - fix for https://doboard.com/1/task/10192
+            bannertText = ctAdminCommon.deactivation_banner_text
+                .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
             const modalHTML = `
                 <div class="ct-modal-message">
-                    ${ctAdminCommon.deactivation_banner_text}
+                    ${bannertText}
                 </div>
                 <div class="ct-modal-buttons">
                     <button class="button action" onclick="cleantalkModal.close();">Ok</button>
                     <a class="button action" href="${deactivationLink}">No, deactivate anyway</a>
                 </div>
             `;
+            // look ahead ^ deactivationLink in the href was broken after modal handler URL converison
             cleantalkModal.loaded = modalHTML;
+            // ignore URL conversions due modal handler
+            cleantalkModal.ignoreURLConvert = true;
             cleantalkModal.open();
         } else {
             window.location.href = deactivationLink;
@@ -104,6 +109,30 @@ jQuery(document).ready(function($) {
             el.style.display = 'none';
         });
     });
+    if (window.location.pathname.includes('wp-admin/edit-comments.php')) {
+        const trashElements = document.querySelectorAll('.row-actions .trash');
+        if (trashElements.length) {
+            trashElements.forEach((el) => {
+                el.addEventListener('click', (c) => {
+                    const name = c.target.parentElement.parentElement.parentElement
+                        .querySelector('.apbct-admin-real-user-author-name');
+                    if (!name || !name.textContent) {
+                        return;
+                    }
+                    setTimeout(() => {
+                        const nameForUndo = document.querySelector('.untrash .trash-undo-inside');
+                        if (!nameForUndo) {
+                            return;
+                        }
+                        const nameUndo = nameForUndo.querySelector('strong');
+                        if (nameUndo) {
+                            nameUndo.textContent = name.textContent;
+                        }
+                    }, 10);
+                });
+            });
+        }
+    }
 });
 
 // eslint-disable-next-line camelcase,require-jsdoc,no-unused-vars

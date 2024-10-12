@@ -3,6 +3,7 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class ElementorPro extends IntegrationBase
 {
@@ -35,10 +36,10 @@ class ElementorPro extends IntegrationBase
 
         $ct_temp_msg_data = ct_gfa($input_array);
 
-        $sender_email    = $ct_temp_msg_data['email'] ?: '';
-        $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
-        $subject         = $ct_temp_msg_data['subject'] ?: '';
-        $message         = $ct_temp_msg_data['message'] ?: array();
+        $sender_email    = isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '';
+        $sender_nickname = isset($ct_temp_msg_data['nickname']) ? $ct_temp_msg_data['nickname'] : '';
+        $subject         = isset($ct_temp_msg_data['subject']) ? $ct_temp_msg_data['subject'] : '';
+        $message         = isset($ct_temp_msg_data['message']) ? $ct_temp_msg_data['message'] : array();
         if ( $subject !== '' ) {
             $message = array_merge(array('subject' => $subject), $message);
         }
@@ -46,12 +47,12 @@ class ElementorPro extends IntegrationBase
         //Doboard 6583 - skip this to avoid repeats
         unset($message['referer_title']);
 
-        $form_data = Post::get('form_fields');
+        $form_data = TT::toArray(Post::get('form_fields'));
         if ( $form_data ) {
-            if ( !$sender_email ) {
+            if ( ! $sender_email ) {
                 $sender_email = !empty($form_data['email']) ? $form_data['email'] : '';
             }
-            if ( !$sender_nickname ) {
+            if ( ! $sender_nickname ) {
                 $sender_nickname = !empty($form_data['name']) ? $form_data['name'] : '';
                 if ( !$sender_nickname ) {
                     $re = '/[fF]irst_[nN]ame|[lL]ast_[nN]ame/m';

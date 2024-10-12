@@ -431,18 +431,6 @@ function ctSetHasKeyUp() {
     }
 }
 
-/**
- * ctPreloadLocalStorage
- */
-function ctPreloadLocalStorage() {
-    if (ctPublic.data__to_local_storage) {
-        let data = Object.entries(ctPublic.data__to_local_storage);
-        data.forEach(([key, value]) => {
-            apbctLocalStorage.set(key, value);
-        });
-    }
-}
-
 if (ctPublic.data__key_is_ok) {
     apbct_attach_event_handler(document, 'mousemove', ctFunctionMouseMove);
     apbct_attach_event_handler(document, 'mousedown', ctFunctionFirstKey);
@@ -508,6 +496,22 @@ function startForcedAltEventTokenChecker() {
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 function apbct_ready() {
+    if (typeof jQuery !== 'undefined') {
+        jQuery(document).on('gform_page_loaded', function() {
+            if (
+                typeof ctPublic.force_alt_cookies == 'undefined' ||
+                (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
+            ) {
+                ctNoCookieAttachHiddenFieldsToForms();
+                if (typeof setEventTokenField === 'function' && typeof botDetectorLocalStorage === 'function') {
+                    setEventTokenField(botDetectorLocalStorage.get('bot_detector_event_token'));
+                }
+            }
+        });
+    }
+    if ( ! ctPublic.wc_ajax_add_to_cart ) {
+        apbctCheckAddToCartByGet();
+    }
     // this way calls a lot of apbct_ready(), needs to find another way
     // if (typeof jQuery !== 'undefined') {
     //     jQuery(document).on('gform_page_loaded', function() {
@@ -516,8 +520,6 @@ function apbct_ready() {
     // }
 
     apbctPrepareBlockForAjaxForms();
-
-    ctPreloadLocalStorage();
 
     // set session ID
     if (!apbctSessionStorage.isSet('apbct_session_id')) {
@@ -642,6 +644,7 @@ function apbct_ready() {
             ctPublic.data__cookies_type === 'none'
         ) {
             ctAjaxSetupAddCleanTalkDataBeforeSendAjax();
+            ctAddWCMiddlewares();
         }
 
         for (let i = 0; i < document.forms.length; i++) {
@@ -745,6 +748,45 @@ function apbct_ready() {
     if (ctPublic.settings__comments__form_decoration) {
         new ApbctFormSkin();
     }
+
+    // Set important paramaters via ajax if problematic cache solutions found
+    apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
+}
+
+/**
+ * Insert no_cookies_data to rest request
+ */
+function ctAddWCMiddlewares() {
+    const ctPinDataToRequest = (options, next) => {
+        if (typeof options !== 'object' || options === null ||
+            !options.hasOwnProperty('data') || !options.hasOwnProperty('path')
+        ) {
+            return next(options);
+        }
+
+        // add to cart
+        if (options.data.hasOwnProperty('requests') &&
+            options.data.requests.length > 0 &&
+            options.data.requests[0].hasOwnProperty('path') &&
+            options.data.requests[0].path === '/wc/store/v1/cart/add-item'
+        ) {
+            options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+        }
+
+        // checkout
+        if (options.path === '/wc/store/v1/checkout') {
+            options.data.ct_no_cookie_hidden_field = getNoCookieData();
+        }
+
+        return next(options);
+    };
+
+    if (window.hasOwnProperty('wp') &&
+        window.wp.hasOwnProperty('apiFetch') &&
+        typeof window.wp.apiFetch.use === 'function'
+    ) {
+        window.wp.apiFetch.use(ctPinDataToRequest);
+    }
 }
 
 /**
@@ -790,9 +832,15 @@ function apbctCatchXmlHttpRequest() {
             return originalSend.apply(this, [body]);
         };
     }
+}
 
+/**
+ * Run AJAX to set important_parameters on the site backend if problematic cache solutions are defined.
+ * @param {boolean} cacheExist
+ */
+function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) {
     // Set important parameters via ajax
-    if ( ctPublic.advancedCacheExists || ctPublic.varnishCacheExists ) {
+    if ( cacheExist ) {
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
             apbct_public_sendREST('apbct_set_important_parameters', {});
         } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
@@ -983,14 +1031,60 @@ function ctFillDecodedEmailHandler(event) {
     // popup show
     let encoderPopup = document.getElementById('apbct_popup');
     if (!encoderPopup) {
+        // get obfuscated email
+        let obfuscatedEmail = null;
+        if (event.currentTarget.tagName === 'A') {
+            obfuscatedEmail = event.currentTarget.querySelector('span.apbct-ee-blur_email-text');
+            if (obfuscatedEmail) {
+                obfuscatedEmail = obfuscatedEmail.innerHTML;
+            }
+        }
+        if (event.currentTarget.tagName === 'SPAN') {
+            obfuscatedEmail = event.currentTarget.querySelector('span.apbct-ee-blur_email-text').innerHTML;
+        }
+        if (event.currentTarget.tagName === 'IMG') {
+            obfuscatedEmail = event.currentTarget.parentNode.innerHTML;
+        }
+        if (obfuscatedEmail === null) {
+            obfuscatedEmail = 'obfuscated email';
+        }
+
+        // construct popup
         let waitingPopup = document.createElement('div');
-        waitingPopup.setAttribute('class', 'apbct-popup');
+        waitingPopup.setAttribute('class', 'apbct-popup apbct-email-encoder-popup');
         waitingPopup.setAttribute('id', 'apbct_popup');
-        let popupText = document.createElement('p');
-        popupText.setAttribute('id', 'apbct_popup_text');
-        popupText.style.color = 'black';
-        popupText.innerText = 'Please wait while ' + ctPublic.wl_brandname + ' is decoding the email addresses.';
-        waitingPopup.append(popupText);
+
+        // construct text header
+        let popupHeaderWrapper = document.createElement('span');
+        popupHeaderWrapper.classList = 'apbct-email-encoder-elements_center';
+        let popupHeader = document.createElement('p');
+        popupHeader.innerText = ctPublic.wl_brandname;
+        popupHeaderWrapper.append(popupHeader);
+
+        // construct text wrapper
+        let popupTextWrapper = document.createElement('div');
+        popupTextWrapper.setAttribute('id', 'apbct_popup_text');
+        popupTextWrapper.setAttribute('class', 'apbct-email-encoder-elements_center');
+        popupTextWrapper.style.color = 'black';
+
+        // construct text first node
+        // todo make translateable
+        let popupTextDecoding = document.createElement('p');
+        popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_first';
+        popupTextDecoding.innerText = 'Decoding ' + obfuscatedEmail + ' to the original contact.';
+
+        // construct text first node
+        // todo make translateable
+        let popupTextWaiting = document.createElement('p');
+        popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_second';
+        popupTextWaiting.innerText = 'The magic is on the way, please wait for a few seconds!';
+
+        // appendings
+        popupTextWrapper.append(popupTextDecoding);
+        popupTextWrapper.append(popupTextWaiting);
+        waitingPopup.append(popupHeaderWrapper);
+        waitingPopup.append(popupTextWrapper);
+        waitingPopup.append(apbctSetEmailDecoderPopupAnimation());
         document.body.append(waitingPopup);
     } else {
         encoderPopup.setAttribute('style', 'display: inherit');
@@ -999,6 +1093,21 @@ function ctFillDecodedEmailHandler(event) {
     }
 
     apbctAjaxEmailDecodeBulk(event, ctPublic.encodedEmailNodes, clickSource);
+}
+/**
+ * @return {HTMLElement} event
+ */
+function apbctSetEmailDecoderPopupAnimation() {
+    const animationElements = ['apbct_dog_one', 'apbct_dog_two', 'apbct_dog_three'];
+    const animationWrapper = document.createElement('div');
+    animationWrapper.classList = 'apbct-ee-animation-wrapper';
+    for (let i = 0; i < animationElements.length; i++) {
+        const apbctEEAnimationDogOne = document.createElement('span');
+        apbctEEAnimationDogOne.classList = 'apbct_dog ' + animationElements[i];
+        apbctEEAnimationDogOne.innerText = '@';
+        animationWrapper.append(apbctEEAnimationDogOne);
+    }
+    return animationWrapper;
 }
 
 /**
@@ -1084,43 +1193,40 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
     if (result.success && result.data[0].is_allowed === true) {
         // start process of visual decoding
         setTimeout(function() {
-            for (let i = 0; i < encodedEmailNodes.length; i++) {
-                // chek what is what
-                let currentResultData;
-                result.data.forEach((row) => {
-                    if (row.encoded_email === encodedEmailNodes[i].dataset.originalString) {
-                        currentResultData = row;
-                    }
-                });
-                // quit case on cloud block
-                if (currentResultData.is_allowed === false) {
-                    break;
-                }
-                // handler for mailto
-                if (
-                    typeof encodedEmailNodes[i].href !== 'undefined' &&
-                    encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
-                    let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
-                    let baseElementContent = encodedEmailNodes[i].innerHTML;
-                    encodedEmailNodes[i].innerHTML =
-                        baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
-                    encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
-                } else {
-                    // fill the nodes
-                    ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
-                }
-                // remove listeners
-                encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
-            }
             // popup remove
             let popup = document.getElementById('apbct_popup');
             if (popup !== null) {
-                document.body.classList.remove('apbct-popup-fade');
-                popup.setAttribute('style', 'display:none');
-                // click on mailto if so
-                if (ctPublic.encodedEmailNodesIsMixed) {
-                    clickSource.click();
-                }
+                let currentResultData;
+                result.data.forEach((row) => {
+                    if (row.encoded_email === clickSource.dataset.originalString) {
+                        currentResultData = row;
+                    }
+                });
+                // change text
+                let email = currentResultData.decoded_email.split(/[&?]/)[0];
+                let firstNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_first');
+                let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
+                firstNode.innerText = 'The original contact is ' + email + '.';
+                secondNode.innerText = 'Happy conversations!';
+                // remove antimation
+                popup.querySelector('.apbct-ee-animation-wrapper').remove();
+                // add button
+                let buttonWrapper = document.createElement('span');
+                buttonWrapper.classList = 'apbct-email-encoder-elements_center top-margin-long';
+                let button = document.createElement('button');
+                button.innerText = 'Got it';
+                button.addEventListener('click', function() {
+                    document.body.classList.remove('apbct-popup-fade');
+                    popup.setAttribute('style', 'display:none');
+                    fillDecodedEmails(encodedEmailNodes, result);
+                    // click on mailto if so
+                    if (ctPublic.encodedEmailNodesIsMixed) {
+                        clickSource.click();
+                    }
+                });
+                button.style.cursor = 'pointer';
+                buttonWrapper.append(button);
+                popup.append(buttonWrapper);
             }
         }, 3000);
     } else {
@@ -1133,7 +1239,46 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
         }
     }
 }
-
+/**
+ * Run filling for every node with decoding result.
+ * @param {mixed} encodedEmailNodes
+ * @param {mixed} decodingResult
+ */
+function fillDecodedEmails(encodedEmailNodes, decodingResult) {
+    for (let i = 0; i < encodedEmailNodes.length; i++) {
+        // chek what is what
+        let currentResultData;
+        decodingResult.data.forEach((row) => {
+            if (row.encoded_email === encodedEmailNodes[i].dataset.originalString) {
+                currentResultData = row;
+            }
+        });
+        // quit case on cloud block
+        if (currentResultData.is_allowed === false) {
+            break;
+        }
+        // handler for mailto
+        if (
+            typeof encodedEmailNodes[i].href !== 'undefined' &&
+            encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
+            let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
+            let baseElementContent = encodedEmailNodes[i].innerHTML;
+            encodedEmailNodes[i].innerHTML =
+                baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
+            encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
+            encodedEmailNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((span) => {
+                let firstEmail = currentResultData.decoded_email.split('&')[0];
+                span.querySelector('.apbct-ee-blur_email-text').innerHTML = firstEmail;
+            });
+        } else {
+            // fill the nodes
+            ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
+        }
+        ctPerformMagicBlur(encodedEmailNodes[i]);
+        // remove listeners
+        encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
+    }
+}
 /**
  * resetEncodedNodes
  */
@@ -1264,6 +1409,19 @@ function ctProcessDecodedDataResult(response, targetElement) {
     targetElement.removeAttribute('style');
     ctFillDecodedEmail(targetElement, response.decoded_email);
 }
+/**
+ * @param {HTMLElement} targetElement
+ */
+function ctPerformMagicBlur(targetElement) {
+    const staticBlur = targetElement.querySelector('.apbct-ee-static-blur');
+    const animateBlur = targetElement.querySelector('.apbct-ee-animate-blur');
+    if (staticBlur !== null) {
+        staticBlur.style.display = 'none';
+    }
+    if (animateBlur !== null) {
+        animateBlur.style.display = 'inherit';
+    }
+}
 
 /**
  * @param {mixed} target
@@ -1273,7 +1431,7 @@ function ctFillDecodedEmail(target, email) {
     apbct(target).html(
         apbct(target)
             .html()
-            .replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1'),
+            .replace(/.?<span class=["']apbct-ee-blur_email-text["'].*>(.+?)<\/span>/, email),
     );
 }
 
@@ -1578,6 +1736,10 @@ function ctCheckHiddenFieldsExclusions(form, hiddenFieldType) {
     if (Boolean(form.querySelector('fieldset.asl_sett_scroll'))) {
         return true;
     }
+    // Super WooCommerce Product Filter
+    if (form.classList.contains('swpf-instant-filtering')) {
+        return true;
+    }
     if (typeof (hiddenFieldType) === 'string' &&
         ['visible_fields', 'no_cookie'].indexOf(hiddenFieldType) !== -1) {
         const exclusions = ctGetHiddenFieldExclusionsType(form);
@@ -1623,28 +1785,8 @@ const defaultSend = XMLHttpRequest.prototype.send;
 
 if (document.readyState !== 'loading') {
     checkFormsExistForCatching();
-    apbctRealUserBadge();
 } else {
     apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatching);
-    apbct_attach_event_handler(document, 'DOMContentLoaded', apbctRealUserBadge);
-}
-
-/**
- * Handle real user badge
- */
-function apbctRealUserBadge() {
-    document.querySelectorAll('.apbct-real-user-badge').forEach((el) => {
-        el.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.currentTarget.querySelector('.apbct-real-user-popup').style.display = 'inline-flex';
-        });
-    });
-    document.querySelector('body').addEventListener('click', function(e) {
-        document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
-            el.style.display = 'none';
-        });
-    });
 }
 
 /**
@@ -1765,3 +1907,25 @@ function apbctWriteReferrersToSessionStorage() {
     apbctSessionStorage.set('apbct_session_current_page', document.location.href, false);
 }
 
+/**
+ * WooCommerce add to cart by GET request params collecting
+ */
+function apbctCheckAddToCartByGet() {
+    // 1) Collect all links with add_to_cart_button class
+    document.querySelectorAll('a.add_to_cart_button:not(.product_type_variable):not(.wc-interactive)').forEach((el) => {
+        el.addEventListener('click', function(e) {
+            let href = el.getAttribute('href');
+            // 2) Add to href attribute additional parameter ct_bot_detector_event_token gathered from apbctLocalStorage
+            let eventToken = apbctLocalStorage.get('bot_detector_event_token');
+            if ( eventToken ) {
+                if ( href.indexOf('?') === -1 ) {
+                    href += '?';
+                } else {
+                    href += '&';
+                }
+                href += 'ct_bot_detector_event_token=' + eventToken;
+                el.setAttribute('href', href);
+            }
+        });
+    });
+}

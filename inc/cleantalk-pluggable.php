@@ -1170,6 +1170,48 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'kaliforms_form_process_skip';
         }
+
+        // skip learndash-elementor
+        if (
+            apbct_is_plugin_active('learndash-elementor/learndash-elementor.php') &&
+            (
+                Post::get('course_id') !== '' && Post::get('lesson_id') !== ''
+            )
+        ) {
+            return 'learndash-elementor';
+        }
+
+        // skip klaviyo coupon service request
+        if (
+            apbct_is_plugin_active('klaviyo-coupons/kl-coupons.php') &&
+            Post::get('action') === 'klc_generate_coupon'
+        ) {
+            return 'klc_generate_coupon';
+        }
+
+        // skip Super WooCommerce Product Filter
+        if (
+            apbct_is_plugin_active('super-woocommerce-product-filter/super-woocommerce-product-filter.php') &&
+            Post::get('action') === 'swpf_get_product_list'
+        ) {
+            return 'Super WooCommerce Product Filter';
+        }
+
+        // skip masteriyo_login LMS
+        if (
+            apbct_is_plugin_active('learning-management-system/lms.php') &&
+            Post::get('action') === 'masteriyo_login'
+        ) {
+            return 'masteriyo_login LMS';
+        }
+
+        if (
+            Post::get('action') === 'ct_check_internal' &&
+            $apbct->settings['forms__check_internal'] &&
+            class_exists('Cleantalk\Antispam\Integrations\CleantalkInternalForms')
+        ) {
+            return 'APBCT Internal Forms Class';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

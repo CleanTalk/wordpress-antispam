@@ -4,6 +4,7 @@ namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class MailPoet2 extends IntegrationBase
 {
@@ -12,7 +13,7 @@ class MailPoet2 extends IntegrationBase
         global $apbct;
 
         if ( Post::get('task') !== 'send_preview' && Post::get('task') !== 'send_test_mail' && Post::get('data') ) {
-            $data = Post::get('data');
+            $data = TT::toArray(Post::get('data'));
             $prepared_data = [];
             $event_token = '';
 
@@ -42,7 +43,7 @@ class MailPoet2 extends IntegrationBase
     public function doBlock($message)
     {
         $result = array('result' => false, 'msgs' => array('updated' => array($message)));
-        print Get::get('callback') . '(' . json_encode($result) . ');';
+        print htmlspecialchars(TT::toString(Get::get('callback')), ENT_QUOTES) . '(' . json_encode($result) . ');';
         die();
     }
 }

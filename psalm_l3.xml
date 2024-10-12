@@ -20,6 +20,7 @@
         <file name="./cleantalk.php"/>
         <directory name="./inc"/>
         <directory name="./lib/Cleantalk/ApbctWP/FormDecorator"/>
+        <directory name="./lib/Cleantalk/Antispam"/>
         <file name="./lib/Cleantalk/Common/Validate.php"/>
         <file name="./lib/Cleantalk/Common/TT.php"/>
         <ignoreFiles allowMissingFiles="true">

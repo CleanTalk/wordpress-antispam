@@ -53,7 +53,7 @@ class RequestParameters
                 if ( $http_only ) {
                     return self::setCommonStorage($param_name, $param_value);
                 }
-                return NoCookie::set($param_name, $param_value, true);
+                return NoCookie::set($param_name, $param_value);
 
             case 'alternative':
                 return AltSessions::set($param_name, $param_value);

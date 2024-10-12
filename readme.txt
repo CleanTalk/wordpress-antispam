@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.6
 Requires PHP: 5.6
-Stable tag: 6.38
+Stable tag: 6.42.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -443,6 +443,82 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.42.1 03 Oct 2024 =
+* Fix. Adjust. LiteSpeedCache adjusting fixed.
+
+= 6.42 03 Oct 2024 =
+* Fix. Integrations. Uni-Cpo pruducts actions - service fields skipping improved.
+* Fix. EmailEncoder. CSS. Hide wpautopt breaks between magic blur elements.
+* Fix. Integration. Add to cart by get bot detector fixed.
+* Mod. Settings. Adaptive version of the settings
+* Mod. Settings. Burger menu
+* New. Admin bar. Promotion link Manuals and FAQ added.
+* Fix. Contact form validate. Emails array urlencoding fixed.
+* Fix. External Forms. Skip PayPal redirection form.
+* Mod. ReferralLink. Changing the referral link
+* Fix. Integrations. TVE plugin affliction to gravity forms fixed.
+* Upd. Integrations. Updated adjust module for litespeed.
+* Fix. Settings. Removing excess
+* Fix. Integrations. Masteriyo LMS plugin. Ignore login events.
+* Fix. Integrations. Masteriyo LMS plugin. Registration POST check improved.
+* Fix. Code. GetFieldsAny. PHP 8.0 compatibility.
+* Fix. Integrations. BuddyPres private messages. Nouveau AJAX messages handled.
+* Fix. Settings. TRP and SFW settings minor fixes.
+
+= 6.41.1 21 Sep 2024 =
+* Fix. Contact form validate. Emails array urlencoding fixed.
+
+= 6.41 19 Sep 2024 =
+* Upd. Params. Removed nocookie table.
+* Upd. Integrations. Updated handler for FluentFormPro addon.
+* Upd. TRP. Updated layout.
+* Fix. Integrations. Updated Forminator handler.
+* Fix. Integrations. WC add to cart. Use function instead of const to handle GET cards.
+* Fix. Admin. CleanTalk deactivation popup layout fixed.
+* Fix. WPMS. SFW update fixed on WPMS mode 3.
+* Fix. HTTP. Headers collection for WordPress HTTP API fixed.
+* Fix. Public JS. Reduce setting important parameters AJAX calls.
+
+= 6.40 05 Sep 2024 =
+* New. Email encoder. Animations and blur emails added.
+* New. Integrations. Added handler for wufoo.com.
+* New. Integrations. CleantalkWpDieOnComment class implemented to hook the default WP die handler on the comment validation errors.
+* New. The Real Person. Adaptive CSS version for admin page.
+* New. The Real Person. Show the badge in the admin panel in the comments list.
+* Fix. Integration. Woocommerce - adding to cart requests handling fixed.
+* Fix. Integrations. Added event handler for gravity multiform.
+* Fix. Integrations. Added exclude for WooCommerceProductFilter.
+* Fix. Integrations. Updated gathering email handler.
+* Fix. Integrations. Updated handler for Divi forms.
+* Fix. Integrations. Updated BuddyPress handler statement.
+* Fix. Integrations. Excluded klaviyo coupon service request
+* Fix. Params. Fixed honeypot handler.
+* Upd. CleantalkWidget. The public CT widget is removed.
+* Upd. Email encoder. Enabled for any new installations by defaults.
+* Upd. The Real Person. Closes the popup when the cursor exits the badge element area.
+
+= 6.39.1 26 Aug 2024 =
+* Fix. Params. Fixed honeypot handler.
+
+= 6.39 22 Aug 2024 =
+* New. Integration. Otter blocks integration implemented.
+* New. GetFieldsAny. Sender emails array
+* Upd. Pub-Integration. Adding sender_emails_array
+* Upd. The Real Person. Pop-up changes, layout correction
+* Fix. The Real Person. Overflow changes for the Spacious theme, Icon size changes
+* Fix. The Real Person. Checking against undefined
+* Fix. Adjust. Checking for LiteSpeed activity, review edits
+* Fix. Integrations. Added EmailOctopus handler.
+* Fix. Integrations. Updated email gathering on forminator.
+* Fix. Integrations. Updated skip statement.
+* Fix. TRP. No TRP badges on inactive licenses
+* Fix. Anti-spam. Parameter sender_emails_array moved to the `sender_info` block.
+* Fix. Anti-spam. Emails array support for CF7 integration.
+* Fix. Integration. Elementor Pro Form integration fixed.
+* Fix. Integration. WP Forms integration fixed.
+* Fix. Anti-spam. Honeypot logic fixed.
+* Fix. Integrations. Updated gathering email handler.
 
 = 6.38 =
 * Code. Compatibility. Unnecessary WP Rocket text removed.
