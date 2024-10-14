@@ -1220,6 +1220,17 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Broken Link Notifier service action';
         }
+
+        // skip WP Rocket image dimensions
+        if (
+            apbct_is_plugin_active('wp-rocket/wp-rocket.php') &&
+            (
+                Get::get('wpr_imagedimensions') ||
+                Post::get('wpr_imagedimensions')
+            )
+        ) {
+            return 'WP Rocket image dimensions';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
