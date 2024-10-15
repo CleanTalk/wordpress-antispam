@@ -1041,17 +1041,13 @@ function ct_delete_spam_comments()
  * Get data from an ARRAY recursively
  *
  * @param array $arr
- * @param array $message
- * @param null|string $email
- * @param array $nickname
- * @param null $subject
- * @param bool $contact
- * @param string $prev_name
+ * @param string $email
+ * @param string|array $nickname
  *
  * @return array
  * @deprecated Use ct_gfa()
  */
-function ct_get_fields_any($arr, $email = null, $nickname = array('nick' => '', 'first' => '', 'last' => ''))
+function ct_get_fields_any($arr, $email = '', $nickname = '')
 {
     if ( is_array($nickname) ) {
         $nickname_str = '';
@@ -1579,12 +1575,13 @@ function apbct_clear_query_from_service_fields($query_string, $service_field_nam
 /**
  * Main entry function to collect no cookie data.
  */
-function apbct_form__get_no_cookie_data($preprocessed_data = null)
+function apbct_form__get_no_cookie_data($preprocessed_data = null, $need_filter = true)
 {
     global $apbct;
     $flag = null;
     $no_cookie_data = apbct_check_post_for_no_cookie_data($preprocessed_data);
-    if ( !empty($no_cookie_data['mapping']) ) {
+
+    if ( $need_filter && !empty($no_cookie_data['mapping']) ) {
         apbct_filter_post_no_cookie_data($no_cookie_data['mapping']);
     }
     if ( $no_cookie_data && !empty($no_cookie_data['data']) && $apbct->data['cookies_type'] === 'none' ) {

@@ -669,6 +669,41 @@ if (Math.floor(Math.random() * 100) === 1) {
 }
 
 /**
+ * Select actual WP nonce depending on the ajax type and the fresh nonce provided.
+ * @return {string} url
+ */
+function selectActualNonce() {
+    let defaultNonce = '';
+    // return fresh nonce immediately if persists
+    if (
+        ctPublicFunctions.hasOwnProperty('_fresh_nonce') &&
+        typeof ctPublicFunctions._fresh_nonce === 'string' &&
+        ctPublicFunctions._fresh_nonce.length > 0
+    ) {
+        return ctPublicFunctions._fresh_nonce;
+    }
+    // select from default rest/ajax nonces
+    if (
+        ctPublicFunctions.data__ajax_type === 'admin_ajax' &&
+        ctPublicFunctions.hasOwnProperty('_ajax_nonce') &&
+        typeof ctPublicFunctions._ajax_nonce === 'string' &&
+        ctPublicFunctions._ajax_nonce.length > 0
+    ) {
+        defaultNonce = ctPublicFunctions._ajax_nonce;
+    }
+    if (
+        ctPublicFunctions.data__ajax_type === 'rest' &&
+        ctPublicFunctions.hasOwnProperty('_rest_nonce') &&
+        typeof ctPublicFunctions._rest_nonce === 'string' &&
+        ctPublicFunctions._rest_nonce.length > 0
+    ) {
+        defaultNonce = ctPublicFunctions._rest_nonce;
+    }
+
+    return defaultNonce;
+}
+
+/**
  * Enter point to ApbctCore class
  *
  * @param {array|object} params
@@ -749,6 +784,10 @@ class ApbctXhr {
         /* EVENTS */
         // Monitoring status
         this.xhr.onreadystatechange = function() {
+            if (this.isWpNonceError()) {
+                this.getFreshNonceAndRerunXHR(parameters);
+                return;
+            }
             this.onReadyStateChange();
         }.bind(this);
 
@@ -886,6 +925,88 @@ class ApbctXhr {
     }
 
     /**
+     * Check if 403 code of WP nonce error
+     * @return {bool}
+     */
+    isWpNonceError() {
+        let restErrror = false;
+        let ajaxErrror = false;
+        // check rest error
+        if (this.xhr.readyState == 4) {
+            restErrror = (
+                typeof this.xhr.response === 'object' && this.xhr.response !== null &&
+                this.xhr.response.hasOwnProperty('data') &&
+                this.xhr.response.data.hasOwnProperty('status') &&
+                this.xhr.response.data.status === 403
+            );
+            ajaxErrror = this.xhr.response === '-1' && this.xhr.status === 403;
+        }
+        // todo check AJAX error
+        return restErrror || ajaxErrror;
+    }
+
+    /**
+     * Get the fresh nonce and rerun the initial XHR with params
+     * @param {[]} initialRequestParams
+     */
+    getFreshNonceAndRerunXHR(initialRequestParams) {
+        let noncePrev = '';
+
+        // Check if initialRequestParams['headers']['X-WP-Nonce'] exists.
+        if (
+            initialRequestParams.hasOwnProperty('headers') &&
+            initialRequestParams.headers.hasOwnProperty('X-WP-Nonce')
+        ) {
+            noncePrev = initialRequestParams['headers']['X-WP-Nonce'];
+        }
+
+        // Check if initialRequestParams['data']['_ajax_nonce'] exists.
+        if (
+            initialRequestParams.hasOwnProperty('data') &&
+            initialRequestParams.data.hasOwnProperty('_ajax_nonce')
+        ) {
+            noncePrev = initialRequestParams['data']['_ajax_nonce'];
+        }
+
+        // Nonce is not provided. Exit.
+        if ( noncePrev === '' ) {
+            return;
+        }
+
+        // prepare params for refreshing nonce
+        let params = {};
+        params.method = 'POST';
+        params.data = {
+            'spbc_remote_call_action': 'get_fresh_wpnonce',
+            'plugin_name': 'antispam',
+            'nonce_prev': noncePrev,
+            'initial_request_params': initialRequestParams,
+        };
+        params.notJson = true;
+        params.url = ctPublicFunctions.host_url;
+        // this callback will rerun the XHR with initial params
+        params.callback = function(...args) {
+            // the refresh result itself
+            let freshNonceResult = args[0];
+            let newRequestParams = false;
+            // provided initial params
+            if (args[1] !== undefined && args[1].hasOwnProperty('initial_request_params')) {
+                newRequestParams = args[1].initial_request_params;
+            }
+            if (newRequestParams && freshNonceResult.hasOwnProperty('wpnonce')) {
+                ctPublicFunctions._fresh_nonce = freshNonceResult.wpnonce;
+                if (ctPublicFunctions.data__ajax_type === 'rest') {
+                    new ApbctCore().rest(newRequestParams);
+                } else {
+                    new ApbctCore().ajax(newRequestParams);
+                }
+            }
+        };
+        // run the nonce refreshing call
+        new ApbctXhr(params);
+    }
+
+    /**
      * @param {number} httpCode
      * @param {string} statusText
      * @param {string} additionalMsg
@@ -1014,7 +1135,9 @@ class ApbctXhr {
 class ApbctAjax extends ApbctXhr {
     // eslint-disable-next-line require-jsdoc
     constructor(...args) {
-        super(args[0]);
+        args = args[0];
+        args.data._ajax_nonce = selectActualNonce();
+        super(args);
     }
 }
 // eslint-disable-next-line require-jsdoc
@@ -1025,9 +1148,10 @@ class ApbctRest extends ApbctXhr {
     // eslint-disable-next-line require-jsdoc
     constructor(...args) {
         args = args[0];
+        const nonce = selectActualNonce();
         args.url = ApbctRest.default_route + args.route;
         args.headers = {
-            'X-WP-Nonce': ctPublicFunctions._rest_nonce,
+            'X-WP-Nonce': nonce,
         };
         super(args);
     }
@@ -1268,15 +1392,16 @@ function apbct_public_sendAJAX(data, params, obj) {
     _params['no_nonce'] = params.no_nonce || null;
     _params['data'] = data;
     _params['url'] = ctPublicFunctions._ajax_url;
+    const nonce = selectActualNonce();
 
     if (typeof (data) === 'string') {
         if ( ! _params['no_nonce'] ) {
-            _params['data'] = _params['data'] + '&_ajax_nonce=' + ctPublicFunctions._ajax_nonce;
+            _params['data'] = _params['data'] + '&_ajax_nonce=' + nonce;
         }
         _params['data'] = _params['data'] + '&no_cache=' + Math.random();
     } else {
         if ( ! _params['no_nonce'] ) {
-            _params['data']._ajax_nonce = ctPublicFunctions._ajax_nonce;
+            _params['data']._ajax_nonce = nonce;
         }
         _params['data'].no_cache = Math.random();
     }
@@ -1994,18 +2119,6 @@ function ctSetHasKeyUp() {
     }
 }
 
-/**
- * ctPreloadLocalStorage
- */
-function ctPreloadLocalStorage() {
-    if (ctPublic.data__to_local_storage) {
-        let data = Object.entries(ctPublic.data__to_local_storage);
-        data.forEach(([key, value]) => {
-            apbctLocalStorage.set(key, value);
-        });
-    }
-}
-
 if (ctPublic.data__key_is_ok) {
     apbct_attach_event_handler(document, 'mousemove', ctFunctionMouseMove);
     apbct_attach_event_handler(document, 'mousedown', ctFunctionFirstKey);
@@ -2095,8 +2208,6 @@ function apbct_ready() {
     // }
 
     apbctPrepareBlockForAjaxForms();
-
-    ctPreloadLocalStorage();
 
     // set session ID
     if (!apbctSessionStorage.isSet('apbct_session_id')) {
@@ -2221,6 +2332,7 @@ function apbct_ready() {
             ctPublic.data__cookies_type === 'none'
         ) {
             ctAjaxSetupAddCleanTalkDataBeforeSendAjax();
+            ctAddWCMiddlewares();
         }
 
         for (let i = 0; i < document.forms.length; i++) {
@@ -2319,6 +2431,45 @@ function apbct_ready() {
 
     // Check any XMLHttpRequest connections
     apbctCatchXmlHttpRequest();
+
+    // Set important paramaters via ajax if problematic cache solutions found
+    apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
+}
+
+/**
+ * Insert no_cookies_data to rest request
+ */
+function ctAddWCMiddlewares() {
+    const ctPinDataToRequest = (options, next) => {
+        if (typeof options !== 'object' || options === null ||
+            !options.hasOwnProperty('data') || !options.hasOwnProperty('path')
+        ) {
+            return next(options);
+        }
+
+        // add to cart
+        if (options.data.hasOwnProperty('requests') &&
+            options.data.requests.length > 0 &&
+            options.data.requests[0].hasOwnProperty('path') &&
+            options.data.requests[0].path === '/wc/store/v1/cart/add-item'
+        ) {
+            options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+        }
+
+        // checkout
+        if (options.path === '/wc/store/v1/checkout') {
+            options.data.ct_no_cookie_hidden_field = getNoCookieData();
+        }
+
+        return next(options);
+    };
+
+    if (window.hasOwnProperty('wp') &&
+        window.wp.hasOwnProperty('apiFetch') &&
+        typeof window.wp.apiFetch.use === 'function'
+    ) {
+        window.wp.apiFetch.use(ctPinDataToRequest);
+    }
 }
 
 /**
@@ -2364,9 +2515,15 @@ function apbctCatchXmlHttpRequest() {
             return originalSend.apply(this, [body]);
         };
     }
+}
 
+/**
+ * Run AJAX to set important_parameters on the site backend if problematic cache solutions are defined.
+ * @param {boolean} cacheExist
+ */
+function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) {
     // Set important parameters via ajax
-    if ( ctPublic.advancedCacheExists || ctPublic.varnishCacheExists ) {
+    if ( cacheExist ) {
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
             apbct_public_sendREST('apbct_set_important_parameters', {});
         } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
@@ -3302,66 +3459,8 @@ const defaultSend = XMLHttpRequest.prototype.send;
 
 if (document.readyState !== 'loading') {
     checkFormsExistForCatching();
-    apbctRealUserBadge();
 } else {
     apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatching);
-    apbct_attach_event_handler(document, 'DOMContentLoaded', apbctRealUserBadge);
-}
-
-/**
- * Handle real user badge
- */
-function apbctRealUserBadge() {
-    document.querySelectorAll('.apbct-real-user-badge').forEach((el) => {
-        el.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.currentTarget.querySelector('.apbct-real-user-popup').style.display = 'inline-flex';
-        });
-    });
-    document.querySelector('body').addEventListener('click', function(e) {
-        document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
-            el.style.display = 'none';
-        });
-    });
-}
-
-/**
- * Shows a popup The Real Person when hovering over the cursor
- * @param {string} id
- */
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctRealUserBadgeViewPopup(id) {
-    document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
-        el.style.display = 'none';
-    });
-    let popup = document.getElementById(id);
-    if (popup != 'undefined') {
-        popup.style.display = 'inline-flex';
-    }
-}
-
-/**
- * Closes The Real Person popup when the cursor leaves the badge element area
- * @param {object} event
- */
-// @ToDo Replace js logic with css
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctRealUserBadgeClosePopup(event) {
-    if (
-        event.relatedTarget.className &&
-        ((event.relatedTarget.className.search(/apbct/) < 0 &&
-        event.relatedTarget.className.search(/real-user/) < 0) ||
-        (event.relatedTarget.className.search(/wrapper/) > 0)) &&
-        window.innerWidth > 768
-
-    ) {
-        document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
-            setTimeout(() => {
-                el.style.display = 'none';
-            }, 1000);
-        });
-    }
 }
 
 /**
@@ -3485,14 +3584,14 @@ function apbctWriteReferrersToSessionStorage() {
 /**
  * WooCommerce add to cart by GET request params collecting
  */
-// 1) Collect all links with add_to_cart_button class
-const apbctCheckAddToCartByGet = () => (
+function apbctCheckAddToCartByGet() {
+    // 1) Collect all links with add_to_cart_button class
     document.querySelectorAll('a.add_to_cart_button:not(.product_type_variable):not(.wc-interactive)').forEach((el) => {
         el.addEventListener('click', function(e) {
             let href = el.getAttribute('href');
             // 2) Add to href attribute additional parameter ct_bot_detector_event_token gathered from apbctLocalStorage
             let eventToken = apbctLocalStorage.get('bot_detector_event_token');
-            if ( eventToken !== null ) {
+            if ( eventToken ) {
                 if ( href.indexOf('?') === -1 ) {
                     href += '?';
                 } else {
@@ -3502,8 +3601,8 @@ const apbctCheckAddToCartByGet = () => (
                 el.setAttribute('href', href);
             }
         });
-    })
-);
+    });
+}
 
 /* Cleantalk Modal object */
 let cleantalkModal = {
@@ -3513,6 +3612,7 @@ let cleantalkModal = {
     loading: false,
     opened: false,
     opening: false,
+    ignoreURLConvert: false,
 
     // Methods
     load: function( action ) {
@@ -3652,7 +3752,7 @@ let cleantalkModal = {
         if ( this.loaded ) {
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             const serviceContentRegex = /.*\/inc/g;
-            if (serviceContentRegex.test(this.loaded)) {
+            if (serviceContentRegex.test(this.loaded) || this.ignoreURLConvert) {
                 content.innerHTML = this.loaded;
             } else {
                 content.innerHTML = this.loaded.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
@@ -3786,6 +3886,10 @@ function formIsExclusion(currentForm) {
         'et_pb_searchform', // integration with elementor-search-form
     ];
 
+    const exclusionsByAction = [
+        'paypal.com/cgi-bin/webscr', // search forms
+    ];
+
     let result = false;
 
     try {
@@ -3794,6 +3898,14 @@ function formIsExclusion(currentForm) {
             currentForm.parentElement.classList.length > 0 &&
             currentForm.parentElement.classList[0].indexOf('mewtwo') !== -1) {
             result = true;
+        }
+
+        if (currentForm.getAttribute('action') !== null) {
+            exclusionsByAction.forEach(function(exclusionAction) {
+                if (currentForm.getAttribute('action').indexOf(exclusionAction) !== -1) {
+                    result = true;
+                }
+            });
         }
 
         exclusionsById.forEach(function(exclusionId) {

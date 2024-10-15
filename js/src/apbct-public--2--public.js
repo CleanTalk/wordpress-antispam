@@ -431,18 +431,6 @@ function ctSetHasKeyUp() {
     }
 }
 
-/**
- * ctPreloadLocalStorage
- */
-function ctPreloadLocalStorage() {
-    if (ctPublic.data__to_local_storage) {
-        let data = Object.entries(ctPublic.data__to_local_storage);
-        data.forEach(([key, value]) => {
-            apbctLocalStorage.set(key, value);
-        });
-    }
-}
-
 if (ctPublic.data__key_is_ok) {
     apbct_attach_event_handler(document, 'mousemove', ctFunctionMouseMove);
     apbct_attach_event_handler(document, 'mousedown', ctFunctionFirstKey);
@@ -532,8 +520,6 @@ function apbct_ready() {
     // }
 
     apbctPrepareBlockForAjaxForms();
-
-    ctPreloadLocalStorage();
 
     // set session ID
     if (!apbctSessionStorage.isSet('apbct_session_id')) {
@@ -658,6 +644,7 @@ function apbct_ready() {
             ctPublic.data__cookies_type === 'none'
         ) {
             ctAjaxSetupAddCleanTalkDataBeforeSendAjax();
+            ctAddWCMiddlewares();
         }
 
         for (let i = 0; i < document.forms.length; i++) {
@@ -756,6 +743,45 @@ function apbct_ready() {
 
     // Check any XMLHttpRequest connections
     apbctCatchXmlHttpRequest();
+
+    // Set important paramaters via ajax if problematic cache solutions found
+    apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
+}
+
+/**
+ * Insert no_cookies_data to rest request
+ */
+function ctAddWCMiddlewares() {
+    const ctPinDataToRequest = (options, next) => {
+        if (typeof options !== 'object' || options === null ||
+            !options.hasOwnProperty('data') || !options.hasOwnProperty('path')
+        ) {
+            return next(options);
+        }
+
+        // add to cart
+        if (options.data.hasOwnProperty('requests') &&
+            options.data.requests.length > 0 &&
+            options.data.requests[0].hasOwnProperty('path') &&
+            options.data.requests[0].path === '/wc/store/v1/cart/add-item'
+        ) {
+            options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+        }
+
+        // checkout
+        if (options.path === '/wc/store/v1/checkout') {
+            options.data.ct_no_cookie_hidden_field = getNoCookieData();
+        }
+
+        return next(options);
+    };
+
+    if (window.hasOwnProperty('wp') &&
+        window.wp.hasOwnProperty('apiFetch') &&
+        typeof window.wp.apiFetch.use === 'function'
+    ) {
+        window.wp.apiFetch.use(ctPinDataToRequest);
+    }
 }
 
 /**
@@ -801,9 +827,15 @@ function apbctCatchXmlHttpRequest() {
             return originalSend.apply(this, [body]);
         };
     }
+}
 
+/**
+ * Run AJAX to set important_parameters on the site backend if problematic cache solutions are defined.
+ * @param {boolean} cacheExist
+ */
+function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) {
     // Set important parameters via ajax
-    if ( ctPublic.advancedCacheExists || ctPublic.varnishCacheExists ) {
+    if ( cacheExist ) {
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
             apbct_public_sendREST('apbct_set_important_parameters', {});
         } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
@@ -1739,66 +1771,8 @@ const defaultSend = XMLHttpRequest.prototype.send;
 
 if (document.readyState !== 'loading') {
     checkFormsExistForCatching();
-    apbctRealUserBadge();
 } else {
     apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatching);
-    apbct_attach_event_handler(document, 'DOMContentLoaded', apbctRealUserBadge);
-}
-
-/**
- * Handle real user badge
- */
-function apbctRealUserBadge() {
-    document.querySelectorAll('.apbct-real-user-badge').forEach((el) => {
-        el.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.currentTarget.querySelector('.apbct-real-user-popup').style.display = 'inline-flex';
-        });
-    });
-    document.querySelector('body').addEventListener('click', function(e) {
-        document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
-            el.style.display = 'none';
-        });
-    });
-}
-
-/**
- * Shows a popup The Real Person when hovering over the cursor
- * @param {string} id
- */
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctRealUserBadgeViewPopup(id) {
-    document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
-        el.style.display = 'none';
-    });
-    let popup = document.getElementById(id);
-    if (popup != 'undefined') {
-        popup.style.display = 'inline-flex';
-    }
-}
-
-/**
- * Closes The Real Person popup when the cursor leaves the badge element area
- * @param {object} event
- */
-// @ToDo Replace js logic with css
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctRealUserBadgeClosePopup(event) {
-    if (
-        event.relatedTarget.className &&
-        ((event.relatedTarget.className.search(/apbct/) < 0 &&
-        event.relatedTarget.className.search(/real-user/) < 0) ||
-        (event.relatedTarget.className.search(/wrapper/) > 0)) &&
-        window.innerWidth > 768
-
-    ) {
-        document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
-            setTimeout(() => {
-                el.style.display = 'none';
-            }, 1000);
-        });
-    }
 }
 
 /**
@@ -1922,14 +1896,14 @@ function apbctWriteReferrersToSessionStorage() {
 /**
  * WooCommerce add to cart by GET request params collecting
  */
-// 1) Collect all links with add_to_cart_button class
-const apbctCheckAddToCartByGet = () => (
+function apbctCheckAddToCartByGet() {
+    // 1) Collect all links with add_to_cart_button class
     document.querySelectorAll('a.add_to_cart_button:not(.product_type_variable):not(.wc-interactive)').forEach((el) => {
         el.addEventListener('click', function(e) {
             let href = el.getAttribute('href');
             // 2) Add to href attribute additional parameter ct_bot_detector_event_token gathered from apbctLocalStorage
             let eventToken = apbctLocalStorage.get('bot_detector_event_token');
-            if ( eventToken !== null ) {
+            if ( eventToken ) {
                 if ( href.indexOf('?') === -1 ) {
                     href += '?';
                 } else {
@@ -1939,5 +1913,5 @@ const apbctCheckAddToCartByGet = () => (
                 el.setAttribute('href', href);
             }
         });
-    })
-);
+    });
+}

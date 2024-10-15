@@ -17,7 +17,7 @@ env: # environment variables (available in any part of the action)
 jobs:
   build:
     name: PHPUnit, PHPCS, Psalm
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       DB_CONNECTION: mysql
       DB_HOST: localhost

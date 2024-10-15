@@ -9,6 +9,7 @@ use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
+use Cleantalk\ApbctWP\LinkConstructor;
 
 /**
  * Init functions
@@ -162,11 +163,13 @@ function apbct_init()
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
             add_action('woocommerce_after_checkout_validation', 'ct_woocommerce_checkout_check', 1, 2);
             add_action('woocommerce_checkout_update_order_meta', 'apbct_woocommerce__add_request_id_to_order_meta');
+            add_action('woocommerce_store_api_checkout_update_customer_from_request', 'apbct_wc_store_api_checkout_update_customer_from_request', 10, 2);
         }
 
         if ( ! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart'] ) {
             //Woocommerce add_to_cart action
             add_filter('woocommerce_add_to_cart_validation', 'apbct_wc__add_to_cart_unlogged_user', 10, 6);
+            add_filter('woocommerce_store_api_add_to_cart_data', 'apbct_wc_store_api_add_to_cart_data', 10, 2);
         }
     }
 
@@ -1592,9 +1595,9 @@ function apbct_generate_trusted_text_html($type = 'div')
     }
 
     $css_class = 'apbct-trusted-text--' . $type;
+    $register_link = LinkConstructor::buildCleanTalkLink('footer_trusted_link', 'wordpress-anti-spam-plugin', $query_data);
     //HANDLE LINK
-    $cleantalk_tag_with_ref_link = '<a href="https://cleantalk.org/register?'
-        . http_build_query($query_data)
+    $cleantalk_tag_with_ref_link = '<a href="' . $register_link
         . '" target="_blank" rel="nofollow">'
         . 'CleanTalk Anti-Spam'
         . '</a>';

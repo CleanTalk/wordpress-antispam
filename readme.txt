@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.6
 Requires PHP: 5.6
-Stable tag: 6.40
+Stable tag: 6.42.1
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -443,6 +443,42 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.42.1 03 Oct 2024 =
+* Fix. Adjust. LiteSpeedCache adjusting fixed.
+
+= 6.42 03 Oct 2024 =
+* Fix. Integrations. Uni-Cpo pruducts actions - service fields skipping improved.
+* Fix. EmailEncoder. CSS. Hide wpautopt breaks between magic blur elements.
+* Fix. Integration. Add to cart by get bot detector fixed.
+* Mod. Settings. Adaptive version of the settings
+* Mod. Settings. Burger menu
+* New. Admin bar. Promotion link Manuals and FAQ added.
+* Fix. Contact form validate. Emails array urlencoding fixed.
+* Fix. External Forms. Skip PayPal redirection form.
+* Mod. ReferralLink. Changing the referral link
+* Fix. Integrations. TVE plugin affliction to gravity forms fixed.
+* Upd. Integrations. Updated adjust module for litespeed.
+* Fix. Settings. Removing excess
+* Fix. Integrations. Masteriyo LMS plugin. Ignore login events.
+* Fix. Integrations. Masteriyo LMS plugin. Registration POST check improved.
+* Fix. Code. GetFieldsAny. PHP 8.0 compatibility.
+* Fix. Integrations. BuddyPres private messages. Nouveau AJAX messages handled.
+* Fix. Settings. TRP and SFW settings minor fixes.
+
+= 6.41.1 21 Sep 2024 =
+* Fix. Contact form validate. Emails array urlencoding fixed.
+
+= 6.41 19 Sep 2024 =
+* Upd. Params. Removed nocookie table.
+* Upd. Integrations. Updated handler for FluentFormPro addon.
+* Upd. TRP. Updated layout.
+* Fix. Integrations. Updated Forminator handler.
+* Fix. Integrations. WC add to cart. Use function instead of const to handle GET cards.
+* Fix. Admin. CleanTalk deactivation popup layout fixed.
+* Fix. WPMS. SFW update fixed on WPMS mode 3.
+* Fix. HTTP. Headers collection for WordPress HTTP API fixed.
+* Fix. Public JS. Reduce setting important parameters AJAX calls.
 
 = 6.40 05 Sep 2024 =
 * New. Email encoder. Animations and blur emails added.

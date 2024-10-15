@@ -88,7 +88,6 @@ class Deactivator
         $wpdb->query('DROP TABLE IF EXISTS `' . $prefix . 'cleantalk_sfw__flood_logs`;');   // Deleting SFW logs
         $wpdb->query('DROP TABLE IF EXISTS `' . $prefix . 'cleantalk_ac_log`;');      // Deleting SFW logs
         $wpdb->query('DROP TABLE IF EXISTS `' . $prefix . 'cleantalk_sessions`;');      // Deleting session table
-        $wpdb->query('DROP TABLE IF EXISTS `' . $prefix . 'cleantalk_no_cookie_data`;');      // Deleting no cookie table
         $wpdb->query(
             'DROP TABLE IF EXISTS `' . $prefix . 'cleantalk_spamscan_logs`;'
         ); // Deleting user/comments scan result table

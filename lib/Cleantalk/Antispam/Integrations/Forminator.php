@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\Common\TT;
+
 class Forminator extends IntegrationBase
 {
     public function getDataForChecking($argument)
@@ -16,13 +18,21 @@ class Forminator extends IntegrationBase
                 continue;
             }
             if (is_string($key) && strpos($key, 'email-') === 0) {
-                $email = $value;
-                continue;
+                $email = trim(str_replace(' ', '', TT::toString($value)));
             }
         }
-        $data['username'] = $username;
 
-        return ct_gfa(apply_filters('apbct__filter_post', $data), $email);
+        $tmp_data = ct_gfa(apply_filters('apbct__filter_post', $data));
+
+        if ($username !== '') {
+            $tmp_data['username'] = $username;
+        }
+
+        if ($email !== '') {
+            $tmp_data['email'] = $email;
+        }
+
+        return $tmp_data;
     }
 
     public function doBlock($message)
