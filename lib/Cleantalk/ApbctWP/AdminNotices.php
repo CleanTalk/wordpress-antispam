@@ -4,8 +4,7 @@ namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
-use Cleantalk\ApbctWP\LinkConstructor;
-use Cleantalk\Common\UniversalBanner\UniversalBanner;
+use Cleantalk\Common\UniversalBanner\BannerDataDto;
 
 class AdminNotices
 {
@@ -132,7 +131,7 @@ class AdminNotices
      */
     public function notice_universal() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        $universal_banner = new ApbctUniversalBanner(
+        /*$universal_banner = new ApbctUniversalBanner(
             'test_banner_name',
             'test_token',
             'This is a test banner, lorem ipsum bla bla n]bla, renew the best of the best of the plugins immediately!',
@@ -140,7 +139,17 @@ class AdminNotices
             'https://cleantalk.org?user_token=%s',
             'warning'
         );
+        $universal_banner->echoBannerBody();
+        */
 
+        $banner_data = new BannerDataDto();
+        $banner_data->text = 'This is a test banner';
+        $banner_data->secondary_text = 'Renew the best of the best of the plugins immediately!';
+        $banner_data->button_url = LinkConstructor::buildCleanTalkLink('settings_top_info');
+        $banner_data->button_text = 'CLICK';
+        $banner_data->additional_text = 'This is the additional text';
+        $banner_data->is_dismissible = ! $this->is_cleantalk_page;
+        $universal_banner = new ApbctUniversalBanner($banner_data);
         $universal_banner->echoBannerBody();
     }
 
