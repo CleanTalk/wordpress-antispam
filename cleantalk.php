@@ -686,6 +686,16 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
+    'TourMasterRegister' => array(
+        'hook'    => 'wp_pre_insert_user_data',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
+    'TourMasterOrder' => array(
+        'hook'    => 'tourmaster_payment_template',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
 );
 add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {
     if ( defined('FLUENTFORM_VERSION') ) {
