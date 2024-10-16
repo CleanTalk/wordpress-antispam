@@ -6,6 +6,7 @@ use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\Common\TT;
 
 class RemoteCalls
 {
@@ -34,10 +35,16 @@ class RemoteCalls
     {
         global $apbct;
 
-        return ! $apbct->key_is_ok &&
-               Request::get('spbc_remote_call_action') &&
-               in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct')) &&
-               strpos(Helper::ipResolve(Helper::ipGet()), 'cleantalk.org') !== false;
+        $is_noc_request = ! $apbct->key_is_ok &&
+            Request::get('spbc_remote_call_action') &&
+            in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct')) &&
+            strpos(Helper::ipResolve(Helper::ipGet()), 'cleantalk.org') !== false;
+
+        // no token needs for this action, at least for now
+        // todo Probably we still need to validate this, consult with analytics team
+        $is_wp_nonce_request = $apbct->key_is_ok && Request::get('spbc_remote_call_action') === 'get_fresh_wpnonce';
+
+        return $is_wp_nonce_request || $is_noc_request;
     }
 
     /**
@@ -492,5 +499,36 @@ class RemoteCalls
         }
 
         return $out;
+    }
+
+    /**
+     * Returns the fresh WP nonce depending on the AJAX type (rest/admin_ajax).
+     * @return string
+     */
+    public static function action__get_fresh_wpnonce() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        if ( ! isset($_POST['nonce_prev']) ) {
+            return json_encode(array('error' => 'No nonce provided'));
+        }
+
+        $nonce_prev = $_POST['nonce_prev'];
+        $nonce_name = apbct_settings__get_ajax_type() === 'rest'
+            ? 'wp_rest'
+            : 'ct_secret_stuff';
+
+        // Check $nonce_prev by regexp '^[a-f0-9]{10}$'
+        if ( ! preg_match('/^[a-f0-9]{10}$/', $nonce_prev) ) {
+            return json_encode(array('error' => 'Wrong nonce provided'));
+        }
+
+        // set response type 'json'
+        header('Content-Type: application/json');
+        return TT::toString(
+            json_encode(
+                array(
+                    'wpnonce' => TT::toString(wp_create_nonce($nonce_name))
+                )
+            )
+        );
     }
 }

@@ -221,15 +221,16 @@ function apbct_public_sendAJAX(data, params, obj) {
     _params['no_nonce'] = params.no_nonce || null;
     _params['data'] = data;
     _params['url'] = ctPublicFunctions._ajax_url;
+    const nonce = selectActualNonce();
 
     if (typeof (data) === 'string') {
         if ( ! _params['no_nonce'] ) {
-            _params['data'] = _params['data'] + '&_ajax_nonce=' + ctPublicFunctions._ajax_nonce;
+            _params['data'] = _params['data'] + '&_ajax_nonce=' + nonce;
         }
         _params['data'] = _params['data'] + '&no_cache=' + Math.random();
     } else {
         if ( ! _params['no_nonce'] ) {
-            _params['data']._ajax_nonce = ctPublicFunctions._ajax_nonce;
+            _params['data']._ajax_nonce = nonce;
         }
         _params['data'].no_cache = Math.random();
     }

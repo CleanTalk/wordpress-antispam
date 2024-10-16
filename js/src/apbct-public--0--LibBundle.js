@@ -669,6 +669,41 @@ if (Math.floor(Math.random() * 100) === 1) {
 }
 
 /**
+ * Select actual WP nonce depending on the ajax type and the fresh nonce provided.
+ * @return {string} url
+ */
+function selectActualNonce() {
+    let defaultNonce = '';
+    // return fresh nonce immediately if persists
+    if (
+        ctPublicFunctions.hasOwnProperty('_fresh_nonce') &&
+        typeof ctPublicFunctions._fresh_nonce === 'string' &&
+        ctPublicFunctions._fresh_nonce.length > 0
+    ) {
+        return ctPublicFunctions._fresh_nonce;
+    }
+    // select from default rest/ajax nonces
+    if (
+        ctPublicFunctions.data__ajax_type === 'admin_ajax' &&
+        ctPublicFunctions.hasOwnProperty('_ajax_nonce') &&
+        typeof ctPublicFunctions._ajax_nonce === 'string' &&
+        ctPublicFunctions._ajax_nonce.length > 0
+    ) {
+        defaultNonce = ctPublicFunctions._ajax_nonce;
+    }
+    if (
+        ctPublicFunctions.data__ajax_type === 'rest' &&
+        ctPublicFunctions.hasOwnProperty('_rest_nonce') &&
+        typeof ctPublicFunctions._rest_nonce === 'string' &&
+        ctPublicFunctions._rest_nonce.length > 0
+    ) {
+        defaultNonce = ctPublicFunctions._rest_nonce;
+    }
+
+    return defaultNonce;
+}
+
+/**
  * Enter point to ApbctCore class
  *
  * @param {array|object} params
@@ -749,6 +784,10 @@ class ApbctXhr {
         /* EVENTS */
         // Monitoring status
         this.xhr.onreadystatechange = function() {
+            if (this.isWpNonceError()) {
+                this.getFreshNonceAndRerunXHR(parameters);
+                return;
+            }
             this.onReadyStateChange();
         }.bind(this);
 
@@ -886,6 +925,88 @@ class ApbctXhr {
     }
 
     /**
+     * Check if 403 code of WP nonce error
+     * @return {bool}
+     */
+    isWpNonceError() {
+        let restErrror = false;
+        let ajaxErrror = false;
+        // check rest error
+        if (this.xhr.readyState == 4) {
+            restErrror = (
+                typeof this.xhr.response === 'object' && this.xhr.response !== null &&
+                this.xhr.response.hasOwnProperty('data') &&
+                this.xhr.response.data.hasOwnProperty('status') &&
+                this.xhr.response.data.status === 403
+            );
+            ajaxErrror = this.xhr.response === '-1' && this.xhr.status === 403;
+        }
+        // todo check AJAX error
+        return restErrror || ajaxErrror;
+    }
+
+    /**
+     * Get the fresh nonce and rerun the initial XHR with params
+     * @param {[]} initialRequestParams
+     */
+    getFreshNonceAndRerunXHR(initialRequestParams) {
+        let noncePrev = '';
+
+        // Check if initialRequestParams['headers']['X-WP-Nonce'] exists.
+        if (
+            initialRequestParams.hasOwnProperty('headers') &&
+            initialRequestParams.headers.hasOwnProperty('X-WP-Nonce')
+        ) {
+            noncePrev = initialRequestParams['headers']['X-WP-Nonce'];
+        }
+
+        // Check if initialRequestParams['data']['_ajax_nonce'] exists.
+        if (
+            initialRequestParams.hasOwnProperty('data') &&
+            initialRequestParams.data.hasOwnProperty('_ajax_nonce')
+        ) {
+            noncePrev = initialRequestParams['data']['_ajax_nonce'];
+        }
+
+        // Nonce is not provided. Exit.
+        if ( noncePrev === '' ) {
+            return;
+        }
+
+        // prepare params for refreshing nonce
+        let params = {};
+        params.method = 'POST';
+        params.data = {
+            'spbc_remote_call_action': 'get_fresh_wpnonce',
+            'plugin_name': 'antispam',
+            'nonce_prev': noncePrev,
+            'initial_request_params': initialRequestParams,
+        };
+        params.notJson = true;
+        params.url = ctPublicFunctions.host_url;
+        // this callback will rerun the XHR with initial params
+        params.callback = function(...args) {
+            // the refresh result itself
+            let freshNonceResult = args[0];
+            let newRequestParams = false;
+            // provided initial params
+            if (args[1] !== undefined && args[1].hasOwnProperty('initial_request_params')) {
+                newRequestParams = args[1].initial_request_params;
+            }
+            if (newRequestParams && freshNonceResult.hasOwnProperty('wpnonce')) {
+                ctPublicFunctions._fresh_nonce = freshNonceResult.wpnonce;
+                if (ctPublicFunctions.data__ajax_type === 'rest') {
+                    new ApbctCore().rest(newRequestParams);
+                } else {
+                    new ApbctCore().ajax(newRequestParams);
+                }
+            }
+        };
+        // run the nonce refreshing call
+        new ApbctXhr(params);
+    }
+
+    /**
      * @param {number} httpCode
      * @param {string} statusText
      * @param {string} additionalMsg
@@ -1014,7 +1135,9 @@ class ApbctXhr {
 class ApbctAjax extends ApbctXhr {
     // eslint-disable-next-line require-jsdoc
     constructor(...args) {
-        super(args[0]);
+        args = args[0];
+        args.data._ajax_nonce = selectActualNonce();
+        super(args);
     }
 }
 // eslint-disable-next-line require-jsdoc
@@ -1025,9 +1148,10 @@ class ApbctRest extends ApbctXhr {
     // eslint-disable-next-line require-jsdoc
     constructor(...args) {
         args = args[0];
+        const nonce = selectActualNonce();
         args.url = ApbctRest.default_route + args.route;
         args.headers = {
-            'X-WP-Nonce': ctPublicFunctions._rest_nonce,
+            'X-WP-Nonce': nonce,
         };
         super(args);
     }

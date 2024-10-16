@@ -301,7 +301,10 @@ class State extends \Cleantalk\Common\State
 
         // Insert api key (RC without token)
         'post_api_key'       => array('last_call' => 0,),
+        // Rest available check
         'rest_check'         => array('last_call' => 0,),
+        // WP nonce gathering
+        'get_fresh_wpnonce'         => array('last_call' => 0,),
     );
 
     /**
