@@ -1219,6 +1219,24 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'tourmaster_payment_template';
         }
+        // skip Broken Link Notifier service action
+        if (
+            apbct_is_plugin_active('broken-link-notifier/broken-link-notifier.php') &&
+            Post::get('action') === 'blnotifier_blinks'
+        ) {
+            return 'Broken Link Notifier service action';
+        }
+
+        // skip WP Rocket image dimensions
+        if (
+            apbct_is_plugin_active('wp-rocket/wp-rocket.php') &&
+            (
+                Get::get('wpr_imagedimensions') ||
+                Post::get('wpr_imagedimensions')
+            )
+        ) {
+            return 'WP Rocket image dimensions';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

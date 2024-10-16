@@ -17,8 +17,9 @@
     position: relative;
 }
 /*fix for wpautopt when brs added between blur magic fields*/
-.apbct-email-encoder br{
+.apbct-email-encoder br, .apbct-ee-blur-group br{
     display: none !important;
+    visibility: hidden !important;
 }
 /* email text wrapper */
 .apbct-ee-blur_email-text {
