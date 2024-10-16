@@ -1236,6 +1236,7 @@ function apbct_is_skip_request($ajax = false)
             )
         ) {
             return 'WP Rocket image dimensions';
+        }
         // skip Check email before POST request
         if (
                 Post::get('action') === 'apbct_email_check_exist_post'
