@@ -47,6 +47,25 @@ class API extends \Cleantalk\Common\API
     }
 
     /**
+     * GET method for getting information
+     * whether an email exists
+     * @param $email
+     * @param $api_key
+     *
+     * @return array|bool|mixed
+     */
+    public static function methodEmailCheckExist($email, $api_key = '')
+    {
+        $request = array(
+            'method_name' => 'email_check_cms',
+            'auth_key' => $api_key,
+            'email' => $email,
+        );
+
+        return self::sendRequest($request);
+    }
+
+    /**
      * Function sends raw request to API server.
      * May use built in WordPress HTTP-API
      *
