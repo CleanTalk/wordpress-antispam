@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.6
 Requires PHP: 5.6
-Stable tag: 6.42.1
+Stable tag: 6.43
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -443,6 +443,22 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.43 17 Oct 2024 =
+* New. Integrations. Added TourMaster handler.
+* New. CheckEmailExist. Visualization of email address verification when filling in the field.
+* Upd. CheckingComments. Description of the number of all and verified comments.
+* Upd. Integrations. CF7. Ignore wpcf7_skip_spam_check third-side rules if CleanTalk Anti-Spam runs.
+* Fix. TRP. Fixed trp layout occurs on the page.
+* Fix. Integrations. Ninja forms getting form fields fixed.
+* Fix. Integrations. Added exclusion for Broken Link Notifier service action.
+* Fix. Integrations. Gravity Forms. Prevent skipping aside attacks to form handler.
+* Fix. Integrations. WP Rocket image dimensions requests excluded.
+* Fix. Code. JS minifying. Use return instead break on filling email decoder loop.
+* Fix. Code. Github action fixed.
+* Fix. CheckingComments. Editing the text.
+* Fix. EmailEncoder. Fixed a case with skipped encoding an aria-label attribute.
+* Fix. EmailEncoder. Improved "wpautop" exclusion.
 
 = 6.42.1 03 Oct 2024 =
 * Fix. Adjust. LiteSpeedCache adjusting fixed.
