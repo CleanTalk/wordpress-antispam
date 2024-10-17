@@ -324,6 +324,7 @@ class CleantalkSettingsTemplates
     public function resetPluginOptions()
     {
         global $apbct;
+
         $def_settings = $apbct->default_settings;
         if ( isset($def_settings['apikey']) ) {
             unset($def_settings['apikey']);
@@ -331,6 +332,10 @@ class CleantalkSettingsTemplates
         $settings        = array_replace((array)$apbct->settings, $def_settings);
         $settings        = apbct_settings__validate($settings);
         $apbct->settings = $settings;
+
+        $apbct->data['current_settings_template_id'] = null;
+        $apbct->data['current_settings_template_name'] = null;
+        $apbct->saveData();
 
         return $apbct->saveSettings();
     }
