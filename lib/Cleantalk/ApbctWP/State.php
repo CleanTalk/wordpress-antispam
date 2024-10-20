@@ -83,7 +83,7 @@ class State extends \Cleantalk\Common\State
         'data__bot_detector_enabled'               => 1,
         'data__pixel'                              => '3',
         'data__email_check_before_post'            => 1,
-        'data__email_check_exist_post'            => 1,
+        'data__email_check_exist_post'            => 0,
         'data__honeypot_field'                     => 1,
         'data__email_decoder'                      => 1,
         'data__email_decoder_buffer'               => 0,
