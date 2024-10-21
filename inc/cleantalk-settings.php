@@ -2,6 +2,7 @@
 
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentSettings;
+use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\LinkConstructor;
@@ -110,6 +111,11 @@ function apbct_settings__set_fields()
         ? '<br>' . __(' - status of SpamFireWall database updating process', 'cleantalk-spam-protect')
         : '';
 
+    $current_user = wp_get_current_user();
+    $current_user_email = $current_user->exists() ? $current_user->user_email : 'example@example.com';
+    $emailEncoder = new EmailEncoder();
+    $current_user_email = $emailEncoder->modifyContent($current_user_email);
+
     $fields = array(
 
         'main' => array(
@@ -182,8 +188,13 @@ function apbct_settings__set_fields()
                 'data__email_decoder'        => array(
                     'type'        => 'checkbox',
                     'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
-                    'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect'),
-                    'long_description' => true,
+                    'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect')
+                        . sprintf(
+                            __('This option allows you to encode contacts on the public pages of the site. This prevents robots from automatically collecting such data and prevents it from being included in spam lists. %s', 'cleantalk-spam-protect'),
+                            '<a href="https://blog.cleantalk.org/wordpress-how-hide-email-address-from-bots-and-spammers/?utm_source=apbct_hint_data__email_decoder&utm_medium=WordPress&utm_campaign=ABPCT_Settings" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                        )
+                        . '<br><span id="apbct-email-decoder-example-text">' . __('Try to decode, just click on email ', 'cleantalk-spam-protect') . '</span>'
+                        . '<span id="apbct-email-decoder-example-email">' . $current_user_email . '</span>',
                 ),
                 'comments__the_real_person' => array(
                     'type'        => 'checkbox',
@@ -622,8 +633,11 @@ function apbct_settings__set_fields()
                 ),
                 'data__email_decoder'        => array(
                     'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
-                    'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect'),
-                    'long_description' => true,
+                    'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect')
+                        . sprintf(
+                            __('This option allows you to encode contacts on the public pages of the site. This prevents robots from automatically collecting such data and prevents it from being included in spam lists. %s', 'cleantalk-spam-protect'),
+                            '<a href="https://blog.cleantalk.org/wordpress-how-hide-email-address-from-bots-and-spammers/?utm_source=apbct_hint_data__email_decoder&utm_medium=WordPress&utm_campaign=ABPCT_Settings" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                        ),
                     'childrens'   => array('data__email_decoder_buffer')
                 ),
                 'data__email_decoder_buffer'        => array(
@@ -3305,14 +3319,6 @@ function apbct_settings__get__long_description()
                     . '<p>' . esc_html__('You can read more about SFW modes %s', 'cleantalk-spam-protect') . '</p>'
                     . '<p>' . esc_html__('Read out the article if you are using Varnish on your server.', 'cleantalk-spam-protect'),
                 '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}" target="_blank">' . __('here.', 'cleantalk-spam-protect') . '</a>'
-            )
-        ),
-        'data__email_decoder' => array(
-            'title' => __('Encode contact data', 'cleantalk-spam-protect'),
-            //HANDLE LINK
-            'desc'  => sprintf(
-                __('This option allows you to encode contacts on the public pages of the site. This prevents robots from automatically collecting such data and prevents it from being included in spam lists. %s', 'cleantalk-spam-protect'),
-                '<a href="https://cleantalk.org/help/email-encode{utm_mark}" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
         'exclusions__form_signs' => array(

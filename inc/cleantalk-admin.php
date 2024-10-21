@@ -524,6 +524,12 @@ function apbct_admin__enqueue_scripts($hook)
         APBCT_VERSION,
         'all'
     );
+    wp_enqueue_style(
+        'ct_email_decoder_css',
+        APBCT_CSS_ASSETS_PATH . '/cleantalk-email-decoder.min.css',
+        array(),
+        APBCT_VERSION
+    );
 
     wp_localize_script('ct_admin_common', 'ctAdminCommon', array(
         '_ajax_nonce'        => wp_create_nonce('ct_secret_nonce'),
