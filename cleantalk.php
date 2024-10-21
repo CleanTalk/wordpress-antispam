@@ -2881,7 +2881,6 @@ function apbct_cookie()
         return false;
     }
 
-
     // Cookie names to validate
     $cookie_test_value = array(
         'cookies_names' => array(),
@@ -2900,14 +2899,12 @@ function apbct_cookie()
     }
 
     // Landing time
-    // todo if cookies disabled there is no way to keep this data without DB:( always will be overwriteen
-    $site_landing_timestamp = Cookie::get('apbct_site_landing_ts');
+    $site_landing_timestamp = RequestParameters::getCommonStorage('apbct_site_landing_ts');
+
     if ( ! $site_landing_timestamp ) {
         $site_landing_timestamp = time();
-        Cookie::set('apbct_site_landing_ts', (string)$site_landing_timestamp, 0, '/', $domain, null, true, 'Lax', true);
+        RequestParameters::setCommonStorage('apbct_site_landing_ts', TT::toString($site_landing_timestamp));
     }
-    $cookie_test_value['cookies_names'][] = 'apbct_site_landing_ts';
-    $cookie_test_value['check_value']     .= $site_landing_timestamp;
 
     if ($apbct->data['cookies_type'] === 'native') {
         $http_referrer = TT::toString(Server::get('HTTP_REFERER'));
