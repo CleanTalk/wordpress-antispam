@@ -134,7 +134,7 @@ class EmailEncoder
      */
     public function modifyContent($content)
     {
-        if ( apbct_is_user_logged_in() ) {
+        if ( apbct_is_user_logged_in() && !is_admin() ) {
             return $content;
         }
 
@@ -192,10 +192,17 @@ class EmailEncoder
      */
     public function ajaxDecodeEmailHandler()
     {
-        if (! defined('REST_REQUEST')) {
+        if (! defined('REST_REQUEST') && !is_admin()) {
             check_ajax_referer('ct_secret_stuff');
         }
+
         $this->decoded_emails_array = $this->decodeEmailFromPost();
+
+        if ( is_admin() ) {
+            $this->response = $this->compileResponse($this->decoded_emails_array, true);
+            wp_send_json_success($this->decoded_emails_array);
+        }
+
         if ( $this->checkRequest() ) {
             //has error response from cloud
             if ( $this->has_connection_error ) {
@@ -267,12 +274,12 @@ class EmailEncoder
      */
     private function encodeString($plain_string, $key)
     {
-
-        if ( $this->encryption_is_available ) {
+        if ( $this->encryption_is_available && !is_admin() ) {
             $encoded_email = htmlspecialchars(@openssl_encrypt($plain_string, 'aes-128-cbc', $key));
         } else {
             $encoded_email = htmlspecialchars(base64_encode(str_rot13($plain_string)));
         }
+
         return $encoded_email;
     }
 
@@ -286,7 +293,7 @@ class EmailEncoder
      */
     private function decodeString($encoded_string, $key)
     {
-        if ( $this->encryption_is_available  ) {
+        if ( $this->encryption_is_available && !is_admin() ) {
             $decoded_email = htmlspecialchars_decode(@openssl_decrypt($encoded_string, 'aes-128-cbc', $key));
         } else {
             $decoded_email = htmlspecialchars_decode(base64_decode($encoded_string));
