@@ -22,6 +22,14 @@
         <directory name="./lib/Cleantalk/Antispam"/>
         <file name="./lib/Cleantalk/Common/Validate.php"/>
         <file name="./lib/Cleantalk/Common/TT.php"/>
+        <file name="./lib/Cleantalk/ApbctWP/Activator.php"/>
+        <file name="./lib/Cleantalk/ApbctWP/AdminNotices.php"/>
+        <file name="./lib/Cleantalk/ApbctWP/API.php"/>
+        <file name="./lib/Cleantalk/ApbctWP/CleantalkListTable.php"/>
+        <file name="./lib/Cleantalk/ApbctWP/CleantalkRealPerson.php"/>
+        <file name="./lib/Cleantalk/ApbctWP/CleantalkSettingsTemplates.php"/>
+        <file name="./lib/Cleantalk/ApbctWP/ConnectionReports.php"/>
+        <file name="./lib/Cleantalk/ApbctWP/State.php"/>
         <ignoreFiles allowMissingFiles="true">
             <directory name="tests"/>
             <directory name="vendor"/>

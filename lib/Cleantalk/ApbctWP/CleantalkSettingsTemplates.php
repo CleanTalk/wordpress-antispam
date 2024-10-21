@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class CleantalkSettingsTemplates
 {
@@ -48,8 +49,8 @@ class CleantalkSettingsTemplates
                     if ( $res['operation_status'] === 'SUCCESS' ) {
                         wp_send_json_success(esc_html__('Success. Reloading...', 'cleantalk-spam-protect'));
                     }
-                    if ( $res['operation_status'] === 'FAILED' ) {
-                        wp_send_json_error('Error: ' . $res['operation_message']);
+                    if ( $res['operation_status'] === 'FAILED' && isset($res['operation_message']) ) {
+                        wp_send_json_error('Error: ' . TT::toString($res['operation_message']));
                     }
                 }
                 $error_text = 'Template updating response is wrong.';
@@ -65,8 +66,8 @@ class CleantalkSettingsTemplates
                     if ( $res['operation_status'] === 'SUCCESS' ) {
                         wp_send_json_success(esc_html__('Success. Reloading...', 'cleantalk-spam-protect'));
                     }
-                    if ( $res['operation_status'] === 'FAILED' ) {
-                        wp_send_json_error('Error: ' . $res['operation_message']);
+                    if ( $res['operation_status'] === 'FAILED' && isset($res['operation_message']) ) {
+                        wp_send_json_error('Error: ' . TT::toString($res['operation_message']));
                     }
                 }
                 $error_text = 'Template adding response is wrong.';
@@ -293,6 +294,7 @@ class CleantalkSettingsTemplates
                 if ( $old_settings !== false && $old_data !== false ) {
                     $new_settings = array_replace($old_settings, $settings);
                     $new_settings = apbct_settings__validate($new_settings);
+                    $data = [];
                     $data['current_settings_template_id'] = $template_id;
                     $data['current_settings_template_name'] = $template_name;
                     $data['key_changed'] = 1;

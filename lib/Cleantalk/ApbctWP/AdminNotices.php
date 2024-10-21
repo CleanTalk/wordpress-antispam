@@ -5,6 +5,7 @@ namespace Cleantalk\ApbctWP;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\LinkConstructor;
+use Cleantalk\Common\TT;
 
 class AdminNotices
 {
@@ -411,7 +412,7 @@ class AdminNotices
         }
 
         global $apbct;
-        $notice       = sanitize_text_field(Post::get('notice_id'));
+        $notice       = sanitize_text_field(TT::toString(Post::get('notice_id')));
         $uid          = get_current_user_id();
         $notice_uid   = $notice . '_' . $uid;
         $current_date = current_time('Y-m-d H:i:s');
