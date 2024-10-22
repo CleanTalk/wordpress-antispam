@@ -8,7 +8,8 @@ class UniversalBanner
 
     private $replaces = [];
 
-    private static $template_url = __DIR__ . '\universal_banner_template.html';
+    private static $template_url = __DIR__ . DIRECTORY_SEPARATOR . 'universal_banner_template.html';
+    private static $template_without_btn_url = __DIR__ . DIRECTORY_SEPARATOR . 'universal_banner_without_btn_template.html';
 
     /**
      * @var array
@@ -32,7 +33,11 @@ class UniversalBanner
      */
     public function __construct(BannerDataDto $banner_data)
     {
-        $this->banner_body = @file_get_contents(static::$template_url);
+        if ($banner_data->is_show_button) {
+            $this->banner_body = @file_get_contents(static::$template_url);
+        } else {
+            $this->banner_body = @file_get_contents(static::$template_without_btn_url);
+        }
         if (false === $this->banner_body) {
             throw new \Exception('Banner template missing on ' . static::$template_url);
         }

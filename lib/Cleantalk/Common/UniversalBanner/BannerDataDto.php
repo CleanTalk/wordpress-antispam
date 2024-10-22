@@ -43,4 +43,9 @@ class BannerDataDto
      * @var bool
      */
     public $is_dismissible = true;
+
+    /**
+     * @var bool
+     */
+    public $is_show_button = true;
 }
