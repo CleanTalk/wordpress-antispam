@@ -51,12 +51,12 @@ class CleantalkRealPerson
             return $comment_author;
         }
 
-        $trp_popup_header = __('The Real Person!', 'cleantalk-spam-protect');
+        $trp_popup_header = __('The Real Person Badge!', 'cleantalk-spam-protect');
         $trp_author = $comment_author;
         $trp_author_bold = '<b>' . $comment_author . '</b>';
-        $trp_popup_text_person = __('Author %s acts as a real person and verified as not a bot.', 'cleantalk-spam-protect');
+        $trp_popup_text_person = __('%s acts as a real person and verified as not a bot.', 'cleantalk-spam-protect');
         $trp_popup_text_person = sprintf($trp_popup_text_person, $trp_author_bold);
-        $trp_popup_text_shield = __('Passed all tests against spam bots. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect');
+        $trp_popup_text_shield = __(' Passed all tests against spam bots. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect');
 
         $trp_comment_id = 'apbct_trp_comment_id_' . $comment_id;
         $trp_link_img_person = APBCT_URL_PATH . '/css/images/real_user.svg';
@@ -81,6 +81,8 @@ class CleantalkRealPerson
         $template = str_replace('{{TRP_STYLE_CLASS_ADMIN}}', $trp_style_class_admin, $template);
         $template = str_replace('{{TRP_STYLE_CLASS_ADMIN_IMG}}', $trp_style_class_admin_img, $template);
         $template = str_replace('{{TRP_ADMIN_PROMO_PAGE_TEXT}}', $trp_admin_popup_promo_page_text, $template);
+        $template = str_replace('{{TRP_LEARN_MORE_LINK}}', 'https://cleantalk.org/help/the-real-person', $template);
+        $template = str_replace('{{TRP_LEARN_MORE}}', __('Learn more', 'cleantalk-spam-protect'), $template);
 
         $ct_comment_ids[] = $comment_id;
 
@@ -133,11 +135,11 @@ class CleantalkRealPerson
 
             $comment_author = $curr_comment->comment_author;
 
-            $trp_popup_header = __('The Real Person!', 'cleantalk-spam-protect');
+            $trp_popup_header = __('The Real Person Badge!', 'cleantalk-spam-protect');
             $trp_author_bold = '<b>' . $comment_author . '</b>';
-            $trp_popup_text_person = __('Author %s acts as a real person and verified as not a bot.', 'cleantalk-spam-protect');
+            $trp_popup_text_person = __('%s acts as a real person and verified as not a bot.', 'cleantalk-spam-protect');
             $trp_popup_text_person = sprintf($trp_popup_text_person, $trp_author_bold);
-            $trp_popup_text_shield = __('Passed all tests against spam bots. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect');
+            $trp_popup_text_shield = __(' Passed all tests against spam bots. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect');
 
             $trp_comment_id = 'apbct_trp_comment_id_' . $curr_comment->comment_ID;
             $trp_link_img_person = APBCT_URL_PATH . '/css/images/real_user.svg';
