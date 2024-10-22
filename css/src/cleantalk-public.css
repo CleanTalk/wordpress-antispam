@@ -29,8 +29,6 @@
 
 .apbct-real-user-popup {
     position: absolute;
-    width: auto;
-    height: max-content;
     margin-left: 21px;
     padding: 16px 16px 16px 16px;
     font-weight: normal;
@@ -92,13 +90,12 @@
         user-select: all;
         margin: 2px 0 2px 0;
         background: white!important;
-        color: black!important;
+        color: #969696!important;
     }
 }
 
 @media (max-width: 768px) {
     .apbct-real-user-popup {
-        width: 70vw;
         left: -100px;
         top: 20px;
         margin-left: 0;

@@ -163,6 +163,7 @@
 	opacity: 0;
     transition-property: opacity, z-index;
     transition-delay: 1s;
+	color: #969696;
 }
 
 .apbct-real-user-badge:hover .apbct-admin-real-user-popup {
