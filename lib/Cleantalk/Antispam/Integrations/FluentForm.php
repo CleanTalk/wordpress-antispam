@@ -12,12 +12,16 @@ class FluentForm extends IntegrationBase
         global $apbct;
         $event_token = '';
 
-        if ( Post::get('data') ) {
-            parse_str(TT::toString(Post::get('data')), $form_data);
+        /**
+         * Do not use Post:get() there - it uses sanitize_textarea and drops special symbols,
+         * including whitespaces - this could concatenate parts of data in single string!
+         **/
+        if ( isset($_POST['data']) ) {
+            parse_str(TT::toString($_POST['data']), $form_data);
             foreach ($form_data as $param => $param_value) {
                 if (strpos((string)$param, 'ct_no_cookie_hidden_field') !== false || (is_string($param_value) && strpos($param_value, '_ct_no_cookie_data_') !== false)) {
                     if ($apbct->data['cookies_type'] === 'none') {
-                        \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($form_data[$param]);
+                        \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($param_value);
                         $apbct->stats['no_cookie_data_taken'] = true;
                         $apbct->save('stats');
                     }

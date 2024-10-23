@@ -711,6 +711,33 @@ function apbct_email_check_before_post()
 }
 
 /**
+ * Checking email before POST
+ */
+function apbct_email_check_exist_post()
+{
+    global $apbct;
+    $email = trim(TT::toString(Post::get('email')));
+    $api_key = $apbct->api_key;
+
+    if ( $email && $api_key ) {
+        $result = \Cleantalk\ApbctWP\API::methodEmailCheckExist($email, $api_key);
+        if ( isset($result['result']) ) {
+            $text_result = '';
+            if ( $result['result'] != 'EXISTS' ) {
+                $text_result = __('The email doesn`t exist, double check the address. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect');
+            } else {
+                $text_result = __('The email exists and is good to use! Anti-Spam by CleanTalk', 'cleantalk-spam-protect');
+            }
+            $result['text_result'] = $text_result;
+            die(json_encode(array('result' => $result)));
+        }
+
+        die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));
+    }
+    die(json_encode(array('error' => 'EMPTY_DATA')));
+}
+
+/**
  * Get ct_get_checkjs_value
  *
  * @param bool $random_key

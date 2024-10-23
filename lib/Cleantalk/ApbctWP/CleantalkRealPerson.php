@@ -14,10 +14,6 @@ class CleantalkRealPerson
     {
         global $ct_comment_ids;
 
-        if (get_template() === 'twentytwenty') {
-            return $comment_author;
-        }
-
         if ($comment->comment_type !== 'comment') {
             return $comment_author;
         }
