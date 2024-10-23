@@ -262,9 +262,6 @@ class GetFieldsAny
              */
 
             if ( ! is_array($value) && ! is_object($value) ) {
-                // If $this->prev_name is not empty it is a recursion. So wrap the key with the '[]' brackets
-                $nested_array_key = $this->prev_name === '' ? $key : $this->prev_name . '[' . $key . ']';
-
                 if (
                     (in_array($key, $this->skip_params, true) && $key !== 0 && $key !== '') ||
                     0 === strpos($key, "ct_checkjs")
@@ -313,11 +310,11 @@ class GetFieldsAny
                     if (empty($this->processed_data['email'])) {
                         // if found new very first email field, set it as the processed email field.
                         $this->processed_data['email'] = $value_for_email;
-                        $this->processed_data['emails_array'][$nested_array_key] = $value_for_email;
+                        $this->processed_data['emails_array'][$this->prev_name . $key] = $value_for_email;
                     } else {
                         // if processed one is already exists, set it to the message field.
-                        $this->processed_data['message'][$nested_array_key] = $value_for_email;
-                        $this->processed_data['emails_array'][$nested_array_key] = $value_for_email;
+                        $this->processed_data['message'][$this->prev_name . $key] = $value_for_email;
+                        $this->processed_data['emails_array'][$this->prev_name . $key] = $value_for_email;
                     }
                     // Names
                 } elseif (false !== stripos($key, "name")) {
@@ -344,14 +341,14 @@ class GetFieldsAny
                     } elseif (count($match_nickname) > 1) {
                         $this->processed_data['nickname']['nick'] = $value;
                     } else {
-                        $this->processed_data['message'][$nested_array_key] = $value;
+                        $this->processed_data['message'][$this->prev_name . $key] = $value;
                     }
                     // Subject
                 } elseif ($this->processed_data['subject'] === '' && false !== stripos($key, "subject")) {
                     $this->processed_data['subject'] = $value;
                     // Message
                 } else {
-                    $this->processed_data['message'][$nested_array_key] = $value;
+                    $this->processed_data['message'][$this->prev_name . $key] = $value;
                 }
             } elseif ( ! is_object($value)) {
                 /*
@@ -362,7 +359,7 @@ class GetFieldsAny
                 }
 
                 $prev_name_original = $this->prev_name;
-                $this->prev_name    = ($this->prev_name === '' ? $key : $this->prev_name . $key);
+                $this->prev_name    = ($this->prev_name === '' ? $key . '_' : $this->prev_name . $key . '_');
 
                 $this->process($value);
 
@@ -553,21 +550,8 @@ class GetFieldsAny
             return $fields;
         }
 
-        // Foreach by $_POST and convert nested array to the inline variable like variable[nested_variable]
-        $fields = array();
-        foreach ($_POST as $key => $value) {
-            if (is_array($value)) {
-                foreach ($value as $nested_key => $nested_value) {
-                    // @todo Make recursive converting here
-                    $fields[$key . '[' . $nested_key . ']'] = $nested_value;
-                }
-            } else {
-                $fields[$key] = $value;
-            }
-        }
-
         // @ToDo we have to implement a logic to find form fields (fields names, fields count) in serialized/nested/encoded items. not only $_POST.
-        return $fields;
+        return $_POST;
     }
 
     /**
