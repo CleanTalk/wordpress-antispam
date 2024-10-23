@@ -287,7 +287,7 @@ class AdminNotices
 
     /**
      * Callback for the notice hook
-     * @psalm-suppress PossiblyUnusedMethod
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUndefinedStringArrayOffset
      */
     public function notice_incompatibility() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
