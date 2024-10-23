@@ -182,4 +182,13 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
     {
         return parent::buildRenewalLinkATag($user_token, $link_inner_html, $product_id, $utm_preset);
     }
+
+    public static function buildRenewalLink($user_token, $utm_content)
+    {
+        return 'https://p.cleantalk.org/?product_id=1&featured=&user_token='
+            . $user_token
+            . '&utm_id=&utm_term=&utm_source=admin_panel&utm_medium=banner&utm_content='
+            . $utm_content
+            . '&utm_campaign=apbct_links';
+    }
 }

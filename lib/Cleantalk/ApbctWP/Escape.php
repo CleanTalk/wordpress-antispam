@@ -162,8 +162,13 @@ class Escape extends \Cleantalk\Common\Escape
                 'a' => array(
                     'target' => true,
                     'href' => true,
+                    'class' => true
                 ),
                 'p' => array(),
+                'h3' => array(),
+                'h4' => array(
+                    'style' => true,
+                ),
             ),
 
             'apbct_public__trusted_text' => array(
