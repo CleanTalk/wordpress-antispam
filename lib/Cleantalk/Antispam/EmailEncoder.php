@@ -80,6 +80,8 @@ class EmailEncoder
 
         $this->registerShortcodeForEncoding();
 
+        $this->registerHookHandler();
+
         if ( ! $apbct->settings['data__email_decoder'] ) {
             return;
         }
@@ -184,21 +186,16 @@ class EmailEncoder
             }
         }, $content);
 
-        // modify content to turn back aria-label
-        $replacing_result = $this->modifyAriaLabelContent($replacing_result, true);
-
-
         //please keep this var (do not simplify the code) for further debug
         return $replacing_result;
     }
 
-    public function modifyAny($content, $replace)
+    public function modifyAny($string)
     {
-        $encoded_replace= $this->encodeAny($replace);
-        $replacing_result = str_replace($replace, $encoded_replace, $content);
+        $encoded_string = $this->encodeAny($string);
 
         //please keep this var (do not simplify the code) for further debug
-        return $replacing_result;
+        return $encoded_string;
     }
 
     /**
@@ -326,7 +323,7 @@ class EmailEncoder
             : str_pad('', strpos($email, '@'), '*');
         /** @psalm-suppress PossiblyFalseOperand, PossiblyFalseArgument */
         $second_part = substr($email, strpos($email, '@') + 1, 2)
-                    . str_pad('', strpos($email, '.', strpos($email, '@')) - 3 - strpos($email, '@'), '*');
+            . str_pad('', strpos($email, '.', strpos($email, '@')) - 3 - strpos($email, '@'), '*');
         /** @psalm-suppress PossiblyFalseOperand, PossiblyFalseArgument */
         $last_part = substr($email, (int) strrpos($email, '.', -1) - strlen($email));
 
@@ -598,5 +595,10 @@ class EmailEncoder
     public function shortcodeCallback($_atts, $content, $_tag)
     {
         return $this->modifyAny($content);
+    }
+
+    private function registerHookHandler()
+    {
+        add_filter('apbct_encode_data', [$this, 'modifyAny']);
     }
 }
