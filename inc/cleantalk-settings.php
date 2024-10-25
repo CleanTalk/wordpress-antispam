@@ -182,7 +182,10 @@ function apbct_settings__set_fields()
                 'data__email_decoder'        => array(
                     'type'        => 'checkbox',
                     'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
-                    'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect'),
+                    'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect')
+                                     . '<br>'
+                                     . sprintf(__('If the option was turned off, you can anyway encode contact data using shortcode\hook. Learn more %s.', 'cleantalk-spam-protect'),
+                                     '<a href="#" target="_blank">' . __('here', 'cleantalk-spam-protect') . '</a>'),
                     'long_description' => true,
                 ),
                 'comments__the_real_person' => array(
@@ -622,7 +625,10 @@ function apbct_settings__set_fields()
                 ),
                 'data__email_decoder'        => array(
                     'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
-                    'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect'),
+                    'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect')
+                                     . '<br>'
+                                     . sprintf(__('If the option was turned off, you can anyway encode contact data using shortcode\hook. Learn more %s.', 'cleantalk-spam-protect'),
+                            '<a href="#" target="_blank">' . __('here', 'cleantalk-spam-protect') . '</a>'),
                     'long_description' => true,
                     'childrens'   => array('data__email_decoder_buffer')
                 ),
