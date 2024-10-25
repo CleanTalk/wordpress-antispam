@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.42.2-dev
+  Version: 6.43.2-dev
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -216,6 +216,9 @@ add_action('wp_ajax_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
 
 // Checking email before POST
 add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_before_post');
+
+// Checking email exist POST
+add_action('wp_ajax_nopriv_apbct_email_check_exist_post', 'apbct_email_check_exist_post');
 
 // Force ajax set important parameters (apbct_timestamp etc)
 add_action('wp_ajax_nopriv_apbct_set_important_parameters', 'apbct_cookie');
@@ -684,6 +687,16 @@ $apbct_active_integrations = array(
         'hook'    => 'otter_form_anti_spam_validation',
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
+    ),
+    'TourMasterRegister' => array(
+        'hook'    => 'wp_pre_insert_user_data',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
+    'TourMasterOrder' => array(
+        'hook'    => 'tourmaster_payment_template',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
     ),
 );
 add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {

@@ -1212,6 +1212,37 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'APBCT Internal Forms Class';
         }
+
+        // skip tourmaster order
+        if ( apbct_is_plugin_active('tourmaster/tourmaster.php') &&
+            Post::get('action') === 'tourmaster_payment_template'
+        ) {
+            return 'tourmaster_payment_template';
+        }
+        // skip Broken Link Notifier service action
+        if (
+            apbct_is_plugin_active('broken-link-notifier/broken-link-notifier.php') &&
+            Post::get('action') === 'blnotifier_blinks'
+        ) {
+            return 'Broken Link Notifier service action';
+        }
+
+        // skip WP Rocket image dimensions
+        if (
+            apbct_is_plugin_active('wp-rocket/wp-rocket.php') &&
+            (
+                Get::get('wpr_imagedimensions') ||
+                Post::get('wpr_imagedimensions')
+            )
+        ) {
+            return 'WP Rocket image dimensions';
+        }
+        // skip Check email before POST request
+        if (
+                Post::get('action') === 'apbct_email_check_exist_post'
+        ) {
+            return 'apbct_email_check_exist_post_skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1321,7 +1352,8 @@ function apbct_is_skip_request($ajax = false)
         // APBCT service actions
         if (
             apbct_is_plugin_active('cleantalk-spam-protect/cleantalk.php') &&
-            apbct_is_in_uri('wp-json/cleantalk-antispam/v1/check_email_before_post')
+            apbct_is_in_uri('wp-json/cleantalk-antispam/v1/check_email_before_post') ||
+            apbct_is_in_uri('wp-json/cleantalk-antispam/v1/check_email_exist_post')
         ) {
             return 'APBCT service actions';
         }

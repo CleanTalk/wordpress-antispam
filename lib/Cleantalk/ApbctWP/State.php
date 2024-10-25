@@ -83,6 +83,7 @@ class State extends \Cleantalk\Common\State
         'data__bot_detector_enabled'               => 1,
         'data__pixel'                              => '3',
         'data__email_check_before_post'            => 1,
+        'data__email_check_exist_post'            => 0,
         'data__honeypot_field'                     => 1,
         'data__email_decoder'                      => 1,
         'data__email_decoder_buffer'               => 0,
@@ -624,7 +625,8 @@ class State extends \Cleantalk\Common\State
             $this->notice_show = false;
         }
 
-        $this->data['wl_brandname_short'] = $this->data["wl_mode_enabled"] ? $this->data["wl_brandname"] : $this->default_data['wl_brandname_short'];
+        $wl_brandname_short = isset($this->default_data['wl_brandname_short']) ? $this->default_data['wl_brandname_short'] : '';
+        $this->data['wl_brandname_short'] = $this->data["wl_mode_enabled"] ? $this->data["wl_brandname"] : $wl_brandname_short;
     }
 
     /**
@@ -726,7 +728,7 @@ class State extends \Cleantalk\Common\State
      */
     public function errorAdd($type, $error, $major_type = null, $set_time = true)
     {
-        $error = is_array($error)
+        $error = is_array($error) && isset($error['error'])
             ? $error['error']
             : $error;
 
