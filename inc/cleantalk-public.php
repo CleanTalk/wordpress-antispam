@@ -1281,6 +1281,7 @@ function ct_enqueue_scripts_public($_hook)
             wp_enqueue_script(
                 'ct_public_admin_js',
                 APBCT_JS_ASSETS_PATH . '/cleantalk-public-admin.min.js',
+                // keep this jquery dependency if option comments__manage_comments_on_public_page is enabled
                 array('jquery'),
                 APBCT_VERSION,
                 false /*in header*/
@@ -1314,6 +1315,7 @@ function ct_enqueue_scripts_public($_hook)
         wp_enqueue_script(
             'ct_debug_js',
             APBCT_JS_ASSETS_PATH . '/cleantalk-debug-ajax.min.js',
+            // keep this jquery dependency if option misc__debug_ajax is enabled
             array('jquery'),
             APBCT_VERSION,
             false /*in header*/
@@ -1389,7 +1391,7 @@ function apbct_enqueue_and_localize_public_scripts()
     wp_enqueue_script(
         'ct_public_functions',
         APBCT_URL_PATH . '/js/apbct-public-bundle.min.js',
-        array('jquery'),
+        array(),
         APBCT_VERSION,
         $in_footer
     );
