@@ -301,6 +301,21 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                 ),
+                'data__honeypot_field' => array(
+                    'title'           => __(
+                        'Add a honeypot field',
+                        'cleantalk-spam-protect'
+                    ),
+                    'description'     => __(
+                        'This option adds a honeypot field to the forms.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'options'         => array(
+                        array('val' => 1, 'label' => __('On')),
+                        array('val' => 0, 'label' => __('Off')),
+                    ),
+                    'long_description' => true,
+                ),
             ),
         ),
 
@@ -615,21 +630,6 @@ function apbct_settings__set_fields()
                 'data__email_check_exist_post'        => array(
                     'title'       => __('Show email existence alert when filling in the field', 'cleantalk-spam-protect'),
                     'description' => __('Check email address exist before sending form data', 'cleantalk-spam-protect'),
-                ),
-                'data__honeypot_field'         => array(
-                    'title'           => __(
-                        'Add a honeypot field',
-                        'cleantalk-spam-protect'
-                    ),
-                    'description'     => __(
-                        'This option adds a honeypot field to the forms.',
-                        'cleantalk-spam-protect'
-                    ),
-                    'options'         => array(
-                        array('val' => 1, 'label' => __('On')),
-                        array('val' => 0, 'label' => __('Off')),
-                    ),
-                    'long_description' => true,
                 ),
                 'data__email_decoder'        => array(
                     'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
@@ -3306,7 +3306,7 @@ function apbct_settings__get__long_description()
             //HANDLE LINK
             'desc'  => sprintf(
                 esc_html__('The option helps to block bots . The honeypot field option adds a hidden field to the form. When spambots come to a website form, they can fill out each input field. Enable this option to make the protection stronger on these forms. Learn more about supported forms %s', 'cleantalk-spam-protect'),
-                '<a href="https://cleantalk.org/help/wordpress-plugin-settings{utm_mark}#honeypot" target="_blank">' . __('here.', 'cleantalk-spam-protect') . '</a>'
+                '<a href="https://cleantalk.org/help/honeypot-field{utm_mark}" target="_blank">' . __('here.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
         'sfw__enabled' => array(
