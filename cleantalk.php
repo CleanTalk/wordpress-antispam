@@ -13,6 +13,7 @@
 
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
+use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\CleantalkRealPerson;
 use Cleantalk\ApbctWP\CleantalkUpgrader;
@@ -184,7 +185,7 @@ if (
     }
 
     if (!$skip_email_encode && !apbct_is_amp_request()) {
-        \Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance();
+        EmailEncoder::getInstance();
     }
 }
 
@@ -224,6 +225,9 @@ add_action('wp_ajax_nopriv_apbct_email_check_exist_post', 'apbct_email_check_exi
 // Force ajax set important parameters (apbct_timestamp etc)
 add_action('wp_ajax_nopriv_apbct_set_important_parameters', 'apbct_cookie');
 add_action('wp_ajax_apbct_set_important_parameters', 'apbct_cookie');
+
+// Email Encoder ajax handlers
+EmailEncoder::getInstance()->registerAjaxRoute();
 
 // Database prefix
 global $wpdb, $wp_version;

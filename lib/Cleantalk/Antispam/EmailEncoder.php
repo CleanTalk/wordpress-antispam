@@ -105,8 +105,6 @@ class EmailEncoder
             function_exists('openssl_cipher_iv_length') &&
             function_exists('openssl_random_pseudo_bytes') &&
             !empty($this->encrypted_string_splitter) && strlen($this->encrypted_string_splitter) === 3;
-        add_action('wp_ajax_nopriv_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
-        add_action('wp_ajax_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
 
         // Excluded request
         if ($this->isExcludedRequest()) {
@@ -685,9 +683,23 @@ class EmailEncoder
         return $skip_encode;
     }
 
+    /**
+     * Fluid. Ignore SSL mode for encoding/decoding on the instance.
+     * @return $this
+     */
     public function ignoreOpenSSLMode()
     {
         $this->use_ssl = false;
         return $this;
+    }
+
+    /**
+     * Register AJAX routes to run decoding
+     * @return void
+     */
+    public function registerAjaxRoute()
+    {
+        add_action('wp_ajax_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
+        add_action('wp_ajax_nopriv_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
     }
 }
