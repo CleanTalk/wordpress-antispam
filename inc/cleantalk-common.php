@@ -921,9 +921,25 @@ function ct_get_server()
         );
     }
 
+    $ct_server['ct_work_url'] = sanitize_cleantalk_server_url(TT::getArrayValueAsString($ct_server, 'ct_work_url'));
+
     return $ct_server;
 }
 
+/**
+ * @param $url
+ *
+ * @return string|null
+ */
+function sanitize_cleantalk_server_url($url)
+{
+    if (!is_string($url)) {
+        return null;
+    }
+    return preg_match('/^.*(moderate|api).*\.cleantalk.org(?!\.)[\/\\\\]{0,1}/m', $url)
+        ? $url
+        : null;
+}
 /**
  * Inner function - Stores ang returns cleantalk hash of current comment
  *

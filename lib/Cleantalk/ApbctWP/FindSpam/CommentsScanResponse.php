@@ -3,6 +3,7 @@
 // Singleton
 namespace Cleantalk\ApbctWP\FindSpam;
 
+use Cleantalk\Common\TT;
 use Cleantalk\Templates\Singleton;
 
 class CommentsScanResponse
@@ -43,13 +44,23 @@ class CommentsScanResponse
     }
 
     /**
-     * @return false|string
+     * @return string
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function toJson()
     {
-        return json_encode($this->toArray());
+        return TT::toString(json_encode($this->toArray()));
     }
+
+    /**
+     * Die with sanitized json encoded response
+     * @return string
+     */
+    public function getEscapedJSON()
+    {
+        return esc_html($this->toJson());
+    }
+
 
     /**
      * @return string

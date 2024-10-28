@@ -2883,15 +2883,16 @@ function ct_check_wplp()
 
         $sender_email = '';
         foreach ( $_POST as $v ) {
-            if ( preg_match("/^\S+@\S+\.\S+$/", TT::toString($v)) ) {
-                $sender_email = TT::toString($v);
+            $sanitized_value = TT::toString($v);
+            if ( preg_match("/^\S+@\S+\.\S+$/", $sanitized_value) ) {
+                $sender_email = $sanitized_value;
                 break;
             }
         }
 
         $message = '';
         if ( array_key_exists('form_input_values', $_POST) ) {
-            $form_input_values = json_decode(stripslashes(TT::toString($_POST['form_input_values'])), true);
+            $form_input_values = json_decode(stripslashes(TT::getArrayValueAsString($_POST, 'form_input_values')), true);
             if ( is_array($form_input_values) && array_key_exists('null', $form_input_values) ) {
                 $message = Sanitize::cleanTextareaField($form_input_values['null']);
             }

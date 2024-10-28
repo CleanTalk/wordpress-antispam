@@ -7,6 +7,7 @@ use Cleantalk\ApbctWP\FindSpam\ListTable\UsersLogs;
 use Cleantalk\ApbctWP\FindSpam\ListTable\UsersScan;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class UsersChecker extends Checker
 {
@@ -20,8 +21,9 @@ class UsersChecker extends Checker
 
         // Preparing data
         $current_user = wp_get_current_user();
-        if ( ! empty(Cookie::get('ct_paused_users_check')) ) {
-            $prev_check = json_decode(stripslashes(Cookie::get('ct_paused_users_check')), true);
+        $is_paused = TT::toString(Cookie::get('ct_paused_users_check'));
+        if ( ! empty($is_paused) ) {
+            $prev_check = json_decode(stripslashes($is_paused), true);
             $prev_check_from = $prev_check_till = '';
             if (
                 ! empty($prev_check['from']) && ! empty($prev_check['till']) &&
@@ -132,7 +134,9 @@ class UsersChecker extends Checker
 
         // removed skip_roles and return $users
         $users =  self::removeSkipRoles($users, $skip_roles);
-
+        if (false === $users) {
+            $users = array();
+        }
         // removed users without IP and Email
         $users =  self::removeUsersWithoutIPEmail($users);
 
@@ -148,7 +152,14 @@ class UsersChecker extends Checker
     private static function removeSkipRoles(array $users, array $skip_roles)
     {
         foreach ($users as $index => $user) {
-            $user_meta  = get_userdata($user->ID);
+            if (!$user->user_id) {
+                continue;
+            }
+            $user_meta  = get_userdata($user->user_id);
+            if ( !($user_meta instanceof \WP_User) ) {
+                return $user;
+            }
+
             $user_roles = $user_meta->roles;
             foreach ($user_roles as $user_role) {
                 if (in_array($user_role, $skip_roles, true)) {
@@ -177,8 +188,8 @@ class UsersChecker extends Checker
             }
 
             $user_meta = self::getUserMeta($user->ID);
-
-            $user_ip    = ! empty($user_meta[0]['ip']) ? trim($user_meta[0]['ip']) : false;
+            $ip_of_user_meta = TT::getArrayValueAsString($user_meta, 'ip');
+            $user_ip    = ! empty($ip_of_user_meta) ? trim($ip_of_user_meta) : false;
             $user_email = ! empty($user->user_email) ? trim($user->user_email) : false;
 
             // Validate IP and Email
@@ -235,6 +246,31 @@ class UsersChecker extends Checker
         }
 
         return $spammers;
+    }
+
+    /**
+     * @param $result
+     * @param array $users
+     *
+     * @return array
+     */
+    public static function getUserIDsMarked($result, array $users)
+    {
+        $onlySpammers    = self::getSpammersFromResultAPI(TT::toArray($result));
+        $marked_user_ids = [];
+
+        foreach ( $users as $user ) {
+            if (
+                ! in_array($user->ID, $marked_user_ids, true) &&
+                (in_array($user->user_ip, $onlySpammers, true) ||
+                 in_array($user->user_email, $onlySpammers, true))
+            ) {
+                $marked_user_ids[] = $user->ID;
+                update_user_meta($user->ID, 'ct_marked_as_spam', '1', true);
+            }
+        }
+
+        return $marked_user_ids;
     }
 
     public function getCurrentScanPage()
@@ -491,9 +527,10 @@ class UsersChecker extends Checker
             if ( is_array($user_meta) ) {
                 $user_meta = array_values($user_meta);
             }
+            $ip_of_user_meta = TT::getArrayValueAsString($user_meta, 'ip');
             $text .= $iValue->user_login . ',';
             $text .= $iValue->data->user_email . ',';
-            $text .= ! empty($user_meta[0]['ip']) ? trim($user_meta[0]['ip']) : '';
+            $text .= ! empty($ip_of_user_meta) ? trim($ip_of_user_meta) : '';
             $text .= PHP_EOL;
         }
 
@@ -501,7 +538,7 @@ class UsersChecker extends Checker
 
         if ( $filename !== false ) {
             header('Content-Type: text/csv');
-            echo $text;
+            echo esc_html($text);
         } else {
             echo 'Export error.'; // file not exists or empty $_POST['filename']
         }
@@ -558,6 +595,10 @@ class UsersChecker extends Checker
                 );
 
                 $curr_user = get_user_by('email', $email);
+
+                if (false === $curr_user) {
+                    continue;
+                }
 
                 update_user_meta($curr_user->ID, 'session_tokens', array($rnd => array('ip' => $ips[$i])));
 
@@ -735,8 +776,7 @@ class UsersChecker extends Checker
                 $log_data['bad']
             );
 
-            echo UsersScanResponse::getInstance()->toJson();
-            die;
+            die(UsersScanResponse::getInstance()->getEscapedJSON());
         }
 
         $ips_emails_data = self::getIPEmailsData($users);
@@ -747,23 +787,18 @@ class UsersChecker extends Checker
             null
         );
 
-        if (!empty($result['error'])) {
-            UsersScanResponse::getInstance()->setError(1);
-            UsersScanResponse::getInstance()->setErrorMessage($result['error']);
-        } else {
-            $onlySpammers = self::getSpammersFromResultAPI($result);
-            $marked_user_ids = [];
+        $error = !is_array($result)
+            ? 'Unknown API error'
+            : null;
+        $error = !empty($result['error'])
+            ? TT::getArrayValueAsString($result, 'error')
+            : $error;
 
-            foreach ($users as $user) {
-                if (
-                    ! in_array($user->ID, $marked_user_ids, true) &&
-                    (in_array($user->user_ip, $onlySpammers, true) ||
-                    in_array($user->user_email, $onlySpammers, true))
-                ) {
-                    $marked_user_ids[] = $user->ID;
-                    update_user_meta($user->ID, 'ct_marked_as_spam', '1', true);
-                }
-            }
+        if ( !is_null($error) ) {
+            UsersScanResponse::getInstance()->setError(1);
+            UsersScanResponse::getInstance()->setErrorMessage($error);
+        } else {
+            $marked_user_ids = self::getUserIDsMarked($result, $users);
 
             // Count spam
             UsersScanResponse::getInstance()->setSpam(count($marked_user_ids));
@@ -777,8 +812,7 @@ class UsersChecker extends Checker
         $apbct->data['count_checked_users'] += count($users);
         $apbct->saveData();
 
-        echo UsersScanResponse::getInstance()->toJson();
-        die;
+        die(UsersScanResponse::getInstance()->getEscapedJSON());
     }
 
     /**
@@ -805,8 +839,7 @@ class UsersChecker extends Checker
                 $log_data['bad']
             );
 
-            echo UsersScanResponse::getInstance()->toJson();
-            die;
+            die(UsersScanResponse::getInstance()->getEscapedJSON());
         }
 
         $users_grouped_by_date = array();
@@ -829,23 +862,18 @@ class UsersChecker extends Checker
                 $date
             );
 
-            if (!empty($result['error'])) {
-                UsersScanResponse::getInstance()->setError(1);
-                UsersScanResponse::getInstance()->setErrorMessage($result['error']);
-            } else {
-                $onlySpammers = self::getSpammersFromResultAPI($result);
-                $marked_user_ids = [];
+            $error = !is_array($result)
+                ? 'Unknown API error'
+                : null;
+            $error = !empty($result['error'])
+                ? TT::getArrayValueAsString($result, 'error')
+                : $error;
 
-                foreach ($users as $user) {
-                    if (
-                        ! in_array($user->ID, $marked_user_ids, true) &&
-                        (in_array($user->user_ip, $onlySpammers, true) ||
-                         in_array($user->user_email, $onlySpammers, true))
-                    ) {
-                        $marked_user_ids[] = $user->ID;
-                        update_user_meta($user->ID, 'ct_marked_as_spam', '1', true);
-                    }
-                }
+            if ( !is_null($error) ) {
+                UsersScanResponse::getInstance()->setError(1);
+                UsersScanResponse::getInstance()->setErrorMessage($error);
+            } else {
+                $marked_user_ids = self::getUserIDsMarked($result, $users);
 
                 // Count spam
                 UsersScanResponse::getInstance()->updateSpam(count($marked_user_ids));
@@ -861,7 +889,6 @@ class UsersChecker extends Checker
         // Count bad users
         UsersScanResponse::getInstance()->setBad((int)self::getCountBadUsers());
 
-        echo UsersScanResponse::getInstance()->toJson();
-        die;
+        die(UsersScanResponse::getInstance()->getEscapedJSON());
     }
 }
