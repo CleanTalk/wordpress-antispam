@@ -339,7 +339,9 @@ class EmailEncoder
             return $encoded_string;
         } catch (\Exception $e) {
             //todo catch errors on higher level
-            $apbct->errorAdd('email_encoder', esc_html($e->getMessage()));
+            $get_last_error = error_get_last();
+            $get_last_error = isset($get_last_error['message']) ? $get_last_error['message'] : 'no PHP error';
+            $apbct->errorAdd('email_encoder', esc_html($e->getMessage()) . ', backtrace: ' . $get_last_error);
             return $plain_string;
         }
     }
@@ -418,7 +420,9 @@ class EmailEncoder
             return $decoded_string;
         } catch (\Exception $e) {
             //todo catch errors on higher level
-            $apbct->errorAdd('email_encoder', esc_html($e->getMessage()));
+            $get_last_error = error_get_last();
+            $get_last_error = isset($get_last_error['message']) ? $get_last_error['message'] : 'no PHP error';
+            $apbct->errorAdd('email_encoder', esc_html($e->getMessage()) . ', backtrace: ' . $get_last_error);
             return '';
         }
     }
