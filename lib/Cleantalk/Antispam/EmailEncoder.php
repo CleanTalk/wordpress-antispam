@@ -82,6 +82,9 @@ class EmailEncoder
 
         $this->registerHookHandler();
 
+        add_action('wp_ajax_nopriv_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
+        add_action('wp_ajax_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
+
         if ( ! $apbct->settings['data__email_decoder'] ) {
             return;
         }
@@ -89,9 +92,6 @@ class EmailEncoder
         $this->secret_key = md5($apbct->api_key);
 
         $this->encryption_is_available = function_exists('openssl_encrypt') && function_exists('openssl_decrypt');
-
-        add_action('wp_ajax_nopriv_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
-        add_action('wp_ajax_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
 
         // Excluded request
         if ($this->isExcludedRequest()) {
