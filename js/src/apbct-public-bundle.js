@@ -2972,7 +2972,7 @@ function ctFillDecodedEmailHandler(event) {
         // todo make translateable
         let popupTextDecoding = document.createElement('p');
         popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_first';
-        popupTextDecoding.innerText = 'Decoding ' + obfuscatedEmail + ' to the original one.';
+        popupTextDecoding.innerText = 'Decoding ' + obfuscatedEmail + ' to the original contact.';
 
         // construct text first node
         // todo make translateable
@@ -3103,11 +3103,33 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                         currentResultData = row;
                     }
                 });
-                // change text
+
                 let email = currentResultData.decoded_email.split(/[&?]/)[0];
+
+                // copy icon
+                const copyIcon = document.createElement('span');
+                copyIcon.classList.add('copy-email-icon');
+                copyIcon.innerHTML = '📋'; // You can replace this with an actual icon if needed
+                copyIcon.style.cursor = 'pointer';
+                copyIcon.title = 'Copy email to clipboard';
+
+                copyIcon.addEventListener('click', function() {
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(email).then(() => {
+                            console.log('Email copied to clipboard!');
+                        }).catch((err) => {
+                            console.log('Failed to copy email: ', err);
+                        });
+                    } else {
+                        console.log('Clipboard API not supported');
+                    }
+                });
+
+                // change text
                 let firstNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_first');
                 let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
-                firstNode.innerText = 'The original one is ' + email + '.';
+                firstNode.innerText = 'The original contact is ' + email + '.';
+                firstNode.append(copyIcon);
                 secondNode.innerText = 'Happy conversations!';
                 // remove antimation
                 popup.querySelector('.apbct-ee-animation-wrapper').remove();

@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.6
 Requires PHP: 5.6
-Stable tag: 6.43.1
+Stable tag: 6.43.2
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -443,6 +443,10 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.43.2 23 Oct 2024 =
+* Fix. Integrations. Elementor Pro. Remove post-check for email field.
+* Fix. Get fields any. Revert last changes.
 
 = 6.43.1 20 Oct 2024 =
 * Fix. Integration. Fluent Forms. Field data concatenating fixed.

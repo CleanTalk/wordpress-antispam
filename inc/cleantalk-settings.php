@@ -2,6 +2,7 @@
 
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentSettings;
+use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\LinkConstructor;
@@ -110,6 +111,11 @@ function apbct_settings__set_fields()
         ? '<br>' . __(' - status of SpamFireWall database updating process', 'cleantalk-spam-protect')
         : '';
 
+    $current_user = wp_get_current_user();
+    $current_user_email = $current_user->exists() ? $current_user->user_email : 'example@example.com';
+    $emailEncoder = new EmailEncoder();
+    $current_user_email = $emailEncoder->modifyContent($current_user_email);
+
     $fields = array(
 
         'main' => array(
@@ -185,7 +191,14 @@ function apbct_settings__set_fields()
                     'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect')
                                      . '<br>'
                                      . sprintf(__('If the option was turned off, you can anyway encode contact data using shortcode\hook. Learn more %s.', 'cleantalk-spam-protect'),
-                                     '<a href="#" target="_blank">' . __('here', 'cleantalk-spam-protect') . '</a>'),
+                                     '<a href="#" target="_blank">' . __('here', 'cleantalk-spam-protect') . '</a>')
+                                     . '<br>'
+                                     . sprintf(
+                                         __('This option allows you to encode contacts on the public pages of the site. This prevents robots from automatically collecting such data and prevents it from being included in spam lists. %s', 'cleantalk-spam-protect'),
+                                         '<a href="https://blog.cleantalk.org/wordpress-how-hide-email-address-from-bots-and-spammers/?utm_source=apbct_hint_data__email_decoder&utm_medium=WordPress&utm_campaign=ABPCT_Settings" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                                     )
+                                     . '<br><span id="apbct-email-decoder-example-text">' . __('Try to decode, just click on email ', 'cleantalk-spam-protect') . '</span>'
+                                     . '<span id="apbct-email-decoder-example-email">' . $current_user_email . '</span>',
                     'long_description' => true,
                 ),
                 'comments__the_real_person' => array(
@@ -628,7 +641,12 @@ function apbct_settings__set_fields()
                     'description' => __('Turn on this option to prevent crawlers grab contact data (emails) from website content.', 'cleantalk-spam-protect')
                                      . '<br>'
                                      . sprintf(__('If the option was turned off, you can anyway encode contact data using shortcode\hook. Learn more %s.', 'cleantalk-spam-protect'),
-                            '<a href="#" target="_blank">' . __('here', 'cleantalk-spam-protect') . '</a>'),
+                            '<a href="#" target="_blank">' . __('here', 'cleantalk-spam-protect') . '</a>')
+                            . '<br>'
+                                     . sprintf(
+                                         __('This option allows you to encode contacts on the public pages of the site. This prevents robots from automatically collecting such data and prevents it from being included in spam lists. %s', 'cleantalk-spam-protect'),
+                                         '<a href="https://blog.cleantalk.org/wordpress-how-hide-email-address-from-bots-and-spammers/?utm_source=apbct_hint_data__email_decoder&utm_medium=WordPress&utm_campaign=ABPCT_Settings" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                                     ),
                     'long_description' => true,
                     'childrens'   => array('data__email_decoder_buffer')
                 ),
