@@ -1109,22 +1109,12 @@ function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
                 if ( typeof settings.url === 'string' ) {
                     if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {
                         sourceSign = 'wc-ajax=add_to_cart';
-                        if (localStorage.getItem('bot_detector_event_token') !== null) {
-                            eventToken = localStorage.getItem('bot_detector_event_token');
-                            try {
-                                eventToken = JSON.parse(eventToken);
-                            } catch {
-                                eventToken = false;
-                            }
-                            if (eventToken !== false && eventToken.hasOwnProperty('value') && eventToken.value !== '') {
-                                eventToken = eventToken.value;
-                            }
-                        }
                     }
                 }
 
                 if (sourceSign) {
                     let noCookieData = getNoCookieData();
+                    eventToken = getBotDetectorEventToken();
                     if (typeof eventToken === 'string') {
                         eventToken = 'data%5Bct_bot_detector_event_token%5D=' + eventToken + '&';
                     } else {
@@ -2120,6 +2110,26 @@ function getNoCookieData() {
     noCookieData = JSON.stringify(noCookieData);
 
     return '_ct_no_cookie_data_' + btoa(noCookieData);
+}
+
+/**
+ * @return {string|false}
+ */
+function getBotDetectorEventToken() {
+    let eventToken = false;
+    if (localStorage.getItem('bot_detector_event_token') !== null) {
+        eventToken = localStorage.getItem('bot_detector_event_token');
+        try {
+            eventToken = JSON.parse(eventToken);
+        } catch {
+            eventToken = false;
+        }
+        if (eventToken !== false && eventToken.hasOwnProperty('value') && eventToken.value !== '') {
+            eventToken = eventToken.value;
+        }
+    }
+
+    return eventToken;
 }
 
 /**
