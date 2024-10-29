@@ -76,15 +76,17 @@ class ApbctForceProtection {
             return;
         }
 
-        try {
-            result = JSON.parse(result);
-        } catch (e) {
-            console.log('ApbctForceProtection decodeForms error', e);
-            this.decodeForms();
-            return;
+        if (typeof result === 'string') {
+            try {
+                result = JSON.parse(result);
+            } catch (e) {
+                console.log('ApbctForceProtection decodeForms error', e);
+                this.decodeForms();
+                return;
+            }
         }
 
-        if (result.allow && result.allow === 1) {
+        if (typeof result === 'object' && result.allow && result.allow === 1) {
             this.decodeForms();
         } else {
             this.showMessageForBot(result.message);
