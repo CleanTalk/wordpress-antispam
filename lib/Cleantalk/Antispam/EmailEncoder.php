@@ -492,7 +492,7 @@ class EmailEncoder
     {
         $obfuscated = $this->obfuscateString($string);
 
-        $encoded = $this->encodeString($string, $this->secret_key);
+        $encoded = $this->encodeString($string);
 
         return '<span 
                 data-original-string="' . $encoded . '"
