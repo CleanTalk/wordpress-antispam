@@ -1291,3 +1291,11 @@ function apbct_update_to_6_42_0()
         $adjust->handle();
     });
 }
+
+function apbct_update_to_6_43_3()
+{
+    global $apbct;
+
+    unset($apbct->settings['misc__debug_ajax']);
+    $apbct->saveSettings();
+}

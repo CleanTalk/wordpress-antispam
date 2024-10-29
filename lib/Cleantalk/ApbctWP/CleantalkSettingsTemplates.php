@@ -257,10 +257,7 @@ class CleantalkSettingsTemplates
         if ( isset($settings['apikey']) ) {
             unset($settings['apikey']);
         }
-        // Remove misc__debug_ajax from export
-        if ( isset($settings['misc__debug_ajax']) ) {
-            unset($settings['misc__debug_ajax']);
-        }
+
         // Remove all WPMS from export
         $settings = array_filter($settings, function ($key) {
             return strpos($key, 'multisite__') === false;

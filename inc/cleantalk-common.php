@@ -1197,7 +1197,6 @@ function apbct_add_async_attribute($tag, $handle)
     $scripts_handles_names = array(
         'ct_public',
         'ct_public_functions',
-        'ct_debug_js',
         'ct_public_admin_js',
         'ct_internal',
         'ct_external',
