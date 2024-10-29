@@ -39,8 +39,8 @@ class ForceProtection
         }
 
         $content = $this->checkInternalForms($content);
-        $this->checkExternalForms($content);
-        $this->checkIframeForms($content);
+        $content = $this->checkExternalForms($content);
+        $content = $this->checkIframeForms($content);
 
         return $content;
     }
@@ -108,20 +108,15 @@ class ForceProtection
      */
     private function checkIframeForms($content)
     {
-        $content = preg_replace_callback('#<form\b[^>]*>.*?<\/form>#is', function($matches) use ($content) {
+        $content = preg_replace_callback('#<iframe\b[^>]*>.*?<\/iframe>#is', function($matches) use ($content) {
 
-            // $form = $matches[0];
+            $iframe = $matches[0];
 
-            // $form_action = $this->getFormAction($form);
-            // if (!$form_action ||
-            //     !preg_match('#^https?:\/\/#', $form_action) ||
-            //     parse_url($form_action, PHP_URL_HOST) === parse_url(get_home_url(), PHP_URL_HOST) ||
-            //     $this->isExternalExcludedForm($form)
-            // ) {
-            //     return $form;
-            // }
+            if (preg_match('#<iframe\s+[^>]*src="([^"]*https:\/\/forms\.zohopublic\.com[^"]*)"[^>]*>#i', $iframe)) {
+                return $this->generateWrapper($iframe);
+            }
 
-            // return $this->generateWrapper($form);
+            return $iframe;
         }, $content);
 
         return $content;
