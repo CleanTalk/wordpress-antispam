@@ -229,7 +229,7 @@ add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_be
 add_action('wp_ajax_nopriv_apbct_email_check_exist_post', 'apbct_email_check_exist_post');
 
 // Force Protection check bot
-add_action('wp_ajax_nopriv_apbct_force_protection_check_bot', array(\Cleantalk\ApbctWP\Antispam\ForceProtection::class, 'checkBot'));
+add_action('wp_ajax_nopriv_apbct_force_protection_check_bot', 'apbct_force_protection_check_bot');
 
 // Force ajax set important parameters (apbct_timestamp etc)
 add_action('wp_ajax_nopriv_apbct_set_important_parameters', 'apbct_cookie');

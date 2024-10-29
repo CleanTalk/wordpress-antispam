@@ -738,6 +738,14 @@ function apbct_email_check_exist_post()
 }
 
 /**
+ * Force protection check bot
+ */
+function apbct_force_protection_check_bot()
+{
+    die(\Cleantalk\ApbctWP\Antispam\ForceProtection::getInstance()->checkBot());
+}
+
+/**
  * Get ct_get_checkjs_value
  *
  * @param bool $random_key
