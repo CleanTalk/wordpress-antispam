@@ -30,7 +30,6 @@ class ForceProtection
      * with encoded forms in data attributes and wrappers with loader.
      *
      * @param string $content
-     * @return string
      */
     public function modifyContent($content)
     {
@@ -48,8 +47,6 @@ class ForceProtection
     /**
      * Check bot by Cleantalk API.
      * Used in REST API and AJAX.
-     *
-     * @return string
      */
     public function checkBot()
     {
@@ -64,7 +61,6 @@ class ForceProtection
             'agent'                 => APBCT_AGENT,
             'event_javascript_data' => $event_javascript_data,
             'sender_ip'             => Helper::ipGet('real', false),
-            // 'sender_ip'             => '156.146.62.218',
             'event_type'            => 'GENERAL_BOT_CHECK',
             'page_url'              => Post::get('post_url'),
             'sender_info'           => array(
@@ -108,7 +104,7 @@ class ForceProtection
      */
     private function checkIframeForms($content)
     {
-        $content = preg_replace_callback('#<iframe\b[^>]*>.*?<\/iframe>#is', function($matches) use ($content) {
+        $content = preg_replace_callback('#<iframe\b[^>]*>.*?<\/iframe>#is', function ($matches) {
 
             $iframe = $matches[0];
 
@@ -126,11 +122,11 @@ class ForceProtection
      * Check external forms.
      *
      * @param string $content
-     * @return void
+     * @return string
      */
     private function checkExternalForms($content)
     {
-        $content = preg_replace_callback('#<form\b[^>]*>.*?<\/form>#is', function($matches) {
+        $content = preg_replace_callback('#<form\b[^>]*>.*?<\/form>#is', function ($matches) {
             $form = $matches[0];
 
             $form_action = $this->getFormAction($form);
@@ -205,7 +201,7 @@ class ForceProtection
      */
     private function checkInternalForms($content)
     {
-        $content = preg_replace_callback('#<form\b[^>]*>.*?<\/form>#is', function($matches) {
+        $content = preg_replace_callback('#<form\b[^>]*>.*?<\/form>#is', function ($matches) {
             $form = $matches[0];
 
             $form_action = $this->getFormAction($form);

@@ -187,7 +187,6 @@ if ($apbct->key_is_ok &&
         if (!$skip_email_encode) {
             EmailEncoder::getInstance();
         }
-
     }
 
     // Force protection to avoid spam from bots without javascript
