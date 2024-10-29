@@ -6,13 +6,22 @@ if (ctPublic.data__key_is_ok) {
     }
 }
 
+/**
+ * Force protection
+ */
 function apbctForceProtect() {
     new ApbctForceProtection();
 }
 
+/**
+ * ApbctForceProtection
+ */
 class ApbctForceProtection {
     wrappers = [];
 
+    /**
+     * Constructor
+     */
     constructor() {
         this.wrappers = this.findWrappers();
 
@@ -23,10 +32,18 @@ class ApbctForceProtection {
         this.checkBot();
     }
 
+    /**
+     * Find wrappers
+     * @return {HTMLElement[]}
+     */
     findWrappers() {
         return document.querySelectorAll('div.ct-encoded-form-wrapper');
     }
 
+    /**
+     * Check bot
+     * @return {void}
+     */
     checkBot() {
         let data = {
             event_javascript_data: getJavascriptClientData(),
@@ -46,6 +63,11 @@ class ApbctForceProtection {
         }
     }
 
+    /**
+     * Check bot callback
+     * @param {Object} result
+     * @return {void}
+     */
     checkBotCallback(result) {
         // if error occurred
         if (result.data && result.data.status && result.data.status !== 200) {
@@ -69,6 +91,10 @@ class ApbctForceProtection {
         }
     }
 
+    /**
+     * Decode forms
+     * @return {void}
+     */
     decodeForms() {
         let form;
 
@@ -80,6 +106,11 @@ class ApbctForceProtection {
         });
     }
 
+    /**
+     * Show message for bot
+     * @param {string} message
+     * @return {void}
+     */
     showMessageForBot(message) {
         let form;
 
