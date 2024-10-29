@@ -826,6 +826,7 @@ function apbct_is_cache_plugins_exists($return_names = false)
         'SiteGround_Optimizer\VERSION'                => 'SG Optimizer',
         'NITROPACK_VERSION'                           => 'NitroPack',
         'TWO_PLUGIN_FILE'                             => '10Web Booster',
+        'FLYING_PRESS_VERSION'                        => 'Flying Press',
     );
 
     $classes_of_cache_plugins = array (
