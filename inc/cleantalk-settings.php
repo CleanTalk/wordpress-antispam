@@ -301,6 +301,13 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                 ),
+                'forms__force_protection'               => array(
+                    'title'       => __('Force protection', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'This option will enable pre-check protection for iframe, internal and external forms on your WordPress. To avoid spam from bots without javascript.',
+                        'cleantalk-spam-protect'
+                    ),
+                ),
             ),
         ),
 

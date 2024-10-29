@@ -14,6 +14,7 @@
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
 use Cleantalk\ApbctWP\Antispam\EmailEncoder;
+use Cleantalk\ApbctWP\Antispam\ForceProtection;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\CleantalkRealPerson;
 use Cleantalk\ApbctWP\CleantalkUpgrader;
@@ -166,26 +167,32 @@ if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['co
     \Cleantalk\Antispam\DisableComments::getInstance();
 }
 
-// Email encoder
-if (
-    $apbct->key_is_ok &&
+if ($apbct->key_is_ok &&
     ( ! is_admin() || apbct_is_ajax() ) &&
-    $apbct->settings['data__email_decoder'] &&
-    current_action() !== 'wp_ajax_delete-plugin'
+    current_action() !== 'wp_ajax_delete-plugin' &&
+    !apbct_is_amp_request()
 ) {
-    $skip_email_encode = false;
-
-    if (!empty($_POST)) {
-        foreach ( $_POST as $param => $_value ) {
-            if ( strpos((string)$param, 'et_pb_contactform_submit') === 0 ) {
-                $skip_email_encode = true;
-                break;
+    // Email encoder
+    if ($apbct->settings['data__email_decoder']) {
+        $skip_email_encode = false;
+        if (!empty($_POST)) {
+            foreach ( $_POST as $param => $_value ) {
+                if ( strpos((string)$param, 'et_pb_contactform_submit') === 0 ) {
+                    $skip_email_encode = true;
+                    break;
+                }
             }
         }
+
+        if (!$skip_email_encode) {
+            EmailEncoder::getInstance();
+        }
+
     }
 
-    if (!$skip_email_encode && !apbct_is_amp_request()) {
-        EmailEncoder::getInstance();
+    // Force protection to avoid spam from bots without javascript
+    if ($apbct->settings['forms__force_protection']) {
+        ForceProtection::getInstance();
     }
 }
 
@@ -221,6 +228,9 @@ add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_be
 
 // Checking email exist POST
 add_action('wp_ajax_nopriv_apbct_email_check_exist_post', 'apbct_email_check_exist_post');
+
+// Force Protection check bot
+add_action('wp_ajax_nopriv_apbct_force_protection_check_bot', array(\Cleantalk\ApbctWP\Antispam\ForceProtection::class, 'checkBot'));
 
 // Force ajax set important parameters (apbct_timestamp etc)
 add_action('wp_ajax_nopriv_apbct_set_important_parameters', 'apbct_cookie');

@@ -127,5 +127,30 @@ class RestController extends \WP_REST_Controller
                 }
             )
         ));
+
+        // REST route for force protection check bot
+        register_rest_route($this->namespace, "/force_protection_check_bot", array(
+            array(
+                'methods'             => 'POST',
+                'callback'            => array(\Cleantalk\ApbctWP\Antispam\ForceProtection::getInstance(), 'checkBot'),
+                'permission_callback' => function (WP_REST_Request $request) {
+                    return wp_verify_nonce($request->get_header('x_wp_nonce'), 'wp_rest');
+                },
+                'args'                => array(
+                    'event_javascript_data' => array(
+                        'type'     => 'array',
+                        'required' => true,
+                    ),
+                    'post_url' => array(
+                        'type'     => 'string',
+                        'required' => true,
+                    ),
+                    'referrer' => array(
+                        'type'     => 'string',
+                        'required' => true,
+                    ),
+                ),
+            )
+        ));
     }
 }

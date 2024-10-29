@@ -1243,6 +1243,11 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'apbct_email_check_exist_post_skip';
         }
+
+        // skip Force Protection check bot
+        if (Post::get('action') === 'apbct_force_protection_check_bot') {
+            return 'apbct_force_protection_check_bot_skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
