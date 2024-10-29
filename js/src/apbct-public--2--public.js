@@ -1532,7 +1532,6 @@ function resetEncodedNodes() {
 function getJavascriptClientData(commonCookies = []) {
     let resultDataJson = {};
 
-    resultDataJson.apbct_headless = !!ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_headless');
     resultDataJson.ct_checked_emails = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails');
     resultDataJson.ct_checked_emails_exist = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails_exist');
     resultDataJson.ct_checkjs = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checkjs');
@@ -1551,12 +1550,15 @@ function getJavascriptClientData(commonCookies = []) {
     const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
     const ctJsErrorsLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_js_errors');
     const ctPixelUrl = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
+    const apbctHeadless = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_headless');
 
     // collecting data from cookies
     const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
     const ctHasScrolledCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
     const ctCookiesTypeCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
     const ctCookiesPixelUrl = ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
+    const apbctHeadlessNative = !!ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_headless');
+
 
     resultDataJson.ct_mouse_moved = ctMouseMovedLocalStorage !== undefined ?
         ctMouseMovedLocalStorage : ctMouseMovedCookie;
@@ -1566,6 +1568,8 @@ function getJavascriptClientData(commonCookies = []) {
         ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
     resultDataJson.apbct_pixel_url = ctPixelUrl !== undefined ?
         ctPixelUrl : ctCookiesPixelUrl;
+    resultDataJson.apbct_headless = apbctHeadless !== undefined ?
+        apbctHeadless : apbctHeadlessNative;
     if (resultDataJson.apbct_pixel_url && typeof(resultDataJson.apbct_pixel_url) == 'string') {
         if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
             resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
@@ -1599,6 +1603,7 @@ function getJavascriptClientData(commonCookies = []) {
 
     // Parse JSON properties to prevent double JSON encoding
     resultDataJson = removeDoubleJsonEncoding(resultDataJson);
+
 
     return JSON.stringify(resultDataJson);
 }
