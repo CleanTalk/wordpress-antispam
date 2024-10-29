@@ -113,8 +113,8 @@ function apbct_settings__set_fields()
 
     $current_user = wp_get_current_user();
     $current_user_email = $current_user->exists() ? $current_user->user_email : 'example@example.com';
-    $emailEncoder = new EmailEncoder();
-    $current_user_email = $emailEncoder->modifyContent($current_user_email);
+    $emailEncoder = EmailEncoder::getInstance();
+    $current_user_email = $emailEncoder->ignoreOpenSSLMode()->modifyContent($current_user_email);
 
     $fields = array(
 
@@ -1562,6 +1562,7 @@ function apbct_settings__error__output($return = false)
                 'Error occurred on last SpamFireWall check. ',
                 'cleantalk-spam-protect'
             ),
+            'email_encoder'           => __('Email encoder:', 'cleantalk-spam-protect'),
 
             // Validating settings
             'settings_validate' => 'Validate Settings',
