@@ -1409,7 +1409,8 @@ function apbct_get_honeypot_filled_fields()
             'apbct__email_id__wp_register' =>       Post::get('apbct__email_id__wp_register_' . $apbct_event_id),
             'apbct__email_id__wp_contact_form_7' => Post::get('apbct__email_id__wp_contact_form_7_' . $apbct_event_id),
             'apbct__email_id__wp_wpforms' =>        Post::get('apbct__email_id__wp_wpforms_' . $apbct_event_id),
-            'apbct__email_id__gravity_form' =>      Post::get('apbct__email_id__gravity_form_' . $apbct_event_id)
+            'apbct__email_id__gravity_form' =>      Post::get('apbct__email_id__gravity_form_' . $apbct_event_id),
+            'apbct__email_id__elementor_form' =>    Post::get('apbct__email_id__elementor_form_' . $apbct_event_id)
         );
     }
 
