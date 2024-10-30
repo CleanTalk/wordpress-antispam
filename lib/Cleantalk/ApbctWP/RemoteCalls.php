@@ -53,7 +53,7 @@ class RemoteCalls
         $is_noc_request = ! $apbct->key_is_ok &&
             Request::get('spbc_remote_call_action') &&
             in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct')) &&
-            in_array(Helper::ipResolve(Helper::ipGet()), $rc_servers, true);
+            in_array(Helper::ipResolve(Helper::ipGet('remote_addr')), $rc_servers, true);
 
         // no token needs for this action, at least for now
         // todo Probably we still need to validate this, consult with analytics team
