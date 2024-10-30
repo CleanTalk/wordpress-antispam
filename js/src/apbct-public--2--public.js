@@ -661,6 +661,16 @@ function apbctPrepareBlockForAjaxForms() {
                 ctPrepareBlockMessage(xhr);
             });
         }
+    } else {
+        // if Jquery is not avaliable try to use xhr
+        if (typeof XMLHttpRequest !== 'undefined') {
+            // Capturing responses and output block message for unknown AJAX forms
+            document.addEventListener('readystatechange', function(event) {
+                if (event.target.readyState === 4) {
+                    ctPrepareBlockMessage(event.target);
+                }
+            });
+        }
     }
 }
 
@@ -690,28 +700,20 @@ function startForcedAltEventTokenChecker() {
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 function apbct_ready() {
-    if (typeof jQuery !== 'undefined') {
-        jQuery(document).on('gform_page_loaded', function() {
-            if (
-                typeof ctPublic.force_alt_cookies == 'undefined' ||
-                (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
-            ) {
-                ctNoCookieAttachHiddenFieldsToForms();
-                if (typeof setEventTokenField === 'function' && typeof botDetectorLocalStorage === 'function') {
-                    setEventTokenField(botDetectorLocalStorage.get('bot_detector_event_token'));
-                }
+    document.addEventListener('gform_page_loaded', function() {
+        if (
+            typeof ctPublic.force_alt_cookies === 'undefined' ||
+            (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
+        ) {
+            ctNoCookieAttachHiddenFieldsToForms();
+            if (typeof setEventTokenField === 'function' && typeof botDetectorLocalStorage === 'function') {
+                setEventTokenField(botDetectorLocalStorage.get('bot_detector_event_token'));
             }
-        });
-    }
+        }
+    });
     if ( ! ctPublic.wc_ajax_add_to_cart ) {
         apbctCheckAddToCartByGet();
     }
-    // this way calls a lot of apbct_ready(), needs to find another way
-    // if (typeof jQuery !== 'undefined') {
-    //     jQuery(document).on('gform_page_loaded', function() {
-    //         apbct_ready();
-    //     });
-    // }
 
     apbctPrepareBlockForAjaxForms();
 
@@ -1098,8 +1100,10 @@ function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) {
  */
 function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
     // jquery ajax call intercept
+    // this is the only place where we can found hard dependency on jQuery, if the form use it - the script
+    // will work independing if jQuery is loaded by CleanTalk or not
     let eventToken = false;
-    if ( typeof jQuery !== 'undefined' ) {
+    if ( typeof jQuery !== 'undefined' && typeof jQuery.ajaxSetup === 'function') {
         jQuery.ajaxSetup({
             beforeSend: function(xhr, settings) {
                 let sourceSign = false;
