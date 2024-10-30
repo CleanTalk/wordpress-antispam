@@ -170,7 +170,6 @@ if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['co
 if (
     $apbct->key_is_ok &&
     ( ! is_admin() || apbct_is_ajax() ) &&
-    $apbct->settings['data__email_decoder'] &&
     current_action() !== 'wp_ajax_delete-plugin'
 ) {
     $skip_email_encode = false;

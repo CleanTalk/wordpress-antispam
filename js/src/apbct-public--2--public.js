@@ -1314,7 +1314,7 @@ function ctFillDecodedEmailHandler(event) {
         // todo make translateable
         let popupTextDecoding = document.createElement('p');
         popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_first';
-        popupTextDecoding.innerText = 'Decoding ' + obfuscatedEmail + ' to the original contact.';
+        popupTextDecoding.innerText = 'Decoding ' + obfuscatedEmail + ' to the original one.';
 
         // construct text first node
         // todo make translateable
@@ -1470,7 +1470,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 // change text
                 let firstNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_first');
                 let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
-                firstNode.innerText = 'The original contact is ' + email + '.';
+                firstNode.innerText = 'The original one is ' + email + '.';
                 firstNode.append(copyIcon);
                 secondNode.innerText = 'Happy conversations!';
                 // remove antimation

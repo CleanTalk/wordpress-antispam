@@ -90,8 +90,11 @@ class EmailEncoder
      */
     protected function init()
     {
-
         global $apbct;
+
+        $this->registerShortcodeForEncoding();
+
+        $this->registerHookHandler();
 
         if ( ! $apbct->settings['data__email_decoder'] ) {
             return;
@@ -173,6 +176,11 @@ class EmailEncoder
         //will use this in regexp callback
         $this->temp_content = $content;
 
+        return $this->modifyEmails($content);
+    }
+
+    public function modifyEmails($content)
+    {
         $replacing_result = preg_replace_callback('/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
 
             if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) && isset($matches[0]) ) {
@@ -194,11 +202,16 @@ class EmailEncoder
             }
         }, $content);
 
-        // modify content to turn back aria-label
-        $replacing_result = $this->modifyAriaLabelContent($replacing_result, true);
-
         //please keep this var (do not simplify the code) for further debug
         return $replacing_result;
+    }
+
+    public function modifyAny($string)
+    {
+        $encoded_string = $this->encodeAny($string);
+
+        //please keep this var (do not simplify the code) for further debug
+        return $encoded_string;
     }
 
     /**
@@ -447,6 +460,15 @@ class EmailEncoder
         return $first_part . '@' . $second_part . $last_part;
     }
 
+    private function obfuscateString($string)
+    {
+        $length = strlen($string);
+        $first_part = substr($string, 0, 2);
+        $last_part = substr($string, $length - 2, 2);
+        $middle_part = str_pad('', $length - 4, '*');
+        return $first_part . $middle_part . $last_part;
+    }
+
     /**
      * Method to process plain email
      *
@@ -459,6 +481,18 @@ class EmailEncoder
         $obfuscated = $this->obfuscateEmail($email_str);
 
         $encoded = $this->encodeString($email_str);
+
+        return '<span 
+                data-original-string="' . $encoded . '"
+                class="apbct-email-encoder"
+                title="' . esc_attr($this->getTooltip()) . '">' . $this->addMagicBlur($obfuscated) . '</span>';
+    }
+
+    private function encodeAny($string)
+    {
+        $obfuscated = $this->obfuscateString($string);
+
+        $encoded = $this->encodeString($string);
 
         return '<span 
                 data-original-string="' . $encoded . '"
@@ -701,5 +735,20 @@ class EmailEncoder
     {
         add_action('wp_ajax_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
         add_action('wp_ajax_nopriv_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
+    }
+
+    private function registerShortcodeForEncoding()
+    {
+        add_shortcode('apbct_encode_data', [$this, 'shortcodeCallback']);
+    }
+
+    public function shortcodeCallback($_atts, $content, $_tag)
+    {
+        return $this->modifyAny($content);
+    }
+
+    private function registerHookHandler()
+    {
+        add_filter('apbct_encode_data', [$this, 'modifyAny']);
     }
 }
