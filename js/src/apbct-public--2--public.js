@@ -124,6 +124,11 @@ function ctKeyStopStopListening() {
  */
 function checkEmail(e) {
     let currentEmail = e.target.value;
+
+    if (! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail)) {
+        return;
+    }
+
     if (currentEmail && !(currentEmail in ctCheckedEmails)) {
         // Using REST API handler
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
@@ -171,44 +176,62 @@ function checkEmail(e) {
  */
 function checkEmailExist(e) {
     let currentEmail = e.target.value;
+    let result;
+
+    if (!currentEmail || !currentEmail.length) {
+        let envelope = document.getElementById('apbct-check_email_exist-block');
+        if (envelope) {
+            envelope.remove();
+        }
+        let hint = document.getElementById('apbct-check_email_exist-popup_description');
+        if (hint) {
+            hint.remove();
+        }
+        return;
+    }
+
     if (! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail)) {
         return;
     }
 
-    if (currentEmail && !(currentEmail in ctCheckedEmailsExist)) {
-        viewCheckEmailExist(e, 'load');
-        // Using REST API handler
-        ctPublicFunctions.data__ajax_type = 'rest';
-        if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
-            apbct_public_sendREST(
-                'check_email_exist_post',
-                {
-                    method: 'POST',
-                    data: {'email': currentEmail},
-                    callback: function(result) {
-                        getResultCheckEmailExist(e, result, currentEmail);
-                    },
-                },
-            );
-            // Using AJAX request and handler
-        } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
-            apbct_public_sendAJAX(
-                {
-                    action: 'apbct_email_check_exist_post',
-                    email: currentEmail,
-                },
-                {
-                    callback: function(result) {
-                        getResultCheckEmailExist(e, result, currentEmail);
-                    },
-                },
-            );
-        }
-    } else if (currentEmail && ctCheckedEmailsExist) {
+    if (currentEmail in ctCheckedEmailsExist) {
         result = ctCheckedEmailsExist[currentEmail];
         getResultCheckEmailExist(e, result, currentEmail);
-    } else {
-        viewCheckEmailExist(e, '', '');
+
+        return;
+    }
+
+    viewCheckEmailExist(e, 'load');
+
+    // Using REST API handler
+    ctPublicFunctions.data__ajax_type = 'rest';
+    if (ctPublicFunctions.data__ajax_type === 'rest') {
+        apbct_public_sendREST(
+            'check_email_exist_post',
+            {
+                method: 'POST',
+                data: {'email': currentEmail},
+                callback: function(result) {
+                    getResultCheckEmailExist(e, result, currentEmail);
+                },
+            },
+        );
+
+        return;
+    }
+
+    if (ctPublicFunctions.data__ajax_type === 'admin_ajax') {
+        apbct_public_sendAJAX(
+            {
+                action: 'apbct_email_check_exist_post',
+                email: currentEmail,
+            },
+            {
+                callback: function(result) {
+                    getResultCheckEmailExist(e, result, currentEmail);
+                },
+            },
+        );
     }
 }
 
@@ -218,22 +241,24 @@ function checkEmailExist(e) {
  * @param {string} currentEmail
  */
 function getResultCheckEmailExist(e, result, currentEmail) {
+    if (!result || !result.result) {
+        return;
+    }
+
     result = result.result;
 
-    if (result) {
-        ctCheckedEmailsExist[currentEmail] = {
-            'result': result,
-            'timestamp': Date.now() / 1000 |0,
-        };
+    ctCheckedEmailsExist[currentEmail] = {
+        'result': result,
+        'timestamp': Date.now() / 1000 |0,
+    };
 
-        if (result.result == 'EXISTS') {
-            viewCheckEmailExist(e, 'good_email', result.text_result);
-        } else {
-            viewCheckEmailExist(e, 'bad_email', result.text_result);
-        }
-
-        ctSetCookie('ct_checked_emails_exist', JSON.stringify(ctCheckedEmailsExist));
+    if (result.result == 'EXISTS') {
+        viewCheckEmailExist(e, 'good_email', result.text_result);
+    } else {
+        viewCheckEmailExist(e, 'bad_email', result.text_result);
     }
+
+    ctSetCookie('ct_checked_emails_exist', JSON.stringify(ctCheckedEmailsExist));
 }
 
 /**
@@ -291,11 +316,12 @@ function viewCheckEmailExist(e, state, textResult) {
 
     switch (state) {
     case 'load':
+        envelope.classList.remove('apbct-check_email_exist-good_email', 'apbct-check_email_exist-bad_email');
         envelope.classList.add('apbct-check_email_exist-load');
         break;
 
     case 'good_email':
-        envelope.classList.remove('apbct-check_email_exist-load');
+        envelope.classList.remove('apbct-check_email_exist-load', 'apbct-check_email_exist-bad_email');
         envelope.classList.add('apbct-check_email_exist-good_email');
 
         envelope.onmouseover = function() {
@@ -312,7 +338,7 @@ function viewCheckEmailExist(e, state, textResult) {
         break;
 
     case 'bad_email':
-        envelope.classList.remove('apbct-check_email_exist-load');
+        envelope.classList.remove('apbct-check_email_exist-load', 'apbct-check_email_exist-good_email');
         envelope.classList.add('apbct-check_email_exist-bad_email');
 
         envelope.onmouseover = function() {
