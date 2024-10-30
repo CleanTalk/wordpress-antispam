@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.6
 Requires PHP: 5.6
-Stable tag: 6.43.2
+Stable tag: 6.44
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -443,6 +443,17 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.44 31 Oct 2024 =
+* New. Integrations. Added honeypot for elementor form.
+* New. Email encoder. Hook and shortcode apbct_encode_data handler implemented.
+* Upd. EmailCheck. Improved js.
+* Upd. Universal banner. Refactored to universal.
+* Upd. Code. jQuery's dependency removed form apbct scripts localization.
+* Fix. Request parameters. Param apbct_headless gain fixed.
+* Fix. Integrations. Flying Press cache plugin integration implemented.
+* Fix. EncodeEmail. Editing the change of double quotes to single quotes.
+* Fix. Common check. Prevent spam on Formintator forms direct call attacks.
 
 = 6.43.2 23 Oct 2024 =
 * Fix. Integrations. Elementor Pro. Remove post-check for email field.
