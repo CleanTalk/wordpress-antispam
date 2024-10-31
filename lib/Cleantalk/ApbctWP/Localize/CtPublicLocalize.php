@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP\Localize;
 
+use Cleantalk\ApbctWP\LinkConstructor;
+
 class CtPublicLocalize
 {
     const NAME = 'ctPublic';
@@ -11,7 +13,7 @@ class CtPublicLocalize
     {
         global $apbct;
 
-        return array(
+        $localize_array = array(
             '_ajax_nonce'                     => wp_create_nonce('ct_secret_stuff'), // !!! For WP-Rocket minification preventing !!!
             'settings__forms__check_internal' => $apbct->settings['forms__check_internal'],
             'settings__forms__check_external' => $apbct->settings['forms__check_external'],
@@ -35,8 +37,22 @@ class CtPublicLocalize
             'bot_detector_forms_excluded'  => base64_encode(apbct__bot_detector_get_prepared_exclusion()),
             'advancedCacheExists' => apbct_is_advanced_cache_exists(),
             'varnishCacheExists' => apbct_is_varnish_cache_exists(),
-            'wc_ajax_add_to_cart' => get_option('woocommerce_enable_ajax_add_to_cart') === 'yes'
+            'wc_ajax_add_to_cart' => get_option('woocommerce_enable_ajax_add_to_cart') === 'yes',
         );
+        if ( $apbct->settings['comments__the_real_person'] ) {
+            $localize_array['theRealPerson'] = [
+                'phrases' => [
+                    'trpHeading' => esc_html__('The Real Person Badge!', 'cleantalk-spam-protect'),
+                    'trpContent1' => esc_html__('The commenter acts as a real person and verified as not a bot.', 'cleantalk-spam-protect'),
+                    'trpContent2' => esc_html__('Passed all tests against spam bots. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect'),
+                    'trpContentLearnMore' => esc_html__('Learn more', 'cleantalk-spam-protect'),
+                ],
+                'trpContentLink' => esc_attr(LinkConstructor::buildCleanTalkLink('trp_learn_more_link_public', 'the-real-person')),
+                'imgPersonUrl' => esc_attr(APBCT_URL_PATH . '/css/images/real_user.svg'),
+                'imgShieldUrl' => esc_attr(APBCT_URL_PATH . '/css/images/shield.svg'),
+            ];
+        }
+        return $localize_array;
     }
 
     public static function getCode()

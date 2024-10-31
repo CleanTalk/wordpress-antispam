@@ -171,6 +171,13 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_medium' => 'settings',
             'utm_content' => 'get_access_key_link',
         ),
+        'trp_learn_more_link_public' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'public_side',
+            'utm_medium' => 'trp_badge',
+            'utm_content' => 'trp_badge_link_click',
+        ),
     );
 
     public static function buildCleanTalkLink($utm_preset, $uri = '', $get_params = array(), $domain = 'https://cleantalk.org')
