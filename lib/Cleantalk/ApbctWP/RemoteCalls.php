@@ -12,6 +12,11 @@ class RemoteCalls
 {
     const COOLDOWN = 10;
 
+    private static $allowedActionsWithoutToken = [
+        'get_fresh_wpnonce',
+        'post_api_key',
+    ];
+
     /**
      * Checking if the current request is the Remote Call
      *
@@ -31,14 +36,24 @@ class RemoteCalls
                in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct'));
     }
 
+    private static function isAllowedWithoutToken($rc)
+    {
+        return in_array($rc, self::$allowedActionsWithoutToken, true);
+    }
+
     public static function checkWithoutToken()
     {
         global $apbct;
 
+        $rc_servers = [
+            'netserv3.cleantalk.org',
+            'netserv4.cleantalk.org',
+        ];
+
         $is_noc_request = ! $apbct->key_is_ok &&
             Request::get('spbc_remote_call_action') &&
             in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct')) &&
-            strpos(Helper::ipResolve(Helper::ipGet()), 'cleantalk.org') !== false;
+            in_array(Helper::ipResolve(Helper::ipGet('remote_addr')), $rc_servers, true);
 
         // no token needs for this action, at least for now
         // todo Probably we still need to validate this, consult with analytics team
@@ -79,7 +94,7 @@ class RemoteCalls
                 if (
                     ($token === strtolower(md5($apbct->api_key)) ||
                      $token === strtolower(hash('sha256', $apbct->api_key))) ||
-                    self::checkWithoutToken()
+                    (self::checkWithoutToken() && self::isAllowedWithoutToken($action))
                 ) {
                     // Flag to let plugin know that Remote Call is running.
                     $apbct->rc_running = true;

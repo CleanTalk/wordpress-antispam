@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.43.3-fix
+  Version: 6.44.1-fix
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -13,6 +13,7 @@
 
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
+use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\CleantalkRealPerson;
 use Cleantalk\ApbctWP\CleantalkUpgrader;
@@ -169,7 +170,6 @@ if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['co
 if (
     $apbct->key_is_ok &&
     ( ! is_admin() || apbct_is_ajax() ) &&
-    $apbct->settings['data__email_decoder'] &&
     current_action() !== 'wp_ajax_delete-plugin'
 ) {
     $skip_email_encode = false;
@@ -184,7 +184,7 @@ if (
     }
 
     if (!$skip_email_encode && !apbct_is_amp_request()) {
-        \Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance();
+        EmailEncoder::getInstance();
     }
 }
 
@@ -224,6 +224,9 @@ add_action('wp_ajax_nopriv_apbct_email_check_exist_post', 'apbct_email_check_exi
 // Force ajax set important parameters (apbct_timestamp etc)
 add_action('wp_ajax_nopriv_apbct_set_important_parameters', 'apbct_cookie');
 add_action('wp_ajax_apbct_set_important_parameters', 'apbct_cookie');
+
+// Email Encoder ajax handlers
+EmailEncoder::getInstance()->registerAjaxRoute();
 
 // Database prefix
 global $wpdb, $wp_version;
