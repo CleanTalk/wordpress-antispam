@@ -27,24 +27,11 @@ document.addEventListener('DOMContentLoaded', function() {
         let trpDescriptionContent = document.createElement('div');
         trpDescriptionContent.setAttribute('class', 'apbct-real-user-popup-content_row-');
 
-        let trpDescriptionContentSpan1 = document.createElement('span');
-        let trpImage2 = document.createElement('img');
-        trpImage2.setAttribute('src', ctPublic.theRealPerson.imgPersonUrl);
-        trpImage2.setAttribute('class', 'apbct-real-user-popup-img');
-        trpDescriptionContentSpan1.append(trpImage2);
+        let trpDescriptionContentSpan = document.createElement('span');
+        trpDescriptionContentSpan.append(ctPublic.theRealPerson.phrases.trpContent1 + ' ');
+        trpDescriptionContentSpan.append(ctPublic.theRealPerson.phrases.trpContent2);
 
-        let trpDescriptionContentSpan2 = document.createElement('span');
-        trpDescriptionContentSpan2.append(ctPublic.theRealPerson.phrases.trpContent1 + ' ');
-        trpDescriptionContentSpan2.append(ctPublic.theRealPerson.phrases.trpContent2 + ' ');
-
-        let trpDescriptionContentSpan3 = document.createElement('span');
-        let learnMoreLink = document.createElement('a');
-        learnMoreLink.setAttribute('href', ctPublic.theRealPerson.trpContentLink);
-        learnMoreLink.setAttribute('target', '_blank');
-        learnMoreLink.text = ctPublic.theRealPerson.phrases.trpContentLearnMore
-        trpDescriptionContentSpan3.append(learnMoreLink);
-
-        trpDescriptionContent.append(trpDescriptionContentSpan1, trpDescriptionContentSpan2, trpDescriptionContentSpan3);
+        trpDescriptionContent.append(trpDescriptionContentSpan);
         trpDescription.append(trpDescriptionHeading, trpDescriptionContent);
         trpLayout.append(trpImage);
         element.append(trpLayout);
