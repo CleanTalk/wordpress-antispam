@@ -1444,6 +1444,14 @@ function apbct_is_skip_request($ajax = false)
             strpos(TT::toString(Post::get('action')), 'wpdCheckNotificationType') !== false ) {
             return 'no_ajax_wpdCheckNotificationType';
         }
+
+        // Plugin Name: Profile Builder
+        if (
+            apbct_is_plugin_active('profile-builder/index.php') &&
+            Post::get('action') === 'edit_profile'
+        ) {
+            return 'Plugin Name: Profile Builder; ajax action wppb_conditional_logic';
+        }
     }
 
     // WP Fusion Abandoned Cart Addon
