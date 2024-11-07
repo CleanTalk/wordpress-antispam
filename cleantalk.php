@@ -2899,11 +2899,11 @@ function apbct_cookie()
     }
 
     // Landing time
-    $site_landing_timestamp = RequestParameters::getCommonStorage('apbct_site_landing_ts');
+    $site_landing_timestamp = RequestParameters::get('apbct_site_landing_ts', true);
 
     if ( ! $site_landing_timestamp ) {
         $site_landing_timestamp = time();
-        RequestParameters::setCommonStorage('apbct_site_landing_ts', TT::toString($site_landing_timestamp));
+        RequestParameters::set('apbct_site_landing_ts', TT::toString($site_landing_timestamp), true);
     }
 
     if ($apbct->data['cookies_type'] === 'native') {

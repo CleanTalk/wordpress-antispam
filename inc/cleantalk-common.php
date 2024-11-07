@@ -548,7 +548,7 @@ function apbct_get_sender_info()
     $apbct_urls = RequestParameters::getCommonStorage('apbct_urls');
     $apbct_urls = $apbct_urls ? json_encode(json_decode($apbct_urls, true)) : null;
 
-    $site_landing_ts = RequestParameters::getCommonStorage('apbct_site_landing_ts');
+    $site_landing_ts = RequestParameters::get('apbct_site_landing_ts', true);
     $site_landing_ts = !empty($site_landing_ts) ? TT::toString($site_landing_ts) : null;
 
     //Let's keep $data_array for debugging
