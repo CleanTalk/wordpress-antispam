@@ -333,7 +333,7 @@ class GetFieldsAny
                         $key,
                         $match_surname
                     );
-                    preg_match("/(name.?(nick|user)|(nick|user).?name)/", $key, $match_nickname);
+                    preg_match("/(name.?(nick|user)|(nick|user)?name)/", $key, $match_nickname);
 
                     if (count($match_forename) > 1) {
                         $this->processed_data['nickname']['first'] = $value;
