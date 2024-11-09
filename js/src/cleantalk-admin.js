@@ -164,9 +164,10 @@ function ctFillDecodedEmailHandler() {
 
         // construct text header
         let popupHeaderWrapper = document.createElement('span');
-        popupHeaderWrapper.classList = 'apbct-email-encoder-elements_center';
+        popupHeaderWrapper.setAttribute('class', 'apbct-email-encoder-elements_center');
         let popupHeader = document.createElement('p');
         popupHeader.innerText = ctAdminCommon.plugin_name;
+        popupHeader.setAttribute('class', 'apbct-email-encoder--popup-header');
         popupHeaderWrapper.append(popupHeader);
 
         // construct text wrapper
@@ -180,12 +181,16 @@ function ctFillDecodedEmailHandler() {
         let popupTextDecoding = document.createElement('p');
         popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_first';
         popupTextDecoding.innerText = 'Decoding ' + obfuscatedEmail + ' to the original contact.';
+        popupTextDecoding.setAttribute('class', 'apbct-email-encoder-elements_center');
+
 
         // construct text first node
         // todo make translateable
         let popupTextWaiting = document.createElement('p');
         popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_second';
         popupTextWaiting.innerText = 'The magic is on the way, please wait for a few seconds!';
+        popupTextWaiting.setAttribute('class', 'apbct-email-encoder-elements_center');
+
 
         // appendings
         popupTextWrapper.append(popupTextDecoding);
@@ -227,11 +232,6 @@ function apbctAjaxEmailDecodeBulk(encodedEmailNode) {
         encodedEmails: JSON.stringify({0: encodedEmail}),
     };
 
-    // Adding a tooltip
-    let apbctTooltip = document.createElement('div');
-    apbctTooltip.setAttribute('class', 'apbct-tooltip');
-    encodedEmailNode.append(apbctTooltip);
-
     apbct_admin_sendAJAX(
         {
             'action': 'apbct_decode_email',
@@ -256,32 +256,21 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNode) {
         setTimeout(function() {
             let email = Object.values(result.data)[0];
 
-            // copy icon
-            const copyIcon = document.createElement('span');
-            copyIcon.classList.add('copy-email-icon');
-            copyIcon.innerHTML = '📋'; // You can replace this with an actual icon if needed
-            copyIcon.style.cursor = 'pointer';
-            copyIcon.title = 'Copy email to clipboard';
-
-            copyIcon.addEventListener('click', function() {
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText(email).then(() => {
-                        console.log('Email copied to clipboard!');
-                    }).catch((err) => {
-                        console.log('Failed to copy email: ', err);
-                    });
-                } else {
-                    console.log('Clipboard API not supported');
-                }
-            });
-
             // change text
             let popup = document.getElementById('apbct_popup');
             if (popup !== null) {
+                // handle first node
                 let firstNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_first');
+                // get email selectable by click
+                let selectableEmail = document.createElement('b');
+                selectableEmail.setAttribute('class', 'apbct-email-encoder-select-whole-email');
+                selectableEmail.innerText = email;
+                selectableEmail.title = 'Click to select the whole email';
+                // add email to the first node
+                firstNode.innerHTML = 'The original contact is&nbsp;' + selectableEmail.outerHTML + '.';
+                firstNode.setAttribute('style', 'flex-direction: row;');
+                // handle second node
                 let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
-                firstNode.innerText = 'The original contact is ' + email + '.';
-                firstNode.append(copyIcon);
                 secondNode.innerText = 'Happy conversations!';
                 // remove antimation
                 popup.querySelector('.apbct-ee-animation-wrapper').remove();
@@ -290,12 +279,12 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNode) {
                 buttonWrapper.classList = 'apbct-email-encoder-elements_center top-margin-long';
                 let button = document.createElement('button');
                 button.innerText = 'Got it';
+                button.classList = 'apbct-email-encoder-got-it-button';
                 button.addEventListener('click', function() {
                     document.body.classList.remove('apbct-popup-fade');
                     popup.setAttribute('style', 'display:none');
                     fillDecodedEmails(encodedEmailNode, result);
                 });
-                button.style.cursor = 'pointer';
                 buttonWrapper.append(button);
                 popup.append(buttonWrapper);
             }
