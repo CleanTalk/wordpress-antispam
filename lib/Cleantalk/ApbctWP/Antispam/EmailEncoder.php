@@ -4,6 +4,8 @@ namespace Cleantalk\ApbctWP\Antispam;
 
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\LinkConstructor;
+use Cleantalk\Common\TT;
 use Cleantalk\Variables\Post;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\Cleantalk;
@@ -99,5 +101,49 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             );
         }
         return $result;
+    }
+
+    public static function getEncoderOptionDescription($example_email = '')
+    {
+        $common_description = __(
+            'Option encodes emails on public pages of the site. This prevents robots from collecting and including your emails in lists to spam.',
+            'cleantalk-spam-protect'
+        );
+        $example_encoded = '';
+        if ( !empty($example_email) && is_string($example_email)) {
+            $example_encoded = sprintf(
+                '%s: %s',
+                __('Here is a sample of encoded email', 'cleantalk-spam-protect'),
+                TT::toString($example_email)
+            );
+        }
+        $blog_link = LinkConstructor::buildCleanTalkLink(
+            'blog_email_encoder_common_post',
+            'wordpress-how-hide-email-address-from-bots-and-spammers',
+            array(),
+            'https://blog.cleantalk.org'
+        );
+
+        $href = LinkConstructor::buildSimpleHref($blog_link, __('blog', 'cleantalk-spam-protect'));
+
+        $learn_more = sprintf(
+            '%s %s',
+            __('We described a few details in our', 'cleantalk-spam-protect'),
+            $href
+        );
+
+        $template = '%s%s%s';
+
+        return sprintf(
+            $template,
+            $common_description,
+            empty($example_encoded) ? '&nbsp;' : '<br/>' . $example_encoded . '<br/>',
+            $learn_more
+        );
+    }
+
+    public static function getBufferUsageOptionDescription()
+    {
+        return __('Use this option only if no encoding occurs when the "Encode contact data" option is enabled.', 'cleantalk-spam-protect');
     }
 }
