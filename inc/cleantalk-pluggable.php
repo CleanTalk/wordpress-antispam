@@ -1439,10 +1439,18 @@ function apbct_is_skip_request($ajax = false)
             return 'Plugin Name: WooCommerce Product Enquiry Premium - have the direct integration';
         }
 
-        // WP Discuz skip service requests. The plugin have the direct integration
+        // CoBlocks requests. The plugin have the direct integration
         if ( apbct_is_plugin_active('wpdiscuz/class.WpdiscuzCore.php') &&
             strpos(TT::toString(Post::get('action')), 'wpdCheckNotificationType') !== false ) {
             return 'no_ajax_wpdCheckNotificationType';
+        }
+
+        // CoBlocks. The plugin have the direct integration
+        if (
+            apbct_is_plugin_active('coblocks/class-coblocks.php') &&
+            TT::toString(Post::get('action')) === 'coblocks-form-submit'
+        ) {
+            return 'Plugin Name: CoBlocks - have the direct integration';
         }
     }
 

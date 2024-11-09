@@ -702,6 +702,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'CoBlocks' => array(
+        'hook'    => 'coblocks_before_form_submit',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
 );
 add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {
     if ( defined('FLUENTFORM_VERSION') ) {
