@@ -8,7 +8,7 @@ class DbTest extends TestCase
 {
     private $db;
 
-    public function setUp()
+    public function setUp() : void
     {
         global $apbct;
         $apbct = new State( 'cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats') );

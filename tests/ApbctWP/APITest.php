@@ -5,10 +5,6 @@ use Cleantalk\ApbctWP\Helper;
 
 class APITest extends PHPUnit\Framework\TestCase
 {
-    protected function setUp()
-    {
-    }
-
     protected function commonAction($common_list)
     {
         $result = API::methodGet2sBlacklistsDb(getenv("CLEANTALK_TEST_API_KEY"), 'multifiles', '3_2', $common_list);

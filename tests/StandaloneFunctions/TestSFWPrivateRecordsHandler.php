@@ -7,7 +7,7 @@ class TestSFWPrivateRecordsHandler extends PHPUnit\Framework\TestCase
     protected $cron_object;
     protected $sfw;
 
-    protected function setUp()
+    protected function setUp() : void
     {
         apbct_run_update_actions('5.188','5.189');
         $this->sfw = new \Cleantalk\ApbctWP\Firewall\SFW(DB::getInstance(),
@@ -15,7 +15,7 @@ class TestSFWPrivateRecordsHandler extends PHPUnit\Framework\TestCase
         $this->sfw->setDb(DB::getInstance());
     }
 
-    protected function tearDown()
+    protected function tearDown() : void
     {
         DB::getInstance()->execute("TRUNCATE " . APBCT_TBL_FIREWALL_DATA_PERSONAL);
         DB::getInstance()->execute("TRUNCATE " . APBCT_TBL_FIREWALL_DATA);
