@@ -922,7 +922,7 @@ function ct_get_server()
         );
     }
 
-    $ct_server['ct_work_url'] = sanitize_cleantalk_server_url(TT::getArrayValueAsString($ct_server, 'ct_work_url'));
+    $ct_server['ct_work_url'] = Sanitize::sanitizeCleantalkServerUrl(TT::getArrayValueAsString($ct_server, 'ct_work_url'));
 
     return $ct_server;
 }
