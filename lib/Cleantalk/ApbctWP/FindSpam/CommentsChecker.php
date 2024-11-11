@@ -515,7 +515,7 @@ class CommentsChecker extends Checker
                 $log_data['bad']
             );
 
-            die(CommentsScanResponse::getInstance()->getEscapedJSON());
+            die(CommentsScanResponse::getInstance()->toJson());
         }
 
         $ips_emails_data = self::getIPEmailsData($comments);
@@ -562,7 +562,7 @@ class CommentsChecker extends Checker
         $apbct->data['count_checked_comments'] += count($comments);
         $apbct->saveData();
 
-        die(CommentsScanResponse::getInstance()->getEscapedJSON());
+        die(CommentsScanResponse::getInstance()->toJson());
     }
 
     /**
@@ -589,7 +589,7 @@ class CommentsChecker extends Checker
                 $log_data['bad']
             );
 
-            die(CommentsScanResponse::getInstance()->getEscapedJSON());
+            die(CommentsScanResponse::getInstance()->toJson());
         }
 
         $comments_grouped_by_date = array();
@@ -651,7 +651,7 @@ class CommentsChecker extends Checker
         // Count bad comments
         CommentsScanResponse::getInstance()->setBad((int)self::getCountBadComments());
 
-        die(CommentsScanResponse::getInstance()->getEscapedJSON());
+        die(CommentsScanResponse::getInstance()->toJson());
     }
 
     /**

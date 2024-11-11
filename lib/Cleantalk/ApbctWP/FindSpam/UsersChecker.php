@@ -152,12 +152,13 @@ class UsersChecker extends Checker
     private static function removeSkipRoles(array $users, array $skip_roles)
     {
         foreach ($users as $index => $user) {
-            if (!$user->user_id) {
+            if (empty($user->user_id) || !property_exists($user, 'user_id') === false) {
                 continue;
             }
+
             $user_meta  = get_userdata($user->user_id);
             if ( !($user_meta instanceof \WP_User) ) {
-                return $user;
+                continue;
             }
 
             $user_roles = $user_meta->roles;
@@ -188,7 +189,11 @@ class UsersChecker extends Checker
             }
 
             $user_meta = self::getUserMeta($user->ID);
-            $ip_of_user_meta = TT::getArrayValueAsString($user_meta, 'ip');
+            $user_meta_array = isset($user_meta[0]) ? $user_meta[0] : false;
+            if (!$user_meta_array || !is_array($user_meta_array)) {
+                continue;
+            }
+            $ip_of_user_meta = TT::getArrayValueAsString($user_meta_array, 'ip');
             $user_ip    = ! empty($ip_of_user_meta) ? trim($ip_of_user_meta) : false;
             $user_email = ! empty($user->user_email) ? trim($user->user_email) : false;
 
@@ -524,10 +529,11 @@ class UsersChecker extends Checker
 
         foreach ( $u as $iValue ) {
             $user_meta = get_user_meta($iValue->ID, 'session_tokens', true);
-            if ( is_array($user_meta) ) {
-                $user_meta = array_values($user_meta);
+            $user_meta_array = isset($user_meta[0]) ? $user_meta[0] : false;
+            if (!$user_meta_array || !is_array($user_meta_array)) {
+                continue;
             }
-            $ip_of_user_meta = TT::getArrayValueAsString($user_meta, 'ip');
+            $ip_of_user_meta = TT::getArrayValueAsString($user_meta_array, 'ip');
             $text .= $iValue->user_login . ',';
             $text .= $iValue->data->user_email . ',';
             $text .= ! empty($ip_of_user_meta) ? trim($ip_of_user_meta) : '';
@@ -776,7 +782,7 @@ class UsersChecker extends Checker
                 $log_data['bad']
             );
 
-            die(UsersScanResponse::getInstance()->getEscapedJSON());
+            die(UsersScanResponse::getInstance()->toJson());
         }
 
         $ips_emails_data = self::getIPEmailsData($users);
@@ -812,7 +818,7 @@ class UsersChecker extends Checker
         $apbct->data['count_checked_users'] += count($users);
         $apbct->saveData();
 
-        die(UsersScanResponse::getInstance()->getEscapedJSON());
+        die(UsersScanResponse::getInstance()->toJson());
     }
 
     /**
@@ -839,7 +845,7 @@ class UsersChecker extends Checker
                 $log_data['bad']
             );
 
-            die(UsersScanResponse::getInstance()->getEscapedJSON());
+            die(UsersScanResponse::getInstance()->toJson());
         }
 
         $users_grouped_by_date = array();
@@ -889,6 +895,6 @@ class UsersChecker extends Checker
         // Count bad users
         UsersScanResponse::getInstance()->setBad((int)self::getCountBadUsers());
 
-        die(UsersScanResponse::getInstance()->getEscapedJSON());
+        die(UsersScanResponse::getInstance()->toJson());
     }
 }

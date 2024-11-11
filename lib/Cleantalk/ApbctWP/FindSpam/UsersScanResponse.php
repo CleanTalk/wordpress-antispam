@@ -53,15 +53,6 @@ class UsersScanResponse
     }
 
     /**
-     * Die with sanitized json encoded response
-     * @return string
-     */
-    public function getEscapedJSON()
-    {
-        return esc_html($this->toJson());
-    }
-
-    /**
      * @return string
      * @psalm-suppress PossiblyUnusedMethod
      */
