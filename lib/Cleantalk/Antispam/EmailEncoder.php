@@ -202,6 +202,9 @@ class EmailEncoder
             }
         }, $content);
 
+        // modify content to turn back aria-label
+        $replacing_result = $this->modifyAriaLabelContent($replacing_result, true);
+
         //please keep this var (do not simplify the code) for further debug
         return $replacing_result;
     }
