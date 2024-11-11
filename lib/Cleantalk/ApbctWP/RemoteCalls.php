@@ -91,7 +91,7 @@ class RemoteCalls
                 $apbct->save('remote_calls');
 
                 if ( ! self::isRcAllowed() ) {
-                    die ('FAIL ' . json_encode(array('error' => 'FORBIDDEN')));
+                    die('FAIL ' . json_encode(array('error' => 'FORBIDDEN')));
                 }
 
                 // Check Access key
