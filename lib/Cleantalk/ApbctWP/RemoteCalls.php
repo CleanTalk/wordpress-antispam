@@ -90,10 +90,13 @@ class RemoteCalls
                 $apbct->remote_calls[$action]['last_call'] = time();
                 $apbct->save('remote_calls');
 
+                if ( ! self::isRcAllowed() ) {
+                    die('FAIL ' . json_encode(array('error' => 'FORBIDDEN')));
+                }
+
                 // Check Access key
                 if (
-                    ($token === strtolower(md5($apbct->api_key)) ||
-                     $token === strtolower(hash('sha256', $apbct->api_key))) ||
+                    (self::checkToken($token)) ||
                     (self::checkWithoutToken() && self::isAllowedWithoutToken($action))
                 ) {
                     // Flag to let plugin know that Remote Call is running.
@@ -546,5 +549,29 @@ class RemoteCalls
                 )
             )
         );
+    }
+
+    private static function isRcAllowed()
+    {
+        global $apbct;
+        return $apbct->api_key || apbct__is_hosting_license();
+    }
+
+    private static function checkToken($token)
+    {
+        global $apbct;
+        $value_for_token = '';
+        if ( $apbct->api_key ) {
+            $value_for_token = $apbct->api_key;
+        } elseif ( apbct__is_hosting_license() ) {
+            $value_for_token = $apbct->api_key . $apbct->data['salt'];
+        }
+
+        return
+            $value_for_token &&
+            (
+                $token === strtolower(md5($value_for_token)) ||
+                $token === strtolower(hash('sha256', $value_for_token))
+            );
     }
 }
