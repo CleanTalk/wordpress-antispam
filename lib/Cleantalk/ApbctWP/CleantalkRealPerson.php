@@ -6,11 +6,11 @@ class CleantalkRealPerson
 {
     public function __construct()
     {
-        //add_filter('get_comment_author', [$this, 'getCommentAuthor'], 10, 3);
+        add_filter('get_comment_author', [$this, 'getCommentAuthor'], 10, 3);
         add_filter('wp_list_comments_args', [$this, 'wpListCommentsArgs'], 10, 3);
 
         // Check comment meta 'ct_real_user_badge_hash' and add comment class 'apbct-trp' during 'comment_class' hook
-        add_filter('comment_class', function ($classes, $css_class, $comment_id, $comment, $_post) {
+        add_filter('comment_class', function ($classes, $_css_class, $comment_id, $comment, $_post) {
             $ct_hash = get_comment_meta((int)$comment_id, 'ct_real_user_badge_hash', true);
             if ( $ct_hash && $comment->comment_author ) {
                 $classes[] = 'apbct-trp';
