@@ -7,7 +7,7 @@ class CleantalkRealPerson
     public function __construct()
     {
         // @ToDo this is the old way render TRP. used only for admin side. need to be rebuilt in the future
-        add_action('current_screen', function() {
+        add_action('current_screen', function () {
             $screen = get_current_screen();
             if ($screen && $screen->id === 'edit-comments') {
                 // You are in the edit comments interface
@@ -103,7 +103,8 @@ class CleantalkRealPerson
         }
     }
 
-    public function publicCommentAddTrpClass ($classes, $_css_class, $comment_id, $comment, $_post) {
+    public function publicCommentAddTrpClass($classes, $_css_class, $comment_id, $comment, $_post)
+    {
         $ct_hash = get_comment_meta((int)$comment_id, 'ct_real_user_badge_hash', true);
         if ( $ct_hash && $comment->comment_author ) {
             $classes[] = 'apbct-trp';
