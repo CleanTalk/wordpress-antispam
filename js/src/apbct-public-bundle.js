@@ -3729,35 +3729,6 @@ if (document.readyState !== 'loading') {
 }
 
 /**
- * Handle real user badge for woocommerce
- * @param template
- * @param id
- */
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctRealUserBadgeWoocommerce(template, id) {
-    if (window.innerWidth < 768) {
-        return;
-    }
-
-    let badge = document.createElement('div');
-    badge.className = 'apbct-real-user-wrapper';
-
-    let attachmentPlace = document.querySelector('#comment-' + id).querySelector('.woocommerce-review__author');
-
-    try {
-        template = atob(template);
-        badge.innerHTML = template;
-
-        if (typeof attachmentPlace !== 'undefined') {
-            attachmentPlace.style.display = 'inline-flex';
-            attachmentPlace.appendChild(badge);
-        }
-    } catch (e) {
-        console.log('APBCT error: ' + e.toString());
-    }
-}
-
-/**
  * checkFormsExistForCatching
  */
 function checkFormsExistForCatching() {
@@ -5096,7 +5067,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    const trpComments = document.querySelectorAll('.apbct-trp *[class*="comment-author"]');
+    // Selectors. Try to handle the WIDE range of themes.
+    let themesCommentsSelector = '.apbct-trp *[class*="comment-author"]';
+    let woocommerceReviewsSelector = '.apbct-trp *[class*="review__author"]';
+    const trpComments = document.querySelectorAll(themesCommentsSelector + ',' + woocommerceReviewsSelector);
 
     if ( trpComments.length === 0 ) {
         return;

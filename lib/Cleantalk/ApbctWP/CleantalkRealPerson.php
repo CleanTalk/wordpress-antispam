@@ -6,18 +6,17 @@ class CleantalkRealPerson
 {
     public function __construct()
     {
-        add_filter('get_comment_author', [$this, 'getCommentAuthor'], 10, 3);
-        add_filter('wp_list_comments_args', [$this, 'wpListCommentsArgs'], 10, 3);
+        // @ToDo this is the old way render TRP. used only for admin side. need to be rebuilt in the future
+        add_action('current_screen', function() {
+            $screen = get_current_screen();
+            if ($screen && $screen->id === 'edit-comments') {
+                // You are in the edit comments interface
+                add_filter('get_comment_author', [$this, 'getCommentAuthor'], 10, 3);
+            }
+        });
 
         // Check comment meta 'ct_real_user_badge_hash' and add comment class 'apbct-trp' during 'comment_class' hook
-        add_filter('comment_class', function ($classes, $_css_class, $comment_id, $comment, $_post) {
-            $ct_hash = get_comment_meta((int)$comment_id, 'ct_real_user_badge_hash', true);
-            if ( $ct_hash && $comment->comment_author ) {
-                $classes[] = 'apbct-trp';
-                return $classes;
-            }
-            return $classes;
-        }, 10, 5);
+        add_filter('comment_class', [$this, 'publicCommentAddTrpClass'], 10, 5);
     }
 
     public function getCommentAuthor($comment_author, $comment_id, $comment)
@@ -104,81 +103,12 @@ class CleantalkRealPerson
         }
     }
 
-    public function wpListCommentsArgs($options)
-    {
-        if (is_admin()) {
-            return $options;
+    public function publicCommentAddTrpClass ($classes, $_css_class, $comment_id, $comment, $_post) {
+        $ct_hash = get_comment_meta((int)$comment_id, 'ct_real_user_badge_hash', true);
+        if ( $ct_hash && $comment->comment_author ) {
+            $classes[] = 'apbct-trp';
+            return $classes;
         }
-
-        $options['end-callback'] = function ($curr_comment) {
-            if ( $curr_comment->comment_type !== 'review' ) {
-                return;
-            }
-
-            $id = $curr_comment->comment_ID;
-
-            $ct_hash = get_comment_meta((int)$id, 'ct_real_user_badge_hash', true);
-
-            if ( !$ct_hash && $curr_comment->user_id == 0 ) {
-                return;
-            }
-
-            if ( !$ct_hash && apbct_is_user_enable($curr_comment->user_id) ) {
-                return;
-            }
-
-            if (isset($curr_comment->user_id)) {
-                $user = get_user_by('id', $curr_comment->user_id);
-                if ($user) {
-                    return;
-                }
-            }
-
-            $template_file_path = APBCT_DIR_PATH . 'templates/real-user-badge/real-user-badge-native-comments.html';
-            if (file_exists($template_file_path) && is_readable($template_file_path)) {
-                $template = @file_get_contents($template_file_path);
-            }
-
-            if (empty($template)) {
-                return;
-            }
-
-            $comment_author = $curr_comment->comment_author;
-
-            $trp_popup_header = __('The Real Person Badge!', 'cleantalk-spam-protect');
-            $trp_author_bold = '<b>' . $comment_author . '</b>';
-            $trp_popup_text_person = __('%s acts as a real person and verified as not a bot.', 'cleantalk-spam-protect');
-            $trp_popup_text_person = sprintf($trp_popup_text_person, $trp_author_bold);
-            $trp_popup_text_shield = __(' Passed all tests against spam bots. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect');
-
-            $trp_comment_id = 'apbct_trp_comment_id_' . $curr_comment->comment_ID;
-            $trp_link_img_person = APBCT_URL_PATH . '/css/images/real_user.svg';
-            $trp_link_img_shield = APBCT_URL_PATH . '/css/images/shield.svg';
-
-            $trp_style_class_admin = '';
-            $trp_style_class_admin_img = '';
-            $trp_admin_popup_promo_page_text = '';
-            if (is_admin()) {
-                $trp_style_class_admin = '-admin';
-                $trp_style_class_admin_img = '-admin-size';
-                $trp_admin_popup_promo_page_text = __('Learn more', 'cleantalk-spam-protect');
-            }
-
-            $template = str_replace('{{TRP_POPUP_COMMENT_ID}}', $trp_comment_id, $template);
-            $template = str_replace('{{TRP_POPUP_HEADER}}', $trp_popup_header, $template);
-            $template = str_replace('{{TRP_POPUP_TEXT_PERSON}}', $trp_popup_text_person, $template);
-            $template = str_replace('{{TRP_POPUP_TEXT_SHIELD}}', $trp_popup_text_shield, $template);
-            $template = str_replace('{{TRP_COMMENT_AUTHOR_NAME}}', '', $template);
-            $template = str_replace('{{TRP_LINK_IMG_PERSON}}', $trp_link_img_person, $template);
-            $template = str_replace('{{TRP_LINK_IMG_SHIELD}}', $trp_link_img_shield, $template);
-            $template = str_replace('{{TRP_STYLE_CLASS_ADMIN}}', $trp_style_class_admin, $template);
-            $template = str_replace('{{TRP_STYLE_CLASS_ADMIN_IMG}}', $trp_style_class_admin_img, $template);
-            $template = str_replace('{{TRP_ADMIN_PROMO_PAGE_TEXT}}', $trp_admin_popup_promo_page_text, $template);
-
-            $template = base64_encode($template);
-
-            echo "<script>apbctRealUserBadgeWoocommerce('$template', '$id');</script>";
-        };
-        return $options;
+        return $classes;
     }
 }

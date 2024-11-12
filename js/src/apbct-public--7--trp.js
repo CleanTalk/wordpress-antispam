@@ -3,7 +3,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    const trpComments = document.querySelectorAll('.apbct-trp *[class*="comment-author"]');
+    // Selectors. Try to handle the WIDE range of themes.
+    let themesCommentsSelector = '.apbct-trp *[class*="comment-author"]';
+    let woocommerceReviewsSelector = '.apbct-trp *[class*="review__author"]';
+    const trpComments = document.querySelectorAll(themesCommentsSelector + ',' + woocommerceReviewsSelector);
 
     if ( trpComments.length === 0 ) {
         return;
