@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class CommentsLogs extends Comments
 {
@@ -52,12 +53,12 @@ class CommentsLogs extends Comments
         if ( ! $this->current_action() ) {
             return;
         }
-
-        if ( ! wp_verify_nonce(Post::get('_wpnonce'), 'bulk-' . $this->_args['plural']) ) {
+        $awaited_action = 'bulk-' . TT::getArrayValueAsString($this->_args, 'plural');
+        if ( ! wp_verify_nonce(TT::toString(Post::get('_wpnonce')), $awaited_action) ) {
             wp_die('nonce error');
         }
 
-        $spam_ids = wp_parse_id_list(Post::get('spamids'));
+        $spam_ids = wp_parse_id_list(TT::toString(Post::get('spamids')));
         $this->removeLogs($spam_ids);
     }
 

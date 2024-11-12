@@ -4,7 +4,7 @@ use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\ApbctWP\State;
 
-class CleantalkTest extends \PHPUnit\Framework\TestCase 
+class CleantalkTest extends \PHPUnit\Framework\TestCase
 {
 	protected $ct;
 
@@ -39,5 +39,5 @@ class CleantalkTest extends \PHPUnit\Framework\TestCase
 		$this->assertEquals(0, $result->allow);
 
 		$this->ct_request->sender_email = '';
-	}	
+	}
 }
