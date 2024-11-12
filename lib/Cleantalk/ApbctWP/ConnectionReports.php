@@ -5,6 +5,7 @@ namespace Cleantalk\ApbctWP;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\TT;
 
 class ConnectionReports
 {
@@ -51,13 +52,13 @@ class ConnectionReports
         $this->cr_table_name = $cr_table_name;
         $this->reports_count['positive'] = isset($apbct->data['connection_reports_count']['positive'])
             ? $apbct->data['connection_reports_count']['positive']
-            : $this->reports_count['positive'];
+            : 0;
         $this->reports_count['negative'] = isset($apbct->data['connection_reports_count']['negative'])
             ? $apbct->data['connection_reports_count']['negative']
-            : $this->reports_count['positive'];
+            : 0;
         $this->reports_count['total'] = isset($apbct->data['connection_reports_count']['total'])
             ? $apbct->data['connection_reports_count']['total']
-            : $this->reports_count['positive'];
+            : 0;
         $this->reports_count['stat_since'] = isset($apbct->data['connection_reports_count']['stat_since'])
             ? $apbct->data['connection_reports_count']['stat_since']
             : date('d M');
@@ -85,7 +86,7 @@ class ConnectionReports
             "SELECT * FROM " . $this->cr_table_name .
             " ORDER BY date;";
 
-        $this->reports_data = $this->db->fetchAll($sql);
+        $this->reports_data = TT::toArray($this->db->fetchAll($sql));
 
         return $this->reports_data;
     }
@@ -96,7 +97,9 @@ class ConnectionReports
     private function updateStats()
     {
         global $apbct;
-        $this->reports_count['total'] = (int)$this->reports_count['positive'] + (int)$this->reports_count['negative'];
+        $positive = isset($this->reports_count['positive']) ? $this->reports_count['positive'] : 0;
+        $negative = isset($this->reports_count['negative']) ? $this->reports_count['negative'] : 0;
+        $this->reports_count['total'] = $positive + $negative;
         $apbct->data['connection_reports_count'] = $this->reports_count;
         $apbct->saveData();
     }
@@ -111,7 +114,7 @@ class ConnectionReports
 
         if ( !empty($this->reports_data) ) {
             foreach ( $this->reports_data as $row ) {
-                if ( empty($row['sent_on']) || $row['sent_on'] === 'NULL' ) {
+                if ( isset($row['id']) && ( empty($row['sent_on']) || $row['sent_on'] === 'NULL' ) ) {
                     $result[] = $row['id'];
                 }
             }
@@ -199,7 +202,7 @@ class ConnectionReports
     ) {
         $cr_data = array(
             'date' => time(),
-            'page_url' => get_site_url() . Server::get('REQUEST_URI'),
+            'page_url' => get_site_url() . TT::toString(Server::get('REQUEST_URI')),
             'lib_report' => $lib_report,
             'failed_work_urls' => $failed_work_urls,
             'request_content' => json_encode(esc_sql($request_content)),
@@ -232,6 +235,7 @@ class ConnectionReports
      * Return HTML of negative reports table
      * @return string
      * @psalm-suppress PossiblyUnusedMethod
+     * @psalm-suppress PossiblyUndefinedStringArrayOffset
      */
     public function prepareNegativeReportsHtmlForSettingsPage()
     {
@@ -241,12 +245,16 @@ class ConnectionReports
 
         $rows = '';
 
+        $stat_since = isset($this->reports_count['stat_since']) ? $this->reports_count['stat_since'] : '';
+        $total = isset($this->reports_count['total']) ? $this->reports_count['total'] : '';
+        $positive = isset($this->reports_count['positive']) ? $this->reports_count['positive'] : '';
+        $negative = isset($this->reports_count['negative']) ? $this->reports_count['negative'] : '';
         $reports_html = '<div><p>From '
-            . $this->reports_count['stat_since']
+            . $stat_since
             . ' to ' . date('d M') . ' has been made '
-            . $this->reports_count['total']
-            . ' calls, where ' . $this->reports_count['positive'] . ' were success and '
-            . $this->reports_count['negative'] . ' were negative
+            . $total
+            . ' calls, where ' . $positive . ' were success and '
+            . $negative . ' were negative
                     </p></div>';
 
         foreach ( $this->reports_data as $key => $report ) {
@@ -258,14 +266,19 @@ class ConnectionReports
                 $status = 'New';
                 $color = 'black';
             }
+            $report_date = isset($report['date']) ? $report['date'] : time();
+            $report_page_url = isset($report['page_url']) ? $report['page_url'] : '';
+            $report_lib_report = isset($report['lib_report']) ? $report['lib_report'] : '';
+            $report_failed_work_urls = isset($report['failed_work_urls']) ? $report['failed_work_urls'] : '';
+            $report_js_block = isset($report['js_block']) ? $report['js_block'] : 0;
             //draw reports rows
             $rows .= '<tr style="color:' . $color . '">'
                 . '<td>' . Escape::escHtml((int)$key + 1) . '.</td>'
-                . '<td>' . Escape::escHtml(date('m-d-y H:i:s', $report['date'])) . '</td>'
-                . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
-                . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
-                . '<td>' . Escape::escHtml($report['failed_work_urls']) . '</td>'
-                . '<td>' . Escape::escHtml($report['js_block'] === '1' ? 'Yes' : 'No') . '</td>'
+                . '<td>' . Escape::escHtml(date('m-d-y H:i:s', $report_date)) . '</td>'
+                . '<td>' . Escape::escUrl($report_page_url) . '</td>'
+                . '<td>' . Escape::escHtml($report_lib_report) . '</td>'
+                . '<td>' . Escape::escHtml($report_failed_work_urls) . '</td>'
+                . '<td>' . Escape::escHtml($report_js_block === '1' ? 'Yes' : 'No') . '</td>'
                 . '<td>' . Escape::escHtml($status) . '</td>'
                 . '</tr>';
         }
@@ -315,12 +328,16 @@ class ConnectionReports
 
         // Succeeded connection
         if ( $request_response->errno === 0 && empty($request_response->errstr) ) {
-            $this->reports_count['positive']++;
+            if ( isset($this->reports_count['positive']) ) {
+                $this->reports_count['positive']++;
+            }
 
             // Failed to connect. Add a negative report
         } else {
             $this->rotateReports();
-            $this->reports_count['negative']++;
+            if ( isset($this->reports_count['negative']) ) {
+                $this->reports_count['negative']++;
+            }
             $this->addReportToDb(
                 $request_response->errstr,
                 $request_response->failed_connections_urls_string,
@@ -350,7 +367,11 @@ class ConnectionReports
         }
 
         $to = $apbct->data['wl_support_email'];
-        $subject = "Connection report for " . Server::get('HTTP_HOST');
+        $subject = "Connection report for " . TT::toString(Server::get('HTTP_HOST'));
+        $stat_since = isset($this->reports_count['stat_since']) ? $this->reports_count['stat_since'] : '';
+        $total = isset($this->reports_count['total']) ? $this->reports_count['total'] : '';
+        $positive = isset($this->reports_count['positive']) ? $this->reports_count['positive'] : '';
+        $negative = isset($this->reports_count['negative']) ? $this->reports_count['negative'] : '';
         $message = '
             <html lang="en">
                 <head>
@@ -358,11 +379,11 @@ class ConnectionReports
                 </head>
                 <body>
                     <p>From '
-            . $this->reports_count['stat_since']
+            . $stat_since
             . ' to ' . date('d M') . ' has been made '
-            . $this->reports_count['total']
-            . ' calls, where ' . $this->reports_count['positive'] . ' were success and '
-            . $this->reports_count['negative'] . ' were negative
+            . $total
+            . ' calls, where ' . $positive . ' were success and '
+            . $negative . ' were negative
                     </p>
                     <p>Negative report:</p>
                     <table>  <tr>
@@ -379,7 +400,7 @@ class ConnectionReports
         foreach ( $selection as $_key => $report ) {
             $message .= '<tr>'
                 . '<td>' . (++$counter) . '.</td>'
-                . '<td>' . date('m-d-y H:i:s', $report['date']) . '</td>'
+                . '<td>' . TT::toString(date('m-d-y H:i:s', $report['date'])) . '</td>'
                 . '<td>' . $report['page_url'] . '</td>'
                 . '<td>' . $report['lib_report'] . '</td>'
                 . '<td>' . $report['failed_work_urls'] . '</td>'

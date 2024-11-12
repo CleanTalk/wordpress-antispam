@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.43.2-dev
+  Version: 6.44.1-dev
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -13,6 +13,7 @@
 
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
+use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\CleantalkRealPerson;
 use Cleantalk\ApbctWP\CleantalkUpgrader;
@@ -169,7 +170,6 @@ if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['co
 if (
     $apbct->key_is_ok &&
     ( ! is_admin() || apbct_is_ajax() ) &&
-    $apbct->settings['data__email_decoder'] &&
     current_action() !== 'wp_ajax_delete-plugin'
 ) {
     $skip_email_encode = false;
@@ -184,7 +184,7 @@ if (
     }
 
     if (!$skip_email_encode && !apbct_is_amp_request()) {
-        \Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance();
+        EmailEncoder::getInstance();
     }
 }
 
@@ -224,6 +224,9 @@ add_action('wp_ajax_nopriv_apbct_email_check_exist_post', 'apbct_email_check_exi
 // Force ajax set important parameters (apbct_timestamp etc)
 add_action('wp_ajax_nopriv_apbct_set_important_parameters', 'apbct_cookie');
 add_action('wp_ajax_apbct_set_important_parameters', 'apbct_cookie');
+
+// Email Encoder ajax handlers
+EmailEncoder::getInstance()->registerAjaxRoute();
 
 // Database prefix
 global $wpdb, $wp_version;
@@ -2881,7 +2884,6 @@ function apbct_cookie()
         return false;
     }
 
-
     // Cookie names to validate
     $cookie_test_value = array(
         'cookies_names' => array(),
@@ -2900,14 +2902,12 @@ function apbct_cookie()
     }
 
     // Landing time
-    // todo if cookies disabled there is no way to keep this data without DB:( always will be overwriteen
-    $site_landing_timestamp = Cookie::get('apbct_site_landing_ts');
+    $site_landing_timestamp = RequestParameters::get('apbct_site_landing_ts', true);
+
     if ( ! $site_landing_timestamp ) {
         $site_landing_timestamp = time();
-        Cookie::set('apbct_site_landing_ts', (string)$site_landing_timestamp, 0, '/', $domain, null, true, 'Lax', true);
+        RequestParameters::set('apbct_site_landing_ts', TT::toString($site_landing_timestamp), true);
     }
-    $cookie_test_value['cookies_names'][] = 'apbct_site_landing_ts';
-    $cookie_test_value['check_value']     .= $site_landing_timestamp;
 
     if ($apbct->data['cookies_type'] === 'native') {
         $http_referrer = TT::toString(Server::get('HTTP_REFERER'));

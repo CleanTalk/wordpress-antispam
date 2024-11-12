@@ -548,6 +548,9 @@ function apbct_get_sender_info()
     $apbct_urls = RequestParameters::getCommonStorage('apbct_urls');
     $apbct_urls = $apbct_urls ? json_encode(json_decode($apbct_urls, true)) : null;
 
+    $site_landing_ts = RequestParameters::get('apbct_site_landing_ts', true);
+    $site_landing_ts = !empty($site_landing_ts) ? TT::toString($site_landing_ts) : null;
+
     //Let's keep $data_array for debugging
     $data_array = array(
         'plugin_request_id'         => $apbct->plugin_request_id,
@@ -570,9 +573,7 @@ function apbct_get_sender_info()
         'REFFERRER_PREVIOUS'        => Cookie::get('apbct_prev_referer') && $cookie_is_ok
             ? Cookie::get('apbct_prev_referer')
             : null,
-        'site_landing_ts'           => Cookie::get('apbct_site_landing_ts') && $cookie_is_ok
-            ? Cookie::get('apbct_site_landing_ts')
-            : null,
+        'site_landing_ts'           => $site_landing_ts,
         'page_hits'                 => Cookie::get('apbct_page_hits') ?: null,
         'mouse_cursor_positions'    => $param_mouse_cursor_positions,
         'js_timezone'               => Cookie::get('ct_timezone') ?: null,
@@ -826,6 +827,7 @@ function apbct_is_cache_plugins_exists($return_names = false)
         'SiteGround_Optimizer\VERSION'                => 'SG Optimizer',
         'NITROPACK_VERSION'                           => 'NitroPack',
         'TWO_PLUGIN_FILE'                             => '10Web Booster',
+        'FLYING_PRESS_VERSION'                        => 'Flying Press',
     );
 
     $classes_of_cache_plugins = array (
@@ -921,9 +923,25 @@ function ct_get_server()
         );
     }
 
+    $ct_server['ct_work_url'] = Sanitize::sanitizeCleantalkServerUrl(TT::getArrayValueAsString($ct_server, 'ct_work_url'));
+
     return $ct_server;
 }
 
+/**
+ * @param $url
+ *
+ * @return string|null
+ */
+function sanitize_cleantalk_server_url($url)
+{
+    if (!is_string($url)) {
+        return null;
+    }
+    return preg_match('/^.*(moderate|api).*\.cleantalk.org(?!\.)[\/\\\\]{0,1}/m', $url)
+        ? $url
+        : null;
+}
 /**
  * Inner function - Stores ang returns cleantalk hash of current comment
  *
@@ -1408,7 +1426,8 @@ function apbct_get_honeypot_filled_fields()
             'apbct__email_id__wp_register' =>       Post::get('apbct__email_id__wp_register_' . $apbct_event_id),
             'apbct__email_id__wp_contact_form_7' => Post::get('apbct__email_id__wp_contact_form_7_' . $apbct_event_id),
             'apbct__email_id__wp_wpforms' =>        Post::get('apbct__email_id__wp_wpforms_' . $apbct_event_id),
-            'apbct__email_id__gravity_form' =>      Post::get('apbct__email_id__gravity_form_' . $apbct_event_id)
+            'apbct__email_id__gravity_form' =>      Post::get('apbct__email_id__gravity_form_' . $apbct_event_id),
+            'apbct__email_id__elementor_form' =>    Post::get('apbct__email_id__elementor_form_' . $apbct_event_id)
         );
     }
 

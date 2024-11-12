@@ -545,6 +545,10 @@ class State extends \Cleantalk\Common\State
             // Setting default options
             if ($wpdb_option_name === 'cleantalk_settings') {
                 // A/B testing here
+                // @ToDo remove this after testing
+                if ( ! is_array($option) ) {
+                    $this->default_settings['data__email_check_exist_post'] = 1;
+                }
                 $option = is_array($option) ? array_merge($this->default_settings, $option) : $this->default_settings;
             }
 
@@ -625,7 +629,8 @@ class State extends \Cleantalk\Common\State
             $this->notice_show = false;
         }
 
-        $this->data['wl_brandname_short'] = $this->data["wl_mode_enabled"] ? $this->data["wl_brandname"] : $this->default_data['wl_brandname_short'];
+        $wl_brandname_short = isset($this->default_data['wl_brandname_short']) ? $this->default_data['wl_brandname_short'] : '';
+        $this->data['wl_brandname_short'] = $this->data["wl_mode_enabled"] ? $this->data["wl_brandname"] : $wl_brandname_short;
     }
 
     /**
@@ -727,7 +732,7 @@ class State extends \Cleantalk\Common\State
      */
     public function errorAdd($type, $error, $major_type = null, $set_time = true)
     {
-        $error = is_array($error)
+        $error = is_array($error) && isset($error['error'])
             ? $error['error']
             : $error;
 

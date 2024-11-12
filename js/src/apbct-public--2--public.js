@@ -124,6 +124,11 @@ function ctKeyStopStopListening() {
  */
 function checkEmail(e) {
     let currentEmail = e.target.value;
+
+    if (! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail)) {
+        return;
+    }
+
     if (currentEmail && !(currentEmail in ctCheckedEmails)) {
         // Using REST API handler
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
@@ -171,44 +176,62 @@ function checkEmail(e) {
  */
 function checkEmailExist(e) {
     let currentEmail = e.target.value;
+    let result;
+
+    if (!currentEmail || !currentEmail.length) {
+        let envelope = document.getElementById('apbct-check_email_exist-block');
+        if (envelope) {
+            envelope.remove();
+        }
+        let hint = document.getElementById('apbct-check_email_exist-popup_description');
+        if (hint) {
+            hint.remove();
+        }
+        return;
+    }
+
     if (! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail)) {
         return;
     }
 
-    if (currentEmail && !(currentEmail in ctCheckedEmailsExist)) {
-        viewCheckEmailExist(e, 'load');
-        // Using REST API handler
-        ctPublicFunctions.data__ajax_type = 'rest';
-        if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
-            apbct_public_sendREST(
-                'check_email_exist_post',
-                {
-                    method: 'POST',
-                    data: {'email': currentEmail},
-                    callback: function(result) {
-                        getResultCheckEmailExist(e, result, currentEmail);
-                    },
-                },
-            );
-            // Using AJAX request and handler
-        } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
-            apbct_public_sendAJAX(
-                {
-                    action: 'apbct_email_check_exist_post',
-                    email: currentEmail,
-                },
-                {
-                    callback: function(result) {
-                        getResultCheckEmailExist(e, result, currentEmail);
-                    },
-                },
-            );
-        }
-    } else if (currentEmail && ctCheckedEmailsExist) {
+    if (currentEmail in ctCheckedEmailsExist) {
         result = ctCheckedEmailsExist[currentEmail];
         getResultCheckEmailExist(e, result, currentEmail);
-    } else {
-        viewCheckEmailExist(e, '', '');
+
+        return;
+    }
+
+    viewCheckEmailExist(e, 'load');
+
+    // Using REST API handler
+    ctPublicFunctions.data__ajax_type = 'rest';
+    if (ctPublicFunctions.data__ajax_type === 'rest') {
+        apbct_public_sendREST(
+            'check_email_exist_post',
+            {
+                method: 'POST',
+                data: {'email': currentEmail},
+                callback: function(result) {
+                    getResultCheckEmailExist(e, result, currentEmail);
+                },
+            },
+        );
+
+        return;
+    }
+
+    if (ctPublicFunctions.data__ajax_type === 'admin_ajax') {
+        apbct_public_sendAJAX(
+            {
+                action: 'apbct_email_check_exist_post',
+                email: currentEmail,
+            },
+            {
+                callback: function(result) {
+                    getResultCheckEmailExist(e, result, currentEmail);
+                },
+            },
+        );
     }
 }
 
@@ -218,22 +241,24 @@ function checkEmailExist(e) {
  * @param {string} currentEmail
  */
 function getResultCheckEmailExist(e, result, currentEmail) {
+    if (!result || !result.result) {
+        return;
+    }
+
     result = result.result;
 
-    if (result) {
-        ctCheckedEmailsExist[currentEmail] = {
-            'result': result,
-            'timestamp': Date.now() / 1000 |0,
-        };
+    ctCheckedEmailsExist[currentEmail] = {
+        'result': result,
+        'timestamp': Date.now() / 1000 |0,
+    };
 
-        if (result.result == 'EXISTS') {
-            viewCheckEmailExist(e, 'good_email', result.text_result);
-        } else {
-            viewCheckEmailExist(e, 'bad_email', result.text_result);
-        }
-
-        ctSetCookie('ct_checked_emails_exist', JSON.stringify(ctCheckedEmailsExist));
+    if (result.result == 'EXISTS') {
+        viewCheckEmailExist(e, 'good_email', result.text_result);
+    } else {
+        viewCheckEmailExist(e, 'bad_email', result.text_result);
     }
+
+    ctSetCookie('ct_checked_emails_exist', JSON.stringify(ctCheckedEmailsExist));
 }
 
 /**
@@ -291,11 +316,12 @@ function viewCheckEmailExist(e, state, textResult) {
 
     switch (state) {
     case 'load':
+        envelope.classList.remove('apbct-check_email_exist-good_email', 'apbct-check_email_exist-bad_email');
         envelope.classList.add('apbct-check_email_exist-load');
         break;
 
     case 'good_email':
-        envelope.classList.remove('apbct-check_email_exist-load');
+        envelope.classList.remove('apbct-check_email_exist-load', 'apbct-check_email_exist-bad_email');
         envelope.classList.add('apbct-check_email_exist-good_email');
 
         envelope.onmouseover = function() {
@@ -312,7 +338,7 @@ function viewCheckEmailExist(e, state, textResult) {
         break;
 
     case 'bad_email':
-        envelope.classList.remove('apbct-check_email_exist-load');
+        envelope.classList.remove('apbct-check_email_exist-load', 'apbct-check_email_exist-good_email');
         envelope.classList.add('apbct-check_email_exist-bad_email');
 
         envelope.onmouseover = function() {
@@ -635,6 +661,16 @@ function apbctPrepareBlockForAjaxForms() {
                 ctPrepareBlockMessage(xhr);
             });
         }
+    } else {
+        // if Jquery is not avaliable try to use xhr
+        if (typeof XMLHttpRequest !== 'undefined') {
+            // Capturing responses and output block message for unknown AJAX forms
+            document.addEventListener('readystatechange', function(event) {
+                if (event.target.readyState === 4) {
+                    ctPrepareBlockMessage(event.target);
+                }
+            });
+        }
     }
 }
 
@@ -664,28 +700,20 @@ function startForcedAltEventTokenChecker() {
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 function apbct_ready() {
-    if (typeof jQuery !== 'undefined') {
-        jQuery(document).on('gform_page_loaded', function() {
-            if (
-                typeof ctPublic.force_alt_cookies == 'undefined' ||
-                (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
-            ) {
-                ctNoCookieAttachHiddenFieldsToForms();
-                if (typeof setEventTokenField === 'function' && typeof botDetectorLocalStorage === 'function') {
-                    setEventTokenField(botDetectorLocalStorage.get('bot_detector_event_token'));
-                }
+    document.addEventListener('gform_page_loaded', function() {
+        if (
+            typeof ctPublic.force_alt_cookies === 'undefined' ||
+            (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
+        ) {
+            ctNoCookieAttachHiddenFieldsToForms();
+            if (typeof setEventTokenField === 'function' && typeof botDetectorLocalStorage === 'function') {
+                setEventTokenField(botDetectorLocalStorage.get('bot_detector_event_token'));
             }
-        });
-    }
+        }
+    });
     if ( ! ctPublic.wc_ajax_add_to_cart ) {
         apbctCheckAddToCartByGet();
     }
-    // this way calls a lot of apbct_ready(), needs to find another way
-    // if (typeof jQuery !== 'undefined') {
-    //     jQuery(document).on('gform_page_loaded', function() {
-    //         apbct_ready();
-    //     });
-    // }
 
     apbctPrepareBlockForAjaxForms();
 
@@ -1072,8 +1100,10 @@ function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) {
  */
 function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
     // jquery ajax call intercept
+    // this is the only place where we can found hard dependency on jQuery, if the form use it - the script
+    // will work independing if jQuery is loaded by CleanTalk or not
     let eventToken = false;
-    if ( typeof jQuery !== 'undefined' ) {
+    if ( typeof jQuery !== 'undefined' && typeof jQuery.ajaxSetup === 'function') {
         jQuery.ajaxSetup({
             beforeSend: function(xhr, settings) {
                 let sourceSign = false;
@@ -1272,6 +1302,7 @@ function ctFillDecodedEmailHandler(event) {
         popupHeaderWrapper.classList = 'apbct-email-encoder-elements_center';
         let popupHeader = document.createElement('p');
         popupHeader.innerText = ctPublic.wl_brandname;
+        popupHeader.setAttribute('class', 'apbct-email-encoder--popup-header');
         popupHeaderWrapper.append(popupHeader);
 
         // construct text wrapper
@@ -1284,13 +1315,14 @@ function ctFillDecodedEmailHandler(event) {
         // todo make translateable
         let popupTextDecoding = document.createElement('p');
         popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_first';
-        popupTextDecoding.innerText = 'Decoding ' + obfuscatedEmail + ' to the original contact.';
+        popupTextDecoding.innerText = 'Decoding ' + obfuscatedEmail + ' to the original one.';
 
         // construct text first node
         // todo make translateable
         let popupTextWaiting = document.createElement('p');
         popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_second';
         popupTextWaiting.innerText = 'The magic is on the way, please wait for a few seconds!';
+        popupTextWaiting.setAttribute('class', 'apbct-email-encoder-elements_center');
 
         // appendings
         popupTextWrapper.append(popupTextDecoding);
@@ -1415,11 +1447,20 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                         currentResultData = row;
                     }
                 });
-                // change text
+
                 let email = currentResultData.decoded_email.split(/[&?]/)[0];
+                // handle first node
                 let firstNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_first');
+                // get email selectable by click
+                let selectableEmail = document.createElement('b');
+                selectableEmail.setAttribute('class', 'apbct-email-encoder-select-whole-email');
+                selectableEmail.innerText = email;
+                selectableEmail.title = 'Click to select the whole email';
+                // add email to the first node
+                firstNode.innerHTML = 'The original contact is&nbsp;' + selectableEmail.outerHTML + '.';
+                firstNode.setAttribute('style', 'flex-direction: row;');
+                // handle second node
                 let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
-                firstNode.innerText = 'The original contact is ' + email + '.';
                 secondNode.innerText = 'Happy conversations!';
                 // remove antimation
                 popup.querySelector('.apbct-ee-animation-wrapper').remove();
@@ -1428,6 +1469,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 buttonWrapper.classList = 'apbct-email-encoder-elements_center top-margin-long';
                 let button = document.createElement('button');
                 button.innerText = 'Got it';
+                button.classList = 'apbct-email-encoder-got-it-button';
                 button.addEventListener('click', function() {
                     document.body.classList.remove('apbct-popup-fade');
                     popup.setAttribute('style', 'display:none');
@@ -1437,7 +1479,6 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                         clickSource.click();
                     }
                 });
-                button.style.cursor = 'pointer';
                 buttonWrapper.append(button);
                 popup.append(buttonWrapper);
             }
@@ -1510,7 +1551,6 @@ function resetEncodedNodes() {
 function getJavascriptClientData(commonCookies = []) {
     let resultDataJson = {};
 
-    resultDataJson.apbct_headless = !!ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_headless');
     resultDataJson.ct_checked_emails = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails');
     resultDataJson.ct_checked_emails_exist = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails_exist');
     resultDataJson.ct_checkjs = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checkjs');
@@ -1529,12 +1569,15 @@ function getJavascriptClientData(commonCookies = []) {
     const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
     const ctJsErrorsLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_js_errors');
     const ctPixelUrl = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
+    const apbctHeadless = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_headless');
 
     // collecting data from cookies
     const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
     const ctHasScrolledCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
     const ctCookiesTypeCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
     const ctCookiesPixelUrl = ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
+    const apbctHeadlessNative = !!ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_headless');
+
 
     resultDataJson.ct_mouse_moved = ctMouseMovedLocalStorage !== undefined ?
         ctMouseMovedLocalStorage : ctMouseMovedCookie;
@@ -1544,6 +1587,8 @@ function getJavascriptClientData(commonCookies = []) {
         ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
     resultDataJson.apbct_pixel_url = ctPixelUrl !== undefined ?
         ctPixelUrl : ctCookiesPixelUrl;
+    resultDataJson.apbct_headless = apbctHeadless !== undefined ?
+        apbctHeadless : apbctHeadlessNative;
     if (resultDataJson.apbct_pixel_url && typeof(resultDataJson.apbct_pixel_url) == 'string') {
         if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
             resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
@@ -1577,6 +1622,7 @@ function getJavascriptClientData(commonCookies = []) {
 
     // Parse JSON properties to prevent double JSON encoding
     resultDataJson = removeDoubleJsonEncoding(resultDataJson);
+
 
     return JSON.stringify(resultDataJson);
 }

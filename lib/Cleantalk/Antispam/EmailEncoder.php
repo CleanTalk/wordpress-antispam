@@ -16,6 +16,16 @@ class EmailEncoder
      * @var string
      */
     private $secret_key;
+    /**
+     * Sign to split encoded data via encoded chunk and initializing vector chunk
+     * @var string
+     */
+    private $encrypted_string_splitter;
+    /**
+     * Cipher global algorithm
+     * @var string
+     */
+    private $cipher_algo = "AES-128-CBC";
 
     /**
      * @var bool Show if the encryption functions are avaliable in current surroundings
@@ -70,25 +80,34 @@ class EmailEncoder
     protected $privacy_policy_hook_handled = false;
     protected $aria_regex = '/aria-label.?=.?[\'"].+?[\'"]/';
     protected $aria_matches = array();
+    /**
+     * @var bool
+     */
+    private $use_ssl = true;
 
     /**
      * @inheritDoc
      */
     protected function init()
     {
-
         global $apbct;
+
+        $this->registerShortcodeForEncoding();
+
+        $this->registerHookHandler();
 
         if ( ! $apbct->settings['data__email_decoder'] ) {
             return;
         }
 
         $this->secret_key = md5($apbct->api_key);
+        $this->encrypted_string_splitter = substr($this->secret_key, 0, 3);
 
-        $this->encryption_is_available = function_exists('openssl_encrypt') && function_exists('openssl_decrypt');
-
-        add_action('wp_ajax_nopriv_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
-        add_action('wp_ajax_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
+        $this->encryption_is_available = function_exists('openssl_encrypt') &&
+            function_exists('openssl_decrypt') &&
+            function_exists('openssl_cipher_iv_length') &&
+            function_exists('openssl_random_pseudo_bytes') &&
+            !empty($this->encrypted_string_splitter) && strlen($this->encrypted_string_splitter) === 3;
 
         // Excluded request
         if ($this->isExcludedRequest()) {
@@ -134,7 +153,7 @@ class EmailEncoder
      */
     public function modifyContent($content)
     {
-        if ( apbct_is_user_logged_in() ) {
+        if ( apbct_is_user_logged_in() && !apbct_is_in_uri('options-general.php?page=cleantalk') ) {
             return $content;
         }
 
@@ -157,6 +176,11 @@ class EmailEncoder
         //will use this in regexp callback
         $this->temp_content = $content;
 
+        return $this->modifyEmails($content);
+    }
+
+    public function modifyEmails($content)
+    {
         $replacing_result = preg_replace_callback('/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
 
             if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) && isset($matches[0]) ) {
@@ -178,11 +202,16 @@ class EmailEncoder
             }
         }, $content);
 
-        // modify content to turn back aria-label
-        $replacing_result = $this->modifyAriaLabelContent($replacing_result, true);
-
         //please keep this var (do not simplify the code) for further debug
         return $replacing_result;
+    }
+
+    public function modifyAny($string)
+    {
+        $encoded_string = $this->encodeAny($string);
+
+        //please keep this var (do not simplify the code) for further debug
+        return $encoded_string;
     }
 
     /**
@@ -192,10 +221,19 @@ class EmailEncoder
      */
     public function ajaxDecodeEmailHandler()
     {
-        if (! defined('REST_REQUEST')) {
+        if (! defined('REST_REQUEST') && !apbct_is_user_logged_in()) {
             check_ajax_referer('ct_secret_stuff');
         }
+
+        // use non ssl mode for logged in user on settings page
+        if ( apbct_is_user_logged_in() ) {
+            $this->decoded_emails_array = $this->ignoreOpenSSLMode()->decodeEmailFromPost();
+            $this->response = $this->compileResponse($this->decoded_emails_array, true);
+            wp_send_json_success($this->decoded_emails_array);
+        }
+
         $this->decoded_emails_array = $this->decodeEmailFromPost();
+
         if ( $this->checkRequest() ) {
             //has error response from cloud
             if ( $this->has_connection_error ) {
@@ -226,7 +264,7 @@ class EmailEncoder
         }
 
         foreach ( $this->encoded_emails_array as $_key => $encoded_email) {
-            $this->decoded_emails_array[$encoded_email] = $this->decodeString($encoded_email, $this->secret_key);
+            $this->decoded_emails_array[$encoded_email] = $this->decodeString($encoded_email);
         }
 
         return $this->decoded_emails_array;
@@ -261,15 +299,13 @@ class EmailEncoder
      * Encoding any string
      *
      * @param $plain_string string
-     * @param $key string
      *
      * @return string
      */
-    private function encodeString($plain_string, $key)
+    public function encodeString($plain_string)
     {
-
-        if ( $this->encryption_is_available ) {
-            $encoded_email = htmlspecialchars(@openssl_encrypt($plain_string, 'aes-128-cbc', $key));
+        if ( $this->use_ssl && $this->encryption_is_available ) {
+            $encoded_email = htmlspecialchars($this->openSSLEncrypt($plain_string));
         } else {
             $encoded_email = htmlspecialchars(base64_encode(str_rot13($plain_string)));
         }
@@ -277,22 +313,129 @@ class EmailEncoder
     }
 
     /**
+     * Encrypts a given plain string using the AES-128-CBC cipher algorithm and returns the encoded string.
+     *
+     * @param string $plain_string The plain text string that needs to be encrypted.
+     * @return string The encrypted string, which is a combination of the base64-encoded initialization vector (IV) and the encrypted data, separated by a predefined splitter.
+     */
+    private function openSSLEncrypt($plain_string)
+    {
+        global $apbct;
+        try {
+            if (!is_string($plain_string) || empty($plain_string)) {
+                throw new \Exception('Invalid or empty plain string');
+            }
+            // Determine the length of the IV required for the AES-128-CBC cipher algorithm
+            $iv_length = openssl_cipher_iv_length($this->cipher_algo);
+            if ($iv_length === false) {
+                throw new \Exception('Can\'t generate initializing vector length');
+            }
+            // Generate a random IV of the required length
+            $iv = openssl_random_pseudo_bytes($iv_length);
+            if (empty($iv)) {
+                throw new \Exception('Can\'t generate initializing vector body');
+            }
+            // Encrypt the plain string using the specified cipher algorithm, secret key, and IV
+            $encoded_string = @openssl_encrypt($plain_string, $this->cipher_algo, $this->secret_key, 0, $iv);
+            if (empty($encoded_string)) {
+                throw new \Exception('Can\'t encode plain string');
+            }
+            if (!function_exists('base64_encode')) {
+                throw new \Exception('Can\'t run base64_encode');
+            }
+            // Base64-encode the IV and concatenate it with the encrypted string, separated by a predefined splitter
+            $encoded_string = base64_encode($iv) . $this->encrypted_string_splitter . $encoded_string;
+
+            // Return the combined string
+            return $encoded_string;
+        } catch (\Exception $e) {
+            //todo catch errors on higher level
+            $get_last_error = error_get_last();
+            $get_last_error = isset($get_last_error['message']) ? $get_last_error['message'] : 'no PHP error';
+            $apbct->errorAdd('email_encoder', esc_html($e->getMessage()) . ', backtrace: ' . $get_last_error);
+            return $plain_string;
+        }
+    }
+
+    /**
      * Decoding previously encoded string
      *
      * @param $encoded_string string
-     * @param $key string
      *
      * @return string
      */
-    private function decodeString($encoded_string, $key)
+    public function decodeString($encoded_string)
     {
-        if ( $this->encryption_is_available  ) {
-            $decoded_email = htmlspecialchars_decode(@openssl_decrypt($encoded_string, 'aes-128-cbc', $key));
+        if ( $this->use_ssl && $this->encryption_is_available ) {
+            $decoded_string = htmlspecialchars_decode($this->openSSLDecrypt($encoded_string));
         } else {
-            $decoded_email = htmlspecialchars_decode(base64_decode($encoded_string));
-            $decoded_email = str_rot13($decoded_email);
+            $decoded_string = htmlspecialchars_decode(base64_decode($encoded_string));
+            $decoded_string = str_rot13($decoded_string);
         }
-        return $decoded_email;
+        return $decoded_string;
+    }
+
+    /**
+     * Decrypts a given encoded string using the AES-128-CBC cipher algorithm and returns the decoded string.
+     *
+     * @param string $encoded_string The encoded string that needs to be decrypted.
+     * @return string The decrypted string.
+     */
+    private function openSSLDecrypt($encoded_string)
+    {
+        global $apbct;
+        try {
+            if (!is_string($encoded_string) || empty($encoded_string)) {
+                throw new \Exception('Invalid or empty encoded string');
+            }
+            // Find the position of the splitter in the encoded string
+            $splitter_position = strpos($encoded_string, $this->encrypted_string_splitter);
+
+            if (empty($splitter_position)) {
+                throw new \Exception('Can\'t split string');
+            }
+
+            // Extract the IV chunk from the encoded string
+            $iv_chunk = substr($encoded_string, 0, $splitter_position);
+
+            if (empty($iv_chunk)) {
+                throw new \Exception('Can\'t get initializing vector string');
+            }
+
+            // Extract the encoded data chunk from the encoded string
+            $encoded_data_chunk = substr($encoded_string, $splitter_position + strlen($this->encrypted_string_splitter));
+
+            if (empty($encoded_data_chunk)) {
+                throw new \Exception('Can\'t get encoded data');
+            }
+
+            if (!function_exists('base64_decode')) {
+                throw new \Exception('Can\'t run base64_decode');
+            }
+
+            // Decode the IV chunk from base64
+            $iv_chunk_decoded = base64_decode($iv_chunk);
+
+            if (empty($iv_chunk_decoded)) {
+                throw new \Exception('Can\'t decode initializing vector string');
+            }
+
+            // Decrypt the encoded data chunk using the specified cipher algorithm, secret key, and IV
+            $decoded_string = @openssl_decrypt($encoded_data_chunk, $this->cipher_algo, $this->secret_key, 0, $iv_chunk_decoded);
+
+            if (empty($decoded_string)) {
+                throw new \Exception('Can\'t finish SSL decryption');
+            }
+
+            // Return the decrypted string
+            return $decoded_string;
+        } catch (\Exception $e) {
+            //todo catch errors on higher level
+            $get_last_error = error_get_last();
+            $get_last_error = isset($get_last_error['message']) ? $get_last_error['message'] : 'no PHP error';
+            $apbct->errorAdd('email_encoder', esc_html($e->getMessage()) . ', backtrace: ' . $get_last_error);
+            return '';
+        }
     }
 
     /**
@@ -317,6 +460,15 @@ class EmailEncoder
         return $first_part . '@' . $second_part . $last_part;
     }
 
+    private function obfuscateString($string)
+    {
+        $length = strlen($string);
+        $first_part = substr($string, 0, 2);
+        $last_part = substr($string, $length - 2, 2);
+        $middle_part = str_pad('', $length - 4, '*');
+        return $first_part . $middle_part . $last_part;
+    }
+
     /**
      * Method to process plain email
      *
@@ -328,7 +480,19 @@ class EmailEncoder
     {
         $obfuscated = $this->obfuscateEmail($email_str);
 
-        $encoded = $this->encodeString($email_str, $this->secret_key);
+        $encoded = $this->encodeString($email_str);
+
+        return '<span 
+                data-original-string="' . $encoded . '"
+                class="apbct-email-encoder"
+                title="' . esc_attr($this->getTooltip()) . '">' . $this->addMagicBlur($obfuscated) . '</span>';
+    }
+
+    private function encodeAny($string)
+    {
+        $obfuscated = $this->obfuscateString($string);
+
+        $encoded = $this->encodeString($string);
 
         return '<span 
                 data-original-string="' . $encoded . '"
@@ -387,7 +551,7 @@ class EmailEncoder
             }, $matches[1]);
         }
         $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
-        $encoded = $this->encodeString($mailto_link_str, $this->secret_key);
+        $encoded = $this->encodeString($mailto_link_str);
 
         $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
 
@@ -551,5 +715,40 @@ class EmailEncoder
         }
 
         return $skip_encode;
+    }
+
+    /**
+     * Fluid. Ignore SSL mode for encoding/decoding on the instance.
+     * @return $this
+     */
+    public function ignoreOpenSSLMode()
+    {
+        $this->use_ssl = false;
+        return $this;
+    }
+
+    /**
+     * Register AJAX routes to run decoding
+     * @return void
+     */
+    public function registerAjaxRoute()
+    {
+        add_action('wp_ajax_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
+        add_action('wp_ajax_nopriv_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
+    }
+
+    private function registerShortcodeForEncoding()
+    {
+        add_shortcode('apbct_encode_data', [$this, 'shortcodeCallback']);
+    }
+
+    public function shortcodeCallback($_atts, $content, $_tag)
+    {
+        return $this->modifyAny($content);
+    }
+
+    private function registerHookHandler()
+    {
+        add_filter('apbct_encode_data', [$this, 'modifyAny']);
     }
 }

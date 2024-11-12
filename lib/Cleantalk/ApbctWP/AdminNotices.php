@@ -4,7 +4,9 @@ namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\UniversalBanner\BannerDataDto;
 use Cleantalk\ApbctWP\LinkConstructor;
+use Cleantalk\Common\TT;
 
 class AdminNotices
 {
@@ -32,7 +34,7 @@ class AdminNotices
         'notice_renew',
         'notice_incompatibility',
         'notice_review',
-        'notice_email_decoder_changed'
+        'notice_email_decoder_changed',
     );
 
     /**
@@ -130,21 +132,24 @@ class AdminNotices
      */
     public function notice_get_key_error() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if ( $this->apbct->notice_show && ! empty($this->apbct->errors['key_get']) && ! $this->apbct->white_label ) {
-            //HANDLE LINK
-            $register_link = LinkConstructor::buildCleanTalkLink('get_access_key_link', 'wordpress-anti-spam-plugin') .
+        if ($this->apbct->notice_show &&
+            ! empty($this->apbct->errors['key_get']) &&
+            ! $this->apbct->white_label
+        ) {
+            $banner_data = new BannerDataDto();
+            $banner_data->text = __("Unable to get Access key automatically:", 'cleantalk-spam-protect');
+            $banner_data->secondary_text = end($this->apbct->errors['key_get'])['error'];
+
+            $banner_data->button_url = LinkConstructor::buildCleanTalkLink('get_access_key_link', 'wordpress-anti-spam-plugin') .
                 '&platform=wordpress&email=' . urlencode(ct_get_admin_email()) .
                 '&website=' . urlencode(get_option('home'));
-            $content       =
-                sprintf(
-                    __("Unable to get Access key automatically: %s", 'cleantalk-spam-protect'),
-                    end($this->apbct->errors['key_get'])['error']
-                ) .
-                '<a target="_blank" style="margin-left: 10px" href="' . $register_link . '">' .
-                esc_html__('Get the Access key', 'cleantalk-spam-protect') .
-                '</a>';
-            $id            = 'cleantalk_' . __FUNCTION__;
-            $this->generateNoticeHtml($content, $id);
+            $banner_data->button_text = __('Get the Access key', 'cleantalk-spam-protect');
+
+            $banner_data->level = 'error';
+            $banner_data->is_dismissible = ! $this->is_cleantalk_page;
+
+            $banner = new ApbctUniversalBanner($banner_data);
+            $banner->echoBannerBody();
         }
     }
 
@@ -154,13 +159,25 @@ class AdminNotices
      */
     public function notice_key_is_incorrect() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if ( ( ! apbct_api_key__is_correct() && $this->apbct->moderate_ip == 0) && ! $this->apbct->white_label ) {
-            $content = sprintf(
+        if ( ! $this->apbct->white_label &&
+            ! apbct_api_key__is_correct() &&
+            $this->apbct->moderate_ip == 0
+        ) {
+            $banner_data = new BannerDataDto();
+            $banner_data->text = sprintf(
                 __("Please enter the Access Key in %s plugin to enable spam protection!", 'cleantalk-spam-protect'),
-                "<a href='{$this->settings_link}'>{$this->apbct->plugin_name}</a>"
+                $this->apbct->plugin_name
             );
-            $id      = 'cleantalk_' . __FUNCTION__;
-            $this->generateNoticeHtml($content, $id);
+
+            $banner_data->button_url = $this->settings_link;
+            $banner_data->button_text = __('Settings', 'cleantalk-spam-protect');
+
+            $banner_data->level = 'error';
+            $banner_data->is_dismissible = ! $this->is_cleantalk_page;
+
+            $banner = new ApbctUniversalBanner($banner_data);
+            $banner->echoBannerBody();
+
             $this->apbct->notice_show = false;
         }
     }
@@ -171,42 +188,31 @@ class AdminNotices
      */
     public function notice_trial() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if (
-                $this->apbct->notice_show &&
-                $this->apbct->notice_trial == 1 && //the flag!
-                $this->apbct->moderate_ip == 0 &&
-                ! $this->apbct->white_label
+        if ($this->apbct->notice_show &&
+            $this->apbct->notice_trial == 1 &&
+            $this->apbct->moderate_ip == 0 &&
+            ! $this->apbct->white_label
         ) {
-            /*
-             * Generate main content
-             */
-
-            //prepare plugin settings link
-            $plugin_settings_link = '<a href="' . $this->settings_link . '">' . $this->apbct->plugin_name . '</a>';
-
-            //prepare renewal link
-            $link_text = "<b>" . __('next year', 'cleantalk-spam-protect') . "</b>";
-            $renew_link  = LinkConstructor::buildRenewalLinkATag($this->user_token, $link_text, 1, 'renew_notice_trial');
-
-            //construct main content
-            $content            = sprintf(
-                __("%s trial period ends, please upgrade to %s!", 'cleantalk-spam-protect'),
-                $plugin_settings_link,
-                $renew_link
+            $banner_data = new BannerDataDto();
+            $banner_data->text = sprintf(
+                __("%s trial period ends, please upgrade to next year!", 'cleantalk-spam-protect'),
+                $this->apbct->plugin_name
             );
 
-            /*
-             * Generate additional content.
-             */
+            $banner_data->button_url = LinkConstructor::buildRenewalLink($this->user_token, 'renew_notice_trial');
+            $banner_data->button_text = __('Upgrade', 'cleantalk-spam-protect');
 
-            $additional_content = static::generateUpdatingStatusContent($this->apbct->plugin_name);
+            $banner_data->additional_text = sprintf(
+                __('Account status updates every 24 hours or click Settings -> %s -> Synchronize with Cloud.', 'cleantalk-spam-protect'),
+                $this->apbct->data['wl_brandname']
+            );
 
-            /*
-             * Process layout
-             */
+            $banner_data->level = 'error';
+            $banner_data->is_dismissible = ! $this->is_cleantalk_page;
 
-            $id                 = 'cleantalk_' . __FUNCTION__;
-            $this->generateNoticeHtml($content, $id, $additional_content);
+            $banner = new ApbctUniversalBanner($banner_data);
+            $banner->echoBannerBody();
+
             $this->apbct->notice_show = false;
         }
     }
@@ -218,45 +224,28 @@ class AdminNotices
      */
     public function notice_renew() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        global $apbct;
-
-        if (
-                $this->apbct->notice_show &&
-                $this->apbct->notice_renew == 1 && //the flag!
-                $this->apbct->moderate_ip == 0 &&
-                ! $this->apbct->white_label
+        if ($this->apbct->notice_show &&
+            $this->apbct->notice_renew == 1 &&
+            $this->apbct->moderate_ip == 0 &&
+            ! $this->apbct->white_label
         ) {
-            /*
-             * Generate main content
-             */
+            $banner_data = new BannerDataDto();
+            $banner_data->text = __("Please renew your Anti-Spam license for next year!", 'cleantalk-spam-protect');
 
-            // Prepare the string-like renewal link for main content.
-            $link_text = "<b>" . __('next year', 'cleantalk-spam-protect') . "</b>";
-            $renew_link = LinkConstructor::buildRenewalLinkATag($this->user_token, $link_text, 1, 'renew_notice_renew');
+            $banner_data->button_url = LinkConstructor::buildRenewalLink($this->user_token, 'renew_notice_renew');
+            $banner_data->button_text = __('Upgrade', 'cleantalk-spam-protect');
 
-            $content            = sprintf(
-                __("Please renew your Anti-Spam license for %s.", 'cleantalk-spam-protect'),
-                $renew_link
+            $banner_data->additional_text = sprintf(
+                __('Account status updates every 24 hours or click Settings -> %s -> Synchronize with Cloud.', 'cleantalk-spam-protect'),
+                $this->apbct->data['wl_brandname']
             );
 
-            /*
-             * Generate additional content.
-             */
+            $banner_data->level = 'error';
+            $banner_data->is_dismissible = ! $this->is_cleantalk_page;
 
-            // Prepare the renewal button - will be added to the bottom of notice
-            $button_text = __('RENEW ANTI-SPAM', 'cleantalk-spam-protect');
-            $button_html = '<input type="button" class="button button-primary" style="margin-bottom:20px" value="' . $button_text . '"  />';
-            $button_html = LinkConstructor::buildRenewalLinkATag($this->user_token, $button_html, 1, 'renew_notice_renew_button');
+            $banner = new ApbctUniversalBanner($banner_data);
+            $banner->echoBannerBody();
 
-            $additional_content = static::generateUpdatingStatusContent($this->apbct->plugin_name);
-            // add the button to the additional content - todo:: AG - bad practice to place button directly concatenating, we should have a special tag for buttons
-            $additional_content .= $button_html;
-
-            /*
-             * Process layout
-             */
-            $id                 = 'cleantalk_' . __FUNCTION__;
-            $this->generateNoticeHtml($content, $id, $additional_content);
             $this->apbct->notice_show = false;
         }
     }
@@ -268,12 +257,18 @@ class AdminNotices
      */
     public function notice_review() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        global $apbct;
+        if ($this->apbct->notice_review == 1 &&
+            ! $this->apbct->white_label
+        ) {
+            $banner_data = new BannerDataDto();
+            $banner_data->text = sprintf(
+                __("Help others to fight spam with %s – leave your feedback!", 'cleantalk-spam-protect'),
+                $this->apbct->data['wl_brandname']
+            );
 
-        if ( $this->apbct->notice_review == 1 && ! $this->apbct->white_label ) {
-            $review_link = "<a class='button' href='https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5' target='_blank'>"
-                                . __('SHARE YOUR FEEDBACK', 'cleantalk-spam-protect') .
-                            "</a>";
+            $banner_data->button_url = 'https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5';
+            $banner_data->button_text = __('SHARE YOUR FEEDBACK', 'cleantalk-spam-protect');
+
             $support_link = '<a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/" 
                             style="display:inline-block; margin-top: 10px;"  target="_blank">'
                             . __('Still have spam?', 'cleantalk-spam-protect')
@@ -281,37 +276,52 @@ class AdminNotices
             $close_link = '<a href="#" class="notice-dismiss-link" onclick="return false;">'
                             . __('Already posted the review', 'cleantalk-spam-protect')
                             . '</a>';
-            $notice_text = __('Help others to fight spam – leave your feedback!', 'cleantalk-spam-protect');
-            $content = '<div class="apbct-notice notice notice-success is-dismissible" id="cleantalk_notice_review">
-                            <div class="flex-row">
-                                <h3>'
-                                    . $notice_text .
-                                '</h3>
-                                <p class="caption">'
-                                    . $apbct->data['wl_brandname'] .
-                                '</p>
-                            </div>'
-                            . '<div id="cleantalk_notice_review">'
-                            . $review_link . '&nbsp;&nbsp;'
-                            . $support_link . '&nbsp;&nbsp;'
-                            . $close_link . '&nbsp;'
-                            . '</div>'
-                        . '</div>';
+            $banner_data->additional_text = $support_link . '&nbsp;&nbsp;' . $close_link;
 
-            echo $content;
+            $banner_data->level = 'success';
+
+            $banner = new ApbctUniversalBanner($banner_data);
+            $banner->echoBannerBody();
         }
     }
 
     /**
      * Callback for the notice hook
-     * @psalm-suppress PossiblyUnusedMethod
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUndefinedStringArrayOffset
      */
     public function notice_incompatibility() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         global $apbct;
-        if ( ! empty($this->apbct->data['notice_incompatibility']) && $this->is_cleantalk_page && $this->apbct->settings['sfw__enabled'] ) {
+
+        if ( ! empty($this->apbct->data['notice_incompatibility']) &&
+            $this->is_cleantalk_page &&
+            $this->apbct->settings['sfw__enabled']
+        ) {
             foreach ( $this->apbct->data['notice_incompatibility'] as $notice ) {
-                $this->generateNoticeHtml($notice);
+                $banner_data = new BannerDataDto();
+                $banner_data->text = sprintf(
+                    __("Some plugin is not compatible with %s – instruction in the article.", 'cleantalk-spam-protect'),
+                    $this->apbct->data['wl_brandname']
+                );
+
+                switch ($notice) {
+                    case (strpos($notice, 'W3 Total Cache') !== false):
+                        $banner_data->button_url = 'https://cleantalk.org/help/cleantalk-and-w3-total-cache';
+                        break;
+                    default:
+                        $banner_data->button_url = '';
+                        break;
+                }
+
+                $banner_data->button_text = __('Read the article', 'cleantalk-spam-protect');
+
+                $banner_data->additional_text = $notice;
+
+                $banner_data->level = 'error';
+                $banner_data->is_dismissible = ! $this->is_cleantalk_page;
+
+                $banner = new ApbctUniversalBanner($banner_data);
+                $banner->echoBannerBody();
             }
         } else {
             $apbct->data['notice_incompatibility'] = array();
@@ -326,35 +336,20 @@ class AdminNotices
     public function notice_email_decoder_changed() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         global $apbct;
-        if ($apbct->data['notice_email_decoder_changed'] && $this->is_cleantalk_page && apbct_is_cache_plugins_exists()) { ?>
-            <div class="apbct-notice um-admin-notice notice notice-info apbct-plugin-errors is-dismissible"
-                 id="cleantalk_notice_email_decoder_changed" style="position: relative;">
-            <h3>
-                <?php echo esc_html__('Need to clear the cache', 'cleantalk-spam-protect'); ?>
-            </h3>
-            <h4 style="color: gray;">
-                <?php echo esc_html__('You have changed the "Encode contact data" setting. If you use caching plugins, then you need to clear the cache.', 'cleantalk-spam-protect'); ?>
-            </h4>
-            </div>
-        <?php }
-    }
 
-    /**
-     * Generate and output the notice HTML
-     *
-     * @param string $content Any HTML allowed
-     * @param string $id
-     * @param string $additional_content
-     */
-    private function generateNoticeHtml($content, $id = '', $additional_content = '')
-    {
-        $notice_classes = $this->is_cleantalk_page ? 'apbct-notice notice notice-error' : 'apbct-notice notice notice-error is-dismissible';
-        $notice_id      = ! empty($id) ? 'id="' . $id . '"' : '';
+        if ($apbct->data['notice_email_decoder_changed'] &&
+            $this->is_cleantalk_page && apbct_is_cache_plugins_exists()
+        ) {
+            $banner_data = new BannerDataDto();
+            $banner_data->text = __("Need to clear the cache", 'cleantalk-spam-protect');
+            $banner_data->additional_text = __('You have changed the "Encode contact data" setting. If you use caching plugins, then you need to clear the cache.', 'cleantalk-spam-protect');
 
-        echo '<div class="' . $notice_classes . '" ' . $notice_id . '>
-				<h3>' . $content . '</h3>
-				' . $additional_content . '
-			  </div>';
+            $banner_data->level = 'info';
+            $banner_data->is_show_button = false;
+
+            $banner = new ApbctUniversalBanner($banner_data);
+            $banner->echoBannerBody();
+        }
     }
 
     /**
@@ -411,7 +406,7 @@ class AdminNotices
         }
 
         global $apbct;
-        $notice       = sanitize_text_field(Post::get('notice_id'));
+        $notice       = sanitize_text_field(TT::toString(Post::get('notice_id')));
         $uid          = get_current_user_id();
         $notice_uid   = $notice . '_' . $uid;
         $current_date = current_time('Y-m-d H:i:s');
@@ -452,14 +447,5 @@ class AdminNotices
         }
 
         return $after;
-    }
-
-    private static function generateUpdatingStatusContent($wl_brandname)
-    {
-        $additional_content =
-            '<h4 style = "color: gray">' .
-            esc_html__('Account status updates every 24 hours or click Settings -> ' . $wl_brandname . ' -> Synchronize with Cloud.', 'cleantalk-spam-protect') .
-            '</h4>';
-        return $additional_content;
     }
 }
