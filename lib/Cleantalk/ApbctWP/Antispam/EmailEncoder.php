@@ -2,9 +2,7 @@
 
 namespace Cleantalk\ApbctWP\Antispam;
 
-use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\Helper;
-use Cleantalk\ApbctWP\LinkConstructor;
 use Cleantalk\Common\TT;
 use Cleantalk\Variables\Post;
 use Cleantalk\Antispam\CleantalkRequest;
@@ -117,28 +115,13 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
                 TT::toString($example_email)
             );
         }
-        $blog_link = LinkConstructor::buildCleanTalkLink(
-            'blog_email_encoder_common_post',
-            'wordpress-how-hide-email-address-from-bots-and-spammers',
-            array(),
-            'https://blog.cleantalk.org'
-        );
 
-        $href = LinkConstructor::buildSimpleHref($blog_link, __('blog', 'cleantalk-spam-protect'));
-
-        $learn_more = sprintf(
-            '%s %s',
-            __('We described a few details in our', 'cleantalk-spam-protect'),
-            $href
-        );
-
-        $template = '%s%s%s';
+        $template = '%s&nbsp;%s';
 
         return sprintf(
             $template,
             $common_description,
-            empty($example_encoded) ? '&nbsp;' : '<br/>' . $example_encoded . '<br/>',
-            $learn_more
+            empty($example_encoded) ? '&nbsp;' : '<span style="position:absolute">' . $example_encoded . '</span>'
         );
     }
 

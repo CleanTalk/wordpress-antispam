@@ -202,6 +202,13 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             . '&utm_campaign=apbct_links';
     }
 
+    /**
+     * @param $href
+     * @param $link_word
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public static function buildSimpleHref($href, $link_word)
     {
         return '<a href="' . esc_html(TT::toString($href)) . '" target="_blank">' . esc_html(TT::toString($link_word)) . '</a>';
