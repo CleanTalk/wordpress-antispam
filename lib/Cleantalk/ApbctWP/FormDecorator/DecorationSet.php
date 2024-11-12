@@ -8,9 +8,47 @@ class DecorationSet
 
     public $color;
 
+    public $localized_name;
+
+    protected $css_class_name;
+
+    public function __construct() {
+        $this->localizeCSS();
+    }
+
+    public function getCssClass() {
+        return $this->css_class_name;
+    }
+
+    public function localizeCSS()
+    {
+        $css_file_path = $this->getCSSFilePath();
+        if (false === $css_file_path) {
+            //add error
+            return;
+        }
+        add_action('wp_enqueue_scripts', function () {
+            wp_enqueue_style(
+                'ct_' . $this->css_class_name,
+                $this->getCSSFilePath(),
+                array(),
+                APBCT_VERSION,
+                'all'
+            );
+        });
+
+    }
+
+    private function getCSSFilePath()
+    {
+        $css_path = APBCT_URL_PATH . '/lib/Cleantalk/ApbctWP/FormDecorator/Decorations/' . $this->css_class_name . '.css';
+
+        return @file_get_contents($css_path) ? $css_path : false;
+    }
+
     public function header()
     {
-        $prefix = 'apbct_form_decoration_' . __FUNCTION__ . '__';
+        $prefix = $this->css_class_name . '_' . __FUNCTION__ . '__';
         $template = '
         <div id="%HEADER_WRAPPER_ID%" class="%HEADER_WRAPPER_CLASS%">
             <div id="%HEADER_CONTENT_ID%" class="%HEADER_CONTENT_CLASS%">
@@ -38,31 +76,9 @@ class DecorationSet
         return $template;
     }
 
-    private function getHeaderSVG()
+    protected function getHeaderSVG()
     {
-        return '
-        <svg viewBox="0 0 595 76" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0 22H91V49V76H0L25 49L0 22Z" fill="' . $this->darkenHexColor($this->color, 10) . '"/>
-        <path d="M595 22H504V49V76H595L570 49L595 22Z" fill="' . $this->darkenHexColor($this->color, 10) . '"/>
-        <path d="M48 22H91V49V76L48 60V45V22Z" fill="' . $this->darkenHexColor($this->color, 32) . '"/>
-        <path d="M547 22H504V49V76L547 60V49V22Z" fill="' . $this->darkenHexColor($this->color, 32) . '"/>
-        <g filter="url(#filter0_d_3860_2299)">
-        <path d="M48 6H547V33V60H48V33V6Z" fill="' . $this->color . '"/>
-        </g>
-        <defs>
-        <filter id="filter0_d_3860_2299" x="38" y="0" width="519" height="74" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-        <feFlood flood-opacity="0" result="BackgroundImageFix"/>
-        <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-        <feOffset dy="4"/>
-        <feGaussianBlur stdDeviation="5"/>
-        <feComposite in2="hardAlpha" operator="out"/>
-        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.3 0"/>
-        <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_3860_2299"/>
-        <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_3860_2299" result="shape"/>
-        </filter>
-        </defs>
-        </svg>
-        ';
+        return '';
     }
 
     /**
@@ -75,7 +91,7 @@ class DecorationSet
      * @param float $percent The percentage by which to darken the color (e.g., 20 for 20%).
      * @return string The darkened hex color code.
      */
-    private function darkenHexColor($hex, $percent)
+    protected function darkenHexColor($hex, $percent)
     {
         // Remove the hash at the start if it's there
         $hex = ltrim($hex, '#');

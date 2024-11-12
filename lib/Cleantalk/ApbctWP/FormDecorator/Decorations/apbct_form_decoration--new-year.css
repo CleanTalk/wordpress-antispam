@@ -1,0 +1,53 @@
+.apbct_form_decoration--new-year_header__content {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: column-reverse;
+    justify-content: center;
+    align-items: center;
+    height: 70px;
+}
+.apbct_form_decoration--new-year_header__content svg {
+    position: absolute;
+    width: 600px;
+}
+.apbct_form_decoration--new-year_header__text {
+    display: block;
+    color: #FFF;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 18px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    z-index: 1;
+    padding-bottom: 12px;
+}
+.apbct_form_decoration--new-year {
+    background: url('images/apbct_form_decoration--new-year/holiday_bg.svg') repeat;
+    background-size: 100%;
+    position: relative;
+}
+.apbct_form_decoration--new-year form {
+    position: relative;
+    z-index: 1;
+}
+.apbct_form_decoration--new-year:before, .apbct_form_decoration--new-year:after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    width: 50%;
+    height: 100%;
+    background-position-y: bottom;
+    background-repeat: no-repeat;
+    background-size: 50%;
+    z-index: 0;
+}
+.apbct_form_decoration--new-year:before {
+    left: 0;
+    background-image: url('images/apbct_form_decoration--new-year/flag-left.svg');
+    background-position-x: left;
+}
+.apbct_form_decoration--new-year:after {
+    right: 0;
+    background-image: url('images/apbct_form_decoration--new-year/flag-right.svg');
+    background-position-x: right;
+}

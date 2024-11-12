@@ -437,20 +437,33 @@ function apbct_settings__set_fields()
                     ),
                     'childrens' => array(
                         'comments__form_decoration_text',
-                        'comments__form_decoration_color'
+                        'comments__form_decoration_color',
+                        'comments__form_decoration_selector'
                     )
+                ),
+                'comments__form_decoration_selector' => array(
+                    'type'        => 'select',
+                    'class'       => 'apbct_settings-field_wrapper--sub',
+                    'options_callback' => array(\Cleantalk\ApbctWP\FormDecorator\DecorationRegistry::getInstance(),
+                        'getDecorationLocalizedNames'
+                    ),
+                    'title'       => __('Select the name of decoration preset', 'cleantalk-spam-protect'),
+                    'description' => __('Holiday form decoration preset description', 'cleantalk-spam-protect'),
+                    'parent'          => 'comments__form_decoration',
                 ),
                 'comments__form_decoration_text' => array(
                     'type'        => 'text',
                     'class'       => 'apbct_settings-field_wrapper--sub',
                     'title'       => __('Holiday form decoration title', 'cleantalk-spam-protect'),
                     'description' => __('Holiday form decoration title description', 'cleantalk-spam-protect'),
+                    'parent'          => 'comments__form_decoration',
                 ),
                 'comments__form_decoration_color' => array(
                     'type'        => 'color',
                     'class'       => 'apbct_settings-field_wrapper--sub',
                     'title'       => __('Holiday form decoration color', 'cleantalk-spam-protect'),
                     'description' => __('Holiday form decoration color description', 'cleantalk-spam-protect'),
+                    'parent'          => 'comments__form_decoration',
                 )
             ),
         ),
@@ -1575,6 +1588,9 @@ function apbct_settings__error__output($return = false)
             'settings_validate' => 'Validate Settings',
             'exclusions_urls'   => 'URL Exclusions',
             'exclusions_fields' => 'Field Exclusions',
+
+            //Form decorator
+            \Cleantalk\ApbctWP\FormDecorator\FormDecorator::$error_type => 'Form decoration',
 
             // Unknown
             'unknown'           => __('Unknown error type: ', 'cleantalk-spam-protect'),
