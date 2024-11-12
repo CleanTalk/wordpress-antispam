@@ -2,7 +2,6 @@
 
 namespace Cleantalk\ApbctWP\Antispam;
 
-use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Common\TT;
 use Cleantalk\Variables\Post;
@@ -104,5 +103,34 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             );
         }
         return $result;
+    }
+
+    public static function getEncoderOptionDescription($example_email = '')
+    {
+        $common_description = __(
+            'Option encodes emails on public pages of the site. This prevents robots from collecting and including your emails in lists to spam.',
+            'cleantalk-spam-protect'
+        );
+        $example_encoded = '';
+        if ( !empty($example_email) && is_string($example_email)) {
+            $example_encoded = sprintf(
+                '%s: %s',
+                __('Here is a sample of encoded email', 'cleantalk-spam-protect'),
+                TT::toString($example_email)
+            );
+        }
+
+        $template = '%s&nbsp;%s';
+
+        return sprintf(
+            $template,
+            $common_description,
+            empty($example_encoded) ? '&nbsp;' : '<span style="position:absolute">' . $example_encoded . '</span>'
+        );
+    }
+
+    public static function getBufferUsageOptionDescription()
+    {
+        return __('Use this option only if no encoding occurs when the "Encode contact data" option is enabled.', 'cleantalk-spam-protect');
     }
 }
