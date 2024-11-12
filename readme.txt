@@ -2,9 +2,9 @@
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
-Tested up to: 6.6
+Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 6.44
+Stable tag: 6.45
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -443,6 +443,22 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.45 14 Nov 2024 =
+* Code. Psalm level 3. New progress.
+* Fix. Anti-Flood. Blocking page loop fixed.
+* Fix. Code. GetFieldsAny(). Added protection for unknown Gravity forms attack that ignores integration hooks.
+* Fix. Common check. Prevent spam on Formintator forms direct call attacks.
+* Fix. EmailEncoder. Editing the change of double quotes to single quotes.
+* Fix. EmailEncoder. Issue with missing tables fixed.
+* Fix. EmailEncoder. Revived lost modifyAriaLabelContent() call used to replace back the origin aria attr.
+* Fix. Remote Calls. RC calling for the services without the api key fixed.
+* Fix. Request Parameters. `apbct_site_landing_ts` parameter handling fixed.
+* Fix. Skip request. Skipping an ajax request to edit a profile.
+* Mod. EmailEncoder. Popup. Copy button removed. Email made selectable by click. Styles unified.
+* Mod. EmailEncoder. Descriptions updated.
+* Mod. Sanitize::sanitizeCleantalkServerUrl implemented.
+* Upd. Settings. Checking email existence option will be enabled by default for the new users.
 
 = 6.44 31 Oct 2024 =
 * New. Integrations. Added honeypot for elementor form.
