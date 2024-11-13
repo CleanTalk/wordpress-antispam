@@ -3264,7 +3264,13 @@ function apbct_form__elementor_pro__addField($content)
 
     $search = '</form>';
     $replace = ct_add_honeypot_field('elementor_form') . $search;
-    $content = str_replace($search, $replace, $content);
+
+    if (
+        is_string($content) &&
+        !strpos($content, 'elementor-search-form')
+    ) {
+        $content = str_replace($search, $replace, $content);
+    }
 
     if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' && strpos($content, $search) !== false ) {
         $content .= Escape::escKsesPreset(
