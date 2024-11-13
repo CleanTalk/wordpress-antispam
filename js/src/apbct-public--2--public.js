@@ -947,51 +947,6 @@ function apbct_ready() {
 
     // Set important paramaters via ajax if problematic cache solutions found
     apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
-
-    if (typeof apbctTrpBrokenIntervalId !== 'undefined') {
-        setTimeout(() => {
-            clearInterval(apbctTrpBrokenIntervalId);
-        }, 1000);
-    }
-}
-
-/**
- * Check broken TRP every 100ms until the page is loaded
- */
-const apbctTrpBrokenIntervalId = setInterval(apbctFixBrokenTRP, 100);
-
-/**
- * Fix broken TRP - clean author names from html tags
- */
-function apbctFixBrokenTRP() {
-    let author;
-    let comments;
-    let reviews;
-    let pattern = '<div class="apbct-real-user-author-name">';
-
-    if (document.documentElement.textContent.indexOf(pattern) > -1) {
-        author = document.documentElement.textContent.match(new RegExp(pattern + '(.*?)<\/div>'))[1];
-
-        comments = document.querySelectorAll('.comment-author');
-        for (let i = 0; i < comments.length; i++) {
-            comments[i].childNodes.forEach((node) => {
-                if (node.textContent.includes(pattern)) {
-                    node.textContent = author;
-                    apbctFixBrokenTRP();
-                }
-            });
-        }
-
-        reviews = document.querySelectorAll('.woocommerce-review__author');
-        for (let i = 0; i < reviews.length; i++) {
-            reviews[i].childNodes.forEach((node) => {
-                if (node.textContent.includes(pattern)) {
-                    node.textContent = author;
-                    apbctFixBrokenTRP();
-                }
-            });
-        }
-    }
 }
 
 /**
