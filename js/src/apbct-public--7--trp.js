@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-
     let ctTrpLocalize = undefined;
     let ctTrpIsAdminCommentsList = false;
 
@@ -7,7 +6,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if ( typeof ctPublic !== 'undefined' && ctPublic.theRealPerson ) {
             ctTrpLocalize = ctPublic.theRealPerson;
         }
-        if ( typeof ctTrpLocalize === 'undefined' && typeof ctTrpAdminLocalize !== 'undefined' && ctTrpAdminLocalize.theRealPerson ) {
+        if (
+            typeof ctTrpLocalize === 'undefined' &&
+            typeof ctTrpAdminLocalize !== 'undefined' &&
+            ctTrpAdminLocalize.theRealPerson
+        ) {
             ctTrpLocalize = ctTrpAdminLocalize.theRealPerson;
             ctTrpIsAdminCommentsList = true;
         }
@@ -22,9 +25,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let woocommerceReviewsSelector = '.apbct-trp *[class*="review__author"]';
     let adminCommentsListSelector = '.apbct-trp td[class*="column-author"] > strong';
     const trpComments = document.querySelectorAll(
-        themesCommentsSelector
-        + ',' + woocommerceReviewsSelector
-        + ',' + adminCommentsListSelector);
+        themesCommentsSelector + ',' +
+        woocommerceReviewsSelector + ',' +
+        adminCommentsListSelector);
 
     if ( trpComments.length === 0 ) {
         return;
@@ -56,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let learnMoreLink = document.createElement('a');
             learnMoreLink.setAttribute('href', ctTrpLocalize.trpContentLink);
             learnMoreLink.setAttribute('target', '_blank');
-            learnMoreLink.text = ctTrpLocalize.phrases.trpContentLearnMore
+            learnMoreLink.text = ctTrpLocalize.phrases.trpContentLearnMore;
             trpDescriptionContentSpan.append(' '); // Need one space
             trpDescriptionContentSpan.append(learnMoreLink);
         }
