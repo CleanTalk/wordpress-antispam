@@ -14,7 +14,7 @@ class CleantalkRealPerson
                 'trpContent2' => esc_html__('Passed all tests against spam bots. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect'),
                 'trpContentLearnMore' => esc_html__('Learn more', 'cleantalk-spam-protect'),
             ],
-            'trpContentLink' => esc_attr(LinkConstructor::buildCleanTalkLink('trp_learn_more_link_public', 'the-real-person')),
+            'trpContentLink' => esc_attr(LinkConstructor::buildCleanTalkLink('trp_learn_more_link', 'the-real-person')),
             'imgPersonUrl' => esc_attr(APBCT_URL_PATH . '/css/images/real_user.svg'),
             'imgShieldUrl' => esc_attr(APBCT_URL_PATH . '/css/images/shield.svg'),
         ];
