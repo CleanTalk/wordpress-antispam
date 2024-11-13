@@ -177,7 +177,7 @@ class UsersChecker extends Checker
     /**
      * @param array $users
      *
-     * @return array|false
+     * @return array
      */
     private static function removeUsersWithoutIPEmail(array $users)
     {
@@ -189,11 +189,11 @@ class UsersChecker extends Checker
             }
 
             $user_meta = self::getUserMeta($user->ID);
-            $user_meta_array = isset($user_meta[0]) ? $user_meta[0] : false;
-            if (!$user_meta_array || !is_array($user_meta_array)) {
+            if (empty($user_meta)) {
+                unset($users[$index]);
                 continue;
             }
-            $ip_of_user_meta = TT::getArrayValueAsString($user_meta_array, 'ip');
+            $ip_of_user_meta = TT::getArrayValueAsString($user_meta, 'ip');
             $user_ip    = ! empty($ip_of_user_meta) ? trim($ip_of_user_meta) : false;
             $user_email = ! empty($user->user_email) ? trim($user->user_email) : false;
 
@@ -526,10 +526,11 @@ class UsersChecker extends Checker
         );
 
         $u = get_users($params);
-
         foreach ( $u as $iValue ) {
             $user_meta = get_user_meta($iValue->ID, 'session_tokens', true);
-            $user_meta_array = isset($user_meta[0]) ? $user_meta[0] : false;
+            $user_meta_array = reset($user_meta);
+            $user_meta_array = !empty($user_meta_array) ? $user_meta_array : false;
+            // skip empty or invalid data users
             if (!$user_meta_array || !is_array($user_meta_array)) {
                 continue;
             }
@@ -747,15 +748,21 @@ class UsersChecker extends Checker
         return (int) $count_bad;
     }
 
+    /**
+     * @param $user_id
+     *
+     * @return array
+     */
     public static function getUserMeta($user_id)
     {
         $user_meta = get_user_meta($user_id, 'session_tokens', true);
 
         if ( is_array($user_meta) ) {
-            return array_values($user_meta);
+            $user_meta = array_values($user_meta);
+            return reset($user_meta);
         }
 
-        return false;
+        return array();
     }
 
     /**
