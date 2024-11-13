@@ -115,7 +115,7 @@ function apbct_settings__set_fields()
     $current_user_email = $current_user->exists() ? $current_user->user_email : 'example@example.com';
     $emailEncoder = EmailEncoder::getInstance();
     $current_user_email = $emailEncoder->ignoreOpenSSLMode()->modifyContent($current_user_email);
-    $trp_img = '<img src="'. esc_attr(APBCT_URL_PATH . '/css/images/real_user.svg') .'" alt="The Real Person image" />';
+    $trp_img = '<img src="' . esc_attr(APBCT_URL_PATH . '/css/images/real_user.svg') . '" alt="The Real Person image" />';
 
     $fields = array(
 

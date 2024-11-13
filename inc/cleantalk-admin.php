@@ -652,9 +652,9 @@ function apbct_admin__enqueue_scripts($hook)
             APBCT_VERSION
         );
         wp_localize_script(
-                'ct_trp_admin',
-                'ctTrpAdminLocalize',
-                \Cleantalk\ApbctWP\CleantalkRealPerson::getLocalizingData()
+            'ct_trp_admin',
+            'ctTrpAdminLocalize',
+            \Cleantalk\ApbctWP\CleantalkRealPerson::getLocalizingData()
         );
         wp_enqueue_script(
             'ct_comments_editscreen',
