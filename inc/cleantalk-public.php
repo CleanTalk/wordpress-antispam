@@ -1377,6 +1377,14 @@ function ct_enqueue_styles_public()
             }
         }
     }
+    if ( $apbct->settings['comments__the_real_person'] ) {
+        wp_enqueue_style(
+            'ct_trp_public',
+            APBCT_CSS_ASSETS_PATH . '/cleantalk-trp.min.css',
+            array(),
+            APBCT_VERSION
+        );
+    }
 }
 
 function apbct_enqueue_and_localize_public_scripts()
