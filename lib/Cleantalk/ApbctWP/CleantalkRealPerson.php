@@ -6,6 +6,7 @@ class CleantalkRealPerson
 {
     public static function getLocalizingData()
     {
+        /** @psalm-suppress PossiblyUndefinedVariable */
         $localize_array['theRealPerson'] = [
             'phrases' => [
                 'trpHeading' => esc_html__('The Real Person Badge!', 'cleantalk-spam-protect'),
