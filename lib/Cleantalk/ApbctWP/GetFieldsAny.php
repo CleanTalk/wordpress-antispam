@@ -266,7 +266,8 @@ class GetFieldsAny
                     (in_array($key, $this->skip_params, true) && $key !== 0 && $key !== '') ||
                     0 === strpos($key, "ct_checkjs")
                 ) {
-                    $this->contact = false;
+                    //todo We do need to refactor ct_checkjs check to be sure, that excluded request is not fake!
+                    $this->contact = $this->skipExclusionsOnVulnerableFormsData($arr);
                 }
 
                 if ($value === '') {
@@ -378,6 +379,29 @@ class GetFieldsAny
         if (apbct_array(array($_POST, $_GET))->getKeys($this->skip_params)->result()) {
             $this->contact = false;
         }
+    }
+
+    /**
+     * Check if the form is possible vulnerable for direct calls.
+     *
+     * @param array $form_data
+     *
+     * @return bool If do skip exclusions on vulnerable forms data.
+     */
+    private function skipExclusionsOnVulnerableFormsData($form_data)
+    {
+        // modification to correctly check gravity forms attacks
+        if ( isset($form_data) && is_array($form_data)) {
+            if (! empty($form_data['action']) &&
+                (
+                    ! empty($form_data['gform_ajax']) ||
+                    ! empty($form_data['gform_submit'])
+                )
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

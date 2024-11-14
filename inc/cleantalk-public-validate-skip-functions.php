@@ -102,7 +102,8 @@ function skip_for_ct_contact_form_validate()
         '11' => apbct_is_in_uri('reset-password/'),
         // Ticket #13668. Password reset.
         '12' => apbct_is_in_referer('/wp-admin/'),
-        '13' => apbct_is_in_uri('/login/'),
+        // task 9405 - prevent Forminator forms direct attacks
+        '13' => apbct_is_in_uri('/login/') && Post::get('action') !== 'forminator_submit_form_custom-forms',
         '14' => apbct_is_in_uri('/my-account/edit-account/'),
         // WooCommerce edit account page
         '15' => apbct_is_in_uri('/my-account/edit-address/'),

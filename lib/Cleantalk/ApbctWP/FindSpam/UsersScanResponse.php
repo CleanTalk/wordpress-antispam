@@ -3,6 +3,7 @@
 // Singleton
 namespace Cleantalk\ApbctWP\FindSpam;
 
+use Cleantalk\Common\TT;
 use Cleantalk\Templates\Singleton;
 
 class UsersScanResponse
@@ -43,12 +44,12 @@ class UsersScanResponse
     }
 
     /**
-     * @return false|string
+     * @return string
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function toJson()
     {
-        return json_encode($this->toArray());
+        return TT::toString(json_encode($this->toArray()));
     }
 
     /**
