@@ -230,7 +230,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
         $default_params['honeypot_field'] = $params['honeypot_field'];
     } else if ( $apbct->settings['data__honeypot_field'] ) {
         $honeypot = Honeypot::check();
-        $params['honeypot_field'] = $honeypot['status'];
+        $params['honeypot_field'] = isset($honeypot['status']) ? $honeypot['status'] : null;
 
         if ( isset($honeypot['value'], $honeypot['source'], $params['sender_info']) ) {
             $params['sender_info']['honeypot_field_value'] = $honeypot['value'];
