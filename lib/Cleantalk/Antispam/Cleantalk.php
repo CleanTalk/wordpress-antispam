@@ -547,8 +547,8 @@ class Cleantalk
         }
 
         //common way - left this if we need to specify method uri for 2.0
-        $url .= !empty($this->method_uri) && is_string($this->method_uri)
-            ? '/' . $this->method_uri
+        $url = !empty($this->method_uri) && is_string($this->method_uri)
+            ? $url . '/' . $this->method_uri
             : $url;
 
         $result = $http->setUrl($url)

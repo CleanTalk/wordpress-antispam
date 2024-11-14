@@ -545,6 +545,10 @@ class State extends \Cleantalk\Common\State
             // Setting default options
             if ($wpdb_option_name === 'cleantalk_settings') {
                 // A/B testing here
+                // @ToDo remove this after testing
+                if ( ! is_array($option) ) {
+                    $this->default_settings['data__email_check_exist_post'] = 1;
+                }
                 $option = is_array($option) ? array_merge($this->default_settings, $option) : $this->default_settings;
             }
 

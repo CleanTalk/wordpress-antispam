@@ -37,7 +37,12 @@ class TT
      * it casts the value to a string. If neither condition is met, it defaults to returning an empty string.
      *
      * @param mixed $value The value to be converted to a string.
+     *
      * @return string The converted string value, or an empty string if conversion is not possible.
+     *
+     * @psalm-taint-specialize
+     * todo Attention. The suppressing above is enabled to avoid taint analysis FP.
+     * todo However we should sanitize any POST usage that aggregated in this method.
      */
     public static function toString($value)
     {

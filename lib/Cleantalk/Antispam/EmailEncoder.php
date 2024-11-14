@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Antispam;
 
+use Cleantalk\ApbctWP\UpdatePlugin\DbAnalyzer;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
@@ -201,6 +202,9 @@ class EmailEncoder
                 return $this->encodePlainEmail($matches[0]);
             }
         }, $content);
+
+        // modify content to turn back aria-label
+        $replacing_result = $this->modifyAriaLabelContent($replacing_result, true);
 
         //please keep this var (do not simplify the code) for further debug
         return $replacing_result;
@@ -494,29 +498,29 @@ class EmailEncoder
 
         $encoded = $this->encodeString($string);
 
-        return '<span 
-                data-original-string="' . $encoded . '"
-                class="apbct-email-encoder"
-                title="' . esc_attr($this->getTooltip()) . '">' . $this->addMagicBlur($obfuscated) . '</span>';
+        return "<span 
+                data-original-string='" . $encoded . "'
+                class='apbct-email-encoder'
+                title='" . esc_attr($this->getTooltip()) . "'>'" . $this->addMagicBlur($obfuscated) . "'</span>";
     }
 
     private function addMagicBlur($obfuscated)
     {
-        $template = '
-        <span class="apbct-ee-blur-group">
-            <span class="apbct-ee-blur_email-text">%s</span>
-            <span class="apbct-ee-static-blur">
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-init"></span>
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-soft"></span>
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-hard"></span>
+        $template = "
+        <span class='apbct-ee-blur-group'>
+            <span class='apbct-ee-blur_email-text'>%s</span>
+            <span class='apbct-ee-static-blur'>
+                <span class='apbct-ee-blur apbct-ee-blur_rectangle-init'></span>
+                <span class='apbct-ee-blur apbct-ee-blur_rectangle-soft'></span>
+                <span class='apbct-ee-blur apbct-ee-blur_rectangle-hard'></span>
             </span>
-            <span class="apbct-ee-animate-blur">
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-init apbct-ee-blur_animate-init"></span>
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-soft apbct-ee-blur_animate-soft "></span>
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-hard apbct-ee-blur_animate-hard"></span>
+            <span class='apbct-ee-animate-blur'>
+                <span class='apbct-ee-blur apbct-ee-blur_rectangle-init apbct-ee-blur_animate-init'></span>
+                <span class='apbct-ee-blur apbct-ee-blur_rectangle-soft apbct-ee-blur_animate-soft'></span>
+                <span class='apbct-ee-blur apbct-ee-blur_rectangle-hard apbct-ee-blur_animate-hard'></span>
             </span>
         </span>
-';
+";
         return sprintf($template, $obfuscated);
     }
 
@@ -610,6 +614,11 @@ class EmailEncoder
      */
     private function isExcludedRequest()
     {
+        // chunk to fix when we can't delete plugin because of sessions table missing
+        $db_analyzer = new DbAnalyzer();
+        if (!in_array(APBCT_TBL_SESSIONS, $db_analyzer->getExistsTables())) {
+            return true;
+        }
 
         // Excluded request by alt cookie
         $apbct_email_encoder_passed = Cookie::get('apbct_email_encoder_passed');

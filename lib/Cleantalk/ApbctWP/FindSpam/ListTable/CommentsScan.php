@@ -9,7 +9,10 @@ class CommentsScan extends Comments
         $columns               = $this->get_columns();
         $this->_column_headers = array($columns, array(), array());
 
-        $per_page_option = get_current_screen()->get_option('per_page', 'option');
+        $current_screen = get_current_screen();
+        $per_page_option = !is_null($current_screen)
+            ? $current_screen->get_option('per_page', 'option')
+            : '10';
         $per_page        = get_user_meta(get_current_user_id(), $per_page_option, true);
         if ( ! $per_page ) {
             $per_page = 10;
@@ -18,13 +21,19 @@ class CommentsScan extends Comments
         $current_page = $this->get_pagenum();
 
         $scanned_comments = $this->getSpamNow($per_page, $current_page);
-
+        $total_comments = $this->getScannedTotal()->get_comments();
         $this->set_pagination_args(array(
-            'total_items' => count($this->getScannedTotal()->get_comments()),
+            'total_items' => is_array($total_comments) ? count($total_comments) : 0,
             'per_page'    => $per_page,
         ));
 
-        foreach ( $scanned_comments->get_comments() as $comment ) {
+        $get_scanned_comments = $scanned_comments->get_comments();
+        $get_scanned_comments = is_array($get_scanned_comments) ? $get_scanned_comments : array();
+
+        foreach ( $get_scanned_comments as $comment ) {
+            if ( !($comment instanceof \WP_Comment) ) {
+                continue;
+            }
             $this->items[] = array(
                 'ct_id'          => $comment->comment_ID,
                 'ct_author'      => $comment->comment_author,

@@ -3,11 +3,17 @@
     min-width: 400px;
     font-size: 16px;
 }
+.apbct-email-encoder--popup-header {
+    font-size: 16px;
+    color: #333;
+}
 .apbct-email-encoder-elements_center {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    font-size: 16px;
+    color: black;
 }
 .top-margin-long {
     margin-top: 5px;
@@ -15,6 +21,10 @@
 /*legacy*/
 .apbct-email-encoder{
     position: relative;
+}
+.apbct-email-encoder-select-whole-email{
+    -webkit-user-select: all; /* для Safari */
+    user-select: all;
 }
 /*fix for wpautopt when brs added between blur magic fields*/
 .apbct-email-encoder br, .apbct-ee-blur-group br{
@@ -24,6 +34,17 @@
 /* email text wrapper */
 .apbct-ee-blur_email-text {
     position: relative;
+}
+
+.apbct-email-encoder-got-it-button {
+    all: unset;
+    margin-top: 10px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background-color: #333;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
 }
 /* common class for bluring */
 .apbct-ee-blur {

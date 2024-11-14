@@ -11,7 +11,10 @@ class UsersScan extends Users
         $columns               = $this->get_columns();
         $this->_column_headers = array($columns, array(), array());
 
-        $per_page_option = get_current_screen()->get_option('per_page', 'option');
+        $current_screen = get_current_screen();
+        $per_page_option = !is_null($current_screen)
+            ? $current_screen->get_option('per_page', 'option')
+            : '10';
         $per_page        = get_user_meta(get_current_user_id(), $per_page_option, true);
         if ( ! $per_page ) {
             $per_page = 10;
@@ -28,7 +31,9 @@ class UsersScan extends Users
 
         foreach ( $scanned_users->get_results() as $user_id ) {
             $user_obj = get_userdata($user_id);
-
+            if ( ! $user_obj ) {
+                continue;
+            }
             $items = array(
                 'ct_id'        => $user_obj->ID,
                 'ct_username'  => $user_obj,
