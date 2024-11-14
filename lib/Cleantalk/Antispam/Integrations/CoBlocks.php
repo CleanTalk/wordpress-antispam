@@ -20,7 +20,6 @@ class CoBlocks extends IntegrationBase
         $data = ct_gfa($_POST, $email_field_value, $name_field_value);
 
         return $data;
-
     }
 
     /**
