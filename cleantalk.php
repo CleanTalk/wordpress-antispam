@@ -726,10 +726,13 @@ if ($js_errors_arr && isset($js_errors_arr['data'])) {
  */
 function apbct_write_js_errors($data)
 {
+    if (!is_string($data) || empty($data)) {
+        return false;
+    }
     $tmp = substr($data, strlen('_ct_no_cookie_data_'));
     $errors = json_decode(base64_decode($tmp), true);
     if (!isset($errors['ct_js_errors'])) {
-        return;
+        return false;
     }
     $errors = $errors['ct_js_errors'];
     $exist_errors = get_option(APBCT_JS_ERRORS);
