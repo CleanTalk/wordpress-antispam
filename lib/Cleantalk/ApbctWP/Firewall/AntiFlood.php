@@ -246,7 +246,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
                 '{SERVICE_ID}'                     => $this->apbct->data['service_id'] . ', ' . $net_count,
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . "</p>",
-                '{COOKIE_ANTIFLOOD_PASSED}'        => md5($this->api_key . $result['ip']),
+                '{COOKIE_ANTIFLOOD_PASSED}'        => md5($result['ip'] . $this->api_key),
                 '{SCRIPT_URL}'                     => $js_url,
 
                 // Custom Logo
@@ -289,10 +289,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
             'data__visible_fields_required' => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
         );
 
-        $js_jquery_url = includes_url() . 'js/jquery/jquery.min.js';
-
         $replaces = array(
-            '{JQUERY_SCRIPT_URL}' => $js_jquery_url,
             '{LOCALIZE_SCRIPT}'   => 'var ctPublicFunctions = ' . json_encode($localize_js) . ';' .
                                      'var ctPublic = ' . json_encode($localize_js_public) . ';',
         );

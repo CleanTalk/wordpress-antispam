@@ -639,6 +639,63 @@ function apbct_wc__add_to_cart_unlogged_user()
 }
 
 /**
+ * @param $add_to_cart_data
+ * @param $request
+ * @return mixed
+ * @psalm-suppress UndefinedFunction
+ */
+function apbct_wc_store_api_add_to_cart_data($add_to_cart_data, $request)
+{
+    global $apbct;
+
+    if ( ! $apbct->stats['no_cookie_data_taken'] && $request->get_param('ct_no_cookie_hidden_field') ) {
+        apbct_form__get_no_cookie_data(
+            ['ct_no_cookie_hidden_field' => $request->get_param('ct_no_cookie_hidden_field')],
+            false
+        );
+    }
+
+    return $add_to_cart_data;
+}
+
+/**
+ * @param $customer
+ * @param $request
+ * @return void
+ * @psalm-suppress UnusedParam
+ */
+function apbct_wc_store_api_checkout_update_customer_from_request($customer, $request)
+{
+    global $apbct;
+
+    if ( ! $apbct->stats['no_cookie_data_taken'] ) {
+        apbct_form__get_no_cookie_data(
+            ['ct_no_cookie_hidden_field' => $request->get_param('ct_no_cookie_hidden_field')],
+            false
+        );
+    }
+}
+
+/**
+ * @param $order
+ * @return void
+ * @throws \Automattic\WooCommerce\StoreApi\Exceptions\RouteException
+ * @psalm-suppress UndefinedClass, UnusedParam, InvalidThrow
+ */
+function apbct_wc_store_api_checkout_order_processed($order)
+{
+    global $ct_registration_error_comment;
+
+    if (class_exists('\Automattic\WooCommerce\StoreApi\Exceptions\RouteException')) {
+        throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
+            'woocommerce_store_api_checkout_order_processed',
+            $ct_registration_error_comment,
+            403
+        );
+    }
+}
+
+/**
  * Public function - Tests for Pirate contact forms
  * return NULL
  */
@@ -1339,69 +1396,72 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         $reg_flag
     );
 
-    if ( isset($base_call_result['ct_result']) ) {
-        $ct_result = $base_call_result['ct_result'];
-        ct_hash($ct_result->id);
-        // Change mail notification if license is out of date
-        if ( $apbct->data['moderate'] == 0 &&
-            ($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
+    if ( ! isset($base_call_result['ct_result']) ) {
+        return $errors;
+    }
+
+    $ct_result = $base_call_result['ct_result'];
+    ct_hash($ct_result->id);
+
+    // Change mail notification if license is out of date
+    if ( $apbct->data['moderate'] == 0 &&
+        ($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
+    ) {
+        $apbct->sender_email = $user_email;
+        $apbct->sender_ip    = Helper::ipGet('real');
+        add_filter(
+            'wp_new_user_notification_email_admin',
+            'apbct_registration__Wordpress__changeMailNotification',
+            100,
+            3
+        );
+    }
+
+    $ct_signup_done = true;
+    $cleantalk_executed = true;
+
+    if ( $ct_result->inactive != 0 ) {
+        ct_send_error_notice($ct_result->comment);
+        return $errors;
+    }
+
+    if ( $ct_result->allow == 0 ) {
+        $ct_negative_comment = $ct_result->comment;
+        $ct_registration_error_comment = $ct_result->comment;
+
+        if (current_filter() === 'woocommerce_registration_errors') {
+            add_action('woocommerce_store_api_checkout_order_processed', 'apbct_wc_store_api_checkout_order_processed', 10, 2);
+        }
+
+        if ( $buddypress === true ) {
+            $bp->signup->errors['signup_username'] = $ct_result->comment;
+        }
+
+        if ( $facebook ) {
+            /** @psalm-suppress InvalidArrayOffset */
+            $_POST['FB_userdata']['email'] = '';
+            /** @psalm-suppress InvalidArrayOffset */
+            $_POST['FB_userdata']['name']  = '';
+            return;
+        }
+
+        if ((defined('MGM_PLUGIN_NAME') || apbct_is_plugin_active('bbpress/bbpress.php')) &&
+            current_filter() !== 'woocommerce_registration_errors'
         ) {
-            $apbct->sender_email = $user_email;
-            $apbct->sender_ip    = Helper::ipGet('real');
-            add_filter(
-                'wp_new_user_notification_email_admin',
-                'apbct_registration__Wordpress__changeMailNotification',
-                100,
-                3
-            );
+            ct_die_extended($ct_result->comment);
         }
 
-        $ct_signup_done = true;
-
-        $cleantalk_executed = true;
-
-        if ( $ct_result->inactive != 0 ) {
-            ct_send_error_notice($ct_result->comment);
-
-            return $errors;
+        if ( is_wp_error($errors) ) {
+            $errors->add('ct_error', $ct_result->comment);
         }
 
-        if ( $ct_result->allow == 0 ) {
-            if ( $buddypress === true ) {
-                $bp->signup->errors['signup_username'] = $ct_result->comment;
-            } elseif ( $facebook ) {
-                /** @psalm-suppress InvalidArrayOffset */
-                $_POST['FB_userdata']['email'] = '';
-                /** @psalm-suppress InvalidArrayOffset */
-                $_POST['FB_userdata']['name']  = '';
+        return $errors;
+    }
 
-                return;
-            } elseif (
-                /**
-                 * present conditions there if we need to set a custom registration break for a plugin
-                 **/
-                (
-                    defined('MGM_PLUGIN_NAME')
-                    || apbct_is_plugin_active('bbpress/bbpress.php')
-                )
-                && current_filter() !== 'woocommerce_registration_errors'
-            ) {
-                ct_die_extended($ct_result->comment);
-            } else {
-                if ( is_wp_error($errors) ) {
-                    $errors->add('ct_error', $ct_result->comment);
-                }
-                $ct_negative_comment = $ct_result->comment;
-            }
-
-            $ct_registration_error_comment = $ct_result->comment;
-        } else {
-            if ( $ct_result->id !== null ) {
-                $apbct_cookie_request_id = $ct_result->id;
-                Cookie::set($apbct_cookie_register_ok_label, $ct_result->id, time() + 10, '/');
-                Cookie::set($apbct_cookie_request_id_label, $ct_result->id, time() + 10, '/');
-            }
-        }
+    if ( $ct_result->id !== null ) {
+        $apbct_cookie_request_id = $ct_result->id;
+        Cookie::set($apbct_cookie_register_ok_label, $ct_result->id, time() + 10, '/');
+        Cookie::set($apbct_cookie_request_id_label, $ct_result->id, time() + 10, '/');
     }
 
     return $errors;
@@ -2858,15 +2918,16 @@ function ct_check_wplp()
 
         $sender_email = '';
         foreach ( $_POST as $v ) {
-            if ( preg_match("/^\S+@\S+\.\S+$/", TT::toString($v)) ) {
-                $sender_email = TT::toString($v);
+            $sanitized_value = TT::toString($v);
+            if ( preg_match("/^\S+@\S+\.\S+$/", $sanitized_value) ) {
+                $sender_email = $sanitized_value;
                 break;
             }
         }
 
         $message = '';
         if ( array_key_exists('form_input_values', $_POST) ) {
-            $form_input_values = json_decode(stripslashes(TT::toString($_POST['form_input_values'])), true);
+            $form_input_values = json_decode(stripslashes(TT::getArrayValueAsString($_POST, 'form_input_values')), true);
             if ( is_array($form_input_values) && array_key_exists('null', $form_input_values) ) {
                 $message = Sanitize::cleanTextareaField($form_input_values['null']);
             }
@@ -3229,68 +3290,6 @@ function apbct_form__the7_contact_form()
     return false;
 }
 
-//function apbct_form__elementor_pro__testSpam()
-//{
-//    global $apbct;
-//
-//    if (
-//        $apbct->settings['forms__contact_forms_test'] == 0 ||
-//        ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) || // Skip processing for logged in users.
-//        Post::get('form_fields_password') ||
-//        Post::get('form-field-password') || // Skip processing for login form.
-//        apbct_exclusions_check__url()
-//    ) {
-//        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-//
-//        return;
-//    }
-//
-//    /**
-//     * Filter for POST
-//     */
-//    $input_array = apply_filters('apbct__filter_post', $_POST);
-//
-//    $ct_temp_msg_data = ct_gfa($input_array);
-//
-//    $sender_email    = $ct_temp_msg_data['email'] ?: '';
-//    $sender_nickname = $ct_temp_msg_data['nickname'] ?: '';
-//    $subject         = $ct_temp_msg_data['subject'] ?: '';
-//    $message         = $ct_temp_msg_data['message'] ?: array();
-//    if ( $subject !== '' ) {
-//        $message = array_merge(array('subject' => $subject), $message);
-//    }
-//
-//    $form_data = Post::get('form_fields');
-//    if ($form_data) {
-//        if (!$sender_email) {
-//            $sender_email = !empty($form_data['email']) ? $form_data['email'] : '';
-//        }
-//        if (!$sender_nickname) {
-//            $sender_nickname = !empty($form_data['name']) ? $form_data['name'] : '';
-//        }
-//    }
-//
-//    $post_info['comment_type'] = 'contact_form_wordpress_elementor_pro';
-//
-//    $base_call_result = apbct_base_call(
-//        array(
-//            'message'         => $message,
-//            'sender_email'    => $sender_email,
-//            'sender_nickname' => $sender_nickname,
-//            'post_info'       => $post_info,
-//        )
-//    );
-//
-//    $ct_result = $base_call_result['ct_result'];
-//
-//    if ( $ct_result->allow == 0 ) {
-//        wp_send_json_error(array(
-//            'message' => $ct_result->comment,
-//            'data'    => array()
-//        ));
-//    }
-//}
-
 /**
  * Places a hiding field to Gravity forms.
  * @return string
@@ -3299,7 +3298,11 @@ function apbct_form__elementor_pro__addField($content)
 {
     global $apbct;
 
-    if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' && strpos($content, '</form>') !== false ) {
+    $search = '</form>';
+    $replace = ct_add_honeypot_field('elementor_form') . $search;
+    $content = str_replace($search, $replace, $content);
+
+    if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' && strpos($content, $search) !== false ) {
         $content .= Escape::escKsesPreset(
             apbct_generate_trusted_text_html('center'),
             'apbct_public__trusted_text'

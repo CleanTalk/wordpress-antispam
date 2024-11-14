@@ -2,8 +2,8 @@
 
 namespace Cleantalk\ApbctWP\Antispam;
 
-use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\Common\TT;
 use Cleantalk\Variables\Post;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\Cleantalk;
@@ -27,11 +27,12 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
     protected function checkRequest()
     {
         global $apbct;
-
-        $browser_sign          = hash('sha256', Post::get('browser_signature_params'));
-        $event_javascript_data = Helper::isJson(Post::get('event_javascript_data'))
-            ? Post::get('event_javascript_data')
-            : stripslashes(Post::get('event_javascript_data'));
+        $post_browser_sign = TT::toString(Post::get('browser_signature_params'));
+        $post_event_javascript_data = TT::toString(Post::get('event_javascript_data'));
+        $browser_sign          = hash('sha256', $post_browser_sign);
+        $event_javascript_data = Helper::isJson($post_event_javascript_data)
+            ? $post_event_javascript_data
+            : stripslashes($post_event_javascript_data);
 
         $params = array(
             'auth_key'              => $apbct->api_key,        // Access key
@@ -56,9 +57,12 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
         // Options store url without scheme because of DB error with ''://'
         $config             = ct_get_server();
         $ct->server_url     = APBCT_MODERATE_URL;
-        $ct->work_url       = preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
-        $ct->server_ttl     = $config['ct_server_ttl'];
-        $ct->server_changed = $config['ct_server_changed'];
+        $config_work_url    = TT::getArrayValueAsString($config, 'ct_work_url');
+        $ct->work_url       = preg_match('/https:\/\/.+/', $config_work_url)
+            ? $config_work_url
+            : '';
+        $ct->server_ttl     = TT::getArrayValueAsInt($config, 'ct_server_ttl');
+        $ct->server_changed = TT::getArrayValueAsInt($config, 'ct_server_changed');
         $api_response = $ct->checkBot($ct_request);
 
         // Allow to see to the decoded contact if error occurred
@@ -99,5 +103,34 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             );
         }
         return $result;
+    }
+
+    public static function getEncoderOptionDescription($example_email = '')
+    {
+        $common_description = __(
+            'Option encodes emails on public pages of the site. This prevents robots from collecting and including your emails in lists to spam.',
+            'cleantalk-spam-protect'
+        );
+        $example_encoded = '';
+        if ( !empty($example_email) && is_string($example_email)) {
+            $example_encoded = sprintf(
+                '%s: %s',
+                __('Here is a sample of encoded email', 'cleantalk-spam-protect'),
+                TT::toString($example_email)
+            );
+        }
+
+        $template = '%s&nbsp;%s';
+
+        return sprintf(
+            $template,
+            $common_description,
+            empty($example_encoded) ? '&nbsp;' : '<span style="position:absolute">' . $example_encoded . '</span>'
+        );
+    }
+
+    public static function getBufferUsageOptionDescription()
+    {
+        return __('Use this option only if no encoding occurs when the "Encode contact data" option is enabled.', 'cleantalk-spam-protect');
     }
 }

@@ -4,6 +4,7 @@ namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 {
@@ -60,7 +61,8 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
      */
     public function column_cb($item) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        echo '<input type="checkbox" name="spamids[]" id="cb-select-' . $item['ct_id'] . '" value="' . $item['ct_id'] . '" />';
+        $ct_id = TT::getArrayValueAsString($item, 'ct_id');
+        echo '<input type="checkbox" name="spamids[]" id="cb-select-' . esc_html($ct_id) . '" value="' . esc_html($ct_id) . '" />';
     }
 
     /**
@@ -75,10 +77,10 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
     {
         $user_obj       = $item['ct_username'];
         $email          = $user_obj->user_email;
-        $column_content = '';
 
         // Avatar, nickname
-        $column_content .= '<strong>' . get_avatar($user_obj->ID, 32) . '&nbsp;' . $user_obj->user_login . '</strong>';
+        $avatar = TT::toString(get_avatar($user_obj->ID, 32));
+        $column_content = '<strong>' . $avatar . '&nbsp;' . TT::toString($user_obj->user_login) . '</strong>';
         $column_content .= '<br /><br />';
 
         // Email
@@ -114,16 +116,18 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             $column_content .= esc_html__('No IP adress', 'cleantalk-spam-protect');
         }
 
+        $page = htmlspecialchars(addslashes(TT::toString(Get::get('page'))));
+
         $actions = array(
             'approve' => sprintf(
                 '<a href="?page=%s&action=%s&spam=%s">Approve</a>',
-                htmlspecialchars(addslashes(Get::get('page'))),
+                $page,
                 'approve',
                 $user_obj->ID
             ),
             'delete' => sprintf(
                 '<a href="?page=%s&action=%s&spam=%s">Delete</a>',
-                htmlspecialchars(addslashes(Get::get('page'))),
+                $page,
                 'delete',
                 $user_obj->ID
             ),
@@ -154,7 +158,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             case 'ct_spam':
             case 'ct_bad':
             case 'ct_orders':
-                return $item[$column_name];
+                return TT::getArrayValueAsString($item, $column_name);
             default:
                 return print_r($item, true);
         }
@@ -184,16 +188,17 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             return;
         }
 
-        if ( ! wp_verify_nonce(Post::get('_wpnonce'), 'bulk-' . $this->_args['plural']) ) {
+        $awaited_action = 'bulk-' . TT::getArrayValueAsString($this->_args, 'plural');
+        if ( ! wp_verify_nonce(TT::toString(Post::get('_wpnonce')), $awaited_action)) {
             wp_die('nonce error');
         }
 
         if ( $this->current_action() === 'approve' ) {
-            $this->approveSpam(Post::get('spamids'));
+            $this->approveSpam(TT::toArray(Post::get('spamids')));
         }
 
         if ( $this->current_action() === 'delete' ) {
-            $this->removeSpam(Post::get('spamids'));
+            $this->removeSpam(TT::toArray(Post::get('spamids')));
         }
     }
 
@@ -273,7 +278,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
      */
     public function getTotal()
     {
-        return count_users()['total_users'];
+        return TT::getArrayValueAsInt(count_users(), 'total_users');
     }
 
     /**

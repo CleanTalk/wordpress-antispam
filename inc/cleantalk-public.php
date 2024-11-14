@@ -163,11 +163,13 @@ function apbct_init()
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
             add_action('woocommerce_after_checkout_validation', 'ct_woocommerce_checkout_check', 1, 2);
             add_action('woocommerce_checkout_update_order_meta', 'apbct_woocommerce__add_request_id_to_order_meta');
+            add_action('woocommerce_store_api_checkout_update_customer_from_request', 'apbct_wc_store_api_checkout_update_customer_from_request', 10, 2);
         }
 
         if ( ! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart'] ) {
             //Woocommerce add_to_cart action
             add_filter('woocommerce_add_to_cart_validation', 'apbct_wc__add_to_cart_unlogged_user', 10, 6);
+            add_filter('woocommerce_store_api_add_to_cart_data', 'apbct_wc_store_api_add_to_cart_data', 10, 2);
         }
     }
 
@@ -214,6 +216,10 @@ function apbct_init()
         $hook    = WPCF7_VERSION >= '3.0.0' ? 'wpcf7_spam' : 'wpcf7_acceptance';
         $num_arg = WPCF7_VERSION >= '5.3.0' ? 2 : 1;
         add_filter($hook, 'apbct_form__contactForm7__testSpam', 9999, $num_arg);
+        //ignore other wpcf7_skip_spam_check filters to prevent submissions if APBCT check performs
+        add_filter('wpcf7_skip_spam_check', function () {
+            return false;
+        }, 999, 2);
         add_action('wpcf7_before_send_mail', 'apbct_form__contactForm7__testSpam', 999);
     }
 
@@ -1275,6 +1281,7 @@ function ct_enqueue_scripts_public($_hook)
             wp_enqueue_script(
                 'ct_public_admin_js',
                 APBCT_JS_ASSETS_PATH . '/cleantalk-public-admin.min.js',
+                // keep this jquery dependency if option comments__manage_comments_on_public_page is enabled
                 array('jquery'),
                 APBCT_VERSION,
                 false /*in header*/
@@ -1308,6 +1315,7 @@ function ct_enqueue_scripts_public($_hook)
         wp_enqueue_script(
             'ct_debug_js',
             APBCT_JS_ASSETS_PATH . '/cleantalk-debug-ajax.min.js',
+            // keep this jquery dependency if option misc__debug_ajax is enabled
             array('jquery'),
             APBCT_VERSION,
             false /*in header*/
@@ -1347,15 +1355,13 @@ function ct_enqueue_styles_public()
             APBCT_VERSION
         );
 
-        if ($apbct->settings['data__email_decoder']) {
-            // Common public styles
-            wp_enqueue_style(
-                'ct_email_decoder_css',
-                APBCT_CSS_ASSETS_PATH . '/cleantalk-email-decoder.min.css',
-                array(),
-                APBCT_VERSION
-            );
-        }
+        // Email Decoder styles
+        wp_enqueue_style(
+            'ct_email_decoder_css',
+            APBCT_CSS_ASSETS_PATH . '/cleantalk-email-decoder.min.css',
+            array(),
+            APBCT_VERSION
+        );
 
         // Public admin styles
         if ( in_array("administrator", $current_user->roles) ) {
@@ -1383,7 +1389,7 @@ function apbct_enqueue_and_localize_public_scripts()
     wp_enqueue_script(
         'ct_public_functions',
         APBCT_URL_PATH . '/js/apbct-public-bundle.min.js',
-        array('jquery'),
+        array(),
         APBCT_VERSION,
         $in_footer
     );

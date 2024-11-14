@@ -47,6 +47,25 @@ class API extends \Cleantalk\Common\API
     }
 
     /**
+     * GET method for getting information
+     * whether an email exists
+     * @param $email
+     * @param $api_key
+     *
+     * @return array|bool|mixed
+     */
+    public static function methodEmailCheckExist($email, $api_key = '')
+    {
+        $request = array(
+            'method_name' => 'email_check_cms',
+            'auth_key' => $api_key,
+            'email' => $email,
+        );
+
+        return self::sendRequest($request);
+    }
+
+    /**
      * Function sends raw request to API server.
      * May use built in WordPress HTTP-API
      *
@@ -57,10 +76,10 @@ class API extends \Cleantalk\Common\API
      *
      * @return array|bool
      */
-    public static function sendRequest($data, $url = self::URL, $timeout = 10)
+    public static function sendRequest($data, $_url = self::URL, $timeout = 10)
     {
         // Possibility to switch API url
-        $url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : $url;
+        $url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : $_url;
 
         // Adding agent version to data
         $data['agent'] = defined('APBCT_AGENT') ? APBCT_AGENT : '';

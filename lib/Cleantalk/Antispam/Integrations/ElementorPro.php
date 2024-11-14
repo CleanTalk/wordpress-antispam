@@ -49,9 +49,6 @@ class ElementorPro extends IntegrationBase
 
         $form_data = TT::toArray(Post::get('form_fields'));
         if ( $form_data ) {
-            if ( ! $sender_email ) {
-                $sender_email = !empty($form_data['email']) ? $form_data['email'] : '';
-            }
             if ( ! $sender_nickname ) {
                 $sender_nickname = !empty($form_data['name']) ? $form_data['name'] : '';
                 if ( !$sender_nickname ) {

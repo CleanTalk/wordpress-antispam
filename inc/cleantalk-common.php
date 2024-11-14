@@ -548,6 +548,9 @@ function apbct_get_sender_info()
     $apbct_urls = RequestParameters::getCommonStorage('apbct_urls');
     $apbct_urls = $apbct_urls ? json_encode(json_decode($apbct_urls, true)) : null;
 
+    $site_landing_ts = RequestParameters::get('apbct_site_landing_ts', true);
+    $site_landing_ts = !empty($site_landing_ts) ? TT::toString($site_landing_ts) : null;
+
     //Let's keep $data_array for debugging
     $data_array = array(
         'plugin_request_id'         => $apbct->plugin_request_id,
@@ -570,9 +573,7 @@ function apbct_get_sender_info()
         'REFFERRER_PREVIOUS'        => Cookie::get('apbct_prev_referer') && $cookie_is_ok
             ? Cookie::get('apbct_prev_referer')
             : null,
-        'site_landing_ts'           => Cookie::get('apbct_site_landing_ts') && $cookie_is_ok
-            ? Cookie::get('apbct_site_landing_ts')
-            : null,
+        'site_landing_ts'           => $site_landing_ts,
         'page_hits'                 => Cookie::get('apbct_page_hits') ?: null,
         'mouse_cursor_positions'    => $param_mouse_cursor_positions,
         'js_timezone'               => Cookie::get('ct_timezone') ?: null,
@@ -711,6 +712,33 @@ function apbct_email_check_before_post()
 }
 
 /**
+ * Checking email before POST
+ */
+function apbct_email_check_exist_post()
+{
+    global $apbct;
+    $email = trim(TT::toString(Post::get('email')));
+    $api_key = $apbct->api_key;
+
+    if ( $email && $api_key ) {
+        $result = \Cleantalk\ApbctWP\API::methodEmailCheckExist($email, $api_key);
+        if ( isset($result['result']) ) {
+            $text_result = '';
+            if ( $result['result'] != 'EXISTS' ) {
+                $text_result = __('The email doesn`t exist, double check the address. Anti-Spam by CleanTalk.', 'cleantalk-spam-protect');
+            } else {
+                $text_result = __('The email exists and is good to use! Anti-Spam by CleanTalk', 'cleantalk-spam-protect');
+            }
+            $result['text_result'] = $text_result;
+            die(json_encode(array('result' => $result)));
+        }
+
+        die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));
+    }
+    die(json_encode(array('error' => 'EMPTY_DATA')));
+}
+
+/**
  * Get ct_get_checkjs_value
  *
  * @param bool $random_key
@@ -799,6 +827,7 @@ function apbct_is_cache_plugins_exists($return_names = false)
         'SiteGround_Optimizer\VERSION'                => 'SG Optimizer',
         'NITROPACK_VERSION'                           => 'NitroPack',
         'TWO_PLUGIN_FILE'                             => '10Web Booster',
+        'FLYING_PRESS_VERSION'                        => 'Flying Press',
     );
 
     $classes_of_cache_plugins = array (
@@ -894,9 +923,25 @@ function ct_get_server()
         );
     }
 
+    $ct_server['ct_work_url'] = Sanitize::sanitizeCleantalkServerUrl(TT::getArrayValueAsString($ct_server, 'ct_work_url'));
+
     return $ct_server;
 }
 
+/**
+ * @param $url
+ *
+ * @return string|null
+ */
+function sanitize_cleantalk_server_url($url)
+{
+    if (!is_string($url)) {
+        return null;
+    }
+    return preg_match('/^.*(moderate|api).*\.cleantalk.org(?!\.)[\/\\\\]{0,1}/m', $url)
+        ? $url
+        : null;
+}
 /**
  * Inner function - Stores ang returns cleantalk hash of current comment
  *
@@ -1381,7 +1426,8 @@ function apbct_get_honeypot_filled_fields()
             'apbct__email_id__wp_register' =>       Post::get('apbct__email_id__wp_register_' . $apbct_event_id),
             'apbct__email_id__wp_contact_form_7' => Post::get('apbct__email_id__wp_contact_form_7_' . $apbct_event_id),
             'apbct__email_id__wp_wpforms' =>        Post::get('apbct__email_id__wp_wpforms_' . $apbct_event_id),
-            'apbct__email_id__gravity_form' =>      Post::get('apbct__email_id__gravity_form_' . $apbct_event_id)
+            'apbct__email_id__gravity_form' =>      Post::get('apbct__email_id__gravity_form_' . $apbct_event_id),
+            'apbct__email_id__elementor_form' =>    Post::get('apbct__email_id__elementor_form_' . $apbct_event_id)
         );
     }
 
@@ -1575,12 +1621,13 @@ function apbct_clear_query_from_service_fields($query_string, $service_field_nam
 /**
  * Main entry function to collect no cookie data.
  */
-function apbct_form__get_no_cookie_data($preprocessed_data = null)
+function apbct_form__get_no_cookie_data($preprocessed_data = null, $need_filter = true)
 {
     global $apbct;
     $flag = null;
     $no_cookie_data = apbct_check_post_for_no_cookie_data($preprocessed_data);
-    if ( !empty($no_cookie_data['mapping']) ) {
+
+    if ( $need_filter && !empty($no_cookie_data['mapping']) ) {
         apbct_filter_post_no_cookie_data($no_cookie_data['mapping']);
     }
     if ( $no_cookie_data && !empty($no_cookie_data['data']) && $apbct->data['cookies_type'] === 'none' ) {
