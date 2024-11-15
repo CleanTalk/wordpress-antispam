@@ -20,7 +20,7 @@
 
 .apbct-real-user-badge {
     display: inline-flex;
-    height: 15px;
+    padding-left: 6px;
     cursor: pointer;
     position: relative;
 }
