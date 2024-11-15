@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Antispam;
 
+use Cleantalk\ApbctWP\UpdatePlugin\DbAnalyzer;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
@@ -613,6 +614,11 @@ class EmailEncoder
      */
     private function isExcludedRequest()
     {
+        // chunk to fix when we can't delete plugin because of sessions table missing
+        $db_analyzer = new DbAnalyzer();
+        if (!in_array(APBCT_TBL_SESSIONS, $db_analyzer->getExistsTables())) {
+            return true;
+        }
 
         // Excluded request by alt cookie
         $apbct_email_encoder_passed = Cookie::get('apbct_email_encoder_passed');

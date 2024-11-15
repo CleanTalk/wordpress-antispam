@@ -46,8 +46,6 @@ class Cookie extends \Cleantalk\Variables\Cookie
                         if ( in_array($name, array(
                             'apbct_page_hits',
                             'apbct_prev_referer',
-                            'apbct_site_landing_ts',
-                            //'apbct_urls',
                             'apbct_timestamp',
                             'apbct_site_referer'))
                         ) {

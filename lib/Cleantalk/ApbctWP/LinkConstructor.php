@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\Common\TT;
+
 class LinkConstructor extends \Cleantalk\Common\LinkConstructor
 {
     //todo search unhadled links via comment //HANLDE LINK
@@ -171,6 +173,14 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_medium' => 'settings',
             'utm_content' => 'get_access_key_link',
         ),
+        'blog_email_encoder_common_post' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'apbct_hint_data__email_decoder',
+            'utm_medium' => 'WordPress',
+            'utm_content' => '',
+            'utm_campaign' => 'ABPCT_Settings',
+        ),
     );
 
     public static function buildCleanTalkLink($utm_preset, $uri = '', $get_params = array(), $domain = 'https://cleantalk.org')
@@ -190,5 +200,17 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             . '&utm_id=&utm_term=&utm_source=admin_panel&utm_medium=banner&utm_content='
             . $utm_content
             . '&utm_campaign=apbct_links';
+    }
+
+    /**
+     * @param $href
+     * @param $link_word
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public static function buildSimpleHref($href, $link_word)
+    {
+        return '<a href="' . esc_html(TT::toString($href)) . '" target="_blank">' . esc_html(TT::toString($link_word)) . '</a>';
     }
 }
