@@ -2,7 +2,6 @@
 
 namespace Cleantalk\Antispam;
 
-use Cleantalk\ApbctWP\UpdatePlugin\DbAnalyzer;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
@@ -615,8 +614,10 @@ class EmailEncoder
     private function isExcludedRequest()
     {
         // chunk to fix when we can't delete plugin because of sessions table missing
-        $db_analyzer = new DbAnalyzer();
-        if (!in_array(APBCT_TBL_SESSIONS, $db_analyzer->getExistsTables())) {
+        global $wpdb;
+        $query = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like(APBCT_TBL_SESSIONS));
+        $session_table_exists = $wpdb->get_var($query);
+        if (empty($session_table_exists)) {
             return true;
         }
 
