@@ -20,7 +20,7 @@ var ct_working = false,
 	ct_accurate_check = false,
 	ct_pause = false,
 	ct_prev_accurate = ctUsersCheck.ct_prev_accurate,
-	ct_prev_from     = ctUsersCheck.ct_prev_from,	
+	ct_prev_from     = ctUsersCheck.ct_prev_from,
 	ct_prev_till     = ctUsersCheck.ct_prev_till;
 // Settings
 var ct_cool_down_time = 90000,
@@ -128,7 +128,7 @@ function ct_cooling_down_toggle(){
 }
 
 function ct_send_users(){
-	
+
 	if(ct_cooling_down_flag === true)
 		return;
 	if (ct_pause === true) {
@@ -140,7 +140,7 @@ function ct_send_users(){
 		location.href = new_href;
 		return;
 	}
-	
+
 	if(ct_requests_counter >= ct_max_requests){
 		setTimeout(ct_cooling_down_toggle, ct_cool_down_time);
 		ct_requests_counter = 0;
@@ -164,20 +164,20 @@ function ct_send_users(){
 
 	if(ct_accurate_check)
 		data['accurate_check'] = true;
-	
+
 	if(ct_date_from && ct_date_till){
 		data['from'] = ct_date_from;
 		data['till'] = ct_date_till;
 	}
-	
+
 	jQuery.ajax({
 		type: "POST",
 		url: ajaxurl,
 		data: data,
 		success: function(msg){
-			
+
 			msg = jQuery.parseJSON(msg);
-			
+
 			if(parseInt(msg.error)){
 				ct_working=false;
 				if(!confirm(msg.error_message+". Do you want to proceed?")){
@@ -213,7 +213,7 @@ function ct_send_users(){
 					var offset = Number(getCookie('apbct_check_users_offset')) + 100;
 					var ctSecure = location.protocol === 'https:' ? '; secure' : '';
 					document.cookie = 'apbct_check_users_offset' + "=" + offset + "; path=/; samesite=lax" + ctSecure;
-					
+
 					ct_send_users();
 				}
 			}
@@ -232,29 +232,29 @@ function ct_send_users(){
 	});
 }
 function ct_show_users_info(){
-	
+
 	if( ct_working ){
-		
+
 		if(ct_cooling_down_flag === true){
 			jQuery('#ct_cooling_notice').html('Waiting for API to cool down. (About a minute)').show();
-			return;			
+			return;
 		}else{
 			jQuery('#ct_cooling_notice').hide();
 		}
-		
+
 		if( ! ct_users_total ){
-			
+
 			var data = {
 				'action': 'ajax_info_users',
 				'security': ct_ajax_nonce,
 				'no_cache': Math.random()
 			};
-			
+
 			if( ct_date_from && ct_date_till ){
 				data['from'] = ct_date_from;
 				data['till'] = ct_date_till;
 			}
-			
+
 			jQuery.ajax({
 				type: "POST",
 				url: ajaxurl,
@@ -284,7 +284,7 @@ function ct_toggle_depended(obj, secondary){
 
 	var depended = jQuery(obj.data('depended')),
 		state = obj.data('state');
-		
+
 	if(!state && !secondary){
 		obj.data('state', true);
 		depended.removeProp('disabled');
@@ -379,7 +379,7 @@ function ct_delete_all_users( e ){
 jQuery(document).ready(function(){
 
 	// Setting dependences
-	
+
 	// Prev check parameters
 	if(ct_prev_accurate){
 		jQuery("#ct_accurate_check").prop('checked', true);
@@ -389,7 +389,7 @@ jQuery(document).ready(function(){
 		jQuery("#ct_date_range_from").removeProp('disabled').val(ct_prev_from);
 		jQuery("#ct_date_range_till").removeProp('disabled').val(ct_prev_till);
 	}
-	
+
 	// Toggle dependences
 	jQuery("#ct_allow_date_range").on('change', function(){
 		document.cookie = 'ct_users_dates_from='+ jQuery('#ct_date_range_from').val() +'; path=/; samesite=lax';
@@ -423,7 +423,7 @@ jQuery(document).ready(function(){
 			}
 		}
 	);
-	
+
 	// Check users
 	jQuery("#ct_check_spam_button").click(function(){
 		document.cookie = 'ct_paused_users_check=0; path=/; samesite=lax';
@@ -438,7 +438,7 @@ jQuery(document).ready(function(){
 		ct_pause = false;
 		ct_start_check(true);
 	});
-	
+
 	// Pause the check
 	jQuery('#ct_pause').on('click', function(){
 		ct_pause = true;
@@ -449,11 +449,11 @@ jQuery(document).ready(function(){
 		};
 		document.cookie = 'ct_paused_users_check=' + JSON.stringify(ct_check) + '; path=/; samesite=lax';
 	});
-		
+
 	//Approve button
 	jQuery(".cleantalk_delete_from_list_button").click(function(){
 		ct_id = jQuery(this).attr("data-id");
-		
+
 		// Approving
 		var data = {
 			'action': 'ajax_ct_approve_user',
@@ -471,7 +471,7 @@ jQuery(document).ready(function(){
 				});
 			},
 		});
-		
+
 		// Positive feedback
 		var data = {
 			'action': 'ct_feedback_user',
@@ -496,13 +496,13 @@ jQuery(document).ready(function(){
 				}
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
-				
+
 			},
 			timeout: 5000
 		});
-		
+
 	});
-	
+
 	// Request to Download CSV file.
 	jQuery(".ct_get_csv_file").click(function( e ){
 		var data = {
@@ -569,6 +569,14 @@ jQuery(document).ready(function(){
 		if(delete_accounts)
 			data['delete'] = true;
 
+		let waitingPopup = document.createElement('div');
+		waitingPopup.setAttribute('class', 'apbct-popup');
+		waitingPopup.setAttribute('id', 'apbct_popup');
+		waitingPopup.setAttribute('style', 'font-size: 20px');
+		waitingPopup.innerText = 'Wait for users handling!..'
+		document.body.append(waitingPopup);
+		document.body.classList.add('apbct-popup-fade');
+
 		jQuery.ajax({
 			type: "POST",
 			url: ajaxurl,
@@ -578,6 +586,9 @@ jQuery(document).ready(function(){
 					alert('Deleted ' + msg + ' users');
 				else
 					alert('Inserted ' + msg + ' users');
+				jQuery('#apbct_popup')[0].remove()
+				document.body.classList.remove('apbct-popup-fade');
+				window.location.reload();
 			}
 		});
 	}
