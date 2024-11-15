@@ -947,51 +947,6 @@ function apbct_ready() {
 
     // Set important paramaters via ajax if problematic cache solutions found
     apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
-
-    if (typeof apbctTrpBrokenIntervalId !== 'undefined') {
-        setTimeout(() => {
-            clearInterval(apbctTrpBrokenIntervalId);
-        }, 1000);
-    }
-}
-
-/**
- * Check broken TRP every 100ms until the page is loaded
- */
-const apbctTrpBrokenIntervalId = setInterval(apbctFixBrokenTRP, 100);
-
-/**
- * Fix broken TRP - clean author names from html tags
- */
-function apbctFixBrokenTRP() {
-    let author;
-    let comments;
-    let reviews;
-    let pattern = '<div class="apbct-real-user-author-name">';
-
-    if (document.documentElement.textContent.indexOf(pattern) > -1) {
-        author = document.documentElement.textContent.match(new RegExp(pattern + '(.*?)<\/div>'))[1];
-
-        comments = document.querySelectorAll('.comment-author');
-        for (let i = 0; i < comments.length; i++) {
-            comments[i].childNodes.forEach((node) => {
-                if (node.textContent.includes(pattern)) {
-                    node.textContent = author;
-                    apbctFixBrokenTRP();
-                }
-            });
-        }
-
-        reviews = document.querySelectorAll('.woocommerce-review__author');
-        for (let i = 0; i < reviews.length; i++) {
-            reviews[i].childNodes.forEach((node) => {
-                if (node.textContent.includes(pattern)) {
-                    node.textContent = author;
-                    apbctFixBrokenTRP();
-                }
-            });
-        }
-    }
 }
 
 /**
@@ -2038,35 +1993,6 @@ if (document.readyState !== 'loading') {
     checkFormsExistForCatching();
 } else {
     apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatching);
-}
-
-/**
- * Handle real user badge for woocommerce
- * @param template
- * @param id
- */
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctRealUserBadgeWoocommerce(template, id) {
-    if (window.innerWidth < 768) {
-        return;
-    }
-
-    let badge = document.createElement('div');
-    badge.className = 'apbct-real-user-wrapper';
-
-    let attachmentPlace = document.querySelector('#comment-' + id).querySelector('.woocommerce-review__author');
-
-    try {
-        template = atob(template);
-        badge.innerHTML = template;
-
-        if (typeof attachmentPlace !== 'undefined') {
-            attachmentPlace.style.display = 'inline-flex';
-            attachmentPlace.appendChild(badge);
-        }
-    } catch (e) {
-        console.log('APBCT error: ' + e.toString());
-    }
 }
 
 /**
