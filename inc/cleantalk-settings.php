@@ -3274,7 +3274,7 @@ function apbct_settings__get__long_description()
             //HANDLE LINK
             'desc'  => sprintf(
                 __('Plugin shows special benchmark for author of a comment or review, that the author passed all anti-spam filters and acts as a real person. It improves quality of users generated content on your website by proving that the content is not from spambots. %s', 'cleantalk-spam-protect'),
-                '<a href="https://cleantalk.org/help/the-real-person{utm_mark}" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('trp_learn_more_link', 'the-real-person')) . '" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
         'sfw__anti_crawler' => array(
