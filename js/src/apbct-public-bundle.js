@@ -2962,24 +2962,6 @@ function ctFillDecodedEmailHandler(event) {
     // popup show
     let encoderPopup = document.getElementById('apbct_popup');
     if (!encoderPopup) {
-        // get obfuscated email
-        let obfuscatedEmail = null;
-        if (event.currentTarget.tagName === 'A') {
-            obfuscatedEmail = event.currentTarget.querySelector('span.apbct-ee-blur_email-text');
-            if (obfuscatedEmail) {
-                obfuscatedEmail = obfuscatedEmail.innerHTML;
-            }
-        }
-        if (event.currentTarget.tagName === 'SPAN') {
-            obfuscatedEmail = event.currentTarget.querySelector('span.apbct-ee-blur_email-text').innerHTML;
-        }
-        if (event.currentTarget.tagName === 'IMG') {
-            obfuscatedEmail = event.currentTarget.parentNode.innerHTML;
-        }
-        if (obfuscatedEmail === null) {
-            obfuscatedEmail = 'obfuscated email';
-        }
-
         // construct popup
         let waitingPopup = document.createElement('div');
         waitingPopup.setAttribute('class', 'apbct-popup apbct-email-encoder-popup');
@@ -3000,13 +2982,13 @@ function ctFillDecodedEmailHandler(event) {
         popupTextWrapper.style.color = 'black';
 
         // construct text first node
-        // todo make translateable
+        // todo make translatable
         let popupTextDecoding = document.createElement('p');
         popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_first';
-        popupTextDecoding.innerText = 'Decoding ' + obfuscatedEmail + ' to the original one.';
+        popupTextDecoding.innerText = 'Decoding process to the original contact.';
 
         // construct text first node
-        // todo make translateable
+        // todo make translatable
         let popupTextWaiting = document.createElement('p');
         popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_second';
         popupTextWaiting.innerText = 'The magic is on the way, please wait for a few seconds!';
@@ -3145,7 +3127,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 selectableEmail.innerText = email;
                 selectableEmail.title = 'Click to select the whole email';
                 // add email to the first node
-                firstNode.innerHTML = 'The original contact is&nbsp;' + selectableEmail.outerHTML + '.';
+                firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML + '.';
                 firstNode.setAttribute('style', 'flex-direction: row;');
                 // handle second node
                 let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
@@ -3208,15 +3190,13 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
             encodedEmailNodes[i].innerHTML =
                 baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
             encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
-            encodedEmailNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((span) => {
-                let firstEmail = currentResultData.decoded_email.split('&')[0];
-                span.querySelector('.apbct-ee-blur_email-text').innerHTML = firstEmail;
-            });
         } else {
+            encodedEmailNodes[i].classList.add('no-blur');
             // fill the nodes
-            ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
+            setTimeout(() => {
+                ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
+            }, 2000);
         }
-        ctPerformMagicBlur(encodedEmailNodes[i]);
         // remove listeners
         encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
     }
@@ -3357,19 +3337,6 @@ function ctProcessDecodedDataResult(response, targetElement) {
     targetElement.removeAttribute('style');
     ctFillDecodedEmail(targetElement, response.decoded_email);
 }
-/**
- * @param {HTMLElement} targetElement
- */
-function ctPerformMagicBlur(targetElement) {
-    const staticBlur = targetElement.querySelector('.apbct-ee-static-blur');
-    const animateBlur = targetElement.querySelector('.apbct-ee-animate-blur');
-    if (staticBlur !== null) {
-        staticBlur.style.display = 'none';
-    }
-    if (animateBlur !== null) {
-        animateBlur.style.display = 'inherit';
-    }
-}
 
 /**
  * @param {mixed} target
@@ -3379,7 +3346,7 @@ function ctFillDecodedEmail(target, email) {
     apbct(target).html(
         apbct(target)
             .html()
-            .replace(/.?<span class=["']apbct-ee-blur_email-text["'].*>(.+?)<\/span>/, email),
+            .replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1'),
     );
 }
 
