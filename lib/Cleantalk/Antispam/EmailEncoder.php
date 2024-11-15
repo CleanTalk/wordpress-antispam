@@ -615,7 +615,8 @@ class EmailEncoder
     {
         // chunk to fix when we can't delete plugin because of sessions table missing
         global $wpdb;
-        $session_table_exists = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like(APBCT_TBL_SESSIONS));
+        $query = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like(APBCT_TBL_SESSIONS));
+        $session_table_exists = $wpdb->get_var($query);
         if (empty($session_table_exists)) {
             return true;
         }
