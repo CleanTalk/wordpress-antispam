@@ -3264,12 +3264,12 @@ function apbct_form__elementor_pro__addField($content)
     global $apbct;
 
     $search = '</form>';
-    $replace = ct_add_honeypot_field('elementor_form') . $search;
-
     if (
         is_string($content) &&
-        !strpos($content, 'elementor-search-form')
+        !preg_match('/search/', $content) &&
+        !preg_match('/method.+get./', $content)
     ) {
+        $replace = ct_add_honeypot_field('elementor_form') . $search;
         $content = str_replace($search, $replace, $content);
     }
 
