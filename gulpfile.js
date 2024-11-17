@@ -18,7 +18,7 @@ gulp.task('compress-css', function () {
 
 // JS COMPRESS
 function compress_all_js() {
-    return gulp.src(['js/src/*.js', '!js/src/apbct-public--*.js', '!js/src/apbct-public-bundle.js', 'js/src/apbct-public--3--cleantalk-modal.js'])
+    return gulp.src(['js/src/*.js', '!js/src/apbct-public--*.js', '!js/src/apbct-public-bundle.js', 'js/src/apbct-public--3--cleantalk-modal.js', 'js/src/apbct-public--7--trp.js'])
         .pipe(sourcemaps.init())
         .pipe(uglify())
         .pipe(rename({suffix: '.min'}))

@@ -639,6 +639,23 @@ function apbct_admin__enqueue_scripts($hook)
 
     // COMMENTS page JavaScript
     if ( $hook == 'edit-comments.php' ) {
+        wp_enqueue_style(
+            'ct_trp_admin',
+            APBCT_CSS_ASSETS_PATH . '/cleantalk-trp.min.css',
+            array(),
+            APBCT_VERSION
+        );
+        wp_enqueue_script(
+            'ct_trp_admin',
+            APBCT_JS_ASSETS_PATH . '/apbct-public--7--trp.min.js',
+            array(),
+            APBCT_VERSION
+        );
+        wp_localize_script(
+            'ct_trp_admin',
+            'ctTrpAdminLocalize',
+            \Cleantalk\ApbctWP\CleantalkRealPerson::getLocalizingData()
+        );
         wp_enqueue_script(
             'ct_comments_editscreen',
             APBCT_JS_ASSETS_PATH . '/cleantalk-comments-editscreen.min.js',
