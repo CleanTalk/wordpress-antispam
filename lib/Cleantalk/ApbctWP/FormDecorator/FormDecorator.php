@@ -47,7 +47,9 @@ class FormDecorator
             return;
         }
         $this->decoration_set->text = $apbct->settings['comments__form_decoration_text'];
-        $this->decoration_set->color = $apbct->settings['comments__form_decoration_color'];
+        $this->decoration_set->color = !empty($apbct->settings['comments__form_decoration_color'])
+        ? $apbct->settings['comments__form_decoration_color']
+        : $this->decoration_set->color;
         $apbct->errorDelete(static::$error_type);
     }
 
