@@ -2170,7 +2170,7 @@ function apbct_form__ninjaForms__testSpam()
 
     try {
         $params = apbct_form__ninjaForms__collect_fields_new();
-    } catch (\Throwable $_e) {
+    } catch (\Exception $_e) {
         // It is possible here check the reason if the new way collecting fields is not available.
         $params = apbct_form__ninjaForms__collect_fields_old();
     }
@@ -2253,7 +2253,6 @@ function apbct_form__ninjaForms__collect_fields_old()
     return ct_gfa(
         Get::get('ninja_forms_ajax_submit') || Get::get('nf_ajax_submit') ? $_GET : $input_array
     );
-
 }
 
 /**
@@ -2261,6 +2260,7 @@ function apbct_form__ninjaForms__collect_fields_old()
  *
  * @return array
  * @throws Exception
+ * @psalm-suppress UndefinedClass
  */
 function apbct_form__ninjaForms__collect_fields_new()
 {
@@ -2282,12 +2282,13 @@ function apbct_form__ninjaForms__collect_fields_new()
     if ( ! is_array($nf_form_fields_info) && count($nf_form_fields_info) === 0 ) {
         throw new Exception('No fields are provided');
     }
+    $nf_form_fields_info_array = [];
     foreach ($nf_form_fields_info as $field) {
         if ( $field instanceof NF_Database_Models_Field) {
             $nf_form_fields_info_array[$field->get_id()] = [
-                'field_key' => $field->get_setting('key'),
-                'field_type' => $field->get_setting('type'),
-                'field_label' => $field->get_setting('label'),
+                'field_key' => TT::toString($field->get_setting('key')),
+                'field_type' => TT::toString($field->get_setting('type')),
+                'field_label' => TT::toString($field->get_setting('label')),
             ];
         }
     }
@@ -2299,12 +2300,16 @@ function apbct_form__ninjaForms__collect_fields_new()
     foreach ($nf_form_fields as $field) {
         if ( isset($nf_form_fields_info_array[$field['id']]) ) {
             $field_info = $nf_form_fields_info_array[$field['id']];
-            $fields['nf-field-' . $field['id'] . '-' . $field_info['field_type']] = $field['value'];
-            if ( stripos($field_info['field_key'], 'name') !== false ) {
-                $nickname = $field['value'];
-            }
-            if ( stripos($field_info['field_key'], 'email') !== false ) {
-                $email = $field['value'];
+            if ( isset($field_info['field_key'], $field_info['field_type']) ) {
+                $field_key = TT::toString($field_info['field_key']);
+                $field_type = TT::toString($field_info['field_type']);
+                $fields['nf-field-' . $field['id'] . '-' . $field_type] = $field['value'];
+                if ( stripos($field_key, 'name') !== false ) {
+                    $nickname = $field['value'];
+                }
+                if ( stripos($field_key, 'email') !== false ) {
+                    $email = $field['value'];
+                }
             }
         }
     }
