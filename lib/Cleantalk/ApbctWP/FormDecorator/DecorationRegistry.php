@@ -7,7 +7,8 @@ use Cleantalk\ApbctWP\FormDecorator\Decorations\DecorationSetHolidayFourthJuly;
 use Cleantalk\ApbctWP\FormDecorator\Decorations\DecorationSetHolidayNewYear;
 use Cleantalk\Templates\Singleton;
 
-class DecorationRegistry {
+class DecorationRegistry
+{
     use Singleton;
 
     /**
@@ -15,22 +16,30 @@ class DecorationRegistry {
      */
     private $decorations = array();
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->registerDecorations();
     }
 
-    public function registerDecorations() {
+    public function registerDecorations()
+    {
         $this->decorations['holiday_fourth_july'] = new DecorationSetHolidayFourthJuly();
         $this->decorations['holiday_new_year'] = new DecorationSetHolidayNewYear();
         $this->decorations['holiday_christmas'] = new DecorationSetHolidayChristmas();
     }
 
-    public function getDecoration($name) {
+    public function getDecoration($name)
+    {
         return isset($this->decorations[$name]) ? $this->decorations[$name] : false;
     }
 
-    public function getDecorationLocalizedNames() {
-        return array_map(function($set) {
+    /**
+     * @return string[]
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function getDecorationLocalizedNames()
+    {
+        return array_map(function ($set) {
             return $set->localized_name;
         }, array_values($this->decorations));
     }

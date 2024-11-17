@@ -12,8 +12,9 @@ class DecorationSetHolidayFourthJuly extends DecorationSet
 
     protected $css_class_name = 'apbct_form_decoration--fourth-july';
 
-    public function __construct() {
-        $this->localized_name = __('Fourth July Celebration','cleantalk-spam-protect');
+    public function __construct()
+    {
+        $this->localized_name = __('Fourth July Celebration', 'cleantalk-spam-protect');
         parent::__construct();
     }
 

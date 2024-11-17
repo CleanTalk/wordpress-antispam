@@ -6,17 +6,23 @@ class DecorationSet
 {
     public $text;
 
+    /**
+     * var string
+     * @psalm-suppress PossiblyUnusedProperty
+     */
     public $color;
 
     public $localized_name;
 
     protected $css_class_name;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->localizeCSS();
     }
 
-    public function getCssClass() {
+    public function getCssClass()
+    {
         return $this->css_class_name;
     }
 
@@ -36,7 +42,6 @@ class DecorationSet
                 'all'
             );
         });
-
     }
 
     private function getCSSFilePath()

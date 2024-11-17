@@ -447,22 +447,22 @@ function apbct_settings__set_fields()
                     'options_callback' => array(\Cleantalk\ApbctWP\FormDecorator\DecorationRegistry::getInstance(),
                         'getDecorationLocalizedNames'
                     ),
-                    'title'       => __('Select the name of decoration preset', 'cleantalk-spam-protect'),
-                    'description' => __('Holiday form decoration preset description', 'cleantalk-spam-protect'),
+                    'title'       => __('Select a theme for comments form decoration', 'cleantalk-spam-protect'),
+                    'description' => __('The selected theme will be applied to every standard WordPress comment form.', 'cleantalk-spam-protect'),
                     'parent'          => 'comments__form_decoration',
                 ),
                 'comments__form_decoration_text' => array(
                     'type'        => 'text',
                     'class'       => 'apbct_settings-field_wrapper--sub',
-                    'title'       => __('Holiday form decoration title', 'cleantalk-spam-protect'),
-                    'description' => __('Holiday form decoration title description', 'cleantalk-spam-protect'),
+                    'title'       => __('Enter a decoration title for the selected theme header', 'cleantalk-spam-protect'),
+                    'description' => __('This text will be placed in the decoration header, right above the respond form.', 'cleantalk-spam-protect'),
                     'parent'          => 'comments__form_decoration',
                 ),
                 'comments__form_decoration_color' => array(
                     'type'        => 'color',
                     'class'       => 'apbct_settings-field_wrapper--sub',
-                    'title'       => __('Holiday form decoration color', 'cleantalk-spam-protect'),
-                    'description' => __('Holiday form decoration color description', 'cleantalk-spam-protect'),
+                    'title'       => __('Pick a decoration color for the selected theme header', 'cleantalk-spam-protect'),
+                    'description' => __('Applies the color for the respond form header.', 'cleantalk-spam-protect'),
                     'parent'          => 'comments__form_decoration',
                 )
             ),
@@ -1623,7 +1623,7 @@ function apbct_settings__error__output($return = false)
                         $errors_out[$sub_type] .= (isset($error_texts[$type]) ? $error_texts[$type] : ucfirst($type)) . ': ';
                         $errors_out[$sub_type] .= isset($error_texts[$sub_type])
                             ? $error_texts[$sub_type]
-                            : ($error_texts['unknown'] . $sub_type . ' ');
+                            : (TT::getArrayValueAsString($error_texts, 'unknown') . $sub_type . ' ');
 
                         if (isset($sub_error['error'])) {
                             $errors_out[$sub_type] .= ' ' . $sub_error['error'];
@@ -1655,7 +1655,7 @@ function apbct_settings__error__output($return = false)
                     }
                 }
 
-                $errors_out[$type] .= (isset($error_texts[$type]) ? $error_texts[$type] : $error_texts['unknown']) . ' ' . (isset($error['error']) ? $error['error'] : '');
+                $errors_out[$type] .= (isset($error_texts[$type]) ? $error_texts[$type] : (TT::getArrayValueAsString($error_texts, 'unknown'))) . ' ' . (isset($error['error']) ? $error['error'] : '');
             }
         }
 
@@ -2427,6 +2427,10 @@ function apbct_settings__field__draw($params = array())
 
         // Dropdown list type
         case 'select':
+            if ($params['name'] === 'comments__form_decoration_selector') {
+                echo apbct_settings_get_form_decorator_select($params, $disabled, $value);
+                break;
+            }
             // Popup description
             $popup = '';
             if ( isset($params['long_description']) ) {
@@ -3644,4 +3648,53 @@ function apbct_settings_field__action_adjust()
 {
     $res = AdjustToEnvironmentSettings::render();
     echo $res;
+}
+
+function apbct_settings_get_form_decorator_select($params, $disabled, $value)
+{
+    $select = '';
+    // Popup description
+    $popup = '';
+    if ( isset($params['long_description']) ) {
+        $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
+    }
+    $select .= '<select'
+         . ' id="apbct_setting_' . $params['name'] . '"'
+         . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
+         . ' name="cleantalk_settings[' . $params['name'] . ']' . ($params['multiple'] ? '[]"' : '"')
+         . ($params['multiple'] ? ' size="' . count($params['options']) . '""' : '')
+         . ($params['multiple'] ? ' multiple="multiple"' : '')
+         . $disabled
+         . ($params['required'] ? ' required="required"' : '')
+         . ' style="margin-right: 5px;">';
+
+    foreach ( $params['options'] as $option ) {
+        //ESC NEED
+        $select .= '<option'
+             . ' value="' . $option['val'] . '"'
+             . (isset($option['children_enable']) ? ' data-children_enable=' . $option['children_enable'] . ' ' : ' ')
+             . ($params['multiple']
+                ? (! empty($value) && in_array($option['val'], $value) ? ' selected="selected"' : '')
+                : ($value == $option['val'] ? 'selected="selected"' : '')
+             )
+             . '>'
+             . $option['label']
+             . '</option>';
+    }
+
+    $select .= '</select>';
+
+    if (isset($params['title'])) {
+        $select .= '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
+             . $params['title'] . $popup
+             . '</label>';
+    }
+
+    if (isset($params['description'])) {
+        $select .= '<div class="apbct_settings-field_description">'
+             . $params['description']
+             . '</div>';
+    }
+
+    return $select;
 }

@@ -12,8 +12,9 @@ class DecorationSetHolidayNewYear extends DecorationSet
 
     protected $css_class_name = 'apbct_form_decoration--new-year';
 
-    public function __construct() {
-        $this->localized_name = __('New Year Celebration','cleantalk-spam-protect');
+    public function __construct()
+    {
+        $this->localized_name = __('New Year Celebration', 'cleantalk-spam-protect');
         parent::__construct();
     }
 
