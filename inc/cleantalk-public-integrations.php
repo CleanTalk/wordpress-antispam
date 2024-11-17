@@ -2168,49 +2168,11 @@ function apbct_form__ninjaForms__testSpam()
 
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
 
-    $form_data = json_decode(TT::toString(Post::get('formData')), true);
-    if ( ! $form_data ) {
-        $form_data = json_decode(stripslashes(TT::toString(Post::get('formData'))), true);
-    }
-    if ( function_exists('Ninja_Forms') && isset($form_data['fields']) ) {
-        /** @psalm-suppress UndefinedFunction */
-        $nf_form_fields_info = Ninja_Forms()->form()->get_fields();
-        $nf_form_fields_info_array = [];
-        foreach ($nf_form_fields_info as $field) {
-            $nf_form_fields_info_array[$field->get_id()] = [
-                'field_key' => $field->get_setting('key'),
-                'field_type' => $field->get_setting('type'),
-                'field_label' => $field->get_setting('label'),
-            ];
-        }
-
-        $nf_form_fields = $form_data['fields'];
-        $nickname = '';
-        $email = '';
-        $fields = [];
-        foreach ($nf_form_fields as $field) {
-            $field_info = $nf_form_fields_info_array[$field['id']];
-            $fields['nf-field-' . $field['id'] . '-' . $field_info['field_type']] = $field['value'];
-            if ( stripos($field_info['field_key'], 'name') !== false ) {
-                $nickname = $field['value'];
-            }
-            if ( stripos($field_info['field_key'], 'email') !== false ) {
-                $email = $field['value'];
-            }
-        }
-
-        $params = ct_gfa($fields, $email, $nickname);
-    } else {
-        // Old way to collecting NF fields data.
-        /**
-         * Filter for POST
-         */
-        $input_array = apply_filters('apbct__filter_post', $_POST);
-
-        // Choosing between POST and GET
-        $params = ct_get_fields_any(
-            Get::get('ninja_forms_ajax_submit') || Get::get('nf_ajax_submit') ? $_GET : $input_array
-        );
+    try {
+        $params = apbct_form__ninjaForms__collect_fields_new();
+    } catch (\Throwable $_e) {
+        // It is possible here check the reason if the new way collecting fields is not available.
+        $params = apbct_form__ninjaForms__collect_fields_old();
     }
 
     $sender_email    = isset($params['email']) ? $params['email'] : '';
@@ -2273,6 +2235,81 @@ function apbct_form__ninjaForms__testSpam()
             ); // Prevent mail notification
         }
     }
+}
+
+/**
+ * Old way to collecting NF fields data.
+ *
+ * @return array
+ */
+function apbct_form__ninjaForms__collect_fields_old()
+{
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+
+    // Choosing between POST and GET
+    return ct_gfa(
+        Get::get('ninja_forms_ajax_submit') || Get::get('nf_ajax_submit') ? $_GET : $input_array
+    );
+
+}
+
+/**
+ * New way to collecting NF fields data - try to get username and email.
+ *
+ * @return array
+ * @throws Exception
+ */
+function apbct_form__ninjaForms__collect_fields_new()
+{
+    $form_data = json_decode(TT::toString(Post::get('formData')), true);
+    if ( ! $form_data ) {
+        $form_data = json_decode(stripslashes(TT::toString(Post::get('formData'))), true);
+    }
+    if ( ! isset($form_data['fields']) ) {
+        throw new Exception('No form data is provided');
+    }
+    if ( ! function_exists('Ninja_Forms') ) {
+        throw new Exception('No `Ninja_Forms` class exists');
+    }
+    $nf_form_info = Ninja_Forms()->form();
+    if ( ! ($nf_form_info instanceof NF_Abstracts_ModelFactory) ) {
+        throw new Exception('Getting NF form failed');
+    }
+    $nf_form_fields_info = $nf_form_info->get_fields();
+    if ( ! is_array($nf_form_fields_info) && count($nf_form_fields_info) === 0 ) {
+        throw new Exception('No fields are provided');
+    }
+    foreach ($nf_form_fields_info as $field) {
+        if ( $field instanceof NF_Database_Models_Field) {
+            $nf_form_fields_info_array[$field->get_id()] = [
+                'field_key' => $field->get_setting('key'),
+                'field_type' => $field->get_setting('type'),
+                'field_label' => $field->get_setting('label'),
+            ];
+        }
+    }
+
+    $nf_form_fields = $form_data['fields'];
+    $nickname = '';
+    $email = '';
+    $fields = [];
+    foreach ($nf_form_fields as $field) {
+        if ( isset($nf_form_fields_info_array[$field['id']]) ) {
+            $field_info = $nf_form_fields_info_array[$field['id']];
+            $fields['nf-field-' . $field['id'] . '-' . $field_info['field_type']] = $field['value'];
+            if ( stripos($field_info['field_key'], 'name') !== false ) {
+                $nickname = $field['value'];
+            }
+            if ( stripos($field_info['field_key'], 'email') !== false ) {
+                $email = $field['value'];
+            }
+        }
+    }
+
+    return ct_gfa($fields, $email, $nickname);
 }
 
 /**
