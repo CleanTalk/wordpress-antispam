@@ -23,6 +23,7 @@
         <directory name="./lib/Cleantalk/ApbctWP/AdjustToEnvironmentModule"/>
         <directory name="./lib/Cleantalk/ApbctWP/Antispam"/>
         <directory name="./lib/Cleantalk/ApbctWP/FindSpam"/>
+        <directory name="./lib/Cleantalk/ApbctWP/Firewall"/>
         <file name="./lib/Cleantalk/Common/Validate.php"/>
         <file name="./lib/Cleantalk/Common/TT.php"/>
         <file name="./lib/Cleantalk/ApbctWP/Activator.php"/>
