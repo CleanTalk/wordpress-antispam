@@ -1401,7 +1401,10 @@ function apbct_enqueue_and_localize_public_scripts()
             'https://moderate.cleantalk.org/ct-bot-detector-wrapper.js',
             [],
             APBCT_VERSION,
-            $in_footer
+            array(
+                'in_footer' => $in_footer,
+                'strategy'  => 'defer',
+            )
         );
     }
 
