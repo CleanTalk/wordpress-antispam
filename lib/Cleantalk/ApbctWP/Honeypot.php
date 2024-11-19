@@ -68,7 +68,6 @@ class Honeypot
         ];
 
         $hp = self::getHoneypotFilledFields();
-        error_log('check honeypot: ' . print_r($hp, true));
 
         // If honeypot field is not supported for current form
         if (is_null($hp)) {
