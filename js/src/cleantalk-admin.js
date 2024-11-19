@@ -249,10 +249,10 @@ function apbctAjaxEmailDecodeBulk(encodedEmailNode) {
  * @param {mixed} encodedEmailNode
  */
 function apbctEmailEncoderCallbackBulk(result, encodedEmailNode) {
-    if (result.success) {
+    if (result.success && result.data[0].is_allowed === true) {
         // start process of visual decoding
         setTimeout(function() {
-            let email = Object.values(result.data)[0];
+            let email = result.data[0].decoded_email;
 
             // change text
             let popup = document.getElementById('apbct_popup');
@@ -300,7 +300,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNode) {
  * @param {mixed} decodingResult
  */
 function fillDecodedEmails(encodedEmailNode, decodingResult) {
-    let currentResultData = Object.values(decodingResult.data)[0];
+    let currentResultData = decodingResult.data[0].decoded_email;
     encodedEmailNode.classList.add('no-blur');
     // fill the nodes
     setTimeout(() => {
