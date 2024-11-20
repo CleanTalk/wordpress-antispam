@@ -166,7 +166,7 @@ class EmailEncoder
             return $content;
         }
 
-        if ( $this->hasContentExclusions($content) ) {
+        if ( is_admin() && $this->hasContentExclusions($content) ) {
             return $content;
         }
 
@@ -760,5 +760,6 @@ class EmailEncoder
     private function registerHookHandler()
     {
         add_filter('apbct_encode_data', [$this, 'modifyAny']);
+        add_filter('apbct_encode_email_data', [$this, 'modifyEmails']);
     }
 }
