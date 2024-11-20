@@ -166,7 +166,7 @@ class EmailEncoder
             return $content;
         }
 
-        if ( is_admin() && $this->hasContentExclusions($content) ) {
+        if ( $this->hasContentExclusions($content) ) {
             return $content;
         }
 
