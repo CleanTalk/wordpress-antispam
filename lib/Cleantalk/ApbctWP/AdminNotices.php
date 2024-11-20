@@ -164,6 +164,8 @@ class AdminNotices
             $this->apbct->moderate_ip == 0
         ) {
             $banner_data = new BannerDataDto();
+            $banner_data->type = 'key_is_incorrect';
+
             $banner_data->text = sprintf(
                 __("Please enter the Access Key in %s plugin to enable spam protection!", 'cleantalk-spam-protect'),
                 $this->apbct->plugin_name
@@ -194,6 +196,8 @@ class AdminNotices
             ! $this->apbct->white_label
         ) {
             $banner_data = new BannerDataDto();
+            $banner_data->type = 'trial';
+
             $banner_data->text = sprintf(
                 __("%s trial period ends, please upgrade to next year!", 'cleantalk-spam-protect'),
                 $this->apbct->plugin_name
@@ -230,6 +234,8 @@ class AdminNotices
             ! $this->apbct->white_label
         ) {
             $banner_data = new BannerDataDto();
+            $banner_data->type = 'renew';
+
             $banner_data->text = __("Please renew your Anti-Spam license for next year!", 'cleantalk-spam-protect');
 
             $banner_data->button_url = LinkConstructor::buildRenewalLink($this->user_token, 'renew_notice_renew');
@@ -261,6 +267,8 @@ class AdminNotices
             ! $this->apbct->white_label
         ) {
             $banner_data = new BannerDataDto();
+            $banner_data->type = 'review';
+
             $banner_data->text = sprintf(
                 __("Help others to fight spam with %s – leave your feedback!", 'cleantalk-spam-protect'),
                 $this->apbct->data['wl_brandname']
@@ -299,6 +307,8 @@ class AdminNotices
         ) {
             foreach ( $this->apbct->data['notice_incompatibility'] as $notice ) {
                 $banner_data = new BannerDataDto();
+                $banner_data->type = 'incompatibility';
+
                 $banner_data->text = sprintf(
                     __("Some plugin is not compatible with %s – instruction in the article.", 'cleantalk-spam-protect'),
                     $this->apbct->data['wl_brandname']
@@ -341,6 +351,8 @@ class AdminNotices
             $this->is_cleantalk_page && apbct_is_cache_plugins_exists()
         ) {
             $banner_data = new BannerDataDto();
+            $banner_data->type = 'email_decoder_changed';
+
             $banner_data->text = __("Need to clear the cache", 'cleantalk-spam-protect');
             $banner_data->additional_text = __('You have changed the "Encode contact data" setting. If you use caching plugins, then you need to clear the cache.', 'cleantalk-spam-protect');
 

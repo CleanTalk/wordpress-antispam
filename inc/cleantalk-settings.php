@@ -192,11 +192,12 @@ function apbct_settings__set_fields()
                 ),
                 'comments__the_real_person' => array(
                     'type'        => 'checkbox',
-                    'title'       => __('The Real Person', 'cleantalk-spam-protect'),
+                    'title'       => __('The Real Person Badge!', 'cleantalk-spam-protect'),
                     'description' => __(
                         'Plugin shows special benchmark for author of a comment or review, that the author passed all anti-spam filters and acts as a real person. It improves quality of users generated content on your website by proving that the content is not from spambots.',
                         'cleantalk-spam-protect'
                     ),
+                    'long_description' => true,
                 ),
             ),
         ),
@@ -3266,6 +3267,14 @@ function apbct_settings__get__long_description()
             'desc'  => sprintf(
                 __('This «Website» field is frequently used by spammers to place spam links in it. ' . esc_html__($apbct->data['wl_brandname']) . ' helps you protect your WordPress website comments by hiding this field off. %s', 'cleantalk-spam-protect'),
                 '<a href="https://cleantalk.org/help/how-to-hide-website-field-in-wordpress-comments{utm_mark}" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+            )
+        ),
+        'comments__the_real_person' => array(
+            'title' => __('The Real Person Badge!', 'cleantalk-spam-protect'),
+            //HANDLE LINK
+            'desc'  => sprintf(
+                __('Plugin shows special benchmark for author of a comment or review, that the author passed all anti-spam filters and acts as a real person. It improves quality of users generated content on your website by proving that the content is not from spambots. %s', 'cleantalk-spam-protect'),
+                '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('trp_learn_more_link', 'the-real-person')) . '" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
         'sfw__anti_crawler' => array(

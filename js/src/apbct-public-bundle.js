@@ -2635,51 +2635,6 @@ function apbct_ready() {
 
     // Set important paramaters via ajax if problematic cache solutions found
     apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
-
-    if (typeof apbctTrpBrokenIntervalId !== 'undefined') {
-        setTimeout(() => {
-            clearInterval(apbctTrpBrokenIntervalId);
-        }, 1000);
-    }
-}
-
-/**
- * Check broken TRP every 100ms until the page is loaded
- */
-const apbctTrpBrokenIntervalId = setInterval(apbctFixBrokenTRP, 100);
-
-/**
- * Fix broken TRP - clean author names from html tags
- */
-function apbctFixBrokenTRP() {
-    let author;
-    let comments;
-    let reviews;
-    let pattern = '<div class="apbct-real-user-author-name">';
-
-    if (document.documentElement.textContent.indexOf(pattern) > -1) {
-        author = document.documentElement.textContent.match(new RegExp(pattern + '(.*?)<\/div>'))[1];
-
-        comments = document.querySelectorAll('.comment-author');
-        for (let i = 0; i < comments.length; i++) {
-            comments[i].childNodes.forEach((node) => {
-                if (node.textContent.includes(pattern)) {
-                    node.textContent = author;
-                    apbctFixBrokenTRP();
-                }
-            });
-        }
-
-        reviews = document.querySelectorAll('.woocommerce-review__author');
-        for (let i = 0; i < reviews.length; i++) {
-            reviews[i].childNodes.forEach((node) => {
-                if (node.textContent.includes(pattern)) {
-                    node.textContent = author;
-                    apbctFixBrokenTRP();
-                }
-            });
-        }
-    }
 }
 
 /**
@@ -3692,35 +3647,6 @@ if (document.readyState !== 'loading') {
     checkFormsExistForCatching();
 } else {
     apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatching);
-}
-
-/**
- * Handle real user badge for woocommerce
- * @param template
- * @param id
- */
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctRealUserBadgeWoocommerce(template, id) {
-    if (window.innerWidth < 768) {
-        return;
-    }
-
-    let badge = document.createElement('div');
-    badge.className = 'apbct-real-user-wrapper';
-
-    let attachmentPlace = document.querySelector('#comment-' + id).querySelector('.woocommerce-review__author');
-
-    try {
-        template = atob(template);
-        badge.innerHTML = template;
-
-        if (typeof attachmentPlace !== 'undefined') {
-            attachmentPlace.style.display = 'inline-flex';
-            attachmentPlace.appendChild(badge);
-        }
-    } catch (e) {
-        console.log('APBCT error: ' + e.toString());
-    }
 }
 
 /**
@@ -5056,3 +4982,77 @@ function ctCheckInternalIsExcludedForm(action) {
         return action.match(new RegExp(ctPublic.blog_home + '.*' + item)) !== null;
     });
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    let ctTrpLocalize = undefined;
+    let ctTrpIsAdminCommentsList = false;
+
+    if ( typeof ctPublic !== 'undefined' || typeof ctTrpAdminLocalize !== 'undefined' ) {
+        if ( typeof ctPublic !== 'undefined' && ctPublic.theRealPerson ) {
+            ctTrpLocalize = ctPublic.theRealPerson;
+        }
+        if (
+            typeof ctTrpLocalize === 'undefined' &&
+            typeof ctTrpAdminLocalize !== 'undefined' &&
+            ctTrpAdminLocalize.theRealPerson
+        ) {
+            ctTrpLocalize = ctTrpAdminLocalize.theRealPerson;
+            ctTrpIsAdminCommentsList = true;
+        }
+    }
+
+    if ( ! ctTrpLocalize ) {
+        return;
+    }
+
+    // Selectors. Try to handle the WIDE range of themes.
+    let themesCommentsSelector = '.apbct-trp *[class*="comment-author"]';
+    let woocommerceReviewsSelector = '.apbct-trp *[class*="review__author"]';
+    let adminCommentsListSelector = '.apbct-trp td[class*="column-author"] > strong';
+    const trpComments = document.querySelectorAll(
+        themesCommentsSelector + ',' +
+        woocommerceReviewsSelector + ',' +
+        adminCommentsListSelector);
+
+    if ( trpComments.length === 0 ) {
+        return;
+    }
+
+    trpComments.forEach(( element, index ) => {
+        let trpLayout = document.createElement('div');
+        trpLayout.setAttribute('class', 'apbct-real-user-badge');
+
+        let trpImage = document.createElement('img');
+        trpImage.setAttribute('src', ctTrpLocalize.imgPersonUrl);
+        trpImage.setAttribute('class', 'apbct-real-user-popup-img');
+
+        let trpDescription = document.createElement('div');
+        trpDescription.setAttribute('class', 'apbct-real-user-popup');
+
+        let trpDescriptionHeading = document.createElement('p');
+        trpDescriptionHeading.setAttribute('class', 'apbct-real-user-popup-header');
+        trpDescriptionHeading.append(ctTrpLocalize.phrases.trpHeading);
+
+        let trpDescriptionContent = document.createElement('div');
+        trpDescriptionContent.setAttribute('class', 'apbct-real-user-popup-content_row');
+
+        let trpDescriptionContentSpan = document.createElement('span');
+        trpDescriptionContentSpan.append(ctTrpLocalize.phrases.trpContent1 + ' ');
+        trpDescriptionContentSpan.append(ctTrpLocalize.phrases.trpContent2);
+
+        if ( ctTrpIsAdminCommentsList ) {
+            let learnMoreLink = document.createElement('a');
+            learnMoreLink.setAttribute('href', ctTrpLocalize.trpContentLink);
+            learnMoreLink.setAttribute('target', '_blank');
+            learnMoreLink.text = ctTrpLocalize.phrases.trpContentLearnMore;
+            trpDescriptionContentSpan.append(' '); // Need one space
+            trpDescriptionContentSpan.append(learnMoreLink);
+        }
+
+        trpDescriptionContent.append(trpDescriptionContentSpan);
+        trpDescription.append(trpDescriptionHeading, trpDescriptionContent);
+        trpLayout.append(trpImage);
+        element.append(trpLayout);
+        element.append(trpDescription);
+    });
+});

@@ -97,43 +97,6 @@ jQuery(document).ready(function($) {
         }
     });
 
-    document.querySelectorAll('.apbct-real-user').forEach((el) => {
-        el.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.currentTarget.querySelector('.apbct-real-user-popup').style.display = 'block';
-        });
-    });
-    document.querySelector('body').addEventListener('click', function(e) {
-        document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
-            el.style.display = 'none';
-        });
-    });
-    if (window.location.pathname.includes('wp-admin/edit-comments.php')) {
-        const trashElements = document.querySelectorAll('.row-actions .trash');
-        if (trashElements.length) {
-            trashElements.forEach((el) => {
-                el.addEventListener('click', (c) => {
-                    const name = c.target.parentElement.parentElement.parentElement
-                        .querySelector('.apbct-admin-real-user-author-name');
-                    if (!name || !name.textContent) {
-                        return;
-                    }
-                    setTimeout(() => {
-                        const nameForUndo = document.querySelector('.untrash .trash-undo-inside');
-                        if (!nameForUndo) {
-                            return;
-                        }
-                        const nameUndo = nameForUndo.querySelector('strong');
-                        if (nameUndo) {
-                            nameUndo.textContent = name.textContent;
-                        }
-                    }, 10);
-                });
-            });
-        }
-    }
-
     // Email decoder example
     if (window.location.href.includes('options-general.php?page=cleantalk')) {
         let encodedEmailNode = document.querySelector('[data-original-string]');
