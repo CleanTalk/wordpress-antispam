@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\HTTP;
 
 use Cleantalk\Common\HTTP\Response;
+use Cleantalk\Common\TT;
 
 class Request extends \Cleantalk\Common\HTTP\Request
 {
@@ -40,7 +41,7 @@ class Request extends \Cleantalk\Common\HTTP\Request
             return parent::requestSingle();
         }
 
-        $type = in_array('get', $this->presets, true) ? 'GET' : 'POST';
+        $type = is_array($this->presets) && in_array('get', $this->presets, true) ? 'GET' : 'POST';
 
         // WP 6.2 support: Requests/Response classes has been replaced into the another namespace in the core
         if ( class_exists('\WpOrg\Requests\Requests') ) {
@@ -55,7 +56,13 @@ class Request extends \Cleantalk\Common\HTTP\Request
             $response_class = '\Requests_Response';
         }
 
-        $headers_for_api = $this->prepareHeadersForWpHTTPAPI($this->options[CURLOPT_HTTPHEADER]);
+        $headers_for_api = $this->prepareHeadersForWpHTTPAPI(
+            TT::getArrayValueAsArray($this->options, CURLOPT_HTTPHEADER)
+        );
+
+        if ( !is_string($this->url) ) {
+            return new Response(['error' => 'Cannot run several URLs on requestSingle()!'], []);
+        }
 
         try {
             $response = $requests_class::request(
@@ -97,18 +104,22 @@ class Request extends \Cleantalk\Common\HTTP\Request
         $requests  = [];
         $options   = [];
 
+        if (is_string($this->url)) {
+            $this->url = array($this->url);
+        }
+
+        $type = is_array($this->presets) && in_array('get', $this->presets, true) ? 'GET' : 'POST';
+
         // Prepare options
         foreach ( $this->url as $url ) {
             $requests[] = [
                 'url'     => $url,
-                'headers' => $this->options[CURLOPT_HTTPHEADER],
+                'headers' => TT::getArrayValueAsArray($this->options, CURLOPT_HTTPHEADER),
                 'data'    => $this->data,
-                'type'    => $type = in_array('get', $this->presets, true) ? 'GET' : 'POST',
+                'type'    => $type,
                 'cookies' => [],
             ];
-            $options[]  = [
-
-            ];
+            $options[]  = array();
         }
 
         // WP 6.2 support: Requests/Response classes has been replaced into the another namespace in the core
@@ -166,7 +177,7 @@ class Request extends \Cleantalk\Common\HTTP\Request
 
         global $apbct;
 
-        if ( $apbct->settings['wp__use_builtin_http_api'] ) {
+        if ( $apbct->settings['wp__use_builtin_http_api'] && is_array($this->presets) ) {
             foreach ( $this->presets as $preset ) {
                 switch ( $preset ) {
                     // Do not follow redirects
@@ -247,7 +258,9 @@ class Request extends \Cleantalk\Common\HTTP\Request
                     //if any found - add to the headers
                     if (isset($mod_header)) {
                         $pair = explode($separator, $mod_header);
-                        $headers_for_api[$pair[0]] = $pair[1];
+                        if (isset($pair[1], $pair[0])) {
+                            $headers_for_api[$pair[0]] = $pair[1];
+                        }
                     }
                 }
             }
