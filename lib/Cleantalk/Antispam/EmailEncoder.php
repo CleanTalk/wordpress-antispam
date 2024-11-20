@@ -233,7 +233,7 @@ class EmailEncoder
         if ( apbct_is_user_logged_in() ) {
             $this->decoded_emails_array = $this->ignoreOpenSSLMode()->decodeEmailFromPost();
             $this->response = $this->compileResponse($this->decoded_emails_array, true);
-            wp_send_json_success($this->decoded_emails_array);
+            wp_send_json_success($this->response);
         }
 
         $this->decoded_emails_array = $this->decodeEmailFromPost();

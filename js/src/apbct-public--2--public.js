@@ -1295,20 +1295,20 @@ function ctFillDecodedEmailHandler(event) {
 
         // construct text first node
         // todo make translatable
-        let popupTextDecoding = document.createElement('p');
-        popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_first';
-        popupTextDecoding.innerText = 'Decoding process to the original contact.';
-
-        // construct text first node
-        // todo make translatable
         let popupTextWaiting = document.createElement('p');
-        popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_second';
+        popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_first';
         popupTextWaiting.innerText = 'The magic is on the way, please wait for a few seconds!';
         popupTextWaiting.setAttribute('class', 'apbct-email-encoder-elements_center');
 
-        // appendings
-        popupTextWrapper.append(popupTextDecoding);
+        // construct text second node
+        // todo make translatable
+        let popupTextDecoding = document.createElement('p');
+        popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_second';
+        popupTextDecoding.innerText = 'Decoding process to the original data.';
+
+        // appending
         popupTextWrapper.append(popupTextWaiting);
+        popupTextWrapper.append(popupTextDecoding);
         waitingPopup.append(popupHeaderWrapper);
         waitingPopup.append(popupTextWrapper);
         waitingPopup.append(apbctSetEmailDecoderPopupAnimation());
@@ -1437,15 +1437,14 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 let selectableEmail = document.createElement('b');
                 selectableEmail.setAttribute('class', 'apbct-email-encoder-select-whole-email');
                 selectableEmail.innerText = email;
-                selectableEmail.title = 'Click to select the whole email';
+                selectableEmail.title = 'Click to select the whole data';
                 // add email to the first node
                 firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML + '.';
                 firstNode.setAttribute('style', 'flex-direction: row;');
-                // handle second node
-                let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
-                secondNode.innerText = 'Happy conversations!';
-                // remove antimation
+                // remove animation
                 popup.querySelector('.apbct-ee-animation-wrapper').remove();
+                // remove second node
+                popup.querySelector('#apbct_email_ecoder__popup_text_node_second').remove();
                 // add button
                 let buttonWrapper = document.createElement('span');
                 buttonWrapper.classList = 'apbct-email-encoder-elements_center top-margin-long';
