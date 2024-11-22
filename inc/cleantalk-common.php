@@ -815,7 +815,7 @@ function apbct_is_cache_plugins_exists($return_names = false)
     $out = array();
 
     $constants_of_cache_plugins = array(
-        'WP_ROCKET_VERSION'                          => 'WPRocket',
+        'WP_ROCKET_VERSION'                           => 'WPRocket',
         'LSCWP_DIR'                                   => 'LiteSpeed Cache',
         'WPFC_WP_CONTENT_BASENAME'                    => 'WP Fastest Cache',
         'W3TC'                                        => 'W3 Total Cache',
@@ -828,6 +828,7 @@ function apbct_is_cache_plugins_exists($return_names = false)
         'NITROPACK_VERSION'                           => 'NitroPack',
         'TWO_PLUGIN_FILE'                             => '10Web Booster',
         'FLYING_PRESS_VERSION'                        => 'Flying Press',
+        'BREEZE_VERSION'                              => 'Breeze',
     );
 
     $classes_of_cache_plugins = array (
