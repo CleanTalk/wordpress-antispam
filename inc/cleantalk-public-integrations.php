@@ -2,6 +2,7 @@
 
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\Honeypot;
 use Cleantalk\ApbctWP\LinkConstructor;
 use Cleantalk\ApbctWP\Localize\CtPublicFunctionsLocalize;
 use Cleantalk\ApbctWP\Localize\CtPublicLocalize;
@@ -1061,7 +1062,7 @@ function ct_register_form()
     }
 
     ct_add_hidden_fields($ct_checkjs_register_form, false, false, false, false);
-    echo ct_add_honeypot_field('wp_register');
+    echo Honeypot::generateHoneypotField('wp_register');
     if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
         echo Escape::escKsesPreset(
             apbct_generate_trusted_text_html('label'),
@@ -1777,7 +1778,7 @@ function apbct_form__contactForm7__addField($html)
     }
 
     $html .= ct_add_hidden_fields($ct_checkjs_cf7, true);
-    $html .= ct_add_honeypot_field('wp_contact_form_7');
+    $html .= Honeypot::generateHoneypotField('wp_contact_form_7');
     if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
         $html .= Escape::escKsesPreset(
             apbct_generate_trusted_text_html('label_left'),
@@ -2512,7 +2513,7 @@ function apbct_form__WPForms__addField($_form_data, $_some, $_title, $_descripti
 
     if ( $apbct->settings['forms__contact_forms_test'] == 1 && !is_user_logged_in() ) {
         ct_add_hidden_fields('ct_checkjs_wpforms');
-        echo ct_add_honeypot_field('wp_wpforms');
+        echo Honeypot::generateHoneypotField('wp_wpforms');
         if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
             echo Escape::escKsesPreset(
                 apbct_generate_trusted_text_html('label_left'),
@@ -3020,7 +3021,7 @@ function apbct_form__gravityForms__addField($form_string, $form)
 
     // Adding JS code
     $js_code  = ct_add_hidden_fields($ct_hidden_field, true, false);
-    $honeypot = ct_add_honeypot_field('gravity_form');
+    $honeypot = Honeypot::generateHoneypotField('gravity_form');
     $form_string = str_replace($search, TT::toString($js_code) . $honeypot . $search, $form_string);
 
     // Adding field for multipage form. Look for cleantalk.php -> apbct_cookie();
@@ -3341,7 +3342,7 @@ function apbct_form__elementor_pro__addField($content)
     global $apbct;
 
     $search = '</form>';
-    $replace = ct_add_honeypot_field('elementor_form') . $search;
+    $replace = Honeypot::generateHoneypotField('elementor_form') . $search;
     $content = str_replace($search, $replace, $content);
 
     if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' && strpos($content, $search) !== false ) {
@@ -3754,11 +3755,9 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
 function apbct_form_search__add_fields($form_html)
 {
     global $apbct;
-    if ( !empty($form_html) && is_string($form_html) && $apbct->settings['forms__search_test'] == 1 ) {
 
-        /**
-         * extract method of the form
-         */
+    if ( !empty($form_html) && is_string($form_html) && $apbct->settings['forms__search_test'] == 1 ) {
+        // extract method of the form with DOMDocument
         if ( class_exists('DOMDocument') ) {
             libxml_use_internal_errors(true);
             $dom = new DOMDocument();
@@ -3775,6 +3774,7 @@ function apbct_form_search__add_fields($form_html)
             unset($dom);
         }
 
+        // retry extract method of the form with regex
         if ( empty($method) ) {
             preg_match('/form.*method="(.*?)"/', $form_html, $matches);
             $method = empty($matches[1])
@@ -3782,11 +3782,9 @@ function apbct_form_search__add_fields($form_html)
                 : trim($matches[1]);
         }
 
-        /**
-         * add honeypot html
-         */
         $form_method = strtolower($method);
-        return str_replace('</form>', ct_add_honeypot_field('search_form', $form_method) . '</form>', $form_html);
+
+        return str_replace('</form>', Honeypot::generateHoneypotField('search_form', $form_method) . '</form>', $form_html);
     }
 
     return $form_html;
