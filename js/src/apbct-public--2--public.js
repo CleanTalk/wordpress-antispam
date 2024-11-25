@@ -936,6 +936,11 @@ function apbct_ready() {
                 (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
             )
         ) {
+            // fibosearch integration
+            if (_form.querySelector('input.dgwt-wcas-search-input')) {
+                continue;
+            }
+
             // this handles search forms onsubmit process
             _form.apbctSearchPrevOnsubmit = _form.onsubmit;
             _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
@@ -1172,8 +1177,10 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
                     honeyPotField.parentNode.removeChild(honeyPotField);
                 }
                 if (typeof targetForm.apbctSearchPrevOnsubmit === 'function') {
+                    console.log('submit targetForm 1', targetForm);
                     targetForm.apbctSearchPrevOnsubmit();
                 } else {
+                    console.log('submit targetForm 2', targetForm);
                     HTMLFormElement.prototype.submit.call(targetForm);
                 }
             };
@@ -1202,11 +1209,13 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
 
             // if any data provided, proceed data to xhr
             if ( typeof parsedCookies !== 'undefined' && parsedCookies.length !== 0 ) {
+                console.log('submit parsedCookies', parsedCookies);
                 ctSetAlternativeCookie(
                     parsedCookies,
                     {callback: callBack, onErrorCallback: callBack, forceAltCookies: true},
                 );
             } else {
+                console.log('submit callBack');
                 callBack();
             }
         }
