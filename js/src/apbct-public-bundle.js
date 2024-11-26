@@ -5104,7 +5104,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const popup = this.nextElementSibling;
                 const selection = window.getSelection();
                 // Check if no text is selected
-                if (popup && selection && popup.classList.contains('apbct-real-user-popup') && selection.toString().length === 0) {
+                if (popup && selection && popup.classList.contains('apbct-real-user-popup') &&
+                    selection.toString().length === 0
+                ) {
                     popup.classList.remove('visible');
                 } else {
                     clearTimeout(hideTimeout);
