@@ -78,14 +78,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         badge.addEventListener('click', function() {
             const popup = this.nextElementSibling;
-            if (popup.classList.contains('apbct-real-user-popup')) {
+            if (popup && popup.classList.contains('apbct-real-user-popup')) {
                 popup.classList.toggle('visible');
             }
         });
 
         badge.addEventListener('mouseenter', function() {
             const popup = this.nextElementSibling;
-            if (popup.classList.contains('apbct-real-user-popup')) {
+            if (popup && popup.classList.contains('apbct-real-user-popup')) {
                 popup.classList.add('visible');
             }
         });
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
         badge.addEventListener('mouseleave', function() {
             hideTimeout = setTimeout(() => {
                 const popup = this.nextElementSibling;
-                if (popup.classList.contains('apbct-real-user-popup')) {
+                if (popup && popup.classList.contains('apbct-real-user-popup')) {
                     popup.classList.remove('visible');
                 }
             }, 1000);
@@ -119,16 +119,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 const popup = this.nextElementSibling;
                 const selection = window.getSelection();
                 // Check if no text is selected
-                if (popup.classList.contains('apbct-real-user-popup') && selection.toString().length === 0) {
+                if (popup && selection && popup.classList.contains('apbct-real-user-popup') && selection.toString().length === 0) {
                     popup.classList.remove('visible');
                 } else {
                     clearTimeout(hideTimeout);
                     document.addEventListener('selectionchange', function onSelectionChange() {
-                        if (window.getSelection().toString().length === 0) {
+                        const selection = window.getSelection();
+                        if (selection && selection.toString().length === 0) {
                             // Restart the hide timeout when selection is cleared
                             hideTimeout = setTimeout(() => {
                                 const popup = badge.nextElementSibling;
-                                if (popup.classList.contains('apbct-real-user-popup')) {
+                                if (popup && popup.classList.contains('apbct-real-user-popup')) {
                                     popup.classList.remove('visible');
                                 }
                             }, 3000);
