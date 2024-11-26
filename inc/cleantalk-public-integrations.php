@@ -3342,8 +3342,14 @@ function apbct_form__elementor_pro__addField($content)
     global $apbct;
 
     $search = '</form>';
-    $replace = Honeypot::generateHoneypotField('elementor_form') . $search;
-    $content = str_replace($search, $replace, $content);
+    if (
+        is_string($content) &&
+        !preg_match('/search/', $content) &&
+        !preg_match('/method.+get./', $content)
+    ) {
+        $replace = Honeypot::generateHoneypotField('elementor_form') . $search;
+        $content = str_replace($search, $replace, $content);
+    }
 
     if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' && strpos($content, $search) !== false ) {
         $content .= Escape::escKsesPreset(

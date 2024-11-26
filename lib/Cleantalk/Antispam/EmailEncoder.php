@@ -47,6 +47,8 @@ class EmailEncoder
         array('av_contact', 'email', 'from_email'),
         // Stylish Cost Calculator
         array('scc-form-field-item'),
+        // Exclusion of maps from leaflet
+        array('leaflet'),
     );
 
     /**
@@ -749,5 +751,6 @@ class EmailEncoder
     private function registerHookHandler()
     {
         add_filter('apbct_encode_data', [$this, 'modifyAny']);
+        add_filter('apbct_encode_email_data', [$this, 'modifyContent']);
     }
 }
