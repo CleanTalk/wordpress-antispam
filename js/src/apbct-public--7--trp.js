@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const badges = document.querySelectorAll('.apbct-real-user-badge');
 
-    badges.forEach(badge => {
+    badges.forEach((badge) => {
         let hideTimeout = undefined;
 
         badge.addEventListener('click', function() {
