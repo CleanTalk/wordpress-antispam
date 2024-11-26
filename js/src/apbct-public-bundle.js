@@ -5060,4 +5060,76 @@ document.addEventListener('DOMContentLoaded', function() {
         element.append(trpLayout);
         element.append(trpDescription);
     });
+
+    const badges = document.querySelectorAll('.apbct-real-user-badge');
+
+    badges.forEach((badge) => {
+        let hideTimeout = undefined;
+
+        badge.addEventListener('click', function() {
+            const popup = this.nextElementSibling;
+            if (popup && popup.classList.contains('apbct-real-user-popup')) {
+                popup.classList.toggle('visible');
+            }
+        });
+
+        badge.addEventListener('mouseenter', function() {
+            const popup = this.nextElementSibling;
+            if (popup && popup.classList.contains('apbct-real-user-popup')) {
+                popup.classList.add('visible');
+            }
+        });
+
+        badge.addEventListener('mouseleave', function() {
+            hideTimeout = setTimeout(() => {
+                const popup = this.nextElementSibling;
+                if (popup && popup.classList.contains('apbct-real-user-popup')) {
+                    popup.classList.remove('visible');
+                }
+            }, 1000);
+        });
+
+        const popup = badge.nextElementSibling;
+        popup.addEventListener('mouseenter', function() {
+            clearTimeout(hideTimeout);
+            popup.classList.add('visible');
+        });
+
+        popup.addEventListener('mouseleave', function() {
+            hideTimeout = setTimeout(() => {
+                if (popup.classList.contains('apbct-real-user-popup')) {
+                    popup.classList.remove('visible');
+                }
+            }, 1000);
+        });
+
+        // For mobile devices
+        badge.addEventListener('touchend', function() {
+            hideTimeout = setTimeout(() => {
+                const popup = this.nextElementSibling;
+                const selection = window.getSelection();
+                // Check if no text is selected
+                if (popup && selection && popup.classList.contains('apbct-real-user-popup') &&
+                    selection.toString().length === 0
+                ) {
+                    popup.classList.remove('visible');
+                } else {
+                    clearTimeout(hideTimeout);
+                    document.addEventListener('selectionchange', function onSelectionChange() {
+                        const selection = window.getSelection();
+                        if (selection && selection.toString().length === 0) {
+                            // Restart the hide timeout when selection is cleared
+                            hideTimeout = setTimeout(() => {
+                                const popup = badge.nextElementSibling;
+                                if (popup && popup.classList.contains('apbct-real-user-popup')) {
+                                    popup.classList.remove('visible');
+                                }
+                            }, 3000);
+                            document.removeEventListener('selectionchange', onSelectionChange);
+                        }
+                    });
+                }
+            }, 3000);
+        });
+    });
 });
