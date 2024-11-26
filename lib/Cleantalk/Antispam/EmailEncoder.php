@@ -762,5 +762,6 @@ class EmailEncoder
     private function registerHookHandler()
     {
         add_filter('apbct_encode_data', [$this, 'modifyAny']);
+        add_filter('apbct_encode_email_data', [$this, 'modifyContent']);
     }
 }
