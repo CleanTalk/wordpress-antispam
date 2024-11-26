@@ -2865,10 +2865,8 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
                     honeyPotField.parentNode.removeChild(honeyPotField);
                 }
                 if (typeof targetForm.apbctSearchPrevOnsubmit === 'function') {
-                    console.log('submit targetForm 1', targetForm);
                     targetForm.apbctSearchPrevOnsubmit();
                 } else {
-                    console.log('submit targetForm 2', targetForm);
                     HTMLFormElement.prototype.submit.call(targetForm);
                 }
             };
@@ -2897,13 +2895,11 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
 
             // if any data provided, proceed data to xhr
             if ( typeof parsedCookies !== 'undefined' && parsedCookies.length !== 0 ) {
-                console.log('submit parsedCookies', parsedCookies);
                 ctSetAlternativeCookie(
                     parsedCookies,
                     {callback: callBack, onErrorCallback: callBack, forceAltCookies: true},
                 );
             } else {
-                console.log('submit callBack');
                 callBack();
             }
         }
