@@ -18,7 +18,6 @@ class DecorationSet
 
     public function __construct()
     {
-        $this->localizeCSS();
     }
 
     public function getCssClass()

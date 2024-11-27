@@ -4,6 +4,8 @@ use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentSettings;
 use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\ApbctWP\Escape;
+use Cleantalk\ApbctWP\FormDecorator\DecorationRegistry;
+use Cleantalk\ApbctWP\FormDecorator\FormDecoratorSettings;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\LinkConstructor;
 use Cleantalk\ApbctWP\Validate;
@@ -458,7 +460,8 @@ function apbct_settings__set_fields()
                 'comments__form_decoration_selector' => array(
                     'type'        => 'select',
                     'class'       => 'apbct_settings-field_wrapper--sub',
-                    'options_callback' => array(\Cleantalk\ApbctWP\FormDecorator\DecorationRegistry::getInstance(),
+                    'options_callback' => array(
+                        DecorationRegistry::getInstance(),
                         'getDecorationLocalizedNames'
                     ),
                     'title'       => __('Select a theme for comments form decoration', 'cleantalk-spam-protect'),
@@ -2430,40 +2433,50 @@ function apbct_settings__field__draw($params = array())
 
         // Dropdown list type
         case 'select':
-            if ($params['name'] === 'comments__form_decoration_selector') {
-                echo apbct_settings_get_form_decorator_select($params, $disabled, $value);
-                break;
-            }
             // Popup description
             $popup = '';
             if ( isset($params['long_description']) ) {
                 $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
             }
-            //ESC NEED
-            echo isset($params['title'])
-                ? '<h4 class="apbct_settings-field_title apbct_settings-field_title--' . $params['type'] . '">' . $params['title'] . $popup . '</h4>'
-                : '';
-            //ESC NEED
-            echo isset($params['description'])
-                ? '<div class="apbct_settings-field_description">' . $params['description'] . '</div>'
-                : '';
-            echo '<select'
-                 . ' id="apbct_setting_' . $params['name'] . '"'
-                 . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
-                 . ' name="cleantalk_settings[' . $params['name'] . ']' . ($params['multiple'] ? '[]"' : '"')
-                 . ($params['multiple'] ? ' size="' . count($params['options']) . '""' : '')
-                 . ($params['multiple'] ? ' multiple="multiple"' : '')
-                 . ($params['childrens']
-                    ? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\', jQuery(this).find(\'option:selected\').data(\'children_enable\'))"'
-                    : ''
-                 )
-                 . $disabled
-                 . ($params['required'] ? ' required="required"' : '')
-                 . ' >';
+            if ($params['name'] === 'comments__form_decoration_selector') {
+                $params = FormDecoratorSettings::filterSelectorParams($params, $disabled, $popup);
+            }
+
+            $title = '';
+            if (isset($params['custom_select_title'])) {
+                $title = $params['custom_select_title'];
+            } elseif (isset($params['title'])) {
+                $title = '<h4 class="apbct_settings-field_title apbct_settings-field_title--' . $params['type'] . '">' . $params['title'] . $popup . '</h4>';
+            }
+
+            $description = '';
+            if (isset($params['custom_select_description'])) {
+                $description = $params['custom_select_description'];
+            } elseif (isset($params['description'])) {
+                $description = '<div class="apbct_settings-field_description">' . $params['description'] . '</div>';
+            }
+
+            if (isset($params['custom_select_element'])) {
+                $select = $params['custom_select_element'];
+            } else {
+                $select = '<select'
+                          . ' id="apbct_setting_' . $params['name'] . '"'
+                          . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
+                          . ' name="cleantalk_settings[' . $params['name'] . ']' . ($params['multiple'] ? '[]"' : '"')
+                          . ($params['multiple'] ? ' size="' . count($params['options']) . '""' : '')
+                          . ($params['multiple'] ? ' multiple="multiple"' : '')
+                          . ($params['childrens']
+                        ? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\', jQuery(this).find(\'option:selected\').data(\'children_enable\'))"'
+                        : ''
+                          )
+                          . $disabled
+                          . ($params['required'] ? ' required="required"' : '')
+                          . ' >';
+            }
 
             foreach ( $params['options'] as $option ) {
                 //ESC NEED
-                echo '<option'
+                $select .= '<option'
                      . ' value="' . $option['val'] . '"'
                      . (isset($option['children_enable']) ? ' data-children_enable=' . $option['children_enable'] . ' ' : ' ')
                      . ($params['multiple']
@@ -2475,7 +2488,15 @@ function apbct_settings__field__draw($params = array())
                      . '</option>';
             }
 
-            echo '</select>';
+            $select .= '</select>';
+
+            if (isset($params['nest_label_and_description_after_select'])) {
+                $output = $select . $title . $description;
+            } else {
+                $output = $title . $description . $select;
+            }
+
+            echo $output;
 
             break;
 
@@ -3651,53 +3672,4 @@ function apbct_settings_field__action_adjust()
 {
     $res = AdjustToEnvironmentSettings::render();
     echo $res;
-}
-
-function apbct_settings_get_form_decorator_select($params, $disabled, $value)
-{
-    $select = '';
-    // Popup description
-    $popup = '';
-    if ( isset($params['long_description']) ) {
-        $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
-    }
-    $select .= '<select'
-         . ' id="apbct_setting_' . $params['name'] . '"'
-         . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
-         . ' name="cleantalk_settings[' . $params['name'] . ']' . ($params['multiple'] ? '[]"' : '"')
-         . ($params['multiple'] ? ' size="' . count($params['options']) . '""' : '')
-         . ($params['multiple'] ? ' multiple="multiple"' : '')
-         . $disabled
-         . ($params['required'] ? ' required="required"' : '')
-         . ' style="margin-right: 5px;">';
-
-    foreach ( $params['options'] as $option ) {
-        //ESC NEED
-        $select .= '<option'
-             . ' value="' . $option['val'] . '"'
-             . (isset($option['children_enable']) ? ' data-children_enable=' . $option['children_enable'] . ' ' : ' ')
-             . ($params['multiple']
-                ? (! empty($value) && in_array($option['val'], $value) ? ' selected="selected"' : '')
-                : ($value == $option['val'] ? 'selected="selected"' : '')
-             )
-             . '>'
-             . $option['label']
-             . '</option>';
-    }
-
-    $select .= '</select>';
-
-    if (isset($params['title'])) {
-        $select .= '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
-             . $params['title'] . $popup
-             . '</label>';
-    }
-
-    if (isset($params['description'])) {
-        $select .= '<div class="apbct_settings-field_description">'
-             . $params['description']
-             . '</div>';
-    }
-
-    return $select;
 }

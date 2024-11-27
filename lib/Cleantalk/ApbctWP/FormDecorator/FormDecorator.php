@@ -42,6 +42,7 @@ class FormDecorator
         global $apbct;
         $registered_name = $this->decoration_registry->getRegisteredNameByLocalizedName($localized_set_name);
         $this->decoration_set = $this->decoration_registry->getDecoration($registered_name);
+        $this->decoration_set->localizeCSS();
         if (false === $this->decoration_set) {
             $this->addError(': ' . __('No decoration set registered with name', 'cleantalk-spam-protect') . '[' . esc_html($localized_set_name) . ']');
             return;
