@@ -472,14 +472,14 @@ function apbct_settings__set_fields()
                     'type'        => 'text',
                     'class'       => 'apbct_settings-field_wrapper--sub',
                     'title'       => __('Enter a decoration title for the selected theme header', 'cleantalk-spam-protect'),
-                    'description' => __('This text will be placed in the decoration header, right above the respond form.', 'cleantalk-spam-protect'),
+                    'description' => __('This text will be placed in the decoration header, right above the respond form. Not available on the default theme.', 'cleantalk-spam-protect'),
                     'parent'          => 'comments__form_decoration',
                 ),
                 'comments__form_decoration_color' => array(
                     'type'        => 'color',
                     'class'       => 'apbct_settings-field_wrapper--sub',
                     'title'       => __('Pick a decoration color for the selected theme header', 'cleantalk-spam-protect'),
-                    'description' => __('Applies the color for the respond form header.', 'cleantalk-spam-protect'),
+                    'description' => __('Applies the color for the respond form header. Not available on the default theme.', 'cleantalk-spam-protect'),
                     'parent'          => 'comments__form_decoration',
                 )
             ),

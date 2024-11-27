@@ -7,24 +7,37 @@ class DecorationSet
     public $text;
 
     /**
-     * var string
+     * @var string
      * @psalm-suppress PossiblyUnusedProperty
      */
     public $color;
 
+    /**
+     * @var string
+     */
     public $localized_name;
 
+    /**
+     * @var string
+     */
     protected $css_class_name;
 
     public function __construct()
     {
     }
 
+    /**
+     * @return string
+     */
     public function getCssClass()
     {
         return $this->css_class_name;
     }
 
+    /**
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function localizeCSS()
     {
         $css_file_path = $this->getCSSFilePath();

@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctWP\FormDecorator;
 
-use Cleantalk\ApbctWP\FormDecorator\Decorations\DecorationSetHolidayChristmas;
+use Cleantalk\ApbctWP\FormDecorator\Decorations\DecorationSetHolidayDefault;
 use Cleantalk\ApbctWP\FormDecorator\Decorations\DecorationSetHolidayFourthJuly;
 use Cleantalk\ApbctWP\FormDecorator\Decorations\DecorationSetHolidayNewYear;
 use Cleantalk\Templates\Singleton;
@@ -25,7 +25,7 @@ class DecorationRegistry
     {
         $this->decorations['holiday_fourth_july'] = new DecorationSetHolidayFourthJuly();
         $this->decorations['holiday_new_year'] = new DecorationSetHolidayNewYear();
-        $this->decorations['holiday_christmas'] = new DecorationSetHolidayChristmas();
+        $this->decorations['holiday_default'] = new DecorationSetHolidayDefault();
     }
 
     public function getDecoration($name)

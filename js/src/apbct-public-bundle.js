@@ -1189,11 +1189,28 @@ class ApbctFormSkin {
      * Get elements
      */
     getElements() {
-        this.elements.push(document.querySelector('#apbct_form_decoration_header__content svg'));
-        this.elements.push(document.querySelector('#apbct_form_decoration_header__text'));
-        this.elements.push(document.querySelector('.apbct-trusted-text--label'));
+        const elements = document.querySelectorAll('*');
+        const regexId = /^apbct-trusted-text--label/;
+        const regexClass = /apbct_form_decoration--/;
 
-        const flagWrap = document.querySelector('.apbct_holiday_decoration');
+        // Collect elements with id or class that contains apbct-trusted-text--label or apbct_form_decoration--
+        // id
+        let matchingElements = Array.from(elements).filter((element) => {
+            regexId.test(element.id);
+        });
+        matchingElements.forEach((element) => {
+            this.elements.push(element);
+        });
+
+        // class
+        matchingElements = Array.from(elements).filter((element) => {
+            regexClass.test(element.classList);
+        });
+        matchingElements.forEach((element) => {
+            this.elements.push(element);
+        });
+
+        const flagWrap = document.querySelector('.apbct_form_decoration');
         if (flagWrap) {
             const flagLeft = window.getComputedStyle(flagWrap, '::before');
             const flagRight = window.getComputedStyle(flagWrap, '::after');
@@ -1213,7 +1230,7 @@ class ApbctFormSkin {
             }
 
             element.addEventListener('click', (event) => {
-                if (element.classList.contains('apbct_holiday_decoration')) {
+                if (element.classList.contains('apbct_form_decoration')) {
                     const clickX = event.offsetX;
                     const clickY = event.offsetY;
                     const flagLeftWidth = parseFloat(window.getComputedStyle(element, '::before').width) / 2;
@@ -1243,7 +1260,7 @@ class ApbctFormSkin {
             });
 
             element.addEventListener('mousemove', (event) => {
-                if (element.classList.contains('apbct_holiday_decoration')) {
+                if (element.classList.contains('apbct_form_decoration')) {
                     const mouseX = event.offsetX;
                     const mouseY = event.offsetY;
                     const flagLeftWidth = parseFloat(window.getComputedStyle(element, '::before').width) / 2;
