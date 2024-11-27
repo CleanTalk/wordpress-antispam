@@ -199,14 +199,6 @@ function apbct_settings__set_fields()
                     ),
                     'long_description' => true,
                 ),
-                'comments__the_real_person' => array(
-                    'type'        => 'checkbox',
-                    'title'       => __('The Real Person', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        'Plugin shows special benchmark for author of a comment or review, that the author passed all anti-spam filters and acts as a real person. It improves quality of users generated content on your website by proving that the content is not from spambots.',
-                        'cleantalk-spam-protect'
-                    ),
-                ),
             ),
         ),
 
