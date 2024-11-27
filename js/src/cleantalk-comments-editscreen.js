@@ -5,67 +5,7 @@ function ct_is_ip(str){
 	return str.search(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/);
 }
 
-/**
- * Shows a popup The Real Person when hovering over the cursor for Admin
- * @param {string} id
- */
-// todo this code is duplicated from public 2
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctRealUserBadgeViewPopup(id) {
-    document.querySelectorAll('.apbct-admin-real-user-popup').forEach((el) => {
-        el.style.display = 'none';
-    });
-    let popup = document.getElementById(id);
-    if (popup !== undefined) {
-        popup.style.display = 'inline-flex';
-    }
-}
-/**
- * Hide a popup The Real Person when hovering over the cursor for Admin
- * @param {Event} event
- */
-// todo this code is duplicated from public 2
-function apbctRealUserBadgeClosePopup(event) {
-	let doHide = (
-		event.relatedTarget !== null &&
-		event.relatedTarget.className !== undefined &&
-		event.relatedTarget.className.search(/apbct/) === -1 &&
-		event.relatedTarget.className.search(/real/) === -1
-	);
-	if ( doHide ) {
-		document.querySelectorAll('.apbct-admin-real-user-popup').forEach((el) => {
-			setTimeout(() => {
-				el.style.display = 'none';
-			}, 500);
-		});
-	}
-}
-
-/**
- * Handle real user badge
- */
-function apbctRealUserBadge() {
-    document.querySelectorAll('.apbct-admin-real-user-badge').forEach((el) => {
-        el.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-			const screenWidth = window.screen.width
-			if (screenWidth > 768) {
-				e.currentTarget.querySelector('.apbct-trp-popup-desktop').style.display = 'inline-flex';
-			} else {
-            	e.target.parentElement.parentElement.querySelector('.apbct-trp-popup-mob').style.display = 'inline-flex';
-			}
-        });
-    });
-    document.querySelector('body').addEventListener('click', function(e) {
-        document.querySelectorAll('.apbct-admin-real-user-popup').forEach((el) => {
-            el.style.display = 'none';
-        });
-    });
-}
-
 jQuery(document).ready(function(){
-    apbctRealUserBadge();
 	/* Shows link to blacklists near every email and IP address */
 	if(parseInt(ctCommentsScreen.ct_show_check_links))
 		jQuery('.column-author a, .comment-author a').each(function(){
@@ -104,10 +44,6 @@ jQuery(document).ready(function(){
 		undo_comment_id = ct_comment_id;
 		ct_send_feedback_request(ct_comment_id, 'spam', 0);
 		setTimeout(function(){
-			let textSpans = document.querySelectorAll('div.spam-undo-inside');
-			for (let i = 0; i < textSpans.length; i++) {
-				textSpans[i].innerHTML = textSpans[i].innerHTML.replace(/The Real Person![*\s\S]*Anti-Spam by CleanTalk\./, '');
-			}
 			jQuery('tr#undo-'+ct_comment_id+' span.unspam a').click(function(){
 				var result = jQuery(this).attr('href');
 				result = result.match(/^comment\.php\?.*&c=(\d*).*/);
@@ -115,6 +51,7 @@ jQuery(document).ready(function(){
 				ct_send_feedback_request(ct_comment_id, 'approve', 1);
 			});
 		}, 202);
+
 	});
 
 	// For unspammed

@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP\Localize;
 
+use Cleantalk\ApbctWP\CleantalkRealPerson;
+
 class CtPublicLocalize
 {
     const NAME = 'ctPublic';
@@ -11,7 +13,7 @@ class CtPublicLocalize
     {
         global $apbct;
 
-        return array(
+        $localize_array = array(
             '_ajax_nonce'                     => wp_create_nonce('ct_secret_stuff'), // !!! For WP-Rocket minification preventing !!!
             'settings__forms__check_internal' => $apbct->settings['forms__check_internal'],
             'settings__forms__check_external' => $apbct->settings['forms__check_external'],
@@ -24,6 +26,7 @@ class CtPublicLocalize
                                                  ($apbct->settings['data__pixel'] === '3' && apbct_is_cache_plugins_exists()),
             'pixel__url'                      => $apbct->pixel_url,
             'data__email_check_before_post'   => $apbct->settings['data__email_check_before_post'],
+            'data__email_check_exist_post'   => $apbct->settings['data__email_check_exist_post'],
             'data__cookies_type'              => $apbct->data['cookies_type'],
             'data__key_is_ok'                 => $apbct->data['key_is_ok'],
             'data__visible_fields_required'   => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
@@ -35,8 +38,12 @@ class CtPublicLocalize
             'bot_detector_forms_excluded'  => base64_encode(apbct__bot_detector_get_prepared_exclusion()),
             'advancedCacheExists' => apbct_is_advanced_cache_exists(),
             'varnishCacheExists' => apbct_is_varnish_cache_exists(),
-            'wc_ajax_add_to_cart' => get_option('woocommerce_enable_ajax_add_to_cart') === 'yes'
+            'wc_ajax_add_to_cart' => get_option('woocommerce_enable_ajax_add_to_cart') === 'yes',
         );
+        if ( $apbct->settings['comments__the_real_person'] ) {
+            $localize_array = array_merge($localize_array, CleantalkRealPerson::getLocalizingData());
+        }
+        return $localize_array;
     }
 
     public static function getCode()

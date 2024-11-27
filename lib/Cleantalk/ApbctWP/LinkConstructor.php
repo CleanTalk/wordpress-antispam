@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\Common\TT;
+
 class LinkConstructor extends \Cleantalk\Common\LinkConstructor
 {
     //todo search unhadled links via comment //HANLDE LINK
@@ -171,6 +173,21 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_medium' => 'settings',
             'utm_content' => 'get_access_key_link',
         ),
+        'trp_learn_more_link' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'admin_side',
+            'utm_medium' => 'trp_badge',
+            'utm_content' => 'trp_badge_link_click',
+        ),
+        'blog_email_encoder_common_post' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'apbct_hint_data__email_decoder',
+            'utm_medium' => 'WordPress',
+            'utm_content' => '',
+            'utm_campaign' => 'ABPCT_Settings',
+        ),
     );
 
     public static function buildCleanTalkLink($utm_preset, $uri = '', $get_params = array(), $domain = 'https://cleantalk.org')
@@ -181,5 +198,26 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
     public static function buildRenewalLinkATag($user_token, $link_inner_html, $product_id, $utm_preset)
     {
         return parent::buildRenewalLinkATag($user_token, $link_inner_html, $product_id, $utm_preset);
+    }
+
+    public static function buildRenewalLink($user_token, $utm_content)
+    {
+        return 'https://p.cleantalk.org/?product_id=1&featured=&user_token='
+            . $user_token
+            . '&utm_id=&utm_term=&utm_source=admin_panel&utm_medium=banner&utm_content='
+            . $utm_content
+            . '&utm_campaign=apbct_links';
+    }
+
+    /**
+     * @param $href
+     * @param $link_word
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public static function buildSimpleHref($href, $link_word)
+    {
+        return '<a href="' . esc_html(TT::toString($href)) . '" target="_blank">' . esc_html(TT::toString($link_word)) . '</a>';
     }
 }

@@ -524,6 +524,12 @@ function apbct_admin__enqueue_scripts($hook)
         APBCT_VERSION,
         'all'
     );
+    wp_enqueue_style(
+        'ct_email_decoder_css',
+        APBCT_CSS_ASSETS_PATH . '/cleantalk-email-decoder.min.css',
+        array(),
+        APBCT_VERSION
+    );
 
     wp_localize_script('ct_admin_common', 'ctAdminCommon', array(
         '_ajax_nonce'        => wp_create_nonce('ct_secret_nonce'),
@@ -633,6 +639,23 @@ function apbct_admin__enqueue_scripts($hook)
 
     // COMMENTS page JavaScript
     if ( $hook == 'edit-comments.php' ) {
+        wp_enqueue_style(
+            'ct_trp_admin',
+            APBCT_CSS_ASSETS_PATH . '/cleantalk-trp.min.css',
+            array(),
+            APBCT_VERSION
+        );
+        wp_enqueue_script(
+            'ct_trp_admin',
+            APBCT_JS_ASSETS_PATH . '/apbct-public--7--trp.min.js',
+            array(),
+            APBCT_VERSION
+        );
+        wp_localize_script(
+            'ct_trp_admin',
+            'ctTrpAdminLocalize',
+            \Cleantalk\ApbctWP\CleantalkRealPerson::getLocalizingData()
+        );
         wp_enqueue_script(
             'ct_comments_editscreen',
             APBCT_JS_ASSETS_PATH . '/cleantalk-comments-editscreen.min.js',

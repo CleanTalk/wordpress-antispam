@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class UsersLogs extends Users
 {
@@ -53,11 +54,12 @@ class UsersLogs extends Users
             return;
         }
 
-        if ( ! wp_verify_nonce(Post::get('_wpnonce'), 'bulk-' . $this->_args['plural']) ) {
+        $awaited_action = 'bulk-' . TT::getArrayValueAsString($this->_args, 'plural');
+        if ( ! wp_verify_nonce(TT::toString(Post::get('_wpnonce')), $awaited_action)) {
             wp_die('nonce error');
         }
 
-        $this->removeLogs(Post::get('spamids'));
+        $this->removeLogs(TT::toArray(Post::get('spamids')));
     }
 
     public function no_items() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
