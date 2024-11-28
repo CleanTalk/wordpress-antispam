@@ -1323,8 +1323,6 @@ function ct_enqueue_styles_public()
 
 function apbct_enqueue_and_localize_public_scripts()
 {
-    global $apbct;
-
     $in_footer = defined('CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER') && CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER;
 
     // Different JS params
@@ -1336,17 +1334,6 @@ function apbct_enqueue_and_localize_public_scripts()
         $in_footer
     );
 
-    // Bot detector
-    if ( $apbct->settings['data__bot_detector_enabled'] && ! apbct_bot_detector_scripts_exclusion()) {
-        wp_enqueue_script(
-            'ct_bot_detector',
-            'https://moderate.cleantalk.org/ct-bot-detector-wrapper.js',
-            [],
-            APBCT_VERSION,
-            $in_footer
-        );
-    }
-
     wp_enqueue_style(
         'ct_public_css',
         APBCT_CSS_ASSETS_PATH . '/cleantalk-public.min.css',
@@ -1354,15 +1341,6 @@ function apbct_enqueue_and_localize_public_scripts()
         APBCT_VERSION,
         'all'
     );
-}
-
-function apbct_bot_detector_scripts_exclusion()
-{
-    if (apbct_is_plugin_active('oxygen/functions.php') && Get::get('ct_builder') === 'true') {
-        return true;
-    }
-
-    return false;
 }
 
 /**

@@ -304,18 +304,6 @@ function apbct_wp_parse_auth_cookie($cookie = '', $scheme = '')
 }
 
 /**
- * Checks if the plugin is active
- *
- * @param string $plugin relative path from plugin folder like cleantalk-spam-protect/cleantalk.php
- *
- * @return bool
- */
-function apbct_is_plugin_active($plugin)
-{
-    return in_array($plugin, (array)get_option('active_plugins', array())) || apbct_is_plugin_active_for_network($plugin);
-}
-
-/**
  * Checks if the theme is active
  *
  * @param string $theme_name template name
