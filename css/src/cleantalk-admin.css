@@ -146,3 +146,7 @@
 	border: 1px solid lightgray;
 	margin: 0 5px 0 0;;
 }
+
+.ct_delete_all_users, .ct_get_csv_file {
+	width: 170px;
+}

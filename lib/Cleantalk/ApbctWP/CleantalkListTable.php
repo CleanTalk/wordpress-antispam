@@ -1342,7 +1342,6 @@ class CleantalkListTable {
             <?php
             endif;
             $this->extra_tablenav( $which );
-            echo '<span class="spinner" style="float: left"></span>';
             $this->pagination( $which );
             ?>
 

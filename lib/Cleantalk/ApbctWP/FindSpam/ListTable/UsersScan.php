@@ -121,33 +121,33 @@ class UsersScan extends Users
             $options .= '<option value="' . htmlspecialchars($key) . '">' . htmlspecialchars($value) . '</option>';
         }
 
-        $out = '';
-
-        $out .= '<div class="alignleft actions bulkactions apbct-table-actions-wrapper">';
-        $out .= '<span class="displaying-num">' . __('Order users by', 'cleantalk-spam-protect') . '</span>';
-        $out .= '<select id="ct_users_order_by" style="float: none; margin: 0 3px 0 3px;">';
-        $out .= $options;
-        $out .= '</select>';
-
-        $out .= '<select id="ct_users_order_direction" style="float: none; margin: 0 3px 0 0;">';
-        $out .= '<option value="desc">Descend</option>';
-        $out .= '<option value="asc">Ascend</option>';
-        $out .= '</select>';
-        $out .= '<button type="button" id="ct_users_ordering" class="button">';
-        $out .= __('Apply', 'cleantalk-spam-protect');
-        $out .= '</button>';
-        $out .= '</div>';
-
-        $out .= '<div class="alignleft actions bulkactions apbct-table-actions-wrapper">';
-        $out .= '<button type="button" id="ct_delete_all_users" class="button action ct_delete_all_users" style="margin: 0 2px;">';
-        $out .= __('Delete all users from list', 'cleantalk-spam-protect');
-        $out .= '</button>';
-
-        $out .= '<button type="button" id="ct_get_csv_file" class="button action ct_get_csv_file" style="margin: 0 2px;">';
-        $out .= __('Download results in CSV', 'cleantalk-spam-protect');
-        $out .= '</button>';
-        $out .= '</div>';
-        return $out;
+        $new_out = '
+            <div class="alignleft actions bulkactions apbct-table-actions-wrapper">
+            <span class="displaying-num" style="position: static">%s</span>
+            <select id="ct_users_order_by" style="float: none; margin: 0 3px 0 3px; max-width: 100px; width: 100px;">
+            %s
+            </select>
+            <select id="ct_users_order_direction" style="float: none; margin: 0 3px 0 0; max-width: 100px; width: 100px;">
+            <option value="desc">Descend</option>
+            <option value="asc">Ascend</option>
+            </select>
+            <button type="button" id="ct_users_ordering" class="button">%s</button>
+            </div>
+            
+            <div class="alignleft actions bulkactions apbct-table-actions-wrapper">
+            <button type="button" id="ct_delete_all_users" class="button action ct_delete_all_users" style="margin: 0 2px;">%s</button>
+            <button type="button" id="ct_get_csv_file" class="button action ct_get_csv_file" style="margin: 0 2px;">%s</button>
+            </div>
+        ';
+        $new_out = sprintf(
+            $new_out,
+            __('Order users by', 'cleantalk-spam-protect'),
+            $options,
+            __('Apply', 'cleantalk-spam-protect'),
+            __('Delete all users from list', 'cleantalk-spam-protect'),
+            __('Download results in CSV', 'cleantalk-spam-protect')
+        );
+        return $new_out;
     }
 
     public static function getExtraTableNavInsertDeleteUsers()
