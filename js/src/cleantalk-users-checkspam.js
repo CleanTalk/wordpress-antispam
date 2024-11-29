@@ -603,6 +603,42 @@ jQuery(document).ready(function(){
 			jQuery('.ct_date').prop('checked', true).attr('disabled',false);
 		}
 	});
+
+	/**
+	 * Usres ordering JS actions
+	 */
+	jQuery('#ct_users_ordering').on('click', function(event) {
+		event.preventDefault();
+		/*
+         * Handle the bulk action based on its value.
+         */
+		const value = jQuery( '#ct_users_order_by' ).val();
+		const _expires = 'expires=' + new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
+		document.cookie = 'ct_users_order_by' +
+			'=' +
+			encodeURIComponent(value) +
+			'; ' +
+			_expires +
+			'path=/; samesite=lax';
+
+		const direction = jQuery( '#ct_users_order_direction' ).val();
+		document.cookie = 'ct_users_order_direction' +
+			'=' +
+			encodeURIComponent(direction) +
+			'; ' +
+			_expires +
+			'path=/; samesite=lax';
+
+		window.location.reload()
+	});
+
+	if (getCookie('ct_users_order_by') && jQuery('#ct_users_order_by')) {
+		jQuery('#ct_users_order_by').val(getCookie('ct_users_order_by'));
+	}
+
+	if (getCookie('ct_users_order_direction') && jQuery('#ct_users_order_direction')) {
+		jQuery('#ct_users_order_direction').val(getCookie('ct_users_order_direction'));
+	}
 });
 
 /**

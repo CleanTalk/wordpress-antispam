@@ -2,7 +2,9 @@
 
 namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
+use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\TT;
 
 class UsersScan extends Users
 {
@@ -50,31 +52,118 @@ class UsersScan extends Users
 
             $this->items[] = $items;
         }
+
+        $this->items = static::sortItems($this->items);
+    }
+
+    /**
+     * @param array $items
+     *
+     * @return array
+     */
+    private static function sortItems($items)
+    {
+        try {
+            if (empty($items)) {
+                return $items;
+            }
+            if (isset($_COOKIE['ct_users_order_by'])) {
+                $order_by = Sanitize::cleanWord($_COOKIE['ct_users_order_by']);
+                if ( !in_array(
+                    $order_by,
+                    array('ct_id', 'ct_name', 'ct_email', 'ct_signed_up', 'ct_role', 'ct_posts', 'ct_orders')
+                ) ) {
+                    $order_by = 'ct_id';
+                }
+            } else {
+                $order_by = 'ct_id';
+            }
+
+            if (isset($_COOKIE['ct_users_order_direction'])) {
+                $order_direction = Sanitize::cleanWord($_COOKIE['ct_users_order_direction']);
+                $order_direction = $order_direction === 'desc' ? $order_direction : 'asc';
+            } else {
+                $order_direction = 'asc';
+            }
+
+            $order_direction = $order_direction === 'asc' ? 1 : -1;
+
+            usort($items, function ($a, $b) use ($order_by, $order_direction) {
+                return is_array($a) && is_array($b) && isset($a[$order_by], $b[$order_by])
+                    ? $order_direction * strcmp(TT::toString($a[$order_by]), TT::toString($b[$order_by]))
+                    : 0;
+            });
+        } catch (\Exception $e) {
+            return $items;
+        }
+        return $items;
     }
 
     public function extra_tablenav($which) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        if (empty($this->items)) {
+            return;
+        }
+        echo static::getExtraTableNav();
+    }
+
+    public static function getExtraTableNav()
+    {
+        //prepare sorting elements
+        $users = new UsersScan();
+        $columns = $users->get_columns();
+        unset($columns['cb']);
+        unset($columns['ct_id']);
+        unset($columns['ct_username']);
+
+        $options = '';
+        foreach ($columns as $key => $value) {
+            $options .= '<option value="' . htmlspecialchars($key) . '">' . htmlspecialchars($value) . '</option>';
+        }
+
+        $out = '';
+
+        $out .= '<div class="alignleft actions bulkactions apbct-table-actions-wrapper">';
+        $out .= '<span class="displaying-num">' . __('Order users by', 'cleantalk-spam-protect') . '</span>';
+        $out .= '<select id="ct_users_order_by" style="float: none; margin: 0 3px 0 3px;">';
+        $out .= $options;
+        $out .= '</select>';
+
+        $out .= '<select id="ct_users_order_direction" style="float: none; margin: 0 3px 0 0;">';
+        $out .= '<option value="desc">Descend</option>';
+        $out .= '<option value="asc">Ascend</option>';
+        $out .= '</select>';
+        $out .= '<button type="button" id="ct_users_ordering" class="button">';
+        $out .= __('Apply', 'cleantalk-spam-protect');
+        $out .= '</button>';
+        $out .= '</div>';
+
+        $out .= '<div class="alignleft actions bulkactions apbct-table-actions-wrapper">';
+        $out .= '<button type="button" id="ct_delete_all_users" class="button action ct_delete_all_users" style="margin: 0 2px;">';
+        $out .= __('Delete all users from list', 'cleantalk-spam-protect');
+        $out .= '</button>';
+
+        $out .= '<button type="button" id="ct_get_csv_file" class="button action ct_get_csv_file" style="margin: 0 2px;">';
+        $out .= __('Download results in CSV', 'cleantalk-spam-protect');
+        $out .= '</button>';
+        $out .= '</div>';
+        return $out;
+    }
+
+    public static function getExtraTableNavInsertDeleteUsers()
+    {
+        $out = '';
         if (
             isset($_SERVER['SERVER_ADDR']) &&
             $_SERVER['SERVER_ADDR'] === '127.0.0.1' &&
             in_array(Server::getDomain(), array('lc', 'loc', 'lh'))
         ) {
-            ?>
-            <button type="button" class="button action ct_insert_users">Insert users</button>
-            <button type="button" class="button action ct_insert_users__delete">Delete inserted</button>
-            <?php
+            $out .= '<div class="ctlk---red bar" style="padding: 10px">';
+            $out .= '<span>These actions available only for test purpose and buttons are visible only in local env:</span>';
+            $out .= '<button type="button" class="button button-small action ct_insert_users" style="margin:0 5px">Insert 500 users</button>';
+            $out .= '<button type="button" class="button button-small action ct_insert_users__delete" style="margin:0 5px">Delete inserted users</button>';
+            $out .= '</div>';
         }
-        if ( ! $this->has_items() ) {
-            return;
-        }
-        ?>
-        <div class="alignleft actions bulkactions">
-            <button type="button" id="ct_delete_all_users" class="button action ct_delete_all_users"><?php
-                esc_html_e('Delete all users from list', 'cleantalk-spam-protect'); ?></button>
-            <button type="button" id="ct_get_csv_file" class="button action ct_get_csv_file"><?php
-                esc_html_e('Download results in CSV', 'cleantalk-spam-protect') ?></button>
-            <span class="spinner"></span>
-        </div>
-        <?php
+        return $out;
     }
 }

@@ -992,9 +992,9 @@ class CleantalkListTable {
         $output .= "\n<span class='$pagination_links_class'>" . implode( "\n", $page_links ) . '</span>';
 
         if ( $total_pages ) {
-            $page_class = $total_pages < 2 ? ' one-page' : '';
+            $page_class = $total_pages < 2 ? ' one-page apbct-table-actions-wrapper' : ' apbct-table-actions-wrapper';
         } else {
-            $page_class = ' no-pages';
+            $page_class = ' no-pages apbct-table-actions-wrapper';
         }
         $this->_pagination = "<div class='tablenav-pages{$page_class}'>$output</div>";
 
@@ -1336,12 +1336,13 @@ class CleantalkListTable {
         <div class="tablenav <?php echo esc_attr( $which ); ?>">
 
             <?php if ( $this->has_items() ) : ?>
-                <div class="alignleft actions bulkactions">
+                <div class="alignleft actions bulkactions apbct-table-actions-wrapper">
                     <?php $this->bulk_actions( $which ); ?>
                 </div>
             <?php
             endif;
             $this->extra_tablenav( $which );
+            echo '<span class="spinner" style="float: left"></span>';
             $this->pagination( $which );
             ?>
 
