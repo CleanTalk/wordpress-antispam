@@ -1225,14 +1225,16 @@ function apbct_sfw__check()
     // Checking if database was outdated
     $is_sfw_outdated = $apbct->stats['sfw']['last_update_time'] + $apbct->stats['sfw']['update_period'] * 3 < time();
 
-    $apbct->errorToggle(
-        $is_sfw_outdated,
-        'sfw_outdated',
-        esc_html__(
-            'SpamFireWall database is outdated. Please, try to synchronize with the cloud.',
-            'cleantalk-spam-protect'
-        )
-    );
+    if (did_action( 'plugins_loaded' ) || did_action( 'init' )) {
+        $apbct->errorToggle(
+            $is_sfw_outdated,
+            'sfw_outdated',
+            esc_html__(
+                'SpamFireWall database is outdated. Please, try to synchronize with the cloud.',
+                'cleantalk-spam-protect'
+            )
+        );
+    }
 
     if ( $is_sfw_outdated ) {
         return;
@@ -1244,7 +1246,7 @@ function apbct_sfw__check()
 
     $sfw_tables_names = SFW::getSFWTablesNames();
 
-    if (!$sfw_tables_names) {
+    if (!$sfw_tables_names && (did_action( 'plugins_loaded' ) || did_action( 'init' ))) {
             $apbct->errorAdd(
                 'sfw',
                 esc_html__(
