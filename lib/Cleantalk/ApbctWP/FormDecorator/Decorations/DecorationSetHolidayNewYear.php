@@ -21,7 +21,7 @@ class DecorationSetHolidayNewYear extends DecorationSet
     protected function getHeaderSVG()
     {
         return '
-<svg width="1920" height="263" viewBox="0 0 1920 263" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg viewBox="0 0 1920 263" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g clip-path="url(#clip0_4530_964)">
 <rect width="1920" height="223" fill="' . $this->darkenHexColor($this->color, 10) . '"/>
 <rect width="242.33" height="202.65" transform="matrix(-1 0 0 1 242 65)" fill="url(#pattern0_4530_964)"/>
