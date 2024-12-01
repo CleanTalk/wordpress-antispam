@@ -3,7 +3,7 @@
  *
  */
 // eslint-disable-next-line no-unused-vars, require-jsdoc
-class ApbctFormSkin {
+class ApbctFormDecorator {
     elements = [];
 
     /**
@@ -25,7 +25,7 @@ class ApbctFormSkin {
         // Collect elements with id or class that contains apbct-trusted-text--label or apbct_form_decoration--
         // id
         let matchingElements = Array.from(elements).filter((element) => {
-            regexId.test(element.id);
+            return regexId.test(element.id);
         });
         matchingElements.forEach((element) => {
             this.elements.push(element);
@@ -33,8 +33,9 @@ class ApbctFormSkin {
 
         // class
         matchingElements = Array.from(elements).filter((element) => {
-            regexClass.test(element.classList);
+            return regexClass.test(element.className);
         });
+
         matchingElements.forEach((element) => {
             this.elements.push(element);
         });
@@ -59,7 +60,7 @@ class ApbctFormSkin {
             }
 
             element.addEventListener('click', (event) => {
-                if (element.classList.contains('apbct_form_decoration')) {
+                if (element.className.indexOf('apbct_form_decoration') !== -1) {
                     const clickX = event.offsetX;
                     const clickY = event.offsetY;
                     const flagLeftWidth = parseFloat(window.getComputedStyle(element, '::before').width) / 2;
@@ -89,7 +90,7 @@ class ApbctFormSkin {
             });
 
             element.addEventListener('mousemove', (event) => {
-                if (element.classList.contains('apbct_form_decoration')) {
+                if (element.className.indexOf('apbct_form_decoration') !== -1) {
                     const mouseX = event.offsetX;
                     const mouseY = event.offsetY;
                     const flagLeftWidth = parseFloat(window.getComputedStyle(element, '::before').width) / 2;
@@ -114,53 +115,53 @@ class ApbctFormSkin {
      * Add clicks
      */
     addClicks() {
-        if (document.ctFormSkinData) {
-            if (document.ctFormSkinData.clicks) {
-                document.ctFormSkinData.clicks++;
+        if (document.ctFormDecorationMouseData) {
+            if (document.ctFormDecorationMouseData.clicks) {
+                document.ctFormDecorationMouseData.clicks++;
             } else {
-                document.ctFormSkinData.clicks = 1;
+                document.ctFormDecorationMouseData.clicks = 1;
             }
             return;
         }
 
-        document.ctFormSkinData = {clicks: 1};
+        document.ctFormDecorationMouseData = {clicks: 1};
     }
 
     /**
      * Add selected
      */
     addSelected() {
-        if (document.ctFormSkinData) {
-            if (document.ctFormSkinData.selected) {
-                document.ctFormSkinData.selected++;
+        if (document.ctFormDecorationMouseData) {
+            if (document.ctFormDecorationMouseData.selected) {
+                document.ctFormDecorationMouseData.selected++;
             } else {
-                document.ctFormSkinData.selected = 1;
+                document.ctFormDecorationMouseData.selected = 1;
             }
             return;
         }
 
-        document.ctFormSkinData = {selected: 1};
+        document.ctFormDecorationMouseData = {selected: 1};
     }
 
     /**
      * Track mouse movement
      */
     trackMouseMovement() {
-        if (!document.ctFormSkinData) {
-            document.ctFormSkinData = {};
+        if (!document.ctFormDecorationMouseData) {
+            document.ctFormDecorationMouseData = {};
         }
-        if (!document.ctFormSkinData.mouseMovements) {
-            document.ctFormSkinData.mouseMovements = [];
+        if (!document.ctFormDecorationMouseData.mouseMovements) {
+            document.ctFormDecorationMouseData.mouseMovements = [];
         }
 
-        document.ctFormSkinData.mouseMovements.push({timestamp: Date.now()});
+        document.ctFormDecorationMouseData.mouseMovements.push({timestamp: Date.now()});
 
-        if (document.ctFormSkinData.mouseMovements.length > 1) {
-            const index = document.ctFormSkinData.mouseMovements.length - 1;
-            const lastMovement = document.ctFormSkinData.mouseMovements[index];
-            const firstMovement = document.ctFormSkinData.mouseMovements[0];
+        if (document.ctFormDecorationMouseData.mouseMovements.length > 1) {
+            const index = document.ctFormDecorationMouseData.mouseMovements.length - 1;
+            const lastMovement = document.ctFormDecorationMouseData.mouseMovements[index];
+            const firstMovement = document.ctFormDecorationMouseData.mouseMovements[0];
             const timeDiff = lastMovement.timestamp - firstMovement.timestamp;
-            document.ctFormSkinData.hovering = timeDiff;
+            document.ctFormDecorationMouseData.hovering = timeDiff;
         }
     }
 }

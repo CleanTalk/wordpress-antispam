@@ -952,7 +952,7 @@ function apbct_ready() {
 
     // Init form skin
     if (ctPublic.settings__comments__form_decoration) {
-        new ApbctFormSkin();
+        new ApbctFormDecorator();
     }
 
     // Set important paramaters via ajax if problematic cache solutions found
@@ -1832,15 +1832,15 @@ function getCleanTalkStorageDataArray() {
         noCookieDataTypo = {typo: document.ctTypoData.data};
     }
 
-    let noCookieDataSkin = {skin: []};
-    if (document.ctFormSkinData) {
-        let skinData = JSON.parse(JSON.stringify(document.ctFormSkinData));
-        if (skinData.mouseMovements) {
-            delete skinData.mouseMovements;
+    let noCookieDataFromDecoration = {form_decoration_mouse_data: []};
+    if (document.ctFormDecorationMouseData) {
+        let formDecorationMouseData = JSON.parse(JSON.stringify(document.ctFormDecorationMouseData));
+        if (formDecorationMouseData.mouseMovements) {
+            delete formDecorationMouseData.mouseMovements;
         }
-        noCookieDataSkin = {skin: skinData};
+        noCookieDataFromDecoration = {form_decoration_mouse_data: formDecorationMouseData};
     }
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataSkin};
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration};
 }
 
 /**
