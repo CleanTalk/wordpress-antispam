@@ -3149,12 +3149,6 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
             encodedEmailNodes[i].innerHTML =
                 baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
             encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
-            // perform magic blur reverse
-            const innerSpan = encodedEmailNodes[i].querySelector('.apbct-blur');
-            if (innerSpan !== null) {
-                encodedEmailNodes[i].classList.add('apbct-email-encoder');
-                innerSpan.classList = 'no-blur';
-            }
         } else {
             encodedEmailNodes[i].classList.add('no-blur');
             // fill the nodes

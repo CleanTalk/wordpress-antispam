@@ -202,15 +202,17 @@ class EmailEncoder
      * @param string $content The content to process.
      * @return string The content with attributes removed.
      */
-    private static function dropAttributesContainEmail($content, $tags) {
+    private static function dropAttributesContainEmail($content, $tags)
+    {
+        $attribute_content_chunk = '[\s]{0,}=[\s]{0,}[\"\']\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}[\"\']';
         foreach ($tags as $tag => $attribute) {
             // Regular expression to match the attribute without the tag
-            $regexp_chunk_without_tag = "/{$attribute}[\s]{0,}=[\s]{0,}[\"\']\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}[\"\']/";
+            $regexp_chunk_without_tag = "/{$attribute}{$attribute_content_chunk}/";
             // Regular expression to match the attribute with the tag
-            $regexp_chunk_with_tag = "/<{$tag}.*{$attribute}[\s]{0,}=[\s]{0,}[\"\']\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}[\"\']/";
+            $regexp_chunk_with_tag = "/<{$tag}.*{$attribute}{$attribute_content_chunk}/";
             // Find all matches of the attribute with the tag in the content
             preg_match_all($regexp_chunk_with_tag, $content, $matches);
-            if (!empty($matches[0]) && is_array($matches[0])) {
+            if (!empty($matches[0])) {
                 // Remove the attribute without the tag from the content
                 $content = preg_replace($regexp_chunk_without_tag, '', $content, count($matches[0]));
             }
