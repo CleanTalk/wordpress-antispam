@@ -21,9 +21,6 @@ class UsersLogs extends Users
 
     public function prepare_items() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        $columns               = $this->get_columns();
-        $this->_column_headers = array($columns, array(), array());
-
         $logs = $this->getScansLogs();
 
         foreach ( $logs as $log ) {

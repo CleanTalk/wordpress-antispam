@@ -8,9 +8,6 @@ class UsersScan extends Users
 {
     public function prepare_items() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        $columns               = $this->get_columns();
-        $this->_column_headers = array($columns, array(), array());
-
         $current_screen = get_current_screen();
         $per_page_option = !is_null($current_screen)
             ? $current_screen->get_option('per_page', 'option')
@@ -20,9 +17,19 @@ class UsersScan extends Users
             $per_page = 10;
         }
 
+        $orderby = '';
+        $order   = 'ASC';
+        if ( isset( $_REQUEST['orderby'] ) ) {
+            $orderby = $_REQUEST['orderby'];
+        }
+
+        if ( isset( $_REQUEST['order'] ) ) {
+            $order = $_REQUEST['order'];
+        }
+
         $current_page = $this->get_pagenum();
 
-        $scanned_users = $this->getSpamNow($per_page, $current_page);
+        $scanned_users = $this->getSpamNow($per_page, $current_page, $orderby, $order);
 
         $this->set_pagination_args(array(
             'total_items' => $scanned_users->get_total(),

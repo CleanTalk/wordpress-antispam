@@ -12,9 +12,6 @@ class BadUsers extends Users
      */
     public function prepare_items()  // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        $columns               = $this->get_columns();
-        $this->_column_headers = array($columns, array(), array());
-
         $current_screen = get_current_screen();
         $per_page_option = !is_null($current_screen)
             ? $current_screen->get_option('per_page', 'option')

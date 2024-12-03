@@ -16,7 +16,8 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
     {
         parent::__construct(array(
             'singular' => 'spam',
-            'plural'   => 'spam'
+            'plural'   => 'spam',
+            'screen'   => str_replace('users_page_', '', current_action())
         ));
 
         $this->bulk_actions_handler();
@@ -48,6 +49,14 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         if ( $this->wc_active ) {
             $columns['ct_orders'] = esc_html__('Completed WC orders', 'cleantalk-spam-protect');
         }
+
+        return $columns;
+    }
+
+    protected function get_sortable_columns() {
+        $columns = array(
+            'ct_email'  => 'ct_email'
+        );
 
         return $columns;
     }
@@ -308,7 +317,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
     /**
      * @return \WP_User_Query
      */
-    public function getSpamNow($per_page, $current_page)
+    public function getSpamNow($per_page, $current_page, $orderby = '', $order = 'ASC')
     {
         $params_spam = array(
             'number'   => $per_page,
@@ -316,6 +325,8 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             'fields'      => 'ID',
             'meta_key' => 'ct_marked_as_spam',
             'count_total' => true,
+            'orderby'  => $orderby,
+            'order'    => $order,
         );
 
         return new \WP_User_Query($params_spam);
