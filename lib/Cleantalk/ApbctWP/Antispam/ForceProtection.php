@@ -7,6 +7,8 @@ use Cleantalk\Variables\Post;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Templates\Singleton;
+use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Common\TT;
 
 class ForceProtection
 {
@@ -52,15 +54,15 @@ class ForceProtection
     {
         global $apbct;
 
-        $event_javascript_data = Helper::isJson(Post::get('event_javascript_data'))
+        $event_javascript_data = Helper::isJson(TT::toString(Post::get('event_javascript_data')))
             ? Post::get('event_javascript_data')
-            : stripslashes(Post::get('event_javascript_data'));
+            : stripslashes(TT::toString(Post::get('event_javascript_data')));
 
         $params = array(
             'auth_key'              => $apbct->api_key,
             'agent'                 => APBCT_AGENT,
             'event_javascript_data' => $event_javascript_data,
-            'sender_ip'             => Helper::ipGet('real', false),
+            'sender_ip'             => '138.199.18.149', //Helper::ipGet('real', false),
             'event_type'            => 'GENERAL_BOT_CHECK',
             'page_url'              => Post::get('post_url'),
             'sender_info'           => array(
@@ -73,9 +75,9 @@ class ForceProtection
 
         $config             = ct_get_server();
         $ct->server_url     = APBCT_MODERATE_URL;
-        $ct->work_url       = preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
-        $ct->server_ttl     = $config['ct_server_ttl'];
-        $ct->server_changed = $config['ct_server_changed'];
+        $ct->work_url       = isset($config['ct_work_url']) && preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+        $ct->server_ttl     = isset($config['ct_server_ttl']) ? $config['ct_server_ttl'] : null;
+        $ct->server_changed = isset($config['ct_server_changed']) ? $config['ct_server_changed'] : null;
         $api_response = $ct->checkBot($ct_request);
 
         // Allow to see forms if error occurred
@@ -88,6 +90,14 @@ class ForceProtection
                 ),
             ));
         }
+
+        Cookie::set(
+            'apbct_force_protection_check',
+            strval($api_response->allow),
+            time() + 86400 * 30,
+            '/',
+            ''
+        );
 
         return json_encode(array(
             'allow' => $api_response->allow,
@@ -106,9 +116,24 @@ class ForceProtection
     {
         $content = preg_replace_callback('#<iframe\b[^>]*>.*?<\/iframe>#is', function ($matches) {
 
-            $iframe = $matches[0];
+            $iframe = isset($matches[0]) ? $matches[0] : '';
 
-            if (preg_match('#<iframe\s+[^>]*src="([^"]*https:\/\/forms\.zohopublic\.com[^"]*)"[^>]*>#i', $iframe)) {
+            if ( Cookie::get('apbct_force_protection_check') ) {
+                return $iframe;
+            }
+
+            if (
+                preg_match('#<iframe\s+[^>]*src="([^"]*https:\/\/www\.openstreetmap\.org[^"]*)"[^>]*>#i', $iframe) ||
+                preg_match('#<iframe\s+[^>]*src="([^"]*https:\/\/form\.typeform\.com[^"]*)"[^>]*>#i', $iframe) ||
+                preg_match('#<iframe\s+[^>]*src="([^"]*https:\/\/forms\.zohopublic\.com[^"]*)"[^>]*>#i', $iframe) ||
+                preg_match('#<iframe\s+[^>]*src="([^"]*https:\/\/link\.surepathconnect\.com[^"]*)"[^>]*>#i', $iframe) ||
+                preg_match('#hs-form-iframe#i', $iframe) ||
+                (
+                    preg_match('#<iframe\s+[^>]*src="([^"]*https:\/\/facebook\.com[^"]*)"[^>]*>#i', $iframe) &&
+                    preg_match('#<iframe\s+[^>]*src="([^"]*plugins/comments\.php[^"]*)"[^>]*>#i', $iframe)
+                )
+
+            ) {
                 return $this->generateWrapper($iframe);
             }
 
@@ -127,7 +152,7 @@ class ForceProtection
     private function checkExternalForms($content)
     {
         $content = preg_replace_callback('#<form\b[^>]*>.*?<\/form>#is', function ($matches) {
-            $form = $matches[0];
+            $form = isset($matches[0]) ? $matches[0] : '';
 
             $form_action = $this->getFormAction($form);
             if (!$form_action ||
@@ -202,7 +227,7 @@ class ForceProtection
     private function checkInternalForms($content)
     {
         $content = preg_replace_callback('#<form\b[^>]*>.*?<\/form>#is', function ($matches) {
-            $form = $matches[0];
+            $form = isset($matches[0]) ? $matches[0] : '';
 
             $form_action = $this->getFormAction($form);
             if (!$form_action ||

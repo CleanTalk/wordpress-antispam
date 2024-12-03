@@ -1704,8 +1704,13 @@ class ApbctForceProtection {
 
         this.wrappers.forEach((wrapper) => {
             form = wrapper.querySelector('div.ct-encoded-form').dataset.encodedForm;
-            if (form) {
-                wrapper.outerHTML = atob(form);
+
+            try {
+                if (form && typeof(form) == 'string') {
+                    wrapper.outerHTML = atob(form);
+                }
+            } catch (error) {
+                console.log(error);
             }
         });
     }
@@ -1717,6 +1722,7 @@ class ApbctForceProtection {
      */
     showMessageForBot(message) {
         let form;
+        console.log(message);
 
         this.wrappers.forEach((wrapper) => {
             form = wrapper.querySelector('div.ct-encoded-form').dataset.encodedForm;

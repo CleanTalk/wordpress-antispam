@@ -311,10 +311,10 @@ function apbct_settings__set_fields()
                     ),
                     'long_description' => true,
                 ),
-                'forms__force_protection'               => array(
+                'forms__force_protection' => array(
                     'title'       => __('Force protection', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'This option will enable pre-check protection for iframe, internal and external forms on your WordPress. To avoid spam from bots without javascript.',
+                        'This option will enable pre-check protection for iframe, internal and external forms on your WordPress. To avoid spam from bots without javascript. This option affects the reflection of the page by checking the user and adds a cookie "apbct_force_protection_check", which serves as an indicator of successful or unsuccessful verification. If the check is successful, it will no longer run.',
                         'cleantalk-spam-protect'
                     ),
                 ),
