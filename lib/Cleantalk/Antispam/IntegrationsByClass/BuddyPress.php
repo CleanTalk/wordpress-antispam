@@ -85,11 +85,11 @@ class BuddyPress extends IntegrationByClassBase
                 'search_terms' => '',
                 'meta_query'   => array()
             );
-            $sentbox_msgs     = BP_Messages_Thread::get_current_threads_for_user($args);
-            $cnt_sentbox_msgs = $sentbox_msgs['total'];
+            $sentbox_msgs     = \BP_Messages_Thread::get_current_threads_for_user($args);
+            $cnt_sentbox_msgs = isset($sentbox_msgs['total']) ? $sentbox_msgs['total'] : 0;
             $args['box']      = 'inbox';
-            $inbox_msgs       = BP_Messages_Thread::get_current_threads_for_user($args);
-            $cnt_inbox_msgs   = $inbox_msgs['total'];
+            $inbox_msgs       = \BP_Messages_Thread::get_current_threads_for_user($args);
+            $cnt_inbox_msgs   = isset($inbox_msgs['total']) ? $inbox_msgs['total'] : 0;
 
             if ( ($cnt_inbox_msgs + $cnt_sentbox_msgs) >= $comments_check_number ) {
                 $is_max_comments = true;
