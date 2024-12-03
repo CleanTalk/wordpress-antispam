@@ -49,7 +49,6 @@ jQuery(document).ready(function($) {
     });
 
     let btnForceProtectionOn = document.querySelector('#apbct_setting_forms__force_protection__On');
-
     btnForceProtectionOn.addEventListener('click', function(e) {
         if (btnForceProtectionOn.checked) {
             let result = confirm(ctAdminCommon.apbctNoticeForceProtectionOn);

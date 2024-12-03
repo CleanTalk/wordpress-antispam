@@ -1722,7 +1722,6 @@ class ApbctForceProtection {
      */
     showMessageForBot(message) {
         let form;
-        console.log(message);
 
         this.wrappers.forEach((wrapper) => {
             form = wrapper.querySelector('div.ct-encoded-form').dataset.encodedForm;
