@@ -124,6 +124,11 @@ function ctKeyStopStopListening() {
  */
 function checkEmail(e) {
     let currentEmail = e.target.value;
+
+    if (! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail)) {
+        return;
+    }
+
     if (currentEmail && !(currentEmail in ctCheckedEmails)) {
         // Using REST API handler
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
@@ -171,44 +176,62 @@ function checkEmail(e) {
  */
 function checkEmailExist(e) {
     let currentEmail = e.target.value;
+    let result;
+
+    if (!currentEmail || !currentEmail.length) {
+        let envelope = document.getElementById('apbct-check_email_exist-block');
+        if (envelope) {
+            envelope.remove();
+        }
+        let hint = document.getElementById('apbct-check_email_exist-popup_description');
+        if (hint) {
+            hint.remove();
+        }
+        return;
+    }
+
     if (! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail)) {
         return;
     }
 
-    if (currentEmail && !(currentEmail in ctCheckedEmailsExist)) {
-        viewCheckEmailExist(e, 'load');
-        // Using REST API handler
-        ctPublicFunctions.data__ajax_type = 'rest';
-        if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
-            apbct_public_sendREST(
-                'check_email_exist_post',
-                {
-                    method: 'POST',
-                    data: {'email': currentEmail},
-                    callback: function(result) {
-                        getResultCheckEmailExist(e, result, currentEmail);
-                    },
-                },
-            );
-            // Using AJAX request and handler
-        } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
-            apbct_public_sendAJAX(
-                {
-                    action: 'apbct_email_check_exist_post',
-                    email: currentEmail,
-                },
-                {
-                    callback: function(result) {
-                        getResultCheckEmailExist(e, result, currentEmail);
-                    },
-                },
-            );
-        }
-    } else if (currentEmail && ctCheckedEmailsExist) {
+    if (currentEmail in ctCheckedEmailsExist) {
         result = ctCheckedEmailsExist[currentEmail];
         getResultCheckEmailExist(e, result, currentEmail);
-    } else {
-        viewCheckEmailExist(e, '', '');
+
+        return;
+    }
+
+    viewCheckEmailExist(e, 'load');
+
+    // Using REST API handler
+    ctPublicFunctions.data__ajax_type = 'rest';
+    if (ctPublicFunctions.data__ajax_type === 'rest') {
+        apbct_public_sendREST(
+            'check_email_exist_post',
+            {
+                method: 'POST',
+                data: {'email': currentEmail},
+                callback: function(result) {
+                    getResultCheckEmailExist(e, result, currentEmail);
+                },
+            },
+        );
+
+        return;
+    }
+
+    if (ctPublicFunctions.data__ajax_type === 'admin_ajax') {
+        apbct_public_sendAJAX(
+            {
+                action: 'apbct_email_check_exist_post',
+                email: currentEmail,
+            },
+            {
+                callback: function(result) {
+                    getResultCheckEmailExist(e, result, currentEmail);
+                },
+            },
+        );
     }
 }
 
@@ -218,22 +241,24 @@ function checkEmailExist(e) {
  * @param {string} currentEmail
  */
 function getResultCheckEmailExist(e, result, currentEmail) {
+    if (!result || !result.result) {
+        return;
+    }
+
     result = result.result;
 
-    if (result) {
-        ctCheckedEmailsExist[currentEmail] = {
-            'result': result,
-            'timestamp': Date.now() / 1000 |0,
-        };
+    ctCheckedEmailsExist[currentEmail] = {
+        'result': result,
+        'timestamp': Date.now() / 1000 |0,
+    };
 
-        if (result.result == 'EXISTS') {
-            viewCheckEmailExist(e, 'good_email', result.text_result);
-        } else {
-            viewCheckEmailExist(e, 'bad_email', result.text_result);
-        }
-
-        ctSetCookie('ct_checked_emails_exist', JSON.stringify(ctCheckedEmailsExist));
+    if (result.result == 'EXISTS') {
+        viewCheckEmailExist(e, 'good_email', result.text_result);
+    } else {
+        viewCheckEmailExist(e, 'bad_email', result.text_result);
     }
+
+    ctSetCookie('ct_checked_emails_exist', JSON.stringify(ctCheckedEmailsExist));
 }
 
 /**
@@ -291,11 +316,12 @@ function viewCheckEmailExist(e, state, textResult) {
 
     switch (state) {
     case 'load':
+        envelope.classList.remove('apbct-check_email_exist-good_email', 'apbct-check_email_exist-bad_email');
         envelope.classList.add('apbct-check_email_exist-load');
         break;
 
     case 'good_email':
-        envelope.classList.remove('apbct-check_email_exist-load');
+        envelope.classList.remove('apbct-check_email_exist-load', 'apbct-check_email_exist-bad_email');
         envelope.classList.add('apbct-check_email_exist-good_email');
 
         envelope.onmouseover = function() {
@@ -312,7 +338,7 @@ function viewCheckEmailExist(e, state, textResult) {
         break;
 
     case 'bad_email':
-        envelope.classList.remove('apbct-check_email_exist-load');
+        envelope.classList.remove('apbct-check_email_exist-load', 'apbct-check_email_exist-good_email');
         envelope.classList.add('apbct-check_email_exist-bad_email');
 
         envelope.onmouseover = function() {
@@ -635,6 +661,16 @@ function apbctPrepareBlockForAjaxForms() {
                 ctPrepareBlockMessage(xhr);
             });
         }
+    } else {
+        // if Jquery is not avaliable try to use xhr
+        if (typeof XMLHttpRequest !== 'undefined') {
+            // Capturing responses and output block message for unknown AJAX forms
+            document.addEventListener('readystatechange', function(event) {
+                if (event.target.readyState === 4) {
+                    ctPrepareBlockMessage(event.target);
+                }
+            });
+        }
     }
 }
 
@@ -664,28 +700,20 @@ function startForcedAltEventTokenChecker() {
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 function apbct_ready() {
-    if (typeof jQuery !== 'undefined') {
-        jQuery(document).on('gform_page_loaded', function() {
-            if (
-                typeof ctPublic.force_alt_cookies == 'undefined' ||
-                (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
-            ) {
-                ctNoCookieAttachHiddenFieldsToForms();
-                if (typeof setEventTokenField === 'function' && typeof botDetectorLocalStorage === 'function') {
-                    setEventTokenField(botDetectorLocalStorage.get('bot_detector_event_token'));
-                }
+    document.addEventListener('gform_page_loaded', function() {
+        if (
+            typeof ctPublic.force_alt_cookies === 'undefined' ||
+            (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
+        ) {
+            ctNoCookieAttachHiddenFieldsToForms();
+            if (typeof setEventTokenField === 'function' && typeof botDetectorLocalStorage === 'function') {
+                setEventTokenField(botDetectorLocalStorage.get('bot_detector_event_token'));
             }
-        });
-    }
+        }
+    });
     if ( ! ctPublic.wc_ajax_add_to_cart ) {
         apbctCheckAddToCartByGet();
     }
-    // this way calls a lot of apbct_ready(), needs to find another way
-    // if (typeof jQuery !== 'undefined') {
-    //     jQuery(document).on('gform_page_loaded', function() {
-    //         apbct_ready();
-    //     });
-    // }
 
     apbctPrepareBlockForAjaxForms();
 
@@ -908,6 +936,11 @@ function apbct_ready() {
                 (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
             )
         ) {
+            // fibosearch integration
+            if (_form.querySelector('input.dgwt-wcas-search-input')) {
+                continue;
+            }
+
             // this handles search forms onsubmit process
             _form.apbctSearchPrevOnsubmit = _form.onsubmit;
             _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
@@ -919,51 +952,6 @@ function apbct_ready() {
 
     // Set important paramaters via ajax if problematic cache solutions found
     apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
-
-    if (typeof apbctTrpBrokenIntervalId !== 'undefined') {
-        setTimeout(() => {
-            clearInterval(apbctTrpBrokenIntervalId);
-        }, 1000);
-    }
-}
-
-/**
- * Check broken TRP every 100ms until the page is loaded
- */
-const apbctTrpBrokenIntervalId = setInterval(apbctFixBrokenTRP, 100);
-
-/**
- * Fix broken TRP - clean author names from html tags
- */
-function apbctFixBrokenTRP() {
-    let author;
-    let comments;
-    let reviews;
-    let pattern = '<div class="apbct-real-user-author-name">';
-
-    if (document.documentElement.textContent.indexOf(pattern) > -1) {
-        author = document.documentElement.textContent.match(new RegExp(pattern + '(.*?)<\/div>'))[1];
-
-        comments = document.querySelectorAll('.comment-author');
-        for (let i = 0; i < comments.length; i++) {
-            comments[i].childNodes.forEach((node) => {
-                if (node.textContent.includes(pattern)) {
-                    node.textContent = author;
-                    apbctFixBrokenTRP();
-                }
-            });
-        }
-
-        reviews = document.querySelectorAll('.woocommerce-review__author');
-        for (let i = 0; i < reviews.length; i++) {
-            reviews[i].childNodes.forEach((node) => {
-                if (node.textContent.includes(pattern)) {
-                    node.textContent = author;
-                    apbctFixBrokenTRP();
-                }
-            });
-        }
-    }
 }
 
 /**
@@ -1072,8 +1060,10 @@ function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) {
  */
 function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
     // jquery ajax call intercept
+    // this is the only place where we can found hard dependency on jQuery, if the form use it - the script
+    // will work independing if jQuery is loaded by CleanTalk or not
     let eventToken = false;
-    if ( typeof jQuery !== 'undefined' ) {
+    if ( typeof jQuery !== 'undefined' && typeof jQuery.ajaxSetup === 'function') {
         jQuery.ajaxSetup({
             beforeSend: function(xhr, settings) {
                 let sourceSign = false;
@@ -1244,24 +1234,6 @@ function ctFillDecodedEmailHandler(event) {
     // popup show
     let encoderPopup = document.getElementById('apbct_popup');
     if (!encoderPopup) {
-        // get obfuscated email
-        let obfuscatedEmail = null;
-        if (event.currentTarget.tagName === 'A') {
-            obfuscatedEmail = event.currentTarget.querySelector('span.apbct-ee-blur_email-text');
-            if (obfuscatedEmail) {
-                obfuscatedEmail = obfuscatedEmail.innerHTML;
-            }
-        }
-        if (event.currentTarget.tagName === 'SPAN') {
-            obfuscatedEmail = event.currentTarget.querySelector('span.apbct-ee-blur_email-text').innerHTML;
-        }
-        if (event.currentTarget.tagName === 'IMG') {
-            obfuscatedEmail = event.currentTarget.parentNode.innerHTML;
-        }
-        if (obfuscatedEmail === null) {
-            obfuscatedEmail = 'obfuscated email';
-        }
-
         // construct popup
         let waitingPopup = document.createElement('div');
         waitingPopup.setAttribute('class', 'apbct-popup apbct-email-encoder-popup');
@@ -1272,6 +1244,7 @@ function ctFillDecodedEmailHandler(event) {
         popupHeaderWrapper.classList = 'apbct-email-encoder-elements_center';
         let popupHeader = document.createElement('p');
         popupHeader.innerText = ctPublic.wl_brandname;
+        popupHeader.setAttribute('class', 'apbct-email-encoder--popup-header');
         popupHeaderWrapper.append(popupHeader);
 
         // construct text wrapper
@@ -1281,20 +1254,21 @@ function ctFillDecodedEmailHandler(event) {
         popupTextWrapper.style.color = 'black';
 
         // construct text first node
-        // todo make translateable
-        let popupTextDecoding = document.createElement('p');
-        popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_first';
-        popupTextDecoding.innerText = 'Decoding ' + obfuscatedEmail + ' to the original contact.';
-
-        // construct text first node
-        // todo make translateable
+        // todo make translatable
         let popupTextWaiting = document.createElement('p');
-        popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_second';
+        popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_first';
         popupTextWaiting.innerText = 'The magic is on the way, please wait for a few seconds!';
+        popupTextWaiting.setAttribute('class', 'apbct-email-encoder-elements_center');
 
-        // appendings
-        popupTextWrapper.append(popupTextDecoding);
+        // construct text second node
+        // todo make translatable
+        let popupTextDecoding = document.createElement('p');
+        popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_second';
+        popupTextDecoding.innerText = 'Decoding process to the original data.';
+
+        // appending
         popupTextWrapper.append(popupTextWaiting);
+        popupTextWrapper.append(popupTextDecoding);
         waitingPopup.append(popupHeaderWrapper);
         waitingPopup.append(popupTextWrapper);
         waitingPopup.append(apbctSetEmailDecoderPopupAnimation());
@@ -1417,39 +1391,26 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 });
 
                 let email = currentResultData.decoded_email.split(/[&?]/)[0];
-
-                // copy icon
-                const copyIcon = document.createElement('span');
-                copyIcon.classList.add('copy-email-icon');
-                copyIcon.innerHTML = '📋'; // You can replace this with an actual icon if needed
-                copyIcon.style.cursor = 'pointer';
-                copyIcon.title = 'Copy email to clipboard';
-
-                copyIcon.addEventListener('click', function() {
-                    if (navigator.clipboard) {
-                        navigator.clipboard.writeText(email).then(() => {
-                            console.log('Email copied to clipboard!');
-                        }).catch((err) => {
-                            console.log('Failed to copy email: ', err);
-                        });
-                    } else {
-                        console.log('Clipboard API not supported');
-                    }
-                });
-
-                // change text
+                // handle first node
                 let firstNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_first');
-                let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
-                firstNode.innerText = 'The original contact is ' + email + '.';
-                firstNode.append(copyIcon);
-                secondNode.innerText = 'Happy conversations!';
-                // remove antimation
+                // get email selectable by click
+                let selectableEmail = document.createElement('b');
+                selectableEmail.setAttribute('class', 'apbct-email-encoder-select-whole-email');
+                selectableEmail.innerText = email;
+                selectableEmail.title = 'Click to select the whole data';
+                // add email to the first node
+                firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML + '.';
+                firstNode.setAttribute('style', 'flex-direction: row;');
+                // remove animation
                 popup.querySelector('.apbct-ee-animation-wrapper').remove();
+                // remove second node
+                popup.querySelector('#apbct_email_ecoder__popup_text_node_second').remove();
                 // add button
                 let buttonWrapper = document.createElement('span');
                 buttonWrapper.classList = 'apbct-email-encoder-elements_center top-margin-long';
                 let button = document.createElement('button');
                 button.innerText = 'Got it';
+                button.classList = 'apbct-email-encoder-got-it-button';
                 button.addEventListener('click', function() {
                     document.body.classList.remove('apbct-popup-fade');
                     popup.setAttribute('style', 'display:none');
@@ -1459,7 +1420,6 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                         clickSource.click();
                     }
                 });
-                button.style.cursor = 'pointer';
                 buttonWrapper.append(button);
                 popup.append(buttonWrapper);
             }
@@ -1501,15 +1461,13 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
             encodedEmailNodes[i].innerHTML =
                 baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
             encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
-            encodedEmailNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((span) => {
-                let firstEmail = currentResultData.decoded_email.split('&')[0];
-                span.querySelector('.apbct-ee-blur_email-text').innerHTML = firstEmail;
-            });
         } else {
+            encodedEmailNodes[i].classList.add('no-blur');
             // fill the nodes
-            ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
+            setTimeout(() => {
+                ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
+            }, 2000);
         }
-        ctPerformMagicBlur(encodedEmailNodes[i]);
         // remove listeners
         encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
     }
@@ -1532,7 +1490,6 @@ function resetEncodedNodes() {
 function getJavascriptClientData(commonCookies = []) {
     let resultDataJson = {};
 
-    resultDataJson.apbct_headless = !!ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_headless');
     resultDataJson.ct_checked_emails = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails');
     resultDataJson.ct_checked_emails_exist = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails_exist');
     resultDataJson.ct_checkjs = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checkjs');
@@ -1551,12 +1508,15 @@ function getJavascriptClientData(commonCookies = []) {
     const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
     const ctJsErrorsLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_js_errors');
     const ctPixelUrl = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
+    const apbctHeadless = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_headless');
 
     // collecting data from cookies
     const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
     const ctHasScrolledCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
     const ctCookiesTypeCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
     const ctCookiesPixelUrl = ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
+    const apbctHeadlessNative = !!ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_headless');
+
 
     resultDataJson.ct_mouse_moved = ctMouseMovedLocalStorage !== undefined ?
         ctMouseMovedLocalStorage : ctMouseMovedCookie;
@@ -1566,6 +1526,8 @@ function getJavascriptClientData(commonCookies = []) {
         ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
     resultDataJson.apbct_pixel_url = ctPixelUrl !== undefined ?
         ctPixelUrl : ctCookiesPixelUrl;
+    resultDataJson.apbct_headless = apbctHeadless !== undefined ?
+        apbctHeadless : apbctHeadlessNative;
     if (resultDataJson.apbct_pixel_url && typeof(resultDataJson.apbct_pixel_url) == 'string') {
         if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
             resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
@@ -1596,6 +1558,7 @@ function getJavascriptClientData(commonCookies = []) {
 
     // Parse JSON properties to prevent double JSON encoding
     resultDataJson = removeDoubleJsonEncoding(resultDataJson);
+
 
     return JSON.stringify(resultDataJson);
 }
@@ -1642,19 +1605,6 @@ function ctProcessDecodedDataResult(response, targetElement) {
     targetElement.removeAttribute('style');
     ctFillDecodedEmail(targetElement, response.decoded_email);
 }
-/**
- * @param {HTMLElement} targetElement
- */
-function ctPerformMagicBlur(targetElement) {
-    const staticBlur = targetElement.querySelector('.apbct-ee-static-blur');
-    const animateBlur = targetElement.querySelector('.apbct-ee-animate-blur');
-    if (staticBlur !== null) {
-        staticBlur.style.display = 'none';
-    }
-    if (animateBlur !== null) {
-        animateBlur.style.display = 'inherit';
-    }
-}
 
 /**
  * @param {mixed} target
@@ -1664,7 +1614,7 @@ function ctFillDecodedEmail(target, email) {
     apbct(target).html(
         apbct(target)
             .html()
-            .replace(/.?<span class=["']apbct-ee-blur_email-text["'].*>(.+?)<\/span>/, email),
+            .replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1'),
     );
 }
 
@@ -2011,35 +1961,6 @@ if (document.readyState !== 'loading') {
     checkFormsExistForCatching();
 } else {
     apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatching);
-}
-
-/**
- * Handle real user badge for woocommerce
- * @param template
- * @param id
- */
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctRealUserBadgeWoocommerce(template, id) {
-    if (window.innerWidth < 768) {
-        return;
-    }
-
-    let badge = document.createElement('div');
-    badge.className = 'apbct-real-user-wrapper';
-
-    let attachmentPlace = document.querySelector('#comment-' + id).querySelector('.woocommerce-review__author');
-
-    try {
-        template = atob(template);
-        badge.innerHTML = template;
-
-        if (typeof attachmentPlace !== 'undefined') {
-            attachmentPlace.style.display = 'inline-flex';
-            attachmentPlace.appendChild(badge);
-        }
-    } catch (e) {
-        console.log('APBCT error: ' + e.toString());
-    }
 }
 
 /**

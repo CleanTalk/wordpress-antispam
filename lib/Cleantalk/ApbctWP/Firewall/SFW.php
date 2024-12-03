@@ -9,6 +9,7 @@ use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\TT;
 
 #[AllowDynamicProperties]
 class SFW extends \Cleantalk\Common\Firewall\FirewallModule
@@ -32,6 +33,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
     public $module_name = 'SFW';
 
+    /**
+     * @var string
+     */
     private $db__table__data_personal;
 
     private $real_ip;
@@ -44,20 +48,47 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     private $sfw_die_page;
 
     /**
+     * @var string
+     */
+    private $server__http_user_agent;
+    /**
+     * @var string
+     */
+    private $server__http_host;
+    /**
+     * @var string
+     */
+    private $server__request_uri;
+    /**
+     * @var string
+     */
+    private $server__remote_addr;
+    /**
+     * @var string
+     */
+    private $get__sfw_test_ip;
+
+    /**
      * FireWall_module constructor.
      * Use this method to prepare any data for the module working.
      *
      * @param string $log_table
-     * @param string $data_table
-     * @param $params
+     * @param string $data_table_personal
+     * @param array $params
      */
     public function __construct($log_table, $data_table_personal, $params = array())
     {
         parent::__construct($log_table, $data_table_personal, $params);
 
-        $this->db__table__data = $params['sfw_common_table_name'] ?: null;
-        $this->db__table__data_personal = $data_table_personal ?: null;
-        $this->db__table__logs = $log_table ?: null;
+        // init server vars
+        $this->server__http_user_agent = TT::toString(Server::get('HTTP_USER_AGENT'));
+        $this->server__http_host       = TT::toString(Server::get('HTTP_HOST'));
+        $this->server__request_uri  = TT::toString(Server::get('REQUEST_URI'));
+        $this->get__sfw_test_ip     = TT::toString(Get::get('sfw_test_ip'));
+
+        $this->db__table__data = TT::getArrayValueAsString($params, 'sfw_common_table_name') ?: '';
+        $this->db__table__data_personal = $data_table_personal ?: '';
+        $this->db__table__logs = $log_table ?: '';
 
         foreach ($params as $param_name => $param) {
             $this->$param_name = isset($this->$param_name) ? $param : false;
@@ -73,10 +104,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     {
         $this->real_ip = isset($ips['real']) ? $ips['real'] : null;
 
-        if (Get::get('sfw_test_ip')) {
-            if (Helper::ipValidate(Get::get('sfw_test_ip')) !== false) {
-                $ips['sfw_test'] = Get::get('sfw_test_ip');
-                $this->test_ip   = Get::get('sfw_test_ip');
+        if ($this->get__sfw_test_ip) {
+            if (Helper::ipValidate($this->get__sfw_test_ip) !== false) {
+                $ips['sfw_test'] = $this->get__sfw_test_ip;
+                $this->test_ip   = $this->get__sfw_test_ip;
                 $this->test      = true;
             }
         }
@@ -94,6 +125,13 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         $results = array();
         $status  = 0;
 
+        if (
+            empty($this->db__table__data) ||
+            empty($this->db__table__data_personal)
+        ) {
+            return $results;
+        }
+
         if ( $this->test ) {
             unset($_COOKIE['ct_sfw_pass_key']);
             Cookie::set('ct_sfw_pass_key', '0');
@@ -102,8 +140,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         // Skip by cookie
         foreach ($this->ip_array as $current_ip) {
             if (
-                Cookie::get('ct_sfw_pass_key')
-                && strpos(Cookie::get('ct_sfw_pass_key'), md5($current_ip . $this->api_key)) === 0
+                TT::toString(Cookie::get('ct_sfw_pass_key'))
+                && strpos(TT::toString(Cookie::get('ct_sfw_pass_key')), md5($current_ip . $this->api_key)) === 0
             ) {
                 if (Cookie::get('ct_sfw_passed')) {
                     if ( ! headers_sent()) {
@@ -133,8 +171,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     }
                 }
 
-                if (strlen(Cookie::get('ct_sfw_pass_key')) > 32) {
-                    $status = substr(Cookie::get('ct_sfw_pass_key'), -1);
+                if (strlen(TT::toString(Cookie::get('ct_sfw_pass_key'))) > 32) {
+                    $status = substr(TT::toString(Cookie::get('ct_sfw_pass_key')), -1);
                 }
 
                 if ($status) {
@@ -179,7 +217,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
             $db_results = $this->db->fetchAll($query);
 
-            $test_entry['status'] = 99;
+            $test_entry = array(
+                'status' => 99
+            );
 
             if ( ! empty($db_results)) {
                 foreach ($db_results as $db_result) {
@@ -220,7 +260,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 );
             }
 
-            $results[] = $result_entry;
+            if (!empty($result_entry)) {
+                $results[] = $result_entry;
+            }
 
             if ( $this->test && $origin === 'sfw_test' ) {
                 $this->test_entry = $test_entry;
@@ -243,6 +285,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     {
         $id   = md5($ip . $this->module_name);
         $time = time();
+        $short_url_to_log = substr($this->server__http_host . $this->server__request_uri, 0, 100);
 
         $this->db->prepare(
             "INSERT INTO " . $this->db__table__logs . "
@@ -269,14 +312,13 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 network = %s,
                 last_url = %s",
             array(
-                Server::get('HTTP_USER_AGENT'),
+                $this->server__http_user_agent,
                 $network,
-                substr(Server::get('HTTP_HOST') . Server::get('REQUEST_URI'), 0, 100),
-                substr(Server::get('HTTP_HOST') . Server::get('REQUEST_URI'), 0, 100),
-
-                Server::get('HTTP_USER_AGENT'),
+                $short_url_to_log,
+                $short_url_to_log,
+                $this->server__http_user_agent,
                 $network,
-                substr(Server::get('HTTP_HOST') . Server::get('REQUEST_URI'), 0, 100),
+                $short_url_to_log,
             )
         );
         $this->db->execute($this->db->getQuery());
@@ -341,7 +383,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 '<a href="https://cleantalk.org/blacklists/' . $result['ip'] . '" target="_blank">' . $result['ip'] . '</a>'
             );
 
-            $request_uri = Server::get('REQUEST_URI');
+            $request_uri = $this->server__request_uri;
             if ( $this->test ) {
                 // Remove "sfw_test_ip" get parameter from the uri
                 $request_uri = preg_replace('%sfw_test_ip=\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}&?%', '', $request_uri);
@@ -352,7 +394,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $custom_logo_id = isset($apbct->settings['cleantalk_custom_logo']) ? $apbct->settings['cleantalk_custom_logo'] : false;
 
             if ($custom_logo_id && ($image_attributes = wp_get_attachment_image_src($custom_logo_id, array(150, 150)))) {
-                $custom_logo_img = '<img src="' . esc_url($image_attributes[0]) . '" width="150" alt="" />';
+                $custom_logo_img = '<img src="' . esc_url(TT::getArrayValueAsString($image_attributes, 0)) . '" width="150" alt="" />';
             }
 
             // Translation
@@ -451,9 +493,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 $debug = '<h1>Headers</h1>'
                          . var_export(apache_request_headers(), true)
                          . '<h1>REMOTE_ADDR</h1>'
-                         . Server::get('REMOTE_ADDR')
+                         . $this->server__remote_addr
                          . '<h1>SERVER_ADDR</h1>'
-                         . Server::get('REMOTE_ADDR')
+                         . $this->server__remote_addr
                          . '<h1>IP_ARRAY</h1>'
                          . var_export($this->ip_array, true)
                          . '<h1>ADDITIONAL</h1>'
@@ -595,7 +637,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $result = API::methodSfwLogs($ct_key, $data);
             //Checking answer and deleting all lines from the table
             if (empty($result['error'])) {
-                if ($result['rows'] == count($data)) {
+                if (isset($result['rows']) && TT::toInt($result['rows']) === count($data)) {
                     $db->execute("BEGIN;");
                     $db->execute("DELETE FROM $log_table WHERE id IN ( '" . implode('\',\'', $ids_to_delete) . "' );");
                     $db->execute("COMMIT;");
@@ -690,13 +732,13 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     /**
      * Updates SFW local base
      *
-     * @param $db
-     * @param $db__table__data
-     * @param null|string $file_url File URL with SFW data.
+     * @param DB $db instance of DB object
+     * @param string $db__table__data name of table to write data
+     * @param string $file_url File URL with SFW data.
      *
      * @return array|int array('error' => STRING)
      */
-    public static function updateWriteToDb($db, $db__table__data, $file_url = null)
+    public static function updateWriteToDb($db, $db__table__data, $file_url = '')
     {
         if ( ! $db->isTableExists($db__table__data) ) {
             return array('error' => 'Temp table not exist');
@@ -1003,7 +1045,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     public static function getSFWTablesNames()
     {
         global $apbct;
-
+        $out = array();
         $out['sfw_personal_table_name'] = APBCT_TBL_FIREWALL_DATA_PERSONAL;
         $out['sfw_common_table_name'] = APBCT_TBL_FIREWALL_DATA;
 

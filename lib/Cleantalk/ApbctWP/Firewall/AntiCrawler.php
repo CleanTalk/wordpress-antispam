@@ -8,6 +8,7 @@ use Cleantalk\Common\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\TT;
 
 /**
  * Class AntiCrawler
@@ -37,6 +38,28 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     private $sfw_die_page;
 
     /**
+     * @var string
+     */
+    private $server__http_user_agent;
+    /**
+     * @var string
+     * @psalm-suppress UnusedProperty
+     */
+    private $server__https;
+    /**
+     * @var string
+     */
+    private $server__http_host;
+    /**
+     * @var string
+     */
+    private $server__request_uri;
+    /**
+     * @var string
+     */
+    private $server__http_referer;
+
+    /**
      * AntiBot constructor.
      *
      * @param $log_table
@@ -47,14 +70,19 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     {
         parent::__construct($log_table, $ac_logs_table, $params);
 
+        // init server vars
+        $this->server__https           = TT::toString(Server::get('HTTPS'));
+        $this->server__http_user_agent = TT::toString(Server::get('HTTP_USER_AGENT'));
+        $this->server__http_host       = TT::toString(Server::get('HTTP_HOST'));
+        $this->server__request_uri  = TT::toString(Server::get('REQUEST_URI'));
+        $this->server__http_referer = TT::toString(Server::get('HTTP_REFERER'));
+
         global $apbct;
         $this->apbct               = $apbct;
         $this->db__table__logs     = $log_table ?: null;
         $this->db__table__ac_logs  = $ac_logs_table ?: null;
-        $this->db__table__ac_ua_bl = defined('APBCT_TBL_AC_UA_BL') ? APBCT_TBL_AC_UA_BL : null;
-        $this->sign                = md5(
-            Server::get('HTTP_USER_AGENT') . Server::get('HTTPS') . Server::get('HTTP_HOST')
-        );
+        $this->db__table__ac_ua_bl     = defined('APBCT_TBL_AC_UA_BL') ? APBCT_TBL_AC_UA_BL : null;
+        $this->sign                    = md5($this->server__http_user_agent . $this->server__https . $this->server__http_host);
 
         foreach ( $params as $param_name => $param ) {
             $this->$param_name = isset($this->$param_name) ? $param : false;
@@ -78,10 +106,6 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         }
 
         $lines = \Cleantalk\ApbctWP\Helper::bufferParseCsv($unzipped_content);
-
-        if ( ! empty($lines['errors']) ) {
-            return array('error' => 'UAL_UPDATE_ERROR: ' . $lines['error']);
-        }
 
         for ( $count_result = 0; current($lines) !== false; ) {
             $query = "INSERT INTO " . APBCT_TBL_AC_UA_BL . " (id, ua_template, ua_status) VALUES ";
@@ -167,12 +191,12 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                     if (
                         ! empty($ua_bl_result['ua_template']) && preg_match(
                             "%" . str_replace('"', '', $ua_bl_result['ua_template']) . "%i",
-                            Server::get('HTTP_USER_AGENT')
+                            $this->server__http_user_agent
                         )
                     ) {
-                        $this->ua_id = $ua_bl_result['id'];
+                        $this->ua_id = TT::getArrayValueAsString($ua_bl_result, 'id');
 
-                        if ( $ua_bl_result['ua_status'] == 1 ) {
+                        if ( TT::getArrayValueAsString($ua_bl_result, 'ua_status') === '1' ) {
                             // Whitelisted
                             $results[] = array(
                                 'ip'          => $current_ip,
@@ -356,15 +380,16 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
 				ua_name = %s,
 				last_url = %s";
 
+        $short_url_to_log = substr($this->server__http_host . $this->server__request_uri, 0, 100);
+
         $this->db->prepare(
             $query,
             array(
-                Server::get('HTTP_USER_AGENT'),
-                substr(Server::get('HTTP_HOST') . Server::get('REQUEST_URI'), 0, 100),
-                substr(Server::get('HTTP_HOST') . Server::get('REQUEST_URI'), 0, 100),
-
-                Server::get('HTTP_USER_AGENT'),
-                substr(Server::get('HTTP_HOST') . Server::get('REQUEST_URI'), 0, 100),
+                $this->server__http_user_agent,
+                $short_url_to_log,
+                $short_url_to_log,
+                $this->server__http_user_agent,
+                $short_url_to_log,
             )
         );
         $this->db->execute($this->db->getQuery());
@@ -389,7 +414,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             $custom_logo_id = isset($apbct->settings['cleantalk_custom_logo']) ? $apbct->settings['cleantalk_custom_logo'] : false;
 
             if ($custom_logo_id && ($image_attributes = wp_get_attachment_image_src($custom_logo_id, array(150, 150)))) {
-                $custom_logo_img = '<img src="' . esc_url($image_attributes[0]) . '" width="150" alt="" />';
+                $custom_logo_img = '<img src="' . esc_url(TT::getArrayValueAsString($image_attributes, 0)) . '" width="150" alt="" />';
             }
 
             $block_message = sprintf(
@@ -508,7 +533,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
          */
         if (Server::get('REQUEST_URI') && apbct_is_plugin_active('w3-total-cache/w3-total-cache.php')) {
             //get match in uri
-            preg_match_all('/\/wp-content\/cache\/minify\/(.+\.(js|css))/', Server::get('REQUEST_URI'), $matches);
+            preg_match_all('/\/wp-content\/cache\/minify\/(.+\.(js|css))/', $this->server__request_uri, $matches);
             $w3tc_js_file_name_in_uri = isset($matches[1], $matches[1][0]) ? $matches[1][0] : null;
             if ( !empty($w3tc_js_file_name_in_uri) ) {
                 //get option
@@ -557,10 +582,10 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     private function isRedirected()
     {
         $is_redirect = false;
-        if ( Server::get('HTTP_REFERER') !== '' && Server::get('HTTP_HOST') !== '' && $this->isCloudflare() ) {
-            $parse_referer = parse_url(Server::get('HTTP_REFERER'));
+        if ( $this->server__http_referer !== '' && $this->server__http_host !== '' && $this->isCloudflare() ) {
+            $parse_referer = parse_url($this->server__http_referer);
             if ( $parse_referer && isset($parse_referer['host']) ) {
-                $is_redirect = Server::get('HTTP_HOST') !== $parse_referer['host'];
+                $is_redirect = $this->server__http_host !== $parse_referer['host'];
             }
         }
 

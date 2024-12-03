@@ -139,4 +139,19 @@ class Sanitize extends \Cleantalk\Common\Sanitize
     {
         return sanitize_user($variable);
     }
+
+    /**
+     * @param $url
+     *
+     * @return string|null
+     */
+    public static function sanitizeCleantalkServerUrl($url)
+    {
+        if (!is_string($url)) {
+            return null;
+        }
+        return preg_match('/^.*(moderate|api).*\.cleantalk.org(?!\.)[\/\\\\]{0,1}/m', $url)
+            ? $url
+            : null;
+    }
 }

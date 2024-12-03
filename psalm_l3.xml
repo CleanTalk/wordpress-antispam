@@ -20,6 +20,11 @@
         <file name="./cleantalk.php"/>
         <directory name="./inc"/>
         <directory name="./lib/Cleantalk/Antispam"/>
+        <directory name="./lib/Cleantalk/ApbctWP/AdjustToEnvironmentModule"/>
+        <directory name="./lib/Cleantalk/ApbctWP/Antispam"/>
+        <directory name="./lib/Cleantalk/ApbctWP/FindSpam"/>
+        <directory name="./lib/Cleantalk/ApbctWP/Firewall"/>
+        <directory name="./lib/Cleantalk/ApbctWP/HTTP"/>
         <file name="./lib/Cleantalk/Common/Validate.php"/>
         <file name="./lib/Cleantalk/Common/TT.php"/>
         <file name="./lib/Cleantalk/ApbctWP/Activator.php"/>
@@ -34,7 +39,6 @@
             <directory name="tests"/>
             <directory name="vendor"/>
             <directory name="node_modules/" />
-
             <file name="lib/Cleantalk/Templates/Singleton.php"/>
             <file name="lib/Cleantalk/ApbctWP/CleantalkListTable.php"/>
             <file name="inc/cleantalk-public-validate-skip-functions.php"/>
@@ -79,6 +83,11 @@
                 <file name="lib/Cleantalk/Common/HTTP/Response.php"/>
             </errorLevel>
         </PossiblyUnusedMethod>
+        <PossiblyUnusedReturnValue>
+            <errorLevel type="suppress">
+            <file name="lib/Cleantalk/ApbctWP/FindSpam/ListTable/Comments.php"/>
+            </errorLevel>
+        </PossiblyUnusedReturnValue>
     </issueHandlers>
 
 </psalm>

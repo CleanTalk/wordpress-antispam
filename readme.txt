@@ -2,9 +2,9 @@
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
-Tested up to: 6.6
+Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 6.43.2
+Stable tag: 6.46
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -37,6 +37,7 @@ Top-rated anti-spam protection for WordPress. No CAPTCHA, no questions, no anima
 21. Hide «Website» field for comments.
 22. Block messages by languages, countries, networks and stop words.
 23. Email Address Encoder - protection for email addresses published on your site.
+24. No jQuery.
 
 = Free trial then $12 per year =
 CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
@@ -443,6 +444,57 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.46 27 Nov 2024 =
+* New. Integrations. CoBlocks integration implemented.
+* New. EmailEncoder. A new hook for encoding mail
+* Upd. TheRealPerson. Update layout.
+* Upd. Code. Psalm L3. Updated codebase
+* Upd. Integrations. Breeze cache plugin integration implemented.
+* Upd. Code. Refactoring honeypot logic.
+* Upd. TRP. Improved adaptive.
+* Upd. Integrations. Added fibosearch support.
+* Fix. Integrations. Ninja forms getting form fields fixed.
+* Fix. TRP. Popup text color fixed.
+* Fix. Email encoder. Decoding blur-magic rebuilt.
+* Fix. Integrations. Exclusion of the Elementor search form
+* Fix. Integrations. Regex to exclude search forms
+* Fix. EmailEncoder. Handling exceptions and logged-in users
+* Fix. EmailEncoder. Exclusion of maps from leaflet
+
+= 6.45.2 19 Nov 2024 =
+* Fix. Settings. Fixed banners close handler.
+
+= 6.45.1 15 Nov 2024 =
+* Fix. Email Encoder. Exclusions condition fixed.
+* Fix. Collecting JS errors. Substring fail case fixed.
+
+= 6.45 14 Nov 2024 =
+* Code. Psalm level 3. New progress.
+* Fix. Anti-Flood. Blocking page loop fixed.
+* Fix. Code. GetFieldsAny(). Added protection for unknown Gravity forms attack that ignores integration hooks.
+* Fix. Common check. Prevent spam on Formintator forms direct call attacks.
+* Fix. EmailEncoder. Editing the change of double quotes to single quotes.
+* Fix. EmailEncoder. Issue with missing tables fixed.
+* Fix. EmailEncoder. Revived lost modifyAriaLabelContent() call used to replace back the origin aria attr.
+* Fix. Remote Calls. RC calling for the services without the api key fixed.
+* Fix. Request Parameters. `apbct_site_landing_ts` parameter handling fixed.
+* Fix. Skip request. Skipping an ajax request to edit a profile.
+* Mod. EmailEncoder. Popup. Copy button removed. Email made selectable by click. Styles unified.
+* Mod. EmailEncoder. Descriptions updated.
+* Mod. Sanitize::sanitizeCleantalkServerUrl implemented.
+* Upd. Settings. Checking email existence option will be enabled by default for the new users.
+
+= 6.44 31 Oct 2024 =
+* New. Integrations. Added honeypot for elementor form.
+* New. Email encoder. Hook and shortcode apbct_encode_data handler implemented.
+* Upd. EmailCheck. Improved js.
+* Upd. Universal banner. Refactored to universal.
+* Upd. Code. jQuery's dependency removed form apbct scripts localization.
+* Fix. Request parameters. Param apbct_headless gain fixed.
+* Fix. Integrations. Flying Press cache plugin integration implemented.
+* Fix. EncodeEmail. Editing the change of double quotes to single quotes.
+* Fix. Common check. Prevent spam on Formintator forms direct call attacks.
 
 = 6.43.2 23 Oct 2024 =
 * Fix. Integrations. Elementor Pro. Remove post-check for email field.

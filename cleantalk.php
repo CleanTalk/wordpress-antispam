@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.43.3-dev
+  Version: 6.46.1-dev
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -169,8 +169,7 @@ if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['co
 
 if ($apbct->key_is_ok &&
     ( ! is_admin() || apbct_is_ajax() ) &&
-    current_action() !== 'wp_ajax_delete-plugin' &&
-    !apbct_is_amp_request()
+    current_action() !== 'wp_ajax_delete-plugin'
 ) {
     // Email encoder
     if ($apbct->settings['data__email_decoder']) {
@@ -712,6 +711,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'CoBlocks' => array(
+        'hook'    => 'coblocks_before_form_submit',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
 );
 add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {
     if ( defined('FLUENTFORM_VERSION') ) {
@@ -736,10 +740,13 @@ if ($js_errors_arr && isset($js_errors_arr['data'])) {
  */
 function apbct_write_js_errors($data)
 {
+    if (!is_string($data) || empty($data)) {
+        return false;
+    }
     $tmp = substr($data, strlen('_ct_no_cookie_data_'));
     $errors = json_decode(base64_decode($tmp), true);
     if (!isset($errors['ct_js_errors'])) {
-        return;
+        return false;
     }
     $errors = $errors['ct_js_errors'];
     $exist_errors = get_option(APBCT_JS_ERRORS);
@@ -2894,7 +2901,6 @@ function apbct_cookie()
         return false;
     }
 
-
     // Cookie names to validate
     $cookie_test_value = array(
         'cookies_names' => array(),
@@ -2913,14 +2919,12 @@ function apbct_cookie()
     }
 
     // Landing time
-    // todo if cookies disabled there is no way to keep this data without DB:( always will be overwriteen
-    $site_landing_timestamp = Cookie::get('apbct_site_landing_ts');
+    $site_landing_timestamp = RequestParameters::get('apbct_site_landing_ts', true);
+
     if ( ! $site_landing_timestamp ) {
         $site_landing_timestamp = time();
-        Cookie::set('apbct_site_landing_ts', (string)$site_landing_timestamp, 0, '/', $domain, null, true, 'Lax', true);
+        RequestParameters::set('apbct_site_landing_ts', TT::toString($site_landing_timestamp), true);
     }
-    $cookie_test_value['cookies_names'][] = 'apbct_site_landing_ts';
-    $cookie_test_value['check_value']     .= $site_landing_timestamp;
 
     if ($apbct->data['cookies_type'] === 'native') {
         $http_referrer = TT::toString(Server::get('HTTP_REFERER'));

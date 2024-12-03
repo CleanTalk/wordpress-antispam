@@ -47,6 +47,8 @@ class EmailEncoder
         array('av_contact', 'email', 'from_email'),
         // Stylish Cost Calculator
         array('scc-form-field-item'),
+        // Exclusion of maps from leaflet
+        array('leaflet'),
     );
 
     /**
@@ -90,8 +92,11 @@ class EmailEncoder
      */
     protected function init()
     {
-
         global $apbct;
+
+        $this->registerShortcodeForEncoding();
+
+        $this->registerHookHandler();
 
         if ( ! $apbct->settings['data__email_decoder'] ) {
             return;
@@ -173,6 +178,11 @@ class EmailEncoder
         //will use this in regexp callback
         $this->temp_content = $content;
 
+        return $this->modifyEmails($content);
+    }
+
+    public function modifyEmails($content)
+    {
         $replacing_result = preg_replace_callback('/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
 
             if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) && isset($matches[0]) ) {
@@ -201,6 +211,14 @@ class EmailEncoder
         return $replacing_result;
     }
 
+    public function modifyAny($string)
+    {
+        $encoded_string = $this->encodeAny($string);
+
+        //please keep this var (do not simplify the code) for further debug
+        return $encoded_string;
+    }
+
     /**
      * Ajax handler for the apbct_decode_email action
      *
@@ -216,7 +234,7 @@ class EmailEncoder
         if ( apbct_is_user_logged_in() ) {
             $this->decoded_emails_array = $this->ignoreOpenSSLMode()->decodeEmailFromPost();
             $this->response = $this->compileResponse($this->decoded_emails_array, true);
-            wp_send_json_success($this->decoded_emails_array);
+            wp_send_json_success($this->response);
         }
 
         $this->decoded_emails_array = $this->decodeEmailFromPost();
@@ -447,6 +465,15 @@ class EmailEncoder
         return $first_part . '@' . $second_part . $last_part;
     }
 
+    private function obfuscateString($string)
+    {
+        $length = strlen($string);
+        $first_part = substr($string, 0, 2);
+        $last_part = substr($string, $length - 2, 2);
+        $middle_part = str_pad('', $length - 4, '*');
+        return $first_part . $middle_part . $last_part;
+    }
+
     /**
      * Method to process plain email
      *
@@ -466,24 +493,25 @@ class EmailEncoder
                 title="' . esc_attr($this->getTooltip()) . '">' . $this->addMagicBlur($obfuscated) . '</span>';
     }
 
+    private function encodeAny($string)
+    {
+        $obfuscated = $this->obfuscateString($string);
+
+        $encoded = $this->encodeString($string);
+
+        return "<span 
+                data-original-string='" . $encoded . "'
+                class='apbct-email-encoder'
+                title='" . esc_attr($this->getTooltip()) . "'>" . $this->addMagicBlur($obfuscated) . "</span>";
+    }
+
     private function addMagicBlur($obfuscated)
     {
-        $template = '
-        <span class="apbct-ee-blur-group">
-            <span class="apbct-ee-blur_email-text">%s</span>
-            <span class="apbct-ee-static-blur">
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-init"></span>
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-soft"></span>
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-hard"></span>
-            </span>
-            <span class="apbct-ee-animate-blur">
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-init apbct-ee-blur_animate-init"></span>
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-soft apbct-ee-blur_animate-soft "></span>
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-hard apbct-ee-blur_animate-hard"></span>
-            </span>
-        </span>
-';
-        return sprintf($template, $obfuscated);
+        $first_two = substr($obfuscated, 0, 2);
+        $last_two = substr($obfuscated, -2);
+        return $first_two .
+               '<span class="apbct-blur">' . substr($obfuscated, 2, -2) . '</span>' .
+               $last_two;
     }
 
     /**
@@ -576,6 +604,13 @@ class EmailEncoder
      */
     private function isExcludedRequest()
     {
+        // chunk to fix when we can't delete plugin because of sessions table missing
+        global $wpdb;
+        $query = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like(APBCT_TBL_SESSIONS));
+        $session_table_exists = $wpdb->get_var($query);
+        if (empty($session_table_exists)) {
+            return true;
+        }
 
         // Excluded request by alt cookie
         $apbct_email_encoder_passed = Cookie::get('apbct_email_encoder_passed');
@@ -701,5 +736,21 @@ class EmailEncoder
     {
         add_action('wp_ajax_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
         add_action('wp_ajax_nopriv_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
+    }
+
+    private function registerShortcodeForEncoding()
+    {
+        add_shortcode('apbct_encode_data', [$this, 'shortcodeCallback']);
+    }
+
+    public function shortcodeCallback($_atts, $content, $_tag)
+    {
+        return $this->modifyAny($content);
+    }
+
+    private function registerHookHandler()
+    {
+        add_filter('apbct_encode_data', [$this, 'modifyAny']);
+        add_filter('apbct_encode_email_data', [$this, 'modifyContent']);
     }
 }

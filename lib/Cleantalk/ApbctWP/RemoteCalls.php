@@ -12,6 +12,11 @@ class RemoteCalls
 {
     const COOLDOWN = 10;
 
+    private static $allowedActionsWithoutToken = [
+        'get_fresh_wpnonce',
+        'post_api_key',
+    ];
+
     /**
      * Checking if the current request is the Remote Call
      *
@@ -31,14 +36,24 @@ class RemoteCalls
                in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct'));
     }
 
+    private static function isAllowedWithoutToken($rc)
+    {
+        return in_array($rc, self::$allowedActionsWithoutToken, true);
+    }
+
     public static function checkWithoutToken()
     {
         global $apbct;
 
+        $rc_servers = [
+            'netserv3.cleantalk.org',
+            'netserv4.cleantalk.org',
+        ];
+
         $is_noc_request = ! $apbct->key_is_ok &&
             Request::get('spbc_remote_call_action') &&
             in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct')) &&
-            strpos(Helper::ipResolve(Helper::ipGet()), 'cleantalk.org') !== false;
+            in_array(Helper::ipResolve(Helper::ipGet('remote_addr')), $rc_servers, true);
 
         // no token needs for this action, at least for now
         // todo Probably we still need to validate this, consult with analytics team
@@ -75,11 +90,14 @@ class RemoteCalls
                 $apbct->remote_calls[$action]['last_call'] = time();
                 $apbct->save('remote_calls');
 
+                if ( ! self::isRcAllowed() ) {
+                    die('FAIL ' . json_encode(array('error' => 'FORBIDDEN')));
+                }
+
                 // Check Access key
                 if (
-                    ($token === strtolower(md5($apbct->api_key)) ||
-                     $token === strtolower(hash('sha256', $apbct->api_key))) ||
-                    self::checkWithoutToken()
+                    (self::checkToken($token)) ||
+                    (self::checkWithoutToken() && self::isAllowedWithoutToken($action))
                 ) {
                     // Flag to let plugin know that Remote Call is running.
                     $apbct->rc_running = true;
@@ -531,5 +549,29 @@ class RemoteCalls
                 )
             )
         );
+    }
+
+    private static function isRcAllowed()
+    {
+        global $apbct;
+        return $apbct->api_key || apbct__is_hosting_license();
+    }
+
+    private static function checkToken($token)
+    {
+        global $apbct;
+        $value_for_token = '';
+        if ( $apbct->api_key ) {
+            $value_for_token = $apbct->api_key;
+        } elseif ( apbct__is_hosting_license() ) {
+            $value_for_token = $apbct->api_key . $apbct->data['salt'];
+        }
+
+        return
+            $value_for_token &&
+            (
+                $token === strtolower(md5($value_for_token)) ||
+                $token === strtolower(hash('sha256', $value_for_token))
+            );
     }
 }
