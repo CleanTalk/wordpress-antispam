@@ -2,6 +2,7 @@
 
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\Honeypot;
 use Cleantalk\ApbctWP\LinkConstructor;
 use Cleantalk\ApbctWP\Localize\CtPublicFunctionsLocalize;
 use Cleantalk\ApbctWP\Localize\CtPublicLocalize;
@@ -1061,7 +1062,7 @@ function ct_register_form()
     }
 
     ct_add_hidden_fields($ct_checkjs_register_form, false, false, false, false);
-    echo ct_add_honeypot_field('wp_register');
+    echo Honeypot::generateHoneypotField('wp_register');
     if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
         echo Escape::escKsesPreset(
             apbct_generate_trusted_text_html('label'),
@@ -1777,7 +1778,7 @@ function apbct_form__contactForm7__addField($html)
     }
 
     $html .= ct_add_hidden_fields($ct_checkjs_cf7, true);
-    $html .= ct_add_honeypot_field('wp_contact_form_7');
+    $html .= Honeypot::generateHoneypotField('wp_contact_form_7');
     if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
         $html .= Escape::escKsesPreset(
             apbct_generate_trusted_text_html('label_left'),
@@ -2168,15 +2169,12 @@ function apbct_form__ninjaForms__testSpam()
 
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
 
-    /**
-     * Filter for POST
-     */
-    $input_array = apply_filters('apbct__filter_post', $_POST);
-
-    // Choosing between POST and GET
-    $params = ct_get_fields_any(
-        Get::get('ninja_forms_ajax_submit') || Get::get('nf_ajax_submit') ? $_GET : $input_array
-    );
+    try {
+        $params = apbct_form__ninjaForms__collect_fields_new();
+    } catch (\Exception $_e) {
+        // It is possible here check the reason if the new way collecting fields is not available.
+        $params = apbct_form__ninjaForms__collect_fields_old();
+    }
 
     $sender_email    = isset($params['email']) ? $params['email'] : '';
     $sender_emails_array = isset($params['emails_array']) ? $params['emails_array'] : '';
@@ -2238,6 +2236,86 @@ function apbct_form__ninjaForms__testSpam()
             ); // Prevent mail notification
         }
     }
+}
+
+/**
+ * Old way to collecting NF fields data.
+ *
+ * @return array
+ */
+function apbct_form__ninjaForms__collect_fields_old()
+{
+    /**
+     * Filter for POST
+     */
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+
+    // Choosing between POST and GET
+    return ct_gfa(
+        Get::get('ninja_forms_ajax_submit') || Get::get('nf_ajax_submit') ? $_GET : $input_array
+    );
+}
+
+/**
+ * New way to collecting NF fields data - try to get username and email.
+ *
+ * @return array
+ * @throws Exception
+ * @psalm-suppress UndefinedClass
+ */
+function apbct_form__ninjaForms__collect_fields_new()
+{
+    $form_data = json_decode(TT::toString(Post::get('formData')), true);
+    if ( ! $form_data ) {
+        $form_data = json_decode(stripslashes(TT::toString(Post::get('formData'))), true);
+    }
+    if ( ! isset($form_data['fields']) ) {
+        throw new Exception('No form data is provided');
+    }
+    if ( ! function_exists('Ninja_Forms') ) {
+        throw new Exception('No `Ninja_Forms` class exists');
+    }
+    $nf_form_info = Ninja_Forms()->form();
+    if ( ! ($nf_form_info instanceof NF_Abstracts_ModelFactory) ) {
+        throw new Exception('Getting NF form failed');
+    }
+    $nf_form_fields_info = $nf_form_info->get_fields();
+    if ( ! is_array($nf_form_fields_info) && count($nf_form_fields_info) === 0 ) {
+        throw new Exception('No fields are provided');
+    }
+    $nf_form_fields_info_array = [];
+    foreach ($nf_form_fields_info as $field) {
+        if ( $field instanceof NF_Database_Models_Field) {
+            $nf_form_fields_info_array[$field->get_id()] = [
+                'field_key' => TT::toString($field->get_setting('key')),
+                'field_type' => TT::toString($field->get_setting('type')),
+                'field_label' => TT::toString($field->get_setting('label')),
+            ];
+        }
+    }
+
+    $nf_form_fields = $form_data['fields'];
+    $nickname = '';
+    $email = '';
+    $fields = [];
+    foreach ($nf_form_fields as $field) {
+        if ( isset($nf_form_fields_info_array[$field['id']]) ) {
+            $field_info = $nf_form_fields_info_array[$field['id']];
+            if ( isset($field_info['field_key'], $field_info['field_type']) ) {
+                $field_key = TT::toString($field_info['field_key']);
+                $field_type = TT::toString($field_info['field_type']);
+                $fields['nf-field-' . $field['id'] . '-' . $field_type] = $field['value'];
+                if ( stripos($field_key, 'name') !== false ) {
+                    $nickname = $field['value'];
+                }
+                if ( stripos($field_key, 'email') !== false ) {
+                    $email = $field['value'];
+                }
+            }
+        }
+    }
+
+    return ct_gfa($fields, $email, $nickname);
 }
 
 /**
@@ -2435,7 +2513,7 @@ function apbct_form__WPForms__addField($_form_data, $_some, $_title, $_descripti
 
     if ( $apbct->settings['forms__contact_forms_test'] == 1 && !is_user_logged_in() ) {
         ct_add_hidden_fields('ct_checkjs_wpforms');
-        echo ct_add_honeypot_field('wp_wpforms');
+        echo Honeypot::generateHoneypotField('wp_wpforms');
         if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
             echo Escape::escKsesPreset(
                 apbct_generate_trusted_text_html('label_left'),
@@ -2943,7 +3021,7 @@ function apbct_form__gravityForms__addField($form_string, $form)
 
     // Adding JS code
     $js_code  = ct_add_hidden_fields($ct_hidden_field, true, false);
-    $honeypot = ct_add_honeypot_field('gravity_form');
+    $honeypot = Honeypot::generateHoneypotField('gravity_form');
     $form_string = str_replace($search, TT::toString($js_code) . $honeypot . $search, $form_string);
 
     // Adding field for multipage form. Look for cleantalk.php -> apbct_cookie();
@@ -3264,8 +3342,14 @@ function apbct_form__elementor_pro__addField($content)
     global $apbct;
 
     $search = '</form>';
-    $replace = ct_add_honeypot_field('elementor_form') . $search;
-    $content = str_replace($search, $replace, $content);
+    if (
+        is_string($content) &&
+        !preg_match('/search/', $content) &&
+        !preg_match('/method.+get./', $content)
+    ) {
+        $replace = Honeypot::generateHoneypotField('elementor_form') . $search;
+        $content = str_replace($search, $replace, $content);
+    }
 
     if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' && strpos($content, $search) !== false ) {
         $content .= Escape::escKsesPreset(
@@ -3677,11 +3761,9 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
 function apbct_form_search__add_fields($form_html)
 {
     global $apbct;
-    if ( !empty($form_html) && is_string($form_html) && $apbct->settings['forms__search_test'] == 1 ) {
 
-        /**
-         * extract method of the form
-         */
+    if ( !empty($form_html) && is_string($form_html) && $apbct->settings['forms__search_test'] == 1 ) {
+        // extract method of the form with DOMDocument
         if ( class_exists('DOMDocument') ) {
             libxml_use_internal_errors(true);
             $dom = new DOMDocument();
@@ -3698,6 +3780,7 @@ function apbct_form_search__add_fields($form_html)
             unset($dom);
         }
 
+        // retry extract method of the form with regex
         if ( empty($method) ) {
             preg_match('/form.*method="(.*?)"/', $form_html, $matches);
             $method = empty($matches[1])
@@ -3705,11 +3788,9 @@ function apbct_form_search__add_fields($form_html)
                 : trim($matches[1]);
         }
 
-        /**
-         * add honeypot html
-         */
         $form_method = strtolower($method);
-        return str_replace('</form>', ct_add_honeypot_field('search_form', $form_method) . '</form>', $form_html);
+
+        return str_replace('</form>', Honeypot::generateHoneypotField('search_form', $form_method) . '</form>', $form_html);
     }
 
     return $form_html;

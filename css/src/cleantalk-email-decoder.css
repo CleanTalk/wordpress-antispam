@@ -12,28 +12,31 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    font-size: 16px;
-    color: black;
+    font-size: 16px !important;
+    color: black !important;
 }
 .top-margin-long {
     margin-top: 5px;
 }
-/*legacy*/
-.apbct-email-encoder{
-    position: relative;
+
+.apbct-tooltip {
+    display: none;
 }
+.apbct-email-encoder {
+    position: relative;
+
+}
+.apbct-blur {
+    filter: blur(5px);
+    transition: filter 2s;
+}
+.apbct-email-encoder.no-blur .apbct-blur{
+    filter: none;
+}
+
 .apbct-email-encoder-select-whole-email{
     -webkit-user-select: all; /* для Safari */
     user-select: all;
-}
-/*fix for wpautopt when brs added between blur magic fields*/
-.apbct-email-encoder br, .apbct-ee-blur-group br{
-    display: none !important;
-    visibility: hidden !important;
-}
-/* email text wrapper */
-.apbct-ee-blur_email-text {
-    position: relative;
 }
 
 .apbct-email-encoder-got-it-button {
@@ -46,89 +49,7 @@
     cursor: pointer;
     transition: background-color 0.3s;
 }
-/* common class for bluring */
-.apbct-ee-blur {
-    display: inline-block;
-    position: absolute;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 15px;
-    /* backdrop-filter has low compatibility :( */
-    backdrop-filter: blur(1.5px);
-    height: 110%;
-}
 
-/*Common wrapper for all bluring components*/
-.apbct-ee-blur-group {
-    position: relative;
-}
-/*static blur block with no animtaion*/
-.apbct-ee-static-blur {
-    display: inherit;
-}
-/*animated blur block*/
-.apbct-ee-animate-blur {
-    display: none;
-}
-
-/*blur levels, every level uses the same blur force synerging each other*/
-/*first level - the start and the end of field*/
-.apbct-ee-blur_rectangle-init {
-    width: 80%;
-    left: 10%;
-}
-.apbct-ee-blur_animate-init{
-    animation: apbct-resize-init 2s forwards;
-}
-@keyframes apbct-resize-init {
-    0% {
-        width: 80%;
-        left:10%;
-    }
-    100% {
-        left:50%;
-        width: 0%;
-    }
-}
-
-/*second level*/
-.apbct-ee-blur_rectangle-soft {
-    width: 70%;
-    left: 15%;
-    border-radius: 0px;
-}
-.apbct-ee-blur_animate-soft {
-    animation: apbct-resize-soft 2s forwards;
-}
-@keyframes apbct-resize-soft{
-    0% {
-        width: 70%;
-        left:15%;
-    }
-    100% {
-        left:50%;
-        width: 0%;
-    }
-}
-
-/*third level - near the center*/
-.apbct-ee-blur_rectangle-hard {
-    width: 60%;
-    left: 20%;
-    border-radius: 0px;
-}
-.apbct-ee-blur_animate-hard{
-    animation: apbct-resize-hard 2s forwards;
-}
-@keyframes apbct-resize-hard {
-    0% {
-        width: 60%;
-        left:20%;
-    }
-    100% {
-        left:50%;
-        width: 0%;
-    }
-}
 /*Popup animation*/
 .apbct-ee-animation-wrapper {
     display: flex;

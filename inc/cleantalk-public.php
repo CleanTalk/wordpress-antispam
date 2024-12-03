@@ -686,72 +686,6 @@ function ct_add_hidden_fields(
 }
 
 /**
- * Returns HTML of a honeypot hidden field to the form. If $form_method is GET, adds a hidden submit button.
- * @param $form_type
- * @param string $form_method
- * @return string
- */
-function ct_add_honeypot_field($form_type, $form_method = 'post')
-{
-    global $apbct;
-
-    // Honeypot option is OFF
-    if ( ! $apbct->settings['data__honeypot_field'] || apbct_exclusions_check__url() || apbct_is_amp_request()) {
-        return '';
-    }
-
-    //Generate random suffix to prevent ids duplicate
-    $apbct_event_id = mt_rand(0, 100000);
-
-    //field label (preventing validators warning)
-    $label = '<label ' .
-        'class="apbct_special_field" ' .
-        'id="apbct_label_id' . $apbct_event_id . '" ' .
-        'for="apbct__email_id__' . $form_type . '_' . $apbct_event_id . '"' .
-        '>' . $apbct_event_id . '</label>';
-
-    // Generate the honeypot trap input
-    $honeypot = $label . '<input 
-        id="apbct__email_id__' . $form_type . '_' . $apbct_event_id . '" 
-        class="apbct_special_field apbct__email_id__' . $form_type . '"
-        autocomplete="off" 
-        name="apbct__email_id__' . $form_type . '_' . $apbct_event_id . '"  
-        type="text" 
-        value="' . $apbct_event_id . '" 
-        size="30" 
-        apbct_event_id="' . $apbct_event_id . '"
-        maxlength="200" 
-    />';
-
-    //if POST, add a hidden input to transfer apbct_event_id to the form data
-    if ( $form_method === 'post' ) {
-        //add hidden field to set random suffix for the field
-        $honeypot .= '<input 
-        id="apbct_event_id_' . $form_type . '_' . $apbct_event_id . '"
-        class="apbct_special_field"
-        name="apbct_event_id"
-        type="hidden" 
-        value="' . $apbct_event_id . '" 
-            />';
-    }
-
-    //if GET, place a submit button if method is get to prevent keyboard send misfunction
-    if ( $form_method === 'get' ) {
-        $honeypot .= '<input 
-        id="apbct_submit_id__' . $form_type . '_' . $apbct_event_id . '" 
-        class="apbct_special_field apbct__email_id__' . $form_type . '"
-        name="apbct_submit_id__' . $form_type . '_' . $apbct_event_id . '"  
-        type="submit" 
-        size="30" 
-        maxlength="200" 
-        value="' . $apbct_event_id . '" 
-    />';
-    }
-
-    return $honeypot;
-}
-
-/**
  * Changes whether notify admin/athor or not.
  *
  * @param bool $maybe_notify notify flag
@@ -1376,6 +1310,14 @@ function ct_enqueue_styles_public()
                  );
             }
         }
+    }
+    if ( $apbct->settings['comments__the_real_person'] ) {
+        wp_enqueue_style(
+            'ct_trp_public',
+            APBCT_CSS_ASSETS_PATH . '/cleantalk-trp.min.css',
+            array(),
+            APBCT_VERSION
+        );
     }
 }
 

@@ -2,7 +2,6 @@
 
 namespace Cleantalk\Antispam;
 
-use Cleantalk\ApbctWP\UpdatePlugin\DbAnalyzer;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
@@ -48,6 +47,8 @@ class EmailEncoder
         array('av_contact', 'email', 'from_email'),
         // Stylish Cost Calculator
         array('scc-form-field-item'),
+        // Exclusion of maps from leaflet
+        array('leaflet'),
     );
 
     /**
@@ -233,7 +234,7 @@ class EmailEncoder
         if ( apbct_is_user_logged_in() ) {
             $this->decoded_emails_array = $this->ignoreOpenSSLMode()->decodeEmailFromPost();
             $this->response = $this->compileResponse($this->decoded_emails_array, true);
-            wp_send_json_success($this->decoded_emails_array);
+            wp_send_json_success($this->response);
         }
 
         $this->decoded_emails_array = $this->decodeEmailFromPost();
@@ -501,27 +502,16 @@ class EmailEncoder
         return "<span 
                 data-original-string='" . $encoded . "'
                 class='apbct-email-encoder'
-                title='" . esc_attr($this->getTooltip()) . "'>'" . $this->addMagicBlur($obfuscated) . "'</span>";
+                title='" . esc_attr($this->getTooltip()) . "'>" . $this->addMagicBlur($obfuscated) . "</span>";
     }
 
     private function addMagicBlur($obfuscated)
     {
-        $template = "
-        <span class='apbct-ee-blur-group'>
-            <span class='apbct-ee-blur_email-text'>%s</span>
-            <span class='apbct-ee-static-blur'>
-                <span class='apbct-ee-blur apbct-ee-blur_rectangle-init'></span>
-                <span class='apbct-ee-blur apbct-ee-blur_rectangle-soft'></span>
-                <span class='apbct-ee-blur apbct-ee-blur_rectangle-hard'></span>
-            </span>
-            <span class='apbct-ee-animate-blur'>
-                <span class='apbct-ee-blur apbct-ee-blur_rectangle-init apbct-ee-blur_animate-init'></span>
-                <span class='apbct-ee-blur apbct-ee-blur_rectangle-soft apbct-ee-blur_animate-soft'></span>
-                <span class='apbct-ee-blur apbct-ee-blur_rectangle-hard apbct-ee-blur_animate-hard'></span>
-            </span>
-        </span>
-";
-        return sprintf($template, $obfuscated);
+        $first_two = substr($obfuscated, 0, 2);
+        $last_two = substr($obfuscated, -2);
+        return $first_two .
+               '<span class="apbct-blur">' . substr($obfuscated, 2, -2) . '</span>' .
+               $last_two;
     }
 
     /**
@@ -615,8 +605,10 @@ class EmailEncoder
     private function isExcludedRequest()
     {
         // chunk to fix when we can't delete plugin because of sessions table missing
-        $db_analyzer = new DbAnalyzer();
-        if (!in_array(APBCT_TBL_SESSIONS, $db_analyzer->getExistsTables())) {
+        global $wpdb;
+        $query = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like(APBCT_TBL_SESSIONS));
+        $session_table_exists = $wpdb->get_var($query);
+        if (empty($session_table_exists)) {
             return true;
         }
 
@@ -759,5 +751,6 @@ class EmailEncoder
     private function registerHookHandler()
     {
         add_filter('apbct_encode_data', [$this, 'modifyAny']);
+        add_filter('apbct_encode_email_data', [$this, 'modifyContent']);
     }
 }

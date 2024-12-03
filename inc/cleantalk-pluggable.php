@@ -1452,6 +1452,14 @@ function apbct_is_skip_request($ajax = false)
         ) {
             return 'Plugin Name: Profile Builder; ajax action wppb_conditional_logic';
         }
+
+        // CoBlocks. The plugin have the direct integration
+        if (
+            apbct_is_plugin_active('coblocks/class-coblocks.php') &&
+            TT::toString(Post::get('action')) === 'coblocks-form-submit'
+        ) {
+            return 'Plugin Name: CoBlocks - have the direct integration';
+        }
     }
 
     // WP Fusion Abandoned Cart Addon

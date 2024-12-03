@@ -173,6 +173,13 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_medium' => 'settings',
             'utm_content' => 'get_access_key_link',
         ),
+        'trp_learn_more_link' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'admin_side',
+            'utm_medium' => 'trp_badge',
+            'utm_content' => 'trp_badge_link_click',
+        ),
         'blog_email_encoder_common_post' => array(
             'utm_id' => '',
             'utm_term' => '',

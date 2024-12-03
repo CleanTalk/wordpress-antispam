@@ -6,6 +6,7 @@ use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\Common\TT;
 
 class SFWUpdateHelper
 {
@@ -14,15 +15,15 @@ class SFWUpdateHelper
      */
     /**
      * Not queue stage. Write a file content to the SFW temp common/personal table depends on type of SFW load.
-     * @param $file_path
-     * @param $direction
+     * @param string $file_path
+     * @param string $direction
      * @return int|string[]
      */
     public static function processFile($file_path, $direction = 'common')
     {
         global $apbct;
 
-        if ( ! file_exists($file_path) ) {
+        if (empty($file_path) || ! file_exists($file_path) ) {
             return array('error' => 'PROCESS FILE: ' . $file_path . ' is not exists.');
         }
 
@@ -429,6 +430,7 @@ class SFWUpdateHelper
             }
 
             // Getting BL
+            $get_multifiles_params = [];
             $load_type = isset($apbct->data['sfw_load_type']) ? $apbct->data['sfw_load_type'] : 'all';
             if ( $load_type === 'all' ) {
                 $get_multifiles_result = apbct_sfw_update__get_multifiles_all();
@@ -452,7 +454,10 @@ class SFWUpdateHelper
             }
 
             //download files
-            $download_files_result = apbct_sfw_update__download_files($get_multifiles_result['next_stage']['args'], true);
+            $urls = isset($get_multifiles_result['next_stage'], $get_multifiles_result['next_stage']['args'])
+                ? $get_multifiles_result['next_stage']['args']
+                : array();
+            $download_files_result = apbct_sfw_update__download_files($urls, true);
             $direct_update_log['apbct_sfw_update__download_files'] = $download_files_result;
             if (!empty($download_files_result['error'])) {
                 $error = is_string($download_files_result['error']) ? $download_files_result['error'] : 'unknown apbct_sfw_update__download_files error';
@@ -516,7 +521,11 @@ class SFWUpdateHelper
             }
 
             //end of update
-            $end_of_update_result = apbct_sfw_update__end_of_update($updating_stats_result['next_stage']['args']);
+            $is_first_update = (
+                isset($get_multifiles_result['next_stage']['args']) &&
+                TT::toBool($get_multifiles_result['next_stage']['args'])
+            );
+            $end_of_update_result = apbct_sfw_update__end_of_update($is_first_update);
             $direct_update_log['apbct_sfw_update__end_of_update__updating_stats'] = $end_of_update_result;
 
             $final_result = $end_of_update_result;

@@ -337,7 +337,7 @@ class CommentsChecker extends Checker
         if ( $direct_call ) {
             return $return['message'];
         } else {
-            echo esc_html(json_encode($return));
+            echo json_encode($return);
             die();
         }
     }
