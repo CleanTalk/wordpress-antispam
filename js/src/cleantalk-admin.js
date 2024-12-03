@@ -48,6 +48,17 @@ jQuery(document).ready(function($) {
         }
     });
 
+    let btnForceProtectionOn = document.querySelector('#apbct_setting_forms__force_protection__On');
+    btnForceProtectionOn.addEventListener('click', function(e) {
+        if (btnForceProtectionOn.checked) {
+            let result = confirm(ctAdminCommon.apbctNoticeForceProtectionOn);
+
+            if (!result) {
+                e.preventDefault();
+            }
+        }
+    });
+
     // Restore spam order
     $('.apbct-restore-spam-order-button').click(function() {
         const spmOrderId = $(this).data('spam-order-id');

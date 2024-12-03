@@ -59,6 +59,7 @@ class State extends \Cleantalk\Common\State
         'forms__check_external'                    => 0,
         'forms__check_external__capture_buffer'    => 0,
         'forms__check_internal'                    => 0,
+        'forms__force_protection'                  => 0, // Pre-check iframe, internal and external forms
 
         // Comments and messages
         'comments__disable_comments__all'          => 0,
