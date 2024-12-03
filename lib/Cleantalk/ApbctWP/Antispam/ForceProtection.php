@@ -62,7 +62,7 @@ class ForceProtection
             'auth_key'              => $apbct->api_key,
             'agent'                 => APBCT_AGENT,
             'event_javascript_data' => $event_javascript_data,
-            'sender_ip'             => '138.199.18.149', //Helper::ipGet('real', false),
+            'sender_ip'             => Helper::ipGet('real', false),
             'event_type'            => 'GENERAL_BOT_CHECK',
             'page_url'              => Post::get('post_url'),
             'sender_info'           => array(
@@ -123,7 +123,6 @@ class ForceProtection
             }
 
             if (
-                preg_match('#<iframe\s+[^>]*src="([^"]*https:\/\/www\.openstreetmap\.org[^"]*)"[^>]*>#i', $iframe) ||
                 preg_match('#<iframe\s+[^>]*src="([^"]*https:\/\/form\.typeform\.com[^"]*)"[^>]*>#i', $iframe) ||
                 preg_match('#<iframe\s+[^>]*src="([^"]*https:\/\/forms\.zohopublic\.com[^"]*)"[^>]*>#i', $iframe) ||
                 preg_match('#<iframe\s+[^>]*src="([^"]*https:\/\/link\.surepathconnect\.com[^"]*)"[^>]*>#i', $iframe) ||
