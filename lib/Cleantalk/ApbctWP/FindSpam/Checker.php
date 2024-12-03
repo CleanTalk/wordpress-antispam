@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\FindSpam;
 
 use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Common\TT;
 
 abstract class Checker
 {
@@ -89,15 +90,15 @@ abstract class Checker
             $dates_allowed  = 'checked';
             $dates_disabled = '';
         }
-
         $dates_from = $dates_till = '';
-
+        $cookie_dates_from = TT::toString(Cookie::get('ct_' . $this->page_slug . '_dates_from'));
+        $cookie_dates_till = TT::toString(Cookie::get('ct_' . $this->page_slug . '_dates_till'));
         if (
-            preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', Cookie::get('ct_' . $this->page_slug . '_dates_from')) &&
-            preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', Cookie::get('ct_' . $this->page_slug . '_dates_till'))
+            preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $cookie_dates_from) &&
+            preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $cookie_dates_till)
         ) {
-            $dates_from = Cookie::get('ct_' . $this->page_slug . '_dates_from');
-            $dates_till = Cookie::get('ct_' . $this->page_slug . '_dates_till');
+            $dates_from = $cookie_dates_from;
+            $dates_till = $cookie_dates_till;
         }
         ?>
 
@@ -151,8 +152,8 @@ abstract class Checker
                     class="ct_date"
                     type="text"
                     id="ct_date_range_from"
-                    value="<?php echo $dates_from; ?>"
-                    <?php echo $dates_disabled; ?>
+                    value="<?php echo esc_html($dates_from); ?>"
+                    <?php echo esc_html($dates_disabled); ?>
                     readonly
                 />
                 <label for="ct_date_range_till"></label>
@@ -160,8 +161,8 @@ abstract class Checker
                     class="ct_date"
                     type="text"
                     id="ct_date_range_till"
-                    value="<?php echo $dates_till; ?>"
-                    <?php echo $dates_disabled; ?>
+                    value="<?php echo esc_html($dates_till); ?>"
+                    <?php echo esc_html($dates_disabled); ?>
                     readonly
                 />
             </div>

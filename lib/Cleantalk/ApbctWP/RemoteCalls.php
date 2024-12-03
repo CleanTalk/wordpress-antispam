@@ -6,10 +6,16 @@ use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\Common\TT;
 
 class RemoteCalls
 {
     const COOLDOWN = 10;
+
+    private static $allowedActionsWithoutToken = [
+        'get_fresh_wpnonce',
+        'post_api_key',
+    ];
 
     /**
      * Checking if the current request is the Remote Call
@@ -30,14 +36,30 @@ class RemoteCalls
                in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct'));
     }
 
+    private static function isAllowedWithoutToken($rc)
+    {
+        return in_array($rc, self::$allowedActionsWithoutToken, true);
+    }
+
     public static function checkWithoutToken()
     {
         global $apbct;
 
-        return ! $apbct->key_is_ok &&
-               Request::get('spbc_remote_call_action') &&
-               in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct')) &&
-               strpos(Helper::ipResolve(Helper::ipGet()), 'cleantalk.org') !== false;
+        $rc_servers = [
+            'netserv3.cleantalk.org',
+            'netserv4.cleantalk.org',
+        ];
+
+        $is_noc_request = ! $apbct->key_is_ok &&
+            Request::get('spbc_remote_call_action') &&
+            in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct')) &&
+            in_array(Helper::ipResolve(Helper::ipGet('remote_addr')), $rc_servers, true);
+
+        // no token needs for this action, at least for now
+        // todo Probably we still need to validate this, consult with analytics team
+        $is_wp_nonce_request = $apbct->key_is_ok && Request::get('spbc_remote_call_action') === 'get_fresh_wpnonce';
+
+        return $is_wp_nonce_request || $is_noc_request;
     }
 
     /**
@@ -68,11 +90,14 @@ class RemoteCalls
                 $apbct->remote_calls[$action]['last_call'] = time();
                 $apbct->save('remote_calls');
 
+                if ( ! self::isRcAllowed() ) {
+                    die('FAIL ' . json_encode(array('error' => 'FORBIDDEN')));
+                }
+
                 // Check Access key
                 if (
-                    ($token === strtolower(md5($apbct->api_key)) ||
-                     $token === strtolower(hash('sha256', $apbct->api_key))) ||
-                    self::checkWithoutToken()
+                    (self::checkToken($token)) ||
+                    (self::checkWithoutToken() && self::isAllowedWithoutToken($action))
                 ) {
                     // Flag to let plugin know that Remote Call is running.
                     $apbct->rc_running = true;
@@ -439,6 +464,7 @@ class RemoteCalls
             'wp__use_builtin_http_api' => 'Use WordPress HTTP API',
             'data__pixel' => 'Add a Pixel to improve IP-detection',
             'data__email_check_before_post' => 'Check email before POST request',
+            'data__email_check_exist_post' => 'Check email before POST request',
             'data__honeypot_field' => 'Add a honeypot field',
             'data__email_decoder' => 'Encode contact data',
             'data__email_decoder_buffer' => 'Use the output buffer',
@@ -492,5 +518,60 @@ class RemoteCalls
         }
 
         return $out;
+    }
+
+    /**
+     * Returns the fresh WP nonce depending on the AJAX type (rest/admin_ajax).
+     * @return string
+     */
+    public static function action__get_fresh_wpnonce() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        if ( ! isset($_POST['nonce_prev']) ) {
+            return json_encode(array('error' => 'No nonce provided'));
+        }
+
+        $nonce_prev = $_POST['nonce_prev'];
+        $nonce_name = apbct_settings__get_ajax_type() === 'rest'
+            ? 'wp_rest'
+            : 'ct_secret_stuff';
+
+        // Check $nonce_prev by regexp '^[a-f0-9]{10}$'
+        if ( ! preg_match('/^[a-f0-9]{10}$/', $nonce_prev) ) {
+            return json_encode(array('error' => 'Wrong nonce provided'));
+        }
+
+        // set response type 'json'
+        header('Content-Type: application/json');
+        return TT::toString(
+            json_encode(
+                array(
+                    'wpnonce' => TT::toString(wp_create_nonce($nonce_name))
+                )
+            )
+        );
+    }
+
+    private static function isRcAllowed()
+    {
+        global $apbct;
+        return $apbct->api_key || apbct__is_hosting_license();
+    }
+
+    private static function checkToken($token)
+    {
+        global $apbct;
+        $value_for_token = '';
+        if ( $apbct->api_key ) {
+            $value_for_token = $apbct->api_key;
+        } elseif ( apbct__is_hosting_license() ) {
+            $value_for_token = $apbct->api_key . $apbct->data['salt'];
+        }
+
+        return
+            $value_for_token &&
+            (
+                $token === strtolower(md5($value_for_token)) ||
+                $token === strtolower(hash('sha256', $value_for_token))
+            );
     }
 }

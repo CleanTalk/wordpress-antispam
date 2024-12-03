@@ -104,8 +104,15 @@ class Helper extends \Cleantalk\Common\Helper
         $RCCounter = new RemoteCallsCounter($logging_data);
         $RCCounter->execute();
 
+        $value_for_token = '';
+        if ( $apbct->api_key ) {
+            $value_for_token = $apbct->api_key;
+        } elseif ( apbct__is_hosting_license() ) {
+            $value_for_token = $apbct->api_key . $apbct->data['salt'];
+        }
+
         $request_params = array_merge(array(
-            'spbc_remote_call_token' => md5($apbct->api_key),
+            'spbc_remote_call_token' => md5($value_for_token),
             'spbc_remote_call_action' => $rc_action,
             'plugin_name' => 'apbct',
         ), $request_params);

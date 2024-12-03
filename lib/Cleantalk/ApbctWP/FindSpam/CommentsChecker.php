@@ -2,9 +2,8 @@
 
 namespace Cleantalk\ApbctWP\FindSpam;
 
-use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class CommentsChecker extends Checker
 {
@@ -18,7 +17,7 @@ class CommentsChecker extends Checker
 
         // Preparing data
         if ( Cookie::get('ct_paused_comments_check') ) {
-            $prev_check = json_decode(stripslashes(Cookie::get('ct_paused_comments_check')), true);
+            $prev_check = json_decode(stripslashes(TT::toString(Cookie::get('ct_paused_comments_check'))), true);
             $prev_check_from = $prev_check_till = '';
             if (
                 ! empty($prev_check['from']) && ! empty($prev_check['till']) &&
@@ -63,7 +62,7 @@ class CommentsChecker extends Checker
     /**
      * Get all comments from DB
      *
-     * @return array|false
+     * @return array
      */
     private static function getAllComments(CommentsScanParameters $commentsScanParameters)
     {
@@ -111,7 +110,7 @@ class CommentsChecker extends Checker
      * @param array $comments
      * @param array $skip_roles
      *
-     * @return array|false
+     * @return array
      */
     private static function removeSkipRoles(array $comments, array $skip_roles)
     {
@@ -120,6 +119,9 @@ class CommentsChecker extends Checker
                 continue;
             }
             $user_meta  = get_userdata($comment->user_id);
+            if ( !($user_meta instanceof \WP_User) ) {
+                return $comments;
+            }
             $user_roles = $user_meta->roles;
             foreach ($user_roles as $user_role) {
                 if (in_array($user_role, $skip_roles, true)) {
@@ -135,7 +137,7 @@ class CommentsChecker extends Checker
     /**
      * @param array $comments
      *
-     * @return array|false
+     * @return array
      */
     private static function removeCommentsWithoutIPEmail(array $comments)
     {
@@ -207,7 +209,7 @@ class CommentsChecker extends Checker
         $res   = $wpdb->get_row($query, ARRAY_A);
 
         if ( $res ) {
-            return date("M j Y", strtotime($res['start_time']));
+            return date("Y-m-d", strtotime($res['start_time']));
         } else {
             $params        = array(
                 'fields'  => 'ids',
@@ -217,7 +219,11 @@ class CommentsChecker extends Checker
             );
             $first_comment = get_comments($params);
 
-            return get_comment_date("M j Y", current($first_comment));
+            if ( ! is_array($first_comment) || empty($first_comment) ) {
+                return 'unknown';
+            }
+
+            return get_comment_date("Y-m-d", current($first_comment));
         }
     }
 
@@ -245,7 +251,7 @@ class CommentsChecker extends Checker
             apbct__check_admin_ajax_request();
         }
 
-        $cnt_checked      = $apbct->data['count_checked_comments'];
+        $cnt_checked = TT::toInt($apbct->data['count_checked_comments']);
 
         // Spam comments
         $params_spam = array(
@@ -260,6 +266,12 @@ class CommentsChecker extends Checker
             ),
         );
         $cnt_spam = get_comments($params_spam);
+
+        if (!is_int($cnt_spam)) {
+            $cnt_spam = 'unknown';
+        } else {
+            $cnt_spam = TT::toString($cnt_spam);
+        }
 
         // Bad comments (without IP and Email)
         $cnt_bad = self::getCountBadComments();
@@ -325,7 +337,7 @@ class CommentsChecker extends Checker
         if ( $direct_call ) {
             return $return['message'];
         } else {
-            echo json_encode($return);
+            echo esc_html(json_encode($return));
             die();
         }
     }
@@ -387,6 +399,9 @@ class CommentsChecker extends Checker
             )
         );
         $c_spam    = get_comments($args_spam);
+        if ( !is_array($c_spam) ) {
+            $c_spam = array();
+        }
 
         $args_spam = array(
             'count'      => true,
@@ -401,8 +416,10 @@ class CommentsChecker extends Checker
         $cnt_all   = get_comments($args_spam);
 
         foreach ( $c_spam as $iValue ) {
-            wp_trash_comment($iValue->comment_ID);
-            usleep(10000);
+            if ($iValue instanceof \WP_Comment) {
+                wp_trash_comment($iValue);
+                usleep(10000);
+            }
         }
         /** @psalm-suppress InvalidArgument */
         print $cnt_all;
@@ -424,6 +441,9 @@ class CommentsChecker extends Checker
             )
         );
         $c_spam    = get_comments($args_spam);
+        if (!is_array($c_spam)) {
+            $c_spam = array();
+        }
 
         $args_spam = array(
             'count'      => true,
@@ -438,8 +458,10 @@ class CommentsChecker extends Checker
         $cnt_all   = get_comments($args_spam);
 
         foreach ( $c_spam as $iValue ) {
-            wp_spam_comment($iValue->comment_ID);
-            usleep(10000);
+            if ($iValue instanceof \WP_Comment) {
+                wp_trash_comment($iValue);
+                usleep(10000);
+            }
         }
         /** @psalm-suppress InvalidArgument */
         print $cnt_all;
@@ -493,23 +515,28 @@ class CommentsChecker extends Checker
                 $log_data['bad']
             );
 
-            echo CommentsScanResponse::getInstance()->toJson();
-            die;
+            die(CommentsScanResponse::getInstance()->toJson());
         }
 
         $ips_emails_data = self::getIPEmailsData($comments);
 
         $result = \Cleantalk\ApbctWP\API::methodSpamCheckCms(
-            $apbct->api_key,
-            $ips_emails_data,
-            null
+            TT::toString($apbct->api_key),
+            $ips_emails_data
         );
 
-        if (!empty($result['error'])) {
+        $error = !is_array($result)
+            ? 'Unknown API error'
+            : null;
+        $error = !empty($result['error'])
+            ? TT::getArrayValueAsString($result, 'error')
+            : $error;
+
+        if ( !is_null($error) ) {
             CommentsScanResponse::getInstance()->setError(1);
-            CommentsScanResponse::getInstance()->setErrorMessage($result['error']);
+            CommentsScanResponse::getInstance()->setErrorMessage($error);
         } else {
-            $onlySpammers = self::getSpammersFromResultAPI($result);
+            $onlySpammers = self::getSpammersFromResultAPI(TT::toArray($result));
             $marked_comment_ids = [];
 
             foreach ($comments as $comment) {
@@ -535,8 +562,7 @@ class CommentsChecker extends Checker
         $apbct->data['count_checked_comments'] += count($comments);
         $apbct->saveData();
 
-        echo CommentsScanResponse::getInstance()->toJson();
-        die;
+        die(CommentsScanResponse::getInstance()->toJson());
     }
 
     /**
@@ -563,8 +589,7 @@ class CommentsChecker extends Checker
                 $log_data['bad']
             );
 
-            echo CommentsScanResponse::getInstance()->toJson();
-            die;
+            die(CommentsScanResponse::getInstance()->toJson());
         }
 
         $comments_grouped_by_date = array();
@@ -582,16 +607,23 @@ class CommentsChecker extends Checker
             $ips_emails_data = self::getIPEmailsData($comments);
 
             $result = \Cleantalk\ApbctWP\API::methodSpamCheckCms(
-                $apbct->api_key,
+                TT::toString($apbct->api_key),
                 $ips_emails_data,
                 $date
             );
 
-            if (!empty($result['error'])) {
+            $error = !is_array($result)
+                ? 'Unknown API error'
+                : null;
+            $error = !empty($result['error'])
+                ? TT::getArrayValueAsString($result, 'error')
+                : $error;
+
+            if ( !is_null($error) ) {
                 CommentsScanResponse::getInstance()->setError(1);
-                CommentsScanResponse::getInstance()->setErrorMessage($result['error']);
+                CommentsScanResponse::getInstance()->setErrorMessage($error);
             } else {
-                $onlySpammers = self::getSpammersFromResultAPI($result);
+                $onlySpammers = self::getSpammersFromResultAPI(TT::toArray($result));
                 $marked_comment_ids = [];
 
                 foreach ($comments as $comment) {
@@ -619,8 +651,7 @@ class CommentsChecker extends Checker
         // Count bad comments
         CommentsScanResponse::getInstance()->setBad((int)self::getCountBadComments());
 
-        echo CommentsScanResponse::getInstance()->toJson();
-        die;
+        die(CommentsScanResponse::getInstance()->toJson());
     }
 
     /**

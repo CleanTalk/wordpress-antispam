@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
 use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\Common\TT;
 
 class BadUsers extends Users
 {
@@ -14,10 +15,10 @@ class BadUsers extends Users
         $columns               = $this->get_columns();
         $this->_column_headers = array($columns, array(), array());
 
-        $per_page_option = ! is_null(get_current_screen()) ? get_current_screen()->get_option(
-            'per_page',
-            'option'
-        ) : '10';
+        $current_screen = get_current_screen();
+        $per_page_option = !is_null($current_screen)
+            ? $current_screen->get_option('per_page', 'option')
+            : '10';
         $per_page        = get_user_meta(get_current_user_id(), $per_page_option, true);
         if ( ! $per_page ) {
             $per_page = 10;
@@ -40,10 +41,12 @@ class BadUsers extends Users
 
         foreach ( $scanned_users_to_show as $user_id ) {
             $user_obj = get_userdata($user_id);
-
+            if ( ! $user_obj ) {
+                continue;
+            }
             $this->items[] = array(
                 'ct_id'        => $user_obj->ID,
-                'ct_username'  => $user_obj,
+                'ct_user_obj'  => $user_obj,
                 'ct_name'      => $user_obj->display_name,
                 'ct_email'     => $user_obj->user_email,
                 'ct_signed_up' => $user_obj->user_registered,
@@ -62,12 +65,15 @@ class BadUsers extends Users
      */
     public function column_ct_username($item) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        $user_obj       = $item['ct_username'];
-        $email          = $user_obj->user_email;
-        $column_content = '';
+        $user_obj       = isset($item['ct_user_obj']) ? $item['ct_user_obj'] : null;
+        if (is_null($user_obj)) {
+            return '';
+        }
+        $email          = TT::toString($user_obj->user_email);
 
         // Avatar, nickname
-        $column_content .= '<strong>' . get_avatar($user_obj->ID, 32) . '&nbsp;' . $user_obj->user_login . '</strong>';
+        $avatar = TT::toString(get_avatar($user_obj->ID, 32));
+        $column_content = '<strong>' . $avatar . '&nbsp;' . TT::toString($user_obj->user_login) . '</strong>';
         $column_content .= '<br /><br />';
 
         // Email
@@ -106,7 +112,7 @@ class BadUsers extends Users
         $actions = array(
             'delete' => sprintf(
                 '<a href="?page=%s&action=%s&spam=%s">Delete</a>',
-                htmlspecialchars(addslashes(Get::get('page'))),
+                htmlspecialchars(addslashes(TT::toString(Get::get('page')))),
                 'delete',
                 $user_obj->ID
             )

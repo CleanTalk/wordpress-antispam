@@ -5,6 +5,7 @@ namespace Cleantalk\ApbctWP\Firewall;
 use Cleantalk\Common\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\TT;
 
 /**
  * Class AntiFlood
@@ -33,6 +34,11 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
     private $sfw_die_page;
 
     /**
+     * @var string
+     */
+    private $server__http_user_agent;
+
+    /**
      * AntiCrawler constructor.
      *
      * @param $log_table
@@ -42,6 +48,8 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
     public function __construct($log_table, $ac_logs_table, $params = array())
     {
         parent::__construct($log_table, $ac_logs_table, $params);
+
+        $this->server__http_user_agent = TT::toString(Server::get('HTTP_USER_AGENT'));
 
         $this->db__table__logs     = $log_table ?: null;
         $this->db__table__ac_logs  = $ac_logs_table ?: null;
@@ -76,9 +84,9 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
                 foreach ($ua_bl_results as $ua_bl_result) {
                     if (
                         ! empty($ua_bl_result['ua_template']) &&
-                        preg_match("%" . str_replace('"', '', $ua_bl_result['ua_template']) . "%i", Server::get('HTTP_USER_AGENT'))
+                        preg_match("%" . str_replace('"', '', $ua_bl_result['ua_template']) . "%i", $this->server__http_user_agent)
                     ) {
-                        if ($ua_bl_result['ua_status'] == 1) {
+                        if (TT::getArrayValueAsString($ua_bl_result, 'ua_status')  === '1') {
                             // Whitelisted
                             $results[] = array(
                                 'ip'          => $current_ip,
@@ -219,7 +227,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
             $custom_logo_id = isset($apbct->settings['cleantalk_custom_logo']) ? $apbct->settings['cleantalk_custom_logo'] : false;
 
             if ($custom_logo_id && ($image_attributes = wp_get_attachment_image_src($custom_logo_id, array(150, 150)))) {
-                $custom_logo_img = '<img src="' . esc_url($image_attributes[0]) . '" width="150" alt="" />';
+                $custom_logo_img = '<img src="' . esc_url(TT::getArrayValueAsString($image_attributes, 0)) . '" width="150" alt="" />';
             }
 
             // Translation
@@ -246,7 +254,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
                 '{SERVICE_ID}'                     => $this->apbct->data['service_id'] . ', ' . $net_count,
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . "</p>",
-                '{COOKIE_ANTIFLOOD_PASSED}'        => md5($this->api_key . $result['ip']),
+                '{COOKIE_ANTIFLOOD_PASSED}'        => md5($result['ip'] . $this->api_key),
                 '{SCRIPT_URL}'                     => $js_url,
 
                 // Custom Logo
@@ -254,7 +262,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
             );
 
             foreach ($replaces as $place_holder => $replace) {
-                $this->sfw_die_page = str_replace($place_holder, $replace, $this->sfw_die_page);
+                $this->sfw_die_page = str_replace($place_holder, TT::toString($replace), $this->sfw_die_page);
             }
 
             add_action('init', array($this, 'printDiePage'));
@@ -289,10 +297,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
             'data__visible_fields_required' => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
         );
 
-        $js_jquery_url = includes_url() . 'js/jquery/jquery.min.js';
-
         $replaces = array(
-            '{JQUERY_SCRIPT_URL}' => $js_jquery_url,
             '{LOCALIZE_SCRIPT}'   => 'var ctPublicFunctions = ' . json_encode($localize_js) . ';' .
                                      'var ctPublic = ' . json_encode($localize_js_public) . ';',
         );
