@@ -604,14 +604,6 @@ class EmailEncoder
      */
     private function isExcludedRequest()
     {
-        // chunk to fix when we can't delete plugin because of sessions table missing
-        global $wpdb;
-        $query = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like(APBCT_TBL_SESSIONS));
-        $session_table_exists = $wpdb->get_var($query);
-        if (empty($session_table_exists)) {
-            return true;
-        }
-
         // Excluded request by alt cookie
         $apbct_email_encoder_passed = Cookie::get('apbct_email_encoder_passed');
         if ( $apbct_email_encoder_passed === apbct_get_email_encoder_pass_key() ) {
