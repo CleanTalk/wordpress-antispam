@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 6.45.2
+Stable tag: 6.46
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -37,6 +37,7 @@ Top-rated anti-spam protection for WordPress. No CAPTCHA, no questions, no anima
 21. Hide «Website» field for comments.
 22. Block messages by languages, countries, networks and stop words.
 23. Email Address Encoder - protection for email addresses published on your site.
+24. No jQuery.
 
 = Free trial then $12 per year =
 CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
@@ -443,6 +444,23 @@ Yes, it is. Please read this article,
 12. SpamFireWall log.
 
 == Changelog ==
+
+= 6.46 27 Nov 2024 =
+* New. Integrations. CoBlocks integration implemented.
+* New. EmailEncoder. A new hook for encoding mail
+* Upd. TheRealPerson. Update layout.
+* Upd. Code. Psalm L3. Updated codebase
+* Upd. Integrations. Breeze cache plugin integration implemented.
+* Upd. Code. Refactoring honeypot logic.
+* Upd. TRP. Improved adaptive.
+* Upd. Integrations. Added fibosearch support.
+* Fix. Integrations. Ninja forms getting form fields fixed.
+* Fix. TRP. Popup text color fixed.
+* Fix. Email encoder. Decoding blur-magic rebuilt.
+* Fix. Integrations. Exclusion of the Elementor search form
+* Fix. Integrations. Regex to exclude search forms
+* Fix. EmailEncoder. Handling exceptions and logged-in users
+* Fix. EmailEncoder. Exclusion of maps from leaflet
 
 = 6.45.2 19 Nov 2024 =
 * Fix. Settings. Fixed banners close handler.

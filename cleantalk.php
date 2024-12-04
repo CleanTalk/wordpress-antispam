@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.45.3-dev
+  Version: 6.46.1-dev
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -3147,11 +3147,15 @@ function ct_cron_send_js_error_report_email()
  */
 function apbct_cron_clear_old_session_data()
 {
-    global $apbct;
+    global $wpdb;
 
-    if ( $apbct->data['cookies_type'] === 'alternative' ) {
-        \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
+    $query = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like(APBCT_TBL_SESSIONS));
+    $session_table_exists = $wpdb->get_var($query);
+    if (empty($session_table_exists)) {
+        return;
     }
+
+    \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
 }
 
 /**
