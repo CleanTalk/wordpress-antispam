@@ -35,7 +35,7 @@
 }
 
 .apbct-email-encoder-select-whole-email{
-    -webkit-user-select: all; /* для Safari */
+    -webkit-user-select: all; /* for Safari */
     user-select: all;
 }
 
