@@ -1786,6 +1786,7 @@ function apbct__bot_detector_get_fired_exclusions()
  */
 function apbct__bot_detector_get_fd_log()
 {
+    global $apbct;
     $result = array(
         'plugin_status' => 'OK',
         'error_msg' => '',
@@ -1794,6 +1795,9 @@ function apbct__bot_detector_get_fd_log()
     // Initialize result array with default values
 
     try {
+        if ( TT::toString($apbct->settings['data__bot_detector_enabled']) === '0') {
+            throw new \Exception('bot detector library usage is disabled');
+        }
         // Retrieve bot detector frontend data log from Alt Sessions
         $alt_sessions_fd_log = AltSessions::get('ct_bot_detector_frontend_data_log');
         // Check if the retrieved data is a string

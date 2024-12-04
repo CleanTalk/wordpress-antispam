@@ -29,9 +29,22 @@ const ctFunctionFirstKey = function output(event) {
     ctKeyStopStopListening();
 };
 
-// run cron jobs
+/**
+ * Run cron jobs
+ */
+// forms handler cron
 cronFormsHandler(2000);
-sendBotDetectorLogToAltSessions(500);
+
+// bot_detector frontend_data log alt session saving cron
+if (
+    ctPublicFunctions.hasOwnProperty('data__bot_detector_enabled') &&
+    ctPublicFunctions.data__bot_detector_enabled == 1
+) {
+    sendBotDetectorLogToAltSessions(500);
+}
+/**
+ * Cron jobs end.
+ */
 
 // mouse read
 if (ctPublic.data__key_is_ok) {
@@ -88,9 +101,8 @@ function sendBotDetectorLogToAltSessions(cronStartTimeout = 3000, interval = 100
         setInterval(function() {
             const currentLog = apbctLocalStorage.get('ct_bot_detector_frontend_data_log');
             if (currentLog && currentLog.hasOwnProperty('log_last_update')) {
-                const lastUpdate = currentLog.log_last_update;
-                if (botDetectorLogLastUpdate !== lastUpdate) {
-                    botDetectorLogLastUpdate = lastUpdate;
+                if (botDetectorLogLastUpdate !== currentLog.log_last_update) {
+                    botDetectorLogLastUpdate = currentLog.log_last_update;
                     // the log will be taken from javascriptclientdata
                     ctSetAlternativeCookie([], {forceAltCookies: true});
                 }
