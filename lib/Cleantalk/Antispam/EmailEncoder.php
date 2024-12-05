@@ -145,6 +145,27 @@ class EmailEncoder
             add_action('shutdown', 'apbct_buffer__end', 0);
             add_action('shutdown', array($this, 'bufferOutput'), 2);
         }
+
+        // integration with Business Directory Plugin
+        add_filter('wpbdp_form_field_display', array($this, 'modifyFormFieldDisplay'), 10, 4);
+    }
+
+    /**
+     * @param string $html
+     * @param object $field
+     * @param string $display_context
+     * @param int $post_id
+     * @return string
+     * @psalm-suppress PossiblyUnusedParam, PossiblyUnusedReturnValue
+     */
+    public function modifyFormFieldDisplay($html, $field, $display_context, $post_id)
+    {
+        if (mb_strpos($html, 'mailto:') !== false) {
+            $html = html_entity_decode($html);
+            return $this->modifyContent($html);
+        }
+
+        return $html;
     }
 
     /**
