@@ -1227,15 +1227,16 @@ function apbct_is_skip_request($ajax = false)
             return 'Broken Link Notifier service action';
         }
 
-        // skip WP Rocket image dimensions
+        // skip WP Rocket service requests
         if (
             apbct_is_plugin_active('wp-rocket/wp-rocket.php') &&
             (
                 Get::get('wpr_imagedimensions') ||
-                Post::get('wpr_imagedimensions')
+                Post::get('wpr_imagedimensions') ||
+                Post::get('action') === 'rocket_beacon'
             )
         ) {
-            return 'WP Rocket image dimensions';
+            return 'WP Rocket service requests';
         }
         // skip Check email before POST request
         if (
