@@ -4782,20 +4782,22 @@ function catchDynamicRenderedForm() {
 }
 
 /**
- * Process dynamic rendered form
- * @param {HTMLElements} forms
- * @param {HTMLElement} documentObject
+ * Handles dynamic rendered forms by attaching an onsubmit event handler to them.
+ *
+ * @param {HTMLCollection} forms - A collection of form elements to be processed.
+ * @param {Document} [documentObject=document] - The document object to use for querying elements. Defaults to the global document object.
  */
 function catchDynamicRenderedFormHandler(forms, documentObject = document) {
     const neededFormIds = [];
     for (const form of forms) {
-        if (form.id.indexOf('hsForm') !== -1) {
-            neededFormIds.push(form.id);
+        const formIdAttr = form.getAttribute('id');
+        if (formIdAttr && formIdAttr.indexOf('hsForm') !== -1) {
+            neededFormIds.push(formIdAttr);
         }
-        if (form.id.indexOf('createuser') !== -1 &&
+        if (formIdAttr && formIdAttr.indexOf('createuser') !== -1 &&
         (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
         ) {
-            neededFormIds.push(form.id);
+            neededFormIds.push(formIdAttr);
         }
     }
 
