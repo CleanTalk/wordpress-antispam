@@ -169,7 +169,7 @@ class AltSessions
         $tables = $wpdb->get_col(
             "SHOW TABLES LIKE '{$wpdb->base_prefix}%cleantalk_sessions'"
         );
-        
+
         foreach ($tables as $table) {
             $query = $wpdb->prepare(
                 'SELECT COUNT(id) FROM `' . $table . '` WHERE last_update < NOW() - INTERVAL %d SECOND;',
@@ -180,7 +180,7 @@ class AltSessions
                 return true;
             }
         }
-        
+
         return false;
     }
 
