@@ -1,0 +1,42 @@
+.apbct_form_decoration--default_header__content {
+    display: none;
+}
+.apbct_form_decoration--default_header__content svg {
+    display: none;
+}
+.apbct_form_decoration--default_header__text {
+    display: none;
+}
+.apbct_form_decoration--default {
+    position: relative;
+    background: none;
+}
+.apbct_form_decoration--default form {
+    position: relative;
+    z-index: 1;
+}
+
+.apbct_form_decoration--default:before {
+    content: "";
+    display: block;
+    border: 1px solid rgba(234, 240, 246, 0.9);
+    border-radius: 5px;
+    position: absolute;
+    top: -3%;
+    left: -3%;
+    right: -3%;
+    bottom: -3%;
+    background: rgba(234, 240, 246, 0.3);
+}
+
+.apbct_form_decoration--default:after {
+    content: "Protected by CleanTalk Anti-Spam";
+    font-size: small;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: flex-end;
+    padding-right: 1%;
+    padding-bottom: 1%;
+}

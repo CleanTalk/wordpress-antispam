@@ -19,6 +19,7 @@ class CtPublicLocalize
             'settings__forms__check_external' => $apbct->settings['forms__check_external'],
             'settings__forms__search_test'    => $apbct->settings['forms__search_test'],
             'settings__data__bot_detector_enabled' => $apbct->settings['data__bot_detector_enabled'],
+            'settings__comments__form_decoration' => $apbct->settings['comments__form_decoration'],
             'blog_home'                       => get_home_url() . '/',
             'pixel__setting'                  => $apbct->settings['data__pixel'],
             'pixel__enabled'                  => $apbct->settings['data__pixel'] === '2' ||
