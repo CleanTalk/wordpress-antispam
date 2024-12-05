@@ -828,7 +828,7 @@ function catchDynamicRenderedForm() {
  * Handles dynamic rendered forms by attaching an onsubmit event handler to them.
  *
  * @param {HTMLCollection} forms - A collection of form elements to be processed.
- * @param {Document} [documentObject=document] - The document object to use for querying elements. Defaults to the global document object.
+ * @param {Document} [documentObject=document] - The document object to use for querying elements.
  */
 function catchDynamicRenderedFormHandler(forms, documentObject = document) {
     const neededFormIds = [];
