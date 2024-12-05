@@ -1232,6 +1232,11 @@ class ApbctFormDecorator {
 
             element.addEventListener('click', (event) => {
                 if (element.className.indexOf('apbct_form_decoration') !== -1) {
+                    if (element.className.indexOf('header__wrapper') !== -1) {
+                        this.addClicks();
+                        return;
+                    }
+
                     const clickX = event.offsetX;
                     const clickY = event.offsetY;
                     const flagLeftWidth = parseFloat(window.getComputedStyle(element, '::before').width) / 2;
@@ -1239,10 +1244,26 @@ class ApbctFormDecorator {
                     const flagRightWidth = parseFloat(window.getComputedStyle(element, '::after').width) / 2;
                     const flagRightHeight = parseFloat(window.getComputedStyle(element, '::after').height) / 2;
 
-                    if (clickY > flagLeftHeight && clickX < flagLeftWidth ||
-                    clickY > flagRightHeight && clickX > flagRightWidth
+                    if (element.className.indexOf('christmas') !== -1) {
+                        if (
+                            clickY < flagLeftHeight / 3 && clickX < flagLeftWidth ||
+                            clickY < flagRightHeight / 3 && clickX > flagRightWidth
+                        ) {
+                            this.addClicks();
+                            return;
+                        }
+                    }
+
+                    if (
+                        (element.className.indexOf('new-year') !== -1) ||
+                        (element.className.indexOf('fourth-july') !== -1)
                     ) {
-                        this.addClicks();
+                        if (
+                            clickY > flagLeftHeight && clickX < flagLeftWidth ||
+                            clickY > flagRightHeight && clickX > flagRightWidth
+                        ) {
+                            this.addClicks();
+                        }
                     }
 
                     return;

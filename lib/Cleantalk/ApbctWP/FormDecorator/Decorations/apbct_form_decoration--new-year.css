@@ -3,6 +3,10 @@
     src: url('fonts/apbct_form_decoration--new-year/ChauPhilomeneOne-Italic.ttf');
 }
 
+.apbct_form_decoration--new-year_header__wrapper {
+    height: 36px;
+}
+
 .apbct_form_decoration--new-year_header__content {
     display: flex;
     flex-wrap: nowrap;
@@ -13,7 +17,7 @@
 }
 .apbct_form_decoration--new-year_header__content svg {
     position: absolute;
-    width: 600px;
+    width: 100%;
 }
 .apbct_form_decoration--new-year_header__text {
     display: block;
@@ -26,7 +30,8 @@
     font-size: 36px;
     text-align: right;
     text-transform: uppercase;
-    color: #FFFFFF;
+    color: #ffffff;
+    -webkit-text-stroke: 1px #bf2a2b;
     left: -4pc;
 }
 
@@ -51,7 +56,7 @@
     background-repeat: no-repeat;
     background-size: 50%;
     opacity: 0.4;
-    z-index: 0;
+    z-index: -1;
 }
 .apbct_form_decoration--new-year:before {
     left: 0;
