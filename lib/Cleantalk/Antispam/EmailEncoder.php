@@ -104,6 +104,10 @@ class EmailEncoder
     {
         global $apbct;
 
+        if ( ! apbct_api_key__is_correct() || ! $apbct->key_is_ok ) {
+            return;
+        }
+
         $this->registerShortcodeForEncoding();
 
         $this->registerHookHandler();
