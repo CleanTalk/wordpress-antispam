@@ -728,6 +728,9 @@ class EmailEncoder
                     }
                     //if each of signs in the sub-array are found return true
                     if ( $signs_found_count === count($signs) ) {
+                        if (in_array('et_pb_contact_form', $signs) && !is_admin()) {
+                            return false;
+                        }
                         return true;
                     }
                 }
