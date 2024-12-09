@@ -4554,7 +4554,7 @@ function isIntegratedForm(formObj) {
     const formId = formObj.getAttribute('id') !== null ? formObj.getAttribute('id') : '';
 
     if (
-        formAction.indexOf('app.convertkit.com') !== -1 || // ConvertKit form
+        ( formAction.indexOf('app.convertkit.com') !== -1 || formAction.indexOf('app.kit.com') !== -1 ) || // ConvertKit form
         ( formObj.firstChild.classList !== undefined &&
         formObj.firstChild.classList.contains('cb-form-group') ) || // Convertbox form
         formAction.indexOf('mailerlite.com') !== -1 || // Mailerlite integration
