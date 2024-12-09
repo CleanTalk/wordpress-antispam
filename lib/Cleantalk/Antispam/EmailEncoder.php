@@ -215,7 +215,7 @@ class EmailEncoder
 
         if ( version_compare(phpversion(), '7.4.0', '>=') ) {
             $replacing_result = preg_replace_callback($pattern, function ($matches) use ($content) {
-                if ( isset($matches[3][0]) && in_array(strtolower($matches[3][0]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
+                if ( isset($matches[3][0], $matches[0][0]) && in_array(strtolower($matches[3][0]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
                     return $matches[0][0];
                 }
 
@@ -232,13 +232,17 @@ class EmailEncoder
                     return '';
                 }
 
-                if ( $this->isEmailInLink($matches[0], $content) ) {
+                if ( isset($matches[0], $matches[0][0]) && $this->isEmailInLink($matches[0], $content) ) {
                     return $matches[0][0];
                 }
 
                 $this->handlePrivacyPolicyHook();
 
-                return $this->encodePlainEmail($matches[0][0]);
+                if ( isset($matches[0][0]) ) {
+                    return $this->encodePlainEmail($matches[0][0]);
+                }
+
+                return '';
             }, $content, -1, $count, PREG_OFFSET_CAPTURE);
         }
 
@@ -258,11 +262,11 @@ class EmailEncoder
                 }
 
                 $this->handlePrivacyPolicyHook();
-                if ( isset($matches[0])) {
+                if ( isset($matches[0]) ) {
                     return $this->encodePlainEmail($matches[0]);
                 }
 
-                return $matches[0];
+                return '';
             }, $content);
         }
 
@@ -678,7 +682,11 @@ class EmailEncoder
         preg_match('/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/', $mailto_link_str, $matches);
         if ( isset($matches[1]) ) {
             $mailto_inner_text = preg_replace_callback('/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/', function ($matches) {
-                return $this->obfuscateEmail($matches[0]);
+                if ( isset($matches[0]) ) {
+                    return $this->obfuscateEmail($matches[0]);
+                }
+
+                return '';
             }, $matches[1]);
         }
 
