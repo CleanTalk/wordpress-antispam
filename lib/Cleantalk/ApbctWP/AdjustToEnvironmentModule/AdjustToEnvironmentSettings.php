@@ -60,9 +60,6 @@ class AdjustToEnvironmentSettings
                 $title = 'W3 Total Cache';
                 $description = __('Next button will disable "Cache URIs with query string variables" option.', 'cleantalk-spam-protect');
                 break;
-            case 'litespeed':
-                $title = 'LiteSpeed Cache';
-                break;
         }
 
         $replaces = [
@@ -91,9 +88,6 @@ class AdjustToEnvironmentSettings
             case 'w3tc':
                 $title = 'W3 Total Cache';
                 $description = __('Next button will enable "Cache URIs with query string variables" option back.', 'cleantalk-spam-protect');
-                break;
-            case 'litespeed':
-                $title = 'LiteSpeed Cache';
                 break;
         }
 

@@ -8,6 +8,9 @@ abstract class AdjustToEnvAbstract
 
     protected $changed = false;
 
+    /**
+     * @psalm-suppress PossiblyUnusedProperty
+     */
     protected $reversed = false;
 
     public function __construct($info)
