@@ -159,6 +159,27 @@ class EmailEncoder
             add_action('shutdown', 'apbct_buffer__end', 0);
             add_action('shutdown', array($this, 'bufferOutput'), 2);
         }
+
+        // integration with Business Directory Plugin
+        add_filter('wpbdp_form_field_display', array($this, 'modifyFormFieldDisplay'), 10, 4);
+    }
+
+    /**
+     * @param string $html
+     * @param object $field
+     * @param string $display_context
+     * @param int $post_id
+     * @return string
+     * @psalm-suppress PossiblyUnusedParam, PossiblyUnusedReturnValue
+     */
+    public function modifyFormFieldDisplay($html, $field, $display_context, $post_id)
+    {
+        if (mb_strpos($html, 'mailto:') !== false) {
+            $html = html_entity_decode($html);
+            return $this->modifyContent($html);
+        }
+
+        return $html;
     }
 
     /**
@@ -647,14 +668,6 @@ class EmailEncoder
      */
     private function isExcludedRequest()
     {
-        // chunk to fix when we can't delete plugin because of sessions table missing
-        global $wpdb;
-        $query = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like(APBCT_TBL_SESSIONS));
-        $session_table_exists = $wpdb->get_var($query);
-        if (empty($session_table_exists)) {
-            return true;
-        }
-
         // Excluded request by alt cookie
         $apbct_email_encoder_passed = Cookie::get('apbct_email_encoder_passed');
         if ( $apbct_email_encoder_passed === apbct_get_email_encoder_pass_key() ) {
