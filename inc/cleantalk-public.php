@@ -162,6 +162,7 @@ function apbct_init()
         }
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
             add_action('woocommerce_after_checkout_validation', 'ct_woocommerce_checkout_check', 1, 2);
+            add_action('woocommerce_store_api_checkout_order_processed', 'ct_woocommerce_checkout_check_from_rest', 1, 1);
             add_action('woocommerce_checkout_update_order_meta', 'apbct_woocommerce__add_request_id_to_order_meta');
             add_action('woocommerce_store_api_checkout_update_customer_from_request', 'apbct_wc_store_api_checkout_update_customer_from_request', 10, 2);
         }
