@@ -2638,13 +2638,6 @@ function apbct_ready() {
     ctPublic.encodedEmailNodes = encodedEmailNodes;
     if (encodedEmailNodes.length) {
         for (let i = 0; i < encodedEmailNodes.length; ++i) {
-            if (
-                encodedEmailNodes[i].parentElement.href ||
-                encodedEmailNodes[i].parentElement.parentElement.href
-            ) {
-                // Skip listening click on hyperlinks
-                continue;
-            }
             encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
         }
     }
@@ -3179,12 +3172,22 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
         // handler for mailto
         if (
             typeof encodedEmailNodes[i].href !== 'undefined' &&
-            encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
+            encodedEmailNodes[i].href.indexOf('mailto:') === 0
+        ) {
             let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
             let baseElementContent = encodedEmailNodes[i].innerHTML;
-            encodedEmailNodes[i].innerHTML =
-                baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
+            encodedEmailNodes[i].innerHTML = baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
             encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
+
+            encodedEmailNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((el) => {
+                let encodedEmailTextInsideMailto = '';
+                decodingResult.data.forEach((row) => {
+                    if (row.encoded_email === el.dataset.originalString) {
+                        encodedEmailTextInsideMailto = row.decoded_email;
+                    }
+                });
+                el.innerHTML = encodedEmailTextInsideMailto;
+            });
         } else {
             encodedEmailNodes[i].classList.add('no-blur');
             // fill the nodes
