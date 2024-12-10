@@ -2772,6 +2772,13 @@ function apbct_cron_clear_old_session_data()
     }
 
     \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
+
+    $ct_cron = new Cron();
+    if (\Cleantalk\ApbctWP\Variables\AltSessions::checkHasUndeletedOldSessions()) {
+        $ct_cron->updateTask('clear_old_session_data', 'apbct_cron_clear_old_session_data', 60, time() + 60);
+    } else {
+        $ct_cron->updateTask('clear_old_session_data', 'apbct_cron_clear_old_session_data', 86400);
+    }
 }
 
 /**

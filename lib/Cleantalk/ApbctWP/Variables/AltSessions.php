@@ -148,12 +148,40 @@ class AltSessions
     {
         global $wpdb;
 
-        $wpdb->query(
-            'DELETE
-				FROM `' . APBCT_TBL_SESSIONS . '`
-				WHERE last_update < NOW() - INTERVAL ' . APBCT_SEESION__LIVE_TIME . ' SECOND
-				LIMIT 100000;'
+        // Get all cleantalk_sessions tables across all sites
+        $tables = $wpdb->get_col(
+            "SHOW TABLES LIKE '{$wpdb->base_prefix}%cleantalk_sessions'"
         );
+
+        foreach ($tables as $table) {
+            $wpdb->query(
+                'DELETE FROM `' . $table . '`
+                WHERE last_update < NOW() - INTERVAL ' . APBCT_SEESION__LIVE_TIME . ' SECOND
+                LIMIT 100000;'
+            );
+        }
+    }
+
+    public static function checkHasUndeletedOldSessions()
+    {
+        global $wpdb;
+
+        $tables = $wpdb->get_col(
+            "SHOW TABLES LIKE '{$wpdb->base_prefix}%cleantalk_sessions'"
+        );
+
+        foreach ($tables as $table) {
+            $query = $wpdb->prepare(
+                'SELECT COUNT(id) FROM `' . $table . '` WHERE last_update < NOW() - INTERVAL %d SECOND;',
+                APBCT_SEESION__LIVE_TIME
+            );
+
+            if ((int)$wpdb->get_var($query) > 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static function wipe()
