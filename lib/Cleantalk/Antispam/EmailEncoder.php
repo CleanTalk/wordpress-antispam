@@ -883,6 +883,10 @@ class EmailEncoder
 
     public function shortcodeCallback($_atts, $content, $_tag)
     {
+        if ( Cookie::get('apbct_email_encoder_passed') === apbct_get_email_encoder_pass_key() ) {
+            return $content;
+        }
+
         return $this->modifyAny($content);
     }
 
