@@ -1829,6 +1829,7 @@ let ctCheckedEmailsExist = {};
 let ctMouseReadInterval;
 let ctMouseWriteDataInterval;
 let tokenCheckerIntervalId;
+let botDetectorLogLastUpdate = 0;
 
 // eslint-disable-next-line require-jsdoc,camelcase
 function apbct_attach_event_handler(elem, event, callback) {
@@ -1848,8 +1849,22 @@ const ctFunctionFirstKey = function output(event) {
     ctKeyStopStopListening();
 };
 
-// run cron jobs
+/**
+ * Run cron jobs
+ */
+// forms handler cron
 cronFormsHandler(2000);
+
+// bot_detector frontend_data log alt session saving cron
+if (
+    ctPublicFunctions.hasOwnProperty('data__bot_detector_enabled') &&
+    ctPublicFunctions.data__bot_detector_enabled == 1
+) {
+    sendBotDetectorLogToAltSessions(500);
+}
+/**
+ * Cron jobs end.
+ */
 
 // mouse read
 if (ctPublic.data__key_is_ok) {
@@ -1892,6 +1907,27 @@ function cronFormsHandler(cronStartTimeout = 2000) {
             restartFieldsListening();
             restartBotDetectorEventTokenAttach();
         }, 2000);
+    }, cronStartTimeout);
+}
+
+/**
+ * Send BotDetector logs data to alternative sessions.
+ * If log_last_update has changed, the log will be sent to the alternative sessions.
+ * @param {int} cronStartTimeout delay before cron start
+ * @param {int} interval check fires on interval
+ */
+function sendBotDetectorLogToAltSessions(cronStartTimeout = 3000, interval = 1000) {
+    setTimeout(function() {
+        setInterval(function() {
+            const currentLog = apbctLocalStorage.get('ct_bot_detector_frontend_data_log');
+            if (currentLog && currentLog.hasOwnProperty('log_last_update')) {
+                if (botDetectorLogLastUpdate !== currentLog.log_last_update) {
+                    botDetectorLogLastUpdate = currentLog.log_last_update;
+                    // the log will be taken from javascriptclientdata
+                    ctSetAlternativeCookie([], {forceAltCookies: true});
+                }
+            }
+        }, interval);
     }, cronStartTimeout);
 }
 
@@ -2734,13 +2770,6 @@ function apbct_ready() {
     ctPublic.encodedEmailNodes = encodedEmailNodes;
     if (encodedEmailNodes.length) {
         for (let i = 0; i < encodedEmailNodes.length; ++i) {
-            if (
-                encodedEmailNodes[i].parentElement.href ||
-                encodedEmailNodes[i].parentElement.parentElement.href
-            ) {
-                // Skip listening click on hyperlinks
-                continue;
-            }
             encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
         }
     }
@@ -3275,12 +3304,22 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
         // handler for mailto
         if (
             typeof encodedEmailNodes[i].href !== 'undefined' &&
-            encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
+            encodedEmailNodes[i].href.indexOf('mailto:') === 0
+        ) {
             let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
             let baseElementContent = encodedEmailNodes[i].innerHTML;
-            encodedEmailNodes[i].innerHTML =
-                baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
+            encodedEmailNodes[i].innerHTML = baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
             encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
+
+            encodedEmailNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((el) => {
+                let encodedEmailTextInsideMailto = '';
+                decodingResult.data.forEach((row) => {
+                    if (row.encoded_email === el.dataset.originalString) {
+                        encodedEmailTextInsideMailto = row.decoded_email;
+                    }
+                });
+                el.innerHTML = encodedEmailTextInsideMailto;
+            });
         } else {
             encodedEmailNodes[i].classList.add('no-blur');
             // fill the nodes
@@ -3329,6 +3368,9 @@ function getJavascriptClientData(commonCookies = []) {
     const ctJsErrorsLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_js_errors');
     const ctPixelUrl = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
     const apbctHeadless = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_headless');
+    const ctBotDetectorFrontendDataLog = apbctLocalStorage.get(
+        ctPublicFunctions.cookiePrefix + 'ct_bot_detector_frontend_data_log',
+    );
 
     // collecting data from cookies
     const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
@@ -3348,6 +3390,8 @@ function getJavascriptClientData(commonCookies = []) {
         ctPixelUrl : ctCookiesPixelUrl;
     resultDataJson.apbct_headless = apbctHeadless !== undefined ?
         apbctHeadless : apbctHeadlessNative;
+    resultDataJson.ct_bot_detector_frontend_data_log = ctBotDetectorFrontendDataLog !== undefined ?
+        ctBotDetectorFrontendDataLog : '';
     if (resultDataJson.apbct_pixel_url && typeof(resultDataJson.apbct_pixel_url) == 'string') {
         if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
             resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
@@ -4711,7 +4755,9 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('kulahub.net') !== -1 || // Kulahub integration
         isFormHasDiviRedirect(formObj) || // Divi contact form
         formAction.indexOf('eocampaign1.com') !== -1 || // EmailOctopus Campaign form
-        formAction.indexOf('wufoo.com') !== -1 // Wufoo form
+        formAction.indexOf('wufoo.com') !== -1 || // Wufoo form
+        ( formObj.classList !== undefined &&
+            formObj.classList.contains('sp-element-container') ) // Sendpulse form
     ) {
         return true;
     }

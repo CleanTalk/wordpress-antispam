@@ -145,6 +145,27 @@ class EmailEncoder
             add_action('shutdown', 'apbct_buffer__end', 0);
             add_action('shutdown', array($this, 'bufferOutput'), 2);
         }
+
+        // integration with Business Directory Plugin
+        add_filter('wpbdp_form_field_display', array($this, 'modifyFormFieldDisplay'), 10, 4);
+    }
+
+    /**
+     * @param string $html
+     * @param object $field
+     * @param string $display_context
+     * @param int $post_id
+     * @return string
+     * @psalm-suppress PossiblyUnusedParam, PossiblyUnusedReturnValue
+     */
+    public function modifyFormFieldDisplay($html, $field, $display_context, $post_id)
+    {
+        if (mb_strpos($html, 'mailto:') !== false) {
+            $html = html_entity_decode($html);
+            return $this->modifyContent($html);
+        }
+
+        return $html;
     }
 
     /**
@@ -181,28 +202,73 @@ class EmailEncoder
         return $this->modifyEmails($content);
     }
 
+    /**
+     * @param string $content
+     * @return string
+     * @psalm-suppress PossiblyUnusedReturnValue
+     * @phpcs:disable PHPCompatibility.FunctionUse.NewFunctionParameters.preg_replace_callback_flagsFound
+     */
     public function modifyEmails($content)
     {
-        $replacing_result = preg_replace_callback('/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
+        $pattern = '/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/';
+        $replacing_result = '';
 
-            if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) && isset($matches[0]) ) {
-                return $matches[0];
-            }
+        if ( version_compare(phpversion(), '7.4.0', '>=') ) {
+            $replacing_result = preg_replace_callback($pattern, function ($matches) use ($content) {
+                if ( isset($matches[3][0], $matches[0][0]) && in_array(strtolower($matches[3][0]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
+                    return $matches[0][0];
+                }
 
-            //chek if email is placed in excluded attributes and return unchanged if so
-            if ( isset($matches[0]) && $this->hasAttributeExclusions($matches[0]) ) {
-                return $matches[0];
-            }
+                //chek if email is placed in excluded attributes and return unchanged if so
+                if ( isset($matches[0][0]) && $this->hasAttributeExclusions($matches[0][0]) ) {
+                    return $matches[0][0];
+                }
 
-            if ( isset($matches[0]) &&  $this->isMailto($matches[0]) ) {
-                return $this->encodeMailtoLink($matches[0]);
-            }
+                if ( isset($matches[0][0]) && $this->isMailto($matches[0][0]) ) {
+                    return $this->encodeMailtoLinkV2($matches[0], $content);
+                }
 
-            $this->handlePrivacyPolicyHook();
-            if ( isset($matches[0])) {
-                return $this->encodePlainEmail($matches[0]);
-            }
-        }, $content);
+                if ( isset($matches[0]) && $this->isMailtoAdditionalCopy($matches[0], $content) ) {
+                    return '';
+                }
+
+                if ( isset($matches[0], $matches[0][0]) && $this->isEmailInLink($matches[0], $content) ) {
+                    return $matches[0][0];
+                }
+
+                $this->handlePrivacyPolicyHook();
+
+                if ( isset($matches[0], $matches[0][0]) ) {
+                    return $this->encodePlainEmail($matches[0][0]);
+                }
+
+                return '';
+            }, $content, -1, $count, PREG_OFFSET_CAPTURE);
+        }
+
+        if ( version_compare(phpversion(), '7.4.0', '<') ) {
+            $replacing_result = preg_replace_callback($pattern, function ($matches) {
+                if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) && isset($matches[0]) ) {
+                    return $matches[0];
+                }
+
+                //chek if email is placed in excluded attributes and return unchanged if so
+                if ( isset($matches[0]) && $this->hasAttributeExclusions($matches[0]) ) {
+                    return $matches[0];
+                }
+
+                if ( isset($matches[0]) &&  $this->isMailto($matches[0]) ) {
+                    return $this->encodeMailtoLink($matches[0]);
+                }
+
+                $this->handlePrivacyPolicyHook();
+                if ( isset($matches[0])) {
+                    return $this->encodePlainEmail($matches[0]);
+                }
+
+                return '';
+            }, $content);
+        }
 
         // modify content to turn back aria-label
         $replacing_result = $this->modifyAriaLabelContent($replacing_result, true);
@@ -527,6 +593,53 @@ class EmailEncoder
     }
 
     /**
+     * Checking if the string contains mailto: link
+     *
+     * @param $match array
+     * @param $content string
+     *
+     * @return bool
+     */
+    private function isMailtoAdditionalCopy($match, $content)
+    {
+        $position = $match[1];
+
+        $cc_position = strrpos(substr($content, 0, $position), 'cc=');
+        if ( $cc_position !== false && $cc_position + 3 == $position ) {
+            return true;
+        }
+
+        $bcc_position = strrpos(substr($content, 0, $position), 'bcc=');
+        if ( $bcc_position !== false && $bcc_position + 4 == $position ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Checking if email in link
+     *
+     * @param $match array
+     * @param $content string
+     *
+     * @return bool
+     */
+    private function isEmailInLink($match, $content)
+    {
+        $email = $match[0];
+        $position = $match[1];
+
+        $href_position = strrpos(substr($content, 0, $position), 'href=');
+
+        if ( $href_position !== false && $href_position + 6 == $position ) {
+            return true;
+        }
+
+        return strpos($email, 'mailto:') !== false;
+    }
+
+    /**
      * Method to process mailto: links
      *
      * @param $mailto_link_str string
@@ -544,6 +657,39 @@ class EmailEncoder
                 }
             }, $matches[1]);
         }
+        $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
+        $encoded = $this->encodeString($mailto_link_str);
+
+        $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
+
+        return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
+    }
+
+    /**
+     * Method to process mailto: links
+     *
+     * @param $match array
+     * @param $content string
+     *
+     * @return string
+     */
+    private function encodeMailtoLinkV2($match, $content)
+    {
+        $position = $match[1];
+        $q_position = $position + strcspn($content, '\'"', $position);
+        $mailto_link_str = substr($content, $position, $q_position - $position);
+        // Get inner tag text and place it in $matches[1]
+        preg_match('/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/', $mailto_link_str, $matches);
+        if ( isset($matches[1]) ) {
+            $mailto_inner_text = preg_replace_callback('/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/', function ($matches) {
+                if ( isset($matches[0]) ) {
+                    return $this->obfuscateEmail($matches[0]);
+                }
+
+                return '';
+            }, $matches[1]);
+        }
+
         $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
         $encoded = $this->encodeString($mailto_link_str);
 
@@ -604,14 +750,6 @@ class EmailEncoder
      */
     private function isExcludedRequest()
     {
-        // chunk to fix when we can't delete plugin because of sessions table missing
-        global $wpdb;
-        $query = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like(APBCT_TBL_SESSIONS));
-        $session_table_exists = $wpdb->get_var($query);
-        if (empty($session_table_exists)) {
-            return true;
-        }
-
         // Excluded request by alt cookie
         $apbct_email_encoder_passed = Cookie::get('apbct_email_encoder_passed');
         if ( $apbct_email_encoder_passed === apbct_get_email_encoder_pass_key() ) {
