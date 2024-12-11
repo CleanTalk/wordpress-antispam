@@ -30,12 +30,10 @@ class Deactivator
                 self::deleteTables($wpdb->get_blog_prefix($blog));
                 delete_option('cleantalk_cron'); // Deleting cron entries
 
-                if ( $apbct->settings['misc__complete_deactivation'] ) {
-                    self::deleteAllOptions();
-                    self::deleteMeta();
-                    self::deleteAllOptionsInNetwork();
-                    self::deleteSFWUpdateFolder();
-                }
+                self::deleteAllOptions();
+                self::deleteMeta();
+                self::deleteAllOptionsInNetwork();
+                self::deleteSFWUpdateFolder();
             }
             switch_to_blog($initial_blog);
         } else {
