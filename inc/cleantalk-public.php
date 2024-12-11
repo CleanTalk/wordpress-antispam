@@ -1235,23 +1235,6 @@ function ct_enqueue_scripts_public($_hook)
             ));
         }
     }
-
-    // Debug
-    if ( $apbct->settings['misc__debug_ajax'] ) {
-        wp_enqueue_script(
-            'ct_debug_js',
-            APBCT_JS_ASSETS_PATH . '/cleantalk-debug-ajax.min.js',
-            // keep this jquery dependency if option misc__debug_ajax is enabled
-            array('jquery'),
-            APBCT_VERSION,
-            false /*in header*/
-        );
-
-        wp_localize_script('ct_debug_js', 'apbctDebug', array(
-            'reload'      => false,
-            'reload_time' => 10000,
-        ));
-    }
 }
 
 function ct_enqueue_styles_public()

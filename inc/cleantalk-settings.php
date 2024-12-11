@@ -131,10 +131,6 @@ function apbct_settings__set_fields()
                 'connection_reports' => array(
                     'callback' => 'apbct_settings__field__statistics',
                 ),
-                'debug_tab' => array(
-                    'callback' => 'apbct_settings__field__debug_tab',
-                    'display'  => Server::getDomain(), array( 'lc', 'loc', 'lh', 'test' ),
-                ),
                 'api_key'            => array(
                     'callback' => 'apbct_settings__field__apikey',
                 ),
@@ -150,19 +146,6 @@ function apbct_settings__set_fields()
             'fields'         => array(
                 'state' => array(
                     'callback' => 'apbct_settings__field__state',
-                ),
-            ),
-        ),
-
-        'debug'                 => array(
-            'title'          => '',
-            'default_params' => array(),
-            'description'    => '',
-            'html_before'    => '',
-            'html_after'     => '',
-            'fields'         => array(
-                'state' => array(
-                    'callback' => 'apbct_settings__field__debug',
                 ),
             ),
         ),
@@ -775,7 +758,7 @@ function apbct_settings__set_fields()
                             'cleantalk-spam-protect'
                         )
                         . $additional_sfw_description,
-                    'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler', 'sfw__random_get'),
+                    'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler', 'sfw__random_get', 'misc__force_sfw_update_button'),
                     'long_description' => true,
                 ),
                 'sfw__random_get'             => array(
@@ -836,6 +819,11 @@ function apbct_settings__set_fields()
                         'Count of page view per 1 minute before plugin shows SpamFireWall page. SpamFireWall page active for 30 second after that valid visitor (with JavaScript) passes the page to the demanded page of the site.',
                         'cleantalk-spam-protect'
                     ),
+                ),
+                'misc__force_sfw_update_button' => array(
+                    'callback' => 'apbct_sfw_force_sfw_update_button',
+                    'display' => defined('APBCT_IS_LOCALHOST') && APBCT_IS_LOCALHOST,
+                    'parent' => 'sfw__enabled',
                 ),
             ),
         ),
@@ -1411,11 +1399,12 @@ function apbct_settings__display()
 
     echo "</form>";
 
+    //the form should be here! button code is placed in apbct_sfw_force_sfw_update_button
     echo '<form id="debug__cron_set" method="POST"></form>';
 
     if ( ! $apbct->white_label ) {
         // Translate banner for non EN locale
-        if ( substr(get_locale(), 0, 2) != 'en' ) {
+        if (substr(get_locale(), 0, 2) != 'en' ) {
             require_once(CLEANTALK_PLUGIN_DIR . 'templates/translate_banner.php');
             $out = sprintf($ct_translate_banner_template, substr(get_locale(), 0, 2));
             echo Escape::escKsesPreset($out, 'apbct_settings__display__banner_template');
@@ -1710,71 +1699,6 @@ function apbct_settings__prepare_errors($errors)
     }
 
     return $prepared_errors;
-}
-
-function apbct_settings__field__debug()
-{
-    global $apbct;
-
-    if ( $apbct->debug ) {
-        echo '<hr /><h2>Debug:</h2>';
-        echo '<h4>Constants:</h4>';
-        echo 'CLEANTALK_AJAX_USE_BUFFER ' .
-             (defined('CLEANTALK_AJAX_USE_BUFFER') ?
-                 Escape::escHtml(var_export(CLEANTALK_AJAX_USE_BUFFER, true)) :
-                 'NOT_DEFINED') .
-             "<br>";
-        echo 'CLEANTALK_AJAX_USE_FOOTER_HEADER ' .
-             (defined('CLEANTALK_AJAX_USE_FOOTER_HEADER') ?
-                 Escape::escHtml(var_export(CLEANTALK_AJAX_USE_FOOTER_HEADER, true)) :
-                 'NOT_DEFINED') .
-             "<br>";
-        echo 'CLEANTALK_ACCESS_KEY ' .
-             (defined('CLEANTALK_ACCESS_KEY') ?
-                 Escape::escHtml(var_export(CLEANTALK_ACCESS_KEY, true)) :
-                 'NOT_DEFINED') .
-             "<br>";
-        echo 'CLEANTALK_CHECK_COMMENTS_NUMBER ' .
-             (defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ?
-                 Escape::escHtml(var_export(CLEANTALK_CHECK_COMMENTS_NUMBER, true)) :
-                 'NOT_DEFINED') .
-             "<br>";
-        echo 'CLEANTALK_CHECK_MESSAGES_NUMBER ' .
-             (defined('CLEANTALK_CHECK_MESSAGES_NUMBER') ?
-                 Escape::escHtml(var_export(CLEANTALK_CHECK_MESSAGES_NUMBER, true)) :
-                 'NOT_DEFINED') .
-             "<br>";
-        echo 'CLEANTALK_PLUGIN_DIR ' .
-             (defined('CLEANTALK_PLUGIN_DIR') ?
-                 Escape::escHtml(var_export(CLEANTALK_PLUGIN_DIR, true)) :
-                 'NOT_DEFINED') .
-             "<br>";
-        echo 'WP_ALLOW_MULTISITE ' .
-             (defined('WP_ALLOW_MULTISITE') ?
-                 Escape::escHtml(var_export(WP_ALLOW_MULTISITE, true)) :
-                 'NOT_DEFINED') .
-             "<br>";
-
-        echo '<h4><button type="submit" name="apbct_debug__check_connection" value="1">Check connection to API servers</button></h4>';
-        echo "<h4>Debug log: <button type='submit' value='debug_drop' name='submit' style='font-size: 11px; padding: 1px;'>Drop debug data</button></h4>";
-        echo "<div style='height: 500px; width: 80%; overflow: auto;'>";
-
-        $output = print_r($apbct->debug, true);
-        $output = str_replace("\n", "<br>", $output);
-        $output = preg_replace("/[^\S]{4}/", "&nbsp;&nbsp;&nbsp;&nbsp;", $output);
-
-        echo Escape::escKses(
-            $output,
-            array(
-                'div' => array(
-                    'style' => true,
-                ),
-                'br'     => array(),
-            )
-        );
-
-        echo "</div>";
-    }
 }
 
 function apbct_settings__field__state()
@@ -2223,13 +2147,6 @@ function apbct_settings__field__statistics()
     }
 
     echo '<br/>';
-    echo '</div>';
-}
-
-function apbct_settings__field__debug_tab()
-{
-    echo '<div id="apbct_debug_tab" class="apbct_settings-field_wrapper" style="display: none;">';
-    echo apbct_debug__set_sfw_update_cron();
     echo '</div>';
 }
 
@@ -2745,13 +2662,6 @@ function apbct_settings__validate($settings)
         if ( isset($settings['multisite__work_mode']) ) {
             $network_settings['multisite__work_mode'] = $settings['multisite__work_mode'];
         }
-    }
-
-    // Drop debug data
-    if ( Post::get('submit') === 'debug_drop' ) {
-        $apbct->deleteOption('debug', true);
-        $apbct->debug = false;
-        return $settings;
     }
 
     // Send connection reports
@@ -3456,20 +3366,28 @@ function apbct_settings__btn_change_account_email_html()
 }
 
 /**
- * Staff thing - set sfw_update cron task
+ * Staff thing - draw sfw_update cron task button
  */
-function apbct_debug__set_sfw_update_cron()
+function apbct_sfw_force_sfw_update_button()
 {
     global $apbct;
 
-    return '<input form="debug__cron_set" type="hidden" name="spbc_remote_call_action" value="cron_update_task" />'
-           . '<input form="debug__cron_set" type="hidden" name="plugin_name"             value="apbct" />'
-           . '<input form="debug__cron_set" type="hidden" name="spbc_remote_call_token"  value="' . md5($apbct->api_key) . '" />'
-           . '<input form="debug__cron_set" type="hidden" name="task"                    value="sfw_update" />'
-           . '<input form="debug__cron_set" type="hidden" name="handler"                 value="apbct_sfw_update__init" />'
-           . '<input form="debug__cron_set" type="hidden" name="period"                  value="' . $apbct->stats['sfw']['update_period'] . '" />'
-           . '<input form="debug__cron_set" type="hidden" name="first_call"              value="' . (time() + 60) . '" />'
-           . '<input form="debug__cron_set" type="submit" value="Set SFW update to 60 seconds from now" />';
+    printf(
+        '<div class="apbct_settings-field_wrapper" id="apbct-action-adjust-env">
+        <b>Debug: </b>
+        <input form="debug__cron_set" type="hidden" name="spbc_remote_call_action" value="cron_update_task" />
+        <input form="debug__cron_set" type="hidden" name="plugin_name" value="apbct" />
+        <input form="debug__cron_set" type="hidden" name="spbc_remote_call_token" value="%s" />
+        <input form="debug__cron_set" type="hidden" name="task" value="sfw_update" />
+        <input form="debug__cron_set" type="hidden" name="handler" value="apbct_sfw_update__init" />
+        <input form="debug__cron_set" type="hidden" name="period" value="%s" />
+        <input form="debug__cron_set" type="hidden" name="first_call" value="%d" />
+        <input form="debug__cron_set" type="submit" value="Set SFW update to 60 seconds from now" />
+    </div>',
+        md5($apbct->api_key),
+        $apbct->stats['sfw']['update_period'],
+        time() + 60
+    );
 }
 
 /**
