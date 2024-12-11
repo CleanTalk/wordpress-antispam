@@ -3,6 +3,9 @@
     src: url('fonts/apbct_form_decoration--new-year/ChauPhilomeneOne-Italic.ttf');
 }
 
+.apbct_form_decoration--new-year_header__wrapper {
+
+}
 
 .apbct_form_decoration--christmas_header__content {
     display: flex;
@@ -10,16 +13,15 @@
     flex-direction: column-reverse;
     justify-content: center;
     align-items: center;
-    height: 70px;
 }
 .apbct_form_decoration--christmas_header__content svg {
-    position: absolute;
+    height: auto;
     width: 100%;
 }
 .apbct_form_decoration--christmas_header__text {
     display: block;
+    position: absolute;
     z-index: 1;
-    position: relative;
     font-family: 'Chau Philomene One';
     font-style: italic;
     font-weight: 700;
@@ -63,3 +65,7 @@
     transform: scale(-1, 1)
 }
 
+.comments-title, .comment-reply-title {
+    z-index: 9999;
+    position: relative;
+}

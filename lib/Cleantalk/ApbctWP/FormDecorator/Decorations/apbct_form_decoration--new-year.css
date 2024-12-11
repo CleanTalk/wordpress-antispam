@@ -4,7 +4,7 @@
 }
 
 .apbct_form_decoration--new-year_header__wrapper {
-    height: 36px;
+
 }
 
 .apbct_form_decoration--new-year_header__content {
@@ -13,17 +13,15 @@
     flex-direction: column-reverse;
     justify-content: center;
     align-items: center;
-    height: 70px;
 }
 .apbct_form_decoration--new-year_header__content svg {
-    position: absolute;
-    width: 100%;
+
 }
 .apbct_form_decoration--new-year_header__text {
     display: block;
+    position: absolute;
     z-index: 1;
     padding-bottom: 12px;
-    position: relative;
     font-family: 'Chau Philomene One';
     font-style: italic;
     font-weight: 400;
@@ -32,7 +30,6 @@
     text-transform: uppercase;
     color: #ffffff;
     -webkit-text-stroke: 1px #bf2a2b;
-    left: -4pc;
 }
 
 .apbct_form_decoration--new-year  {
@@ -56,7 +53,7 @@
     background-repeat: no-repeat;
     background-size: 50%;
     opacity: 0.4;
-    z-index: -1;
+    z-index: 0;
 }
 .apbct_form_decoration--new-year:before {
     left: 0;
@@ -69,3 +66,7 @@
     background-position-x: right;
 }
 
+.comments-title, .comment-reply-title {
+    z-index: 9999;
+    position: relative;
+}
