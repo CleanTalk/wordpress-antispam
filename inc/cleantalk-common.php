@@ -802,6 +802,8 @@ function ct_get_checkjs_value()
 
 function apbct_is_cache_plugins_exists($return_names = false)
 {
+    global $apbct;
+
     $out = array();
 
     $constants_of_cache_plugins = array(
@@ -819,6 +821,7 @@ function apbct_is_cache_plugins_exists($return_names = false)
         'TWO_PLUGIN_FILE'                             => '10Web Booster',
         'FLYING_PRESS_VERSION'                        => 'Flying Press',
         'BREEZE_VERSION'                              => 'Breeze',
+        'SPEEDYCACHE_VERSION'                         => 'SpeedyCache',
     );
 
     $classes_of_cache_plugins = array (
@@ -833,6 +836,13 @@ function apbct_is_cache_plugins_exists($return_names = false)
     foreach ($constants_of_cache_plugins as $const => $_text) {
         if ( defined($const) ) {
             $out[] = $_text;
+
+            if ($const === 'SPEEDYCACHE_VERSION') {
+                $apbct->settings['data__set_cookies'] = 2;
+                $apbct->data['cookies_type'] = 'alternative';
+                $apbct->save('settings');
+                $apbct->save('data');
+            }
         }
     }
 
