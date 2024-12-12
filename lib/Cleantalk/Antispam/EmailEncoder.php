@@ -180,6 +180,11 @@ class EmailEncoder
             return $content;
         }
 
+        // skip encoding if the content is already encoded with hook
+        if ( strpos($content, '[apbct_encode_data]') !== false && strpos($content, '[/apbct_encode_data]') !== false ) {
+            return $content;
+        }
+
         //skip empty or invalid content
         if ( empty($content) || !is_string($content) ) {
             return $content;
