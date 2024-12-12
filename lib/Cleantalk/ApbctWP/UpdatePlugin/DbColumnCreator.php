@@ -48,6 +48,7 @@ class DbColumnCreator
     private function addColumnsIfNotExists()
     {
         global $wpdb;
+        $errors = array();
         $wpdb->show_errors = true;
         $schema_table_structure = Schema::getStructureSchemas();
         $table_key = explode(Schema::getSchemaTablePrefix(), $this->dbTableName)[1];
