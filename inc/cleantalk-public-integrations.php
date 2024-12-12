@@ -3379,7 +3379,10 @@ function apbct_custom_forms_trappings()
     // Registration form of masteriyo registration
     if ( $apbct->settings['forms__registrations_test'] &&
          Post::get('masteriyo-registration') === 'yes' &&
-         apbct_is_plugin_active('learning-management-system/lms.php')
+         (
+             apbct_is_plugin_active('learning-management-system/lms.php') ||
+             apbct_is_plugin_active('learning-management-system-pro/lms.php')
+         )
     ) {
         return true;
     }

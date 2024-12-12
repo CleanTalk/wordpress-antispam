@@ -180,6 +180,11 @@ class EmailEncoder
             return $content;
         }
 
+        // skip encoding if the content is already encoded with hook
+        if ( strpos($content, '[apbct_encode_data]') !== false && strpos($content, '[/apbct_encode_data]') !== false ) {
+            return $content;
+        }
+
         //skip empty or invalid content
         if ( empty($content) || !is_string($content) ) {
             return $content;
@@ -238,7 +243,7 @@ class EmailEncoder
 
                 $this->handlePrivacyPolicyHook();
 
-                if ( isset($matches[0], $matches[0][0]) ) {
+                if ( isset($matches[0][0]) ) {
                     return $this->encodePlainEmail($matches[0][0]);
                 }
 
@@ -262,7 +267,8 @@ class EmailEncoder
                 }
 
                 $this->handlePrivacyPolicyHook();
-                if ( isset($matches[0])) {
+
+                if ( isset($matches[0]) ) {
                     return $this->encodePlainEmail($matches[0]);
                 }
 
@@ -736,6 +742,9 @@ class EmailEncoder
                     }
                     //if each of signs in the sub-array are found return true
                     if ( $signs_found_count === count($signs) ) {
+                        if (in_array('et_pb_contact_form', $signs) && !is_admin()) {
+                            return false;
+                        }
                         return true;
                     }
                 }
@@ -883,6 +892,10 @@ class EmailEncoder
 
     public function shortcodeCallback($_atts, $content, $_tag)
     {
+        if ( Cookie::get('apbct_email_encoder_passed') === apbct_get_email_encoder_pass_key() ) {
+            return $content;
+        }
+
         return $this->modifyAny($content);
     }
 

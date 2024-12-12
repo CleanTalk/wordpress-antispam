@@ -1433,29 +1433,39 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 selectableEmail.innerText = email;
                 selectableEmail.title = 'Click to select the whole data';
                 // add email to the first node
-                firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML + '.';
-                firstNode.setAttribute('style', 'flex-direction: row;');
+                if (firstNode) {
+                    firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML + '.';
+                    firstNode.setAttribute('style', 'flex-direction: row;');
+                }
                 // remove animation
-                popup.querySelector('.apbct-ee-animation-wrapper').remove();
+                let wrapper = popup.querySelector('.apbct-ee-animation-wrapper');
+                if (wrapper) {
+                    wrapper.remove();
+                }
                 // remove second node
-                popup.querySelector('#apbct_email_ecoder__popup_text_node_second').remove();
+                let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
+                if (secondNode) {
+                    secondNode.remove();
+                }
                 // add button
                 let buttonWrapper = document.createElement('span');
                 buttonWrapper.classList = 'apbct-email-encoder-elements_center top-margin-long';
-                let button = document.createElement('button');
-                button.innerText = 'Got it';
-                button.classList = 'apbct-email-encoder-got-it-button';
-                button.addEventListener('click', function() {
-                    document.body.classList.remove('apbct-popup-fade');
-                    popup.setAttribute('style', 'display:none');
-                    fillDecodedEmails(encodedEmailNodes, result);
-                    // click on mailto if so
-                    if (ctPublic.encodedEmailNodesIsMixed) {
-                        clickSource.click();
-                    }
-                });
-                buttonWrapper.append(button);
-                popup.append(buttonWrapper);
+                if (!document.querySelector('.apbct-email-encoder-got-it-button')) {
+                    let button = document.createElement('button');
+                    button.innerText = 'Got it';
+                    button.classList = 'apbct-email-encoder-got-it-button';
+                    button.addEventListener('click', function() {
+                        document.body.classList.remove('apbct-popup-fade');
+                        popup.setAttribute('style', 'display:none');
+                        fillDecodedEmails(encodedEmailNodes, result);
+                        // click on mailto if so
+                        if (ctPublic.encodedEmailNodesIsMixed) {
+                            clickSource.click();
+                        }
+                    });
+                    buttonWrapper.append(button);
+                    popup.append(buttonWrapper);
+                }
             }
         }, 3000);
     } else {
@@ -1967,12 +1977,17 @@ function ctGetHiddenFieldExclusionsType(form) {
  * @return {boolean}
  */
 function ctCheckHiddenFieldsExclusions(form, hiddenFieldType) {
+    const formAction = typeof(form.action) == 'string' ? form.action : '';
     // Ajax Search Lite
     if (Boolean(form.querySelector('fieldset.asl_sett_scroll'))) {
         return true;
     }
     // Super WooCommerce Product Filter
     if (form.classList.contains('swpf-instant-filtering')) {
+        return true;
+    }
+    // PayU 3-rd party service forms
+    if (formAction.indexOf('secure.payu.com') !== -1 ) {
         return true;
     }
     if (typeof (hiddenFieldType) === 'string' &&
