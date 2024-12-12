@@ -262,6 +262,7 @@ class EmailEncoder
                 }
 
                 $this->handlePrivacyPolicyHook();
+
                 if ( isset($matches[0]) ) {
                     return $this->encodePlainEmail($matches[0]);
                 }
