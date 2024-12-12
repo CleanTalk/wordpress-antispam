@@ -1,0 +1,2497 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Anti-Spam by CleanTalk\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-12-03 14:37+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.6.14; wp-6.7.1\n"
+"X-Domain: cleantalk-spam-protect"
+
+#: inc/cleantalk-settings.php:111
+msgid " - status of SpamFireWall database updating process"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3284
+#, php-format
+msgid ""
+" Anti-Crawler — this option is meant to block all types of bots visiting "
+"website pages that can search vulnerabilities on a website, attempt to hack "
+"a site, collect personal data, price parsing or content and images, generate "
+"404 error pages, or aggressive website scanning bots. %s"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3318
+msgid ""
+" Anti-Flood is also an add-on to SFW and limits the number of pages visited "
+"per minute. Disabled by default."
+msgstr ""
+
+#: inc/cleantalk-settings.php:3292
+#, php-format
+msgid ""
+" blocking screen for 30 seconds. It's impossible for the IP to open any "
+"website pages while the 30-second timer takes place. %s"
+msgstr ""
+
+#: inc/cleantalk-settings.php:854
+msgid " cloud during Anti-Spam request"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3268
+#, php-format
+msgid ""
+" helps you protect your WordPress website comments by hiding this field off. "
+"%s"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1454
+msgid " is registered Trademark. All rights reserved."
+msgstr ""
+
+#: inc/cleantalk-settings.php:554
+msgid " JavaScript library"
+msgstr ""
+
+#: inc/cleantalk-settings.php:557
+msgid " JavaScript library to getting visitors info data"
+msgstr ""
+
+#: inc/cleantalk-settings.php:497
+msgid " Or you don`t have records about missed spam here:"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3297
+msgid " Pixel"
+msgstr ""
+
+#: inc/cleantalk-settings.php:602
+msgid " Pixel to improve IP-detection"
+msgstr ""
+
+#: inc/cleantalk-public.php:1158
+#, php-format
+msgid "\"%s\" plugin error on your site \"%s\":"
+msgstr ""
+
+#: inc/cleantalk-settings.php:609
+msgid "\"Auto\" use JavaScript option if cache solutions are found."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1268
+#, php-format
+msgid "%s  has blocked <b>%s</b> spam."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:202
+#, php-format
+msgid "%s trial period ends, please upgrade to next year!"
+msgstr ""
+
+#. %s: Number of spam messages
+#: inc/cleantalk-admin.php:275
+#, php-format
+msgid ""
+"%s%s%s has blocked %s spam for past year. The statistics are automatically "
+"updated every 24 hours."
+msgstr ""
+
+#: inc/cleantalk-admin.php:142
+#, php-format
+msgid "%sConfigure%s"
+msgstr ""
+
+#: inc/cleantalk-admin.php:136
+#, php-format
+msgid "%sRefresh%s"
+msgstr ""
+
+#: inc/cleantalk-settings.php:604
+msgid "'s server to improve IP-detection."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1476
+msgid "'s tech support:"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Firewall/SFW.php:458
+msgid "(in global lists)"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Firewall/SFW.php:459
+msgid "(in personal lists)"
+msgstr ""
+
+#: inc/cleantalk-admin.php:151
+msgid "7 days Anti-Spam and SpamFireWall stats"
+msgstr ""
+
+#: inc/cleantalk-settings.php:930
+msgid "<- Copy this text and place shortcode wherever you need."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1881
+msgid "<h3>Access key is provided by network administrator</h3>"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3246
+msgid ""
+"<span>Each blog uses its own account and its own key. Separate security logs,"
+" settings, personal lists. Blog administrator can change the key on his own."
+"</span>"
+msgstr ""
+
+#: inc/cleantalk-public.php:1172
+#, php-format
+msgid "[%s] \"%s\" error!"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1887
+msgid "Access key"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1915
+#, php-format
+msgid "Account at cleantalk.org is %s."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:210
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:245
+#, php-format
+msgid ""
+"Account status updates every 24 hours or click Settings -> %s -> Synchronize "
+"with Cloud."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/Checker.php:135
+msgid "Accurate check"
+msgstr ""
+
+#: inc/cleantalk-public-integrations.php:1506
+msgid "Activate protection in your Anti-Spam Dashboard: "
+msgstr ""
+
+#: inc/cleantalk-settings.php:300
+msgid "Add a honeypot field"
+msgstr ""
+
+#: inc/cleantalk-settings.php:936
+msgid "Add to the footer"
+msgstr ""
+
+#: inc/cleantalk-settings.php:947
+msgid "Add under forms."
+msgstr ""
+
+#: inc/cleantalk-settings.php:937
+msgid ""
+"Adds trust text stating that the website is protected from spam by CleanTalk "
+"Anti-Spam protection to the footer of your website."
+msgstr ""
+
+#: inc/cleantalk-settings.php:951
+msgid ""
+"Adds trust text stating that the website is protected from spam by CleanTalk "
+"Anti-Spam protection under web form on your website."
+msgstr ""
+
+#: inc/cleantalk-settings.php:706
+msgid "Admin bar"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1951
+#, php-format
+msgid ""
+"Admin e-mail %s %s will be used for registration оr click here to %sGet "
+"Access Key Manually%s."
+msgstr ""
+
+#: inc/cleantalk-settings.php:3547
+msgid "Advanced settings"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1054
+msgid ""
+"All / Allowed / Blocked submissions. The number of submissions is being "
+"counted since CleanTalk plugin installation."
+msgstr ""
+
+#: inc/cleantalk-admin.php:1092
+msgid ""
+"All / Blocked events. Access attempts triggered by SpamFireWall counted "
+"since the last plugin activation."
+msgstr ""
+
+#: inc/cleantalk-settings.php:347
+msgid ""
+"All anonymous users will be checked for spam if they add a new item to their "
+"shopping cart."
+msgstr ""
+
+#: inc/cleantalk-admin.php:1004
+msgid "All Anti-Spam events"
+msgstr ""
+
+#: inc/cleantalk-settings.php:2205
+msgid "All the reports already have been sent."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1094
+msgid "Allow to change settings on child sites."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1093
+msgid "Allow users to manage plugin settings"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Antispam/EmailEncoder.php:77
+msgid "Allowed"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1073
+msgid ""
+"Allowed / Blocked submissions. The number of submissions for past 24 hours. "
+msgstr ""
+
+#: inc/cleantalk-settings.php:440
+msgid ""
+"Allows administrators to manage comments on public post's pages with small "
+"interactive menu."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:285
+msgid "Already posted the review"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3331
+msgid ""
+"Also, the plugin check POST array for key action and it's value. This could "
+"be useful for AJAX \n"
+"                forms if you want to skip the form by action. Value will be "
+"checked for regexp match:"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3398
+#, php-format
+msgid "Alternative cookies type was set on %s"
+msgstr ""
+
+#: inc/cleantalk-settings.php:515
+msgid ""
+"Alternative mechanism will store data in database and will not set cookies "
+"in browser, so the cache solutions will work just fine."
+msgstr ""
+
+#: inc/cleantalk-settings.php:596
+msgid ""
+"Alternative way to connect the Cloud. Use this if you have connection "
+"problems."
+msgstr ""
+
+#: inc/cleantalk-settings.php:812
+msgid ""
+"Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in "
+"the Dashboard to filter specific User-Agents."
+msgstr ""
+
+#: inc/cleantalk-settings.php:3317
+msgid ""
+"Anti-Crawler is an add-on to SFW and helps to strengthen the protection "
+"against spam bots. Disabled by default."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Firewall/AntiCrawler.php:421
+#, php-format
+msgid ""
+"Anti-Crawler Protection is checking your browser and IP %s for spam bots"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Firewall/AntiFlood.php:235
+msgid "Anti-Flood is activated for your IP"
+msgstr ""
+
+#: inc/cleantalk-admin.php:832
+msgid "Anti-Spam"
+msgstr ""
+
+#. Name of the plugin
+msgid "Anti-Spam by CleanTalk"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/WcSpamOrdersListTable.php:291
+#: lib/Cleantalk/ApbctWP/FindSpam/Page.php:97
+#, php-format
+msgid ""
+"Anti-Spam hosting tariff does not allow you to use this feature. To do so, "
+"you need to enter an Access Key in the %splugin settings%s."
+msgstr ""
+
+#: inc/cleantalk-settings.php:256
+msgid "Anti-Spam test for any WordPress themes or contacts forms."
+msgstr ""
+
+#: inc/cleantalk-settings.php:324
+msgid "Anti-Spam test for WooCommerce checkout form."
+msgstr ""
+
+#: inc/cleantalk-settings.php:959
+msgid "Append your affiliate ID"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1123
+msgid "Apply current settings template for selected sites."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1122
+msgid "Apply for current sites."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1111
+msgid "Apply for newly added sites."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/WcSpamOrdersListTable.php:80
+msgid "Are you sure?"
+msgstr ""
+
+#: inc/cleantalk-settings.php:859
+msgid "Async JavaScript loading"
+msgstr ""
+
+#: inc/cleantalk-public.php:1155
+msgid "Attention, please!"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Comments.php:43
+msgid "Author"
+msgstr ""
+
+#: inc/cleantalk-settings.php:541 inc/cleantalk-settings.php:617
+msgid "Auto"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1845
+msgid "Auto update"
+msgstr ""
+
+#: inc/cleantalk-settings.php:408
+msgid "Automatically delete spam comments"
+msgstr ""
+
+#: inc/cleantalk-settings.php:2122
+#, php-format
+msgid "Average request time for past 7 days: %s seconds."
+msgstr ""
+
+#: inc/cleantalk-admin.php:211
+msgid "Block Count"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Antispam/EmailEncoder.php:78
+msgid "Blocked"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1230
+msgid "Blocked login attempts in the local database for past 24 hours."
+msgstr ""
+
+#: inc/cleantalk-settings.php:404
+msgid "BuddyPress Private Messages"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1145
+msgid "Bulk spam comments removal tool."
+msgstr ""
+
+#: inc/cleantalk-public.php:1404 inc/cleantalk-public.php:1409
+msgid "by"
+msgstr ""
+
+#: cleantalk.php:1250
+msgid "Can not get SFW table names from main blog options"
+msgstr ""
+
+#: inc/cleantalk-settings.php:282
+msgid "Capture buffer"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3449 inc/cleantalk-settings.php:3454
+msgid "change email"
+msgstr ""
+
+#: inc/cleantalk-settings.php:493
+msgid "Check all post data"
+msgstr ""
+
+#: inc/cleantalk-settings.php:495
+msgid ""
+"Check all POST submissions from website visitors. Enable this option if you "
+"have spam misses on website."
+msgstr ""
+
+#: inc/cleantalk-settings.php:343
+msgid "Check anonymous users when they add new items to the cart"
+msgstr ""
+
+#: inc/cleantalk-settings.php:405
+msgid "Check buddyPress private messages."
+msgstr ""
+
+#: inc/cleantalk-admin.php:1146 inc/cleantalk-settings.php:2030
+#: lib/Cleantalk/ApbctWP/FindSpam/CommentsChecker.php:14
+msgid "Check comments for spam"
+msgstr ""
+
+#: inc/cleantalk-settings.php:623
+msgid "Check email address before sending form data"
+msgstr ""
+
+#: inc/cleantalk-settings.php:627
+msgid "Check email address exist before sending form data"
+msgstr ""
+
+#: inc/cleantalk-settings.php:622
+msgid "Check email before POST request"
+msgstr ""
+
+#: inc/cleantalk-find-spam.php:9 inc/cleantalk-find-spam.php:32
+msgid "Check for spam"
+msgstr ""
+
+#: inc/cleantalk-public.php:763
+msgid "Check for spam:"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1158 inc/cleantalk-settings.php:2034
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:18
+msgid "Check users for spam"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/CommentsLogs.php:16
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/UsersLogs.php:16
+msgid "Checked"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/CommentsChecker.php:50
+#: lib/Cleantalk/ApbctWP/FindSpam/CommentsChecker.php:294
+#, php-format
+msgid ""
+"Checked %s comments total (excluding admins), found %s spam comments and %s "
+"non-checkable comments (no IP and email found)."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:63
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:439
+#, php-format
+msgid ""
+"Checked %s users (excluding admins), found %s spam users and %s non-"
+"checkable users (no IP and email found)."
+msgstr ""
+
+#: inc/cleantalk-settings.php:852
+msgid ""
+"Checking this box you allow plugin to send the information about your "
+"connection. These reports could contain next info:"
+msgstr ""
+
+#: inc/cleantalk-settings.php:2339
+msgid "CleanTalk Affiliate Program are here"
+msgstr ""
+
+#: inc/cleantalk-settings.php:43
+msgid "CleanTalk allowed comments moderation"
+msgstr ""
+
+#: inc/cleantalk-public-integrations.php:1951
+#: inc/cleantalk-public-integrations.php:2490
+#: inc/cleantalk-public-integrations.php:2763
+msgid "CleanTalk Anti-Spam: This message could be spam."
+msgstr ""
+
+#: inc/cleantalk-public.php:730
+msgid "CleanTalk Anti-Spam: This message is possible spam."
+msgstr ""
+
+#: inc/cleantalk-public-integrations.php:1495
+msgid "CleanTalk Anti-Spam: This registration is spam."
+msgstr ""
+
+#: inc/cleantalk-settings.php:502
+msgid "CleanTalk Dashboard"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/CleantalkSettingsTemplates.php:219
+msgid "CleanTalk settings templates"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1587
+msgid "CleanTalk Status"
+msgstr ""
+
+#: inc/cleantalk-public-integrations.php:1499
+#: inc/cleantalk-public-integrations.php:1952
+#: inc/cleantalk-public-integrations.php:2491
+#: inc/cleantalk-public-integrations.php:2764
+msgid "CleanTalk's Anti-Spam database:"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1437
+msgid ""
+"CleanTalk: Your feedback will be sent to the cloud within the next hour. "
+"Feel free to contact us via support@cleantalk.org."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1290
+msgid "Click here to get Anti-Spam statistics"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Comments.php:44
+msgid "Comment"
+msgstr ""
+
+#: inc/cleantalk-public-integrations.php:2935
+msgid "Comment approved. Anti-spam by CleanTalk."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/CommentsChecker.php:49
+msgid "comments"
+msgstr ""
+
+#: inc/cleantalk-settings.php:372
+msgid "Comments and Messages"
+msgstr ""
+
+#: inc/cleantalk-settings.php:233
+msgid "Comments form"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1823
+msgid "Comments forms"
+msgstr ""
+
+#: inc/cleantalk-settings.php:906
+msgid "Complete deactivation"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Users.php:49
+msgid "Completed WC orders"
+msgstr ""
+
+#: inc/cleantalk-settings.php:238
+msgid ""
+"Contact Form 7, Formidable forms, JetPack, Fast Secure Contact Form, "
+"WordPress Landing Pages, Gravity Forms."
+msgstr ""
+
+#: inc/cleantalk-settings.php:237 inc/cleantalk-settings.php:1827
+msgid "Contact forms"
+msgstr ""
+
+#: inc/cleantalk-settings.php:95
+msgid "contact to our support."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/Checker.php:121
+msgid "Continue check"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3257
+msgid "Cookies setting"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1042
+#, php-format
+msgid "Copy the Access key from your %sCleanTalk Profile%s"
+msgstr ""
+
+#: inc/cleantalk-settings.php:482
+msgid ""
+"Could help if you have cache for AJAX requests and you are dealing with "
+"false positives. Slightly decreases protection quality. Auto - Static key "
+"will be used if caching plugin is spotted."
+msgstr ""
+
+#: inc/cleantalk-settings.php:835
+msgid ""
+"Count of page view per 1 minute before plugin shows SpamFireWall page. "
+"SpamFireWall page active for 30 second after that valid visitor (with "
+"JavaScript) passes the page to the demanded page of the site."
+msgstr ""
+
+#: inc/cleantalk-admin.php:1023
+msgid "Counters:"
+msgstr ""
+
+#: inc/cleantalk-admin.php:209
+msgid "Country"
+msgstr ""
+
+#: inc/cleantalk-settings.php:255 inc/cleantalk-settings.php:1831
+msgid "Custom contact forms"
+msgstr ""
+
+#: inc/cleantalk-settings.php:798 inc/cleantalk-settings.php:3514
+msgid "Custom logo on SpamFireWall blocking pages"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/WcSpamOrdersListTable.php:113
+msgid "Customer details"
+msgstr ""
+
+#: inc/cleantalk-settings.php:451
+msgid "Data Processing"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1069
+msgid "Day"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1571
+msgid "Debug"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/WcSpamOrdersListTable.php:122
+msgid "Delete"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/UsersScan.php:73
+msgid "Delete all users from list"
+msgstr ""
+
+#: inc/cleantalk-settings.php:410
+msgid "Delete spam comments older than %d days."
+msgstr ""
+
+#. CleanTalk dash bord (Settings Templates) URL
+#: lib/Cleantalk/ApbctWP/CleantalkSettingsTemplates.php:181
+#, php-format
+msgid ""
+"Deleting templates is available in the <a href=\"%s\" target=\"_blank\">"
+"CleanTalk Dashboard</a>"
+msgstr ""
+
+#: inc/cleantalk-settings.php:376
+msgid "Disable all comments"
+msgstr ""
+
+#: inc/cleantalk-settings.php:399
+msgid "Disable comments for all media"
+msgstr ""
+
+#: inc/cleantalk-settings.php:394
+msgid "Disable comments for all pages"
+msgstr ""
+
+#: inc/cleantalk-settings.php:389
+msgid "Disable comments for all posts"
+msgstr ""
+
+#: inc/cleantalk-settings.php:377
+msgid "Disabling comments for all types of content."
+msgstr ""
+
+#: inc/cleantalk-settings.php:727
+msgid ""
+"Display all-time requests counter in the admin bar. Counter displays number "
+"of requests since plugin installation."
+msgstr ""
+
+#: inc/cleantalk-settings.php:736
+msgid ""
+"Display daily requests counter in the admin bar. Counter displays number of "
+"requests of the past 24 hours."
+msgstr ""
+
+#: inc/cleantalk-settings.php:745
+msgid ""
+"Display SpamFireWall requests in the admin bar. Counter displays number of "
+"requests since plugin installation."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Users.php:387
+msgid "Do \"accurate check\" to skip checking this user"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:57
+msgid ""
+"Do you confirm deletion selected accounts and all content owned by the "
+"accounts? Please do backup of the site before deletion!"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1459
+msgid "Do you like"
+msgstr ""
+
+#: inc/cleantalk-admin.php:289
+#, php-format
+msgid "Do you like CleanTalk? %sPost your feedback here%s."
+msgstr ""
+
+#: inc/cleantalk-settings.php:464
+msgid "Don't check comments for users with above %d comments."
+msgstr ""
+
+#: inc/cleantalk-settings.php:462
+msgid "Don't check trusted user's comments"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Firewall/AntiCrawler.php:441
+msgid "Don't close this page. Please, wait for 3 seconds to pass to the page."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1316
+#, php-format
+msgid "Done! Ready to protect %s."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/UsersScan.php:75
+msgid "Download results in CSV"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Users.php:43
+msgid "E-mail"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1552
+msgid "Email encoder:"
+msgstr ""
+
+#: inc/cleantalk-settings.php:334
+msgid ""
+"Enable Anti-Spam test for registration process which during woocommerce's "
+"checkout."
+msgstr ""
+
+#: inc/cleantalk-settings.php:651
+msgid ""
+"Enable the option to log some types of the excluded requests, like comments "
+"from approved authors or POST requests without an Email address"
+msgstr ""
+
+#: inc/cleantalk-settings.php:963
+msgid ""
+"Enable this option to append your specific affiliate ID to the trust text "
+"created by the options above (\"Shortcode\" or \"Add to the footer\"). Terms "
+"and your affiliate ID of the {CT_AFFILIATE_TERMS}."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1061
+msgid "Enable White Label Mode"
+msgstr ""
+
+#: inc/cleantalk-settings.php:190 inc/cleantalk-settings.php:630
+msgid "Encode contact data"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/CleantalkSettingsTemplates.php:200
+msgid "Enter a template name"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1908
+msgid "Enter the Access key"
+msgstr ""
+
+#: inc/cleantalk-settings.php:2014
+msgid ""
+"Enter the Hoster Access key and synchronize with cloud to find out your "
+"hoster account utilization."
+msgstr ""
+
+#: inc/cleantalk-wpcli.php:70 inc/cleantalk-wpcli.php:127
+#: inc/cleantalk-wpcli.php:134
+msgid ""
+"error \n"
+msgstr ""
+
+#: inc/cleantalk-wpcli.php:64 inc/cleantalk-wpcli.php:121
+msgid ""
+"error \n"
+", not expected result"
+msgstr ""
+
+#: inc/cleantalk-wpcli.php:156
+msgid ""
+"error \n"
+"Can't reset settings to default\n"
+msgstr ""
+
+#: inc/cleantalk-wpcli.php:189
+msgid ""
+"error \n"
+"Can't set template \n"
+msgstr ""
+
+#: inc/cleantalk-wpcli.php:163
+msgid ""
+"error \n"
+"please add <id> param to choose template \n"
+msgstr ""
+
+#: inc/cleantalk-wpcli.php:181
+msgid ""
+"error \n"
+"Selected <id> not exist \n"
+msgstr ""
+
+#: inc/cleantalk-wpcli.php:111
+msgid ""
+"error - set api_key first \n"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1548
+msgid "Error occurred on last SpamFireWall check. "
+msgstr ""
+
+#: inc/cleantalk-settings.php:1525
+msgid "Error occurred while Access key validating. "
+msgstr ""
+
+#: inc/cleantalk-settings.php:1526
+msgid "Error occurred while automatically get Access key. "
+msgstr ""
+
+#: inc/cleantalk-settings.php:1542
+msgid "Error occurred while checking account status. "
+msgstr ""
+
+#: inc/cleantalk-settings.php:1546
+msgid "Error occurred while executing API call. "
+msgstr ""
+
+#: inc/cleantalk-settings.php:1547
+msgid "Error occurred while executing CleanTalk Cron job. "
+msgstr ""
+
+#: inc/cleantalk-public.php:1227
+msgid "Error occurred while sending feedback."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1530
+msgid "Error occurred while sending SpamFireWall logs. "
+msgstr ""
+
+#: inc/cleantalk-settings.php:1534
+msgid "Error occurred while updating SpamFireWall local base. "
+msgstr ""
+
+#: inc/cleantalk-settings.php:1538
+msgid "Error occurred while updating User-Agents local base. "
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/WcSpamOrdersFunctions.php:16
+msgid "Error: Order ID is not valid."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/WcSpamOrdersFunctions.php:23
+msgid "Error: Order is not founded."
+msgstr ""
+
+#: inc/cleantalk-settings.php:575
+msgid "Exclude any forms that has attribute matches."
+msgstr ""
+
+#: inc/cleantalk-settings.php:582
+msgid "Exclude any forms that includes a child element with attribute matches."
+msgstr ""
+
+#: inc/cleantalk-settings.php:589
+msgid ""
+"Exclude any forms that includes a parent element with attribute matches."
+msgstr ""
+
+#: inc/cleantalk-settings.php:3349
+msgid "Exclude the form by their attribute"
+msgstr ""
+
+#: inc/cleantalk-settings.php:646
+msgid "Exclusions"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/CleantalkSettingsTemplates.php:190
+msgid "Export settings"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/CleantalkSettingsTemplates.php:228
+msgid "Export settings to selected template"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/CommentsChecker.php:43
+msgid "Failed from timeout. Going to check comments again."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:49
+msgid "Failed from timeout. Going to check users again."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:53
+msgid "Failed from timeout. Going to run a new attempt to delete spam users."
+msgstr ""
+
+#: inc/cleantalk-admin.php:480
+msgid "FAQ"
+msgstr ""
+
+#: inc/cleantalk-admin.php:679 inc/cleantalk-public.php:1233
+#, php-format
+msgid "Feedback has been sent to %sCleanTalk Dashboard%s."
+msgstr ""
+
+#: inc/cleantalk-public.php:1228
+msgid "Feedback wasn't sent. There is no associated request."
+msgstr ""
+
+#: inc/cleantalk-settings.php:667
+msgid "Field Name Exclusions"
+msgstr ""
+
+#: inc/cleantalk-admin.php:86
+#, php-format
+msgid "Find spam %s"
+msgstr ""
+
+#: inc/cleantalk-admin.php:675 inc/cleantalk-find-spam.php:33
+msgid "Find spam comments"
+msgstr ""
+
+#: inc/cleantalk-find-spam.php:10
+msgid "Find spam users"
+msgstr ""
+
+#: inc/cleantalk-admin.php:705
+msgid "Find spam-users"
+msgstr ""
+
+#. 1: Comments list URL, 2: Users list URL
+#: inc/cleantalk-settings.php:432
+#, php-format
+msgid ""
+"For example, in the menus <a href=\"%1$s\">Comments</a> and <a href=\"%2$s\">"
+"Users</a>"
+msgstr ""
+
+#: inc/cleantalk-settings.php:681 inc/cleantalk-settings.php:3325
+msgid "Form Signs Exclusions"
+msgstr ""
+
+#: inc/cleantalk-settings.php:222
+msgid "Forms to protect"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/CommentsLogs.php:18
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/UsersLogs.php:18
+msgid "Found bad"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/CommentsLogs.php:17
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/UsersLogs.php:17
+msgid "Found spam"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1939
+msgid "Get Access Key Automatically"
+msgstr ""
+
+#: inc/cleantalk-admin.php:168
+msgid "Get Access key to activate Anti-Spam protection!"
+msgstr ""
+
+#: inc/cleantalk-admin.php:744
+msgid "Get premium"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:146
+msgid "Get the Access key"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:273
+#, php-format
+msgid "Help others to fight spam with %s – leave your feedback!"
+msgstr ""
+
+#: templates/translate_banner.php:7
+msgid "Help others use the plugin in your language."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Antispam/EmailEncoder.php:118
+msgid "Here is a sample of encoded email"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3309 inc/cleantalk-settings.php:3321
+msgid "here."
+msgstr ""
+
+#: inc/cleantalk-settings.php:180 inc/cleantalk-settings.php:3265
+msgid "Hide the \"Website\" field"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3305
+msgid "Honeypot field"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1040
+msgid "Hoster Access key"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1998
+#, php-format
+msgid "Hoster account utilization: %s%% ( %s of %s websites )."
+msgstr ""
+
+#: inc/cleantalk-admin.php:626 inc/cleantalk-settings.php:1255
+msgid "Hosting Anti-Spam"
+msgstr ""
+
+#. URI of the plugin
+#. Author URI of the plugin
+msgid "https://cleantalk.org"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1976
+#, php-format
+msgid "I accept %sLicense Agreement%s."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/WcSpamOrdersListTable.php:111
+msgid "ID"
+msgstr ""
+
+#: inc/cleantalk-settings.php:791
+msgid ""
+"If a visitor gets the SpamFireWall page, the plugin will put a unique GET "
+"variable in the URL to avoid issues with caching plugins. Example: https:"
+"//SITE.COM/?sfw=pass1629985735"
+msgstr ""
+
+#: inc/cleantalk-settings.php:880
+#, php-format
+msgid "If enabled, overrides similar WordPress %sdiscussion settings%s."
+msgstr ""
+
+#: inc/cleantalk-settings.php:773
+msgid ""
+"If the setting is turned on, plugin will automatically add IP address for "
+"each session with administration rights to Personal list in the cloud."
+msgstr ""
+
+#: inc/cleantalk-admin.php:542
+msgid ""
+"If you have any difficulties using the CleanTalk Anti-Spam Plugin, please "
+"contact our Technical Support here:<br>https://wordpress."
+"org/support/plugin/cleantalk-spam-protect"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3521
+msgid "Image"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/CleantalkSettingsTemplates.php:148
+msgid "Import settings"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/CleantalkSettingsTemplates.php:237
+msgid "Import settings from selected template"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3560
+msgid "Import/Export settings"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Comments.php:45
+msgid "In Response To"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1020
+msgid "Individual accounts, individual Access keys"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1201
+msgid "Install Security by CleanTalk"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1584 inc/cleantalk-settings.php:1618
+msgid "Invalid date"
+msgstr ""
+
+#: inc/cleantalk-admin.php:207
+msgid "IP"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3260
+#, php-format
+msgid ""
+"It determines what methods of using the HTTP cookies the Anti-Spam plugin "
+"for WordPress should switch to. It is necessary for the plugin to work "
+"properly. All CleanTalk cookies contain technical data. Data of the current "
+"website visitor is encrypted with the MD5 algorithm and being deleted when "
+"the browser session ends. %s"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3300
+#, php-format
+msgid ""
+"It is an «invisible» 1×1px image that the Anti-Spam plugin integrates to "
+"your WordPress website. And when someone visits your website the Pixel is "
+"triggered and reports this visit and some other data including true IP "
+"address. %s"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3410
+#, php-format
+msgid "JavaScript check was set on %s"
+msgstr ""
+
+#: inc/cleantalk-settings.php:561
+msgid "JavaScript Library Exclusions"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/CommentsChecker.php:308
+#, php-format
+msgid ""
+"Last check %s: checked %s comments total (excluding admins), found %s spam "
+"comments and %s non-checkable comments (no IP and email found)."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:453
+#, php-format
+msgid ""
+"Last check %s: checked %s users (excluding admins), found %s spam users and "
+"%s non-checkable users (no IP and email found)."
+msgstr ""
+
+#: inc/cleantalk-settings.php:2093
+#, php-format
+msgid "Last spam check request to %s server was at %s."
+msgstr ""
+
+#: inc/cleantalk-settings.php:2137
+#, php-format
+msgid "Last time SpamFireWall was triggered for %s IP at %s"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/CleantalkRealPerson.php:15
+msgid "Learn more"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3261
+msgid "Learn more about suboptions"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1063
+#, php-format
+msgid "Learn more information %shere%s."
+msgstr ""
+
+#: inc/cleantalk-settings.php:3269 inc/cleantalk-settings.php:3277
+#: inc/cleantalk-settings.php:3285 inc/cleantalk-settings.php:3293
+#: inc/cleantalk-settings.php:3301 inc/cleantalk-settings.php:3345
+msgid "Learn more."
+msgstr ""
+
+#: inc/cleantalk-settings.php:907
+msgid "Leave no trace in the system after deactivation."
+msgstr ""
+
+#: inc/cleantalk-settings.php:650
+msgid "Log excluded requests"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1225
+msgid "Logins:"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdjustToEnvironmentModule/AdjustToEnvironmentSettings.php:69
+#, php-format
+msgid "Make adjust for %s"
+msgstr ""
+
+#: inc/cleantalk-admin.php:729 inc/cleantalk-admin.php:732
+msgid "Make it right!"
+msgstr ""
+
+#: inc/cleantalk-settings.php:439
+msgid "Manage comments on public pages"
+msgstr ""
+
+#: inc/cleantalk-admin.php:911
+msgid "Manuals and FAQ"
+msgstr ""
+
+#: inc/cleantalk-public-integrations.php:3910 inc/cleantalk-public.php:1445
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Comments.php:222
+msgid "Mark as spam"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/CommentsScan.php:57
+msgid "Mark as spam all comments from the list"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/CommentsChecker.php:48
+msgid "Mark as spam all comments from the list?"
+msgstr ""
+
+#: inc/cleantalk-public.php:1466
+msgid "Marked as not spam."
+msgstr ""
+
+#: inc/cleantalk-public.php:1460
+msgid "Marked as spam."
+msgstr ""
+
+#. Description of the plugin
+msgid ""
+"Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam,"
+" no registration spam, no contact spam, protects any WordPress forms."
+msgstr ""
+
+#: inc/cleantalk-settings.php:845
+msgid "Miscellaneous"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Comments.php:223
+msgid "Move to trash"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/CommentsScan.php:60
+msgid "Move to trash all comments from the list"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1007
+msgid "Mutual Account, Individual Access Keys"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1015
+msgid "Mutual Account, Mutual Access Key"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Users.php:42
+msgid "Name"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:356
+msgid "Need to clear the cache"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/CommentsChecker.php:319
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:463
+msgid "Never checked yet or no new spam."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdjustToEnvironmentModule/AdjustToEnvironmentSettings.php:61
+msgid ""
+"Next button will disable \"Cache URIs with query string variables\" option."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdjustToEnvironmentModule/AdjustToEnvironmentSettings.php:93
+msgid ""
+"Next button will enable \"Cache URIs with query string variables\" option "
+"back."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/CommentsChecker.php:194
+msgid "No comments found."
+msgstr ""
+
+#: inc/cleantalk-public.php:1425
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/BadUsers.php:89
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Comments.php:90
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Users.php:96
+msgid "No email"
+msgstr ""
+
+#: inc/cleantalk-public.php:1440
+msgid "No IP"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/BadUsers.php:106
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/BadUsers.php:109
+msgid "No IP address"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Comments.php:104
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Users.php:113
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Users.php:116
+msgid "No IP adress"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/CommentsLogs.php:67
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/UsersLogs.php:67
+msgid "No logs found."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/BadUsers.php:147
+msgid "No non-checkable users found."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Comments.php:276
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Users.php:230
+msgid "No spam found."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:341
+msgid "No users found."
+msgstr ""
+
+#: inc/cleantalk-find-spam.php:23 lib/Cleantalk/ApbctWP/FindSpam/Page.php:133
+msgid "Non-checkable users"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:443
+msgid "Notice name is not allowed."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:440
+msgid "Notice status not updated."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1628
+msgid "Notifications"
+msgstr ""
+
+#: inc/cleantalk-settings.php:875
+msgid ""
+"Notify users with selected roles about new approved comments. Hold CTRL to "
+"select multiple roles."
+msgstr ""
+
+#: inc/cleantalk-settings.php:542 inc/cleantalk-settings.php:618
+#: inc/cleantalk-settings.php:1165
+msgid "Off"
+msgstr ""
+
+#: inc/cleantalk-settings.php:532 inc/cleantalk-settings.php:1164
+msgid "On"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Antispam/EmailEncoder.php:110
+msgid ""
+"Option encodes emails on public pages of the site. This prevents robots from "
+"collecting and including your emails in lists to spam."
+msgstr ""
+
+#: inc/cleantalk-settings.php:470
+msgid ""
+"Options helps protect WordPress against spam with any caching plugins. Turn "
+"this option on to avoid issues with caching plugins."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Firewall/SFW.php:412
+msgid ""
+"Or you will be automatically redirected to the requested page after %d "
+"seconds."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/WcSpamOrdersListTable.php:112
+msgid "Order details"
+msgstr ""
+
+#: inc/cleantalk-settings.php:832
+msgid "Page Views Limit"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1248
+msgid "Passed / Blocked requests by Security Firewall for past 24 hours."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/CleantalkRealPerson.php:14
+msgid "Passed all tests against spam bots. Anti-Spam by CleanTalk."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Firewall/SFW.php:407
+msgid "Please click the link below to pass the protection,"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/CommentsChecker.php:54
+#: lib/Cleantalk/ApbctWP/FindSpam/CommentsChecker.php:326
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:67
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:470
+msgid "Please do backup of WordPress database before delete any accounts!"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:170
+#, php-format
+msgid "Please enter the Access Key in %s plugin to enable spam protection!"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:239
+msgid "Please renew your Anti-Spam license for next year!"
+msgstr ""
+
+#: inc/cleantalk-settings.php:2217
+msgid ""
+"Please, enable \"Send connection reports\" setting to be able to send reports"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1500
+#, php-format
+msgid "Please, enter the %splugin settings%s in main site dashboard."
+msgstr ""
+
+#: inc/cleantalk-wpcli.php:75
+msgid ""
+"Please, get the Access Key from CleanTalk Control Panel \n"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3035
+#, php-format
+msgid ""
+"Please, get the Access Key from CleanTalk Control Panel %s and insert it in "
+"the Access Key field"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3335
+msgid ""
+"Please, note, you can exclude the form by adding a special hidden input or "
+"another HTML tag. \n"
+"                Then you need to add the exclusion string. Example:"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:72
+msgid "Please, select a date range."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:71
+msgid "Please, specify a date range."
+msgstr ""
+
+#: inc/cleantalk-admin.php:192
+msgid "Please, visit your Dashboard."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1448
+msgid "Plugin Homepage at"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1077
+msgid "Plugin name"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/WcSpamOrdersListTable.php:318
+#: lib/Cleantalk/ApbctWP/FindSpam/Page.php:126
+msgid "Plugin Settings"
+msgstr ""
+
+#: inc/cleantalk-settings.php:807
+msgid ""
+"Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google,"
+" Yahoo and etc)."
+msgstr ""
+
+#: inc/cleantalk-settings.php:196
+msgid ""
+"Plugin shows special benchmark for author of a comment or review, that the "
+"author passed all anti-spam filters and acts as a real person. It improves "
+"quality of users generated content on your website by proving that the "
+"content is not from spambots."
+msgstr ""
+
+#: inc/cleantalk-settings.php:3276
+#, php-format
+msgid ""
+"Plugin shows special benchmark for author of a comment or review, that the "
+"author passed all anti-spam filters and acts as a real person. It improves "
+"quality of users generated content on your website by proving that the "
+"content is not from spambots. %s"
+msgstr ""
+
+#: inc/cleantalk-settings.php:868
+msgid ""
+"Plugin stores last 5 visited URLs (HTTP REFERRERS) before visitor submits "
+"form on the site. You can see stored visited URLS for each visitor in your "
+"Dashboard. Turn the option on to improve Anti-Spam protection."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1462
+msgid "Post your feedback here"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Users.php:46
+msgid "Posts"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/Checker.php:130
+msgid ""
+"Process of verification is designed to check IP addresses and emails against "
+"our blacklist database. Please note that this check only verifies whether "
+"the IP address or email is listed in our blacklist at the time of the "
+"request. If the IP address or email was not on the blacklist at the time of "
+"the query, the system will not flag the user or comment as suspicious. "
+"Therefore, this is not an anti-spam feature but rather a check against a "
+"static database of blacklisted entries."
+msgstr ""
+
+#: inc/cleantalk-settings.php:274
+msgid "Protect external forms"
+msgstr ""
+
+#: inc/cleantalk-settings.php:293
+msgid "Protect internal forms"
+msgstr ""
+
+#: inc/cleantalk-settings.php:455
+msgid "Protect logged in Users"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1817
+msgid "Protection is active"
+msgstr ""
+
+#: inc/cleantalk-settings.php:268
+#, php-format
+msgid ""
+"Read more about %sspam protection for Search form%s on our blog. The "
+"\"noindex\" tag will be placed in the meta directive on the search results "
+"page."
+msgstr ""
+
+#: inc/cleantalk-settings.php:3320
+msgid "Read out the article if you are using Varnish on your server."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:326
+msgid "Read the article"
+msgstr ""
+
+#: inc/cleantalk-public-integrations.php:1090
+#, php-format
+msgid "Registration approved by %s."
+msgstr ""
+
+#: inc/cleantalk-settings.php:226
+msgid "Registration Forms"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1819
+msgid "Registration forms"
+msgstr ""
+
+#: inc/cleantalk-settings.php:682
+msgid ""
+"Regular expression. If the form contains any of these signs in POST array "
+"keys or in value of \"action\" key, the \n"
+"                        whole form submission is excluded from spam checking."
+" See more details in long description, \n"
+"                        just click question mark near the option header."
+msgstr ""
+
+#: inc/cleantalk-settings.php:567
+msgid ""
+"Regular expression. Use to skip a HTML form from special service field "
+"attach."
+msgstr ""
+
+#: inc/cleantalk-settings.php:415
+msgid "Remove links from approved comments"
+msgstr ""
+
+#: inc/cleantalk-settings.php:416
+msgid "Remove links from approved comments. Replace it with \"[Link deleted]\""
+msgstr ""
+
+#: inc/cleantalk-admin.php:845
+msgid "Renew Anti-Spam"
+msgstr ""
+
+#: inc/cleantalk-admin.php:892
+msgid "Renew Security"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1117 inc/cleantalk-admin.php:1118
+msgid "Reset all counters"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1108
+msgid "Reset first counter"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/CleantalkSettingsTemplates.php:246
+msgid "Reset settings to defaults"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3423
+msgid "REST API"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/WcSpamOrdersListTable.php:78
+msgid "Restore"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/CommentsChecker.php:330
+msgid ""
+"Results are based on the decision of our spam checking system and do not "
+"give a complete guarantee that these comments are spam."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:474
+msgid ""
+"Results are based on the decision of our spam checking system and do not "
+"give a complete guarantee that these users are spammers."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Users.php:45
+msgid "Role"
+msgstr ""
+
+#: inc/cleantalk-settings.php:693
+msgid "Roles Exclusions"
+msgstr ""
+
+#: inc/cleantalk-settings.php:696
+msgid "Roles which bypass spam test. Hold CTRL to select multiple roles."
+msgstr ""
+
+#: inc/cleantalk-settings.php:3452
+msgid "save"
+msgstr ""
+
+#: inc/cleantalk-settings.php:245
+msgid "Save Flamingo spam entries"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/Page.php:131
+msgid "Scan and new results"
+msgstr ""
+
+#: inc/cleantalk-find-spam.php:16 inc/cleantalk-find-spam.php:39
+#: lib/Cleantalk/ApbctWP/FindSpam/Page.php:135
+msgid "Scan logs"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1291
+msgid "Scanner"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1243
+msgid "Security Firewall: "
+msgstr ""
+
+#: inc/cleantalk-settings.php:3344
+#, php-format
+msgid "See details on the page linked below. %s"
+msgstr ""
+
+#: inc/cleantalk-settings.php:851
+msgid "Send connection reports"
+msgstr ""
+
+#: inc/cleantalk-settings.php:2213
+msgid "Send new report"
+msgstr ""
+
+#: inc/cleantalk-public.php:1400
+msgid "Sender info"
+msgstr ""
+
+#: inc/cleantalk-wpcli.php:93
+msgid ""
+"Service created and auth key installed. \n"
+msgstr ""
+
+#: inc/cleantalk-settings.php:508
+msgid "Set cookies"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1135 inc/cleantalk-admin.php:1283
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:175
+msgid "Settings"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:278
+msgid "SHARE YOUR FEEDBACK"
+msgstr ""
+
+#: inc/cleantalk-settings.php:920
+msgid "Shortcode"
+msgstr ""
+
+#: inc/cleantalk-settings.php:735
+msgid "Show 24 hours counter"
+msgstr ""
+
+#: inc/cleantalk-settings.php:726
+msgid "Show All-time counter"
+msgstr ""
+
+#: inc/cleantalk-settings.php:898
+msgid "Show Dashboard Widget"
+msgstr ""
+
+#: inc/cleantalk-settings.php:626
+msgid "Show email existence alert when filling in the field"
+msgstr ""
+
+#: inc/cleantalk-settings.php:422
+msgid "Show links to check Emails, IPs for spam"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/Page.php:145
+msgid "Show per page"
+msgstr ""
+
+#: inc/cleantalk-settings.php:714
+msgid "Show statistics in admin bar"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1926
+msgid "Show the Access key"
+msgstr ""
+
+#: inc/cleantalk-settings.php:715
+msgid ""
+"Show/hide icon in top level menu in WordPress backend. The number of "
+"submissions is being counted for past 24 hours."
+msgstr ""
+
+#. Brand name
+#: inc/cleantalk-settings.php:426
+#, php-format
+msgid ""
+"Shows a little icon next to IP and email addresses allowing you to click it "
+"and check the addresses via the database of %s."
+msgstr ""
+
+#: inc/cleantalk-admin.php:1035
+msgid "Shows amount of alllowed and blocked requests since the date."
+msgstr ""
+
+#: inc/cleantalk-admin.php:1263
+msgid ""
+"Shows amount of currently logged in administrators. Updates each 10 seconds."
+msgstr ""
+
+#: inc/cleantalk-settings.php:824
+msgid ""
+"Shows the SpamFireWall page for bots trying to crawl your site. Look at the "
+"page limit setting below."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Users.php:44
+msgid "Signed up"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1031
+msgid "Since"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1049
+msgid "Since activation"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1139
+msgid "Sites to apply settings. Hold CTRL to select multiple sites."
+msgstr ""
+
+#: inc/cleantalk-settings.php:2246
+msgid ""
+"Skip manual approving for the very first comment if a comment has been "
+"allowed by CleanTalk Anti-Spam protection"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:313
+#, php-format
+msgid "Some plugin is not compatible with %s – instruction in the article."
+msgstr ""
+
+#: inc/cleantalk-admin.php:178
+#, php-format
+msgid "Something went wrong! Error: \"%s\"."
+msgstr ""
+
+#: inc/cleantalk-public-integrations.php:3861
+#, php-format
+msgid "Spam <span class=\"count\">(%s)</span>"
+msgid_plural "Spam <span class=\"count\">(%s)</span>"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/cleantalk-settings.php:246
+msgid ""
+"Spam Contact Form 7 entries will be saved into Flamingo if the option is "
+"enabled"
+msgstr ""
+
+#: inc/cleantalk-public.php:797 inc/cleantalk-public.php:850
+#: lib/Cleantalk/Antispam/Integrations/CleantalkPreprocessComment.php:311
+msgid "Spam protection"
+msgstr ""
+
+#: inc/cleantalk-public-integrations.php:193
+#: inc/cleantalk-public-integrations.php:398
+#: inc/cleantalk-public-integrations.php:754
+#: inc/cleantalk-public-integrations.php:2465
+#: inc/cleantalk-public-validate.php:284
+msgid "Spam protection by CleanTalk"
+msgstr ""
+
+#: inc/cleantalk-settings.php:264
+msgid "Spam protection for Search form."
+msgstr ""
+
+#: inc/cleantalk-settings.php:333
+msgid "Spam test for registration during checkout"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1088
+msgid "SpamFireWall"
+msgstr ""
+
+#: inc/cleantalk-settings.php:744
+msgid "SpamFireWall counter"
+msgstr ""
+
+#: cleantalk.php:1231
+msgid ""
+"SpamFireWall database is outdated. Please, try to synchronize with the cloud."
+msgstr ""
+
+#: inc/cleantalk-settings.php:757
+msgid "SpamFireWall features"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3316
+msgid ""
+"SpamFireWall is a part of the anti-spam service and blocks the most spam "
+"active bots before the site pages load."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Firewall/SFW.php:382
+#, php-format
+msgid "SpamFireWall is checking your browser and IP %s for spam bots"
+msgstr ""
+
+#: inc/cleantalk-settings.php:2165
+#, php-format
+msgid "SpamFireWall sent %s events at %s."
+msgstr ""
+
+#: inc/cleantalk-settings.php:2149
+#, php-format
+msgid "SpamFireWall was updated %s. Now contains %s entries."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/Checker.php:147
+msgid "Specify date range"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1079
+#, php-format
+msgid "Specify plugin name. Leave empty for deafult %sAnti-Spam by CleanTalk%s"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/Checker.php:117
+msgid "Start check"
+msgstr ""
+
+#: inc/cleantalk-admin.php:478
+msgid "Start here"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1293
+msgid "Start scan"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/CommentsLogs.php:15
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/UsersLogs.php:15
+msgid "Start time"
+msgstr ""
+
+#: inc/cleantalk-settings.php:2052 inc/cleantalk-settings.php:2067
+msgid "Statistics & Reports"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:282
+msgid "Still have spam?"
+msgstr ""
+
+#: inc/cleantalk-settings.php:359
+msgid "Store blocked orders"
+msgstr ""
+
+#: inc/cleantalk-settings.php:535
+msgid "Store data in the website database (alternative mechanism)"
+msgstr ""
+
+#: inc/cleantalk-settings.php:867
+msgid "Store visited URLs"
+msgstr ""
+
+#: inc/cleantalk-wpcli.php:158
+msgid ""
+"Success \n"
+"Template was reset to default \n"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/CleantalkSettingsTemplates.php:50
+#: lib/Cleantalk/ApbctWP/CleantalkSettingsTemplates.php:67
+#: lib/Cleantalk/ApbctWP/CleantalkSettingsTemplates.php:91
+#: lib/Cleantalk/ApbctWP/CleantalkSettingsTemplates.php:105
+msgid "Success. Reloading..."
+msgstr ""
+
+#: inc/cleantalk-admin.php:482 inc/cleantalk-admin.php:1187
+#: inc/cleantalk-admin.php:1300 inc/cleantalk-settings.php:1329
+msgid "Support"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1303
+msgid "Synchronize with Cloud"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1301
+msgid ""
+"Synchronizing account status, SpamFireWall database, all kind of journals"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1311
+msgid "Syncing data with the cloud. Usually, it takes a few seconds."
+msgstr ""
+
+#: inc/cleantalk-settings.php:262
+msgid "Test default WordPress search form for spam"
+msgstr ""
+
+#: inc/cleantalk-settings.php:2887
+msgid "Testing is failed. Please check the Access key."
+msgstr ""
+
+#: inc/cleantalk-admin.php:544
+msgid ""
+"Thank you for the review! We strive to make our Anti-Spam plugin better "
+"every day."
+msgstr ""
+
+#: inc/cleantalk-settings.php:520
+msgid ""
+"The \"Auto\" option is designed to automatically detect the presence of "
+"caching plugins on the site, but now it does not always work, so we advise "
+"you not to use this option. The option is reserved for long-time customers "
+"who are fine with filtering."
+msgstr ""
+
+#: inc/cleantalk-settings.php:525
+msgid ""
+"The \"Off\" option uses local storage instead of cookies. Caching plugins "
+"have no negative effect. We recommend using this option."
+msgstr ""
+
+#: inc/cleantalk-settings.php:510
+msgid ""
+"The \"On\" option means ordinary cookies in the visitor's browser. If you "
+"use cache plugins, some user parameters will be transmitted inaccurately and "
+"this may lead to incorrect filtering."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1863
+msgid "The Access key is not required."
+msgstr ""
+
+#: inc/cleantalk-admin.php:1610
+msgid "The Access key is not set or is incorrect"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1609
+msgid "The Access key is set and correct"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/CleantalkRealPerson.php:13
+msgid "The commenter acts as a real person and verified as not a bot."
+msgstr ""
+
+#: inc/cleantalk-settings.php:214
+msgid ""
+"The default settings correspond to the optimal work of the service and their "
+"change is required only in special cases."
+msgstr ""
+
+#: inc/cleantalk-wpcli.php:51
+msgid ""
+"the domain is not specified, the current domain will be used \n"
+msgstr ""
+
+#: inc/cleantalk-common.php:716
+msgid ""
+"The email doesn`t exist, double check the address. Anti-Spam by CleanTalk."
+msgstr ""
+
+#: inc/cleantalk-common.php:718
+msgid "The email exists and is good to use! Anti-Spam by CleanTalk"
+msgstr ""
+
+#: inc/cleantalk-wpcli.php:37
+msgid ""
+"the email is not specified, the administrator's mail will be used \n"
+msgstr ""
+
+#: inc/cleantalk-settings.php:88
+msgid ""
+"The functionality was disabled because SpamFireWall database is empty. "
+"Please, do the synchronization or"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1112
+msgid "The newly added site will have the same preset settings template."
+msgstr ""
+
+#: inc/cleantalk-settings.php:3308
+#, php-format
+msgid ""
+"The option helps to block bots . The honeypot field option adds a hidden "
+"field to the form. When spambots come to a website form, they can fill out "
+"each input field. Enable this option to make the protection stronger on "
+"these forms. Learn more about supported forms %s"
+msgstr ""
+
+#: inc/cleantalk-settings.php:360
+msgid ""
+"The orders which was blocked by the Anti-Spam will be stored and could be "
+"restored manually later if its needed."
+msgstr ""
+
+#: inc/cleantalk-settings.php:3326
+msgid ""
+"The plugin will check the POST array to find regular expressions matches. "
+"Usually, field's \n"
+"            \"name\" attribute passed to the POST array as array keys. To "
+"skip any of \n"
+"            these signs add name or action to the textarea. Example of an "
+"exclusion record:"
+msgstr ""
+
+#: inc/cleantalk-settings.php:195 inc/cleantalk-settings.php:3273
+#: lib/Cleantalk/ApbctWP/CleantalkRealPerson.php:12
+msgid "The Real Person Badge!"
+msgstr ""
+
+#: inc/cleantalk-admin.php:677
+msgid "The sender has been blacklisted."
+msgstr ""
+
+#: inc/cleantalk-admin.php:676
+msgid "The sender has been whitelisted."
+msgstr ""
+
+#: inc/cleantalk-public.php:1239
+msgid ""
+"The service accepts feedback only for requests made less than 7 (or 45 if "
+"the Extra Package is activated) days ago."
+msgstr ""
+
+#: inc/cleantalk-admin.php:682
+msgid ""
+"The service accepts feedback only for requests made no more than 7 or 45 "
+"days \n"
+"            (if the Extra package is activated) ago."
+msgstr ""
+
+#: inc/cleantalk-settings.php:2179
+msgid "There are no failed connections to server."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/CleantalkSettingsTemplates.php:160
+msgid "There are no settings templates"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:308
+msgid "These users can't be checked because they haven't IP or e-mail"
+msgstr ""
+
+#: lib/Cleantalk/Antispam/EmailEncoder.php:564
+#, php-format
+msgid ""
+"This contact has been encoded by %s. Click to decode. To finish the decoding "
+"make sure that JavaScript is enabled in your browser."
+msgstr ""
+
+#: inc/cleantalk-public-integrations.php:3214
+msgid "This entry has been marked as spam."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Firewall/SFW.php:457
+msgid "This IP is blocked"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Firewall/SFW.php:456
+msgid "This IP is passed"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Firewall/SFW.php:471
+msgid "This IP is passed (not in any lists)"
+msgstr ""
+
+#: inc/cleantalk-admin.php:267
+#, php-format
+msgid ""
+"This is the count from the %s's cloud and could be different to admin bar "
+"counters"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Firewall/SFW.php:418
+#: lib/Cleantalk/ApbctWP/Firewall/SFW.php:481
+msgid "This is the testing page for SpamFireWall"
+msgstr ""
+
+#: inc/cleantalk-settings.php:304
+msgid "This option adds a honeypot field to the forms."
+msgstr ""
+
+#: inc/cleantalk-settings.php:768
+msgid ""
+"This option allows to filter spam bots before they access website. Also "
+"reduces CPU usage on hosting server and accelerates pages load time."
+msgstr ""
+
+#: inc/cleantalk-settings.php:181
+msgid "This option hides the \"Website\" field on the comment form."
+msgstr ""
+
+#: inc/cleantalk-settings.php:555
+msgid "This option includes external "
+msgstr ""
+
+#: inc/cleantalk-settings.php:283
+msgid ""
+"This option provides more sophisticated and enhanced protection for external "
+"forms. However, it can break other plugins that use the webserver buffer "
+"like Ninja Forms, and moreover, it can also cause issues with cache plugins."
+msgstr ""
+
+#: inc/cleantalk-settings.php:294
+msgid ""
+"This option will enable protection for custom (hand-made) AJAX forms with "
+"PHP scripts handlers on your WordPress."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Firewall/AntiCrawler.php:432
+#: lib/Cleantalk/ApbctWP/Firewall/AntiFlood.php:239
+#: lib/Cleantalk/ApbctWP/Firewall/SFW.php:403
+msgid ""
+"To continue working with the web site, please make sure that you have "
+"enabled JavaScript."
+msgstr ""
+
+#: inc/cleantalk-wpcli.php:31
+msgid ""
+"token required \n"
+msgstr ""
+
+#: inc/cleantalk-admin.php:156
+msgid "Top 5 spam IPs blocked"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/CommentsChecker.php:192
+#, php-format
+msgid "Total count of comments: %s."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:339
+#, php-format
+msgid "Total count of users: %s."
+msgstr ""
+
+#: templates/translate_banner.php:17
+msgid "TRANSLATE"
+msgstr ""
+
+#: inc/cleantalk-admin.php:473
+msgid "Translate"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/CommentsChecker.php:47
+msgid "Trash all spam comments from the list?"
+msgstr ""
+
+#: inc/cleantalk-settings.php:915 inc/cleantalk-settings.php:3570
+msgid "Trust text, affiliate settings"
+msgstr ""
+
+#: inc/cleantalk-settings.php:456
+msgid ""
+"Turn this option on to check for spam any submissions (comments, contact "
+"forms and etc.) from registered Users."
+msgstr ""
+
+#: inc/cleantalk-settings.php:275
+msgid ""
+"Turn this option on to protect forms on your WordPress that send data to "
+"third-part servers (like MailChimp)."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:140
+msgid "Unable to get Access key automatically:"
+msgstr ""
+
+#: inc/cleantalk-settings.php:2154
+msgid "Under updating now:"
+msgstr ""
+
+#: inc/cleantalk-settings.php:788
+msgid "Uniq GET option"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3427
+msgid "UNKNOWN"
+msgstr ""
+
+#: inc/cleantalk-settings.php:2084 inc/cleantalk-settings.php:2089
+#: inc/cleantalk-settings.php:2094 inc/cleantalk-settings.php:2095
+#: inc/cleantalk-settings.php:2118 inc/cleantalk-settings.php:2130
+#: inc/cleantalk-settings.php:2134 inc/cleantalk-settings.php:2139
+#: inc/cleantalk-settings.php:2146 inc/cleantalk-settings.php:2150
+#: inc/cleantalk-settings.php:2151 inc/cleantalk-settings.php:2159
+#: inc/cleantalk-settings.php:2166 inc/cleantalk-settings.php:2170
+msgid "unknown"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1560
+msgid "Unknown error type: "
+msgstr ""
+
+#: inc/cleantalk-public-integrations.php:3908
+msgid "Unmark as spam"
+msgstr ""
+
+#: inc/cleantalk-public.php:1452
+msgid "Unspam"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1341
+msgid "Untitled Group"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:207
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:242
+msgid "Upgrade"
+msgstr ""
+
+#: inc/cleantalk-settings.php:655
+msgid "URL exclusions"
+msgstr ""
+
+#: inc/cleantalk-settings.php:552
+msgid "Use "
+msgstr ""
+
+#: inc/cleantalk-settings.php:469
+msgid "Use AJAX for JavaScript check"
+msgstr ""
+
+#: inc/cleantalk-settings.php:860
+msgid ""
+"Use async loading for scripts. Warning: This could reduce filtration quality."
+msgstr ""
+
+#: inc/cleantalk-settings.php:677
+msgid "Use Regular Expression in Field Exclusions"
+msgstr ""
+
+#: inc/cleantalk-settings.php:663
+msgid "Use Regular Expression in URL Exclusions"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1101
+msgid "Use settings template"
+msgstr ""
+
+#: inc/cleantalk-settings.php:481
+msgid "Use static keys for JavaScript check"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1453
+msgid "Use stop_email@example.com to test plugin in any WordPress form."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1102
+msgid "Use the current settings template for child sites."
+msgstr ""
+
+#: inc/cleantalk-settings.php:635
+msgid "Use the output buffer"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Antispam/EmailEncoder.php:134
+msgid ""
+"Use this option only if no encoding occurs when the \"Encode contact data\" "
+"option is enabled."
+msgstr ""
+
+#: inc/cleantalk-settings.php:595
+msgid "Use WordPress HTTP API"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/ListTable/Users.php:41
+msgid "Username"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1261
+msgid "Users online:"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/FindSpam/UsersChecker.php:61
+msgid "users."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1838
+msgid "Validate email for existence"
+msgstr ""
+
+#: inc/cleantalk-settings.php:615
+msgid "Via direct output"
+msgstr ""
+
+#: inc/cleantalk-settings.php:616
+msgid "Via JavaScript"
+msgstr ""
+
+#: inc/cleantalk-admin.php:541
+msgid ""
+"Warning! Users are deleted without the possibility of restoring them, you "
+"can only restore them from a site backup."
+msgstr ""
+
+#: templates/translate_banner.php:8
+msgid ""
+"We ask you to help with the translation of the plugin in your language. \n"
+"                                    Please take a few minutes to make the "
+"plugin more comfortable."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdjustToEnvironmentModule/AdjustToEnvironmentSettings.php:13
+msgid "We changed some settings of third party plugins to make compatibility. "
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdjustToEnvironmentModule/AdjustToEnvironmentSettings.php:15
+msgid ""
+"We suggest you to change some settings of third party plugins to make "
+"compatibility. "
+msgstr ""
+
+#: inc/cleantalk-settings.php:319
+msgid "WooCommerce"
+msgstr ""
+
+#: inc/cleantalk-settings.php:323 inc/cleantalk-settings.php:1855
+msgid "WooCommerce checkout form"
+msgstr ""
+
+#: inc/cleantalk-admin.php:1170 inc/cleantalk-settings.php:2043
+#: inc/cleantalk-wc-spam-orders.php:9 inc/cleantalk-wc-spam-orders.php:10
+msgid "WooCommerce spam orders"
+msgstr ""
+
+#: inc/cleantalk-settings.php:996
+msgid "WordPress Multisite (WPMS) settings"
+msgstr ""
+
+#: inc/cleantalk-settings.php:1027
+msgid "WordPress Multisite Work Mode"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3245
+msgid "Wordpress Multisite Work Mode"
+msgstr ""
+
+#: inc/cleantalk-settings.php:227
+msgid "WordPress, BuddyPress, bbPress, S2Member, WooCommerce."
+msgstr ""
+
+#: inc/cleantalk-settings.php:234
+msgid "WordPress, JetPack, WooCommerce."
+msgstr ""
+
+#: inc/cleantalk-settings.php:3425
+msgid "WP AJAX handler"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:417
+msgid "Wrong request."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/CleantalkSettingsTemplates.php:220
+msgid "You are currently using:"
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdjustToEnvironmentModule/AdjustToEnvironmentSettings.php:14
+msgid ""
+"You are free to reverse it, but it may lead to incorrect operation of the "
+"software."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1028
+msgid ""
+"You can choose the work mode here for the child blogs and how they will "
+"operate with the CleanTalk Cloud. Press \"?\" for the detailed description."
+msgstr ""
+
+#: inc/cleantalk-settings.php:1650
+#, php-format
+msgid "You can get support any time here: %s."
+msgstr ""
+
+#: inc/cleantalk-settings.php:921
+msgid ""
+"You can place this shortcode anywhere on your website. Adds trust text "
+"stating that the website is protected from spam by CleanTalk Anti-Spam "
+"protection"
+msgstr ""
+
+#: inc/cleantalk-settings.php:3319
+#, php-format
+msgid "You can read more about SFW modes %s"
+msgstr ""
+
+#: inc/cleantalk-public.php:731
+msgid "You could check it in CleanTalk's Anti-Spam database:"
+msgstr ""
+
+#: inc/cleantalk-settings.php:2008
+#, php-format
+msgid "You could extend your subscription %shere%s."
+msgstr ""
+
+#: inc/cleantalk-settings.php:656
+msgid ""
+"You could type here a part of the URL you want to exclude. Use commas or new "
+"lines as separator. Exclusion value will be sliced to 128 chars, number of "
+"exclusions is restricted by 20 values."
+msgstr ""
+
+#: inc/cleantalk-settings.php:668
+msgid ""
+"You could type here field names you want to exclude. These fields will be "
+"excluded, other \n"
+"                        fields will be passed to the Anti-Spam check. Use "
+"commas as separator. Exclusion value will be \n"
+"                        sliced to 128 chars, number of exclusions is "
+"restricted by 20 values."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/AdminNotices.php:357
+msgid ""
+"You have changed the \"Encode contact data\" setting. If you use caching "
+"plugins, then you need to clear the cache."
+msgstr ""
+
+#: lib/Cleantalk/ApbctWP/Firewall/AntiCrawler.php:438
+#: lib/Cleantalk/ApbctWP/Firewall/AntiFlood.php:244
+msgid ""
+"You will be automatically redirected to the requested page after %d seconds."
+msgstr ""
+
+#: inc/cleantalk-settings.php:288
+msgid "СAUTION! Enable this option if you have missed spam from external forms"
+msgstr ""
+
+#: inc/cleantalk-settings.php:505
+msgid "СAUTION! Option can catch POST requests in WordPress backend"
+msgstr ""
+
+#. Author of the plugin
+msgid "СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>"
+msgstr ""
