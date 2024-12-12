@@ -8,7 +8,7 @@
 }
 .apbct_form_decoration--fourth-july_header__content svg {
     position: absolute;
-    width: 600px;
+    width: 100%;
 }
 .apbct_form_decoration--fourth-july_header__text {
     display: block;
@@ -50,4 +50,17 @@
     right: 0;
     background-image: url('images/apbct_form_decoration--fourth-july/flag-right.svg');
     background-position-x: right;
+}
+
+@media screen and (max-width: 768px) {
+    .apbct_form_decoration--fourth-july:before, .apbct_form_decoration--fourth-july:after {
+        width: 60%;
+    }
+}
+
+@media screen and (max-width: 500px) {
+    .apbct_form_decoration--fourth-july_header__text {
+        font-size: 14px;
+        padding-bottom: 7px;
+    }
 }

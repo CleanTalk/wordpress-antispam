@@ -21,7 +21,7 @@ class DecorationSetHolidayNewYear extends DecorationSet
     protected function getHeaderSVG()
     {
         return '
-<svg viewBox="0 0 1920 263" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="1920" height="259" viewBox="0 0 1920 259" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g clip-path="url(#clip0_4530_964)">
 <rect width="1920" height="223" fill="' . $this->darkenHexColor($this->color, 1) . '"/>
 <rect width="242.33" height="202.65" transform="matrix(-1 0 0 1 242 65)" fill="url(#pattern0_4530_964)"/>
@@ -31,7 +31,18 @@ class DecorationSetHolidayNewYear extends DecorationSet
 <rect x="1278.45" y="78" width="506.388" height="185.65" fill="url(#pattern1_4530_964)"/>
 <rect x="1438" y="31.6953" width="188" height="269.78" fill="url(#pattern2_4530_964)"/>
 </g>
-<rect x="1288" y="202.105" width="505" height="60.3094" fill="url(#pattern3_4530_964)"/>
+<mask id="mask0_4530_964" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="1633" y="202" width="64" height="57">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M1644.5 223H1637C1637 223 1633 216.107 1633 211.182C1633 207.243 1635.69 203.425 1640 202.319C1643.76 201.352 1646.66 202.657 1649.5 205.273C1651.61 207.212 1653 211.674 1653 211.674V212.307C1657.05 210.165 1662.62 209 1669.99 209C1692.99 208.999 1696.49 219.5 1696.49 232C1698.99 242 1689.48 258.591 1669.99 258C1653.49 257.5 1640.99 245.5 1643.99 232C1643.76 228.706 1643.93 225.688 1644.61 223H1644.5Z" fill="#D9D9D9"/>
+</mask>
+<g mask="url(#mask0_4530_964)">
+<rect x="1631.49" y="202.324" width="66" height="56.6758" fill="url(#pattern3_4530_964)"/>
+</g>
+<mask id="mask1_4530_964" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="1370" y="202" width="64" height="57">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M1422.39 223H1429.89C1429.89 223 1433.89 216.107 1433.89 211.182C1433.89 207.243 1431.2 203.425 1426.89 202.319C1423.12 201.352 1420.23 202.657 1417.39 205.273C1415.28 207.212 1413.89 211.674 1413.89 211.674V212.307C1409.83 210.165 1404.27 209 1396.89 209C1373.89 208.999 1370.39 219.5 1370.39 232C1367.89 242 1377.4 258.591 1396.89 258C1413.39 257.5 1425.89 245.5 1422.9 232C1423.13 228.706 1422.95 225.688 1422.27 223H1422.39Z" fill="#D9D9D9"/>
+</mask>
+<g mask="url(#mask1_4530_964)">
+<rect width="66" height="56.6758" transform="matrix(-1 0 0 1 1435.39 202.324)" fill="url(#pattern4_4530_964)"/>
+</g>
 <defs>
 <pattern id="pattern0_4530_964" patternContentUnits="objectBoundingBox" width="1" height="1">
 <use xlink:href="#image0_4530_964" transform="translate(-1.28102) scale(0.00113314 0.00135501)"/>
@@ -48,7 +59,10 @@ class DecorationSetHolidayNewYear extends DecorationSet
 <use xlink:href="#image1_4530_964" transform="scale(0.00125 0.00087108)"/>
 </pattern>
 <pattern id="pattern3_4530_964" patternContentUnits="objectBoundingBox" width="1" height="1">
-<use xlink:href="#image2_4530_964" transform="scale(0.000479616 0.00401606)"/>
+<use xlink:href="#image2_4530_964" transform="matrix(0.00366979 0 0 0.00427354 -5.19697 0)"/>
+</pattern>
+<pattern id="pattern4_4530_964" patternContentUnits="objectBoundingBox" width="1" height="1">
+<use xlink:href="#image2_4530_964" transform="matrix(0.00366979 0 0 0.00427354 -5.19697 0)"/>
 </pattern>
 <clipPath id="clip0_4530_964">
 <rect width="1920" height="223" fill="white"/>

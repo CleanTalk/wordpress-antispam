@@ -28,6 +28,7 @@ class DecorationSet
 
     /**
      * @return string
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function getCssClass()
     {

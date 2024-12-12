@@ -33,9 +33,10 @@
 }
 
 .apbct_form_decoration--christmas  {
+    position: relative;
+    margin: 0;
     background: rgba(255, 255, 255, 0);
     background-size: 100%;
-    position: relative;
 }
 
 .apbct_form_decoration--christmas form {
@@ -49,7 +50,7 @@
     bottom: 0;
     width: 50%;
     height: 100%;
-    background-position-y: 20px;
+    background-position-y: top;
     background-repeat: no-repeat;
     background-size: 50%;
     z-index: 0;
@@ -68,4 +69,15 @@
 .comments-title, .comment-reply-title {
     z-index: 9999;
     position: relative;
+}
+
+@media screen and (max-width: 782px) {
+    .apbct_form_decoration--christmas_header__text {
+        font-weight: 700;
+        font-size: 22px;
+    }
+
+    .apbct_form_decoration--christmas:before, .apbct_form_decoration--christmas:after {
+        width: 80%;
+    }
 }

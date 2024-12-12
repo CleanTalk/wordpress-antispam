@@ -22,6 +22,8 @@ class ApbctFormDecorator {
         const regexId = /^apbct-trusted-text--label/;
         const regexClass = /apbct_form_decoration--/;
 
+        this.setDecorationBackground();
+
         // Collect elements with id or class that contains apbct-trusted-text--label or apbct_form_decoration--
         // id
         let matchingElements = Array.from(elements).filter((element) => {
@@ -47,6 +49,23 @@ class ApbctFormDecorator {
             if (flagLeft && flagRight) {
                 this.elements.push(flagWrap);
             }
+        }
+    }
+
+    /**
+     * Set decoration background
+     */
+    setDecorationBackground() {
+        let blockForms = document.querySelectorAll('#respond');
+
+        if (document.querySelector('[class*="apbct_form_decoration"]')) {
+            let classHeaderWrapper = document.querySelector('[class*="apbct_form_decoration"]').getAttribute('class');
+            let endPosition = classHeaderWrapper.indexOf('_header__wrapper');
+            let classTamplate = classHeaderWrapper.substring(0, endPosition);
+
+            blockForms.forEach((blockForm) => {
+                blockForm.className += ' ' + classTamplate;
+            });
         }
     }
 

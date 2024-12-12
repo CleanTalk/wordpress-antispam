@@ -29,7 +29,8 @@ class FormDecorator
     {
         $this->decoration_registry = DecorationRegistry::getInstance();
         add_action('comment_form_before', array($this, 'handleForm'));
-        add_action('comment_form_defaults', array($this, 'changeFormArguments'));
+        //@toDo removes style classes when adding ours for background decorations. Currently the class is added via js setDecorationBackground()
+        //add_action('comment_form_defaults', array($this, 'changeFormArguments'));
     }
 
     /**
@@ -72,6 +73,7 @@ class FormDecorator
      *
      * @return array
      * @psalm-suppress PossiblyUnusedReturnValue
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function changeFormArguments($args)
     {

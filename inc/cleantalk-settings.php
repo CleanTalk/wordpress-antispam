@@ -471,6 +471,7 @@ function apbct_settings__set_fields()
                 'comments__form_decoration_text' => array(
                     'type'        => 'text',
                     'class'       => 'apbct_settings-field_wrapper--sub',
+                    'placeholder' => __('Happy Holidays! ', 'cleantalk-spam-protect'),
                     'title'       => __('Enter a decoration title for the selected theme header', 'cleantalk-spam-protect'),
                     'description' => __('This text will be placed in the decoration header, right above the respond form. Not available on the default theme.', 'cleantalk-spam-protect'),
                     'parent'          => 'comments__form_decoration',
