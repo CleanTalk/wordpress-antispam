@@ -526,12 +526,14 @@ class RemoteCalls
      */
     public static function action__get_fresh_wpnonce() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        global $apbct;
+
         if ( ! isset($_POST['nonce_prev']) ) {
             return json_encode(array('error' => 'No nonce provided'));
         }
 
         $nonce_prev = $_POST['nonce_prev'];
-        $nonce_name = apbct_settings__get_ajax_type() === 'rest'
+        $nonce_name = $apbct->data['ajax_type'] === 'rest'
             ? 'wp_rest'
             : 'ct_secret_stuff';
 
