@@ -1313,6 +1313,10 @@ function ct_enqueue_styles_public()
     }
 }
 
+/**
+ * @return void
+ * @psalm-suppress InvalidArgument - wp_enqueue_script() does not await bool as psalm predicts, array values are allowed
+ */
 function apbct_enqueue_and_localize_public_scripts()
 {
     global $apbct;
@@ -1335,7 +1339,10 @@ function apbct_enqueue_and_localize_public_scripts()
             'https://moderate.cleantalk.org/ct-bot-detector-wrapper.js',
             [],
             APBCT_VERSION,
-            $in_footer
+            array(
+                'in_footer' => $in_footer,
+                'strategy' => 'defer'
+                )
         );
     }
 
