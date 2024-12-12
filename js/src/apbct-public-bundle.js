@@ -5086,6 +5086,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     trpComments.forEach(( element, index ) => {
+        if ( element.classList.contains('comment-author-link') ) {
+            return;
+        }
         let trpLayout = document.createElement('div');
         trpLayout.setAttribute('class', 'apbct-real-user-badge');
 
