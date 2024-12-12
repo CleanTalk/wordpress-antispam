@@ -19,7 +19,6 @@ class AdjustToEnvironmentHandler
      */
     const SET_OF_ADJUST = [
         'w3tc' => AdjustToEnvW3TotalCache::class,
-        'litespeed' => AdjustToEnvLiteSpeedCache::class,
     ];
 
     /**

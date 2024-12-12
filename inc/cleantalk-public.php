@@ -223,14 +223,6 @@ function apbct_init()
         add_action('wpcf7_before_send_mail', 'apbct_form__contactForm7__testSpam', 999);
     }
 
-    // BuddyPress
-    if ( class_exists('BuddyPress') ) {
-        add_action('bp_before_registration_submit_buttons', 'ct_register_form', 1);
-        add_action('messages_message_before_save', 'apbct_integration__buddyPres__private_msg_check', 1);
-        add_filter('bp_signup_validate', 'ct_registration_errors', 1);
-        add_filter('bp_signup_validate', 'ct_check_registration_errors', 999999);
-    }
-
     if ( defined('PROFILEPRESS_SYSTEM_FILE_PATH') ) {
         add_filter('pp_registration_validation', 'ct_registration_errors_ppress', 11, 2);
     }
@@ -1321,6 +1313,10 @@ function ct_enqueue_styles_public()
     }
 }
 
+/**
+ * @return void
+ * @psalm-suppress InvalidArgument - wp_enqueue_script() does not await bool as psalm predicts, array values are allowed
+ */
 function apbct_enqueue_and_localize_public_scripts()
 {
     global $apbct;
@@ -1343,7 +1339,10 @@ function apbct_enqueue_and_localize_public_scripts()
             'https://moderate.cleantalk.org/ct-bot-detector-wrapper.js',
             [],
             APBCT_VERSION,
-            $in_footer
+            array(
+                'in_footer' => $in_footer,
+                'strategy' => 'defer'
+                )
         );
     }
 

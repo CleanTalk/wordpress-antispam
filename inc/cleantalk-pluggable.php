@@ -1199,7 +1199,10 @@ function apbct_is_skip_request($ajax = false)
 
         // skip masteriyo_login LMS
         if (
-            apbct_is_plugin_active('learning-management-system/lms.php') &&
+            (
+                apbct_is_plugin_active('learning-management-system/lms.php') ||
+                apbct_is_plugin_active('learning-management-system-pro/lms.php')
+            ) &&
             Post::get('action') === 'masteriyo_login'
         ) {
             return 'masteriyo_login LMS';
@@ -1242,6 +1245,10 @@ function apbct_is_skip_request($ajax = false)
                 Post::get('action') === 'apbct_email_check_exist_post'
         ) {
             return 'apbct_email_check_exist_post_skip';
+        }
+        // BuddyPress has the direct integration
+        if ( apbct_is_plugin_active('buddypress/bp-loader.php') && Post::get('action') === 'messages_send_message' ) {
+            return 'buddypress_messages_send_message';
         }
     } else {
         /*****************************************/
