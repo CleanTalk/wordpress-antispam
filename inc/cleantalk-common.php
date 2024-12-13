@@ -836,13 +836,6 @@ function apbct_is_cache_plugins_exists($return_names = false)
     foreach ($constants_of_cache_plugins as $const => $_text) {
         if ( defined($const) ) {
             $out[] = $_text;
-
-            if ($const === 'SPEEDYCACHE_VERSION') {
-                $apbct->settings['data__set_cookies'] = 2;
-                $apbct->data['cookies_type'] = 'alternative';
-                $apbct->save('settings');
-                $apbct->save('data');
-            }
         }
     }
 
