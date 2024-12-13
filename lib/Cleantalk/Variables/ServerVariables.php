@@ -66,7 +66,8 @@ abstract class ServerVariables
             static::get(
                 $var_name,
                 $validation_filter,
-                $sanitize_filter),
+                $sanitize_filter
+            ),
             $default
         );
     }
@@ -87,6 +88,38 @@ abstract class ServerVariables
         );
     }
 
+    /**
+     * @param $var_name
+     * @param $default
+     *
+     * @return bool
+     */
+    public static function getBool($var_name, $default = false)
+    {
+        return TT::toBool(
+            static::get(
+                $var_name
+            ),
+            $default
+        );
+    }
+
+    /**
+     * @param $var_name
+     * @param $default
+     *
+     * @return array
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public static function getArray($var_name, $default = array())
+    {
+        return TT::toArray(
+            static::get(
+                $var_name
+            ),
+            $default
+        );
+    }
 
     /**
      * BLUEPRINT
