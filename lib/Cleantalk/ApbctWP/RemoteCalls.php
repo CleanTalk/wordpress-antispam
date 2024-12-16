@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
+use Cleantalk\ApbctWP\UpdatePlugin\DbAnalyzer;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -297,7 +298,6 @@ class RemoteCalls
         $out['data']               = $apbct->data;
         $out['cron']               = $apbct->cron;
         $out['errors']             = $apbct->errors;
-        $out['debug']              = $apbct->debug;
         $out['queue']              = get_option('cleantalk_sfw_update_queue');
         $out['connection_reports'] = $apbct->getConnectionReports()->remoteCallOutput();
         $out['cache_plugins_detected'] = apbct_is_cache_plugins_exists(true);

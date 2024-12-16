@@ -162,6 +162,7 @@ function apbct_init()
         }
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
             add_action('woocommerce_after_checkout_validation', 'ct_woocommerce_checkout_check', 1, 2);
+            add_action('woocommerce_store_api_checkout_order_processed', 'ct_woocommerce_checkout_check_from_rest', 1, 1);
             add_action('woocommerce_checkout_update_order_meta', 'apbct_woocommerce__add_request_id_to_order_meta');
             add_action('woocommerce_store_api_checkout_update_customer_from_request', 'apbct_wc_store_api_checkout_update_customer_from_request', 10, 2);
         }
@@ -1234,23 +1235,6 @@ function ct_enqueue_scripts_public($_hook)
                     ),
             ));
         }
-    }
-
-    // Debug
-    if ( $apbct->settings['misc__debug_ajax'] ) {
-        wp_enqueue_script(
-            'ct_debug_js',
-            APBCT_JS_ASSETS_PATH . '/cleantalk-debug-ajax.min.js',
-            // keep this jquery dependency if option misc__debug_ajax is enabled
-            array('jquery'),
-            APBCT_VERSION,
-            false /*in header*/
-        );
-
-        wp_localize_script('ct_debug_js', 'apbctDebug', array(
-            'reload'      => false,
-            'reload_time' => 10000,
-        ));
     }
 }
 

@@ -71,7 +71,6 @@ define(
 define('APBCT_DATA', 'cleantalk_data');             // Option name with different plugin data.
 define('APBCT_SETTINGS', 'cleantalk_settings');         // Option name with plugin settings.
 define('APBCT_NETWORK_SETTINGS', 'cleantalk_network_settings'); // Option name with plugin network settings.
-define('APBCT_DEBUG', 'cleantalk_debug');            // Option name with a debug data. Empty by default.
 define('APBCT_JS_ERRORS', 'cleantalk_js_errors');            // Option name with js errors. Empty by default.
 
 
@@ -94,6 +93,10 @@ require_once(CLEANTALK_PLUGIN_DIR . 'lib/cleantalk-php-patch.php');  // Pathces 
  * Require the Autoloader
  */
 require_once(CLEANTALK_PLUGIN_DIR . 'lib/autoloader.php');
+
+if (!defined('APBCT_IS_LOCALHOST')) {
+    define('APBCT_IS_LOCALHOST', in_array(Server::getDomain(), array('lc', 'loc', 'lh', 'test')));
+}
 
 /**
  * Define API params const.
@@ -126,7 +129,7 @@ require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-wpcli.php');
  * Global state handle.
  */
 // Global ArrayObject with settings and other global variables
-$apbct = new State('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats'));
+$apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
 // Init plugin basename.
 $apbct->base_name = 'cleantalk-spam-protect/cleantalk.php';
 // Identify plugin execution
@@ -2470,7 +2473,7 @@ function apbct_store__urls()
         $new_site_referer = $new_site_referer !== '' ? $new_site_referer : 'UNKNOWN';
 
         // Get already stored referer
-        $site_referer = Cookie::get('apbct_site_referer');
+        $site_referer = TT::toString(RequestParameters::get('apbct_site_referer', true));
 
         // Save if empty
         if (
@@ -2480,7 +2483,7 @@ function apbct_store__urls()
                 parse_url($new_site_referer, PHP_URL_HOST) !== Server::get('HTTP_HOST')
             ) && $apbct->data['cookies_type'] === 'native'
         ) {
-            Cookie::set('apbct_site_referer', $new_site_referer, time() + 86400 * 3, '/', $site_url, null, true, 'Lax', true);
+            RequestParameters::set('apbct_site_referer', $new_site_referer, true);
         }
 
         $apbct->flags__url_stored = true;
@@ -2550,13 +2553,13 @@ function apbct_cookie()
 
         // Page hits
         // Get
-        $page_hits = TT::toInt(Cookie::get('apbct_page_hits'));
+        $page_hits = TT::toInt(RequestParameters::get('apbct_page_hits', true));
 
         // Set / Increase
         // todo if cookies disabled there is no way to keep this data without DB:( always will be 1
         $page_hits = $page_hits ? $page_hits + 1 : 1;
 
-        Cookie::set('apbct_page_hits', (string)$page_hits, 0, '/', $domain, null, true, 'Lax', true);
+        RequestParameters::set('apbct_page_hits', TT::toString($page_hits), true);
 
         $cookie_test_value['cookies_names'][] = 'apbct_page_hits';
         $cookie_test_value['check_value']     .= $page_hits;
@@ -2772,49 +2775,13 @@ function apbct_cron_clear_old_session_data()
     }
 
     \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
-}
 
-/**
- * Write $message to the plugin's debug option
- *
- * @param string|array|object $message
- * @param null|string $func
- * @param array $params
- *
- * @return void
- */
-function apbct_log($message = 'empty', $func = null, $params = array())
-{
-    global $apbct;
-
-    $debug = get_option(APBCT_DEBUG);
-
-    $function = $func ?: '';
-    $cron     = in_array('cron', $params);
-    $data     = in_array('data', $params);
-    $settings = in_array('settings', $params);
-
-    if ( is_array($message) || is_object($message) ) {
-        $message = print_r($message, true);
+    $ct_cron = new Cron();
+    if (\Cleantalk\ApbctWP\Variables\AltSessions::checkHasUndeletedOldSessions()) {
+        $ct_cron->updateTask('clear_old_session_data', 'apbct_cron_clear_old_session_data', 60, time() + 60);
+    } else {
+        $ct_cron->updateTask('clear_old_session_data', 'apbct_cron_clear_old_session_data', 86400);
     }
-
-    if ( $message ) {
-        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter() . "_FUNCTION_" . $function] = $message;
-    }
-    if ( $cron ) {
-        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter(
-        ) . "_FUNCTION_" . $function . '_cron'] = $apbct->cron;
-    }
-    if ( $data ) {
-        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter(
-        ) . "_FUNCTION_" . $function . '_data'] = $apbct->data;
-    }
-    if ( $settings ) {
-        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter(
-        ) . "_FUNCTION_" . $function . '_settings'] = $apbct->settings;
-    }
-
-    update_option(APBCT_DEBUG, $debug);
 }
 
 /**

@@ -114,7 +114,6 @@ class State extends \Cleantalk\Common\State
         'misc__async_js'                           => 0,
         'misc__store_urls'                         => 1,
         'misc__complete_deactivation'              => 0,
-        'misc__debug_ajax'                         => 0, // WordPress
         'wp__use_builtin_http_api'                 => 1, // Using WordPress HTTP built in API
         'wp__comment_notify'                       => 1,
         'wp__comment_notify__roles'                => array('administrator'),

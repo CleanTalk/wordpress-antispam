@@ -365,11 +365,6 @@ function apbct_admin__init()
         new CleantalkSettingsTemplates($apbct->api_key);
     }
 
-    // Show debug tab on localhosts
-    if ( in_array(Server::getDomain(), array( 'lc', 'loc', 'lh', 'test' )) ) {
-        add_filter('apbct_settings_action_buttons', 'apbct__add_debug_tab', 50, 1);
-    }
-
     // Check compatibility
     do_action('apbct__check_compatibility');
 }
@@ -1484,23 +1479,6 @@ add_action('apbct__check_compatibility', 'apbct__check_compatibility_handler');
 function apbct__check_compatibility_handler()
 {
     new \Cleantalk\Common\Compatibility();
-}
-
-/**
- * @param $links
- * Adding debug tab on the settings page
- *
- * @return array|mixed
- */
-function apbct__add_debug_tab($links)
-{
-    if ( is_array($links) ) {
-        $debug_link    = '<a href="#" class="ct_support_link" onclick="apbctShowHideElem(\'apbct_debug_tab\')">' .
-                         __('Debug', 'cleantalk-spam-protect') . '</a>';
-        $links[] = $debug_link;
-    }
-
-    return $links;
 }
 
 /**

@@ -344,6 +344,65 @@ function ct_woocommerce_checkout_check($_data, $errors)
 }
 
 /**
+ * @param \WC_Order $order
+ * @return void
+ * @throws \Automattic\WooCommerce\StoreApi\Exceptions\RouteException
+ * @psalm-suppress UndefinedClass
+ */
+function ct_woocommerce_checkout_check_from_rest($order)
+{
+    global $apbct, $cleantalk_executed;
+
+    if ( is_null($order) || ! ($order instanceof \WC_Order) ) {
+        return;
+    }
+
+    $sender_email    = $order->get_billing_email();
+    $sender_nickname = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
+    $message         = $order->get_customer_note();
+
+    $post_info = array();
+    $post_info['comment_type'] = 'order';
+    $post_info['post_url']     = Server::get('HTTP_REFERER');
+
+    $base_call_data = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'post_info'       => $post_info,
+        'sender_info'     => array('sender_url' => null)
+    );
+
+    //Making a call
+    $base_call_result = apbct_base_call($base_call_data);
+
+    if ( $apbct->settings['forms__wc_register_from_order'] ) {
+        $cleantalk_executed = false;
+    }
+
+    if ( isset($base_call_result['ct_result']) ) {
+        $ct_result = $base_call_result['ct_result'];
+
+        // Get request_id and save to static $hash
+        ct_hash($ct_result->id);
+
+        if ( $ct_result->allow == 0 ) {
+            if ( $apbct->settings['data__wc_store_blocked_orders'] ) {
+                apbct_woocommerce__store_blocked_order();
+            }
+            if ( class_exists('\Automattic\WooCommerce\StoreApi\Exceptions\RouteException') ) {
+                /** @psalm-suppress InvalidThrow */
+                throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
+                    'woocommerce_store_api_checkout_order_processed',
+                    $ct_result->comment,
+                    403
+                );
+            }
+        }
+    }
+}
+
+/**
  * @return void
  *
  * @psalm-suppress UndefinedFunction
