@@ -806,6 +806,8 @@ function ct_get_checkjs_value()
 
 function apbct_is_cache_plugins_exists($return_names = false)
 {
+    global $apbct;
+
     $out = array();
 
     $constants_of_cache_plugins = array(
@@ -823,6 +825,7 @@ function apbct_is_cache_plugins_exists($return_names = false)
         'TWO_PLUGIN_FILE'                             => '10Web Booster',
         'FLYING_PRESS_VERSION'                        => 'Flying Press',
         'BREEZE_VERSION'                              => 'Breeze',
+        'SPEEDYCACHE_VERSION'                         => 'SpeedyCache',
     );
 
     $classes_of_cache_plugins = array (
