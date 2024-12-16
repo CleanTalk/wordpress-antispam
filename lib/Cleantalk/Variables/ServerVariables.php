@@ -33,7 +33,7 @@ abstract class ServerVariables
      * @psalm-param (null|"hash"|"int"|"float"|"word"|"isUrl") $validation_filter
      * @param null|string $sanitize_filter
      * @psalm-param (null|"xss"|"int"|"url"|"word"|"cleanEmail") $sanitize_filter
-     *
+     * @deprecated Use getInt, getString, getBool, getArray instead
      * @return string|array|false
      */
     public static function get($name, $validation_filter = null, $sanitize_filter = null)
