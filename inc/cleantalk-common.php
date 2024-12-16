@@ -1141,13 +1141,6 @@ function ct_get_fields_any_postdata($arr, $message = array())
     return $message;
 }
 
-function cleantalk_debug($key, $value)
-{
-    if ( Cookie::get('cleantalk_debug')) {
-        @header($key . ": " . $value);
-    }
-}
-
 /**
  * Function changes CleanTalk result object if an error occurred.
  * @return object
@@ -1209,7 +1202,6 @@ function apbct_add_async_attribute($tag, $handle)
     $scripts_handles_names = array(
         'ct_public',
         'ct_public_functions',
-        'ct_debug_js',
         'ct_public_admin_js',
         'ct_internal',
         'ct_external',
