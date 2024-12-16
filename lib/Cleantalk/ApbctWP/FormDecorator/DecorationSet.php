@@ -79,17 +79,9 @@ class DecorationSet
         $template = str_replace('%HEADER_WRAPPER_CLASS%', $prefix . 'wrapper', $template);
         $template = str_replace('%HEADER_CONTENT_ID%', $prefix . 'content', $template);
         $template = str_replace('%HEADER_CONTENT_CLASS%', $prefix . 'content', $template);
-        //    display: flex;
-        //    flex-wrap: nowrap;
-        //    flex-direction: column-reverse;
-        //    justify-content: center;
-        //    align-items: center;
         $template = str_replace('%HEADER_SVG%', $this->getHeaderSVG(), $template);
         $template = str_replace('%HEADER_TEXT_ID%', $prefix . 'text', $template);
         $template = str_replace('%HEADER_TEXT_CLASS%', $prefix . 'text', $template);
-        //    display: block;
-        //    position: absolute;
-        //    color: #FFF;
         $template = str_replace('%HEADER_TEXT%', $this->text, $template);
         return $template;
     }
