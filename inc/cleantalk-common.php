@@ -810,6 +810,8 @@ function ct_get_checkjs_value()
 
 function apbct_is_cache_plugins_exists($return_names = false)
 {
+    global $apbct;
+
     $out = array();
 
     $constants_of_cache_plugins = array(
@@ -827,6 +829,7 @@ function apbct_is_cache_plugins_exists($return_names = false)
         'TWO_PLUGIN_FILE'                             => '10Web Booster',
         'FLYING_PRESS_VERSION'                        => 'Flying Press',
         'BREEZE_VERSION'                              => 'Breeze',
+        'SPEEDYCACHE_VERSION'                         => 'SpeedyCache',
     );
 
     $classes_of_cache_plugins = array (
@@ -1146,13 +1149,6 @@ function ct_get_fields_any_postdata($arr, $message = array())
     return $message;
 }
 
-function cleantalk_debug($key, $value)
-{
-    if ( Cookie::get('cleantalk_debug')) {
-        @header($key . ": " . $value);
-    }
-}
-
 /**
  * Function changes CleanTalk result object if an error occurred.
  * @return object
@@ -1214,7 +1210,6 @@ function apbct_add_async_attribute($tag, $handle)
     $scripts_handles_names = array(
         'ct_public',
         'ct_public_functions',
-        'ct_debug_js',
         'ct_public_admin_js',
         'ct_internal',
         'ct_external',

@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\UpdatePlugin;
 
 use Cleantalk\Common\Schema;
+use Cleantalk\Common\TT;
 
 class DbAnalyzer
 {
@@ -121,5 +122,50 @@ class DbAnalyzer
     public function getNotExistsTables()
     {
         return $this->table_not_exists;
+    }
+
+    /**
+     * Write $message to the plugin's debug option
+     *
+     * @param string[] $messages Array of strings to log
+     * @param null|string $function Caller function
+     *
+     * @return void
+     */
+    public static function logSchemaErrors($messages = array(), $function = 'N/A')
+    {
+        global $apbct;
+
+        $current_log = isset($apbct->data['sql_schema_errors'])
+            ? $apbct->data['sql_schema_errors']
+            : array();
+        $current_log = $current_log instanceof \ArrayObject
+            ? $current_log->getArrayCopy()
+            : $current_log;
+        $current_log = is_array($current_log)
+            ? $current_log
+            : array();
+
+        if ( is_array($messages) ) {
+            $messages = print_r($messages, true);
+        }
+
+        // Add new message to the log
+        $new_entry = array(
+            'message' => $messages,
+            'datetime' => TT::toString(date('Y-m-d H:i:s', time())),
+            'function' => TT::toString($function),
+        );
+        $current_log[] = $new_entry;
+
+        // Check if the log count exceeds 10
+        if (count($current_log) > 10) {
+            // Remove the oldest entries
+            $current_log = array_slice($current_log, -10);
+        }
+
+        // Save the updated log
+        $apbct->data['sql_schema_errors'] = $current_log;
+        $apbct->save('sql_schema_errors', true, false);
     }
 }

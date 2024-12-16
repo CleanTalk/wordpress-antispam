@@ -1199,7 +1199,10 @@ function apbct_is_skip_request($ajax = false)
 
         // skip masteriyo_login LMS
         if (
-            apbct_is_plugin_active('learning-management-system/lms.php') &&
+            (
+                apbct_is_plugin_active('learning-management-system/lms.php') ||
+                apbct_is_plugin_active('learning-management-system-pro/lms.php')
+            ) &&
             Post::get('action') === 'masteriyo_login'
         ) {
             return 'masteriyo_login LMS';

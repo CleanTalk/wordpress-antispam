@@ -54,11 +54,7 @@ class UsersScan extends Users
 
     public function extra_tablenav($which) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if (
-            isset($_SERVER['SERVER_ADDR']) &&
-            $_SERVER['SERVER_ADDR'] === '127.0.0.1' &&
-            in_array(Server::getDomain(), array('lc', 'loc', 'lh'))
-        ) {
+        if (defined('APBCT_IS_LOCALHOST') && APBCT_IS_LOCALHOST) {
             ?>
             <button type="button" class="button action ct_insert_users">Insert users</button>
             <button type="button" class="button action ct_insert_users__delete">Delete inserted</button>
