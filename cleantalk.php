@@ -478,6 +478,14 @@ if (
     apbct_dhvcform_request_test();
 }
 
+// SeedConfirmPro
+if (!empty($_POST) &&
+    apbct_is_plugin_active('seed-confirm-pro/seed-confirm-pro.php') &&
+    Post::get('seed_confirm_nonce')
+) {
+    apbct_seedConfirmPro_request_test();
+}
+
 add_action('wp_ajax_nopriv_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
 add_action('wp_ajax_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
 add_action('wp_ajax_nopriv_nf_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
