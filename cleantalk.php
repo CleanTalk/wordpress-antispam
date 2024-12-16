@@ -170,13 +170,14 @@ if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['co
     \Cleantalk\Antispam\DisableComments::getInstance();
 }
 
-if ($apbct->key_is_ok &&
-    ( ! is_admin() || apbct_is_ajax() ) &&
-    current_action() !== 'wp_ajax_delete-plugin'
+if (
+    $apbct->key_is_ok &&
+    (!is_admin() || apbct_is_ajax()) &&
+    (current_action() !== 'wp_ajax_delete-plugin')
 ) {
     // Email encoder
+    $skip_email_encode = false;
     if ($apbct->settings['data__email_decoder']) {
-        $skip_email_encode = false;
         if (!empty($_POST)) {
             foreach ( $_POST as $param => $_value ) {
                 if ( strpos((string)$param, 'et_pb_contactform_submit') === 0 ) {
@@ -185,6 +186,7 @@ if ($apbct->key_is_ok &&
                 }
             }
         }
+    }
 
     if (!$skip_email_encode && !apbct_is_amp_request()) {
         EmailEncoder::getInstance();
