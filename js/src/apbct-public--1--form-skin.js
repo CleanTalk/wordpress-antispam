@@ -61,10 +61,10 @@ class ApbctFormDecorator {
         if (document.querySelector('[class*="apbct_form_decoration"]')) {
             let classHeaderWrapper = document.querySelector('[class*="apbct_form_decoration"]').getAttribute('class');
             let endPosition = classHeaderWrapper.indexOf('_header__wrapper');
-            let classTamplate = classHeaderWrapper.substring(0, endPosition);
+            let classTemplate = classHeaderWrapper.substring(0, endPosition);
 
             blockForms.forEach((blockForm) => {
-                blockForm.className += ' ' + classTamplate;
+                blockForm.className += ' ' + classTemplate;
             });
         }
     }

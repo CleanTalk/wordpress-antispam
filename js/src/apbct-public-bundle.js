@@ -1232,10 +1232,10 @@ class ApbctFormDecorator {
         if (document.querySelector('[class*="apbct_form_decoration"]')) {
             let classHeaderWrapper = document.querySelector('[class*="apbct_form_decoration"]').getAttribute('class');
             let endPosition = classHeaderWrapper.indexOf('_header__wrapper');
-            let classTamplate = classHeaderWrapper.substring(0, endPosition);
+            let classTemplate = classHeaderWrapper.substring(0, endPosition);
 
             blockForms.forEach((blockForm) => {
-                blockForm.className += ' ' + classTamplate;
+                blockForm.className += ' ' + classTemplate;
             });
         }
     }
@@ -2971,7 +2971,7 @@ function apbctCatchXmlHttpRequest() {
  */
 function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) {
     // Set important parameters via ajax
-    if ( ctPublic.advancedCacheExists || ctPublic.varnishCacheExists ) {
+    if ( cacheExist ) {
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
             apbct_public_sendREST('apbct_set_important_parameters', {});
         } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
@@ -3770,7 +3770,7 @@ function ctNoCookieConstructHiddenField(type) {
 
 /**
  * Retrieves the clentalk "cookie" data from starages.
- * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataSkin}.
+ * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration}.
  * @return {string}
  */
 function getCleanTalkStorageDataArray() {
