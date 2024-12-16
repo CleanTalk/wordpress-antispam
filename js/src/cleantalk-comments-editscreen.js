@@ -51,6 +51,7 @@ jQuery(document).ready(function(){
 				ct_send_feedback_request(ct_comment_id, 'approve', 1);
 			});
 		}, 202);
+
 	});
 
 	// For unspammed

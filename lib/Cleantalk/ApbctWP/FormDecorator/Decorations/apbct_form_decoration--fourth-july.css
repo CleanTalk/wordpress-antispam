@@ -1,0 +1,66 @@
+.apbct_form_decoration--fourth-july_header__content {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: column-reverse;
+    justify-content: center;
+    align-items: center;
+    height: 70px;
+}
+.apbct_form_decoration--fourth-july_header__content svg {
+    position: absolute;
+    width: 100%;
+}
+.apbct_form_decoration--fourth-july_header__text {
+    display: block;
+    color: #FFF;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 18px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    z-index: 1;
+    padding-bottom: 12px;
+}
+.apbct_form_decoration--fourth-july {
+    background: url('images/apbct_form_decoration--fourth-july/holiday_bg.svg') repeat;
+    background-size: 100%;
+    position: relative;
+}
+.apbct_form_decoration--fourth-july form {
+    position: relative;
+    z-index: 1;
+}
+.apbct_form_decoration--fourth-july:before, .apbct_form_decoration--fourth-july:after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    width: 50%;
+    height: 100%;
+    background-position-y: bottom;
+    background-repeat: no-repeat;
+    background-size: 50%;
+    z-index: 0;
+}
+.apbct_form_decoration--fourth-july:before {
+    left: 0;
+    background-image: url('images/apbct_form_decoration--fourth-july/flag-left.svg');
+    background-position-x: left;
+}
+.apbct_form_decoration--fourth-july:after {
+    right: 0;
+    background-image: url('images/apbct_form_decoration--fourth-july/flag-right.svg');
+    background-position-x: right;
+}
+
+@media screen and (max-width: 768px) {
+    .apbct_form_decoration--fourth-july:before, .apbct_form_decoration--fourth-july:after {
+        width: 60%;
+    }
+}
+
+@media screen and (max-width: 500px) {
+    .apbct_form_decoration--fourth-july_header__text {
+        font-size: 14px;
+        padding-bottom: 7px;
+    }
+}
