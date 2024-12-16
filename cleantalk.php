@@ -170,20 +170,19 @@ if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['co
     \Cleantalk\Antispam\DisableComments::getInstance();
 }
 
+// Email encoder
 if (
     $apbct->key_is_ok &&
-    (!is_admin() || apbct_is_ajax()) &&
-    (current_action() !== 'wp_ajax_delete-plugin')
+    ( ! is_admin() || apbct_is_ajax() ) &&
+    current_action() !== 'wp_ajax_delete-plugin'
 ) {
-    // Email encoder
     $skip_email_encode = false;
-    if ($apbct->settings['data__email_decoder']) {
-        if (!empty($_POST)) {
-            foreach ( $_POST as $param => $_value ) {
-                if ( strpos((string)$param, 'et_pb_contactform_submit') === 0 ) {
-                    $skip_email_encode = true;
-                    break;
-                }
+
+    if (!empty($_POST)) {
+        foreach ( $_POST as $param => $_value ) {
+            if ( strpos((string)$param, 'et_pb_contactform_submit') === 0 ) {
+                $skip_email_encode = true;
+                break;
             }
         }
     }
@@ -193,6 +192,11 @@ if (
 
         // Email Encoder ajax handlers
         EmailEncoder::getInstance()->registerAjaxRoute();
+    }
+
+    // Force protection to avoid spam from bots without javascript
+    if ($apbct->settings['forms__force_protection']) {
+        ForceProtection::getInstance();
     }
 }
 

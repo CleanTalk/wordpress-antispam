@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\Antispam;
 
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 use Cleantalk\Variables\Post;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\Cleantalk;
@@ -90,14 +91,7 @@ class ForceProtection
                 ),
             ));
         }
-
-        Cookie::set(
-            'apbct_force_protection_check',
-            strval($api_response->allow),
-            time() + 86400 * 30,
-            '/',
-            ''
-        );
+        RequestParameters::set('apbct_force_protection_check', TT::toString($api_response->allow));
 
         return json_encode(array(
             'allow' => $api_response->allow,
@@ -118,7 +112,7 @@ class ForceProtection
 
             $iframe = isset($matches[0]) ? $matches[0] : '';
 
-            if ( Cookie::get('apbct_force_protection_check') ) {
+            if ( RequestParameters::get('apbct_force_protection_check') ) {
                 return $iframe;
             }
 
