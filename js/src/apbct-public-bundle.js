@@ -4614,7 +4614,10 @@ function isIntegratedForm(formObj) {
     const formId = formObj.getAttribute('id') !== null ? formObj.getAttribute('id') : '';
 
     if (
-        formAction.indexOf('app.convertkit.com') !== -1 || // ConvertKit form
+        (
+            formAction.indexOf('app.convertkit.com') !== -1 || // ConvertKit form
+            formAction.indexOf('app.kit.com') !== -1 // ConvertKit new form
+        ) ||
         ( formObj.firstChild.classList !== undefined &&
         formObj.firstChild.classList.contains('cb-form-group') ) || // Convertbox form
         formAction.indexOf('mailerlite.com') !== -1 || // Mailerlite integration
@@ -4844,20 +4847,22 @@ function catchDynamicRenderedForm() {
 }
 
 /**
- * Process dynamic rendered form
- * @param {HTMLElements} forms
- * @param {HTMLElement} documentObject
+ * Handles dynamic rendered forms by attaching an onsubmit event handler to them.
+ *
+ * @param {HTMLCollection} forms - A collection of form elements to be processed.
+ * @param {Document} [documentObject=document] - The document object to use for querying elements.
  */
 function catchDynamicRenderedFormHandler(forms, documentObject = document) {
     const neededFormIds = [];
     for (const form of forms) {
-        if (form.id.indexOf('hsForm') !== -1) {
-            neededFormIds.push(form.id);
+        const formIdAttr = form.getAttribute('id');
+        if (formIdAttr && formIdAttr.indexOf('hsForm') !== -1) {
+            neededFormIds.push(formIdAttr);
         }
-        if (form.id.indexOf('createuser') !== -1 &&
+        if (formIdAttr && formIdAttr.indexOf('createuser') !== -1 &&
         (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
         ) {
-            neededFormIds.push(form.id);
+            neededFormIds.push(formIdAttr);
         }
     }
 
