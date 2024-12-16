@@ -228,7 +228,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                 Cookie::get('wordpress_apbct_antibot') == hash(
                     'sha256',
                     $this->api_key . $this->apbct->data['salt']
-                )
+                ) &&
+                Cookie::get('apbct_bot_detector_exist')
             ) {
                 if ( Cookie::get('apbct_anticrawler_passed') == 1 ) {
                     if ( ! headers_sent() ) {
@@ -259,7 +260,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                     Cookie::get('wordpress_apbct_antibot') !== hash(
                         'sha256',
                         $this->api_key . $this->apbct->data['salt']
-                    )
+                    ) &&
+                    Cookie::get('apbct_bot_detector_exist')
                 ) {
                     $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER',);
                 } else {
@@ -558,7 +560,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             Cookie::get('wordpress_apbct_antibot') == hash(
                 'sha256',
                 $this->api_key . $this->apbct->data['salt']
-            )
+            ) &&
+            Cookie::get('apbct_bot_detector_exist')
         ) {
             return true;
         }
