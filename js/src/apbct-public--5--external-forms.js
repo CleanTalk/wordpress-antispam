@@ -234,10 +234,11 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
             }
         });
     }
+
+    let mailerliteSubmitButton = null;
     if ( mailerliteDetectedClass ) {
-        const mailerliteSubmitButton = documentObject.querySelector('form.' + mailerliteDetectedClass)
-            .querySelector('button[type="submit"]');
-        if ( mailerliteSubmitButton !== undefined ) {
+        mailerliteSubmitButton = reUseCurrentForm.querySelector('button[type="submit"]');
+        if ( mailerliteSubmitButton !== null && mailerliteSubmitButton !== undefined ) {
             mailerliteSubmitButton.addEventListener('click', function(event) {
                 event.preventDefault();
                 sendAjaxCheckingFormData(reUseCurrentForm);
