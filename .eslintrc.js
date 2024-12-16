@@ -7,7 +7,6 @@ module.exports = {
     ignorePatterns: [
         'js/src/cleantalk-comments-editscreen.js',
         'js/src/cleantalk-dashboard-widget.js',
-        'js/src/cleantalk-debug-ajax.js',
         'js/src/cleantalk-public-admin.js',
         'js/src/cleantalk-users-checkspam.js',
         'js/src/cleantalk-users-editscreen.js',

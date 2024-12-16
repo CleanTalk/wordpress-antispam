@@ -72,7 +72,6 @@ define(
 define('APBCT_DATA', 'cleantalk_data');             // Option name with different plugin data.
 define('APBCT_SETTINGS', 'cleantalk_settings');         // Option name with plugin settings.
 define('APBCT_NETWORK_SETTINGS', 'cleantalk_network_settings'); // Option name with plugin network settings.
-define('APBCT_DEBUG', 'cleantalk_debug');            // Option name with a debug data. Empty by default.
 define('APBCT_JS_ERRORS', 'cleantalk_js_errors');            // Option name with js errors. Empty by default.
 
 
@@ -95,6 +94,10 @@ require_once(CLEANTALK_PLUGIN_DIR . 'lib/cleantalk-php-patch.php');  // Pathces 
  * Require the Autoloader
  */
 require_once(CLEANTALK_PLUGIN_DIR . 'lib/autoloader.php');
+
+if (!defined('APBCT_IS_LOCALHOST')) {
+    define('APBCT_IS_LOCALHOST', in_array(Server::getDomain(), array('lc', 'loc', 'lh', 'test')));
+}
 
 /**
  * Define API params const.
@@ -127,7 +130,7 @@ require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-wpcli.php');
  * Global state handle.
  */
 // Global ArrayObject with settings and other global variables
-$apbct = new State('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats'));
+$apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
 // Init plugin basename.
 $apbct->base_name = 'cleantalk-spam-protect/cleantalk.php';
 // Identify plugin execution
@@ -2778,49 +2781,6 @@ function apbct_cron_clear_old_session_data()
     }
 
     \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
-}
-
-/**
- * Write $message to the plugin's debug option
- *
- * @param string|array|object $message
- * @param null|string $func
- * @param array $params
- *
- * @return void
- */
-function apbct_log($message = 'empty', $func = null, $params = array())
-{
-    global $apbct;
-
-    $debug = get_option(APBCT_DEBUG);
-
-    $function = $func ?: '';
-    $cron     = in_array('cron', $params);
-    $data     = in_array('data', $params);
-    $settings = in_array('settings', $params);
-
-    if ( is_array($message) || is_object($message) ) {
-        $message = print_r($message, true);
-    }
-
-    if ( $message ) {
-        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter() . "_FUNCTION_" . $function] = $message;
-    }
-    if ( $cron ) {
-        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter(
-        ) . "_FUNCTION_" . $function . '_cron'] = $apbct->cron;
-    }
-    if ( $data ) {
-        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter(
-        ) . "_FUNCTION_" . $function . '_data'] = $apbct->data;
-    }
-    if ( $settings ) {
-        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter(
-        ) . "_FUNCTION_" . $function . '_settings'] = $apbct->settings;
-    }
-
-    update_option(APBCT_DEBUG, $debug);
 }
 
 /**
