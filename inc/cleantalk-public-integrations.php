@@ -2305,17 +2305,17 @@ function apbct_form__ninjaForms__collect_fields_new()
                 $field_key = TT::toString($field_info['field_key']);
                 $field_type = TT::toString($field_info['field_type']);
                 $fields['nf-field-' . $field['id'] . '-' . $field_type] = $field['value'];
-                if ( stripos($field_key, 'name') !== false ) {
-                    $nickname = $field['value'];
+                if ( stripos($field_key, 'name') !== false && stripos($field_type, 'name') !== false ) {
+                    $nickname .= ' ' . $field['value'];
                 }
-                if ( stripos($field_key, 'email') !== false ) {
+                if ( stripos($field_key, 'email') !== false && $field_type === 'email' ) {
                     $email = $field['value'];
                 }
             }
         }
     }
 
-    return ct_gfa($fields, $email, $nickname);
+    return ct_gfa($fields, $email, trim($nickname));
 }
 
 /**
