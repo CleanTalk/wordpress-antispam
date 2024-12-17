@@ -1676,7 +1676,7 @@ function ctFillDecodedEmail(target, email) {
     apbct(target).html(
         apbct(target)
             .html()
-            .replace(/.?<span class=["']apbct-ee-blur_email-text["'].*>(.+?)<\/span>/, email),
+            .replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1'),
     );
 }
 
