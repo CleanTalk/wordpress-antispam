@@ -1709,7 +1709,6 @@ function apbct_settings__field__state()
 
     $img         = $path_to_img . "yes.png";
     $img_no      = $path_to_img . "no.png";
-    $img_no_gray = $path_to_img . "no_gray.png";
     $color       = "black";
 
     if ( ! $apbct->key_is_ok ) {
