@@ -689,14 +689,16 @@ if ( is_admin() || is_network_admin() ) {
         $_cleantalk_ajax_actions_to_check = array();
 
         global $apbct_active_integrations;
-        $integrated_hooks = array_column($apbct_active_integrations, 'hook');
-        foreach ( $integrated_hooks as $hook ) {
-            if ( is_array($hook) ) {
-                foreach ( $hook as $_item ) {
-                    $_cleantalk_hooked_actions[] = $_item;
+        if (isset($apbct_active_integrations) && is_array($apbct_active_integrations)) {
+            $integrated_hooks = array_column($apbct_active_integrations, 'hook');
+            foreach ( $integrated_hooks as $hook ) {
+                if ( is_array($hook) ) {
+                    foreach ( $hook as $_item ) {
+                        $_cleantalk_hooked_actions[] = $_item;
+                    }
+                } else {
+                    $_cleantalk_hooked_actions[] = $hook;
                 }
-            } else {
-                $_cleantalk_hooked_actions[] = $hook;
             }
         }
 
