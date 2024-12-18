@@ -2682,12 +2682,12 @@ function apbct_ready() {
 function checkBotDetectorExist() {
     if (ctPublic.settings__data__bot_detector_enabled) {
         const botDetectorIntervalSerch = setInterval(() => {
-                let botDetectorEventToken = localStorage.bot_detector_event_token ? true : false;
+            let botDetectorEventToken = localStorage.bot_detector_event_token ? true : false;
 
-                if (botDetectorEventToken) {
-                    ctSetCookie('apbct_bot_detector_exist', '1', '3600');
-                    clearInterval(botDetectorIntervalSerch);
-                }
+            if (botDetectorEventToken) {
+                ctSetCookie('apbct_bot_detector_exist', '1', '3600');
+                clearInterval(botDetectorIntervalSerch);
+            }
         }, 500);
     }
 }
