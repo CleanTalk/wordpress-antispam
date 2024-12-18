@@ -230,7 +230,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                     'sha256',
                     $this->api_key . $this->apbct->data['salt']
                 ) ||
-                RequestParameters::get('apbct_bot_detector_exist', true)
+                RequestParameters::get('apbct_bot_detector_exist', true)  == '1'
             ) {
                 if ( Cookie::get('apbct_anticrawler_passed') == 1 ) {
                     if ( ! headers_sent() ) {
@@ -262,7 +262,10 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                         'sha256',
                         $this->api_key . $this->apbct->data['salt']
                     ) &&
-                    !RequestParameters::get('apbct_bot_detector_exist', true)
+                    (
+                        !RequestParameters::get('apbct_bot_detector_exist', true) ||
+                        RequestParameters::get('apbct_bot_detector_exist', true) == '0'
+                    )
                 ) {
                     $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER',);
                 } else {
@@ -562,7 +565,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                 'sha256',
                 $this->api_key . $this->apbct->data['salt']
             ) ||
-            RequestParameters::get('apbct_bot_detector_exist', true))
+            RequestParameters::get('apbct_bot_detector_exist', true) == '1')
         ) {
             return true;
         }
