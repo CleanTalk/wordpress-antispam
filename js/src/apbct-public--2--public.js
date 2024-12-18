@@ -1597,10 +1597,7 @@ function getJavascriptClientData(commonCookies = []) {
         resultDataJson.apbct_pixel_url = ctPublic.pixel__url;
     }
 
-    if (
-        typeof (commonCookies) === 'object' &&
-        commonCookies !== []
-    ) {
+    if ( typeof (commonCookies) === 'object') {
         for (let i = 0; i < commonCookies.length; ++i) {
             if ( typeof (commonCookies[i][1]) === 'object' ) {
                 // this is for handle SFW cookies
