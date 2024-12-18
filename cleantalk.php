@@ -2266,11 +2266,9 @@ function apbct_rc__insert_auth_key($key, $plugin)
                         $data['notice_show']      = TT::getArrayValueAsInt($result, 'show_notice');
                         $data['notice_renew']     = TT::getArrayValueAsInt($result, 'renew');
                         $data['notice_trial']     = TT::getArrayValueAsInt($result, 'trial');
-                        $data['auto_update_app']  = TT::getArrayValueAsInt($result, 'show_auto_update_notice');
                         $data['service_id']       = TT::getArrayValueAsInt($result, 'service_id');
                         $data['user_id']          = TT::getArrayValueAsInt($result, 'user_id');
                         $data['moderate']         = TT::getArrayValueAsInt($result, 'moderate');
-                        $data['auto_update_app '] = TT::getArrayValueAsInt($result, 'auto_update_app');
                         $data['license_trial']    = TT::getArrayValueAsInt($result, 'license_trial');
                         $data['account_name_ob']  = TT::getArrayValueAsString($result, 'account_name_ob');
                         $data['key_is_ok']        = true;
@@ -2652,7 +2650,6 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $apbct->data['notice_renew']        = TT::getArrayValueAsInt($result, 'renew', 0);
         $apbct->data['notice_trial']        = TT::getArrayValueAsInt($result, 'trial', 0);
         $apbct->data['notice_review']       = TT::getArrayValueAsInt($result, 'show_review', 0);
-        $apbct->data['notice_auto_update']  = TT::getArrayValueAsInt($result, 'show_auto_update_notice', 0);
 
         // Other
         $apbct->data['service_id']          = TT::getArrayValueAsInt($result, 'service_id', 0);
@@ -2661,7 +2658,6 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $apbct->data['moderate']            = TT::getArrayValueAsInt($result, 'moderate', 0);
         $apbct->data['ip_license']          = TT::getArrayValueAsInt($result, 'ip_license', 0);
         $apbct->data['spam_count']          = TT::getArrayValueAsInt($result, 'spam_count', 0);
-        $apbct->data['auto_update']         = TT::getArrayValueAsInt($result, 'auto_update_app', 0);
         $apbct->data['user_token']          = TT::getArrayValueAsString($result, 'user_token', '');
         $apbct->data['license_trial']       = TT::getArrayValueAsInt($result, 'license_trial', 0);
         $apbct->data['account_name_ob']     = TT::getArrayValueAsString($result, 'account_name_ob', '');

@@ -157,7 +157,6 @@ class State extends \Cleantalk\Common\State
         'moderate_ip'                    => 0,
         'ip_license'                     => 0,
         'spam_count'                     => 0,
-        'auto_update'                    => 0,
         'user_token'                     => '', // User token for auto login into spam statistics
         'license_trial'                  => 0,
 
@@ -166,7 +165,6 @@ class State extends \Cleantalk\Common\State
         'notice_trial'                   => 0,
         'notice_renew'                   => 0,
         'notice_review'                  => 0,
-        'notice_auto_update'             => 0,
         'notice_incompatibility'         => array(),
         'notice_email_decoder_changed'   => 0,
 
@@ -263,8 +261,7 @@ class State extends \Cleantalk\Common\State
         'valid'       => 0,
         'user_token'  => '',
         'service_id'  => 0,
-        'user_id'  => 0,
-        'auto_update' => 0,
+        'user_id'     => 0,
     );
 
     /**
