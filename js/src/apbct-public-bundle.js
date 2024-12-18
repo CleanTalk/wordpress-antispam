@@ -2681,12 +2681,12 @@ function apbct_ready() {
  */
 function checkBotDetectorExist() {
     if (ctPublic.settings__data__bot_detector_enabled) {
-        const botDetectorIntervalSerch = setInterval(() => {
+        const botDetectorIntervalSearch  = setInterval(() => {
             let botDetectorEventToken = localStorage.bot_detector_event_token ? true : false;
 
             if (botDetectorEventToken) {
                 ctSetCookie('apbct_bot_detector_exist', '1', '3600');
-                clearInterval(botDetectorIntervalSerch);
+                clearInterval(botDetectorIntervalSearch);
             }
         }, 500);
     }
