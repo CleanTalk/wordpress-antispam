@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
+use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Validate;
 use Cleantalk\Common\Helper;
@@ -228,8 +229,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                 Cookie::get('wordpress_apbct_antibot') == hash(
                     'sha256',
                     $this->api_key . $this->apbct->data['salt']
-                ) &&
-                Cookie::get('apbct_bot_detector_exist')
+                ) ||
+                RequestParameters::get('apbct_bot_detector_exist', true)
             ) {
                 if ( Cookie::get('apbct_anticrawler_passed') == 1 ) {
                     if ( ! headers_sent() ) {
@@ -261,7 +262,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                         'sha256',
                         $this->api_key . $this->apbct->data['salt']
                     ) &&
-                    Cookie::get('apbct_bot_detector_exist')
+                    !RequestParameters::get('apbct_bot_detector_exist', true)
                 ) {
                     $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER',);
                 } else {
@@ -557,11 +558,11 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         //skip check if SFW test is running
         if (
             Get::get('sfw_test_ip') &&
-            Cookie::get('wordpress_apbct_antibot') == hash(
+            (Cookie::get('wordpress_apbct_antibot') == hash(
                 'sha256',
                 $this->api_key . $this->apbct->data['salt']
-            ) &&
-            Cookie::get('apbct_bot_detector_exist')
+            ) ||
+            RequestParameters::get('apbct_bot_detector_exist', true))
         ) {
             return true;
         }
