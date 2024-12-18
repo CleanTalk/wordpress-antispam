@@ -200,9 +200,15 @@ class EmailEncoder
         }
 
         // skip encoding if the content is already encoded with hook
-        if ( strpos($content, '[apbct_encode_data]') !== false && strpos($content, '[/apbct_encode_data]') !== false ) {
-            return $content;
-        }
+        // Extract shortcode content to protect it from email encoding
+        $shortcode_pattern = '/\[apbct_encode_data\](.*?)\[\/apbct_encode_data\]/s';
+        $shortcode_replacements = [];
+        $shortcode_counter = 0;
+        $content = preg_replace_callback($shortcode_pattern, function($matches) use (&$shortcode_replacements, &$shortcode_counter) {
+            $placeholder = '%%APBCT_SHORTCODE_' . ($shortcode_counter++) . '%%';
+            $shortcode_replacements[$placeholder] = $matches[0];
+            return $placeholder;
+        }, $content);
 
         if ( static::skipEncodingOnHooks() ) {
             return $content;
@@ -220,7 +226,14 @@ class EmailEncoder
 
         $content = self::dropAttributesContainEmail($content, self::$attributes_to_drop);
 
-        return $this->modifyEmails($content);
+        $content = $this->modifyEmails($content);
+
+        // Restore shortcodes
+        foreach ($shortcode_replacements as $placeholder => $original) {
+            $content = str_replace($placeholder, $original, $content);
+        }
+
+        return $content;
     }
 
     /**

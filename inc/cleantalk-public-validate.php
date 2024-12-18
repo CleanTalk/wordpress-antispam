@@ -38,6 +38,13 @@ function ct_contact_form_validate()
         return null;
     }
 
+    // Skip own service REST API requests
+    if ( Server::isPost() && Server::inUri('wp-json/cleantalk-antispam/v1/apbct_decode_email') ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+
+        return null;
+    }
+
     //Skip woocommerce checkout
     if (
         apbct_is_in_uri('wc-ajax=update_order_review') ||
