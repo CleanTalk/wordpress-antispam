@@ -295,7 +295,7 @@ class SettingsField
 					name="cleantalk_settings[' . $this->params['name'] . ']"'
                . " class='apbct_setting_{$this->params['type']} apbct_setting---{$this->params['name']}'"
                . ' value="' . $this->value . '" '
-               . ($this->params['placeholder'] ? ' placeholder="' . $this->params['placeholder'] : '') . '" '
+               . (isset($this->params['placeholder']) ? ' placeholder="' . $this->params['placeholder'] : '') . '" '
                . $this->disabled_string
                . ($this->params['required'] ? ' required="required"' : '')
                . ($this->params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $this->children_string . '\')"' : '')
