@@ -2482,7 +2482,7 @@ function apbct_store__urls()
         $new_site_referer = $new_site_referer !== '' ? $new_site_referer : 'UNKNOWN';
 
         // Get already stored referer
-        $site_referer = Cookie::get('apbct_site_referer');
+        $site_referer = TT::toString(RequestParameters::get('apbct_site_referer', true));
 
         // Save if empty
         if (
@@ -2492,7 +2492,7 @@ function apbct_store__urls()
                 parse_url($new_site_referer, PHP_URL_HOST) !== Server::get('HTTP_HOST')
             ) && $apbct->data['cookies_type'] === 'native'
         ) {
-            Cookie::set('apbct_site_referer', $new_site_referer, time() + 86400 * 3, '/', $site_url, null, true, 'Lax', true);
+            RequestParameters::set('apbct_site_referer', $new_site_referer, true);
         }
 
         $apbct->flags__url_stored = true;
@@ -2562,13 +2562,13 @@ function apbct_cookie()
 
         // Page hits
         // Get
-        $page_hits = TT::toInt(Cookie::get('apbct_page_hits'));
+        $page_hits = TT::toInt(RequestParameters::get('apbct_page_hits', true));
 
         // Set / Increase
         // todo if cookies disabled there is no way to keep this data without DB:( always will be 1
         $page_hits = $page_hits ? $page_hits + 1 : 1;
 
-        Cookie::set('apbct_page_hits', (string)$page_hits, 0, '/', $domain, null, true, 'Lax', true);
+        RequestParameters::set('apbct_page_hits', TT::toString($page_hits), true);
 
         $cookie_test_value['cookies_names'][] = 'apbct_page_hits';
         $cookie_test_value['check_value']     .= $page_hits;
@@ -2784,6 +2784,13 @@ function apbct_cron_clear_old_session_data()
     }
 
     \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
+
+    $ct_cron = new Cron();
+    if (\Cleantalk\ApbctWP\Variables\AltSessions::checkHasUndeletedOldSessions()) {
+        $ct_cron->updateTask('clear_old_session_data', 'apbct_cron_clear_old_session_data', 60, time() + 60);
+    } else {
+        $ct_cron->updateTask('clear_old_session_data', 'apbct_cron_clear_old_session_data', 86400);
+    }
 }
 
 /**
