@@ -875,7 +875,7 @@ function apbct_sfw__check()
     // Checking if database was outdated
     $is_sfw_outdated = $apbct->stats['sfw']['last_update_time'] + $apbct->stats['sfw']['update_period'] * 3 < time();
 
-    add_action('init', function() use ($apbct, $is_sfw_outdated) {
+    add_action('init', function () use ($apbct, $is_sfw_outdated) {
         $apbct->errorToggle(
             $is_sfw_outdated,
             'sfw_outdated',
@@ -897,7 +897,7 @@ function apbct_sfw__check()
     $sfw_tables_names = SFW::getSFWTablesNames();
 
     if (!$sfw_tables_names) {
-        add_action('init', function() use ($apbct) {
+        add_action('init', function () use ($apbct) {
             $apbct->errorAdd(
                 'sfw',
                 esc_html__(
