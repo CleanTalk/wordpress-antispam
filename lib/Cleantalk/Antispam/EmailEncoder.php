@@ -206,7 +206,9 @@ class EmailEncoder
         $shortcode_counter = 0;
         $content = preg_replace_callback($shortcode_pattern, function ($matches) use (&$shortcode_replacements, &$shortcode_counter) {
             $placeholder = '%%APBCT_SHORTCODE_' . ($shortcode_counter++) . '%%';
-            $shortcode_replacements[$placeholder] = $matches[0];
+            if (isset($matches[0])) {
+                $shortcode_replacements[$placeholder] = $matches[0];
+            }
             return $placeholder;
         }, $content);
 
