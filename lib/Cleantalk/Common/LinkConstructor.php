@@ -11,7 +11,7 @@ namespace Cleantalk\Common;
 class LinkConstructor
 {
     /**
-     * @var array $utm_presets
+     * @var array[] $utm_presets
      *
      * An associative array containing UTM presets for different types of links.
      * Each preset is an array of UTM parameters.

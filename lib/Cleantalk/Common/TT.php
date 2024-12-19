@@ -16,9 +16,10 @@ class TT
      * it casts the value to an integer. If neither condition is met, it defaults to returning 0.
      *
      * @param mixed $value The value to be converted to an integer.
+     * @param int $default Default value if conversion is not possible, inherit 0.
      * @return int The converted integer value, or 0 if conversion is not possible.
      */
-    public static function toInt($value)
+    public static function toInt($value, $default = 0)
     {
         if ( isset($value) && is_int($value) ) {
             return $value;
@@ -26,7 +27,7 @@ class TT
         if ( isset($value) && is_scalar($value) ) {
             return (int)$value;
         }
-        return 0;
+        return $default !== 0 && is_int($default) ? $default : 0;
     }
 
     /**
@@ -37,14 +38,14 @@ class TT
      * it casts the value to a string. If neither condition is met, it defaults to returning an empty string.
      *
      * @param mixed $value The value to be converted to a string.
-     *
+     * @param string $default Default value if conversion is not possible, inherit ''.
      * @return string The converted string value, or an empty string if conversion is not possible.
      *
      * @psalm-taint-specialize
      * todo Attention. The suppressing above is enabled to avoid taint analysis FP.
      * todo However we should sanitize any POST usage that aggregated in this method.
      */
-    public static function toString($value)
+    public static function toString($value, $default = '')
     {
         if ( isset($value) && is_string($value) ) {
             return $value;
@@ -52,7 +53,7 @@ class TT
         if ( isset($value) && is_scalar($value) ) {
             return (string)$value;
         }
-        return '';
+        return $default !== '' && is_string($default) ? $default : '';
     }
 
     /**
@@ -64,9 +65,10 @@ class TT
      * If the value is null or cannot be converted, an empty array is returned.
      *
      * @param mixed $value The value to be converted to an array.
+     * @param array $default Default value if conversion is not possible, inherit [].
      * @return array The converted array, or an empty array if conversion is not possible.
      */
-    public static function toArray($value)
+    public static function toArray($value, $default = array())
     {
         if ( isset($value) && is_array($value) ) {
             return $value;
@@ -78,7 +80,7 @@ class TT
             }
             return (array)$value;
         }
-        return array();
+        return $default !== array() && is_array($default) ? $default : array();
     }
 
     /**
@@ -90,9 +92,10 @@ class TT
      * If the value is null or cannot be converted, false is returned.
      *
      * @param mixed $value The value to be converted to a boolean.
+     * @param bool $default Default value if conversion is not possible, inherit false.
      * @return bool The converted boolean value, or false if conversion is not possible.
      */
-    public static function toBool($value)
+    public static function toBool($value, $default = false)
     {
         if ( isset($value) && is_bool($value) ) {
             return $value;
@@ -101,7 +104,7 @@ class TT
             //todo cast methods needs
             return (bool)$value;
         }
-        return false;
+        return $default !== false && is_bool($default);
     }
 
     /**
@@ -122,7 +125,7 @@ class TT
             return self::toInt($default);
         }
 
-        return self::toInt($array[$key]);
+        return self::toInt($array[$key], $default);
     }
 
     /**
@@ -142,7 +145,7 @@ class TT
             return self::toString($default);
         }
 
-        return self::toString($array[$key]);
+        return self::toString($array[$key], $default);
     }
 
     /**
@@ -162,7 +165,7 @@ class TT
             return self::toArray($default);
         }
 
-        return self::toArray($array[$key]);
+        return self::toArray($array[$key], $default);
     }
 
     /**
@@ -182,6 +185,6 @@ class TT
             return self::toBool($default);
         }
 
-        return self::toBool($array[$key]);
+        return self::toBool($array[$key], $default);
     }
 }

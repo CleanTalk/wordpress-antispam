@@ -119,7 +119,9 @@ class Deactivator
     {
         $current_blog_id = get_current_blog_id();
         $wp_upload_dir = wp_upload_dir();
-        $update_folder = $wp_upload_dir['basedir'] . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . $current_blog_id . DIRECTORY_SEPARATOR;
-        SFWUpdateHelper::removeUpdFolder($update_folder);
+        if (isset($wp_upload_dir['basedir'])) {
+            $update_folder = $wp_upload_dir['basedir'] . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . $current_blog_id . DIRECTORY_SEPARATOR;
+            SFWUpdateHelper::removeUpdFolder($update_folder);
+        }
     }
 }

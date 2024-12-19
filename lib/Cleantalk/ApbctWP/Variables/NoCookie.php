@@ -66,14 +66,12 @@ class NoCookie
     {
         if ( !empty($data) && is_string($data)) {
             // remove noise if exists
-            if (!is_bool(strpos($data, '_ct_no_cookie_data_'))) {
-                $data = substr($data, strpos($data, '_ct_no_cookie_data_'));
-            }
-            if (!is_bool(strpos($data, '%'))) {
-                $data = substr($data, 0, strpos($data, '%'));
-            }
-            if (!is_bool(strpos($data, '&'))) {
-                $data = substr($data, 0, strpos($data, '&'));
+            $delimiters = ['_ct_no_cookie_data_', '%', '&'];
+            foreach ($delimiters as $delimiter) {
+                $noise_start_on = strpos($data, $delimiter);
+                if ($noise_start_on !== false) {
+                    $data = substr($data, $noise_start_on);
+                }
             }
             //delete sign of no cookie raw data
             $data = str_replace('_ct_no_cookie_data_', '', $data);

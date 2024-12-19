@@ -4,6 +4,7 @@ namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class WcSpamOrdersListTable extends CleantalkListTable
 {
@@ -78,7 +79,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
                 'restore'  => '<a class="apbct-restore-spam-order-button" data-spam-order-id="' . $wc_spam_order->id . '">' . esc_html__('Restore', 'cleantalk-spam-protect') . '</a>',
                 'delete'  => sprintf(
                     '<a onclick="return confirm(\'' . esc_html__('Are you sure?', 'cleantalk-spam-protect') . '\')" href="?page=%s&action=%s&spam=%s">Delete</a>',
-                    htmlspecialchars(addslashes(Get::get('page'))),
+                    htmlspecialchars(addslashes(Get::getString('page'))),
                     'delete',
                     $wc_spam_order->id
                 ),
@@ -133,7 +134,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
             return;
         }
 
-        if ( ! wp_verify_nonce(Post::get('_wpnonce'), 'bulk-' . $this->_args['plural']) ) {
+        if ( ! wp_verify_nonce(Post::getString('_wpnonce'), 'bulk-' . TT::getArrayValueAsString($this->_args, 'plural')) ) {
             wp_die('nonce error');
         }
 
@@ -146,12 +147,20 @@ class WcSpamOrdersListTable extends CleantalkListTable
 
     public function column_cb($item) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        echo '<input type="checkbox" name="spamorderids[]" id="cb-select-' . $item['cb'] . '" value="' . $item['cb'] . '" />';
+        $cb = TT::getArrayValueAsString($item, 'cb');
+        echo '<input type="checkbox" name="spamorderids[]" id="cb-select-' . $cb . '" value="' . $cb . '" />';
     }
 
     public function column_default($item, $column_name) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        return print_r($item[$column_name], true);
+        if (is_array($item) && array_key_exists($column_name, $item)) {
+            return $item[$column_name];
+        }
+
+        if (is_object($item) && property_exists($item, $column_name)) {
+            return $item->$column_name;
+        }
+        return '';
     }
 
     public function row_actions_handler() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
@@ -236,10 +245,12 @@ class WcSpamOrdersListTable extends CleantalkListTable
         $result = '';
 
         if ( is_wp_error($response) ) {
+            /** @psalm-suppress PossiblyInvalidMethodCall */
             $error_message = $response->get_error_message();
             echo "Something went wrong: $error_message";
         } else {
             echo 'Response:<pre>';
+            /** @psalm-suppress PossiblyInvalidArgument */
             print_r($response);
             echo '</pre>';
         }

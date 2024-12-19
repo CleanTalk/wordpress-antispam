@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\Common\TT;
+
 /**
  * Anti-Spam by CleanTalk plugin
  *
@@ -45,7 +47,7 @@ class CleantalkUpgrader extends \Plugin_Upgrader
         $this->install_strings();
 
         add_filter('upgrader_source_selection', array($this, 'check_package'));
-        if ( $parsed_args['clear_update_cache'] ) {
+        if ( !empty($parsed_args['clear_update_cache']) ) {
             // Clear cache so wp_update_plugins() knows about the new plugin.
             add_action('upgrader_process_complete', 'wp_clean_plugins_cache', 9, 0);
         }
@@ -135,6 +137,7 @@ class CleantalkUpgrader extends \Plugin_Upgrader
          */
         $download = $this->download_package($options['package']);
         if ( is_wp_error($download) ) {
+            /** @psalm-suppress PossiblyInvalidArgument */
             $this->skin->error($download);
             $this->skin->after();
             if ( ! $options['is_multi'] ) {
@@ -147,8 +150,9 @@ class CleantalkUpgrader extends \Plugin_Upgrader
         $delete_package = ($download != $options['package']); // Do not delete a "local" file
 
         // Unzips the file into a temporary directory.
-        $working_dir = $this->unpack_package($download, $delete_package);
+        $working_dir = $this->unpack_package(TT::toString($download), $delete_package);
         if ( is_wp_error($working_dir) ) {
+            /** @psalm-suppress PossiblyInvalidArgument */
             $this->skin->error($working_dir);
             $this->skin->after();
             if ( ! $options['is_multi'] ) {
@@ -167,9 +171,10 @@ class CleantalkUpgrader extends \Plugin_Upgrader
             'clear_working'               => $options['clear_working'],
             'hook_extra'                  => $options['hook_extra']
         ));
-
+        /** @psalm-suppress PossiblyInvalidArgument */
         $this->skin->set_result($result);
         if ( is_wp_error($result) ) {
+            /** @psalm-suppress PossiblyInvalidArgument */
             $this->skin->error($result);
             $this->skin->feedback('process_failed');
         } else {
@@ -200,8 +205,10 @@ class CleantalkUpgrader extends \Plugin_Upgrader
         // add_filter( 'upgrader_pre_install', array( $this, 'deactivate_plugin_before_upgrade' ), 10, 2 );
         add_filter('upgrader_clear_destination', array($this, 'delete_old_plugin'), 10, 4);
 
+        $plugin_slug = TT::getArrayValueAsString($this->skin->options, 'plugin_slug');
+        $prev_version = TT::getArrayValueAsString($this->skin->options, 'prev_version');
         $result = $this->run(array(
-            'package'           => 'https://downloads.wordpress.org/plugin/' . $this->skin->options['plugin_slug'] . '.' . $this->skin->options['prev_version'] . '.zip',
+            'package'           => 'https://downloads.wordpress.org/plugin/' . $plugin_slug . '.' . $prev_version . '.zip',
             'destination'       => WP_PLUGIN_DIR,
             'clear_destination' => true,
             'clear_working'     => true,
@@ -215,11 +222,13 @@ class CleantalkUpgrader extends \Plugin_Upgrader
         // remove_filter( 'upgrader_pre_install', array( $this, 'deactivate_plugin_before_upgrade' ) );
         remove_filter('upgrader_clear_destination', array($this, 'delete_old_plugin'));
 
-        if ( ! $this->result || is_wp_error($this->result) ) {
+        if ( ! $this->result || is_wp_error($this->result)) {
             return $this->result;
         }
 
-        wp_clean_plugins_cache($parsed_args['clear_update_cache']); // Refresh of plugin update information.
+        if (!empty($parsed_args['clear_update_cache'])) {
+            wp_clean_plugins_cache($parsed_args['clear_update_cache']); // Refresh of plugin update information.
+        }
 
         return $result;
     }
