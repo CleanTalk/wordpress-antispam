@@ -434,14 +434,11 @@ Yes, it is. Please read this article,
 1. AntiSpam settings are easy to use to protect any contact forms. For example - Ninja forms, Fluent forms and etc.
 2. AntiSpam plugin rejected a spam bot at the CAPTCHA less registration form. The plugin provides explanation to visitor and websites about each rejected comment/registration or contact message.
 3. Use AntiSpam analytics tool for each website in service Dashboard to have information about spam/legitimate stats.
-4. Use AntiSpam log to control anti-spam plugin.
-5. CleanTalk works faster than most of other anti-spam plugins.
-6. The Dashboard with a map of most spam active countries per your account.
-7. The plugin deletes/removes the existing spam comments and users accounts.
-8. CleanTalk's dashboard update link.
-10. Website's options.
-11. CleanTalk's dashboard.
-12. SpamFireWall log.
+4. Special interface to find spam comments.
+5. Special interface to find spammers in users.
+6. Prevent WooCommerce checkout from spammers.
+7. Prevent spam contact occurs in your life.
+8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
 
