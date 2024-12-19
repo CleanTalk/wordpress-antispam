@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.46
+  Version: 6.47
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -26,6 +26,7 @@ use Cleantalk\ApbctWP\Firewall\AntiCrawler;
 use Cleantalk\ApbctWP\Firewall\AntiFlood;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
+use Cleantalk\ApbctWP\FormDecorator\FormDecorator;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
@@ -35,14 +36,14 @@ use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Transaction;
 use Cleantalk\ApbctWP\UpdatePlugin\DbTablesCreator;
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Common\TT;
-use Cleantalk\Common\DNS;
-use Cleantalk\Common\Firewall;
-use Cleantalk\Common\Schema;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\DNS;
+use Cleantalk\Common\Firewall;
+use Cleantalk\Common\Schema;
+use Cleantalk\Common\TT;
 
 global $apbct, $wpdb, $pagenow;
 
@@ -71,7 +72,6 @@ define(
 define('APBCT_DATA', 'cleantalk_data');             // Option name with different plugin data.
 define('APBCT_SETTINGS', 'cleantalk_settings');         // Option name with plugin settings.
 define('APBCT_NETWORK_SETTINGS', 'cleantalk_network_settings'); // Option name with plugin network settings.
-define('APBCT_DEBUG', 'cleantalk_debug');            // Option name with a debug data. Empty by default.
 define('APBCT_JS_ERRORS', 'cleantalk_js_errors');            // Option name with js errors. Empty by default.
 
 
@@ -94,6 +94,10 @@ require_once(CLEANTALK_PLUGIN_DIR . 'lib/cleantalk-php-patch.php');  // Pathces 
  * Require the Autoloader
  */
 require_once(CLEANTALK_PLUGIN_DIR . 'lib/autoloader.php');
+
+if (!defined('APBCT_IS_LOCALHOST')) {
+    define('APBCT_IS_LOCALHOST', in_array(Server::getDomain(), array('lc', 'loc', 'lh', 'test')));
+}
 
 /**
  * Define API params const.
@@ -126,7 +130,7 @@ require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-wpcli.php');
  * Global state handle.
  */
 // Global ArrayObject with settings and other global variables
-$apbct = new State('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats'));
+$apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
 // Init plugin basename.
 $apbct->base_name = 'cleantalk-spam-protect/cleantalk.php';
 // Identify plugin execution
@@ -185,11 +189,19 @@ if (
 
     if (!$skip_email_encode && !apbct_is_amp_request()) {
         EmailEncoder::getInstance();
+
+        // Email Encoder ajax handlers
+        EmailEncoder::getInstance()->registerAjaxRoute();
     }
 }
 
 if ( $apbct->settings['comments__the_real_person'] ) {
     new CleantalkRealPerson();
+}
+
+if ( $apbct->settings['comments__form_decoration'] && $apbct->settings['comments__form_decoration_selector']) {
+    $decorator = new FormDecorator();
+    $decorator->setDecorationSet($apbct->settings['comments__form_decoration_selector']);
 }
 
 add_action('rest_api_init', 'apbct_register_my_rest_routes');
@@ -224,9 +236,6 @@ add_action('wp_ajax_nopriv_apbct_email_check_exist_post', 'apbct_email_check_exi
 // Force ajax set important parameters (apbct_timestamp etc)
 add_action('wp_ajax_nopriv_apbct_set_important_parameters', 'apbct_cookie');
 add_action('wp_ajax_apbct_set_important_parameters', 'apbct_cookie');
-
-// Email Encoder ajax handlers
-EmailEncoder::getInstance()->registerAjaxRoute();
 
 // Database prefix
 global $wpdb, $wp_version;
@@ -345,377 +354,8 @@ if ( $apbct->settings['forms__general_contact_forms_test'] == 1
     }
 }
 
-$apbct_active_integrations = array(
-    'CleantalkInternalForms'         => array(
-        'hook'    => 'ct_check_internal',
-        'setting' => 'forms__check_internal',
-        'ajax'    => true
-    ),
-    'CleantalkExternalForms'         => array(
-        'hook'    => 'init',
-        'setting' => 'forms__check_external',
-        'ajax'    => false
-    ),
-    'CleantalkExternalFormsForceAjax'         => array(
-        'hook'    => 'cleantalk_force_ajax_check',
-        'setting' => 'forms__check_external',
-        'ajax'    => true
-    ),
-    'CleantalkPreprocessComment'         => array(
-        'hook'    => 'preprocess_comment',
-        'setting' => 'forms__comments_test',
-        'ajax'    => true,
-        'ajax_and_post' => true
-    ),
-    'CleantalkWpDieOnComment'         => array(
-        'hook'    => 'wp_die_handler',
-        'setting' => 'forms__comments_test',
-        'ajax'    => false,
-    ),
-    'ContactBank'         => array(
-        'hook'    => 'contact_bank_frontend_ajax_call',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'FluentForm'          => array(
-        'hook' => array('fluentform/before_insert_submission', 'fluentform_before_insert_submission'),
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
-    ),
-    'ElfsightContactForm' => array(
-        'hook'    => 'elfsight_contact_form_mail',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'EstimationForm'      => array('hook' => 'send_email', 'setting' => 'forms__contact_forms_test', 'ajax' => true),
-    'LandingPageBuilder'  => array(
-        'hook'    => 'ulpb_formBuilderEmail_ajax',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'Rafflepress'         => array(
-        'hook'    => 'rafflepress_lite_giveaway_api',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'SimpleMembership'    => array(
-        'hook'    => 'swpm_front_end_registration_complete_user_data',
-        'setting' => 'forms__registrations_test',
-        'ajax'    => false
-    ),
-    'WpMembers'           => array(
-        'hook'    => 'wpmem_pre_register_data',
-        'setting' => 'forms__registrations_test',
-        'ajax'    => false
-    ),
-    'Wpdiscuz'            => array(
-        'hook'    => array('wpdAddComment', 'wpdAddInlineComment', 'wpdSaveEditedComment'),
-        'setting' => array('forms__comments_test', 'data__protect_logged_in'),
-        'ajax'    => true
-    ),
-    'Forminator'          => array(
-        'hook'    => 'forminator_submit_form_custom-forms',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'EaelLoginRegister'   => array(
-        'hook'    => array(
-            'eael/login-register/before-register',
-            'wp_ajax_nopriv_eael/login-register/before-register',
-            'wp_ajax_eael/login-register/before-register'
-        ),
-        'setting' => 'forms__registrations_test',
-        'ajax'    => false
-    ),
-    'CalculatedFieldsForm' => array(
-        'hook'    => 'cpcff_process_data',
-        'setting' => 'forms__general_contact_forms_test',
-        'ajax'    => false
-    ),
-    'OvaLogin' => array(
-        'hook'    => 'login_form_register',
-        'setting' => 'forms__registrations_test',
-        'ajax'    => false
-    ),
-    'GiveWP' => array(
-        'hook'    => 'give_checkout_error_checks',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
-    ),
-    'VisualFormBuilder' => array(
-        'hook'    => array('vfb_isbot','vfb_isBot'),
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
-    ),
-    'EventsManager' => array(
-        'hook'    => 'em_booking_validate_after',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
-    ),
-    'PlansoFormBuilder' => array(
-        'hook'    => 'psfb_validate_form_request',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
-    ),
-    'NextendSocialLogin' => array(
-        'hook'    => 'nsl_before_register',
-        'setting' => 'forms__registrations_test',
-        'ajax'    => false
-    ),
-    'WPUserMeta' => array(
-        'hook'    => 'user_meta_pre_user_register',
-        'setting' => 'forms__registrations_test',
-        'ajax'    => false
-    ),
-    'MemberPress' => array(
-        'hook'    => 'mepr-validate-signup',
-        'setting' => 'forms__registrations_test',
-        'ajax'    => false
-    ),
-    'EasyDigitalDownloads' => array(
-        'hook'    => array('edd_pre_process_register_form', 'edd_insert_user_args'),
-        'setting' => 'forms__registrations_test',
-        'ajax'    => false
-    ),
-    'WpForo' => array(
-        'hook'    => array('wpforo_action_topic_add', 'wpforo_action_post_add'),
-        'setting' => 'data__protect_logged_in',
-        'ajax'    => false
-    ),
-    'StrongTestimonials' => array(
-        'hook'    => array('wpmtst_form_submission','wpmtst_form2'),
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true,
-        'ajax_and_post' => true
-    ),
-    'NewUserApprove' => array(
-        'hook'    => 'nua_pass_create_new_user',
-        'setting' => 'forms__registrations_test',
-        'ajax'    => false
-    ),
-    'SmartForms' => array(
-        'hook'    => array('rednao_smart_forms_save_form_values'),
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'UlitmateFormBuilder' => array(
-        'hook'    => array('ufbl_front_form_action', 'ufb_front_form_action'),
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'Hustle' => array(
-        'hook'    => 'hustle_module_form_submit',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'WpBookingSystem' => array(
-        'hook'    => 'wpbs_submit_form',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'Supsystic' => array(
-        'hook'    => 'contact',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'LeadFormBuilder' => array(
-        'hook'    => 'Save_Form_Data',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'ModernEventsCalendar' => array(
-        'hook'    => 'mec_book_form',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'IndeedUltimateMembershipPro' => array(
-        'hook'    => 'ump_before_register_new_user',
-        'setting' => 'forms__registrations_test',
-        'ajax'    => false
-    ),
-    'SendyWidgetPro' => array(
-        'hook'    => 'swp_form_submit',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'CleantalkRegisterWidget' => array(
-        'hook'    => 'cleantalk_register_widget__get_api_key',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'LatePoint' => array(
-        'hook'    => array('latepoint_route_call'),
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'MailPoet' => array(
-        'hook'    => array('mailpoet'),
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'MailPoet2' => array(
-        'hook'    => array('wysija_ajax'),
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'ElementorUltimateAddonsRegister' => array(
-        'hook'    => array('uael_register_user'),
-        'setting' => 'forms__registrations_test',
-        'ajax'    => true
-    ),
-    'PiotnetAddonsForElementorPro' => array(
-        'hook'    => array('pafe_ajax_form_builder'),
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'UserRegistrationPro'           => array(
-        'hook'    => array('user_registration_before_register_user_action'),
-        'setting' => 'forms__registrations_test',
-        // important!
-        'ajax'    => false
-    ),
-    'BackInStockNotifier'           => array(
-        'hook'    => array('cwginstock_product_subscribe'),
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'ProductEnquiryPro'           => array(
-        'hook'    => array('mgc_pe_sender_email'),
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
-    ),
-    'WpGeoDirectory' => array(
-        'hook'    => array('geodir_validate_ajax_save_post_data'),
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
-    ),
-    'KaliForms'   => array(
-        'hook'    => array('kaliforms_form_process'),
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'ClassifiedListingRegister' => array(
-        'hook'    => 'wp_loaded',
-        'setting' => 'forms__registrations_test',
-        'ajax'    => false
-    ),
-    //elementor_pro_forms_send_form
-    'ElementorPro' => array(
-        'hook'    => 'elementor_pro_forms_send_form',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true,
-        'ajax_and_post' => true
-    ),
-    'AvadaBuilderFusionForm' => array(
-        'hook'    => [
-            'fusion_form_submit_form_to_database_email',
-            'fusion_form_submit_form_to_email',
-            'fusion_form_submit_ajax'
-        ],
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'FluentBookingPro' => array(
-        'hook'    => [
-            'fluent_cal_schedule_meeting',
-        ],
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'BookingPress' => array(
-        'hook'    => [
-            'bookingpress_book_appointment_booking',
-        ],
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'JobstackThemeRegistration' => array(
-        'hook'    => 'wp_loaded',
-        'setting' => 'forms__registrations_test',
-        'ajax'    => false
-    ),
-    'ContactFormPlugin' => array(
-        'hook'    => 'cntctfrm_check_form',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
-    ),
-    'KadenceBlocks' => array(
-        'hook'    => 'kb_process_ajax_submit',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'KadenceBlocksAdvanced' => array(
-        'hook'    => 'kb_process_advanced_form_submit',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'WordpressFileUpload' => array(
-        'hook'    => 'wfu_before_upload',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true,
-        'ajax_and_post' => true
-    ),
-    'LearnPress' => array(
-        'hook'    => 'lp/before_create_new_customer',
-        'setting' => 'forms__registrations_test',
-        'ajax'    => false
-    ),
-    'PaidMembershipPro' => array(
-        'hook'    => 'pmpro_is_spammer',
-        'setting' => 'forms__registrations_test',
-        'ajax'    => false
-    ),
-    // Mail chimp integration works with ajax and POST via the same hook
-    'MailChimp' => array(
-        'hook'    => 'mc4wp_form_errors',
-        'setting' => 'forms__registrations_test',
-        'ajax' => false
-    ),
-    'BloomForms' => array(
-        'hook'    => 'bloom_subscribe',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    // Integration Contact Form Clean and Simple
-    'CSCF' => array(
-        'hook'    => 'cscf-submitform',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true,
-    ),
-    'ThriveLeads' => array(
-        'hook'    => 'tve_leads_ajax_conversion',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'OtterBlocksForm' => array(
-        'hook'    => 'otter_form_anti_spam_validation',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
-    ),
-    'TourMasterRegister' => array(
-        'hook'    => 'wp_pre_insert_user_data',
-        'setting' => 'forms__registrations_test',
-        'ajax'    => false
-    ),
-    'TourMasterOrder' => array(
-        'hook'    => 'tourmaster_payment_template',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
-    ),
-    'CoBlocks' => array(
-        'hook'    => 'coblocks_before_form_submit',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
-    ),
-);
-add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct) {
-    if ( defined('FLUENTFORM_VERSION') ) {
-        $apbct_active_integrations['FluentForm']['hook'] = version_compare(FLUENTFORM_VERSION, '4.3.22') > 0
-            ? 'fluentform/before_insert_submission'
-            : 'fluentform_before_insert_submission';
-    }
-    new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
-});
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-integrations-by-hook.php');
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-integrations-by-class.php');
 
 // WP Delicious integration
 add_filter('delicious_recipes_process_registration_errors', 'apbct_wp_delicious', 10, 4);
@@ -842,6 +482,14 @@ if (
     Post::get('dhvc_form') && Post::get('_dhvc_form_nonce')
 ) {
     apbct_dhvcform_request_test();
+}
+
+// SeedConfirmPro
+if (!empty($_POST) &&
+    apbct_is_plugin_active('seed-confirm-pro/seed-confirm-pro.php') &&
+    Post::get('seed_confirm_nonce')
+) {
+    apbct_seedConfirmPro_request_test();
 }
 
 add_action('wp_ajax_nopriv_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
@@ -1040,14 +688,17 @@ if ( is_admin() || is_network_admin() ) {
         $_cleantalk_hooked_actions        = array();
         $_cleantalk_ajax_actions_to_check = array();
 
-        $integrated_hooks = array_column($apbct_active_integrations, 'hook');
-        foreach ( $integrated_hooks as $hook ) {
-            if ( is_array($hook) ) {
-                foreach ( $hook as $_item ) {
-                    $_cleantalk_hooked_actions[] = $_item;
+        global $apbct_active_integrations;
+        if (isset($apbct_active_integrations) && is_array($apbct_active_integrations)) {
+            $integrated_hooks = array_column($apbct_active_integrations, 'hook');
+            foreach ( $integrated_hooks as $hook ) {
+                if ( is_array($hook) ) {
+                    foreach ( $hook as $_item ) {
+                        $_cleantalk_hooked_actions[] = $_item;
+                    }
+                } else {
+                    $_cleantalk_hooked_actions[] = $hook;
                 }
-            } else {
-                $_cleantalk_hooked_actions[] = $hook;
             }
         }
 
@@ -1087,16 +738,6 @@ if ( is_admin() || is_network_admin() ) {
         add_filter('registration_errors', 'ct_registration_errors', 1, 3);
         add_filter('registration_errors', 'ct_check_registration_errors', 999999, 3);
         add_action('user_register', 'apbct_user_register');
-
-        if ( class_exists('BuddyPress') ) {
-            add_filter(
-                'bp_activity_is_spam_before_save',
-                'apbct_integration__buddyPres__activityWall',
-                999,
-                2
-            ); /* ActivityWall */
-            add_action('bp_locate_template', 'apbct_integration__buddyPres__getTemplateName', 10, 6);
-        }
     }
 
     //Bitrix24 contact form
@@ -2848,7 +2489,7 @@ function apbct_store__urls()
         $new_site_referer = $new_site_referer !== '' ? $new_site_referer : 'UNKNOWN';
 
         // Get already stored referer
-        $site_referer = Cookie::get('apbct_site_referer');
+        $site_referer = TT::toString(RequestParameters::get('apbct_site_referer', true));
 
         // Save if empty
         if (
@@ -2858,7 +2499,7 @@ function apbct_store__urls()
                 parse_url($new_site_referer, PHP_URL_HOST) !== Server::get('HTTP_HOST')
             ) && $apbct->data['cookies_type'] === 'native'
         ) {
-            Cookie::set('apbct_site_referer', $new_site_referer, time() + 86400 * 3, '/', $site_url, null, true, 'Lax', true);
+            RequestParameters::set('apbct_site_referer', $new_site_referer, true);
         }
 
         $apbct->flags__url_stored = true;
@@ -2928,13 +2569,13 @@ function apbct_cookie()
 
         // Page hits
         // Get
-        $page_hits = TT::toInt(Cookie::get('apbct_page_hits'));
+        $page_hits = TT::toInt(RequestParameters::get('apbct_page_hits', true));
 
         // Set / Increase
         // todo if cookies disabled there is no way to keep this data without DB:( always will be 1
         $page_hits = $page_hits ? $page_hits + 1 : 1;
 
-        Cookie::set('apbct_page_hits', (string)$page_hits, 0, '/', $domain, null, true, 'Lax', true);
+        RequestParameters::set('apbct_page_hits', TT::toString($page_hits), true);
 
         $cookie_test_value['cookies_names'][] = 'apbct_page_hits';
         $cookie_test_value['check_value']     .= $page_hits;
@@ -3141,54 +2782,22 @@ function ct_cron_send_js_error_report_email()
  */
 function apbct_cron_clear_old_session_data()
 {
-    global $apbct;
+    global $wpdb;
 
-    if ( $apbct->data['cookies_type'] === 'alternative' ) {
-        \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
-    }
-}
-
-/**
- * Write $message to the plugin's debug option
- *
- * @param string|array|object $message
- * @param null|string $func
- * @param array $params
- *
- * @return void
- */
-function apbct_log($message = 'empty', $func = null, $params = array())
-{
-    global $apbct;
-
-    $debug = get_option(APBCT_DEBUG);
-
-    $function = $func ?: '';
-    $cron     = in_array('cron', $params);
-    $data     = in_array('data', $params);
-    $settings = in_array('settings', $params);
-
-    if ( is_array($message) || is_object($message) ) {
-        $message = print_r($message, true);
+    $query = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like(APBCT_TBL_SESSIONS));
+    $session_table_exists = $wpdb->get_var($query);
+    if (empty($session_table_exists)) {
+        return;
     }
 
-    if ( $message ) {
-        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter() . "_FUNCTION_" . $function] = $message;
-    }
-    if ( $cron ) {
-        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter(
-        ) . "_FUNCTION_" . $function . '_cron'] = $apbct->cron;
-    }
-    if ( $data ) {
-        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter(
-        ) . "_FUNCTION_" . $function . '_data'] = $apbct->data;
-    }
-    if ( $settings ) {
-        $debug[date("Y-m-d H:i:s") . microtime(true) . "_ACTION_" . current_filter(
-        ) . "_FUNCTION_" . $function . '_settings'] = $apbct->settings;
-    }
+    \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
 
-    update_option(APBCT_DEBUG, $debug);
+    $ct_cron = new Cron();
+    if (\Cleantalk\ApbctWP\Variables\AltSessions::checkHasUndeletedOldSessions()) {
+        $ct_cron->updateTask('clear_old_session_data', 'apbct_cron_clear_old_session_data', 60, time() + 60);
+    } else {
+        $ct_cron->updateTask('clear_old_session_data', 'apbct_cron_clear_old_session_data', 86400);
+    }
 }
 
 /**

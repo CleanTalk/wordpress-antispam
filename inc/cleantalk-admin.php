@@ -28,16 +28,6 @@ add_action('comment_approved_to_unapproved', 'apbct_comment__remove_meta_approve
 add_action('comment_spam_to_unapproved', 'apbct_comment__remove_meta_approved', 10, 1);
 add_action('comment_trash_to_unapproved', 'apbct_comment__remove_meta_approved', 10, 1);
 
-// Handle buddyPress users manage hooks to cathch spam/not spam feedback
-if ( apbct_is_plugin_active('buddypress/bp-loader.php') ) {
-    add_action('make_spam_user', 'apbct_send_buddypress_user_feedback');
-    add_action('make_ham_user', 'apbct_send_buddypress_user_feedback');
-    // Show admin notice on the users page
-    if (!empty($apbct->data['bp_feedback_message'])) {
-        add_action('admin_notices', 'apbct_buddypress_user_feedback_show_admin_notice', 998);
-    }
-}
-
 /**
  * Crunch for Anti-Bot
  * Hooked by 'admin_head'
@@ -373,11 +363,6 @@ function apbct_admin__init()
         ( ! is_main_site() && $apbct->network_settings['multisite__allow_custom_settings'])
     ) {
         new CleantalkSettingsTemplates($apbct->api_key);
-    }
-
-    // Show debug tab on localhosts
-    if ( in_array(Server::getDomain(), array( 'lc', 'loc', 'lh', 'test' )) ) {
-        add_filter('apbct_settings_action_buttons', 'apbct__add_debug_tab', 50, 1);
     }
 
     // Check compatibility
@@ -1379,68 +1364,6 @@ function apbct_comment__send_feedback(
 }
 
 /**
- * WP hook action. Adds an admin notice if feedback from buddypress hooks collected and prepared to send.
- * @return void
- */
-function apbct_buddypress_user_feedback_show_admin_notice()
-{
-    global $apbct;
-    // second check if message persists
-    if (!empty($apbct->data['bp_feedback_message'])) {
-        $html = '<div class="notice notice-success is-dismissible">
-                                    <p>' . $apbct->data['bp_feedback_message'] . '</p>
-                                </div>';
-        echo Escape::escKsesPreset(
-            $html,
-            'apbct_response_custom_message'
-        );
-        // clear message to prevent next show
-        $apbct->data['bp_feedback_message'] = null;
-        $apbct->saveData();
-    }
-}
-
-/**
- * WP hook action. Handles BuddyPress make_spam_user|make_ham_user hooks to collect feedback.
- * @param int $user_id
- * @return void
- */
-function apbct_send_buddypress_user_feedback($user_id)
-{
-    global $apbct;
-
-    // check user rights and if user_id arg
-    if ( !current_user_can('activate_plugins') || empty($user_id) || !is_scalar($user_id)) {
-        return;
-    }
-
-    // get user meta
-    $meta = get_user_meta((int)$user_id);
-
-    // get ct_hash from meta
-    if (empty($meta['ct_hash']) || !isset($meta['ct_hash'][0])) {
-        return;
-    }
-    $ct_hash = $meta['ct_hash'][0];
-    $current_action = current_action();
-
-    // set new solution or return on wrong action
-    if ( $current_action === 'make_spam_user' ) {
-        $feedback_flag = 0;
-    } elseif ( $current_action === 'make_ham_user' ) {
-        $feedback_flag = 1;
-    } else {
-        return;
-    }
-
-    // add message to state, message data will be saved in the ct_feedback() function
-    $apbct->data['bp_feedback_message'] = __('CleanTalk: Your feedback will be sent to the cloud within the next hour. Feel free to contact us via support@cleantalk.org.', 'cleantalk-spam-protect');
-
-    // this will be sent by cron task within an hour
-    ct_feedback($ct_hash, $feedback_flag);
-}
-
-/**
  * Catch comment status change
  *
  * @param WP_Comment $comment Comment object
@@ -1556,23 +1479,6 @@ add_action('apbct__check_compatibility', 'apbct__check_compatibility_handler');
 function apbct__check_compatibility_handler()
 {
     new \Cleantalk\Common\Compatibility();
-}
-
-/**
- * @param $links
- * Adding debug tab on the settings page
- *
- * @return array|mixed
- */
-function apbct__add_debug_tab($links)
-{
-    if ( is_array($links) ) {
-        $debug_link    = '<a href="#" class="ct_support_link" onclick="apbctShowHideElem(\'apbct_debug_tab\')">' .
-                         __('Debug', 'cleantalk-spam-protect') . '</a>';
-        $links[] = $debug_link;
-    }
-
-    return $links;
 }
 
 /**

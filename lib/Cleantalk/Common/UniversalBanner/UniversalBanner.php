@@ -34,12 +34,12 @@ class UniversalBanner
     public function __construct(BannerDataDto $banner_data)
     {
         if ($banner_data->is_show_button) {
-            $this->banner_body = @file_get_contents(static::$template_url);
+            $this->banner_body = @file_get_contents(self::$template_url);
         } else {
-            $this->banner_body = @file_get_contents(static::$template_without_btn_url);
+            $this->banner_body = @file_get_contents(self::$template_without_btn_url);
         }
         if (false === $this->banner_body) {
-            throw new \Exception('Banner template missing on ' . static::$template_url);
+            throw new \Exception('Banner template missing on ' . self::$template_url);
         }
 
         $this->preRender($banner_data);
@@ -52,7 +52,7 @@ class UniversalBanner
      */
     private function preRender(BannerDataDto $banner_data)
     {
-        foreach (static::$tags_slugs as $tag_slug) {
+        foreach (self::$tags_slugs as $tag_slug) {
             switch ($tag_slug) {
                 case 'BANNER_CLASS':
                     $classes = 'apbct-notice notice notice-' . $banner_data->level;

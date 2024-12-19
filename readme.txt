@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 6.46
+Stable tag: 6.47
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -441,6 +441,24 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.47 18 Dec 2024 =
+* New. Form decoration. Holiday form decoration option added.
+* New. JSLibrary. Bot detector log collecting.
+* New. Integrations. Sendpulse 3rd party service integration implemented.
+* New. Integrations. Added SeedConfirmationPro.
+* Upd. EmailEncoder. Remember hook decoding.
+* Upd. Settings. Updated logic to clear old sessions data.
+* Upd. Integrations. Updated EmailEncoder to integrate Business Directory.
+* Upd. EmailEncoder. Fixed warning occurs on plugin delete action.
+* Upd. EmailEncoder. Improved work to handle seldom cases.
+* Upd. Integrations. Refactoring BuddyPress handler.
+* Upd. Code. Improved clean old session data handler.
+* Mod. Bot Detector. Library JS script load strategy set to "defer".
+* Fix. Integrations. WooCommerce checkout during REST protection fixed.
+* Fix. External forms. External forms catching fixed.
+* Fix. External forms. ConvertKit integration fixed.
+* Fix. UniBanner. Edit access to a variable.
 
 = 6.46 27 Nov 2024 =
 * New. Integrations. CoBlocks integration implemented.
