@@ -445,11 +445,6 @@ function ct_ajax_hook($message_obj = null)
         }
     }
 
-    if ( class_exists('BuddyPress') ) {
-        add_action('messages_message_before_save', 'apbct_integration__buddyPres__private_msg_check', 1);
-        return false;
-    }
-
     //NSL integration
     if ( Post::get('action') === 'cleantalk_nsl_ajax_check' ) {
         $post_info['comment_type'] = 'contact_form_wordpress_nsl';

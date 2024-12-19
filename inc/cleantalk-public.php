@@ -162,6 +162,7 @@ function apbct_init()
         }
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
             add_action('woocommerce_after_checkout_validation', 'ct_woocommerce_checkout_check', 1, 2);
+            add_action('woocommerce_store_api_checkout_order_processed', 'ct_woocommerce_checkout_check_from_rest', 1, 1);
             add_action('woocommerce_checkout_update_order_meta', 'apbct_woocommerce__add_request_id_to_order_meta');
             add_action('woocommerce_store_api_checkout_update_customer_from_request', 'apbct_wc_store_api_checkout_update_customer_from_request', 10, 2);
         }
@@ -221,14 +222,6 @@ function apbct_init()
             return false;
         }, 999, 2);
         add_action('wpcf7_before_send_mail', 'apbct_form__contactForm7__testSpam', 999);
-    }
-
-    // BuddyPress
-    if ( class_exists('BuddyPress') ) {
-        add_action('bp_before_registration_submit_buttons', 'ct_register_form', 1);
-        add_action('messages_message_before_save', 'apbct_integration__buddyPres__private_msg_check', 1);
-        add_filter('bp_signup_validate', 'ct_registration_errors', 1);
-        add_filter('bp_signup_validate', 'ct_check_registration_errors', 999999);
     }
 
     if ( defined('PROFILEPRESS_SYSTEM_FILE_PATH') ) {
@@ -1243,23 +1236,6 @@ function ct_enqueue_scripts_public($_hook)
             ));
         }
     }
-
-    // Debug
-    if ( $apbct->settings['misc__debug_ajax'] ) {
-        wp_enqueue_script(
-            'ct_debug_js',
-            APBCT_JS_ASSETS_PATH . '/cleantalk-debug-ajax.min.js',
-            // keep this jquery dependency if option misc__debug_ajax is enabled
-            array('jquery'),
-            APBCT_VERSION,
-            false /*in header*/
-        );
-
-        wp_localize_script('ct_debug_js', 'apbctDebug', array(
-            'reload'      => false,
-            'reload_time' => 10000,
-        ));
-    }
 }
 
 function ct_enqueue_styles_public()
@@ -1321,6 +1297,10 @@ function ct_enqueue_styles_public()
     }
 }
 
+/**
+ * @return void
+ * @psalm-suppress InvalidArgument - wp_enqueue_script() does not await bool as psalm predicts, array values are allowed
+ */
 function apbct_enqueue_and_localize_public_scripts()
 {
     global $apbct;
@@ -1343,7 +1323,10 @@ function apbct_enqueue_and_localize_public_scripts()
             'https://moderate.cleantalk.org/ct-bot-detector-wrapper.js',
             [],
             APBCT_VERSION,
-            $in_footer
+            array(
+                'in_footer' => $in_footer,
+                'strategy' => 'defer'
+                )
         );
     }
 

@@ -1174,6 +1174,214 @@ if (!Object.prototype.hasOwn) {
 }
 
 /**
+ * Form skin class
+ *
+ */
+// eslint-disable-next-line no-unused-vars, require-jsdoc
+class ApbctFormDecorator {
+    elements = [];
+
+    /**
+     * Constructor
+     */
+    constructor() {
+        this.getElements();
+        this.setListeners();
+    }
+
+    /**
+     * Get elements
+     */
+    getElements() {
+        const elements = document.querySelectorAll('*');
+        const regexId = /^apbct-trusted-text--label/;
+        const regexClass = /apbct_form_decoration--/;
+
+        this.setDecorationBackground();
+
+        // Collect elements with id or class that contains apbct-trusted-text--label or apbct_form_decoration--
+        // id
+        let matchingElements = Array.from(elements).filter((element) => {
+            return regexId.test(element.id);
+        });
+        matchingElements.forEach((element) => {
+            this.elements.push(element);
+        });
+
+        // class
+        matchingElements = Array.from(elements).filter((element) => {
+            return regexClass.test(element.className);
+        });
+
+        matchingElements.forEach((element) => {
+            this.elements.push(element);
+        });
+
+        const flagWrap = document.querySelector('.apbct_form_decoration');
+        if (flagWrap) {
+            const flagLeft = window.getComputedStyle(flagWrap, '::before');
+            const flagRight = window.getComputedStyle(flagWrap, '::after');
+            if (flagLeft && flagRight) {
+                this.elements.push(flagWrap);
+            }
+        }
+    }
+
+    /**
+     * Set decoration background
+     */
+    setDecorationBackground() {
+        let blockForms = document.querySelectorAll('#respond');
+
+        if (document.querySelector('[class*="apbct_form_decoration"]')) {
+            let classHeaderWrapper = document.querySelector('[class*="apbct_form_decoration"]').getAttribute('class');
+            let endPosition = classHeaderWrapper.indexOf('_header__wrapper');
+            let classTemplate = classHeaderWrapper.substring(0, endPosition);
+
+            blockForms.forEach((blockForm) => {
+                blockForm.className += ' ' + classTemplate;
+            });
+        }
+    }
+
+    /**
+     * Set listeners
+     */
+    setListeners() {
+        this.elements.forEach((element) => {
+            if (!element) {
+                return;
+            }
+
+            element.addEventListener('click', (event) => {
+                if (element.className.indexOf('apbct_form_decoration') !== -1) {
+                    if (element.className.indexOf('header__wrapper') !== -1) {
+                        this.addClicks();
+                        return;
+                    }
+
+                    const clickX = event.offsetX;
+                    const clickY = event.offsetY;
+                    const flagLeftWidth = parseFloat(window.getComputedStyle(element, '::before').width) / 2;
+                    const flagLeftHeight = parseFloat(window.getComputedStyle(element, '::before').height) / 2;
+                    const flagRightWidth = parseFloat(window.getComputedStyle(element, '::after').width) / 2;
+                    const flagRightHeight = parseFloat(window.getComputedStyle(element, '::after').height) / 2;
+
+                    if (element.className.indexOf('christmas') !== -1) {
+                        if (
+                            clickY < flagLeftHeight / 3 && clickX < flagLeftWidth ||
+                            clickY < flagRightHeight / 3 && clickX > flagRightWidth
+                        ) {
+                            this.addClicks();
+                            return;
+                        }
+                    }
+
+                    if (
+                        (element.className.indexOf('new-year') !== -1) ||
+                        (element.className.indexOf('fourth-july') !== -1)
+                    ) {
+                        if (
+                            clickY > flagLeftHeight && clickX < flagLeftWidth ||
+                            clickY > flagRightHeight && clickX > flagRightWidth
+                        ) {
+                            this.addClicks();
+                        }
+                    }
+
+                    return;
+                }
+
+                this.addClicks();
+            });
+
+            element.addEventListener('mouseup', (event) => {
+                setTimeout(() => {
+                    const selectedText = window.getSelection().toString();
+                    if (selectedText) {
+                        this.addSelected();
+                    }
+                }, 100);
+            });
+
+            element.addEventListener('mousemove', (event) => {
+                if (element.className.indexOf('apbct_form_decoration') !== -1) {
+                    const mouseX = event.offsetX;
+                    const mouseY = event.offsetY;
+                    const flagLeftWidth = parseFloat(window.getComputedStyle(element, '::before').width) / 2;
+                    const flagLeftHeight = parseFloat(window.getComputedStyle(element, '::before').height) / 2;
+                    const flagRightWidth = parseFloat(window.getComputedStyle(element, '::after').width) / 2;
+                    const flagRightHeight = parseFloat(window.getComputedStyle(element, '::after').height) / 2;
+
+                    if (mouseY > flagLeftHeight && mouseX < flagLeftWidth ||
+                    mouseY > flagRightHeight && mouseX > flagRightWidth
+                    ) {
+                        this.trackMouseMovement();
+                    }
+                    return;
+                }
+
+                this.trackMouseMovement();
+            });
+        });
+    }
+
+    /**
+     * Add clicks
+     */
+    addClicks() {
+        if (document.ctFormDecorationMouseData) {
+            if (document.ctFormDecorationMouseData.clicks) {
+                document.ctFormDecorationMouseData.clicks++;
+            } else {
+                document.ctFormDecorationMouseData.clicks = 1;
+            }
+            return;
+        }
+
+        document.ctFormDecorationMouseData = {clicks: 1};
+    }
+
+    /**
+     * Add selected
+     */
+    addSelected() {
+        if (document.ctFormDecorationMouseData) {
+            if (document.ctFormDecorationMouseData.selected) {
+                document.ctFormDecorationMouseData.selected++;
+            } else {
+                document.ctFormDecorationMouseData.selected = 1;
+            }
+            return;
+        }
+
+        document.ctFormDecorationMouseData = {selected: 1};
+    }
+
+    /**
+     * Track mouse movement
+     */
+    trackMouseMovement() {
+        if (!document.ctFormDecorationMouseData) {
+            document.ctFormDecorationMouseData = {};
+        }
+        if (!document.ctFormDecorationMouseData.mouseMovements) {
+            document.ctFormDecorationMouseData.mouseMovements = [];
+        }
+
+        document.ctFormDecorationMouseData.mouseMovements.push({timestamp: Date.now()});
+
+        if (document.ctFormDecorationMouseData.mouseMovements.length > 1) {
+            const index = document.ctFormDecorationMouseData.mouseMovements.length - 1;
+            const lastMovement = document.ctFormDecorationMouseData.mouseMovements[index];
+            const firstMovement = document.ctFormDecorationMouseData.mouseMovements[0];
+            const timeDiff = lastMovement.timestamp - firstMovement.timestamp;
+            document.ctFormDecorationMouseData.hovering = timeDiff;
+        }
+    }
+}
+
+/**
  * @param {object|array|string} cookies
  * @param {object|array|string} value
  * @param {string|number} expires
@@ -1701,6 +1909,7 @@ let ctCheckedEmailsExist = {};
 let ctMouseReadInterval;
 let ctMouseWriteDataInterval;
 let tokenCheckerIntervalId;
+let botDetectorLogLastUpdate = 0;
 
 // eslint-disable-next-line require-jsdoc,camelcase
 function apbct_attach_event_handler(elem, event, callback) {
@@ -1720,8 +1929,22 @@ const ctFunctionFirstKey = function output(event) {
     ctKeyStopStopListening();
 };
 
-// run cron jobs
+/**
+ * Run cron jobs
+ */
+// forms handler cron
 cronFormsHandler(2000);
+
+// bot_detector frontend_data log alt session saving cron
+if (
+    ctPublicFunctions.hasOwnProperty('data__bot_detector_enabled') &&
+    ctPublicFunctions.data__bot_detector_enabled == 1
+) {
+    sendBotDetectorLogToAltSessions(500);
+}
+/**
+ * Cron jobs end.
+ */
 
 // mouse read
 if (ctPublic.data__key_is_ok) {
@@ -1764,6 +1987,27 @@ function cronFormsHandler(cronStartTimeout = 2000) {
             restartFieldsListening();
             restartBotDetectorEventTokenAttach();
         }, 2000);
+    }, cronStartTimeout);
+}
+
+/**
+ * Send BotDetector logs data to alternative sessions.
+ * If log_last_update has changed, the log will be sent to the alternative sessions.
+ * @param {int} cronStartTimeout delay before cron start
+ * @param {int} interval check fires on interval
+ */
+function sendBotDetectorLogToAltSessions(cronStartTimeout = 3000, interval = 1000) {
+    setTimeout(function() {
+        setInterval(function() {
+            const currentLog = apbctLocalStorage.get('ct_bot_detector_frontend_data_log');
+            if (currentLog && currentLog.hasOwnProperty('log_last_update')) {
+                if (botDetectorLogLastUpdate !== currentLog.log_last_update) {
+                    botDetectorLogLastUpdate = currentLog.log_last_update;
+                    // the log will be taken from javascriptclientdata
+                    ctSetAlternativeCookie([], {forceAltCookies: true});
+                }
+            }
+        }, interval);
     }, cronStartTimeout);
 }
 
@@ -2606,13 +2850,6 @@ function apbct_ready() {
     ctPublic.encodedEmailNodes = encodedEmailNodes;
     if (encodedEmailNodes.length) {
         for (let i = 0; i < encodedEmailNodes.length; ++i) {
-            if (
-                encodedEmailNodes[i].parentElement.href ||
-                encodedEmailNodes[i].parentElement.parentElement.href
-            ) {
-                // Skip listening click on hyperlinks
-                continue;
-            }
             encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
         }
     }
@@ -2641,6 +2878,11 @@ function apbct_ready() {
 
     // Check any XMLHttpRequest connections
     apbctCatchXmlHttpRequest();
+
+    // Init form skin
+    if (ctPublic.settings__comments__form_decoration) {
+        new ApbctFormDecorator();
+    }
 
     // Set important paramaters via ajax if problematic cache solutions found
     apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
@@ -3091,29 +3333,39 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 selectableEmail.innerText = email;
                 selectableEmail.title = 'Click to select the whole data';
                 // add email to the first node
-                firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML + '.';
-                firstNode.setAttribute('style', 'flex-direction: row;');
+                if (firstNode) {
+                    firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML + '.';
+                    firstNode.setAttribute('style', 'flex-direction: row;');
+                }
                 // remove animation
-                popup.querySelector('.apbct-ee-animation-wrapper').remove();
+                let wrapper = popup.querySelector('.apbct-ee-animation-wrapper');
+                if (wrapper) {
+                    wrapper.remove();
+                }
                 // remove second node
-                popup.querySelector('#apbct_email_ecoder__popup_text_node_second').remove();
+                let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
+                if (secondNode) {
+                    secondNode.remove();
+                }
                 // add button
                 let buttonWrapper = document.createElement('span');
                 buttonWrapper.classList = 'apbct-email-encoder-elements_center top-margin-long';
-                let button = document.createElement('button');
-                button.innerText = 'Got it';
-                button.classList = 'apbct-email-encoder-got-it-button';
-                button.addEventListener('click', function() {
-                    document.body.classList.remove('apbct-popup-fade');
-                    popup.setAttribute('style', 'display:none');
-                    fillDecodedEmails(encodedEmailNodes, result);
-                    // click on mailto if so
-                    if (ctPublic.encodedEmailNodesIsMixed) {
-                        clickSource.click();
-                    }
-                });
-                buttonWrapper.append(button);
-                popup.append(buttonWrapper);
+                if (!document.querySelector('.apbct-email-encoder-got-it-button')) {
+                    let button = document.createElement('button');
+                    button.innerText = 'Got it';
+                    button.classList = 'apbct-email-encoder-got-it-button';
+                    button.addEventListener('click', function() {
+                        document.body.classList.remove('apbct-popup-fade');
+                        popup.setAttribute('style', 'display:none');
+                        fillDecodedEmails(encodedEmailNodes, result);
+                        // click on mailto if so
+                        if (ctPublic.encodedEmailNodesIsMixed) {
+                            clickSource.click();
+                        }
+                    });
+                    buttonWrapper.append(button);
+                    popup.append(buttonWrapper);
+                }
             }
         }, 3000);
     } else {
@@ -3147,12 +3399,22 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
         // handler for mailto
         if (
             typeof encodedEmailNodes[i].href !== 'undefined' &&
-            encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
+            encodedEmailNodes[i].href.indexOf('mailto:') === 0
+        ) {
             let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
             let baseElementContent = encodedEmailNodes[i].innerHTML;
-            encodedEmailNodes[i].innerHTML =
-                baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
+            encodedEmailNodes[i].innerHTML = baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
             encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
+
+            encodedEmailNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((el) => {
+                let encodedEmailTextInsideMailto = '';
+                decodingResult.data.forEach((row) => {
+                    if (row.encoded_email === el.dataset.originalString) {
+                        encodedEmailTextInsideMailto = row.decoded_email;
+                    }
+                });
+                el.innerHTML = encodedEmailTextInsideMailto;
+            });
         } else {
             encodedEmailNodes[i].classList.add('no-blur');
             // fill the nodes
@@ -3201,6 +3463,9 @@ function getJavascriptClientData(commonCookies = []) {
     const ctJsErrorsLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_js_errors');
     const ctPixelUrl = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
     const apbctHeadless = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_headless');
+    const ctBotDetectorFrontendDataLog = apbctLocalStorage.get(
+        ctPublicFunctions.cookiePrefix + 'ct_bot_detector_frontend_data_log',
+    );
 
     // collecting data from cookies
     const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
@@ -3220,6 +3485,8 @@ function getJavascriptClientData(commonCookies = []) {
         ctPixelUrl : ctCookiesPixelUrl;
     resultDataJson.apbct_headless = apbctHeadless !== undefined ?
         apbctHeadless : apbctHeadlessNative;
+    resultDataJson.ct_bot_detector_frontend_data_log = ctBotDetectorFrontendDataLog !== undefined ?
+        ctBotDetectorFrontendDataLog : '';
     if (resultDataJson.apbct_pixel_url && typeof(resultDataJson.apbct_pixel_url) == 'string') {
         if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
             resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
@@ -3507,7 +3774,7 @@ function ctNoCookieConstructHiddenField(type) {
 
 /**
  * Retrieves the clentalk "cookie" data from starages.
- * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo}.
+ * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration}.
  * @return {string}
  */
 function getCleanTalkStorageDataArray() {
@@ -3518,7 +3785,16 @@ function getCleanTalkStorageDataArray() {
     if (document.ctTypoData && document.ctTypoData.data) {
         noCookieDataTypo = {typo: document.ctTypoData.data};
     }
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo};
+
+    let noCookieDataFromDecoration = {form_decoration_mouse_data: []};
+    if (document.ctFormDecorationMouseData) {
+        let formDecorationMouseData = JSON.parse(JSON.stringify(document.ctFormDecorationMouseData));
+        if (formDecorationMouseData.mouseMovements) {
+            delete formDecorationMouseData.mouseMovements;
+        }
+        noCookieDataFromDecoration = {form_decoration_mouse_data: formDecorationMouseData};
+    }
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration};
 }
 
 /**
@@ -3601,12 +3877,17 @@ function ctGetHiddenFieldExclusionsType(form) {
  * @return {boolean}
  */
 function ctCheckHiddenFieldsExclusions(form, hiddenFieldType) {
+    const formAction = typeof(form.action) == 'string' ? form.action : '';
     // Ajax Search Lite
     if (Boolean(form.querySelector('fieldset.asl_sett_scroll'))) {
         return true;
     }
     // Super WooCommerce Product Filter
     if (form.classList.contains('swpf-instant-filtering')) {
+        return true;
+    }
+    // PayU 3-rd party service forms
+    if (formAction.indexOf('secure.payu.com') !== -1 ) {
         return true;
     }
     if (typeof (hiddenFieldType) === 'string' &&
@@ -4195,10 +4476,11 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
             }
         });
     }
+
+    let mailerliteSubmitButton = null;
     if ( mailerliteDetectedClass ) {
-        const mailerliteSubmitButton = documentObject.querySelector('form.' + mailerliteDetectedClass)
-            .querySelector('button[type="submit"]');
-        if ( mailerliteSubmitButton !== undefined ) {
+        mailerliteSubmitButton = reUseCurrentForm.querySelector('button[type="submit"]');
+        if ( mailerliteSubmitButton !== null && mailerliteSubmitButton !== undefined ) {
             mailerliteSubmitButton.addEventListener('click', function(event) {
                 event.preventDefault();
                 sendAjaxCheckingFormData(reUseCurrentForm);
@@ -4589,7 +4871,9 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('kulahub.net') !== -1 || // Kulahub integration
         isFormHasDiviRedirect(formObj) || // Divi contact form
         formAction.indexOf('eocampaign1.com') !== -1 || // EmailOctopus Campaign form
-        formAction.indexOf('wufoo.com') !== -1 // Wufoo form
+        formAction.indexOf('wufoo.com') !== -1 || // Wufoo form
+        ( formObj.classList !== undefined &&
+            formObj.classList.contains('sp-element-container') ) // Sendpulse form
     ) {
         return true;
     }
@@ -5021,6 +5305,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Selectors. Try to handle the WIDE range of themes.
     let themesCommentsSelector = '.apbct-trp *[class*="comment-author"]';
+    if ( document.querySelector('.apbct-trp .comment-author .comment-author-link') ) {
+        // For Spacious theme
+        themesCommentsSelector = '.apbct-trp *[class*="comment-author-link"]';
+    }
     let woocommerceReviewsSelector = '.apbct-trp *[class*="review__author"]';
     let adminCommentsListSelector = '.apbct-trp td[class*="column-author"] > strong';
     const trpComments = document.querySelectorAll(

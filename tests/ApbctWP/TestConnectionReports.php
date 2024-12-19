@@ -20,7 +20,7 @@ class TestConnectionReports extends TestCase
     {
         global $apbct;
         $this->db = DB::getInstance();
-        $apbct = new State('cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats'));
+        $apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
         apbct_run_update_actions('5.188', '5,189');
         $apbct->setConnectionReports();
         $this->connection_reports = $apbct->getConnectionReports();

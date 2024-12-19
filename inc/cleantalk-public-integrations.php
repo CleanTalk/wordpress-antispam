@@ -205,210 +205,6 @@ function ct_woocommerce_wishlist_check($args)
     return $args;
 }
 
-function apbct_integration__buddyPres__getTemplateName(
-    $located,
-    $_template_name,
-    $_template_names,
-    $_template_locations,
-    $_load,
-    $_require_once
-) {
-    global $apbct;
-    preg_match("/\/([a-z-_]+)\/buddypress-functions\.php$/", $located, $matches);
-    $apbct->buddy_press_tmpl = isset($matches[1]) ? $matches[1] : 'unknown';
-}
-
-/**
- * Test BuddyPress activity for spam (post update only)
- *
- * @param bool $is_spam
- * @param object $activity_obj Activity object (\plugins\buddypress\bp-activity\classes\class-bp-activity-activity.php)
- *
- * @return boolean Spam flag
- * @psalm-suppress UnusedVariable
- * @global State $apbct
- */
-function apbct_integration__buddyPres__activityWall($is_spam, $activity_obj = null)
-{
-    global $apbct;
-
-    $allowed_post_actions = array('post_update', 'new_activity_comment');
-
-    if ( ! in_array(Post::get('action'), $allowed_post_actions) ||
-        $activity_obj === null ||
-        ! Post::get('action') ||
-        (isset($activity_obj->privacy) && $activity_obj->privacy == 'media') ||
-        apbct_exclusions_check() ||
-        ! $apbct->settings['forms__contact_forms_test']
-    ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
-        return false;
-    }
-
-    $curr_user = get_user_by('id', $activity_obj->user_id);
-
-    //Making a call
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => is_string($activity_obj->content) ? $activity_obj->content : '',
-            'sender_email'    => $curr_user !== false ? $curr_user->data->user_email : '',
-            'sender_nickname' => $curr_user !== false ? $curr_user->data->user_login : '',
-            'post_info'       => array(
-                'post_url'     => Server::get('HTTP_REFERER'),
-                'comment_type' => 'buddypress_activitywall',
-            ),
-            'sender_info'     => array('sender_url' => null),
-        )
-    );
-
-    if ( isset($base_call_result['ct_result']) ) {
-        $ct_result = $base_call_result['ct_result'];
-
-        if ( $ct_result->allow == 0 ) {
-            add_action('bp_activity_after_save', 'apbct_integration__buddyPres__activityWall_showResponse', 1, 1);
-            $apbct->spam_notification = $ct_result->comment;
-
-            return true;
-        }
-    }
-
-    return $is_spam;
-}
-
-/**
- * Outputs message to AJAX frontend handler
- *
- * @param object $activity_obj Activity object (\plugins\buddypress\bp-activity\classes\class-bp-activity-activity.php)
- *
- * @global State $apbct
- */
-function apbct_integration__buddyPres__activityWall_showResponse($_activity_obj)
-{
-    global $apbct;
-
-    // Legacy template
-    if ( $apbct->buddy_press_tmpl === 'bp-legacy' ) {
-        die('<div id="message" class="error bp-ajax-message"><p>' . $apbct->spam_notification . '</p></div>');
-        // Nouveau template and others
-    } else {
-        @header('Content-Type: application/json; charset=' . get_option('blog_charset'));
-        die(
-            json_encode(
-                array(
-                    'success' => false,
-                    'data'    => array('message' => $apbct->spam_notification),
-                )
-            )
-        );
-    }
-}
-
-/**
- * Public function - Tests new private messages (dialogs)
- *
- * @param object $bp_message_obj
- *
- * @return void with errors if spam has found
- * @psalm-suppress UndefinedClass
- * @psalm-suppress UnusedVariable
- * @global State $apbct
- */
-function apbct_integration__buddyPres__private_msg_check($bp_message_obj)
-{
-    global $apbct;
-
-    //Check for enabled option
-    if (
-        $apbct->settings['comments__bp_private_messages'] == 0 ||
-        apbct_exclusions_check() ||
-        ($apbct->settings['data__protect_logged_in'] == 0 && is_user_logged_in())
-    ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
-        return;
-    }
-
-    //Check for quantity of comments
-    $comments_check_number = defined('CLEANTALK_CHECK_COMMENTS_NUMBER')
-        ? CLEANTALK_CHECK_COMMENTS_NUMBER
-        : 3;
-
-    if ( $apbct->settings['comments__check_comments_number'] ) {
-        $args             = array(
-            'user_id'      => $bp_message_obj->sender_id,
-            'box'          => 'sentbox',
-            'type'         => 'all',
-            'limit'        => $comments_check_number,
-            'page'         => null,
-            'search_terms' => '',
-            'meta_query'   => array()
-        );
-        $sentbox_msgs     = BP_Messages_Thread::get_current_threads_for_user($args);
-        $cnt_sentbox_msgs = $sentbox_msgs['total'];
-        $args['box']      = 'inbox';
-        $inbox_msgs       = BP_Messages_Thread::get_current_threads_for_user($args);
-        $cnt_inbox_msgs   = $inbox_msgs['total'];
-
-        if ( ($cnt_inbox_msgs + $cnt_sentbox_msgs) >= $comments_check_number ) {
-            $is_max_comments = true;
-        }
-    }
-
-    $exception_action = false;
-    if ( ! empty($is_max_comments) ) {
-        $exception_action = true;
-    }
-
-    $sender_user_obj = get_user_by('id', $bp_message_obj->sender_id);
-
-    //Making a call
-
-    $event_token = TT::getArrayValueAsString(Post::get('meta'), 'ct_bot_detector_event_token');
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $bp_message_obj->subject . " " . $bp_message_obj->message,
-            'sender_email'    => $sender_user_obj !== false ? $sender_user_obj->data->user_email : '',
-            'sender_nickname' => $sender_user_obj !== false ? $sender_user_obj->data->user_login : '',
-            'post_info'       => array(
-                'comment_type' => 'buddypress_comment',
-                'post_url'     => Server::get('HTTP_REFERER'),
-            ),
-            'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs'))),
-            'sender_info'     => array('sender_url' => null),
-            'exception_action' => $exception_action === true ? 1 : null,
-            'event_token' => $event_token,
-        )
-    );
-
-    if ( isset($base_call_result['ct_result']) ) {
-        $ct_result = $base_call_result['ct_result'];
-
-        if ( $ct_result->allow == 0 ) {
-            if (apbct_is_ajax() ) {
-                wp_send_json_error(
-                    array(
-                        'feedback' => $ct_result->comment,
-                        'type' => 'error'
-                    )
-                );
-            } else {
-                wp_die(
-                    "<h1>"
-                    . __('Spam protection by CleanTalk', 'cleantalk-spam-protect')
-                    . "</h1><h2>" . $ct_result->comment . "</h2>",
-                    '',
-                    array(
-                        'response'       => 403,
-                        "back_link"      => true,
-                        "text_direction" => 'ltr'
-                    )
-                );
-            }
-        }
-    }
-}
-
 
 /**
  * Test default search string for spam
@@ -543,6 +339,65 @@ function ct_woocommerce_checkout_check($_data, $errors)
                 'refresh'  => 'false',
                 'reload'   => 'false'
             ));
+        }
+    }
+}
+
+/**
+ * @param \WC_Order $order
+ * @return void
+ * @throws \Automattic\WooCommerce\StoreApi\Exceptions\RouteException
+ * @psalm-suppress UndefinedClass
+ */
+function ct_woocommerce_checkout_check_from_rest($order)
+{
+    global $apbct, $cleantalk_executed;
+
+    if ( is_null($order) || ! ($order instanceof \WC_Order) ) {
+        return;
+    }
+
+    $sender_email    = $order->get_billing_email();
+    $sender_nickname = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
+    $message         = $order->get_customer_note();
+
+    $post_info = array();
+    $post_info['comment_type'] = 'order';
+    $post_info['post_url']     = Server::get('HTTP_REFERER');
+
+    $base_call_data = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'post_info'       => $post_info,
+        'sender_info'     => array('sender_url' => null)
+    );
+
+    //Making a call
+    $base_call_result = apbct_base_call($base_call_data);
+
+    if ( $apbct->settings['forms__wc_register_from_order'] ) {
+        $cleantalk_executed = false;
+    }
+
+    if ( isset($base_call_result['ct_result']) ) {
+        $ct_result = $base_call_result['ct_result'];
+
+        // Get request_id and save to static $hash
+        ct_hash($ct_result->id);
+
+        if ( $ct_result->allow == 0 ) {
+            if ( $apbct->settings['data__wc_store_blocked_orders'] ) {
+                apbct_woocommerce__store_blocked_order();
+            }
+            if ( class_exists('\Automattic\WooCommerce\StoreApi\Exceptions\RouteException') ) {
+                /** @psalm-suppress InvalidThrow */
+                throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
+                    'woocommerce_store_api_checkout_order_processed',
+                    $ct_result->comment,
+                    403
+                );
+            }
         }
     }
 }
@@ -3583,7 +3438,10 @@ function apbct_custom_forms_trappings()
     // Registration form of masteriyo registration
     if ( $apbct->settings['forms__registrations_test'] &&
          Post::get('masteriyo-registration') === 'yes' &&
-         apbct_is_plugin_active('learning-management-system/lms.php')
+         (
+             apbct_is_plugin_active('learning-management-system/lms.php') ||
+             apbct_is_plugin_active('learning-management-system-pro/lms.php')
+         )
     ) {
         return true;
     }
@@ -4108,6 +3966,40 @@ function apbct_dhvcform_request_test()
             'sender_email'    => isset($params['email']) ? $params['email'] : '',
             'sender_nickname' => isset($params['nickname']) ? $params['nickname'] : '',
             'post_info'       => array('comment_type' => 'dhvcform_form'),
+            'sender_info'     => $sender_info,
+        )
+    );
+
+    if (isset($base_call_result['ct_result'])) {
+        $ct_result = $base_call_result['ct_result'];
+        if ((int)$ct_result->allow === 0) {
+            $ct_comment = $ct_result->comment;
+            ct_die(null, null);
+        }
+    }
+}
+
+/**
+ * Test SeedConfirmPro form for spam
+ * @return void
+ */
+function apbct_seedConfirmPro_request_test()
+{
+    global $ct_comment;
+
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $params = ct_gfa($input_array);
+
+    $sender_info = [];
+    if ( ! empty($params['emails_array']) ) {
+        $sender_info['sender_emails_array'] = $params['emails_array'];
+    }
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => isset($params['email']) ? $params['email'] : '',
+            'sender_nickname' => isset($params['nickname']) ? $params['nickname'] : '',
+            'post_info'       => array('comment_type' => 'seedConfirmPro_form'),
             'sender_info'     => $sender_info,
         )
     );

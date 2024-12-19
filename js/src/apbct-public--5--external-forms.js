@@ -234,10 +234,11 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
             }
         });
     }
+
+    let mailerliteSubmitButton = null;
     if ( mailerliteDetectedClass ) {
-        const mailerliteSubmitButton = documentObject.querySelector('form.' + mailerliteDetectedClass)
-            .querySelector('button[type="submit"]');
-        if ( mailerliteSubmitButton !== undefined ) {
+        mailerliteSubmitButton = reUseCurrentForm.querySelector('button[type="submit"]');
+        if ( mailerliteSubmitButton !== null && mailerliteSubmitButton !== undefined ) {
             mailerliteSubmitButton.addEventListener('click', function(event) {
                 event.preventDefault();
                 sendAjaxCheckingFormData(reUseCurrentForm);
@@ -628,7 +629,9 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('kulahub.net') !== -1 || // Kulahub integration
         isFormHasDiviRedirect(formObj) || // Divi contact form
         formAction.indexOf('eocampaign1.com') !== -1 || // EmailOctopus Campaign form
-        formAction.indexOf('wufoo.com') !== -1 // Wufoo form
+        formAction.indexOf('wufoo.com') !== -1 || // Wufoo form
+        ( formObj.classList !== undefined &&
+            formObj.classList.contains('sp-element-container') ) // Sendpulse form
     ) {
         return true;
     }

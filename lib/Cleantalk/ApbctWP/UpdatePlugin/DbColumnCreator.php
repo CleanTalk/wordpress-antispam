@@ -99,7 +99,7 @@ class DbColumnCreator
 
         // Logging errors
         if (!empty($errors)) {
-            apbct_log($errors);
+            DbAnalyzer::logSchemaErrors($errors, __FUNCTION__);
         }
     }
 
