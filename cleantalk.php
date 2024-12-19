@@ -1225,7 +1225,7 @@ function apbct_sfw__check()
     // Checking if database was outdated
     $is_sfw_outdated = $apbct->stats['sfw']['last_update_time'] + $apbct->stats['sfw']['update_period'] * 3 < time();
 
-    if (did_action( 'plugins_loaded' ) || did_action( 'init' )) {
+    add_action('init', function($apbct, $is_sfw_outdated) {
         $apbct->errorToggle(
             $is_sfw_outdated,
             'sfw_outdated',
@@ -1234,7 +1234,7 @@ function apbct_sfw__check()
                 'cleantalk-spam-protect'
             )
         );
-    }
+    });
 
     if ( $is_sfw_outdated ) {
         return;
@@ -1246,7 +1246,8 @@ function apbct_sfw__check()
 
     $sfw_tables_names = SFW::getSFWTablesNames();
 
-    if (!$sfw_tables_names && (did_action( 'plugins_loaded' ) || did_action( 'init' ))) {
+    if (!$sfw_tables_names) {
+        add_action('init', function($apbct) {
             $apbct->errorAdd(
                 'sfw',
                 esc_html__(
@@ -1254,6 +1255,7 @@ function apbct_sfw__check()
                     'cleantalk-spam-protect'
                 )
             );
+        });
             return;
     }
 
