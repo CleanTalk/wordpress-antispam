@@ -1759,7 +1759,6 @@ function apbct_settings__field__state()
 
     $img         = $path_to_img . "yes.png";
     $img_no      = $path_to_img . "no.png";
-    $img_no_gray = $path_to_img . "no_gray.png";
     $color       = "black";
 
     if ( ! $apbct->key_is_ok ) {
@@ -1813,15 +1812,6 @@ function apbct_settings__field__state()
                  'Validate email for existence',
                  'cleantalk-spam-protect'
              ) . '</a>';
-    }
-    // Autoupdate status
-    if ( $apbct->notice_auto_update && ( ! $apbct->white_label || is_main_site()) ) {
-        echo '<img class="apbct_status_icon" src="' . ($apbct->auto_update == 1 ? Escape::escUrl($img) : ($apbct->auto_update == -1 ? Escape::escUrl($img_no) : Escape::escUrl($img_no_gray))) . '"/>' . __(
-            'Auto update',
-            'cleantalk-spam-protect'
-        )
-            //HANDLE LINK
-             . ' <sup><a href="https://cleantalk.org/help/cleantalk-auto-update" target="_blank">?</a></sup>';
     }
 
     // WooCommerce
@@ -2527,7 +2517,6 @@ function apbct_settings__validate($settings)
                 'key_is_ok'   => $apbct->data['key_is_ok'],
                 'moderate'    => $apbct->data['moderate'],
                 'valid'       => isset($apbct->data['valid']) ? $apbct->data['valid'] : 0,
-                'auto_update' => $apbct->data['auto_update'],
                 'user_token'  => $apbct->data['user_token'],
                 'service_id'  => $apbct->data['service_id'],
                 'user_id'  => $apbct->data['user_id'],
@@ -2628,7 +2617,6 @@ function apbct_settings__sync($direct_call = false)
                 'key_is_ok'   => $apbct->data['key_is_ok'],
                 'moderate'    => $apbct->data['moderate'],
                 'valid'       => $apbct->data['valid'],
-                'auto_update' => $apbct->data['auto_update'],
                 'user_token'  => $apbct->data['user_token'],
                 'service_id'  => $apbct->data['service_id'],
                 'user_id'  => $apbct->data['user_id'],
@@ -2656,7 +2644,6 @@ function apbct_settings__sync($direct_call = false)
         $apbct->data['notice_renew']       = 0;
         $apbct->data['notice_trial']       = 0;
         $apbct->data['notice_review']      = 0;
-        $apbct->data['notice_auto_update'] = 0;
 
         // Other
         $apbct->data['service_id']      = 0;
@@ -2666,7 +2653,6 @@ function apbct_settings__sync($direct_call = false)
         $apbct->data['ip_license']      = 0;
         $apbct->data['moderate_ip']     = 0;
         $apbct->data['spam_count']      = 0;
-        $apbct->data['auto_update']     = 0;
         $apbct->data['user_token']      = '';
         $apbct->data['license_trial']   = 0;
         $apbct->data['account_name_ob'] = '';

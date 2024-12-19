@@ -489,7 +489,6 @@ function apbct_update_to_5_138_0()
                     $data['notice_renew']       = isset($result['renew'])                   ? (int)$result['renew']                   : 0;
                     $data['notice_trial']       = isset($result['trial'])                   ? (int)$result['trial']                   : 0;
                     $data['notice_review']      = isset($result['show_review'])             ? (int)$result['show_review']             : 0;
-                    $data['notice_auto_update'] = isset($result['show_auto_update_notice']) ? (int)$result['show_auto_update_notice'] : 0;
 
                     // Other
                     $data['service_id']         = isset($result['service_id'])                         ? (int)$result['service_id']         : 0;
@@ -498,7 +497,6 @@ function apbct_update_to_5_138_0()
                     $data['ip_license']         = isset($result['ip_license'])                         ? (int)$result['ip_license']         : 0;
                     $data['moderate_ip']        = isset($result['moderate_ip'], $result['ip_license']) ? (int)$result['moderate_ip']        : 0;
                     $data['spam_count']         = isset($result['spam_count'])                         ? (int)$result['spam_count']         : 0;
-                    $data['auto_update']        = isset($result['auto_update_app'])                    ? (int)$result['auto_update_app']    : 0;
                     $data['user_token']         = isset($result['user_token'])                         ? (string)$result['user_token']      : '';
                     $data['license_trial']      = isset($result['license_trial'])                      ? (int)$result['license_trial']      : 0;
                     $data['account_name_ob']    = isset($result['account_name_ob'])                    ? (string)$result['account_name_ob'] : '';
