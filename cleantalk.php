@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.46.1-dev
+  Version: 6.47
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -27,6 +27,7 @@ use Cleantalk\ApbctWP\Firewall\AntiCrawler;
 use Cleantalk\ApbctWP\Firewall\AntiFlood;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
+use Cleantalk\ApbctWP\FormDecorator\FormDecorator;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
@@ -36,14 +37,14 @@ use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Transaction;
 use Cleantalk\ApbctWP\UpdatePlugin\DbTablesCreator;
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\Common\TT;
-use Cleantalk\Common\DNS;
-use Cleantalk\Common\Firewall;
-use Cleantalk\Common\Schema;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\DNS;
+use Cleantalk\Common\Firewall;
+use Cleantalk\Common\Schema;
+use Cleantalk\Common\TT;
 
 global $apbct, $wpdb, $pagenow;
 
@@ -202,6 +203,11 @@ if (
 
 if ( $apbct->settings['comments__the_real_person'] ) {
     new CleantalkRealPerson();
+}
+
+if ( $apbct->settings['comments__form_decoration'] && $apbct->settings['comments__form_decoration_selector']) {
+    $decorator = new FormDecorator();
+    $decorator->setDecorationSet($apbct->settings['comments__form_decoration_selector']);
 }
 
 add_action('rest_api_init', 'apbct_register_my_rest_routes');
@@ -487,6 +493,14 @@ if (
     apbct_dhvcform_request_test();
 }
 
+// SeedConfirmPro
+if (!empty($_POST) &&
+    apbct_is_plugin_active('seed-confirm-pro/seed-confirm-pro.php') &&
+    Post::get('seed_confirm_nonce')
+) {
+    apbct_seedConfirmPro_request_test();
+}
+
 add_action('wp_ajax_nopriv_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
 add_action('wp_ajax_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
 add_action('wp_ajax_nopriv_nf_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
@@ -684,14 +698,16 @@ if ( is_admin() || is_network_admin() ) {
         $_cleantalk_ajax_actions_to_check = array();
 
         global $apbct_active_integrations;
-        $integrated_hooks = array_column($apbct_active_integrations, 'hook');
-        foreach ( $integrated_hooks as $hook ) {
-            if ( is_array($hook) ) {
-                foreach ( $hook as $_item ) {
-                    $_cleantalk_hooked_actions[] = $_item;
+        if (isset($apbct_active_integrations) && is_array($apbct_active_integrations)) {
+            $integrated_hooks = array_column($apbct_active_integrations, 'hook');
+            foreach ( $integrated_hooks as $hook ) {
+                if ( is_array($hook) ) {
+                    foreach ( $hook as $_item ) {
+                        $_cleantalk_hooked_actions[] = $_item;
+                    }
+                } else {
+                    $_cleantalk_hooked_actions[] = $hook;
                 }
-            } else {
-                $_cleantalk_hooked_actions[] = $hook;
             }
         }
 

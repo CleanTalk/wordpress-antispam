@@ -3980,6 +3980,40 @@ function apbct_dhvcform_request_test()
 }
 
 /**
+ * Test SeedConfirmPro form for spam
+ * @return void
+ */
+function apbct_seedConfirmPro_request_test()
+{
+    global $ct_comment;
+
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $params = ct_gfa($input_array);
+
+    $sender_info = [];
+    if ( ! empty($params['emails_array']) ) {
+        $sender_info['sender_emails_array'] = $params['emails_array'];
+    }
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => isset($params['email']) ? $params['email'] : '',
+            'sender_nickname' => isset($params['nickname']) ? $params['nickname'] : '',
+            'post_info'       => array('comment_type' => 'seedConfirmPro_form'),
+            'sender_info'     => $sender_info,
+        )
+    );
+
+    if (isset($base_call_result['ct_result'])) {
+        $ct_result = $base_call_result['ct_result'];
+        if ((int)$ct_result->allow === 0) {
+            $ct_comment = $ct_result->comment;
+            ct_die(null, null);
+        }
+    }
+}
+
+/**
  * @param $validation_error WP_Error
  * @param $username string
  * @param $_password string

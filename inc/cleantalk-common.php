@@ -202,6 +202,10 @@ function apbct_base_call($params = array(), $reg_flag = false)
         $default_params['sender_info']['typo'] = Cookie::get('typo');
     }
 
+    if (Cookie::get('form_decoration_mouse_data')) {
+        $default_params['sender_info']['form_decoration_mouse_data'] = Cookie::get('form_decoration_mouse_data');
+    }
+
     /**
      * Add exception_action sender email is empty
      */

@@ -5,7 +5,6 @@ namespace Cleantalk\ApbctWP;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\Common\UniversalBanner\BannerDataDto;
-use Cleantalk\ApbctWP\LinkConstructor;
 use Cleantalk\Common\TT;
 
 class AdminNotices

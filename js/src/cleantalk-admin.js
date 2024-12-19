@@ -117,6 +117,8 @@ jQuery(document).ready(function($) {
             encodedEmailNode.addEventListener('click', ctFillDecodedEmailHandler);
         }
     }
+
+    ctDecorationSelectorActions();
 });
 
 /**
@@ -367,4 +369,29 @@ function apbct_admin_sendAJAX(data, params, obj) {
         },
         timeout: timeout,
     });
+}
+/**
+* @return {void}
+ */
+function ctDecorationSelectorActions() {
+    const selector = document.querySelector('#apbct_setting_comments__form_decoration_selector');
+    const colorPicker = document.querySelector('#apbct_setting_comments__form_decoration_color');
+    const headingText = document.querySelector('#apbct_setting_comments__form_decoration_text');
+    const defaultThemeExpectedValue = 'Default Theme';
+    if (colorPicker && headingText && selector) {
+        if (selector.value === defaultThemeExpectedValue) {
+            colorPicker.setAttribute('disabled', 'disabled');
+            headingText.setAttribute('disabled', 'disabled');
+        }
+        selector.addEventListener('change', function(event) {
+            const selectedValue = event.target.value;
+            if (selectedValue && selectedValue.length > 0 && selectedValue === defaultThemeExpectedValue) {
+                colorPicker.setAttribute('disabled', 'disabled');
+                headingText.setAttribute('disabled', 'disabled');
+            } else {
+                colorPicker.removeAttribute('disabled');
+                headingText.removeAttribute('disabled');
+            }
+        });
+    }
 }

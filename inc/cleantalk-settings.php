@@ -4,6 +4,7 @@ use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentSettings;
 use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\ApbctWP\Escape;
+use Cleantalk\ApbctWP\FormDecorator\DecorationRegistry;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\LinkConstructor;
 use Cleantalk\ApbctWP\Validate;
@@ -11,6 +12,7 @@ use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
+use Cleantalk\ApbctWP\PluginSettingsPage\SettingsField;
 
 /**
  * Admin action 'admin_menu' - Add the admin options page
@@ -433,6 +435,44 @@ function apbct_settings__set_fields()
                     ),
                     'display'     => ! $apbct->white_label,
                 ),
+                'comments__form_decoration' => array(
+                    'title'       => __('Holiday form decoration', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'This option allows to change common design of the comment form to the celebrating one.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'childrens' => array(
+                        'comments__form_decoration_text',
+                        'comments__form_decoration_color',
+                        'comments__form_decoration_selector'
+                    )
+                ),
+                'comments__form_decoration_selector' => array(
+                    'type'        => 'select',
+                    'class'       => 'apbct_settings-field_wrapper--sub',
+                    'options_callback' => array(
+                        DecorationRegistry::getInstance(),
+                        'getDecorationLocalizedNames'
+                    ),
+                    'title'       => __('Select a theme for comments form decoration', 'cleantalk-spam-protect'),
+                    'description' => __('The selected theme will be applied to every standard WordPress comment form.', 'cleantalk-spam-protect'),
+                    'parent'          => 'comments__form_decoration',
+                ),
+                'comments__form_decoration_text' => array(
+                    'type'        => 'text',
+                    'class'       => 'apbct_settings-field_wrapper--sub',
+                    'placeholder' => __('Happy Holidays! ', 'cleantalk-spam-protect'),
+                    'title'       => __('Enter a decoration title for the selected theme header', 'cleantalk-spam-protect'),
+                    'description' => __('This text will be placed in the decoration header, right above the respond form. Not available on the default theme.', 'cleantalk-spam-protect'),
+                    'parent'          => 'comments__form_decoration',
+                ),
+                'comments__form_decoration_color' => array(
+                    'type'        => 'color',
+                    'class'       => 'apbct_settings-field_wrapper--sub',
+                    'title'       => __('Pick a decoration color for the selected theme header', 'cleantalk-spam-protect'),
+                    'description' => __('Applies the color for the respond form header. Not available on the default theme.', 'cleantalk-spam-protect'),
+                    'parent'          => 'comments__form_decoration',
+                )
             ),
         ),
 
@@ -1552,6 +1592,9 @@ function apbct_settings__error__output($return = false)
             'exclusions_urls'   => 'URL Exclusions',
             'exclusions_fields' => 'Field Exclusions',
 
+            //Form decorator
+            \Cleantalk\ApbctWP\FormDecorator\FormDecorator::$error_type => 'Form decoration',
+
             // Unknown
             'unknown'           => __('Unknown error type: ', 'cleantalk-spam-protect'),
         );
@@ -1583,7 +1626,7 @@ function apbct_settings__error__output($return = false)
                         $errors_out[$sub_type] .= (isset($error_texts[$type]) ? $error_texts[$type] : ucfirst($type)) . ': ';
                         $errors_out[$sub_type] .= isset($error_texts[$sub_type])
                             ? $error_texts[$sub_type]
-                            : ($error_texts['unknown'] . $sub_type . ' ');
+                            : (TT::getArrayValueAsString($error_texts, 'unknown') . $sub_type . ' ');
 
                         if (isset($sub_error['error'])) {
                             $errors_out[$sub_type] .= ' ' . $sub_error['error'];
@@ -1615,7 +1658,7 @@ function apbct_settings__error__output($return = false)
                     }
                 }
 
-                $errors_out[$type] .= (isset($error_texts[$type]) ? $error_texts[$type] : $error_texts['unknown']) . ' ' . (isset($error['error']) ? $error['error'] : '');
+                $errors_out[$type] .= (isset($error_texts[$type]) ? $error_texts[$type] : (TT::getArrayValueAsString($error_texts, 'unknown'))) . ' ' . (isset($error['error']) ? $error['error'] : '');
             }
         }
 
@@ -2209,240 +2252,8 @@ function apbct_get_all_roles()
 
 function apbct_settings__field__draw($params = array())
 {
-    global $apbct;
-
-    $value        = $params['network'] ? $apbct->network_settings[$params['name']] : $apbct->settings[$params['name']];
-    $value_parent = $params['parent']
-        ? ($params['network'] ? $apbct->network_settings[$params['parent']] : $apbct->settings[$params['parent']])
-        : false;
-
-    // Is element is disabled
-    $disabled = $params['parent'] && ! $value_parent ? ' disabled="disabled"' : '';        // Strait
-    $disabled = $params['parent'] && $params['reverse_trigger'] && ! $value_parent ? '' : $disabled; // Reverse logic
-    $disabled = $params['disabled'] ? ' disabled="disabled"' : $disabled; // Direct disable from params
-    $disabled =
-        ! is_main_site() &&
-        $apbct->network_settings &&
-        ( ! $apbct->network_settings['multisite__allow_custom_settings'] || $apbct->network_settings['multisite__work_mode'] == 2 )
-            ? ' disabled="disabled"'
-            : $disabled; // Disabled by super admin on sub-sites
-    $childrens = $params['childrens'] ? 'apbct_setting---' . implode(",apbct_setting---", $params['childrens']) : '';
-    $hide      = $params['hide'] ? implode(",", $params['hide']) : '';
-    //ESC NEED
-    echo '<div class="' . $params['def_class'] . (isset($params['class']) ? ' ' . $params['class'] : '') . '">';
-
-    switch ( $params['type'] ) {
-        // Checkbox type
-        case 'checkbox':
-            // Popup description
-            $popup = '';
-            if ( isset($params['long_description']) ) {
-                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
-            }
-            //ESC NEED
-            echo '<input
-					type="checkbox"
-					name="cleantalk_settings[' . $params['name'] . ']"
-					id="apbct_setting_' . $params['name'] . '"
-					value="1" '
-                 . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
-                 . ($value == '1' ? ' checked' : '')
-                 . $disabled
-                 . ($params['required'] ? ' required="required"' : '')
-                 . ($params['childrens'] ? ' apbct_children="' . $childrens . '"' : '')
-                 . ' onchange="'
-                 . ($params['childrens'] ? ' apbctSettingsDependencies(\'' . $childrens . '\');' : '')
-                 . ($params['hide'] ? ' apbctShowHideElem(\'' . $hide . '\');' : '')
-                 . '"'
-                 . ' />'
-                 . '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
-                 . $params['title']
-                 . '</label>'
-                 . $popup;
-            //HANDLE LINK
-            $href = '<a href="https://cleantalk.org/my/partners" target="_blank">' . __('CleanTalk Affiliate Program are here', 'cleantalk-spam-protect') . '</a>';
-            $params['description'] = str_replace('{CT_AFFILIATE_TERMS}', $href, $params['description']);
-            echo '<div class="apbct_settings-field_description">'
-                 . $params['description']
-                 . '</div>';
-            break;
-
-        // Radio type
-        case 'radio':
-            // Popup description
-            $popup = '';
-            if ( isset($params['long_description']) ) {
-                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
-            }
-
-            // Title
-            //ESC NEED
-            echo isset($params['title'])
-                ? '<h4 class="apbct_settings-field_title apbct_settings-field_title--' . $params['type'] . '">' . $params['title'] . $popup . '</h4>'
-                : '';
-            //ESC NEED
-            echo '<div class="apbct_settings-field_content apbct_settings-field_content--' . $params['type'] . '">';
-
-            echo '<div class="apbct_switchers" style="direction: ltr">';
-            foreach ( $params['options'] as $option ) {
-                //ESC NEED
-                echo '<input'
-                     . ' type="radio"'
-                     . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
-                     . " id='apbct_setting_{$params['name']}__{$option['label']}'"
-                     . ' name="cleantalk_settings[' . $params['name'] . ']"'
-                     . ' value="' . $option['val'] . '"'
-                     . $disabled
-                     . ($params['childrens']
-                        ? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\', ' . $option['childrens_enable'] . ')"'
-                        : ''
-                     )
-                     . ($value == $option['val'] ? ' checked' : '')
-                     . ($params['required'] ? ' required="required"' : '')
-                     . ' />';
-                //ESC NEED
-                echo '<label for="apbct_setting_' . $params['name'] . '__' . $option['label'] . '"> ' . $option['label'] . '</label>';
-                echo '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-            }
-            echo '</div>';
-            //ESC NEED
-            echo isset($params['description'])
-                ? '<div class="apbct_settings-field_description">' . $params['description'] . '</div>'
-                : '';
-
-            echo '</div>';
-            break;
-
-        // Dropdown list type
-        case 'select':
-            // Popup description
-            $popup = '';
-            if ( isset($params['long_description']) ) {
-                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
-            }
-            //ESC NEED
-            echo isset($params['title'])
-                ? '<h4 class="apbct_settings-field_title apbct_settings-field_title--' . $params['type'] . '">' . $params['title'] . $popup . '</h4>'
-                : '';
-            //ESC NEED
-            echo isset($params['description'])
-                ? '<div class="apbct_settings-field_description">' . $params['description'] . '</div>'
-                : '';
-            echo '<select'
-                 . ' id="apbct_setting_' . $params['name'] . '"'
-                 . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
-                 . ' name="cleantalk_settings[' . $params['name'] . ']' . ($params['multiple'] ? '[]"' : '"')
-                 . ($params['multiple'] ? ' size="' . count($params['options']) . '""' : '')
-                 . ($params['multiple'] ? ' multiple="multiple"' : '')
-                 . ($params['childrens']
-                    ? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\', jQuery(this).find(\'option:selected\').data(\'children_enable\'))"'
-                    : ''
-                 )
-                 . $disabled
-                 . ($params['required'] ? ' required="required"' : '')
-                 . ' >';
-
-            foreach ( $params['options'] as $option ) {
-                //ESC NEED
-                echo '<option'
-                     . ' value="' . $option['val'] . '"'
-                     . (isset($option['children_enable']) ? ' data-children_enable=' . $option['children_enable'] . ' ' : ' ')
-                     . ($params['multiple']
-                        ? (! empty($value) && in_array($option['val'], $value) ? ' selected="selected"' : '')
-                        : ($value == $option['val'] ? 'selected="selected"' : '')
-                     )
-                     . '>'
-                     . $option['label']
-                     . '</option>';
-            }
-
-            echo '</select>';
-
-            break;
-
-        // Text type
-        case 'text':
-            // Popup description
-            $popup = '';
-            if ( isset($params['long_description']) ) {
-                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
-            }
-            //ESC NEED
-            echo '<input
-					type="text"
-					id="apbct_setting_' . $params['name'] . '"
-					name="cleantalk_settings[' . $params['name'] . ']"'
-                 . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
-                 . ' value="' . $value . '" '
-                 . $disabled
-                 . ($params['required'] ? ' required="required"' : '')
-                 . ($params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\')"' : '')
-                 . ' />'
-                 . '&nbsp;'
-                 . '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
-                 . $params['title'] . $popup
-                 . '</label>';
-            echo '<div class="apbct_settings-field_description">'
-                 . $params['description']
-                 . '</div>';
-            break;
-
-        // Text type
-        case 'affiliate_shortcode':
-            // Popup description
-            $popup = '';
-            if ( isset($params['long_description']) ) {
-                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
-            }
-            //ESC NEED
-            echo '<input
-					type="text"
-					id="apbct_setting_' . $params['name'] . '"
-					name="cleantalk_settings[' . $params['name'] . ']"'
-                . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
-                . ' value="[cleantalk_affiliate_link]" '
-                . "readonly" //hardcode for this shortcode
-                . $disabled
-                . ($params['required'] ? ' required="required"' : '')
-                . ($params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\')"' : '')
-                . ' />'
-                . '&nbsp;'
-                . '<label for="apbct_setting_' . $params['name'] . '" class="apbct_setting-field_title--' . $params['type'] . '">'
-                . $params['title'] . $popup
-                . '</label>';
-            echo '<div class="apbct_settings-field_description">'
-                . $params['description']
-                . '</div>';
-            break;
-
-        // Textarea type
-        case 'textarea':
-            //ESC NEED
-            $popup = '';
-            if ( isset($params['long_description']) ) {
-                $popup = '<i setting="' . $params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
-            }
-            echo isset($params['title'])
-                ? '<h4 class="apbct_settings-field_title apbct_settings-field_title--' . $params['type'] . '">' . $params['title'] . $popup . '</h4>'
-                : '';
-            //ESC NEED
-            echo '<div class="apbct_settings-field_description">'
-                . $params['description']
-                . '</div>';
-            //ESC NEED
-            echo '<textarea
-					id="apbct_setting_' . $params['name'] . '"
-					name="cleantalk_settings[' . $params['name'] . ']"'
-                 . " class='apbct_setting_{$params['type']} apbct_setting---{$params['name']}'"
-                 . $disabled
-                 . ($params['required'] ? ' required="required"' : '')
-                 . ($params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $childrens . '\')"' : '')
-                 . '>' . $value . '</textarea>'
-                 . '&nbsp;';
-            break;
-    }
-
-    echo '</div>';
+    $field = new SettingsField($params);
+    $field->draw();
 }
 
 /**
