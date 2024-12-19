@@ -1,0 +1,95 @@
+@font-face {
+    font-family: 'Chau Philomene One';
+    src: url('fonts/apbct_form_decoration--new-year/ChauPhilomeneOne-Italic.ttf');
+}
+
+.apbct_form_decoration--new-year_header__wrapper {
+    position: relative;
+    top: 13px;
+    margin: 0;
+    padding: 0;
+    z-index: 10000;
+}
+
+.apbct_form_decoration--new-year_header__content {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: column-reverse;
+    justify-content: center;
+    align-items: center;
+}
+.apbct_form_decoration--new-year_header__content svg {
+    height: auto;
+    width: 100%;
+}
+.apbct_form_decoration--new-year_header__text {
+    display: block;
+    position: absolute;
+    z-index: 1;
+    padding-bottom: 12px;
+    font-family: 'Chau Philomene One';
+    font-style: italic;
+    font-weight: 400;
+    font-size: 36px;
+    text-align: right;
+    text-transform: uppercase;
+    color: #ffffff;
+    -webkit-text-stroke: 1px #bf2a2b;
+}
+
+.apbct_form_decoration--new-year  {
+    position: relative;
+    margin: 0;
+    background: rgba(255, 255, 255, 0);
+    background-size: 100%;
+}
+
+.apbct_form_decoration--new-year form {
+    position: relative;
+    z-index: 1;
+}
+
+.apbct_form_decoration--new-year:before, .apbct_form_decoration--new-year:after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    width: 50%;
+    height: 100%;
+    background-position-y: bottom;
+    background-repeat: no-repeat;
+    background-size: 50%;
+    opacity: 0.4;
+    z-index: 0;
+}
+.apbct_form_decoration--new-year:before {
+    left: 0;
+    background-image: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0)), url('images/apbct_form_decoration--new-year/flag-left.svg');
+    background-position-x: left;
+    background-size: auto;
+}
+.apbct_form_decoration--new-year:after {
+    right: 0;
+    background-image: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0)), url('images/apbct_form_decoration--new-year/flag-right.svg');
+    background-position-x: right;
+    background-size: auto;
+}
+
+.comments-title, .comment-reply-title {
+    z-index: 9999;
+    position: relative;
+    margin: 0;
+    padding: 0;
+}
+
+@media screen and (max-width: 768px) {
+    .apbct_form_decoration--new-year:before, .apbct_form_decoration--new-year:after {
+        background-repeat: repeat-y;
+        width: 30%;
+    }
+}
+
+@media screen and (max-width: 500px) {
+    .apbct_form_decoration--new-year_header__text {
+        font-size: 22px;
+    }
+}

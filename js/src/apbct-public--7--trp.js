@@ -22,6 +22,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Selectors. Try to handle the WIDE range of themes.
     let themesCommentsSelector = '.apbct-trp *[class*="comment-author"]';
+    if ( document.querySelector('.apbct-trp .comment-author .comment-author-link') ) {
+        // For Spacious theme
+        themesCommentsSelector = '.apbct-trp *[class*="comment-author-link"]';
+    }
     let woocommerceReviewsSelector = '.apbct-trp *[class*="review__author"]';
     let adminCommentsListSelector = '.apbct-trp td[class*="column-author"] > strong';
     const trpComments = document.querySelectorAll(

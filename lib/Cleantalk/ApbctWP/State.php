@@ -59,6 +59,7 @@ class State extends \Cleantalk\Common\State
         'forms__check_external'                    => 0,
         'forms__check_external__capture_buffer'    => 0,
         'forms__check_internal'                    => 0,
+        'forms__force_protection'                  => 0, // Pre-check iframe, internal and external forms
 
         // Comments and messages
         'comments__disable_comments__all'          => 0,
@@ -73,6 +74,10 @@ class State extends \Cleantalk\Common\State
         'comments__manage_comments_on_public_page' => 0, // Allows to control comments on public page.
         'comments__the_real_person'                => 0, // Shows badge on each approved by cloud comments on public page.
         'comments__hide_website_field'             => 0, // Hide website field from comment form
+        'comments__form_decoration'                => 0, // Holiday form decoration
+        'comments__form_decoration_text'           => '', // Holiday form decoration text
+        'comments__form_decoration_color'          => '#E62F2E', // Holiday form decoration color
+        'comments__form_decoration_selector'    => 'holiday_fourth_july', // Holiday form decoration name of default set
 
         // Data processing
         'data__protect_logged_in'                  => 1, // Do anti-spam tests to for logged-in users.
@@ -114,7 +119,6 @@ class State extends \Cleantalk\Common\State
         'misc__async_js'                           => 0,
         'misc__store_urls'                         => 1,
         'misc__complete_deactivation'              => 0,
-        'misc__debug_ajax'                         => 0, // WordPress
         'wp__use_builtin_http_api'                 => 1, // Using WordPress HTTP built in API
         'wp__comment_notify'                       => 1,
         'wp__comment_notify__roles'                => array('administrator'),
