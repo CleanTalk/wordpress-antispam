@@ -660,7 +660,7 @@ if ( ! defined('WP_ALLOW_MULTISITE') || (defined('WP_ALLOW_MULTISITE') && WP_ALL
 }
 
 // After plugin loaded - to load locale as described in manual
-add_action('plugins_loaded', 'apbct_plugin_loaded');
+add_action('init', 'apbct_plugin_loaded');
 
 if ( ! empty($apbct->settings['data__use_ajax']) &&
      ! apbct_is_in_uri('.xml') &&
