@@ -11,6 +11,7 @@
   Domain Path: /i18n
 */
 
+use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
 use Cleantalk\ApbctWP\Antispam\EmailEncoder;
@@ -365,6 +366,9 @@ if ( $apbct->settings['forms__general_contact_forms_test'] == 1
 
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-integrations-by-hook.php');
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-integrations-by-class.php');
+
+// Form protection by shortcode
+new ProtectByShortcode();
 
 // WP Delicious integration
 add_filter('delicious_recipes_process_registration_errors', 'apbct_wp_delicious', 10, 4);
