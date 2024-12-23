@@ -289,6 +289,10 @@ class RemoteCalls
     {
         global $apbct, $wpdb;
 
+        if (Get::get('run_send_feedback') === '1') {
+            $out['send_feedback'] = array('result' => ct_send_feedback() ? 'true' : 'false');
+        }
+
         $sfw_table_name = !empty($apbct->data['sfw_common_table_name']) ? $apbct->data['sfw_common_table_name'] : APBCT_TBL_FIREWALL_DATA;
 
         $out['sfw_data_base_size'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . $sfw_table_name);
