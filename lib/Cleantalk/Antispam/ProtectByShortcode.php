@@ -4,12 +4,14 @@ namespace Cleantalk\Antispam;
 
 use Cleantalk\ApbctWP\Variables\Server;
 
-class ProtectByShortcode {
-    public function __construct() {
-        add_filter('ct_wordpress_protect_from_spam', array($this, 'protect_by_shortcode'), 10, 2);
+class ProtectByShortcode
+{
+    public function __construct()
+    {
+        add_filter('ct_wordpress_protect_from_spam', array($this, 'protectByShortcode'), 10, 2);
     }
 
-    public function protect_by_shortcode($data, $options = [])
+    public function protectByShortcode($data, $options = [])
     {
         $output = [
             'is_spam' => false,
@@ -34,7 +36,7 @@ class ProtectByShortcode {
         $is_spam = $ct_result !== null && $ct_result->allow !== 1;
 
         if (isset($options['redirect_to_block_page']) && $options['redirect_to_block_page'] && $is_spam) {
-            wp_die(isset($ct_result->comment) ? $ct_result->comment : __('Blocked by CleanTalk'),  __('Forbidden'), array('response' => 403));
+            wp_die(isset($ct_result->comment) ? $ct_result->comment : __('Blocked by CleanTalk'), __('Forbidden'), array('response' => 403));
         }
 
         if ($is_spam) {
