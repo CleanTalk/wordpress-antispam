@@ -1251,6 +1251,13 @@ function apbct_is_skip_request($ajax = false)
         if ( apbct_is_plugin_active('buddypress/bp-loader.php') && Post::get('action') === 'messages_send_message' ) {
             return 'buddypress_messages_send_message';
         }
+        // TEvolution checking email existence need to be excluded
+        if (
+            apbct_is_plugin_active('Tevolution/templatic.php') &&
+            Post::get('action') === 'tmpl_ajax_check_user_email'
+        ) {
+            return 'tevolution email exitence';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
