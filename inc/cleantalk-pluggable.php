@@ -1647,6 +1647,15 @@ function apbct__check_admin_ajax_request($query_arg = 'security')
     }
 }
 
+function isWpRocketPreloaderRequest()
+{
+    return (
+        isset($_SERVER['HTTP_USER_AGENT'], $_SERVER['REMOTE_ADDR'], $_SERVER['SERVER_ADDR']) &&
+        strpos($_SERVER['HTTP_USER_AGENT'], 'WP Rocket/Preload') !== false &&
+        $_SERVER['REMOTE_ADDR'] === $_SERVER['SERVER_ADDR']
+    );
+}
+
 /**
  * Generates MD5 hash for email encoder pass key
  *
