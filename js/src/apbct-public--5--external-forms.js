@@ -300,6 +300,10 @@ function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObj
     };
 }
 
+/**
+ * Activate or deactivate spinner for Moosend form during request checking
+ * @param {HTMLElement} form
+ */
 function apbctMoosendSpinnerToggle(form) {
     const buttonElement = form.querySelector('button[type="submit"]');
     if ( buttonElement ) {
