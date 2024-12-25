@@ -4534,8 +4534,31 @@ function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObj
 
     documentObject.forms[iterator].onsubmit = function(event) {
         event.preventDefault();
+
+        // MooSend spinner activate
+        apbctMoosendSpinnerToggle(event.currentTarget);
+
         sendAjaxCheckingFormData(event.currentTarget);
     };
+}
+
+function apbctMoosendSpinnerToggle(form) {
+    const buttonElement = form.querySelector('button[type="submit"]');
+    if ( buttonElement ) {
+        const spinner = buttonElement.querySelector('i');
+        const submitText = buttonElement.querySelector('span');
+        if (spinner && submitText) {
+            if ( spinner.style.zIndex == 1 ) {
+                submitText.style.opacity = 1;
+                spinner.style.zIndex = -1;
+                spinner.style.opacity = 0;
+            } else {
+                submitText.style.opacity = 0;
+                spinner.style.zIndex = 1;
+                spinner.style.opacity = 1;
+            }
+        }
+    }
 }
 
 /**
@@ -4932,6 +4955,8 @@ function sendAjaxCheckingFormData(form) {
         {
             async: false,
             callback: function( result, data, params, obj ) {
+                // MooSend spinner deactivate
+                apbctMoosendSpinnerToggle(form);
                 if ( result.apbct === undefined || ! +result.apbct.blocked ) {
                     // Klaviyo integration
                     if (form.classList !== undefined && form.classList.contains('klaviyo-form')) {
