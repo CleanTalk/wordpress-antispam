@@ -630,14 +630,14 @@ function apbctSettingsShowDescription(label, settingId) {
             (jQuery(e.target).parent('.apbct_long_desc').length == 0 ||
             jQuery(e.target).hasClass('apbct_long_desc__cancel')
             ) &&
-            !jQuery(e.target).hasClass('apbct_long_description__show'))
+            !jQuery(e.target).hasClass('apbct_long_description---show'))
         ) {
             jQuery('.apbct_long_desc').remove();
             jQuery(document).off('click', removeDescFunc);
         }
     };
 
-    removeDescFunc();
+    //removeDescFunc();
 
     label.after('<div id=\'apbct_long_desc__'+settingId+'\' class=\'apbct_long_desc\'></div>');
     let obj = jQuery('#apbct_long_desc__'+settingId);
