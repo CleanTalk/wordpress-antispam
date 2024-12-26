@@ -637,8 +637,6 @@ function apbctSettingsShowDescription(label, settingId) {
         }
     };
 
-    //removeDescFunc();
-
     label.after('<div id=\'apbct_long_desc__'+settingId+'\' class=\'apbct_long_desc\'></div>');
     let obj = jQuery('#apbct_long_desc__'+settingId);
     obj.append('<i class= \'apbct-icon-spin1 animate-spin\'></i>')
