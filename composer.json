@@ -33,7 +33,7 @@
             "vendor/bin/psalm --no-cache --config=psalm.xml --taint-analysis"
         ],
         "psalm_l3": [
-            "vendor/bin/psalm --no-cache --config=psalm_l3.xml"
+            "vendor/bin/psalm --no-cache --config=psalm_l3.xml --threads=[2]"
         ],
         "just_phpunit": [
             "vendor/bin/phpunit --configuration tests/phpunit.xml --debug"
