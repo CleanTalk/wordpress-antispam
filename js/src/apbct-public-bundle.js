@@ -4962,6 +4962,18 @@ function sendAjaxCheckingFormData(form) {
                 // MooSend spinner deactivate
                 apbctMoosendSpinnerToggle(form);
                 if ( result.apbct === undefined || ! +result.apbct.blocked ) {
+
+                    // Clear service fields
+                    for (const el of form.querySelectorAll('input[name="apbct_visible_fields"]')) {
+                        el.remove();
+                    }
+                    for (const el of form.querySelectorAll('input[value="cleantalk_force_ajax_check"]')) {
+                        el.remove();
+                    }
+                    for (const el of form.querySelectorAll('input[name="ct_no_cookie_hidden_field"]')) {
+                        el.remove();
+                    }
+
                     // Klaviyo integration
                     if (form.classList !== undefined && form.classList.contains('klaviyo-form')) {
                         const cover = document.getElementById('apbct-klaviyo-cover');
