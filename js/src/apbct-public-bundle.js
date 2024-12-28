@@ -1170,6 +1170,214 @@ if (!Object.prototype.hasOwn) {
 }
 
 /**
+ * Form skin class
+ *
+ */
+// eslint-disable-next-line no-unused-vars, require-jsdoc
+class ApbctFormDecorator {
+    elements = [];
+
+    /**
+     * Constructor
+     */
+    constructor() {
+        this.getElements();
+        this.setListeners();
+    }
+
+    /**
+     * Get elements
+     */
+    getElements() {
+        const elements = document.querySelectorAll('*');
+        const regexId = /^apbct-trusted-text--label/;
+        const regexClass = /apbct_form_decoration--/;
+
+        this.setDecorationBackground();
+
+        // Collect elements with id or class that contains apbct-trusted-text--label or apbct_form_decoration--
+        // id
+        let matchingElements = Array.from(elements).filter((element) => {
+            return regexId.test(element.id);
+        });
+        matchingElements.forEach((element) => {
+            this.elements.push(element);
+        });
+
+        // class
+        matchingElements = Array.from(elements).filter((element) => {
+            return regexClass.test(element.className);
+        });
+
+        matchingElements.forEach((element) => {
+            this.elements.push(element);
+        });
+
+        const flagWrap = document.querySelector('.apbct_form_decoration');
+        if (flagWrap) {
+            const flagLeft = window.getComputedStyle(flagWrap, '::before');
+            const flagRight = window.getComputedStyle(flagWrap, '::after');
+            if (flagLeft && flagRight) {
+                this.elements.push(flagWrap);
+            }
+        }
+    }
+
+    /**
+     * Set decoration background
+     */
+    setDecorationBackground() {
+        let blockForms = document.querySelectorAll('#respond');
+
+        if (document.querySelector('[class*="apbct_form_decoration"]')) {
+            let classHeaderWrapper = document.querySelector('[class*="apbct_form_decoration"]').getAttribute('class');
+            let endPosition = classHeaderWrapper.indexOf('_header__wrapper');
+            let classTemplate = classHeaderWrapper.substring(0, endPosition);
+
+            blockForms.forEach((blockForm) => {
+                blockForm.className += ' ' + classTemplate;
+            });
+        }
+    }
+
+    /**
+     * Set listeners
+     */
+    setListeners() {
+        this.elements.forEach((element) => {
+            if (!element) {
+                return;
+            }
+
+            element.addEventListener('click', (event) => {
+                if (element.className.indexOf('apbct_form_decoration') !== -1) {
+                    if (element.className.indexOf('header__wrapper') !== -1) {
+                        this.addClicks();
+                        return;
+                    }
+
+                    const clickX = event.offsetX;
+                    const clickY = event.offsetY;
+                    const flagLeftWidth = parseFloat(window.getComputedStyle(element, '::before').width) / 2;
+                    const flagLeftHeight = parseFloat(window.getComputedStyle(element, '::before').height) / 2;
+                    const flagRightWidth = parseFloat(window.getComputedStyle(element, '::after').width) / 2;
+                    const flagRightHeight = parseFloat(window.getComputedStyle(element, '::after').height) / 2;
+
+                    if (element.className.indexOf('christmas') !== -1) {
+                        if (
+                            clickY < flagLeftHeight / 3 && clickX < flagLeftWidth ||
+                            clickY < flagRightHeight / 3 && clickX > flagRightWidth
+                        ) {
+                            this.addClicks();
+                            return;
+                        }
+                    }
+
+                    if (
+                        (element.className.indexOf('new-year') !== -1) ||
+                        (element.className.indexOf('fourth-july') !== -1)
+                    ) {
+                        if (
+                            clickY > flagLeftHeight && clickX < flagLeftWidth ||
+                            clickY > flagRightHeight && clickX > flagRightWidth
+                        ) {
+                            this.addClicks();
+                        }
+                    }
+
+                    return;
+                }
+
+                this.addClicks();
+            });
+
+            element.addEventListener('mouseup', (event) => {
+                setTimeout(() => {
+                    const selectedText = window.getSelection().toString();
+                    if (selectedText) {
+                        this.addSelected();
+                    }
+                }, 100);
+            });
+
+            element.addEventListener('mousemove', (event) => {
+                if (element.className.indexOf('apbct_form_decoration') !== -1) {
+                    const mouseX = event.offsetX;
+                    const mouseY = event.offsetY;
+                    const flagLeftWidth = parseFloat(window.getComputedStyle(element, '::before').width) / 2;
+                    const flagLeftHeight = parseFloat(window.getComputedStyle(element, '::before').height) / 2;
+                    const flagRightWidth = parseFloat(window.getComputedStyle(element, '::after').width) / 2;
+                    const flagRightHeight = parseFloat(window.getComputedStyle(element, '::after').height) / 2;
+
+                    if (mouseY > flagLeftHeight && mouseX < flagLeftWidth ||
+                    mouseY > flagRightHeight && mouseX > flagRightWidth
+                    ) {
+                        this.trackMouseMovement();
+                    }
+                    return;
+                }
+
+                this.trackMouseMovement();
+            });
+        });
+    }
+
+    /**
+     * Add clicks
+     */
+    addClicks() {
+        if (document.ctFormDecorationMouseData) {
+            if (document.ctFormDecorationMouseData.clicks) {
+                document.ctFormDecorationMouseData.clicks++;
+            } else {
+                document.ctFormDecorationMouseData.clicks = 1;
+            }
+            return;
+        }
+
+        document.ctFormDecorationMouseData = {clicks: 1};
+    }
+
+    /**
+     * Add selected
+     */
+    addSelected() {
+        if (document.ctFormDecorationMouseData) {
+            if (document.ctFormDecorationMouseData.selected) {
+                document.ctFormDecorationMouseData.selected++;
+            } else {
+                document.ctFormDecorationMouseData.selected = 1;
+            }
+            return;
+        }
+
+        document.ctFormDecorationMouseData = {selected: 1};
+    }
+
+    /**
+     * Track mouse movement
+     */
+    trackMouseMovement() {
+        if (!document.ctFormDecorationMouseData) {
+            document.ctFormDecorationMouseData = {};
+        }
+        if (!document.ctFormDecorationMouseData.mouseMovements) {
+            document.ctFormDecorationMouseData.mouseMovements = [];
+        }
+
+        document.ctFormDecorationMouseData.mouseMovements.push({timestamp: Date.now()});
+
+        if (document.ctFormDecorationMouseData.mouseMovements.length > 1) {
+            const index = document.ctFormDecorationMouseData.mouseMovements.length - 1;
+            const lastMovement = document.ctFormDecorationMouseData.mouseMovements[index];
+            const firstMovement = document.ctFormDecorationMouseData.mouseMovements[0];
+            const timeDiff = lastMovement.timestamp - firstMovement.timestamp;
+            document.ctFormDecorationMouseData.hovering = timeDiff;
+        }
+    }
+}
+
+/**
  * @param {object|array|string} cookies
  * @param {object|array|string} value
  * @param {string|number} expires
@@ -1598,6 +1806,138 @@ function apbctCancelAutocomplete(element) {
     element.dispatchEvent(new window.CustomEvent('onautocomplete', {
         bubbles: true, cancelable: false, detail: null,
     }));
+}
+
+if (ctPublic.data__key_is_ok) {
+    if (document.readyState !== 'loading') {
+        apbctForceProtect();
+    } else {
+        apbct_attach_event_handler(document, 'DOMContentLoaded', apbctForceProtect);
+    }
+}
+
+/**
+ * Force protection
+ */
+function apbctForceProtect() {
+    new ApbctForceProtection();
+}
+
+/**
+ * ApbctForceProtection
+ */
+class ApbctForceProtection {
+    wrappers = [];
+
+    /**
+     * Constructor
+     */
+    constructor() {
+        this.wrappers = this.findWrappers();
+
+        if (this.wrappers.length < 1) {
+            return;
+        }
+
+        this.checkBot();
+    }
+
+    /**
+     * Find wrappers
+     * @return {HTMLElement[]}
+     */
+    findWrappers() {
+        return document.querySelectorAll('div.ct-encoded-form-wrapper');
+    }
+
+    /**
+     * Check bot
+     * @return {void}
+     */
+    checkBot() {
+        let data = {
+            event_javascript_data: getJavascriptClientData(),
+            post_url: document.location.href,
+            referrer: document.referrer,
+        };
+
+        if (ctPublicFunctions.data__ajax_type === 'rest') {
+            apbct_public_sendREST('force_protection_check_bot', {
+                data,
+                method: 'POST',
+                callback: (result) => this.checkBotCallback(result),
+            });
+        } else if (ctPublicFunctions.data__ajax_type === 'admin_ajax') {
+            data.action = 'apbct_force_protection_check_bot';
+            apbct_public_sendAJAX(data, {callback: (result) => this.checkBotCallback(result)});
+        }
+    }
+
+    /**
+     * Check bot callback
+     * @param {Object} result
+     * @return {void}
+     */
+    checkBotCallback(result) {
+        // if error occurred
+        if (result.data && result.data.status && result.data.status !== 200) {
+            console.log('ApbctForceProtection connection error occurred');
+            this.decodeForms();
+            return;
+        }
+
+        if (typeof result === 'string') {
+            try {
+                result = JSON.parse(result);
+            } catch (e) {
+                console.log('ApbctForceProtection decodeForms error', e);
+                this.decodeForms();
+                return;
+            }
+        }
+
+        if (typeof result === 'object' && result.allow && result.allow === 1) {
+            this.decodeForms();
+        } else {
+            this.showMessageForBot(result.message);
+        }
+    }
+
+    /**
+     * Decode forms
+     * @return {void}
+     */
+    decodeForms() {
+        let form;
+
+        this.wrappers.forEach((wrapper) => {
+            form = wrapper.querySelector('div.ct-encoded-form').dataset.encodedForm;
+
+            try {
+                if (form && typeof(form) == 'string') {
+                    wrapper.outerHTML = atob(form);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        });
+    }
+
+    /**
+     * Show message for bot
+     * @param {string} message
+     * @return {void}
+     */
+    showMessageForBot(message) {
+        let form;
+
+        this.wrappers.forEach((wrapper) => {
+            form = wrapper.querySelector('div.ct-encoded-form').dataset.encodedForm;
+            if (form) {
+                wrapper.outerHTML = '<div class="ct-encoded-form-forbidden">' + message + '</div>';
+            }
+        });
+    }
 }
 
 /**
@@ -2667,6 +3007,11 @@ function apbct_ready() {
     // Check any XMLHttpRequest connections
     apbctCatchXmlHttpRequest();
 
+    // Init form skin
+    if (ctPublic.settings__comments__form_decoration) {
+        new ApbctFormDecorator();
+    }
+
     // Set important paramaters via ajax if problematic cache solutions found
     apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
 
@@ -3306,10 +3651,7 @@ function getJavascriptClientData(commonCookies = []) {
         resultDataJson.apbct_pixel_url = ctPublic.pixel__url;
     }
 
-    if (
-        typeof (commonCookies) === 'object' &&
-        commonCookies !== []
-    ) {
+    if ( typeof (commonCookies) === 'object') {
         for (let i = 0; i < commonCookies.length; ++i) {
             if ( typeof (commonCookies[i][1]) === 'object' ) {
                 // this is for handle SFW cookies
@@ -3578,7 +3920,7 @@ function ctNoCookieConstructHiddenField(type) {
 
 /**
  * Retrieves the clentalk "cookie" data from starages.
- * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo}.
+ * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration}.
  * @return {string}
  */
 function getCleanTalkStorageDataArray() {
@@ -3589,7 +3931,16 @@ function getCleanTalkStorageDataArray() {
     if (document.ctTypoData && document.ctTypoData.data) {
         noCookieDataTypo = {typo: document.ctTypoData.data};
     }
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo};
+
+    let noCookieDataFromDecoration = {form_decoration_mouse_data: []};
+    if (document.ctFormDecorationMouseData) {
+        let formDecorationMouseData = JSON.parse(JSON.stringify(document.ctFormDecorationMouseData));
+        if (formDecorationMouseData.mouseMovements) {
+            delete formDecorationMouseData.mouseMovements;
+        }
+        noCookieDataFromDecoration = {form_decoration_mouse_data: formDecorationMouseData};
+    }
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration};
 }
 
 /**

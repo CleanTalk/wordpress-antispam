@@ -1251,6 +1251,11 @@ function apbct_is_skip_request($ajax = false)
         if ( apbct_is_plugin_active('buddypress/bp-loader.php') && Post::get('action') === 'messages_send_message' ) {
             return 'buddypress_messages_send_message';
         }
+
+        // skip Force Protection check bot
+        if (Post::get('action') === 'apbct_force_protection_check_bot') {
+            return 'apbct_force_protection_check_bot_skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

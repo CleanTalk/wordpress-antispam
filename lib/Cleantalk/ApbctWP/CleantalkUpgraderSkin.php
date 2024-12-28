@@ -41,6 +41,7 @@ class CleantalkUpgraderSkin extends \WP_Upgrader_Skin
     public function error($errors)
     {
         if ( is_wp_error($errors) ) {
+            /** @psalm-suppress PossiblyInvalidMethodCall */
             $this->upgrader->apbct_result = $errors->get_error_code();
         } else {
             $this->upgrader->apbct_result = $this->upgrader->strings[$errors];

@@ -202,6 +202,10 @@ function apbct_base_call($params = array(), $reg_flag = false)
         $default_params['sender_info']['typo'] = Cookie::get('typo');
     }
 
+    if (Cookie::get('form_decoration_mouse_data')) {
+        $default_params['sender_info']['form_decoration_mouse_data'] = Cookie::get('form_decoration_mouse_data');
+    }
+
     /**
      * Add exception_action sender email is empty
      */
@@ -732,6 +736,14 @@ function apbct_email_check_exist_post()
         die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));
     }
     die(json_encode(array('error' => 'EMPTY_DATA')));
+}
+
+/**
+ * Force protection check bot
+ */
+function apbct_force_protection_check_bot()
+{
+    die(\Cleantalk\ApbctWP\Antispam\ForceProtection::getInstance()->checkBot());
 }
 
 /**
