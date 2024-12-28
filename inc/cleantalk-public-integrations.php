@@ -2026,17 +2026,17 @@ function apbct_form__ninjaForms__testSpam()
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
 
     try {
-        $params = apbct_form__ninjaForms__collect_fields_new();
+        $gfa_dto = apbct_form__ninjaForms__collect_fields_new();
     } catch (\Exception $_e) {
         // It is possible here check the reason if the new way collecting fields is not available.
-        $params = apbct_form__ninjaForms__collect_fields_old();
+        $gfa_dto = apbct_form__ninjaForms__collect_fields_old();
     }
 
-    $sender_email    = isset($params['email']) ? $params['email'] : '';
-    $sender_emails_array = isset($params['emails_array']) ? $params['emails_array'] : '';
-    $sender_nickname = isset($params['nickname']) ? $params['nickname'] : '';
-    $subject         = isset($params['subject']) ? $params['subject'] : '';
-    $message         = isset($params['message']) ? $params['message'] : array();
+    $sender_email           = $gfa_dto->email;
+    $sender_emails_array    = $gfa_dto->emails_array;
+    $sender_nickname        = $gfa_dto->nickname;
+    $subject                = $gfa_dto->subject;
+    $message                = $gfa_dto->message;
     if ( $subject != '' ) {
         $message = array_merge(array('subject' => $subject), $message);
     }
@@ -2097,7 +2097,7 @@ function apbct_form__ninjaForms__testSpam()
 /**
  * Old way to collecting NF fields data.
  *
- * @return array
+ * @return GetFieldsAnyDTO
  */
 function apbct_form__ninjaForms__collect_fields_old()
 {
@@ -2107,7 +2107,7 @@ function apbct_form__ninjaForms__collect_fields_old()
     $input_array = apply_filters('apbct__filter_post', $_POST);
 
     // Choosing between POST and GET
-    return ct_gfa(
+    return ct_gfa_dto(
         Get::get('ninja_forms_ajax_submit') || Get::get('nf_ajax_submit') ? $_GET : $input_array
     );
 }
@@ -2115,7 +2115,7 @@ function apbct_form__ninjaForms__collect_fields_old()
 /**
  * New way to collecting NF fields data - try to get username and email.
  *
- * @return array
+ * @return GetFieldsAnyDTO
  * @throws Exception
  * @psalm-suppress UndefinedClass
  */
@@ -2171,7 +2171,7 @@ function apbct_form__ninjaForms__collect_fields_new()
         }
     }
 
-    return ct_gfa($fields, $email, $nickname);
+    return ct_gfa_dto($fields, $email, $nickname);
 }
 
 /**
