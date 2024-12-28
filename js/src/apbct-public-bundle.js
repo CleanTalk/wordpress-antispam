@@ -1486,7 +1486,7 @@ function ctDetectForcedAltCookiesForms() {
 }
 
 // eslint-disable-next-line require-jsdoc
-function ctSetAlternativeCookie(cookies, params) {    
+function ctSetAlternativeCookie(cookies, params) {
     if (typeof (getJavascriptClientData) === 'function' ) {
         // reprocess already gained cookies data
         if (Array.isArray(cookies)) {
