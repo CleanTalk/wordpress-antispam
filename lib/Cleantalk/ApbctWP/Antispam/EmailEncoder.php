@@ -125,7 +125,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
         return sprintf(
             $template,
             $common_description,
-            empty($example_encoded) ? '&nbsp;' : '<span style="position:absolute">' . $example_encoded . '</span>'
+            empty($example_encoded) ? '&nbsp;' : '<span class="apbct-email-encoder--settings_example_encoded">' . $example_encoded . '</span>'
         );
     }
 
