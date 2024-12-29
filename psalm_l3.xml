@@ -29,6 +29,8 @@
             <directory name="node_modules/" />
             <file name="lib/Cleantalk/Templates/Singleton.php"/>
             <file name="lib/Cleantalk/ApbctWP/CleantalkListTable.php"/>
+            <file name="lib/Cleantalk/ApbctWP/PluginSettingsPage/SettingsField.php"/>
+            <file name="lib/Cleantalk/ApbctWP/FormDecorator/FormDecoratorSettings.php"/>
             <file name="inc/cleantalk-public-validate-skip-functions.php"/>
         </ignoreFiles>
     </projectFiles>
