@@ -2,13 +2,12 @@
 
 namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
-use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\ApbctWP\Variables\Request;
 
 class UsersScan extends Users
 {
     public function prepare_items() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-
         $current_screen = get_current_screen();
         $per_page_option = !is_null($current_screen)
             ? $current_screen->get_option('per_page', 'option')
@@ -18,14 +17,8 @@ class UsersScan extends Users
             $per_page = 10;
         }
 
-        $orderby = '';
-        $order   = 'ASC';
-        if ( isset($_REQUEST['orderby']) ) {
-            $orderby = $_REQUEST['orderby'];
-        }
-        if ( isset($_REQUEST['order']) ) {
-            $order = $_REQUEST['order'];
-        }
+        $orderby = Request::getString('orderby');
+        $order = Request::getString('order', 'ASC');
 
         $current_page = $this->get_pagenum();
 
