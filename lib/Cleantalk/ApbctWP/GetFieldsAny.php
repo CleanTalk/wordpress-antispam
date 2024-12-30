@@ -279,7 +279,7 @@ class GetFieldsAny
                     $value = explode('~', $value);
                     foreach ($value as &$val) {
                         $tmp = explode(' %% ', $val);
-                        $val = array($tmp[0] => $tmp[1]);
+                        $val = array($tmp[0] => TT::getArrayValueAsString($tmp, 1));
                     }
                     unset($val);
                 }
@@ -461,7 +461,7 @@ class GetFieldsAny
         // get from Cookies::
         $from_cookies = Cookie::getVisibleFields();
         // get from Post:: and base64 decode the value
-        $from_post = @base64_decode(Post::get('apbct_visible_fields'));
+        $from_post = @base64_decode(Post::getString('apbct_visible_fields'));
 
         $current_fields_collection = self::getFieldsDataForCurrentRequest($from_cookies, $from_post);
 
@@ -490,7 +490,7 @@ class GetFieldsAny
                         $post_fields_to_check['action'] === 'fluentform_submit'
                     ) {
                         $fluent_forms_out = array();
-                        $fluent_forms_fields = urldecode($post_fields_to_check['data']);
+                        $fluent_forms_fields = urldecode(TT::toString($post_fields_to_check['data']));
                         parse_str($fluent_forms_fields, $fluent_forms_fields_array);
                         $fields_array = explode(' ', $fields_string);
                         foreach ( $fields_array as $visible_field_slug ) {

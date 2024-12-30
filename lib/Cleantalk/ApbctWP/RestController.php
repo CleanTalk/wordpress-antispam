@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Variables\AltSessions;
+use Cleantalk\Common\TT;
 use WP_REST_Request;
 
 class RestController extends \WP_REST_Controller
@@ -93,7 +94,7 @@ class RestController extends \WP_REST_Controller
                     'ajaxDecodeEmailHandler'
                 ),
                 'permission_callback' => function (WP_REST_Request $request) {
-                    return wp_verify_nonce($request->get_header('x_wp_nonce'), 'wp_rest');
+                    return wp_verify_nonce(TT::toString($request->get_header('x_wp_nonce')), 'wp_rest');
                 },
                 'args'                => array(
                     'encodedEmails' => array(
@@ -112,7 +113,7 @@ class RestController extends \WP_REST_Controller
                     return ['success' => true];
                 },
                 'permission_callback' => function (WP_REST_Request $request) {
-                    return wp_verify_nonce($request->get_header('x_wp_nonce'), 'wp_rest');
+                    return wp_verify_nonce(TT::toString($request->get_header('x_wp_nonce')), 'wp_rest');
                 }
             )
         ));
@@ -123,7 +124,7 @@ class RestController extends \WP_REST_Controller
                 'methods'             => 'POST',
                 'callback'            => 'apbct_cookie',
                 'permission_callback' => function (WP_REST_Request $request) {
-                    return wp_verify_nonce($request->get_header('x_wp_nonce'), 'wp_rest');
+                    return wp_verify_nonce(TT::toString($request->get_header('x_wp_nonce')), 'wp_rest');
                 }
             )
         ));
@@ -134,7 +135,7 @@ class RestController extends \WP_REST_Controller
                 'methods'             => 'POST',
                 'callback'            => array(\Cleantalk\ApbctWP\Antispam\ForceProtection::getInstance(), 'checkBot'),
                 'permission_callback' => function (WP_REST_Request $request) {
-                    return wp_verify_nonce($request->get_header('x_wp_nonce'), 'wp_rest');
+                    return wp_verify_nonce(TT::toString($request->get_header('x_wp_nonce')), 'wp_rest');
                 },
                 'args'                => array(
                     'event_javascript_data' => array(

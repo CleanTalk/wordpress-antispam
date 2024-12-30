@@ -204,7 +204,7 @@ abstract class Cron
     public function checkTasks()
     {
         // No tasks to run
-        if ( empty($this->tasks) || get_option('cleantalk_cron_pid') !== $this->id ) {
+        if ( empty($this->tasks) || (int)get_option('cleantalk_cron_pid') !== $this->id ) {
             return false;
         }
 

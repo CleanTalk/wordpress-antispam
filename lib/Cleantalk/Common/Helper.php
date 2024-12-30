@@ -545,6 +545,11 @@ class Helper
      */
     public static function dnsResolve($host, $out = false)
     {
+        // Check if the $url is set and it is an url
+        if ( ! $host || ! filter_var($host, FILTER_VALIDATE_URL)) {
+            return $out;
+        }
+
         // Get DNS records about URL
         if (function_exists('dns_get_record')) {
             $records = dns_get_record($host, DNS_A);
