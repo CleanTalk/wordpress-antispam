@@ -4,8 +4,6 @@ namespace Cleantalk\ApbctWP\DTO;
 
 use Cleantalk\Templates\DTO;
 
-require_once 'D:\OSPanel\domains\wp642.loc\wp-content\plugins\cleantalk-spam-protect\lib\autoloader.php';
-
 /**
  * Class GetFieldsAnyDTO
  *
