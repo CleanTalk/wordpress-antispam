@@ -96,11 +96,7 @@ class UsersScan extends Users
     public static function getExtraTableNavInsertDeleteUsers()
     {
         $out = '';
-        if (
-            isset($_SERVER['SERVER_ADDR']) &&
-            $_SERVER['SERVER_ADDR'] === '127.0.0.1' &&
-            in_array(Server::getDomain(), array('lc', 'loc', 'lh'))
-        ) {
+        if ( defined('APBCT_IS_LOCALHOST') && APBCT_IS_LOCALHOST ) {
             $out .= '<div class="ctlk---red bar" style="padding: 10px">';
             $out .= '<span>These actions available only for test purpose and buttons are visible only in local env:</span>';
             $out .= '<button type="button" class="button button-small action ct_insert_users" style="margin:0 5px">Insert 500 users</button>';

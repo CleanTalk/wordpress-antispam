@@ -48,6 +48,18 @@ jQuery(document).ready(function($) {
         }
     });
 
+    let btnForceProtectionOn = document.querySelector('#apbct_setting_forms__force_protection__On');
+    if (btnForceProtectionOn) {
+        btnForceProtectionOn.addEventListener('click', function(e) {
+            if (btnForceProtectionOn.checked) {
+                let result = confirm(ctAdminCommon.apbctNoticeForceProtectionOn);
+
+                if (!result) {
+                    e.preventDefault();
+                }
+            }
+        });
+    }
     // Restore spam order
     $('.apbct-restore-spam-order-button').click(function() {
         const spmOrderId = $(this).data('spam-order-id');
@@ -106,6 +118,8 @@ jQuery(document).ready(function($) {
             encodedEmailNode.addEventListener('click', ctFillDecodedEmailHandler);
         }
     }
+
+    ctDecorationSelectorActions();
 });
 
 /**
@@ -228,7 +242,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNode) {
                 selectableEmail.innerText = email;
                 selectableEmail.title = 'Click to select the whole data';
                 // add email to the first node
-                firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML + '.';
+                firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML;
                 firstNode.setAttribute('style', 'flex-direction: row;');
                 // handle second node
                 let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
@@ -356,4 +370,29 @@ function apbct_admin_sendAJAX(data, params, obj) {
         },
         timeout: timeout,
     });
+}
+/**
+* @return {void}
+ */
+function ctDecorationSelectorActions() {
+    const selector = document.querySelector('#apbct_setting_comments__form_decoration_selector');
+    const colorPicker = document.querySelector('#apbct_setting_comments__form_decoration_color');
+    const headingText = document.querySelector('#apbct_setting_comments__form_decoration_text');
+    const defaultThemeExpectedValue = 'Default Theme';
+    if (colorPicker && headingText && selector) {
+        if (selector.value === defaultThemeExpectedValue) {
+            colorPicker.setAttribute('disabled', 'disabled');
+            headingText.setAttribute('disabled', 'disabled');
+        }
+        selector.addEventListener('change', function(event) {
+            const selectedValue = event.target.value;
+            if (selectedValue && selectedValue.length > 0 && selectedValue === defaultThemeExpectedValue) {
+                colorPicker.setAttribute('disabled', 'disabled');
+                headingText.setAttribute('disabled', 'disabled');
+            } else {
+                colorPicker.removeAttribute('disabled');
+                headingText.removeAttribute('disabled');
+            }
+        });
+    }
 }

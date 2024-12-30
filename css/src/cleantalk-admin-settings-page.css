@@ -27,7 +27,7 @@ i.animate-spin {
 
 /* Setting fields */
 .apbct_settings-field_wrapper{
-    margin: 15px 0; 
+    margin: 15px 0;
 }
 .apbct_settings-field_wrapper--sub{ margin-left: 30px !important; }
 
@@ -419,6 +419,15 @@ button[value="save_changes"]:disabled {
         background-position-y: center;
         text-align: center;
     }
+
+    .apbct_long_desc {
+        left: -2% !important;
+        max-width: 95%;
+        margin-top: 10%;
+    }
+    .apbct_long_desc__angle {
+        display: none;
+    }
 }
 
 .apbct_settings_top_info__sub_btn {
@@ -426,4 +435,9 @@ button[value="save_changes"]:disabled {
     flex-wrap: wrap;
     gap: 10px;
     margin: 15px 0;
+}
+
+.apbct_setting---comments__form_decoration_color {
+    width: 175px;
+    height: 33px;
 }

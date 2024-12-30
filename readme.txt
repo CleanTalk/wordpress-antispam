@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 6.46
+Stable tag: 6.47
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -434,16 +434,31 @@ Yes, it is. Please read this article,
 1. AntiSpam settings are easy to use to protect any contact forms. For example - Ninja forms, Fluent forms and etc.
 2. AntiSpam plugin rejected a spam bot at the CAPTCHA less registration form. The plugin provides explanation to visitor and websites about each rejected comment/registration or contact message.
 3. Use AntiSpam analytics tool for each website in service Dashboard to have information about spam/legitimate stats.
-4. Use AntiSpam log to control anti-spam plugin.
-5. CleanTalk works faster than most of other anti-spam plugins.
-6. The Dashboard with a map of most spam active countries per your account.
-7. The plugin deletes/removes the existing spam comments and users accounts.
-8. CleanTalk's dashboard update link.
-10. Website's options.
-11. CleanTalk's dashboard.
-12. SpamFireWall log.
+4. Special interface to find spam comments.
+5. Special interface to find spammers in users.
+6. Prevent WooCommerce checkout from spammers.
+7. Prevent spam contact occurs in your life.
+8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.47 18 Dec 2024 =
+* New. Form decoration. Holiday form decoration option added.
+* New. JSLibrary. Bot detector log collecting.
+* New. Integrations. Sendpulse 3rd party service integration implemented.
+* New. Integrations. Added SeedConfirmationPro.
+* Upd. EmailEncoder. Remember hook decoding.
+* Upd. Settings. Updated logic to clear old sessions data.
+* Upd. Integrations. Updated EmailEncoder to integrate Business Directory.
+* Upd. EmailEncoder. Fixed warning occurs on plugin delete action.
+* Upd. EmailEncoder. Improved work to handle seldom cases.
+* Upd. Integrations. Refactoring BuddyPress handler.
+* Upd. Code. Improved clean old session data handler.
+* Mod. Bot Detector. Library JS script load strategy set to "defer".
+* Fix. Integrations. WooCommerce checkout during REST protection fixed.
+* Fix. External forms. External forms catching fixed.
+* Fix. External forms. ConvertKit integration fixed.
+* Fix. UniBanner. Edit access to a variable.
 
 = 6.46 27 Nov 2024 =
 * New. Integrations. CoBlocks integration implemented.
