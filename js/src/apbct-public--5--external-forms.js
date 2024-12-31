@@ -720,7 +720,6 @@ function sendAjaxCheckingFormData(form) {
                 // MooSend spinner deactivate
                 apbctMoosendSpinnerToggle(form);
                 if ( result.apbct === undefined || ! +result.apbct.blocked ) {
-
                     // Clear service fields
                     for (const el of form.querySelectorAll('input[name="apbct_visible_fields"]')) {
                         el.remove();
