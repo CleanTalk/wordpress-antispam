@@ -60,6 +60,11 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     private $server__http_referer;
 
     /**
+     * @var bool|int
+     */
+    private $flow_ua_interrupt = false;
+
+    /**
      * AntiBot constructor.
      *
      * @param $log_table
@@ -162,6 +167,224 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         $db->execute("ALTER TABLE {$db__table__data} AUTO_INCREMENT = 1;"); // Drop AUTO INCREMENT
     }
 
+    private function getUAVerdict($current_results, $ua_list_from_db, $current_ip)
+    {
+        $is_blocked = false;
+
+        foreach ( $ua_list_from_db as $ua_bl_result ) {
+            if (
+                ! empty($ua_bl_result['ua_template']) && preg_match(
+                    "%" . str_replace('"', '', $ua_bl_result['ua_template']) . "%i",
+                    $this->server__http_user_agent
+                )
+            ) {
+                $this->ua_id = TT::getArrayValueAsString($ua_bl_result, 'id');
+
+                if ( TT::getArrayValueAsString($ua_bl_result, 'ua_status') === '1' ) {
+                    // Whitelisted
+                    $current_results[] = array(
+                        'ip'          => $current_ip,
+                        'is_personal' => false,
+                        'status'      => 'PASS_ANTICRAWLER_UA',
+                    );
+
+                    $this->flow_ua_interrupt = 2;
+
+                    return $current_results;
+                } else {
+                    // Blacklisted
+                    $current_results[]  = array(
+                        'ip'          => $current_ip,
+                        'is_personal' => true,
+                        'status'      => 'DENY_ANTICRAWLER_UA',
+                    );
+                    $is_blocked = true;
+                    break;
+                }
+            }
+        }
+
+        if ( ! $is_blocked ) {
+            // If passed without block, set as PASS_ANTICRAWLER_UA
+            // todo DO we really need this? Very hard to understand why.
+            $current_results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER_UA',);
+        }
+        return $current_results;
+    }
+
+    /**
+     * Current cookie mode has cookie "wordpress_apbct_antibot" and its value is correct (JS check)
+     * @return bool
+     */
+    private function passedByAntiBotCookie()
+    {
+        return Cookie::get('wordpress_apbct_antibot') == hash(
+            'sha256',
+            $this->api_key . $this->apbct->data['salt']
+        );
+    }
+
+    /**
+     * Current cookie mode has cookie "apbct_anticrawler_passed"
+     * @return bool
+     */
+    private function hasAntiCrawlerPassedCookie()
+    {
+        return Cookie::get('apbct_anticrawler_passed') == 1;
+    }
+
+    /**
+     * Set cookie "apbct_anticrawler_passed" if headers not sent
+     * @return void
+     */
+    private function dropAntiCrawlerPassedCookie()
+    {
+        if ( ! headers_sent() ) {
+            \Cleantalk\ApbctWP\Variables\Cookie::set(
+                'apbct_anticrawler_passed',
+                '0',
+                time() - 86400,
+                '/',
+                '',
+                false,
+                true,
+                'Lax'
+            );
+        }
+    }
+
+    /**
+     * Check UA if persists in the UA list.
+     * Do pass immediately if whitelisted.
+     * Do pass immediately if visitor has antibot-cookie.
+     *
+     * @param $results
+     *
+     * @return mixed
+     */
+    private function flowUA($results)
+    {
+        /**
+         * UA CHECK
+         */
+        $ua_bl_list = $this->db->fetchAll(
+            "SELECT * FROM " . $this->db__table__ac_ua_bl . " ORDER BY `ua_status` DESC;"
+        );
+        foreach ( $this->ip_array as $_ip_origin => $current_ip ) {
+            // Skip by 301 response code
+            if ( $this->isRedirected() ) {
+                $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER',);
+                // exit point #1 - 301 redirect found, current IP is PASSED
+                $this->flow_ua_interrupt = 1;
+                return $results;
+            }
+
+            // no redirect found, proceed to UA check
+            if ( ! empty($ua_bl_list) ) {
+                $results = $this->getUAVerdict($results, $ua_bl_list, $current_ip);
+                if ( $this->flow_ua_interrupt ) {
+                    // exit point #2 - hard-passed by UA white list, current IP is PASSED_UA
+                    return $results;
+                }
+                // if not hard passed this is the ONLY way when we can get DENY_ANTICRAWLER_UA
+            }
+
+            // no white UA records found for current IP, however, the IP could be DENY_ANTICRAWLER_UA on this state, proceed to cookie check
+
+            // Check if it should be passed wordpress_antibot_cookie, neither the IP is DENIED_UA
+            // todo I believe, these action can be performed on main check :AG
+            if ( $this->passedByAntiBotCookie() ) {
+                // reset apbct_anticrawler_passed cookie
+                if ( $this->hasAntiCrawlerPassedCookie() ) {
+                    $this->dropAntiCrawlerPassedCookie();
+                    // Do logging SFW table a one passed request
+                    $this->updateLog($current_ip, 'PASS_ANTICRAWLER');
+                }
+
+                $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER',);
+                // exit point #3 - passed by wordpress_antibot_cookie on UA check, current IP is MIXED
+                // (PASS_ANTICRAWLER + PASS_ANTICRAWLER_UA/DENY_ANTICRAWLER_UA)
+                $this->flow_ua_interrupt = 3;
+                return $results;
+            }
+
+            //not skipped by cookie, check next ip
+        }
+        // flow passed, can contain DENY_ANTICRAWLER_UA
+        return $results;
+    }
+
+    /**
+     * Check by IP address for crawling.
+     *
+     * If IP address persists in the table and can not skip check by antibot cookie, visitor gets DENY_ANTICRAWLER status.
+     *
+     * @param $results - current results
+     *
+     * @return mixed
+     */
+    private function flowIP($results)
+    {
+
+        foreach ( $this->ip_array as $_ip_origin => $current_ip ) {
+            // get ip history from anti-crawler logs
+            $result = $this->db->fetch(
+                "SELECT ip"
+                . ' FROM `' . $this->db__table__ac_logs . '`'
+                . " WHERE ip = '$current_ip'"
+                . " AND ua = '$this->sign' AND " . rand(1, 100000) . ";"
+            );
+
+            if ( isset($result['ip']) ) {
+                // IP address was detected early, do check if it should be passed by anti-bot cookie
+                // todo I believe, these action can be performed on main check :AG
+                if ( $this->passedByAntiBotCookie() ) {
+                    // pass, reset apbct_anticrawler_passed cookie
+
+                    if ( $this->hasAntiCrawlerPassedCookie() ) {
+                        $this->dropAntiCrawlerPassedCookie();
+                        // then update current results
+
+                        $results[] = array(
+                            'ip'          => $current_ip,
+                            'is_personal' => false,
+                            'status'      => 'PASS_ANTICRAWLER',
+                        );
+                        // exit point #4 - anticrawler passed by wordpress_antibot_cookie on COMMON check, current IP is PASSED
+                        return $results;
+                    }
+                } else {
+                    // not passed, set this ip as DENY_ANTICRAWLER - attention, this status has higher priority neither DENY_ANTICRAWLER_UA
+                    $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER',);
+                }
+            } else {
+                //todo This logic can be called twice or more, depending on ip_array length!
+                //todo Probably we need to move this after flows.
+                //update log only if no cookie found
+                if ( ! Cookie::get('wordpress_apbct_antibot') ) {
+                    add_action('template_redirect', array(& $this, 'updateAcLog'), 999);
+                }
+                //use hooks to add inline script to set wordpress_anti_bot cookie
+
+                add_action(
+                    'wp_head',
+                    array(
+                        '\Cleantalk\ApbctWP\Firewall\AntiCrawler',
+                        'setAntiBotCookieViaInlineScript'
+                    )
+                );
+                add_action(
+                    'login_head',
+                    array(
+                        '\Cleantalk\ApbctWP\Firewall\AntiCrawler',
+                        'setAntiBotCookieViaInlineScript'
+                    )
+                );
+            }
+        }
+        return $results;
+    }
+
     /**
      * Use this method to execute main logic of the module.
      *
@@ -171,131 +394,14 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     {
         $results = array();
 
-        foreach ( $this->ip_array as $_ip_origin => $current_ip ) {
-            // Skip by 301 response code
-            if ( $this->isRedirected() ) {
-                $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER',);
+        //todo Refactor AntiBot cookie check to run it once on all flows, including all sub actions :AG
 
-                return $results;
-            }
-
-            // UA check
-            $ua_bl_results = $this->db->fetchAll(
-                "SELECT * FROM " . $this->db__table__ac_ua_bl . " ORDER BY `ua_status` DESC;"
-            );
-
-            if ( ! empty($ua_bl_results) ) {
-                $is_blocked = false;
-
-                foreach ( $ua_bl_results as $ua_bl_result ) {
-                    if (
-                        ! empty($ua_bl_result['ua_template']) && preg_match(
-                            "%" . str_replace('"', '', $ua_bl_result['ua_template']) . "%i",
-                            $this->server__http_user_agent
-                        )
-                    ) {
-                        $this->ua_id = TT::getArrayValueAsString($ua_bl_result, 'id');
-
-                        if ( TT::getArrayValueAsString($ua_bl_result, 'ua_status') === '1' ) {
-                            // Whitelisted
-                            $results[] = array(
-                                'ip'          => $current_ip,
-                                'is_personal' => false,
-                                'status'      => 'PASS_ANTICRAWLER_UA',
-                            );
-
-                            return $results;
-                        } else {
-                            // Blacklisted
-                            $results[]  = array(
-                                'ip'          => $current_ip,
-                                'is_personal' => false,
-                                'status'      => 'DENY_ANTICRAWLER_UA',
-                            );
-                            $is_blocked = true;
-                            break;
-                        }
-                    }
-                }
-
-                if ( ! $is_blocked ) {
-                    $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER_UA',);
-                }
-            }
-
-            // Skip by cookie
-            if (
-                Cookie::get('wordpress_apbct_antibot') == hash(
-                    'sha256',
-                    $this->api_key . $this->apbct->data['salt']
-                )
-            ) {
-                if ( Cookie::get('apbct_anticrawler_passed') == 1 ) {
-                    if ( ! headers_sent() ) {
-                        Cookie::set('apbct_anticrawler_passed', '0', time() - 86400, '/', '', null, true, 'Lax');
-                    }
-
-                    // Do logging an one passed request
-                    $this->updateLog($current_ip, 'PASS_ANTICRAWLER');
-                }
-
-                $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTICRAWLER',);
-
-                return $results;
-            }
+        $results = $this->flowUA($results);
+        if ($this->flow_ua_interrupt) {
+            return $results;
         }
-
-        // Common check
-        foreach ( $this->ip_array as $_ip_origin => $current_ip ) {
-            // IP check
-            $result = $this->db->fetch(
-                "SELECT ip"
-                . ' FROM `' . $this->db__table__ac_logs . '`'
-                . " WHERE ip = '$current_ip'"
-                . " AND ua = '$this->sign' AND " . rand(1, 100000) . ";"
-            );
-            if ( isset($result['ip']) ) {
-                if (
-                    Cookie::get('wordpress_apbct_antibot') !== hash(
-                        'sha256',
-                        $this->api_key . $this->apbct->data['salt']
-                    )
-                ) {
-                    $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER',);
-                } else {
-                    if ( Cookie::get('apbct_anticrawler_passed') === '1' ) {
-                        if ( ! headers_sent() ) {
-                            \Cleantalk\ApbctWP\Variables\Cookie::set(
-                                'apbct_anticrawler_passed',
-                                '0',
-                                time() - 86400,
-                                '/',
-                                '',
-                                false,
-                                true,
-                                'Lax'
-                            );
-                        }
-
-                        $results[] = array(
-                            'ip'          => $current_ip,
-                            'is_personal' => false,
-                            'status'      => 'PASS_ANTICRAWLER',
-                        );
-
-                        return $results;
-                    }
-                }
-            } else {
-                if ( ! Cookie::get('wordpress_apbct_antibot') ) {
-                    add_action('template_redirect', array(& $this, 'updateAcLog'), 999);
-                }
-
-                add_action('wp_head', array('\Cleantalk\ApbctWP\Firewall\AntiCrawler', 'setCookie'));
-                add_action('login_head', array('\Cleantalk\ApbctWP\Firewall\AntiCrawler', 'setCookie'));
-            }
-        }
-
+        // exit point #5
+        $results = $this->flowIP($results);
         return $results;
     }
 
@@ -321,13 +427,9 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     }
 
 
-    public static function setCookie()
+    public static function setAntiBotCookieViaInlineScript()
     {
         global $apbct;
-
-        if ( $apbct->data['cookies_type'] === 'none' && ! is_admin() ) {
-            return;
-        }
 
         $script =
         "<script>
