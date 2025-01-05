@@ -25,7 +25,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     private $api_key = '';
     private $apbct;
     private $store_interval = 86400;
-    private $sign; //Signature - User-Agent + Protocol
+    public $sign; //Signature - User-Agent + Protocol
     private $ua_id = 'null'; //User-Agent
 
     private $ac_log_result = '';
