@@ -365,7 +365,7 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
 }
 // clear protected iframes list
 apbctLocalStorage.set('apbct_iframes_protected', []);
-window.onload = function() {
+window.addEventListener('load', function() {
     if ( ! +ctPublic.settings__forms__check_external ) {
         return;
     }
@@ -378,7 +378,7 @@ window.onload = function() {
     }, 2000);
 
     ctProtectKlaviyoForm();
-};
+});
 
 /**
  * Protect klaviyo forms
