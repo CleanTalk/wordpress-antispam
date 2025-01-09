@@ -211,7 +211,10 @@ class CommentsChecker extends Checker
         $res = wp_count_comments();
 
         if ( $res->all ) {
-            $text = sprintf(esc_html__('Total count of comments: %s.', 'cleantalk-spam-protect'), $res->all);
+            $unicode_star = '&#42;';
+            $text = sprintf(
+                esc_html__('Total count of comments: %s.', 'cleantalk-spam-protect'),
+                $res->all . $unicode_star);
         } else {
             $text = esc_html__('No comments found.', 'cleantalk-spam-protect');
         }
@@ -319,7 +322,7 @@ class CommentsChecker extends Checker
                     "Checked %s comments total (excluding admins), found %s spam comments and %s non-checkable comments (no IP and email found).",
                     'cleantalk-spam-protect'
                 ),
-                TT::toString($cnt_checked) . $unicode_star,
+                TT::toString($cnt_checked) . $unicode_star . $unicode_star,
                 $cnt_spam,
                 $cnt_bad
             );
@@ -334,7 +337,7 @@ class CommentsChecker extends Checker
                         'cleantalk-spam-protect'
                     ),
                     self::lastCheckDate(),
-                    TT::toString($cnt_checked) . $unicode_star,
+                    TT::toString($cnt_checked) . $unicode_star . $unicode_star,
                     $cnt_spam,
                     $cnt_bad
                 );
@@ -356,12 +359,8 @@ class CommentsChecker extends Checker
                 "Results are based on the decision of our spam checking system and do not give a complete guarantee that these comments are spam.",
                 'cleantalk-spam-protect'
             );
-            $count_hint = $unicode_star . __(
-                "Comments that are not in spam or trash folders and are not posted by admins.",
-                'cleantalk-spam-protect'
-            );
         }
-        $return['message'] .= "<p>$backup_notice</p><p>$spam_system_notice</p><p>$count_hint</p>";
+        $return['message'] .= "<p>$backup_notice</p><p>$spam_system_notice</p>";
 
         if ( $direct_call ) {
             return $return['message'];
