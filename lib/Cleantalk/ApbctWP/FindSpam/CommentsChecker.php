@@ -350,7 +350,6 @@ class CommentsChecker extends Checker
 
         $backup_notice      = '&nbsp;';
         $spam_system_notice = '&nbsp;';
-        $count_hint = '&nbsp;';
         if ( $cnt_spam > 0 ) {
             $backup_notice      = __(
                 "Please do backup of WordPress database before delete any accounts!",
