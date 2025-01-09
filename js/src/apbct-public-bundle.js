@@ -3483,7 +3483,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 selectableEmail.title = 'Click to select the whole data';
                 // add email to the first node
                 if (firstNode) {
-                    firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML + '.';
+                    firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML;
                     firstNode.setAttribute('style', 'flex-direction: row;');
                 }
                 // remove animation

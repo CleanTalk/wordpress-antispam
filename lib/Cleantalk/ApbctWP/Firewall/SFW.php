@@ -813,7 +813,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         if (Server::get('HTTP_HOST')) {
             // Do not add exceptions for local hosts
             if (defined('APBCT_IS_LOCALHOST') && !APBCT_IS_LOCALHOST) {
-                $exclusions[] = Helper::dnsResolve(Server::get('HTTP_HOST'));
+                if ( $current_host_ip = Helper::dnsResolve(Server::get('HTTP_HOST')) ) {
+                    $exclusions[] = $current_host_ip;
+                }
                 $exclusions[] = '127.0.0.1';
                 // And delete all 127.0.0.1 entries for local hosts
             } else {

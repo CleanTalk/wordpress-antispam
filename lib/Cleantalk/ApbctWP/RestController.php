@@ -135,7 +135,7 @@ class RestController extends \WP_REST_Controller
                 'methods'             => 'POST',
                 'callback'            => array(\Cleantalk\ApbctWP\Antispam\ForceProtection::getInstance(), 'checkBot'),
                 'permission_callback' => function (WP_REST_Request $request) {
-                    return wp_verify_nonce($request->get_header('x_wp_nonce'), 'wp_rest');
+                    return wp_verify_nonce(TT::toString($request->get_header('x_wp_nonce')), 'wp_rest');
                 },
                 'args'                => array(
                     'event_javascript_data' => array(
