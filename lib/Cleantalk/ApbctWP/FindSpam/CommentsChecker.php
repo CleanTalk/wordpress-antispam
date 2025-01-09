@@ -212,9 +212,10 @@ class CommentsChecker extends Checker
 
         if ( $res->all ) {
             $unicode_star = '&#42;';
-            $text = sprintf(
+            $text         = sprintf(
                 esc_html__('Total count of comments: %s.', 'cleantalk-spam-protect'),
-                $res->all . $unicode_star);
+                $res->all . $unicode_star
+            );
         } else {
             $text = esc_html__('No comments found.', 'cleantalk-spam-protect');
         }
