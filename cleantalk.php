@@ -1458,7 +1458,10 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
     for ($i = 0; $i < $batches; $i++) {
         $batch_urls = array_slice($urls, $i * $batch_size, $batch_size);
         if (!empty($batch_urls)) {
-            $results = array_merge($results, Helper::httpMultiRequest($batch_urls, $apbct->fw_stats['updating_folder']));
+            $http_results = Helper::httpMultiRequest($batch_urls, $apbct->fw_stats['updating_folder']);
+            if (is_array($http_results)) {
+                $results = array_merge($results, $http_results);
+            }
         }
     }
 
