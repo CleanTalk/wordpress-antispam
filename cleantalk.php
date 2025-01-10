@@ -1449,7 +1449,19 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
 
     //Reset keys
     $urls          = array_values(array_unique($urls));
-    $results       = Helper::httpMultiRequest($urls, $apbct->fw_stats['updating_folder']);
+
+    $results = array();
+    $batch_size = 10;
+    $total_urls = count($urls);
+    $batches = ceil($total_urls / $batch_size);
+
+    for ($i = 0; $i < $batches; $i++) {
+        $batch_urls = array_slice($urls, $i * $batch_size, $batch_size);
+        if (!empty($batch_urls)) {
+            $results = array_merge($results, Helper::httpMultiRequest($batch_urls, $apbct->fw_stats['updating_folder']));
+        }
+    }
+
     $results       = TT::toArray($results);
     $count_urls    = count($urls);
     $count_results = count($results);
