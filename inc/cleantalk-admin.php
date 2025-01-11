@@ -301,20 +301,13 @@ function apbct_admin__init()
     // TODO: need to find another way to be compatible with WP Rocket and WPEngine
     if (defined('WP_ROCKET_VERSION') &&
         Server::get('IS_WPE') &&
-        strpos(Server::get('REQUEST_URI'), 'wp-admin/admin-ajax.php') === false
+        strpos(TT::toString(Server::get('REQUEST_URI')), 'wp-admin/admin-ajax.php') === false
     ) {
-        ob_start(function($buffer) {
-            // Find script with rocketlazyloadscript type
+        ob_start(function ($buffer) {
             $pattern = '/<script\s+type="rocketlazyloadscript"[^>]*cleantalk-admin\.min\.js[^>]*>/i';
 
-            return preg_replace_callback($pattern, function($matches) {
-                // Extract the version if needed from original tag
-                preg_match('/ver=([^&"\s]+)/', $matches[0], $ver);
-                $version = $ver[1] ?? CLEANTALK_VERSION;
-
-                return '<script src="' . APBCT_JS_ASSETS_PATH . '/cleantalk-admin.min.js' . 
-                    '?ver=' . $version . '" id="ct_admin_common-js"></script>';
-            }, $buffer);
+            return preg_replace($pattern, '<script src="' . APBCT_JS_ASSETS_PATH . '/cleantalk-admin.min.js' .
+                '?ver=' . APBCT_VERSION . '" id="ct_admin_common-js"></script>', $buffer);
         });
     }
 
