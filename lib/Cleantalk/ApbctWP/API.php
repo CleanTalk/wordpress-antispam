@@ -18,6 +18,7 @@ use Cleantalk\ApbctWP\HTTP\Request;
  */
 class API extends \Cleantalk\Common\API
 {
+    protected static $use_ip_from_dns = true;
     /**
      * @param $user_token
      * @param $service_id
@@ -78,6 +79,8 @@ class API extends \Cleantalk\Common\API
      */
     public static function sendRequest($data, $_url = self::URL, $timeout = 10)
     {
+        global $apbct;
+
         // Possibility to switch API url
         $url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : $_url;
 
@@ -86,9 +89,27 @@ class API extends \Cleantalk\Common\API
 
         $http = new Request();
 
+        $presets = ['retry_with_socket'];
+
+        if ( static::$use_ip_from_dns && $apbct->settings['wp__use_builtin_http_api'] == 0 ) {
+            $last_ip_from_dns = $http::useLastIPFromDNS();
+
+            if ($last_ip_from_dns) { // if it has already obtained
+                $url = $last_ip_from_dns;
+            }
+
+            if ( // if not obtained, set a preset to make the request with IP from DNS
+                !is_array($url) && // not multi request
+                !$http::isIpFromDNSCooldown($url) // DNS retry not in cooldown
+            ) {
+                // the next call will use retry_with_ip_from_dns on fail
+                $presets[] = 'retry_with_ip_from_dns';
+            }
+        }
+
         return $http->setUrl($url)
                     ->setData($data)
-                    ->setPresets(['retry_with_socket'])
+                    ->setPresets($presets)
                     ->setOptions(['timeout' => $timeout])
                     ->addCallback(
                         __CLASS__ . '::checkResponse',

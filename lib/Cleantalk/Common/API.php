@@ -23,6 +23,8 @@ class API
     const URL = 'https://api.cleantalk.org';
     const AGENT = 'ct-api-3.2';
 
+    protected static $use_ip_from_dns = false;
+
     /**
      * Wrapper for 2s_blacklists_db API method.
      * Gets data for SpamFireWall.
@@ -164,7 +166,6 @@ class API
         if (self::getProductId($product_name)) {
             $request['product_id'] = self::getProductId($product_name);
         }
-
         return static::sendRequest($request);
     }
 
@@ -812,9 +813,27 @@ class API
 
         $http = new Request();
 
+        $presets = ['retry_with_socket'];
+
+        if (static::$use_ip_from_dns) {
+            $last_ip_from_dns = $http::useLastIPFromDNS();
+
+            if ($last_ip_from_dns) { // if it has already obtained
+                $url = $last_ip_from_dns;
+            }
+
+            if ( // if not obtained, set a preset to make the request with IP from DNS
+                !is_array($url) && // not multi request
+                !$http::isIpFromDNSCooldown($url) // DNS retry not in cooldown
+            ) {
+                // the next call will use retry_with_ip_from_dns on fail
+                $presets[] = 'retry_with_ip_from_dns';
+            }
+        }
+
         return $http->setUrl($url)
                     ->setData($data)
-                    ->setPresets(['retry_with_socket'])
+                    ->setPresets($presets)
                     ->setOptions(['timeout' => $timeout])
                     ->addCallback(
                         __CLASS__ . '::checkResponse',
