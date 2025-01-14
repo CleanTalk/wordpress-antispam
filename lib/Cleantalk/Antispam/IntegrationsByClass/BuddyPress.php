@@ -40,6 +40,11 @@ class BuddyPress extends IntegrationByClassBase
         if (!empty($apbct->data['bp_feedback_message'])) {
             add_action('admin_notices', array($this, 'userFeedbackShowAdminNotice'), 998);
         }
+
+        //add ct_hash to meta on user registartion BEFORE user created
+        add_action('bp_core_signups_after_add', array($this, 'updateCTHashOnUserRegistration'), 10, 3);
+        //add ct_hash to meta on user registartion AFTER user created
+        add_action('bp_core_activated_user', array($this, 'updateCTHashOnUserActivation'), 10, 3);
     }
 
     public function doAdminWork()
@@ -314,5 +319,58 @@ class BuddyPress extends IntegrationByClassBase
 
         // this will be sent by cron task within an hour
         ct_feedback($ct_hash, $feedback_flag);
+    }
+
+    /**
+     * Fires on BP Signup process after user is in activation await stage.
+     * Adds a ct_hash to signup meta.
+     * This is not a user creation process!
+     * @param $_retval - unused
+     * @param $_r - unused
+     * @param $args - args of signup data
+     *
+     * @return void
+     */
+    public function updateCTHashOnUserRegistration($_retval, $_r, $args)
+    {
+        if (
+            class_exists('\BP_Signup') &&
+            ! empty($args['activation_key'])
+        ) {
+            try {
+                /** @psalm-suppress UndefinedClass */
+                $object_usage = \BP_Signup::get(array('activation_key' => $args['activation_key']));
+                $the_signup   = isset($object_usage['signups'][0]) ? $object_usage['signups'][0] : null;
+                $signup_meta  = is_object($the_signup) && property_exists($the_signup, 'meta')
+                    ? $the_signup->meta
+                    : null;
+                $id           = is_object($the_signup) && property_exists($the_signup, 'id')
+                    ? $the_signup->id
+                    : null;
+                $hash         = ct_hash();
+                if ( is_array($signup_meta) && !empty($hash) && !empty($id)) {
+                    $signup_meta['ct_hash'] = $hash;
+                    /** @psalm-suppress UndefinedClass */
+                    \BP_Signup::update(array('signup_id' => $id, 'meta' => $signup_meta));
+                }
+            } catch (\Exception $e) {
+                //does nothing
+            }
+        }
+    }
+
+    /**
+     * Fires if user created after signup process verified
+     * @param $user_id - user id
+     * @param $_key - unused
+     * @param $user - user data
+     *
+     * @return void
+     */
+    public function updateCTHashOnUserActivation($user_id, $_key, $user)
+    {
+        if (!empty($user['meta']) && !empty($user['meta']['ct_hash']) && $user_id) {
+            update_user_meta($user_id, 'ct_hash', $user['meta']['ct_hash']);
+        }
     }
 }

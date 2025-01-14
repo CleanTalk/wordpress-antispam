@@ -106,4 +106,30 @@
     }
 }
 
+.apbct-email-encoder--settings_example_encoded {
+    position: absolute;
+}
+
+@media screen and (max-width: 782px) {
+    .apbct-email-encoder--settings_example_encoded {
+        position: relative;
+        display: block;
+    }
+
+    .apbct-email-encoder-popup {
+        width: 20vw;
+        min-width: 200px;
+        font-size: 16px;
+        top: 20%;
+        left: 75%;
+    }
+
+    .apbct-email-encoder-elements_center {
+        flex-direction: column !important;
+        text-align: center;
+    }
+}
+
+
+
 

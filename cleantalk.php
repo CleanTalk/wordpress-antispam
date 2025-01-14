@@ -664,7 +664,7 @@ if ( ! defined('WP_ALLOW_MULTISITE') || (defined('WP_ALLOW_MULTISITE') && WP_ALL
 }
 
 // After plugin loaded - to load locale as described in manual
-add_action('plugins_loaded', 'apbct_plugin_loaded');
+add_action('init', 'apbct_plugin_loaded');
 
 if ( ! empty($apbct->settings['data__use_ajax']) &&
      ! apbct_is_in_uri('.xml') &&
@@ -879,14 +879,16 @@ function apbct_sfw__check()
     // Checking if database was outdated
     $is_sfw_outdated = $apbct->stats['sfw']['last_update_time'] + $apbct->stats['sfw']['update_period'] * 3 < time();
 
-    $apbct->errorToggle(
-        $is_sfw_outdated,
-        'sfw_outdated',
-        esc_html__(
-            'SpamFireWall database is outdated. Please, try to synchronize with the cloud.',
-            'cleantalk-spam-protect'
-        )
-    );
+    add_action('init', function () use ($apbct, $is_sfw_outdated) {
+        $apbct->errorToggle(
+            $is_sfw_outdated,
+            'sfw_outdated',
+            esc_html__(
+                'SpamFireWall database is outdated. Please, try to synchronize with the cloud.',
+                'cleantalk-spam-protect'
+            )
+        );
+    });
 
     if ( $is_sfw_outdated ) {
         return;
@@ -899,6 +901,7 @@ function apbct_sfw__check()
     $sfw_tables_names = SFW::getSFWTablesNames();
 
     if (!$sfw_tables_names) {
+        add_action('init', function () use ($apbct) {
             $apbct->errorAdd(
                 'sfw',
                 esc_html__(
@@ -906,7 +909,8 @@ function apbct_sfw__check()
                     'cleantalk-spam-protect'
                 )
             );
-            return;
+        });
+        return;
     }
 
     $firewall->loadFwModule(

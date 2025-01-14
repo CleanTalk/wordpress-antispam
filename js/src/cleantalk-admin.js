@@ -49,16 +49,17 @@ jQuery(document).ready(function($) {
     });
 
     let btnForceProtectionOn = document.querySelector('#apbct_setting_forms__force_protection__On');
-    btnForceProtectionOn.addEventListener('click', function(e) {
-        if (btnForceProtectionOn.checked) {
-            let result = confirm(ctAdminCommon.apbctNoticeForceProtectionOn);
+    if (btnForceProtectionOn) {
+        btnForceProtectionOn.addEventListener('click', function(e) {
+            if (btnForceProtectionOn.checked) {
+                let result = confirm(ctAdminCommon.apbctNoticeForceProtectionOn);
 
-            if (!result) {
-                e.preventDefault();
+                if (!result) {
+                    e.preventDefault();
+                }
             }
-        }
-    });
-
+        });
+    }
     // Restore spam order
     $('.apbct-restore-spam-order-button').click(function() {
         const spmOrderId = $(this).data('spam-order-id');
@@ -241,7 +242,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNode) {
                 selectableEmail.innerText = email;
                 selectableEmail.title = 'Click to select the whole data';
                 // add email to the first node
-                firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML + '.';
+                firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML;
                 firstNode.setAttribute('style', 'flex-direction: row;');
                 // handle second node
                 let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');

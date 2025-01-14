@@ -1900,7 +1900,7 @@ function apbct_settings__field__apikey()
         // Auto get key
         if ( ! $apbct->ip_license ) {
             echo '<button class="cleantalk_link cleantalk_link-manual apbct_setting---get_key_auto" id="apbct_button__get_key_auto" name="submit" type="button"  value="get_key_auto">'
-                . __('Get Access Key Automatically', 'cleantalk-spam-protect')
+                . __('Get the Access key', 'cleantalk-spam-protect')
                 . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif') . '" />'
                 . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/yes.png') . '" />'
                 . '</button>';

@@ -40,6 +40,12 @@ class SettingsField
      */
     public function __construct($params)
     {
+        $this->disabled_string = '';
+        $this->value = '';
+        $this->children_string = '';
+        $this->hide_string = '';
+        $this->description_popup = '';
+
         $this->params = $params;
         $this->prepareElementData();
         $this->prepareElementHTML();
@@ -49,41 +55,68 @@ class SettingsField
     {
         global $apbct;
 
-        // Prepare values
-        $this->value        = $this->params['network']
-            ? $apbct->network_settings[$this->params['name']]
-            : $apbct->settings[$this->params['name']];
-        $value_parent = $this->params['parent']
-            ? ($this->params['network'] ? $apbct->network_settings[$this->params['parent']] : $apbct->settings[$this->params['parent']])
-            : false;
+        // name
+        if (isset($this->params['network'], $this->params['name']) && $this->params['network']) {
+            $this->value = $apbct->network_settings[$this->params['name']];
+        } elseif (isset($this->params['name'])) {
+            $this->value = $apbct->settings[$this->params['name']];
+        }
 
-        // Is element is disabled
-        $this->disabled_string   = $this->params['parent'] && ! $value_parent
-            ? ' disabled="disabled"'
-            : '';        // Strait
-        $this->disabled_string   = $this->params['parent'] && $this->params['reverse_trigger'] && ! $value_parent
-            ? ''
-            : $this->disabled_string; // Reverse logic
-        $this->disabled_string   = $this->params['disabled']
-            ? ' disabled="disabled"'
-            : $this->disabled_string; // Direct disable from params
-        $this->disabled_string   =
-            ! is_main_site() &&
+        // parent
+        $value_parent = false;
+        if (isset($this->params['parent']) && $this->params['parent']) {
+            if (isset($this->params['network']) && $this->params['network']) {
+                $value_parent = $apbct->network_settings[$this->params['parent']];
+            } else {
+                $value_parent = $apbct->settings[$this->params['parent']];
+            }
+        }
+
+        // disabled
+        $this->disabled_string = '';
+        if (isset($this->params['parent']) && $this->params['parent'] && ! $value_parent) {
+            $this->disabled_string = ' disabled="disabled"';
+        }
+
+        // disabled by reverse trigger
+        if (isset($this->params['reverse_trigger']) && $this->params['reverse_trigger'] && ! $value_parent) {
+            $this->disabled_string = '';
+        }
+
+        // disabled by reverse trigger and parent
+        if (isset($this->params['parent'], $this->params['reverse_trigger']) &&
+            $this->params['parent'] && $this->params['reverse_trigger'] && ! $value_parent
+        ) {
+            $this->disabled_string = '';
+        }
+
+        // disabled by direct (from params)
+        if (isset($this->params['disabled']) && $this->params['disabled']) {
+            $this->disabled_string = ' disabled="disabled"';
+        }
+
+        // disabled by super admin on sub-sites
+        if (! is_main_site() &&
             $apbct->network_settings &&
             ( ! $apbct->network_settings['multisite__allow_custom_settings'] || $apbct->network_settings['multisite__work_mode'] == 2 )
-                ? ' disabled="disabled"'
-                : $this->disabled_string; // Disabled by super admin on sub-sites
+        ) {
+            $this->disabled_string = ' disabled="disabled"';
+        }
 
-        // Children string
-        $this->children_string         = $this->params['childrens']
-            ? 'apbct_setting---' . implode(",apbct_setting---", $this->params['childrens'])
-            : '';
+        // children string
+        $this->children_string = '';
+        if (isset($this->params['childrens']) && $this->params['childrens']) {
+            $this->children_string = 'apbct_setting---' . implode(",apbct_setting---", $this->params['childrens']);
+        }
 
-        // Hide string
-        $this->hide_string              = $this->params['hide']
-            ? implode(",", $this->params['hide'])
-            : '';
-        if ( isset($this->params['long_description']) ) {
+        // hide string
+        $this->hide_string = '';
+        if (isset($this->params['hide']) && $this->params['hide']) {
+            $this->hide_string = implode(",", $this->params['hide']);
+        }
+
+        // description popup
+        if (isset($this->params['long_description'], $this->params['name'])) {
             $this->description_popup = '<i setting="' . $this->params['name'] . '" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>';
         }
     }
@@ -93,42 +126,46 @@ class SettingsField
      */
     private function prepareElementHTML()
     {
-        $this->field_layout .= '<div class="' . $this->params['def_class'] . (isset($this->params['class']) ? ' ' . $this->params['class'] : '') . '">';
+        $def_class = isset($this->params['def_class']) ? $this->params['def_class'] : '';
+        $class = isset($this->params['class']) ? $this->params['class'] : '';
+        $this->field_layout .= '<div class="' . $def_class . ' ' . $class . '">';
 
-        switch ( $this->params['type'] ) {
-            // Checkbox type
-            case 'checkbox':
-                $this->field_layout .= $this->getInputCheckBox();
-                break;
+        if (isset($this->params['type'])) {
+            switch ( $this->params['type'] ) {
+                // Checkbox type
+                case 'checkbox':
+                    $this->field_layout .= $this->getInputCheckBox();
+                    break;
 
-            // Radio type
-            case 'radio':
-                $this->field_layout .= $this->getInputRadio();
-                break;
+                // Radio type
+                case 'radio':
+                    $this->field_layout .= $this->getInputRadio();
+                    break;
 
-            // Dropdown list type
-            case 'select':
-                $this->field_layout .= $this->getInputSelect();
-                break;
+                // Dropdown list type
+                case 'select':
+                    $this->field_layout .= $this->getInputSelect();
+                    break;
 
-            // Text type
-            case 'text':
-                $this->field_layout .= $this->getInputText();
-                break;
+                // Text type
+                case 'text':
+                    $this->field_layout .= $this->getInputText();
+                    break;
 
-            // Text type
-            case 'affiliate_shortcode':
-                $this->field_layout .= $this->getAffiliateShortCode();
-                break;
+                // Text type
+                case 'affiliate_shortcode':
+                    $this->field_layout .= $this->getAffiliateShortCode();
+                    break;
 
-            // Textarea type
-            case 'textarea':
-                $this->field_layout .= $this->getInputTextarea();
-                break;
-            // Color type
-            case 'color':
-                $this->field_layout .= $this->getInputColor();
-                break;
+                // Textarea type
+                case 'textarea':
+                    $this->field_layout .= $this->getInputTextarea();
+                    break;
+                // Color type
+                case 'color':
+                    $this->field_layout .= $this->getInputColor();
+                    break;
+            }
         }
 
         $this->field_layout .= '</div>';
@@ -147,33 +184,38 @@ class SettingsField
      */
     private function getInputCheckBox()
     {
-        $out = '';
-        //ESC NEED
-        $out .= '<input
-					type="checkbox"
-					name="cleantalk_settings[' . $this->params['name'] . ']"
-					id="apbct_setting_' . $this->params['name'] . '"
-					value="1" '
-                . " class='apbct_setting_{$this->params['type']} apbct_setting---{$this->params['name']}'"
-                . ($this->value == '1' ? ' checked' : '')
-                . $this->disabled_string
-                . ($this->params['required'] ? ' required="required"' : '')
-                . ($this->params['childrens'] ? ' apbct_children="' . $this->children_string . '"' : '')
-                . ' onchange="'
-                . ($this->params['childrens'] ? ' apbctSettingsDependencies(\'' . $this->children_string . '\');' : '')
-                . ($this->params['hide'] ? ' apbctShowHideElem(\'' . $this->hide_string . '\');' : '')
-                . '"'
-                . ' />'
-                . '<label for="apbct_setting_' . $this->params['name'] . '" class="apbct_setting-field_title--' . $this->params['type'] . '">'
-                . $this->params['title']
-                . '</label>'
-                . $this->description_popup;
-        //HANDLE LINK
-        $href = '<a href="https://cleantalk.org/my/partners" target="_blank">' . __('CleanTalk Affiliate Program are here', 'cleantalk-spam-protect') . '</a>';
-        $this->params['description'] = str_replace('{CT_AFFILIATE_TERMS}', $href, $this->params['description']);
-        $out .= '<div class="apbct_settings-field_description">'
-                . $this->params['description']
-                . '</div>';
+        if (isset($this->params['description'])) {
+            $href = '<a href="https://cleantalk.org/my/partners" target="_blank">' . __('CleanTalk Affiliate Program are here', 'cleantalk-spam-protect') . '</a>';
+            $this->params['description'] = str_replace('{CT_AFFILIATE_TERMS}', $href, $this->params['description']);
+        }
+
+        $data = [
+            'name' => isset($this->params['name']) ? $this->params['name'] : '',
+            'type' => isset($this->params['type']) ? $this->params['type'] : '',
+            'value' => $this->value,
+            'disabled' => $this->disabled_string,
+            'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
+            'childrens' => isset($this->params['childrens']) && $this->params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $this->children_string . '\')"' : '',
+            'childrens_string' => isset($this->params['childrens']) && $this->params['childrens'] ? ' apbct_children="' . $this->children_string . '"' : '',
+            'title' => isset($this->params['title']) ? $this->params['title'] : '',
+            'popup_description' => isset($this->description_popup) ? $this->description_popup : '',
+            'description' => isset($this->params['description']) ? $this->params['description'] : '',
+            'checked' => $this->value == '1' ? ' checked' : '',
+            'hide' => isset($this->params['hide']) && $this->params['hide'] ? ' apbctShowHideElem(\'' . $this->hide_string . '\');' : '',
+        ];
+
+        $layout = '<input type="checkbox" name="cleantalk_settings[{{name}}]" id="apbct_setting_{{name}}" value="1"
+                class="apbct_setting_{{type}} apbct_setting---{{name}}" {{checked}} {{disabled}} {{required}}
+                {{childrens_string}} {{childrens}} {{hide}} />
+                <label for="apbct_setting_{{name}}" class="apbct_setting-field_title--{{type}}">{{title}}</label>
+                {{popup_description}}
+                <div class="apbct_settings-field_description">{{description}}</div>';
+
+        $out = $layout;
+        foreach ($data as $key => $value) {
+            $out = str_replace('{{' . $key . '}}', $value, $out);
+        }
+
         return $out;
     }
 
@@ -182,40 +224,61 @@ class SettingsField
      */
     private function getInputRadio()
     {
+        $data = [
+            'title' => isset($this->params['title']) ? $this->params['title'] : '',
+            'type' => isset($this->params['type']) ? $this->params['type'] : '',
+            'popup_description' => isset($this->description_popup) ? $this->description_popup : '',
+        ];
+
         $out = isset($this->params['title'])
-            ? '<h4 class="apbct_settings-field_title apbct_settings-field_title--' . $this->params['type'] . '">' . $this->params['title'] . $this->description_popup . '</h4>'
+            ? '<h4 class="apbct_settings-field_title apbct_settings-field_title--{{type}}">{{title}} {{popup_description}}</h4>'
             : '';
-        //ESC NEED
-        $out .= '<div class="apbct_settings-field_content apbct_settings-field_content--' . $this->params['type'] . '">';
+
+        $out .= '<div class="apbct_settings-field_content apbct_settings-field_content--{{type}}">';
 
         $out .= '<div class="apbct_switchers" style="direction: ltr">';
-        foreach ( $this->params['options'] as $option ) {
-            //ESC NEED
-            $out .= '<input'
-                    . ' type="radio"'
-                    . " class='apbct_setting_{$this->params['type']} apbct_setting---{$this->params['name']}'"
-                    . " id='apbct_setting_{$this->params['name']}__{$option['label']}'"
-                    . ' name="cleantalk_settings[' . $this->params['name'] . ']"'
-                    . ' value="' . $option['val'] . '"'
-                    . $this->disabled_string
-                    . ($this->params['childrens']
-                    ? ' onchange="apbctSettingsDependencies(\'' . $this->children_string . '\', ' . $option['childrens_enable'] . ')"'
-                    : ''
-                    )
-                    . ($this->value == $option['val'] ? ' checked' : '')
-                    . ($this->params['required'] ? ' required="required"' : '')
-                    . ' />';
-            //ESC NEED
-            $out .= '<label for="apbct_setting_' . $this->params['name'] . '__' . $option['label'] . '"> ' . $option['label'] . '</label>';
-            $out .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+
+        if (isset($this->params['options'])) {
+            foreach ( $this->params['options'] as $option ) {
+                $option_data = [
+                    'type' => isset($this->params['type']) ? $this->params['type'] : '',
+                    'name' => isset($this->params['name']) ? $this->params['name'] : '',
+                    'name_id' => isset($this->params['name'], $option['label']) ? $this->params['name'] . '__' . $option['label'] : '',
+                    'value' => $option['val'],
+                    'disabled' => $this->disabled_string,
+                    'childrens' => isset($this->params['childrens'], $option['childrens_enable']) ? ' onchange="apbctSettingsDependencies(\'' . $this->children_string . '\', ' . $option['childrens_enable'] . ')"' : '',
+                    'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
+                    'checked' => $this->value == $option['val'] ? ' checked' : '',
+                    'label' => isset($option['label']) ? $option['label'] : '',
+                ];
+
+                $option_layout = '<input type="radio" class="apbct_setting_{{type}} apbct_setting---{{name}}" id="apbct_setting_{{name_id}}"
+                        name="cleantalk_settings[{{name}}]" value="{{value}}" {{disabled}} {{childrens}} {{required}} {{checked}} />
+                        <label for="apbct_setting_{{name_id}}"> {{label}}</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+
+                $option = $option_layout;
+                foreach ($option_data as $key => $value) {
+                    $option = str_replace('{{' . $key . '}}', $value, $option);
+                }
+
+                $out .= $option;
+            }
         }
+
         $out .= '</div>';
-        //ESC NEED
+
         $out .= isset($this->params['description'])
             ? '<div class="apbct_settings-field_description">' . $this->params['description'] . '</div>'
             : '';
+
         $out .= '</div>';
-        return $out;
+
+        $output = $out;
+        foreach ($data as $key => $value) {
+            $output = str_replace('{{' . $key . '}}', $value, $output);
+        }
+
+        return $output;
     }
 
     /**
@@ -223,54 +286,74 @@ class SettingsField
      */
     private function getInputSelect()
     {
-        if ($this->params['name'] === 'comments__form_decoration_selector') {
+        if (isset($this->params['name']) && $this->params['name'] === 'comments__form_decoration_selector') {
             $this->params = FormDecoratorSettings::filterSelectorParams($this->params, $this->disabled_string, $this->description_popup);
         }
 
-        $title = '';
+        $data = [
+            'name' => isset($this->params['name']) ? $this->params['name'] : '',
+            'type' => isset($this->params['type']) ? $this->params['type'] : '',
+            'title' => isset($this->params['title']) ? $this->params['title'] : '',
+            'popup_description' => isset($this->description_popup) ? $this->description_popup : '',
+            'description' => isset($this->params['description']) ? $this->params['description'] : '',
+            'multiple' => isset($this->params['multiple']) ? '[]' : '',
+            'multiple_bool' => isset($this->params['multiple']) ? 'multiple="multiple"' : '',
+            'size' => isset($this->params['multiple'], $this->params['options']) ? ' size="' . count($this->params['options']) . '"' : '',
+            'childrens' => isset($this->params['childrens']) ? ' onchange="apbctSettingsDependencies(\'' . $this->children_string . '\', jQuery(this).find(\'option:selected\').data(\'children_enable\'))"' : '',
+            'disabled' => $this->disabled_string,
+            'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
+        ];
+
+        // title
         if (isset($this->params['custom_select_title'])) {
             $title = $this->params['custom_select_title'];
-        } elseif (isset($this->params['title'])) {
-            $title = '<h4 class="apbct_settings-field_title apbct_settings-field_title--' . $this->params['type'] . '">' . $this->params['title'] . $this->description_popup . '</h4>';
+        } else {
+            $title = '<h4 class="apbct_settings-field_title apbct_settings-field_title--{{type}}">{{title}} {{popup_description}}</h4>';
         }
 
-        $description = '';
+        // description
         if (isset($this->params['custom_select_description'])) {
             $description = $this->params['custom_select_description'];
-        } elseif (isset($this->params['description'])) {
-            $description = '<div class="apbct_settings-field_description">' . $this->params['description'] . '</div>';
+        } else {
+            $description = '<div class="apbct_settings-field_description">{{description}}</div>';
         }
 
+        // select
         if (isset($this->params['custom_select_element'])) {
             $select = $this->params['custom_select_element'];
         } else {
-            $select = '<select'
-                      . ' id="apbct_setting_' . $this->params['name'] . '"'
-                      . " class='apbct_setting_{$this->params['type']} apbct_setting---{$this->params['name']}'"
-                      . ' name="cleantalk_settings[' . $this->params['name'] . ']' . ($this->params['multiple'] ? '[]"' : '"')
-                      . ($this->params['multiple'] ? ' size="' . count($this->params['options']) . '""' : '')
-                      . ($this->params['multiple'] ? ' multiple="multiple"' : '')
-                      . ($this->params['childrens']
-                    ? ' onchange="apbctSettingsDependencies(\'' . $this->children_string . '\', jQuery(this).find(\'option:selected\').data(\'children_enable\'))"'
-                    : ''
-                      )
-                      . $this->disabled_string
-                      . ($this->params['required'] ? ' required="required"' : '')
-                      . ' >';
+            $select = '<select id="apbct_setting_{{name}}" class="apbct_setting_{{type}} apbct_setting---{{name}}"
+                      name="cleantalk_settings[{{name}}]{{multiple}}"
+                      {{size}} {{multiple_bool}} {{disabled}} {{required}} {{childrens}} >';
         }
 
-        foreach ( $this->params['options'] as $option ) {
-            //ESC NEED
-            $select .= '<option'
-                       . ' value="' . $option['val'] . '"'
-                       . (isset($option['children_enable']) ? ' data-children_enable=' . $option['children_enable'] . ' ' : ' ')
-                       . ($this->params['multiple']
-                    ? (! empty($this->value) && is_array($this->value) && in_array($option['val'], $this->value) ? ' selected="selected"' : '')
-                    : ($this->value == $option['val'] ? 'selected="selected"' : '')
-                       )
-                       . '>'
-                       . $option['label']
-                       . '</option>';
+        // options
+        if (isset($this->params['options'])) {
+            foreach ( $this->params['options'] as $option ) {
+                $option_data = [
+                    'value' => $option['val'],
+                    'label' => $option['label'],
+                    'children_enable' => isset($option['children_enable']) ? ' data-children_enable=' . $option['children_enable'] : '',
+                    'selected' => '',
+                ];
+
+                if (isset($this->params['multiple']) &&
+                    $this->params['multiple'] &&
+                    ! empty($this->value) &&
+                    is_array($this->value) &&
+                    in_array($option['val'], $this->value)
+                ) {
+                    $option_data['selected'] = 'selected="selected"';
+                } elseif ($this->value == $option['val']) {
+                    $option_data['selected'] = 'selected="selected"';
+                }
+
+                $option_layout = '<option value="{{value}}" {{children_enable}} {{selected}}> {{label}} </option>';
+                foreach ($option_data as $key => $value) {
+                    $option_layout = str_replace('{{' . $key . '}}', $value, $option_layout);
+                }
+                $select .= $option_layout;
+            }
         }
 
         $select .= '</select>';
@@ -281,7 +364,12 @@ class SettingsField
             $output = $title . $description . $select;
         }
 
-        return $output;
+        $out = $output;
+        foreach ($data as $key => $value) {
+            $out = str_replace('{{' . $key . '}}', $value, $out);
+        }
+
+        return $out;
     }
 
     /**
@@ -289,24 +377,33 @@ class SettingsField
      */
     private function getInputText()
     {
-        $out = '<input
-					type="text"
-					id="apbct_setting_' . $this->params['name'] . '"
-					name="cleantalk_settings[' . $this->params['name'] . ']"'
-               . " class='apbct_setting_{$this->params['type']} apbct_setting---{$this->params['name']}'"
-               . ' value="' . $this->value . '" '
-               . (isset($this->params['placeholder']) ? ' placeholder="' . $this->params['placeholder'] : '') . '" '
-               . $this->disabled_string
-               . ($this->params['required'] ? ' required="required"' : '')
-               . ($this->params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $this->children_string . '\')"' : '')
-               . ' />'
-               . '&nbsp;'
-               . '<label for="apbct_setting_' . $this->params['name'] . '" class="apbct_setting-field_title--' . $this->params['type'] . '">'
-               . $this->params['title'] . $this->description_popup
-               . '</label>';
-        $out .= '<div class="apbct_settings-field_description">'
-                . $this->params['description']
-                . '</div>';
+        $data = [
+            'name' => isset($this->params['name']) ? $this->params['name'] : '',
+            'type' => isset($this->params['type']) ? $this->params['type'] : '',
+            'value' => $this->value,
+            'placeholder' => isset($this->params['placeholder']) ? 'placeholder="' . $this->params['placeholder'] . '"' : '',
+            'disabled' => $this->disabled_string,
+            'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
+            'childrens' => isset($this->params['childrens']) ? 'onchange="apbctSettingsDependencies(\'' . $this->children_string . '\')"' : '',
+            'title' => isset($this->params['title']) ? $this->params['title'] : '',
+            'popup_description' => isset($this->description_popup) ? $this->description_popup : '',
+            'description' => isset($this->params['description']) ? $this->params['description'] : '',
+        ];
+
+        $layout = '<input type="text" id="apbct_setting_{{name}}" name="cleantalk_settings[{{name}}]"
+               class="apbct_setting_{{type}} apbct_setting---{{name}}" value="{{value}}"
+               {{placeholder}} {{disabled}} {{required}} {{childrens}} />
+               &nbsp;
+               <label for="apbct_setting_{{name}}" class="apbct_setting-field_title--{{type}}">
+               {{title}} {{popup_description}}
+               </label>
+               <div class="apbct_settings-field_description">{{description}}</div>';
+
+        $out = $layout;
+        foreach ($data as $key => $value) {
+            $out = str_replace('{{' . $key . '}}', $value, $out);
+        }
+
         return $out;
     }
 
@@ -315,24 +412,34 @@ class SettingsField
      */
     private function getAffiliateShortCode()
     {
-        $out = '<input
-					type="text"
-					id="apbct_setting_' . $this->params['name'] . '"
-					name="cleantalk_settings[' . $this->params['name'] . ']"'
-               . " class='apbct_setting_{$this->params['type']} apbct_setting---{$this->params['name']}'"
-               . ' value="[cleantalk_affiliate_link]" '
-               . "readonly" //hardcode for this shortcode
-               . $this->disabled_string
-               . ($this->params['required'] ? ' required="required"' : '')
-               . ($this->params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $this->children_string . '\')"' : '')
-               . ' />'
-               . '&nbsp;'
-               . '<label for="apbct_setting_' . $this->params['name'] . '" class="apbct_setting-field_title--' . $this->params['type'] . '">'
-               . $this->params['title'] . $this->description_popup
-               . '</label>';
-        $out .= '<div class="apbct_settings-field_description">'
-                . $this->params['description']
-                . '</div>';
+        $data = [
+            'name' => isset($this->params['name']) ? $this->params['name'] : '',
+            'type' => isset($this->params['type']) ? $this->params['type'] : '',
+            'value' => '[cleantalk_affiliate_link]',
+            'title' => isset($this->params['title']) ? $this->params['title'] : '',
+            'popup_description' => isset($this->description_popup) ? $this->description_popup : '',
+            'description' => isset($this->params['description']) ? $this->params['description'] : '',
+            'disabled' => $this->disabled_string,
+            'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
+            'childrens' => isset($this->params['childrens']) ? 'onchange="apbctSettingsDependencies(\'' . $this->children_string . '\')"' : '',
+        ];
+
+        $layout = '<input type="text" id="apbct_setting_{{name}}" name="cleantalk_settings[{{name}}]"
+            class="apbct_setting_{{type}} apbct_setting---{{name}}"
+            value="{{value}}"
+            readonly
+            {{disabled}} {{required}} {{childrens}} />
+            &nbsp;
+            <label for="apbct_setting_{{name}}" class="apbct_setting-field_title--{{type}}">
+            {{title}} {{popup_description}}
+            </label>
+            <div class="apbct_settings-field_description">{{description}}</div>';
+
+        $out = $layout;
+        foreach ($data as $key => $value) {
+            $out = str_replace('{{' . $key . '}}', $value, $out);
+        }
+
         return $out;
     }
 
@@ -341,24 +448,35 @@ class SettingsField
      */
     private function getInputTextarea()
     {
-        $out = isset($this->params['title'])
-            ? '<h4 class="apbct_settings-field_title apbct_settings-field_title--' . $this->params['type'] . '">' . $this->params['title'] . $this->description_popup . '</h4>'
-            : '';
-        //ESC NEED
-        $out .= '<div class="apbct_settings-field_description">'
-                . $this->params['description']
-                . '</div>';
-        //ESC NEED
-        $out .= '<textarea
-					id="apbct_setting_' . $this->params['name'] . '"
-					name="cleantalk_settings[' . $this->params['name'] . ']"'
-                . " class='apbct_setting_{$this->params['type']} apbct_setting---{$this->params['name']}'"
-                . $this->disabled_string
-                . ($this->params['required'] ? ' required="required"' : '')
-                . ($this->params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $this->children_string . '\')"' : '')
-                . '>' . $this->value . '</textarea>'
-                . '&nbsp;';
-        return $out;
+        $title_layout = '<h4 class="apbct_settings-field_title apbct_settings-field_title--{{type}}">{{title}} {{popup_description}}</h4>';
+
+        $data = [
+            'title' => isset($this->params['title']) ? $this->params['title'] : '',
+            'type' => isset($this->params['type']) ? $this->params['type'] : '',
+            'popup_description' => $this->description_popup,
+            'description' => isset($this->params['description']) ? $this->params['description'] : '',
+            'name' => isset($this->params['name']) ? $this->params['name'] : '',
+            'disabled' => $this->disabled_string,
+            'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
+            'childrens' => isset($this->params['childrens']) ? 'onchange="apbctSettingsDependencies(\'' . $this->children_string . '\')" ' : '',
+            'value' => $this->value,
+        ];
+
+        $layout = '';
+        if (isset($this->params['title'])) {
+            $layout .= $title_layout;
+        }
+
+        $layout .= '<div class="apbct_settings-field_description">{{description}}</div>
+            <textarea id="apbct_setting_{{name}}" name="cleantalk_settings[{{name}}]"
+            class="apbct_setting_{{type}} apbct_setting---{{name}}"
+            {{disabled}} {{required}} {{childrens}} >{{value}}</textarea> &nbsp;';
+
+        foreach ($data as $key => $value) {
+            $layout = str_replace('{{' . $key . '}}', $value, $layout);
+        }
+
+        return $layout;
     }
 
     /**
@@ -366,25 +484,32 @@ class SettingsField
      */
     private function getInputColor()
     {
-        $out = '';
-        //ESC NEED
-        $out .= '<input
-					type="color"
-					id="apbct_setting_' . $this->params['name'] . '"
-					name="cleantalk_settings[' . $this->params['name'] . ']"'
-                . " class='apbct_setting_{$this->params['type']} apbct_setting---{$this->params['name']}'"
-                . ' value="' . $this->value . '" '
-                . $this->disabled_string
-                . ($this->params['required'] ? ' required="required"' : '')
-                . ($this->params['childrens'] ? ' onchange="apbctSettingsDependencies(\'' . $this->children_string . '\')"' : '')
-                . ' />'
-                . '&nbsp;'
-                . '<label for="apbct_setting_' . $this->params['name'] . '" class="apbct_setting-field_title--' . $this->params['type'] . '">'
-                . $this->params['title'] . $this->description_popup
-                . '</label>';
-        $out .= '<div class="apbct_settings-field_description">'
-                . $this->params['description']
-                . '</div>';
+        $data = [
+            'name' => isset($this->params['name']) ? $this->params['name'] : '',
+            'type' => isset($this->params['type']) ? $this->params['type'] : '',
+            'value' => $this->value,
+            'disabled' => $this->disabled_string,
+            'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
+            'childrens' => isset($this->params['childrens']) ? 'onchange="apbctSettingsDependencies(\'' . $this->children_string . '\')" ' : '',
+            'title' => isset($this->params['title']) ? $this->params['title'] : '',
+            'popup_description' => isset($this->description_popup) ? $this->description_popup : '',
+            'description' => isset($this->params['description']) ? $this->params['description'] : '',
+        ];
+
+        $layout = '<input type="color" id="apbct_setting_{{name}}" name="cleantalk_settings[{{name}}]"
+            class="apbct_setting_{{type}} apbct_setting---{{name}}" value="{{value}}" {{disabled}} {{required}} {{childrens}}
+            /> &nbsp;
+            <label for="apbct_setting_{{name}}" class="apbct_setting-field_title--{{type}}">
+            {{title}} {{popup_description}}
+            </label>
+            <div class="apbct_settings-field_description">{{description}}</div>';
+
+        $out = $layout;
+        foreach ($data as $key => $value) {
+            $value = is_array($value) ? implode(', ', $value) : (string) $value;
+            $out = str_replace('{{' . $key . '}}', $value, $out);
+        }
+
         return $out;
     }
 }

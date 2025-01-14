@@ -30,9 +30,10 @@ function ctSetCookie( cookies, value, expires ) {
             if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
                 forcedAltCookiesSet.push(item);
             } else {
-                apbctLocalStorage.set(item[0], encodeURIComponent(item[1]));
+                apbctLocalStorage.set(item[0], item[1]);
             }
         });
+
         // if cookies from list found use alt cookies for this selection set
         if ( forcedAltCookiesSet.length > 0 ) {
             ctSetAlternativeCookie(forcedAltCookiesSet);
