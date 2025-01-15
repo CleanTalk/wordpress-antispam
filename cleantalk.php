@@ -314,7 +314,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
      && empty(Get::get('ct_checkjs_search_default')) // Search form fix
      && empty(Post::get('action')) //bbPress
      && ! \Cleantalk\Variables\Server::inUri('/favicon.ico') // /favicon request rewritten cookies fix
-     && ! isWpRocketPreloaderRequest()
+     && ! apbct__is_wp_rocket_preloader_request()
 ) {
     if ( $apbct->data['cookies_type'] !== 'alternative' ) {
         if ( !$apbct->settings['forms__search_test'] && !Get::get('s') ) { //skip cookie set for search form redirect page

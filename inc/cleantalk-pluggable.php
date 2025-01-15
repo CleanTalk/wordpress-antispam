@@ -1660,7 +1660,10 @@ function apbct__check_admin_ajax_request($query_arg = 'security')
     }
 }
 
-function isWpRocketPreloaderRequest()
+/**
+ * @return bool
+ */
+function apbct__is_wp_rocket_preloader_request()
 {
     return (
         isset($_SERVER['HTTP_USER_AGENT'], $_SERVER['REMOTE_ADDR'], $_SERVER['SERVER_ADDR']) &&
