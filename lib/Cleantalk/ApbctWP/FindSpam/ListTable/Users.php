@@ -347,9 +347,16 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
         $wc_exists = $this->wc_active && $wpdb->get_row("SHOW TABLES LIKE '$wc_orders_table'");
 
-        // ordering
+        // get ordering and sanitizing it
+        $sortable_columns = array_keys(Users::get_sortable_columns());
+
         $orderby = !empty($orderby) ? $orderby : 'ct_signed_up';
-        $order = !empty($order) ? $order : 'ASC';
+        $orderby = is_string($orderby) && in_array($orderby, $sortable_columns) ? $orderby : false;
+
+        $order = !empty($order) ? strtoupper($order) : 'ASC';
+        $order = in_array($order, array('ASC', 'DESC')) ? $order : false;
+
+        $order_by_chunk = $order && $orderby && !is_null($per_page) ? " ORDER BY $orderby $order " : '';
 
         // chunks
 
@@ -372,7 +379,6 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             $selectors_sql_chunk = ' COUNT(*) as cnt ';
             //ordering and group chunks empty
             $group_by_chunk = '';
-            $order_by_chunk = '';
             // drop wc_orders_join on count
             $wc_sql_chunk_join = '';
         } else { // else - get users select with limit, group and order
@@ -401,7 +407,6 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
             //ordering chunks
             $group_by_chunk = ' GROUP BY users.ID ';
-            $order_by_chunk = " ORDER BY $orderby $order ";
         }
 
         $the_final_query = "
