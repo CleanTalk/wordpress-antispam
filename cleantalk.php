@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.47.1-dev
+  Version: 6.48
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -314,6 +314,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
      && empty(Get::get('ct_checkjs_search_default')) // Search form fix
      && empty(Post::get('action')) //bbPress
      && ! \Cleantalk\Variables\Server::inUri('/favicon.ico') // /favicon request rewritten cookies fix
+     && ! isWpRocketPreloaderRequest()
 ) {
     if ( $apbct->data['cookies_type'] !== 'alternative' ) {
         if ( !$apbct->settings['forms__search_test'] && !Get::get('s') ) { //skip cookie set for search form redirect page
@@ -1461,7 +1462,22 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
 
     //Reset keys
     $urls          = array_values(array_unique($urls));
-    $results       = Helper::httpMultiRequest($urls, $apbct->fw_stats['updating_folder']);
+
+    $results = array();
+    $batch_size = 10;
+    $total_urls = count($urls);
+    $batches = ceil($total_urls / $batch_size);
+
+    for ($i = 0; $i < $batches; $i++) {
+        $batch_urls = array_slice($urls, $i * $batch_size, $batch_size);
+        if (!empty($batch_urls)) {
+            $http_results = Helper::httpMultiRequest($batch_urls, $apbct->fw_stats['updating_folder']);
+            if (is_array($http_results)) {
+                $results = array_merge($results, $http_results);
+            }
+        }
+    }
+
     $results       = TT::toArray($results);
     $count_urls    = count($urls);
     $count_results = count($results);

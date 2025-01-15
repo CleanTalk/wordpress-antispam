@@ -60,9 +60,31 @@ class CommentsChecker extends Checker
     }
 
     /**
-     * Get all comments from DB
+     * Get all comments from DB that:
+     * * not marked as spam
+     * * not marked as trash
+     * * comment type is in list of 'comment', 'review', 'trackback', 'pings'
+     * * comment_ID has no comment_meta with meta_key 'ct_marked_as_approved'
      *
-     * @return array
+     * If date_from and date_till are set, get comments from this period (used in accurate check).
+     *
+     * After DB request, method filter data to skip comments:
+     * * with user_id that has role from skip_roles
+     * * uncheckable comments - without comment_author_IP and comment_author_email
+     * @return object[] Assoc array of db result object:
+     * <code>
+     * array(
+     *  0 => object
+     *    ->comment_ID int,
+     *    ->comment_date_gmt string,
+     *    ->comment_author_IP string,
+     *    ->comment_author_email string,
+     *    ->user_id int
+     *  ,
+     * ...
+     * );
+     * </code>
+     * @example Example
      */
     private static function getAllComments(CommentsScanParameters $commentsScanParameters)
     {
@@ -189,7 +211,11 @@ class CommentsChecker extends Checker
         $res = wp_count_comments();
 
         if ( $res->all ) {
-            $text = sprintf(esc_html__('Total count of comments: %s.', 'cleantalk-spam-protect'), $res->all);
+            $unicode_star = '&#42;';
+            $text         = sprintf(
+                esc_html__('Total count of comments: %s.', 'cleantalk-spam-protect'),
+                $res->all . $unicode_star
+            );
         } else {
             $text = esc_html__('No comments found.', 'cleantalk-spam-protect');
         }
@@ -270,7 +296,7 @@ class CommentsChecker extends Checker
         if (!is_int($cnt_spam)) {
             $cnt_spam = 'unknown';
         } else {
-            $cnt_spam = TT::toString($cnt_spam);
+            $cnt_spam = TT::toInt($cnt_spam);
         }
 
         // Bad comments (without IP and Email)
@@ -289,13 +315,15 @@ class CommentsChecker extends Checker
             'total'   => $total_comments
         );
 
+        $unicode_star = '&#42;';
+
         if ( ! $direct_call ) {
             $return['message'] .= sprintf(
                 esc_html__(
                     "Checked %s comments total (excluding admins), found %s spam comments and %s non-checkable comments (no IP and email found).",
                     'cleantalk-spam-protect'
                 ),
-                $cnt_checked,
+                TT::toString($cnt_checked) . $unicode_star . $unicode_star,
                 $cnt_spam,
                 $cnt_bad
             );
@@ -306,11 +334,11 @@ class CommentsChecker extends Checker
             if ( $res ) {
                 $return['message'] .= sprintf(
                     __(
-                        "Last check %s: checked %s comments total (excluding admins), found %s spam comments and %s non-checkable comments (no IP and email found).",
+                        "Last check %s: checked %s comments, found %s spam comments and %s non-checkable comments (no IP and email found).",
                         'cleantalk-spam-protect'
                     ),
                     self::lastCheckDate(),
-                    $cnt_checked,
+                    TT::toString($cnt_checked) . $unicode_star . $unicode_star,
                     $cnt_spam,
                     $cnt_bad
                 );

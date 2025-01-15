@@ -390,6 +390,15 @@ function ct_woocommerce_checkout_check_from_rest($order)
             if ( $apbct->settings['data__wc_store_blocked_orders'] ) {
                 apbct_woocommerce__store_blocked_order();
             }
+
+            if ( $order->get_status() === 'checkout-draft' ) {
+                try {
+                    $order->delete(true);
+                } catch (Exception $e) {
+                    error_log('Error deleting order: ' . $e->getMessage());
+                }
+            }
+
             if ( class_exists('\Automattic\WooCommerce\StoreApi\Exceptions\RouteException') ) {
                 /** @psalm-suppress InvalidThrow */
                 throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
@@ -2160,17 +2169,17 @@ function apbct_form__ninjaForms__collect_fields_new()
                 $field_key = TT::toString($field_info['field_key']);
                 $field_type = TT::toString($field_info['field_type']);
                 $fields['nf-field-' . $field['id'] . '-' . $field_type] = $field['value'];
-                if ( stripos($field_key, 'name') !== false ) {
-                    $nickname = $field['value'];
+                if ( stripos($field_key, 'name') !== false && stripos($field_type, 'name') !== false ) {
+                    $nickname .= ' ' . $field['value'];
                 }
-                if ( stripos($field_key, 'email') !== false ) {
+                if ( stripos($field_key, 'email') !== false && $field_type === 'email' ) {
                     $email = $field['value'];
                 }
             }
         }
     }
 
-    return ct_gfa($fields, $email, $nickname);
+    return ct_gfa($fields, $email, trim($nickname));
 }
 
 /**
