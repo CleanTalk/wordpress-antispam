@@ -18,7 +18,15 @@ gulp.task('compress-css', function () {
 
 // JS COMPRESS
 function compress_all_js() {
-    return gulp.src(['js/src/*.js', '!js/src/apbct-public--*.js', '!js/src/apbct-public-bundle.js', 'js/src/apbct-public--3--cleantalk-modal.js', 'js/src/apbct-public--7--trp.js'])
+    return gulp.src([
+            'js/src/*.js',
+            '!js/src/apbct-public--*.js',
+            '!js/src/apbct-public-bundle.js',
+            'js/src/apbct-public--3--cleantalk-modal.js',
+            'js/src/apbct-public--7--trp.js',
+            'js/src/apbct-public--5--external-forms.js',
+            'js/src/apbct-public--6--internal-forms.js'
+        ])
         .pipe(sourcemaps.init())
         .pipe(uglify())
         .pipe(rename({suffix: '.min'}))
@@ -28,7 +36,14 @@ function compress_all_js() {
 
 // Bundle Create
 function bundle_src_js() {
-    return gulp.src('js/src/apbct-public--*.js')
+    return gulp.src([
+            'js/src/apbct-public--0*.js',
+            'js/src/apbct-public--1*.js',
+            'js/src/apbct-public--2*.js',
+            'js/src/apbct-public--3*.js',
+            'js/src/apbct-public--7*.js',
+            'js/src/apbct-public--7*.js'
+        ])
         // Unminified bundle
         .pipe(concat('apbct-public-bundle.js'))
         .pipe(gulp.dest('js/src/'));

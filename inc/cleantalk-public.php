@@ -1330,6 +1330,26 @@ function apbct_enqueue_and_localize_public_scripts()
         );
     }
 
+    if ($apbct->settings['forms__check_external']) {
+        wp_enqueue_script(
+            'ct_public_functions-external_forms',
+            APBCT_URL_PATH . '/js/apbct-public--5--external-forms.min.js',
+            array(),
+            APBCT_VERSION,
+            $in_footer
+        );
+    }
+
+    if ($apbct->settings['forms__check_internal']) {
+        wp_enqueue_script(
+            'ct_public_functions-internal_forms',
+            APBCT_URL_PATH . '/js/apbct-public--6--internal-forms.min.js',
+            array(),
+            APBCT_VERSION,
+            $in_footer
+        );
+    }
+
     wp_enqueue_style(
         'ct_public_css',
         APBCT_CSS_ASSETS_PATH . '/cleantalk-public.min.css',
