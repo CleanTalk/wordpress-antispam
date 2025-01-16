@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
+use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Validate;
 use Cleantalk\Common\Helper;
@@ -228,7 +229,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                 Cookie::get('wordpress_apbct_antibot') == hash(
                     'sha256',
                     $this->api_key . $this->apbct->data['salt']
-                )
+                ) ||
+                RequestParameters::get('apbct_bot_detector_exist', true)  == '1'
             ) {
                 if ( Cookie::get('apbct_anticrawler_passed') == 1 ) {
                     if ( ! headers_sent() ) {
@@ -259,6 +261,10 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                     Cookie::get('wordpress_apbct_antibot') !== hash(
                         'sha256',
                         $this->api_key . $this->apbct->data['salt']
+                    ) &&
+                    (
+                        !RequestParameters::get('apbct_bot_detector_exist', true) ||
+                        RequestParameters::get('apbct_bot_detector_exist', true) == '0'
                     )
                 ) {
                     $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'DENY_ANTICRAWLER',);
@@ -324,10 +330,6 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     public static function setCookie()
     {
         global $apbct;
-
-        if ( $apbct->data['cookies_type'] === 'none' && ! is_admin() ) {
-            return;
-        }
 
         $script =
         "<script>
@@ -555,10 +557,11 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         //skip check if SFW test is running
         if (
             Get::get('sfw_test_ip') &&
-            Cookie::get('wordpress_apbct_antibot') == hash(
+            (Cookie::get('wordpress_apbct_antibot') == hash(
                 'sha256',
                 $this->api_key . $this->apbct->data['salt']
-            )
+            ) ||
+            RequestParameters::get('apbct_bot_detector_exist', true) == '1')
         ) {
             return true;
         }

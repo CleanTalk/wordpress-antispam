@@ -1251,6 +1251,19 @@ function apbct_is_skip_request($ajax = false)
         if ( apbct_is_plugin_active('buddypress/bp-loader.php') && Post::get('action') === 'messages_send_message' ) {
             return 'buddypress_messages_send_message';
         }
+
+        // skip Force Protection check bot
+        if (Post::get('action') === 'apbct_force_protection_check_bot') {
+            return 'apbct_force_protection_check_bot_skip';
+        }
+
+        // TEvolution checking email existence need to be excluded
+        if (
+            apbct_is_plugin_active('Tevolution/templatic.php') &&
+            Post::get('action') === 'tmpl_ajax_check_user_email'
+        ) {
+            return 'tevolution email exitence';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1645,6 +1658,18 @@ function apbct__check_admin_ajax_request($query_arg = 'security')
     if ( ! current_user_can('manage_options') ) {
         wp_die('-1', 403);
     }
+}
+
+/**
+ * @return bool
+ */
+function apbct__is_wp_rocket_preloader_request()
+{
+    return (
+        isset($_SERVER['HTTP_USER_AGENT'], $_SERVER['REMOTE_ADDR'], $_SERVER['SERVER_ADDR']) &&
+        strpos($_SERVER['HTTP_USER_AGENT'], 'WP Rocket/Preload') !== false &&
+        $_SERVER['REMOTE_ADDR'] === $_SERVER['SERVER_ADDR']
+    );
 }
 
 /**

@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\ApbctWP\DTO\GetFieldsAnyDTO;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\Common\TT;
@@ -116,18 +117,6 @@ class GetFieldsAny
     private $visible_fields_arr;
 
     /**
-     * Processed data array to output
-     * @var array
-     */
-    private $processed_data = array(
-        'email'    => '',
-        'nickname' => array(),
-        'subject'  => '',
-        'contact'  => true,
-        'message'  => array()
-    );
-
-    /**
      * @var string
      */
     private $preprocessed_email;
@@ -143,15 +132,46 @@ class GetFieldsAny
     private $prev_name = '';
 
     /**
+     * @var GetFieldsAnyDTO
+     */
+    private $dto;
+
+    /**
      * GetFieldsAny constructor.
      *
      * @param array $input_array
      */
     public function __construct(array $input_array)
     {
+        $this->setDTODefaults();
         $this->input_array = $input_array;
         $this->isProcessForm();
         $this->visible_fields_arr = $this->getVisibleFields();
+    }
+
+    private function setDTODefaults()
+    {
+        $dto_default_data  = array(
+            'email' => '',
+            'emails_array' => array(),
+            'nickname' => '',
+            'nickname_first' => '',
+            'nickname_last' => '',
+            'nickname_nick' => '',
+            'subject' => '',
+            'contact' => true,
+            'message' => array(),
+        );
+        $this->dto = new GetFieldsAnyDTO($dto_default_data);
+    }
+
+    /**
+     * @return GetFieldsAnyDTO
+     */
+    public function getFieldsDTO($email = '', $nickname = '')
+    {
+        $this->prepareFields($email, $nickname);
+        return $this->dto;
     }
 
     /**
@@ -159,46 +179,54 @@ class GetFieldsAny
      *
      * @param string $email
      * @param string $nickname
-     *
      * @return array
      */
     public function getFields($email = '', $nickname = '')
     {
+        $this->prepareFields($email, $nickname);
+        return $this->dto->getArray();
+    }
+
+    public function prepareFields($email, $nickname)
+    {
         $this->preprocessed_email    = $email;
         $this->preprocessed_nickname = is_string($nickname) ? $nickname : '';
 
+        // main gathering logic, recursive
         if (count($this->input_array)) {
-            $this->process($this->input_array);
+            $this->processRecursive($this->input_array);
         }
 
         foreach ($this->skip_message_post as $v) {
             if (isset($_POST[$v])) {
-                $this->processed_data['message'] = null;
+                $this->dto->message = array();
                 break;
             }
         }
 
         if ( ! $this->contact) {
-            $this->processed_data['contact'] = $this->contact;
+            $this->dto->contact = $this->contact;
         }
 
         if ($this->preprocessed_email) {
-            $this->processed_data['email'] = $this->preprocessed_email;
+            $this->dto->email = $this->preprocessed_email;
         }
 
         if ($this->preprocessed_nickname) {
-            $this->processed_data['nickname'] = $this->preprocessed_nickname;
+            $this->dto->nickname = $this->preprocessed_nickname;
         }
 
-        if (is_array($this->processed_data['nickname'])) {
-            $nickname_str = '';
-            foreach ($this->processed_data['nickname'] as $value) {
-                $nickname_str .= ($value ? $value . " " : "");
+        if (empty($this->dto->nickname)) {
+            $name_chunks = array(
+                'first' => $this->dto->nickname_first,
+                'last'  => $this->dto->nickname_last,
+                'nick'  => $this->dto->nickname_nick
+            );
+            foreach ($name_chunks as $value) {
+                $this->dto->nickname .= ($value ? $value . " " : "");
             }
-            $this->processed_data['nickname'] = trim($nickname_str);
+            $this->dto->nickname = trim($this->dto->nickname);
         }
-
-        return $this->processed_data;
     }
 
     /**
@@ -206,7 +234,7 @@ class GetFieldsAny
      *
      * @param $arr
      */
-    private function process($arr)
+    private function processRecursive($arr)
     {
         foreach ($arr as $key => $value) {
             /*
@@ -251,7 +279,7 @@ class GetFieldsAny
                     $value = explode('~', $value);
                     foreach ($value as &$val) {
                         $tmp = explode(' %% ', $val);
-                        $val = array($tmp[0] => $tmp[1]);
+                        $val = array($tmp[0] => TT::getArrayValueAsString($tmp, 1));
                     }
                     unset($val);
                 }
@@ -308,15 +336,14 @@ class GetFieldsAny
                     if ($this->preprocessed_email) {
                         continue;
                     }
-                    if (empty($this->processed_data['email'])) {
+                    if (empty($this->dto->email)) {
                         // if found new very first email field, set it as the processed email field.
-                        $this->processed_data['email'] = $value_for_email;
-                        $this->processed_data['emails_array'][$this->prev_name . $key] = $value_for_email;
+                        $this->dto->email = $value_for_email;
                     } else {
                         // if processed one is already exists, set it to the message field.
-                        $this->processed_data['message'][$this->prev_name . $key] = $value_for_email;
-                        $this->processed_data['emails_array'][$this->prev_name . $key] = $value_for_email;
+                        $this->dto->message[$this->prev_name . $key] = $value_for_email;
                     }
+                    $this->dto->emails_array[$this->prev_name . $key] = $value_for_email;
                     // Names
                 } elseif (false !== stripos($key, "name")) {
                     // Bypass name collecting if it is set by attribute or it is on invisible fields.
@@ -336,20 +363,20 @@ class GetFieldsAny
                     preg_match("/(name.?(nick|user)|(nick|user).?name)/", $key, $match_nickname);
 
                     if (count($match_forename) > 1) {
-                        $this->processed_data['nickname']['first'] = $value;
+                        $this->dto->nickname_first = $value;
                     } elseif (count($match_surname) > 1) {
-                        $this->processed_data['nickname']['last'] = $value;
+                        $this->dto->nickname_last = $value;
                     } elseif (count($match_nickname) > 1) {
-                        $this->processed_data['nickname']['nick'] = $value;
+                        $this->dto->nickname_nick = $value;
                     } else {
-                        $this->processed_data['message'][$this->prev_name . $key] = $value;
+                        $this->dto->message[$this->prev_name . $key] = $value;
                     }
                     // Subject
-                } elseif ($this->processed_data['subject'] === '' && false !== stripos($key, "subject")) {
-                    $this->processed_data['subject'] = $value;
+                } elseif ($this->dto->subject === '' && false !== stripos($key, "subject")) {
+                    $this->dto->subject = $value;
                     // Message
                 } else {
-                    $this->processed_data['message'][$this->prev_name . $key] = $value;
+                    $this->dto->message[$this->prev_name . $key] = $value;
                 }
             } elseif ( ! is_object($value)) {
                 /*
@@ -362,7 +389,7 @@ class GetFieldsAny
                 $prev_name_original = $this->prev_name;
                 $this->prev_name    = ($this->prev_name === '' ? $key . '_' : $this->prev_name . $key . '_');
 
-                $this->process($value);
+                $this->processRecursive($value);
 
                 $this->prev_name = $prev_name_original;
             }
@@ -434,7 +461,7 @@ class GetFieldsAny
         // get from Cookies::
         $from_cookies = Cookie::getVisibleFields();
         // get from Post:: and base64 decode the value
-        $from_post = @base64_decode(Post::get('apbct_visible_fields'));
+        $from_post = @base64_decode(Post::getString('apbct_visible_fields'));
 
         $current_fields_collection = self::getFieldsDataForCurrentRequest($from_cookies, $from_post);
 
@@ -463,7 +490,7 @@ class GetFieldsAny
                         $post_fields_to_check['action'] === 'fluentform_submit'
                     ) {
                         $fluent_forms_out = array();
-                        $fluent_forms_fields = urldecode($post_fields_to_check['data']);
+                        $fluent_forms_fields = urldecode(TT::toString($post_fields_to_check['data']));
                         parse_str($fluent_forms_fields, $fluent_forms_fields_array);
                         $fields_array = explode(' ', $fields_string);
                         foreach ( $fields_array as $visible_field_slug ) {

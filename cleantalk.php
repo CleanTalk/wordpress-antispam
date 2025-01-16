@@ -4,16 +4,18 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.47
+  Version: 6.48
   Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
   Domain Path: /i18n
 */
 
+use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
 use Cleantalk\ApbctWP\Antispam\EmailEncoder;
+use Cleantalk\ApbctWP\Antispam\ForceProtection;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\CleantalkRealPerson;
 use Cleantalk\ApbctWP\CleantalkUpgrader;
@@ -193,6 +195,11 @@ if (
         // Email Encoder ajax handlers
         EmailEncoder::getInstance()->registerAjaxRoute();
     }
+
+    // Force protection to avoid spam from bots without javascript
+    if ($apbct->settings['forms__force_protection']) {
+        ForceProtection::getInstance();
+    }
 }
 
 if ( $apbct->settings['comments__the_real_person'] ) {
@@ -232,6 +239,9 @@ add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_be
 
 // Checking email exist POST
 add_action('wp_ajax_nopriv_apbct_email_check_exist_post', 'apbct_email_check_exist_post');
+
+// Force Protection check bot
+add_action('wp_ajax_nopriv_apbct_force_protection_check_bot', 'apbct_force_protection_check_bot');
 
 // Force ajax set important parameters (apbct_timestamp etc)
 add_action('wp_ajax_nopriv_apbct_set_important_parameters', 'apbct_cookie');
@@ -305,6 +315,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
      && empty(Get::get('ct_checkjs_search_default')) // Search form fix
      && empty(Post::get('action')) //bbPress
      && ! \Cleantalk\Variables\Server::inUri('/favicon.ico') // /favicon request rewritten cookies fix
+     && ! apbct__is_wp_rocket_preloader_request()
 ) {
     if ( $apbct->data['cookies_type'] !== 'alternative' ) {
         if ( !$apbct->settings['forms__search_test'] && !Get::get('s') ) { //skip cookie set for search form redirect page
@@ -356,6 +367,9 @@ if ( $apbct->settings['forms__general_contact_forms_test'] == 1
 
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-integrations-by-hook.php');
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-integrations-by-class.php');
+
+// Form protection by shortcode
+new ProtectByShortcode();
 
 // WP Delicious integration
 add_filter('delicious_recipes_process_registration_errors', 'apbct_wp_delicious', 10, 4);
@@ -651,7 +665,7 @@ if ( ! defined('WP_ALLOW_MULTISITE') || (defined('WP_ALLOW_MULTISITE') && WP_ALL
 }
 
 // After plugin loaded - to load locale as described in manual
-add_action('plugins_loaded', 'apbct_plugin_loaded');
+add_action('init', 'apbct_plugin_loaded');
 
 if ( ! empty($apbct->settings['data__use_ajax']) &&
      ! apbct_is_in_uri('.xml') &&
@@ -866,14 +880,16 @@ function apbct_sfw__check()
     // Checking if database was outdated
     $is_sfw_outdated = $apbct->stats['sfw']['last_update_time'] + $apbct->stats['sfw']['update_period'] * 3 < time();
 
-    $apbct->errorToggle(
-        $is_sfw_outdated,
-        'sfw_outdated',
-        esc_html__(
-            'SpamFireWall database is outdated. Please, try to synchronize with the cloud.',
-            'cleantalk-spam-protect'
-        )
-    );
+    add_action('init', function () use ($apbct, $is_sfw_outdated) {
+        $apbct->errorToggle(
+            $is_sfw_outdated,
+            'sfw_outdated',
+            esc_html__(
+                'SpamFireWall database is outdated. Please, try to synchronize with the cloud.',
+                'cleantalk-spam-protect'
+            )
+        );
+    });
 
     if ( $is_sfw_outdated ) {
         return;
@@ -886,6 +902,7 @@ function apbct_sfw__check()
     $sfw_tables_names = SFW::getSFWTablesNames();
 
     if (!$sfw_tables_names) {
+        add_action('init', function () use ($apbct) {
             $apbct->errorAdd(
                 'sfw',
                 esc_html__(
@@ -893,7 +910,8 @@ function apbct_sfw__check()
                     'cleantalk-spam-protect'
                 )
             );
-            return;
+        });
+        return;
     }
 
     $firewall->loadFwModule(
@@ -1448,7 +1466,22 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
 
     //Reset keys
     $urls          = array_values(array_unique($urls));
-    $results       = Helper::httpMultiRequest($urls, $apbct->fw_stats['updating_folder']);
+
+    $results = array();
+    $batch_size = 10;
+    $total_urls = count($urls);
+    $batches = ceil($total_urls / $batch_size);
+
+    for ($i = 0; $i < $batches; $i++) {
+        $batch_urls = array_slice($urls, $i * $batch_size, $batch_size);
+        if (!empty($batch_urls)) {
+            $http_results = Helper::httpMultiRequest($batch_urls, $apbct->fw_stats['updating_folder']);
+            if (is_array($http_results)) {
+                $results = array_merge($results, $http_results);
+            }
+        }
+    }
+
     $results       = TT::toArray($results);
     $count_urls    = count($urls);
     $count_results = count($results);
@@ -2282,11 +2315,9 @@ function apbct_rc__insert_auth_key($key, $plugin)
                         $data['notice_show']      = TT::getArrayValueAsInt($result, 'show_notice');
                         $data['notice_renew']     = TT::getArrayValueAsInt($result, 'renew');
                         $data['notice_trial']     = TT::getArrayValueAsInt($result, 'trial');
-                        $data['auto_update_app']  = TT::getArrayValueAsInt($result, 'show_auto_update_notice');
                         $data['service_id']       = TT::getArrayValueAsInt($result, 'service_id');
                         $data['user_id']          = TT::getArrayValueAsInt($result, 'user_id');
                         $data['moderate']         = TT::getArrayValueAsInt($result, 'moderate');
-                        $data['auto_update_app '] = TT::getArrayValueAsInt($result, 'auto_update_app');
                         $data['license_trial']    = TT::getArrayValueAsInt($result, 'license_trial');
                         $data['account_name_ob']  = TT::getArrayValueAsString($result, 'account_name_ob');
                         $data['key_is_ok']        = true;
@@ -2668,7 +2699,6 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $apbct->data['notice_renew']        = TT::getArrayValueAsInt($result, 'renew', 0);
         $apbct->data['notice_trial']        = TT::getArrayValueAsInt($result, 'trial', 0);
         $apbct->data['notice_review']       = TT::getArrayValueAsInt($result, 'show_review', 0);
-        $apbct->data['notice_auto_update']  = TT::getArrayValueAsInt($result, 'show_auto_update_notice', 0);
 
         // Other
         $apbct->data['service_id']          = TT::getArrayValueAsInt($result, 'service_id', 0);
@@ -2677,7 +2707,6 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $apbct->data['moderate']            = TT::getArrayValueAsInt($result, 'moderate', 0);
         $apbct->data['ip_license']          = TT::getArrayValueAsInt($result, 'ip_license', 0);
         $apbct->data['spam_count']          = TT::getArrayValueAsInt($result, 'spam_count', 0);
-        $apbct->data['auto_update']         = TT::getArrayValueAsInt($result, 'auto_update_app', 0);
         $apbct->data['user_token']          = TT::getArrayValueAsString($result, 'user_token', '');
         $apbct->data['license_trial']       = TT::getArrayValueAsInt($result, 'license_trial', 0);
         $apbct->data['account_name_ob']     = TT::getArrayValueAsString($result, 'account_name_ob', '');

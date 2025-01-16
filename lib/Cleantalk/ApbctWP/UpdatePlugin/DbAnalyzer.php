@@ -64,21 +64,24 @@ class DbAnalyzer
             // WordPress Multisite
             if ($this->multisite) {
                 $sites = get_sites();
+                if (is_array($sites)) {
+                    foreach ($sites as $site) {
+                        if ($site instanceof \WP_Site) {
+                            foreach ($schema_table_keys as $table_key) {
+                                switch_to_blog(TT::toInt($site->blog_id));
+                                $table_name = $wpdb->prefix . $this->dbSchemaPrefix . $table_key;
+                                $result = $this->showTables($table_name);
 
-                foreach ($sites as $site) {
-                    foreach ($schema_table_keys as $table_key) {
-                        switch_to_blog($site->blog_id);
-                        $table_name = $wpdb->prefix . $this->dbSchemaPrefix . $table_key;
-                        $result = $this->showTables($table_name);
-
-                        if (is_null($result)) {
-                            $tablesNotExists[] = $table_name;
-                        } else {
-                            $tablesExists[] = $table_name;
+                                if (is_null($result)) {
+                                    $tablesNotExists[] = $table_name;
+                                } else {
+                                    $tablesExists[] = $table_name;
+                                }
+                            }
                         }
                     }
+                    switch_to_blog(get_main_site_id());
                 }
-                switch_to_blog(get_main_site_id());
             } else {
                 foreach ($schema_table_keys as $table_key) {
                     $table_name = $wpdb->prefix . $this->dbSchemaPrefix . $table_key;

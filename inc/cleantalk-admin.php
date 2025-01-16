@@ -298,6 +298,19 @@ function apbct_admin__init()
 {
     global $apbct, $spbc;
 
+    // TODO: need to find another way to be compatible with WP Rocket and WPEngine
+    if (defined('WP_ROCKET_VERSION') &&
+        Server::get('IS_WPE') &&
+        strpos(TT::toString(Server::get('REQUEST_URI')), 'wp-admin/admin-ajax.php') === false
+    ) {
+        ob_start(function ($buffer) {
+            $pattern = '/<script\s+type="rocketlazyloadscript"[^>]*cleantalk-admin\.min\.js[^>]*>/i';
+
+            return preg_replace($pattern, '<script src="' . APBCT_JS_ASSETS_PATH . '/cleantalk-admin.min.js' .
+                '?ver=' . APBCT_VERSION . '" id="ct_admin_common-js"></script>', $buffer);
+        });
+    }
+
     // Admin bar
     $apbct->admin_bar_enabled = $apbct->settings['admin_bar__show'] &&
                                 current_user_can('activate_plugins');
@@ -323,7 +336,7 @@ function apbct_admin__init()
     }
 
     // Getting dashboard widget statistics
-    if ( TT::toInt(Post::get('ct_brief_refresh')) === 1 ) {
+    if ( Post::getInt('ct_brief_refresh') === 1 ) {
         cleantalk_get_brief_data($apbct->api_key);
     }
 
@@ -526,7 +539,8 @@ function apbct_admin__enqueue_scripts($hook)
         'notice_when_deleting_user_text' => esc_html__('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.', 'cleantalk-spam-protect'),
         'deactivation_banner_text' => esc_html__('If you have any difficulties using the CleanTalk Anti-Spam Plugin, please contact our Technical Support here:<br>https://wordpress.org/support/plugin/cleantalk-spam-protect', 'cleantalk-spam-protect'),
         'deactivation_banner_is_needed' => (!$apbct->data['wl_mode_enabled'] && !$apbct->settings['misc__complete_deactivation']) ? 1 : 0,
-        'apbctNoticeDismissSuccess'       => esc_html__('Thank you for the review! We strive to make our Anti-Spam plugin better every day.', 'cleantalk-spam-protect')
+        'apbctNoticeDismissSuccess'       => esc_html__('Thank you for the review! We strive to make our Anti-Spam plugin better every day.', 'cleantalk-spam-protect'),
+        'apbctNoticeForceProtectionOn'       => esc_html__('This option affects the reflection of the page by checking the user and adds a cookie "apbct_force_protection_check", which serves as an indicator of successful or unsuccessful verification. If the check is successful, it will no longer run.', 'cleantalk-spam-protect'),
     ));
 
     // DASHBOARD page JavaScript and CSS
@@ -1322,9 +1336,9 @@ function apbct_comment__send_feedback(
         apbct__check_admin_ajax_request();
     }
 
-    $comment_id     = Post::get('comment_id') ? TT::toInt(Post::get('comment_id')) : $comment_id;
-    $comment_status = Post::get('comment_status') ? TT::toString(Post::get('comment_status')) : $comment_status;
-    $change_status  = Post::get('change_status') ? TT::toBool(Post::get('change_status')) : $change_status;
+    $comment_id     = Post::get('comment_id') ? Post::getInt('comment_id') : $comment_id;
+    $comment_status = Post::get('comment_status') ? Post::getString('comment_status') : $comment_status;
+    $change_status  = Post::get('change_status') ? Post::getBool('change_status') : $change_status;
 
     // If enter params is empty exit
     if ( ! $comment_id || ! $comment_status ) {
@@ -1432,8 +1446,8 @@ function apbct_user__send_feedback($user_id = null, $status = null, $direct_call
     apbct__check_admin_ajax_request();
 
     if ( ! $direct_call ) {
-        $user_id = TT::toInt(Post::get('user_id'));
-        $status  = TT::toString(Post::get('status', null, 'word'));
+        $user_id = Post::getInt('user_id');
+        $status  = Post::getString('status', null, 'word');
     }
 
     $hash = isset($user_id) ? get_user_meta($user_id, 'ct_hash', true) : null;
@@ -1538,7 +1552,7 @@ function apbct_action_adjust_change()
 
     if (in_array(Post::get('adjust'), array_keys(AdjustToEnvironmentHandler::SET_OF_ADJUST))) {
         try {
-            $adjust = TT::toString(Post::get('adjust'));
+            $adjust = Post::getString('adjust');
             $adjust_class = AdjustToEnvironmentHandler::SET_OF_ADJUST[$adjust];
             $adjust_handler = new AdjustToEnvironmentHandler();
             $adjust_handler->handleOne($adjust_class);
@@ -1555,8 +1569,8 @@ function apbct_action_adjust_reverse()
 {
     check_ajax_referer('ct_secret_nonce');
 
-    if (in_array(TT::toString(Post::get('adjust')), array_keys(AdjustToEnvironmentHandler::SET_OF_ADJUST))) {
-        $adjust = TT::toString(Post::get('adjust'));
+    if (in_array(Post::getString('adjust'), array_keys(AdjustToEnvironmentHandler::SET_OF_ADJUST))) {
+        $adjust = Post::getString('adjust');
         try {
             $adjust_class = AdjustToEnvironmentHandler::SET_OF_ADJUST[$adjust];
             $adjust_handler = new AdjustToEnvironmentHandler();

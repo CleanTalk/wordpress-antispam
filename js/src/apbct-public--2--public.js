@@ -986,6 +986,27 @@ function apbct_ready() {
 
     // Set important paramaters via ajax if problematic cache solutions found
     apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
+
+    // Checking that the bot detector has loaded and received the event token for Anti-Crawler
+    if (ctPublic.settings__sfw__anti_crawler) {
+        checkBotDetectorExist();
+    }
+}
+
+/**
+ * Checking that the bot detector has loaded and received the event token
+ */
+function checkBotDetectorExist() {
+    if (ctPublic.settings__data__bot_detector_enabled) {
+        const botDetectorIntervalSearch = setInterval(() => {
+            let botDetectorEventToken = localStorage.bot_detector_event_token ? true : false;
+
+            if (botDetectorEventToken) {
+                ctSetCookie('apbct_bot_detector_exist', '1', '3600');
+                clearInterval(botDetectorIntervalSearch);
+            }
+        }, 500);
+    }
 }
 
 /**
@@ -1434,7 +1455,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 selectableEmail.title = 'Click to select the whole data';
                 // add email to the first node
                 if (firstNode) {
-                    firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML + '.';
+                    firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML;
                     firstNode.setAttribute('style', 'flex-direction: row;');
                 }
                 // remove animation
@@ -1602,10 +1623,7 @@ function getJavascriptClientData(commonCookies = []) {
         resultDataJson.apbct_pixel_url = ctPublic.pixel__url;
     }
 
-    if (
-        typeof (commonCookies) === 'object' &&
-        commonCookies !== []
-    ) {
+    if ( typeof (commonCookies) === 'object') {
         for (let i = 0; i < commonCookies.length; ++i) {
             if ( typeof (commonCookies[i][1]) === 'object' ) {
                 // this is for handle SFW cookies

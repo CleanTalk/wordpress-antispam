@@ -59,6 +59,7 @@ class State extends \Cleantalk\Common\State
         'forms__check_external'                    => 0,
         'forms__check_external__capture_buffer'    => 0,
         'forms__check_internal'                    => 0,
+        'forms__force_protection'                  => 0, // Pre-check iframe, internal and external forms
 
         // Comments and messages
         'comments__disable_comments__all'          => 0,
@@ -87,7 +88,7 @@ class State extends \Cleantalk\Common\State
         'data__bot_detector_enabled'               => 1,
         'data__pixel'                              => '3',
         'data__email_check_before_post'            => 1,
-        'data__email_check_exist_post'            => 0,
+        'data__email_check_exist_post'            => 1,
         'data__honeypot_field'                     => 1,
         'data__email_decoder'                      => 1,
         'data__email_decoder_buffer'               => 0,
@@ -161,7 +162,6 @@ class State extends \Cleantalk\Common\State
         'moderate_ip'                    => 0,
         'ip_license'                     => 0,
         'spam_count'                     => 0,
-        'auto_update'                    => 0,
         'user_token'                     => '', // User token for auto login into spam statistics
         'license_trial'                  => 0,
 
@@ -170,7 +170,6 @@ class State extends \Cleantalk\Common\State
         'notice_trial'                   => 0,
         'notice_renew'                   => 0,
         'notice_review'                  => 0,
-        'notice_auto_update'             => 0,
         'notice_incompatibility'         => array(),
         'notice_email_decoder_changed'   => 0,
 
@@ -267,8 +266,7 @@ class State extends \Cleantalk\Common\State
         'valid'       => 0,
         'user_token'  => '',
         'service_id'  => 0,
-        'user_id'  => 0,
-        'auto_update' => 0,
+        'user_id'     => 0,
     );
 
     /**
@@ -602,10 +600,11 @@ class State extends \Cleantalk\Common\State
                 $this->data['cookies_type'] = 'native';
                 break;
             case '2':
+                $this->data['cookies_type'] = 'alternative';
+                break;
             case '3':
                 $this->data['cookies_type'] =
-                    ( $this->settings['data__set_cookies'] == 3 && $this->isServerCacheDetected() ) ||
-                    $this->settings['data__set_cookies'] == 2
+                    ( $this->settings['data__set_cookies'] == 3 && $this->isAltSessionsRequired() )
                         ? 'alternative'
                         : 'none';
                 break;
@@ -951,6 +950,27 @@ class State extends \Cleantalk\Common\State
         return
             isset($headers['X-Varnish']) || //Set alt cookies if varnish is installed
             defined('SiteGround_Optimizer\VERSION'); //Set alt cookies if sg optimizer is installed
+    }
+
+    /**
+    * Do we need to use alternative sessions in auto mode of cookies type
+    * @param bool $get_reason Return reason of alt sessions requirement
+    * @return bool|string
+    */
+    public function isAltSessionsRequired($get_reason = false)
+    {
+        $result = false;
+
+        if ( $this->isServerCacheDetected() ) {
+            $result = 'server_cache_detected';
+        }
+
+        //moosend plugin requires alt sessions https://doboard.com/1/task/13735
+        if (apbct_is_plugin_active('moosend-email-marketing/index.php')) {
+            $result = 'plugin_active__moosend-email-marketing';
+        }
+
+        return $get_reason ? $result : $result !== false;
     }
 
     /**

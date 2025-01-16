@@ -73,8 +73,8 @@ class RemoteCalls
     {
         global $apbct;
 
-        $action = strtolower(Request::get('spbc_remote_call_action'));
-        $token  = strtolower(Request::get('spbc_remote_call_token'));
+        $action = strtolower(Request::getString('spbc_remote_call_action'));
+        $token  = strtolower(Request::getString('spbc_remote_call_token'));
 
         if ( isset($apbct->remote_calls[$action]) ) {
             $cooldown = isset($apbct->remote_calls[$action]['cooldown']) ? $apbct->remote_calls[$action]['cooldown'] : self::COOLDOWN;
@@ -108,12 +108,14 @@ class RemoteCalls
                     if ( method_exists(__CLASS__, $action) ) {
                         // Delay before perform action;
                         if ( Request::get('delay') ) {
-                            sleep((int)Request::get('delay'));
+                            $delay = Request::getInt('delay');
+                            $delay = max($delay, 0);
+                            sleep($delay);
                             $params = $_REQUEST;
                             unset($params['delay']);
 
                             return Helper::httpRequestRcToHost(
-                                Request::get('spbc_remote_action'),
+                                TT::toString(Request::get('spbc_remote_action')),
                                 $params,
                                 array('async'),
                                 false
@@ -228,18 +230,24 @@ class RemoteCalls
         /**
          * $template_id validation
          */
-        $template_id = Request::get('template_id');
+        $template_id = Request::getString('template_id');
 
-        if ( empty($template_id) || !is_string($template_id) ) {
+        if ( empty($template_id) ) {
             throw new \InvalidArgumentException($error_hat . 'bad param template_id');
         }
 
         /**
          * Run and validate API method service_template_get
          */
+        $template_from_api = API::methodServicesTemplatesGet($apbct->api_key);
+
+        if (!is_array($template_from_api)) {
+            throw new \InvalidArgumentException($error_hat . 'bad response from API');
+        }
+
         $options_template_data = apbct_validate_api_response__service_template_get(
             $template_id,
-            API::methodServicesTemplatesGet($apbct->api_key)
+            $template_from_api
         );
 
         return apbct_rc__service_template_set($template_id, $options_template_data, $apbct->api_key);
@@ -289,6 +297,12 @@ class RemoteCalls
     {
         global $apbct, $wpdb;
 
+        $out = array();
+
+        if (Get::get('run_send_feedback') === '1') {
+            $out['send_feedback'] = array('result' => ct_send_feedback() ? 'true' : 'false');
+        }
+
         $sfw_table_name = !empty($apbct->data['sfw_common_table_name']) ? $apbct->data['sfw_common_table_name'] : APBCT_TBL_FIREWALL_DATA;
 
         $out['sfw_data_base_size'] = $wpdb->get_var('SELECT COUNT(*) FROM ' . $sfw_table_name);
@@ -301,6 +315,9 @@ class RemoteCalls
         $out['queue']              = get_option('cleantalk_sfw_update_queue');
         $out['connection_reports'] = $apbct->getConnectionReports()->remoteCallOutput();
         $out['cache_plugins_detected'] = apbct_is_cache_plugins_exists(true);
+        if ($apbct->settings['data__set_cookies'] == 3 && $apbct->data['cookies_type'] === 'alternative') {
+            $out['alt_sessions_auto_state_reason'] = $apbct->isAltSessionsRequired(true);
+        }
 
         if ( APBCT_WPMS ) {
             $out['network_settings'] = $apbct->network_settings;
@@ -352,10 +369,10 @@ class RemoteCalls
         ) {
             $cron          = new Cron();
             $update_result = $cron->updateTask(
-                Request::get('task'),
-                Request::get('handler'),
-                (int)Request::get('period'),
-                (int)Request::get('first_call')
+                Request::getString('task'),
+                Request::getString('handler'),
+                Request::getInt('period'),
+                Request::getInt('first_call')
             );
         }
 
@@ -370,14 +387,14 @@ class RemoteCalls
             header("Content-Type: application/json");
         }
 
-        $key = trim(Request::get('api_key'));
+        $key = trim(Request::getString('api_key'));
         if ( ! apbct_api_key__is_correct($key) ) {
             die(json_encode(['FAIL' => ['error' => 'Api key is incorrect']]));
         }
 
         require_once APBCT_DIR_PATH . 'inc/cleantalk-settings.php';
 
-        $template_id = Request::get('apply_template_id');
+        $template_id = TT::toString(Request::get('apply_template_id'));
         if ( ! empty($template_id) ) {
             $templates = CleantalkSettingsTemplates::getOptionsTemplate($key);
             if ( ! empty($templates) ) {
@@ -412,8 +429,8 @@ class RemoteCalls
 
     public static function action__rest_check() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        $nonce = Post::get('_rest_nonce');
-        if ( ! $nonce ) {
+        $nonce = Post::getString('_rest_nonce');
+        if ( empty($nonce) ) {
             throw new \Exception('The nonce is not provided');
         }
         $request = new \WP_REST_Request('POST', '/cleantalk-antispam/v1/apbct_rest_check');
@@ -530,7 +547,7 @@ class RemoteCalls
             return json_encode(array('error' => 'No nonce provided'));
         }
 
-        $nonce_prev = $_POST['nonce_prev'];
+        $nonce_prev = Post::getString(['nonce_prev']);
         $nonce_name = apbct_settings__get_ajax_type() === 'rest'
             ? 'wp_rest'
             : 'ct_secret_stuff';

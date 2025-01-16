@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\DTO\GetFieldsAnyDTO;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Honeypot;
@@ -390,6 +391,15 @@ function ct_woocommerce_checkout_check_from_rest($order)
             if ( $apbct->settings['data__wc_store_blocked_orders'] ) {
                 apbct_woocommerce__store_blocked_order();
             }
+
+            if ( $order->get_status() === 'checkout-draft' ) {
+                try {
+                    $order->delete(true);
+                } catch (Exception $e) {
+                    error_log('Error deleting order: ' . $e->getMessage());
+                }
+            }
+
             if ( class_exists('\Automattic\WooCommerce\StoreApi\Exceptions\RouteException') ) {
                 /** @psalm-suppress InvalidThrow */
                 throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
@@ -2025,17 +2035,17 @@ function apbct_form__ninjaForms__testSpam()
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
 
     try {
-        $params = apbct_form__ninjaForms__collect_fields_new();
+        $gfa_dto = apbct_form__ninjaForms__collect_fields_new();
     } catch (\Exception $_e) {
         // It is possible here check the reason if the new way collecting fields is not available.
-        $params = apbct_form__ninjaForms__collect_fields_old();
+        $gfa_dto = apbct_form__ninjaForms__collect_fields_old();
     }
 
-    $sender_email    = isset($params['email']) ? $params['email'] : '';
-    $sender_emails_array = isset($params['emails_array']) ? $params['emails_array'] : '';
-    $sender_nickname = isset($params['nickname']) ? $params['nickname'] : '';
-    $subject         = isset($params['subject']) ? $params['subject'] : '';
-    $message         = isset($params['message']) ? $params['message'] : array();
+    $sender_email           = $gfa_dto->email;
+    $sender_emails_array    = $gfa_dto->emails_array;
+    $sender_nickname        = $gfa_dto->nickname;
+    $subject                = $gfa_dto->subject;
+    $message                = $gfa_dto->message;
     if ( $subject != '' ) {
         $message = array_merge(array('subject' => $subject), $message);
     }
@@ -2096,7 +2106,7 @@ function apbct_form__ninjaForms__testSpam()
 /**
  * Old way to collecting NF fields data.
  *
- * @return array
+ * @return GetFieldsAnyDTO
  */
 function apbct_form__ninjaForms__collect_fields_old()
 {
@@ -2106,7 +2116,7 @@ function apbct_form__ninjaForms__collect_fields_old()
     $input_array = apply_filters('apbct__filter_post', $_POST);
 
     // Choosing between POST and GET
-    return ct_gfa(
+    return ct_gfa_dto(
         Get::get('ninja_forms_ajax_submit') || Get::get('nf_ajax_submit') ? $_GET : $input_array
     );
 }
@@ -2114,7 +2124,7 @@ function apbct_form__ninjaForms__collect_fields_old()
 /**
  * New way to collecting NF fields data - try to get username and email.
  *
- * @return array
+ * @return GetFieldsAnyDTO
  * @throws Exception
  * @psalm-suppress UndefinedClass
  */
@@ -2160,17 +2170,17 @@ function apbct_form__ninjaForms__collect_fields_new()
                 $field_key = TT::toString($field_info['field_key']);
                 $field_type = TT::toString($field_info['field_type']);
                 $fields['nf-field-' . $field['id'] . '-' . $field_type] = $field['value'];
-                if ( stripos($field_key, 'name') !== false ) {
-                    $nickname = $field['value'];
+                if ( stripos($field_key, 'name') !== false && stripos($field_type, 'name') !== false ) {
+                    $nickname .= ' ' . $field['value'];
                 }
-                if ( stripos($field_key, 'email') !== false ) {
+                if ( stripos($field_key, 'email') !== false && $field_type === 'email' ) {
                     $email = $field['value'];
                 }
             }
         }
     }
 
-    return ct_gfa($fields, $email, $nickname);
+    return ct_gfa_dto($fields, $email, $nickname);
 }
 
 /**
