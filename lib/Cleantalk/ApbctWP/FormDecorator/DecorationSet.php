@@ -72,6 +72,7 @@ class DecorationSet
             <div id="%HEADER_CONTENT_ID%" class="%HEADER_CONTENT_CLASS%">
                 %HEADER_SVG%<span id="%HEADER_TEXT_ID%" class="%HEADER_TEXT_CLASS%">%HEADER_TEXT%</span>
             </div>
+            <span class="apbct_form_decoration--signature">APBCT</span>
         </div>
         ';
 
