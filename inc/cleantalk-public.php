@@ -1308,13 +1308,45 @@ function apbct_enqueue_and_localize_public_scripts()
     $in_footer = defined('CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER') && CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER;
 
     // Different JS params
-    wp_enqueue_script(
-        'ct_public_functions',
-        APBCT_URL_PATH . '/js/apbct-public-bundle.min.js',
-        array(),
-        APBCT_VERSION,
-        $in_footer
-    );
+    if (!$apbct->settings['forms__check_external'] && !$apbct->settings['forms__check_internal']) {
+        wp_enqueue_script(
+            'ct_public_functions',
+            APBCT_URL_PATH . '/js/apbct-public-bundle.min.js',
+            array(),
+            APBCT_VERSION,
+            $in_footer
+        );
+    }
+
+    if ($apbct->settings['forms__check_external'] && !$apbct->settings['forms__check_internal']) {
+        wp_enqueue_script(
+            'ct_public_functions-external_forms',
+            APBCT_URL_PATH . '/js/apbct-public-bundle_ext-protection.min.js',
+            array(),
+            APBCT_VERSION,
+            $in_footer
+        );
+    }
+
+    if ($apbct->settings['forms__check_internal'] && !$apbct->settings['forms__check_external']) {
+        wp_enqueue_script(
+            'ct_public_functions-internal_forms',
+            APBCT_URL_PATH . '/js/apbct-public-bundle_int-protection.min.js',
+            array(),
+            APBCT_VERSION,
+            $in_footer
+        );
+    }
+
+    if ($apbct->settings['forms__check_external'] && $apbct->settings['forms__check_internal']) {
+        wp_enqueue_script(
+            'ct_public_functions',
+            APBCT_URL_PATH . '/js/apbct-public-bundle_full-protection.min.js',
+            array(),
+            APBCT_VERSION,
+            $in_footer
+        );
+    }
 
     // Bot detector
     if ( $apbct->settings['data__bot_detector_enabled'] && ! apbct_bot_detector_scripts_exclusion()) {
@@ -1327,26 +1359,6 @@ function apbct_enqueue_and_localize_public_scripts()
                 'in_footer' => $in_footer,
                 'strategy' => 'defer'
                 )
-        );
-    }
-
-    if ($apbct->settings['forms__check_external']) {
-        wp_enqueue_script(
-            'ct_public_functions-external_forms',
-            APBCT_URL_PATH . '/js/apbct-public--5--external-forms.min.js',
-            array(),
-            APBCT_VERSION,
-            $in_footer
-        );
-    }
-
-    if ($apbct->settings['forms__check_internal']) {
-        wp_enqueue_script(
-            'ct_public_functions-internal_forms',
-            APBCT_URL_PATH . '/js/apbct-public--6--internal-forms.min.js',
-            array(),
-            APBCT_VERSION,
-            $in_footer
         );
     }
 
