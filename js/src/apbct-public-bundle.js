@@ -1393,6 +1393,7 @@ function ctSetCookie( cookies, value, expires ) {
         'ct_sfw_passed',
         'wordpress_apbct_antibot',
         'apbct_anticrawler_passed',
+        'apbct_bot_detector_exist',
         'apbct_antiflood_passed',
         'apbct_email_encoder_passed',
     ];
@@ -1413,9 +1414,10 @@ function ctSetCookie( cookies, value, expires ) {
             if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
                 forcedAltCookiesSet.push(item);
             } else {
-                apbctLocalStorage.set(item[0], encodeURIComponent(item[1]));
+                apbctLocalStorage.set(item[0], item[1]);
             }
         });
+
         // if cookies from list found use alt cookies for this selection set
         if ( forcedAltCookiesSet.length > 0 ) {
             ctSetAlternativeCookie(forcedAltCookiesSet);
@@ -1810,6 +1812,138 @@ function apbctCancelAutocomplete(element) {
     element.dispatchEvent(new window.CustomEvent('onautocomplete', {
         bubbles: true, cancelable: false, detail: null,
     }));
+}
+
+if (ctPublic.data__key_is_ok) {
+    if (document.readyState !== 'loading') {
+        apbctForceProtect();
+    } else {
+        apbct_attach_event_handler(document, 'DOMContentLoaded', apbctForceProtect);
+    }
+}
+
+/**
+ * Force protection
+ */
+function apbctForceProtect() {
+    new ApbctForceProtection();
+}
+
+/**
+ * ApbctForceProtection
+ */
+class ApbctForceProtection {
+    wrappers = [];
+
+    /**
+     * Constructor
+     */
+    constructor() {
+        this.wrappers = this.findWrappers();
+
+        if (this.wrappers.length < 1) {
+            return;
+        }
+
+        this.checkBot();
+    }
+
+    /**
+     * Find wrappers
+     * @return {HTMLElement[]}
+     */
+    findWrappers() {
+        return document.querySelectorAll('div.ct-encoded-form-wrapper');
+    }
+
+    /**
+     * Check bot
+     * @return {void}
+     */
+    checkBot() {
+        let data = {
+            event_javascript_data: getJavascriptClientData(),
+            post_url: document.location.href,
+            referrer: document.referrer,
+        };
+
+        if (ctPublicFunctions.data__ajax_type === 'rest') {
+            apbct_public_sendREST('force_protection_check_bot', {
+                data,
+                method: 'POST',
+                callback: (result) => this.checkBotCallback(result),
+            });
+        } else if (ctPublicFunctions.data__ajax_type === 'admin_ajax') {
+            data.action = 'apbct_force_protection_check_bot';
+            apbct_public_sendAJAX(data, {callback: (result) => this.checkBotCallback(result)});
+        }
+    }
+
+    /**
+     * Check bot callback
+     * @param {Object} result
+     * @return {void}
+     */
+    checkBotCallback(result) {
+        // if error occurred
+        if (result.data && result.data.status && result.data.status !== 200) {
+            console.log('ApbctForceProtection connection error occurred');
+            this.decodeForms();
+            return;
+        }
+
+        if (typeof result === 'string') {
+            try {
+                result = JSON.parse(result);
+            } catch (e) {
+                console.log('ApbctForceProtection decodeForms error', e);
+                this.decodeForms();
+                return;
+            }
+        }
+
+        if (typeof result === 'object' && result.allow && result.allow === 1) {
+            this.decodeForms();
+        } else {
+            this.showMessageForBot(result.message);
+        }
+    }
+
+    /**
+     * Decode forms
+     * @return {void}
+     */
+    decodeForms() {
+        let form;
+
+        this.wrappers.forEach((wrapper) => {
+            form = wrapper.querySelector('div.ct-encoded-form').dataset.encodedForm;
+
+            try {
+                if (form && typeof(form) == 'string') {
+                    wrapper.outerHTML = atob(form);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        });
+    }
+
+    /**
+     * Show message for bot
+     * @param {string} message
+     * @return {void}
+     */
+    showMessageForBot(message) {
+        let form;
+
+        this.wrappers.forEach((wrapper) => {
+            form = wrapper.querySelector('div.ct-encoded-form').dataset.encodedForm;
+            if (form) {
+                wrapper.outerHTML = '<div class="ct-encoded-form-forbidden">' + message + '</div>';
+            }
+        });
+    }
 }
 
 /**
@@ -2886,6 +3020,27 @@ function apbct_ready() {
 
     // Set important paramaters via ajax if problematic cache solutions found
     apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
+
+    // Checking that the bot detector has loaded and received the event token for Anti-Crawler
+    if (ctPublic.settings__sfw__anti_crawler) {
+        checkBotDetectorExist();
+    }
+}
+
+/**
+ * Checking that the bot detector has loaded and received the event token
+ */
+function checkBotDetectorExist() {
+    if (ctPublic.settings__data__bot_detector_enabled) {
+        const botDetectorIntervalSearch = setInterval(() => {
+            let botDetectorEventToken = localStorage.bot_detector_event_token ? true : false;
+
+            if (botDetectorEventToken) {
+                ctSetCookie('apbct_bot_detector_exist', '1', '3600');
+                clearInterval(botDetectorIntervalSearch);
+            }
+        }, 500);
+    }
 }
 
 /**
@@ -3334,7 +3489,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 selectableEmail.title = 'Click to select the whole data';
                 // add email to the first node
                 if (firstNode) {
-                    firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML + '.';
+                    firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML;
                     firstNode.setAttribute('style', 'flex-direction: row;');
                 }
                 // remove animation
@@ -3502,10 +3657,7 @@ function getJavascriptClientData(commonCookies = []) {
         resultDataJson.apbct_pixel_url = ctPublic.pixel__url;
     }
 
-    if (
-        typeof (commonCookies) === 'object' &&
-        commonCookies !== []
-    ) {
+    if ( typeof (commonCookies) === 'object') {
         for (let i = 0; i < commonCookies.length; ++i) {
             if ( typeof (commonCookies[i][1]) === 'object' ) {
                 // this is for handle SFW cookies

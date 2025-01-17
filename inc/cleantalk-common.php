@@ -7,6 +7,7 @@ use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\DB;
+use Cleantalk\ApbctWP\DTO\GetFieldsAnyDTO;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
@@ -739,6 +740,14 @@ function apbct_email_check_exist_post()
 }
 
 /**
+ * Force protection check bot
+ */
+function apbct_force_protection_check_bot()
+{
+    die(\Cleantalk\ApbctWP\Antispam\ForceProtection::getInstance()->checkBot());
+}
+
+/**
  * Get ct_get_checkjs_value
  *
  * @param bool $random_key
@@ -1094,7 +1103,7 @@ function ct_delete_spam_comments()
  * @param string|array $nickname
  *
  * @return array
- * @deprecated Use ct_gfa()
+ * @deprecated Use ct_gfa_dto() to work with DTO object
  */
 function ct_get_fields_any($arr, $email = '', $nickname = '')
 {
@@ -1110,12 +1119,13 @@ function ct_get_fields_any($arr, $email = '', $nickname = '')
 }
 
 /**
- * Get data from an ARRAY recursively
+ * Get data as assoc array from an ARRAY recursively
  *
- * @param array $input_array
- * @param string $email
- * @param string $nickname
- *
+ * @see getFieldsAnyDTO to understand the structure of the result
+ * @param array $input_array maybe raw POST array or other preprocessed POST data.
+ * @param string $email email, rewriting result of process $input_array data
+ * @param string $nickname nickname, rewriting result of process $input_array data
+ * @deprecated since 6.48, use ct_gfa_dto() instead
  * @return array
  */
 function ct_gfa($input_array, $email = '', $nickname = '')
@@ -1125,30 +1135,21 @@ function ct_gfa($input_array, $email = '', $nickname = '')
     return $gfa->getFields($email, $nickname);
 }
 
-//New ct_get_fields_any_postdata
-function ct_get_fields_any_postdata($arr, $message = array())
+/**
+ * Get data as GetFieldsAnyDTO object from an ARRAY recursively
+ *
+ * @see getFieldsAnyDTO to understand the structure of the result
+ * @param array $input_array maybe raw POST array or other preprocessed POST data.
+ * @param string $email email, rewriting result of process $input_array data
+ * @param string $nickname nickname, rewriting result of process $input_array data
+ *
+ * @return GetFieldsAnyDTO
+ */
+function ct_gfa_dto($input_array, $email = '', $nickname = '')
 {
-    $skip_params = array(
-        'ipn_track_id', // PayPal IPN #
-        'txn_type', // PayPal transaction type
-        'payment_status', // PayPal payment status
-    );
+    $gfa = new GetFieldsAny($input_array);
 
-    foreach ( $arr as $key => $value ) {
-        if ( ! is_array($value) ) {
-            if ( $value == '' ) {
-                continue;
-            }
-            if ( ! (in_array($key, $skip_params) || preg_match("/^ct_checkjs/", $key)) && $value != '' ) {
-                $message[$key] = $value;
-            }
-        } else {
-            $temp    = ct_get_fields_any_postdata($value);
-            $message = (count($temp) == 0 ? $message : array_merge($message, $temp));
-        }
-    }
-
-    return $message;
+    return $gfa->getFieldsDTO($email, $nickname);
 }
 
 /**

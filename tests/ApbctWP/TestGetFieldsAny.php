@@ -10,16 +10,18 @@ if( file_exists( 'inc/cleantalk-common.php' ) ) {
 	require_once 'inc/cleantalk-common.php';
 }
 
+use Cleantalk\ApbctWP\DTO\GetFieldsAnyDTO;
 use Cleantalk\ApbctWP\GetFieldsAny;
+use Cleantalk\ApbctWP\State;
 use PHPUnit\Framework\TestCase;
 
 /**
  * State class placeholder
  */
 global $apbct;
-$apbct = new class {
-	public $settings = array('data__set_cookies' => 1);
-};
+$apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
+$apbct->settings['data__set_cookies'] = 1;
+$apbct->saveSettings();
 
 class TestGetFieldsAny extends TestCase {
 
@@ -47,21 +49,28 @@ class TestGetFieldsAny extends TestCase {
 			'your-email' => 'good@cleantalk.org',
 			'your-subject' => 'Subject',
 			'your-message' => 'Your Message',
-			'ct_checkjs_cf7' => '150095430',
+			//'ct_checkjs_cf7' => '150095430',
 		);
 		$this->gfa = new GetFieldsAny( $this->post );
-
 	}
+
+    public function testEmptyDTO()
+    {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('No go!');
+        new GetFieldsAnyDTO(array());
+    }
 
 	public function testgetFields()
 	{
 		$result = $this->gfa->getFields();
 		$this->assertIsArray( $result );
-		$this->arrayHasKey( 'email', $result );
-		$this->arrayHasKey( 'nickname', $result );
-		$this->arrayHasKey( 'subject', $result );
-		$this->arrayHasKey( 'contact', $result );
-		$this->arrayHasKey( 'message', $result );
+		$this->assertArrayHasKey( 'email', $result );
+		$this->assertArrayHasKey( 'nickname', $result );
+		$this->assertArrayHasKey( 'subject', $result );
+		$this->assertArrayHasKey( 'contact', $result );
+		$this->assertArrayHasKey( 'message', $result );
+		$this->assertArrayHasKey( 'emails_array', $result );
 		$this->assertEquals($result['nickname'], $this->post['your-name']);
 		$this->assertEquals($result['email'], $this->post['your-email']);
 	}
@@ -70,13 +79,52 @@ class TestGetFieldsAny extends TestCase {
 	{
 		$result = $this->gfa->getFields( 'another_email@example.com', 'SuperbNickname' );
 		$this->assertIsArray( $result );
-		$this->arrayHasKey( 'email', $result );
-		$this->arrayHasKey( 'nickname', $result );
-		$this->arrayHasKey( 'subject', $result );
-		$this->arrayHasKey( 'contact', $result );
-		$this->arrayHasKey( 'message', $result );
+		$this->assertArrayHasKey( 'email', $result );
+		$this->assertArrayHasKey( 'nickname', $result );
+		$this->assertArrayHasKey( 'subject', $result );
+		$this->assertArrayHasKey( 'contact', $result );
+		$this->assertArrayHasKey( 'message', $result );
+        $this->assertArrayHasKey( 'emails_array', $result );
 		$this->assertEquals($result['nickname'],'SuperbNickname');
 		$this->assertEquals($result['email'], 'another_email@example.com');
 	}
+
+    public function testCTGFAStandaloneAsArrayResponse()
+    {
+        $result = ct_gfa($this->post);
+        $this->assertIsArray( $result );
+        $this->assertArrayHasKey( 'email', $result );
+        $this->assertArrayHasKey( 'nickname', $result );
+        $this->assertArrayHasKey( 'subject', $result );
+        $this->assertArrayHasKey( 'contact', $result );
+        $this->assertArrayHasKey( 'message', $result );
+        $this->assertArrayHasKey( 'emails_array', $result );
+        $this->assertEquals($this->post['your-name'], $result['nickname']);
+        $this->assertEquals($this->post['your-email'], $result['email']);
+        $this->assertEquals($this->post['your-message'], $result['message']['your-message']);
+        $this->assertEquals($this->post['your-subject'], $result['subject']);
+        $this->assertTrue($result['contact']);
+    }
+
+    public function testCTGFAStandaloneAsDTOResponse()
+    {
+        $result = ct_gfa_dto($this->post,'', '');
+        $this->assertIsObject( $result );
+        $this->assertInstanceOf(GetFieldsAnyDTO::class, $result);
+        $this->assertEquals($this->post['your-name'], $result->nickname);
+        $this->assertEquals($this->post['your-email'], $result->email);
+        $this->assertEquals($this->post['your-subject'], $result->subject);
+        $this->assertEquals($this->post['your-message'], $result->message['your-message']);
+    }
+
+    public function testIsNotContactForm()
+    {
+        $this->post['ct_checkjs_cf7'] = '150095430';
+        $result = ct_gfa_dto($this->post,'', '');
+        $this->assertIsObject( $result );
+        $this->assertInstanceOf(GetFieldsAnyDTO::class, $result);
+        $this->assertFalse($result->contact);
+    }
+
 
 }

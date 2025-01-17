@@ -16,7 +16,8 @@ class Cookie extends \Cleantalk\Variables\Cookie
         'wordpress_apbct_antibot',
         'apbct_anticrawler_passed',
         'apbct_antiflood_passed',
-        'apbct_email_encoder_passed'
+        'apbct_email_encoder_passed',
+        'apbct_bot_detector_exist'
     );
 
     /**

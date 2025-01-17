@@ -4,6 +4,7 @@ namespace Cleantalk\Variables;
 
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Validate;
+use Cleantalk\Common\TT;
 use Cleantalk\Templates\Singleton;
 
 /**
@@ -32,7 +33,7 @@ abstract class ServerVariables
      * @psalm-param (null|"hash"|"int"|"float"|"word"|"isUrl") $validation_filter
      * @param null|string $sanitize_filter
      * @psalm-param (null|"xss"|"int"|"url"|"word"|"cleanEmail") $sanitize_filter
-     *
+     * @deprecated Use getInt, getString, getBool, getArray instead
      * @return string|array|false
      */
     public static function get($name, $validation_filter = null, $sanitize_filter = null)
@@ -52,6 +53,75 @@ abstract class ServerVariables
     }
 
     /**
+     * @param $var_name
+     * @param $default
+     * @param $validation_filter
+     * @param $sanitize_filter
+     *
+     * @return string
+     */
+    public static function getString($var_name, $default = '', $validation_filter = null, $sanitize_filter = null)
+    {
+        return TT::toString(
+            static::get(
+                $var_name,
+                $validation_filter,
+                $sanitize_filter
+            ),
+            $default
+        );
+    }
+
+    /**
+     * @param $var_name
+     * @param $default
+     *
+     * @return int
+     */
+    public static function getInt($var_name, $default = 0)
+    {
+        return TT::toInt(
+            static::get(
+                $var_name
+            ),
+            $default
+        );
+    }
+
+    /**
+     * @param $var_name
+     * @param $default
+     *
+     * @return bool
+     */
+    public static function getBool($var_name, $default = false)
+    {
+        return TT::toBool(
+            static::get(
+                $var_name
+            ),
+            $default
+        );
+    }
+
+    /**
+     * @param $var_name
+     * @param $default
+     *
+     * @return array
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public static function getArray($var_name, $default = array())
+    {
+        return TT::toArray(
+            static::get(
+                $var_name
+            ),
+            $default
+        );
+    }
+
+    /**
      * BLUEPRINT
      * Gets given ${_SOMETHING} variable and save it to memory
      *
@@ -65,7 +135,7 @@ abstract class ServerVariables
      * Save variable to $this->variables[]
      *
      * @param string $name
-     * @param string $value
+     * @param mixed $value
      */
     protected function rememberVariable($name, $value)
     {
@@ -82,7 +152,7 @@ abstract class ServerVariables
      */
     public static function hasString($var, $string)
     {
-        return stripos(self::get($var), $string) !== false;
+        return stripos(self::getString($var), $string) !== false;
     }
 
     /**

@@ -10,6 +10,7 @@ function ctSetCookie( cookies, value, expires ) {
         'ct_sfw_passed',
         'wordpress_apbct_antibot',
         'apbct_anticrawler_passed',
+        'apbct_bot_detector_exist',
         'apbct_antiflood_passed',
         'apbct_email_encoder_passed',
     ];
@@ -30,9 +31,10 @@ function ctSetCookie( cookies, value, expires ) {
             if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
                 forcedAltCookiesSet.push(item);
             } else {
-                apbctLocalStorage.set(item[0], encodeURIComponent(item[1]));
+                apbctLocalStorage.set(item[0], item[1]);
             }
         });
+
         // if cookies from list found use alt cookies for this selection set
         if ( forcedAltCookiesSet.length > 0 ) {
             ctSetAlternativeCookie(forcedAltCookiesSet);
