@@ -35,17 +35,15 @@ function compress_all_js() {
 /**
  * Bundle Create
  */
-let srcPublicJs = [
-    'js/src/apbct-public--0*.js',
-    'js/src/apbct-public--1*.js',
-    'js/src/apbct-public--2*.js',
-    'js/src/apbct-public--3*.js',
-    'js/src/apbct-public--7*.js',
-];
-
 // Bundle without external and internal js
 function bundle_src_js() {
-    return gulp.src(srcPublicJs)
+    return gulp.src([
+        'js/src/apbct-public--0*.js',
+        'js/src/apbct-public--1*.js',
+        'js/src/apbct-public--2*.js',
+        'js/src/apbct-public--3*.js',
+        'js/src/apbct-public--7*.js',
+    ])
         // Unminified bundle
         .pipe(concat('apbct-public-bundle.js'))
         .pipe(gulp.dest('js/src/'));
@@ -54,7 +52,11 @@ function bundle_src_js() {
 // Bundle with external js and without internal js
 function bundle_src_js_external_protection() {
     return gulp.src([
-            String(srcPublicJs),
+            'js/src/apbct-public--0*.js',
+            'js/src/apbct-public--1*.js',
+            'js/src/apbct-public--2*.js',
+            'js/src/apbct-public--3*.js',
+            'js/src/apbct-public--7*.js',
             'js/src/apbct-public--5--external-forms.js'
         ])
         // Unminified bundle
@@ -65,7 +67,11 @@ function bundle_src_js_external_protection() {
 // Bundle with internal js and without external js 
 function bundle_src_js_internal_protection() {
     return gulp.src([
-            String(srcPublicJs),
+            'js/src/apbct-public--0*.js',
+            'js/src/apbct-public--1*.js',
+            'js/src/apbct-public--2*.js',
+            'js/src/apbct-public--3*.js',
+            'js/src/apbct-public--7*.js',
             'js/src/apbct-public--6--internal-forms.js'
         ])
         // Unminified bundle
@@ -76,7 +82,11 @@ function bundle_src_js_internal_protection() {
 // Bundle with external and internal js
 function bundle_src_js_ext_int_protection() {
     return gulp.src([
-            String(srcPublicJs),
+            'js/src/apbct-public--0*.js',
+            'js/src/apbct-public--1*.js',
+            'js/src/apbct-public--2*.js',
+            'js/src/apbct-public--3*.js',
+            'js/src/apbct-public--7*.js',
             'js/src/apbct-public--5--external-forms.js',
             'js/src/apbct-public--6--internal-forms.js'
         ])
