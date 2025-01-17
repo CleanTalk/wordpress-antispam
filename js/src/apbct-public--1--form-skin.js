@@ -114,6 +114,10 @@ class ApbctFormDecorator {
                         }
                     }
 
+                    if (element.className.indexOf('signature')) {
+                        this.addClicks();
+                    }
+
                     return;
                 }
 

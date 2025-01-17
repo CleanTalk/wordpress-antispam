@@ -52,6 +52,16 @@
     background-position-x: right;
 }
 
+.apbct_form_decoration--signature {
+    position: relative;
+    float: right;
+    margin-top: 10px;
+    margin-right: 15px;
+    font-size: 14px;
+    font-weight: 400;
+    z-index: 9999;
+}
+
 @media screen and (max-width: 768px) {
     .apbct_form_decoration--fourth-july:before, .apbct_form_decoration--fourth-july:after {
         width: 60%;
