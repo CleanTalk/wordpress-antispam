@@ -550,13 +550,17 @@ function apbct_hook__wp_footer()
         $timeout = $apbct->settings['misc__async_js'] ? 1000 : 0;
 
         if ( $apbct->data['ajax_type'] == 'rest' ) {
-            $send_way_asset = "apbct_public_sendREST(
+            $send_way_asset = "if (typeof apbct_public_sendREST === 'function' && typeof apbct_js_keys__set_input_value === 'function') {
+                                    apbct_public_sendREST(
                                     'js_keys__get',
-                                    { callback: apbct_js_keys__set_input_value }";
+                                    { callback: apbct_js_keys__set_input_value })
+                                }";
         } else {
-            $send_way_asset = "apbct_public_sendAJAX(	
+            $send_way_asset = "if (typeof apbct_public_sendAJAX === 'function' && typeof apbct_js_keys__set_input_value === 'function') {
+                                    apbct_public_sendAJAX(	
                                     { action: 'apbct_js_keys__get' },	
-                                    { callback: apbct_js_keys__set_input_value }";
+                                    { callback: apbct_js_keys__set_input_value })
+                                }";
         }
 
         $cookie_bot_asset = (class_exists('Cookiebot_WP')) ? 'data-cookieconsent="ignore"' : '';
@@ -568,7 +572,6 @@ function apbct_hook__wp_footer()
                         setTimeout(function(){
                             if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
                                 " . $send_way_asset . "
-                                )
                             }
                         }," . $timeout . ")					    
                     })				

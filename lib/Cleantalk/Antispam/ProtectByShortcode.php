@@ -8,11 +8,7 @@ class ProtectByShortcode
 {
     public function __construct()
     {
-        global $apbct;
-
-        if ((int)$apbct->settings['forms__contact_forms_test'] === 1) {
-            add_filter('ct_wordpress_protect_from_spam', array($this, 'protectByShortcode'), 10, 2);
-        }
+        add_filter('ct_wordpress_protect_from_spam', array($this, 'protectByShortcode'), 10, 2);
     }
 
     /**

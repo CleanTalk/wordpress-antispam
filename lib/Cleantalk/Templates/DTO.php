@@ -7,7 +7,7 @@ namespace CleanTalk\Templates;
  *
  * Data Transfer Object
  *
- * @since   2.83
+ * @since   6.48
  * @version 1.1.0
  * @package Cleantalk\Templates
  * @psalm-suppress UnusedClass
