@@ -49,6 +49,8 @@ class EmailEncoder
         array('scc-form-field-item'),
         // Exclusion of maps from leaflet
         array('leaflet'),
+		// prevent broking elementor swiper gallery
+		array('class', 'elementor-swiper', 'elementor-testimonial', 'swiper-pagination'),
     );
 
     /**
