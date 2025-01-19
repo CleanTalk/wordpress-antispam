@@ -547,7 +547,7 @@ class RemoteCalls
             return json_encode(array('error' => 'No nonce provided'));
         }
 
-        $nonce_prev = Post::getString(['nonce_prev']);
+        $nonce_prev = Post::getString('nonce_prev');
         $nonce_name = apbct_settings__get_ajax_type() === 'rest'
             ? 'wp_rest'
             : 'ct_secret_stuff';
