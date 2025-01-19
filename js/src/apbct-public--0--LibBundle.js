@@ -1032,6 +1032,10 @@ class ApbctXhr {
         }
 
         this.errorOutput( errorString );
+
+        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function') {
+            this.onErrorCallback(this.status_text);
+        }
     }
 
     /**

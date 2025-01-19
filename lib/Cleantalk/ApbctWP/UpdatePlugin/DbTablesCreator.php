@@ -12,6 +12,7 @@ class DbTablesCreator
     public function createAllTables($wpdb_prefix = '', $skip_tables = array())
     {
         global $wpdb;
+        $errors = array();
         $wpdb->show_errors = true;
         $db_schema = Schema::getStructureSchemas();
         $schema_prefix = Schema::getSchemaTablePrefix();
@@ -57,7 +58,7 @@ class DbTablesCreator
 
         // Logging errors
         if (!empty($errors)) {
-            apbct_log($errors);
+            DbAnalyzer::logSchemaErrors($errors, __FUNCTION__);
         }
     }
 
@@ -67,6 +68,7 @@ class DbTablesCreator
     public function createTable($table_name)
     {
         global $wpdb;
+        $errors = array();
         $wpdb->show_errors = true;
         $db_schema = Schema::getStructureSchemas();
         $schema_prefix = Schema::getSchemaTablePrefix();
@@ -89,7 +91,7 @@ class DbTablesCreator
 
         // Logging errors
         if (!empty($errors)) {
-            apbct_log($errors);
+            DbAnalyzer::logSchemaErrors($errors, __FUNCTION__);
         }
     }
 }

@@ -1032,6 +1032,10 @@ class ApbctXhr {
         }
 
         this.errorOutput( errorString );
+
+        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function') {
+            this.onErrorCallback(this.status_text);
+        }
     }
 
     /**
@@ -1170,6 +1174,214 @@ if (!Object.prototype.hasOwn) {
 }
 
 /**
+ * Form skin class
+ *
+ */
+// eslint-disable-next-line no-unused-vars, require-jsdoc
+class ApbctFormDecorator {
+    elements = [];
+
+    /**
+     * Constructor
+     */
+    constructor() {
+        this.getElements();
+        this.setListeners();
+    }
+
+    /**
+     * Get elements
+     */
+    getElements() {
+        const elements = document.querySelectorAll('*');
+        const regexId = /^apbct-trusted-text--label/;
+        const regexClass = /apbct_form_decoration--/;
+
+        this.setDecorationBackground();
+
+        // Collect elements with id or class that contains apbct-trusted-text--label or apbct_form_decoration--
+        // id
+        let matchingElements = Array.from(elements).filter((element) => {
+            return regexId.test(element.id);
+        });
+        matchingElements.forEach((element) => {
+            this.elements.push(element);
+        });
+
+        // class
+        matchingElements = Array.from(elements).filter((element) => {
+            return regexClass.test(element.className);
+        });
+
+        matchingElements.forEach((element) => {
+            this.elements.push(element);
+        });
+
+        const flagWrap = document.querySelector('.apbct_form_decoration');
+        if (flagWrap) {
+            const flagLeft = window.getComputedStyle(flagWrap, '::before');
+            const flagRight = window.getComputedStyle(flagWrap, '::after');
+            if (flagLeft && flagRight) {
+                this.elements.push(flagWrap);
+            }
+        }
+    }
+
+    /**
+     * Set decoration background
+     */
+    setDecorationBackground() {
+        let blockForms = document.querySelectorAll('#respond');
+
+        if (document.querySelector('[class*="apbct_form_decoration"]')) {
+            let classHeaderWrapper = document.querySelector('[class*="apbct_form_decoration"]').getAttribute('class');
+            let endPosition = classHeaderWrapper.indexOf('_header__wrapper');
+            let classTemplate = classHeaderWrapper.substring(0, endPosition);
+
+            blockForms.forEach((blockForm) => {
+                blockForm.className += ' ' + classTemplate;
+            });
+        }
+    }
+
+    /**
+     * Set listeners
+     */
+    setListeners() {
+        this.elements.forEach((element) => {
+            if (!element) {
+                return;
+            }
+
+            element.addEventListener('click', (event) => {
+                if (element.className.indexOf('apbct_form_decoration') !== -1) {
+                    if (element.className.indexOf('header__wrapper') !== -1) {
+                        this.addClicks();
+                        return;
+                    }
+
+                    const clickX = event.offsetX;
+                    const clickY = event.offsetY;
+                    const flagLeftWidth = parseFloat(window.getComputedStyle(element, '::before').width) / 2;
+                    const flagLeftHeight = parseFloat(window.getComputedStyle(element, '::before').height) / 2;
+                    const flagRightWidth = parseFloat(window.getComputedStyle(element, '::after').width) / 2;
+                    const flagRightHeight = parseFloat(window.getComputedStyle(element, '::after').height) / 2;
+
+                    if (element.className.indexOf('christmas') !== -1) {
+                        if (
+                            clickY < flagLeftHeight / 3 && clickX < flagLeftWidth ||
+                            clickY < flagRightHeight / 3 && clickX > flagRightWidth
+                        ) {
+                            this.addClicks();
+                            return;
+                        }
+                    }
+
+                    if (
+                        (element.className.indexOf('new-year') !== -1) ||
+                        (element.className.indexOf('fourth-july') !== -1)
+                    ) {
+                        if (
+                            clickY > flagLeftHeight && clickX < flagLeftWidth ||
+                            clickY > flagRightHeight && clickX > flagRightWidth
+                        ) {
+                            this.addClicks();
+                        }
+                    }
+
+                    return;
+                }
+
+                this.addClicks();
+            });
+
+            element.addEventListener('mouseup', (event) => {
+                setTimeout(() => {
+                    const selectedText = window.getSelection().toString();
+                    if (selectedText) {
+                        this.addSelected();
+                    }
+                }, 100);
+            });
+
+            element.addEventListener('mousemove', (event) => {
+                if (element.className.indexOf('apbct_form_decoration') !== -1) {
+                    const mouseX = event.offsetX;
+                    const mouseY = event.offsetY;
+                    const flagLeftWidth = parseFloat(window.getComputedStyle(element, '::before').width) / 2;
+                    const flagLeftHeight = parseFloat(window.getComputedStyle(element, '::before').height) / 2;
+                    const flagRightWidth = parseFloat(window.getComputedStyle(element, '::after').width) / 2;
+                    const flagRightHeight = parseFloat(window.getComputedStyle(element, '::after').height) / 2;
+
+                    if (mouseY > flagLeftHeight && mouseX < flagLeftWidth ||
+                    mouseY > flagRightHeight && mouseX > flagRightWidth
+                    ) {
+                        this.trackMouseMovement();
+                    }
+                    return;
+                }
+
+                this.trackMouseMovement();
+            });
+        });
+    }
+
+    /**
+     * Add clicks
+     */
+    addClicks() {
+        if (document.ctFormDecorationMouseData) {
+            if (document.ctFormDecorationMouseData.clicks) {
+                document.ctFormDecorationMouseData.clicks++;
+            } else {
+                document.ctFormDecorationMouseData.clicks = 1;
+            }
+            return;
+        }
+
+        document.ctFormDecorationMouseData = {clicks: 1};
+    }
+
+    /**
+     * Add selected
+     */
+    addSelected() {
+        if (document.ctFormDecorationMouseData) {
+            if (document.ctFormDecorationMouseData.selected) {
+                document.ctFormDecorationMouseData.selected++;
+            } else {
+                document.ctFormDecorationMouseData.selected = 1;
+            }
+            return;
+        }
+
+        document.ctFormDecorationMouseData = {selected: 1};
+    }
+
+    /**
+     * Track mouse movement
+     */
+    trackMouseMovement() {
+        if (!document.ctFormDecorationMouseData) {
+            document.ctFormDecorationMouseData = {};
+        }
+        if (!document.ctFormDecorationMouseData.mouseMovements) {
+            document.ctFormDecorationMouseData.mouseMovements = [];
+        }
+
+        document.ctFormDecorationMouseData.mouseMovements.push({timestamp: Date.now()});
+
+        if (document.ctFormDecorationMouseData.mouseMovements.length > 1) {
+            const index = document.ctFormDecorationMouseData.mouseMovements.length - 1;
+            const lastMovement = document.ctFormDecorationMouseData.mouseMovements[index];
+            const firstMovement = document.ctFormDecorationMouseData.mouseMovements[0];
+            const timeDiff = lastMovement.timestamp - firstMovement.timestamp;
+            document.ctFormDecorationMouseData.hovering = timeDiff;
+        }
+    }
+}
+
+/**
  * @param {object|array|string} cookies
  * @param {object|array|string} value
  * @param {string|number} expires
@@ -1181,6 +1393,7 @@ function ctSetCookie( cookies, value, expires ) {
         'ct_sfw_passed',
         'wordpress_apbct_antibot',
         'apbct_anticrawler_passed',
+        'apbct_bot_detector_exist',
         'apbct_antiflood_passed',
         'apbct_email_encoder_passed',
     ];
@@ -1201,9 +1414,10 @@ function ctSetCookie( cookies, value, expires ) {
             if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
                 forcedAltCookiesSet.push(item);
             } else {
-                apbctLocalStorage.set(item[0], encodeURIComponent(item[1]));
+                apbctLocalStorage.set(item[0], item[1]);
             }
         });
+
         // if cookies from list found use alt cookies for this selection set
         if ( forcedAltCookiesSet.length > 0 ) {
             ctSetAlternativeCookie(forcedAltCookiesSet);
@@ -1598,6 +1812,138 @@ function apbctCancelAutocomplete(element) {
     element.dispatchEvent(new window.CustomEvent('onautocomplete', {
         bubbles: true, cancelable: false, detail: null,
     }));
+}
+
+if (ctPublic.data__key_is_ok) {
+    if (document.readyState !== 'loading') {
+        apbctForceProtect();
+    } else {
+        apbct_attach_event_handler(document, 'DOMContentLoaded', apbctForceProtect);
+    }
+}
+
+/**
+ * Force protection
+ */
+function apbctForceProtect() {
+    new ApbctForceProtection();
+}
+
+/**
+ * ApbctForceProtection
+ */
+class ApbctForceProtection {
+    wrappers = [];
+
+    /**
+     * Constructor
+     */
+    constructor() {
+        this.wrappers = this.findWrappers();
+
+        if (this.wrappers.length < 1) {
+            return;
+        }
+
+        this.checkBot();
+    }
+
+    /**
+     * Find wrappers
+     * @return {HTMLElement[]}
+     */
+    findWrappers() {
+        return document.querySelectorAll('div.ct-encoded-form-wrapper');
+    }
+
+    /**
+     * Check bot
+     * @return {void}
+     */
+    checkBot() {
+        let data = {
+            event_javascript_data: getJavascriptClientData(),
+            post_url: document.location.href,
+            referrer: document.referrer,
+        };
+
+        if (ctPublicFunctions.data__ajax_type === 'rest') {
+            apbct_public_sendREST('force_protection_check_bot', {
+                data,
+                method: 'POST',
+                callback: (result) => this.checkBotCallback(result),
+            });
+        } else if (ctPublicFunctions.data__ajax_type === 'admin_ajax') {
+            data.action = 'apbct_force_protection_check_bot';
+            apbct_public_sendAJAX(data, {callback: (result) => this.checkBotCallback(result)});
+        }
+    }
+
+    /**
+     * Check bot callback
+     * @param {Object} result
+     * @return {void}
+     */
+    checkBotCallback(result) {
+        // if error occurred
+        if (result.data && result.data.status && result.data.status !== 200) {
+            console.log('ApbctForceProtection connection error occurred');
+            this.decodeForms();
+            return;
+        }
+
+        if (typeof result === 'string') {
+            try {
+                result = JSON.parse(result);
+            } catch (e) {
+                console.log('ApbctForceProtection decodeForms error', e);
+                this.decodeForms();
+                return;
+            }
+        }
+
+        if (typeof result === 'object' && result.allow && result.allow === 1) {
+            this.decodeForms();
+        } else {
+            this.showMessageForBot(result.message);
+        }
+    }
+
+    /**
+     * Decode forms
+     * @return {void}
+     */
+    decodeForms() {
+        let form;
+
+        this.wrappers.forEach((wrapper) => {
+            form = wrapper.querySelector('div.ct-encoded-form').dataset.encodedForm;
+
+            try {
+                if (form && typeof(form) == 'string') {
+                    wrapper.outerHTML = atob(form);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        });
+    }
+
+    /**
+     * Show message for bot
+     * @param {string} message
+     * @return {void}
+     */
+    showMessageForBot(message) {
+        let form;
+
+        this.wrappers.forEach((wrapper) => {
+            form = wrapper.querySelector('div.ct-encoded-form').dataset.encodedForm;
+            if (form) {
+                wrapper.outerHTML = '<div class="ct-encoded-form-forbidden">' + message + '</div>';
+            }
+        });
+    }
 }
 
 /**
@@ -2638,13 +2984,6 @@ function apbct_ready() {
     ctPublic.encodedEmailNodes = encodedEmailNodes;
     if (encodedEmailNodes.length) {
         for (let i = 0; i < encodedEmailNodes.length; ++i) {
-            if (
-                encodedEmailNodes[i].parentElement.href ||
-                encodedEmailNodes[i].parentElement.parentElement.href
-            ) {
-                // Skip listening click on hyperlinks
-                continue;
-            }
             encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
         }
     }
@@ -2674,8 +3013,34 @@ function apbct_ready() {
     // Check any XMLHttpRequest connections
     apbctCatchXmlHttpRequest();
 
+    // Init form skin
+    if (ctPublic.settings__comments__form_decoration) {
+        new ApbctFormDecorator();
+    }
+
     // Set important paramaters via ajax if problematic cache solutions found
     apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
+
+    // Checking that the bot detector has loaded and received the event token for Anti-Crawler
+    if (ctPublic.settings__sfw__anti_crawler) {
+        checkBotDetectorExist();
+    }
+}
+
+/**
+ * Checking that the bot detector has loaded and received the event token
+ */
+function checkBotDetectorExist() {
+    if (ctPublic.settings__data__bot_detector_enabled) {
+        const botDetectorIntervalSearch = setInterval(() => {
+            let botDetectorEventToken = localStorage.bot_detector_event_token ? true : false;
+
+            if (botDetectorEventToken) {
+                ctSetCookie('apbct_bot_detector_exist', '1', '3600');
+                clearInterval(botDetectorIntervalSearch);
+            }
+        }, 500);
+    }
 }
 
 /**
@@ -3123,29 +3488,39 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 selectableEmail.innerText = email;
                 selectableEmail.title = 'Click to select the whole data';
                 // add email to the first node
-                firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML + '.';
-                firstNode.setAttribute('style', 'flex-direction: row;');
+                if (firstNode) {
+                    firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML;
+                    firstNode.setAttribute('style', 'flex-direction: row;');
+                }
                 // remove animation
-                popup.querySelector('.apbct-ee-animation-wrapper').remove();
+                let wrapper = popup.querySelector('.apbct-ee-animation-wrapper');
+                if (wrapper) {
+                    wrapper.remove();
+                }
                 // remove second node
-                popup.querySelector('#apbct_email_ecoder__popup_text_node_second').remove();
+                let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
+                if (secondNode) {
+                    secondNode.remove();
+                }
                 // add button
                 let buttonWrapper = document.createElement('span');
                 buttonWrapper.classList = 'apbct-email-encoder-elements_center top-margin-long';
-                let button = document.createElement('button');
-                button.innerText = 'Got it';
-                button.classList = 'apbct-email-encoder-got-it-button';
-                button.addEventListener('click', function() {
-                    document.body.classList.remove('apbct-popup-fade');
-                    popup.setAttribute('style', 'display:none');
-                    fillDecodedEmails(encodedEmailNodes, result);
-                    // click on mailto if so
-                    if (ctPublic.encodedEmailNodesIsMixed) {
-                        clickSource.click();
-                    }
-                });
-                buttonWrapper.append(button);
-                popup.append(buttonWrapper);
+                if (!document.querySelector('.apbct-email-encoder-got-it-button')) {
+                    let button = document.createElement('button');
+                    button.innerText = 'Got it';
+                    button.classList = 'apbct-email-encoder-got-it-button';
+                    button.addEventListener('click', function() {
+                        document.body.classList.remove('apbct-popup-fade');
+                        popup.setAttribute('style', 'display:none');
+                        fillDecodedEmails(encodedEmailNodes, result);
+                        // click on mailto if so
+                        if (ctPublic.encodedEmailNodesIsMixed) {
+                            clickSource.click();
+                        }
+                    });
+                    buttonWrapper.append(button);
+                    popup.append(buttonWrapper);
+                }
             }
         }, 3000);
     } else {
@@ -3179,12 +3554,22 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
         // handler for mailto
         if (
             typeof encodedEmailNodes[i].href !== 'undefined' &&
-            encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
+            encodedEmailNodes[i].href.indexOf('mailto:') === 0
+        ) {
             let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
             let baseElementContent = encodedEmailNodes[i].innerHTML;
-            encodedEmailNodes[i].innerHTML =
-                baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
+            encodedEmailNodes[i].innerHTML = baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
             encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
+
+            encodedEmailNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((el) => {
+                let encodedEmailTextInsideMailto = '';
+                decodingResult.data.forEach((row) => {
+                    if (row.encoded_email === el.dataset.originalString) {
+                        encodedEmailTextInsideMailto = row.decoded_email;
+                    }
+                });
+                el.innerHTML = encodedEmailTextInsideMailto;
+            });
         } else {
             encodedEmailNodes[i].classList.add('no-blur');
             // fill the nodes
@@ -3272,10 +3657,7 @@ function getJavascriptClientData(commonCookies = []) {
         resultDataJson.apbct_pixel_url = ctPublic.pixel__url;
     }
 
-    if (
-        typeof (commonCookies) === 'object' &&
-        commonCookies !== []
-    ) {
+    if ( typeof (commonCookies) === 'object') {
         for (let i = 0; i < commonCookies.length; ++i) {
             if ( typeof (commonCookies[i][1]) === 'object' ) {
                 // this is for handle SFW cookies
@@ -3544,7 +3926,7 @@ function ctNoCookieConstructHiddenField(type) {
 
 /**
  * Retrieves the clentalk "cookie" data from starages.
- * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo}.
+ * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration}.
  * @return {string}
  */
 function getCleanTalkStorageDataArray() {
@@ -3555,7 +3937,16 @@ function getCleanTalkStorageDataArray() {
     if (document.ctTypoData && document.ctTypoData.data) {
         noCookieDataTypo = {typo: document.ctTypoData.data};
     }
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo};
+
+    let noCookieDataFromDecoration = {form_decoration_mouse_data: []};
+    if (document.ctFormDecorationMouseData) {
+        let formDecorationMouseData = JSON.parse(JSON.stringify(document.ctFormDecorationMouseData));
+        if (formDecorationMouseData.mouseMovements) {
+            delete formDecorationMouseData.mouseMovements;
+        }
+        noCookieDataFromDecoration = {form_decoration_mouse_data: formDecorationMouseData};
+    }
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration};
 }
 
 /**
@@ -3638,12 +4029,17 @@ function ctGetHiddenFieldExclusionsType(form) {
  * @return {boolean}
  */
 function ctCheckHiddenFieldsExclusions(form, hiddenFieldType) {
+    const formAction = typeof(form.action) == 'string' ? form.action : '';
     // Ajax Search Lite
     if (Boolean(form.querySelector('fieldset.asl_sett_scroll'))) {
         return true;
     }
     // Super WooCommerce Product Filter
     if (form.classList.contains('swpf-instant-filtering')) {
+        return true;
+    }
+    // PayU 3-rd party service forms
+    if (formAction.indexOf('secure.payu.com') !== -1 ) {
         return true;
     }
     if (typeof (hiddenFieldType) === 'string' &&
@@ -4232,10 +4628,11 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
             }
         });
     }
+
+    let mailerliteSubmitButton = null;
     if ( mailerliteDetectedClass ) {
-        const mailerliteSubmitButton = documentObject.querySelector('form.' + mailerliteDetectedClass)
-            .querySelector('button[type="submit"]');
-        if ( mailerliteSubmitButton !== undefined ) {
+        mailerliteSubmitButton = reUseCurrentForm.querySelector('button[type="submit"]');
+        if ( mailerliteSubmitButton !== null && mailerliteSubmitButton !== undefined ) {
             mailerliteSubmitButton.addEventListener('click', function(event) {
                 event.preventDefault();
                 sendAjaxCheckingFormData(reUseCurrentForm);
@@ -4289,8 +4686,35 @@ function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObj
 
     documentObject.forms[iterator].onsubmit = function(event) {
         event.preventDefault();
+
+        // MooSend spinner activate
+        apbctMoosendSpinnerToggle(event.currentTarget);
+
         sendAjaxCheckingFormData(event.currentTarget);
     };
+}
+
+/**
+ * Activate or deactivate spinner for Moosend form during request checking
+ * @param {HTMLElement} form
+ */
+function apbctMoosendSpinnerToggle(form) {
+    const buttonElement = form.querySelector('button[type="submit"]');
+    if ( buttonElement ) {
+        const spinner = buttonElement.querySelector('i');
+        const submitText = buttonElement.querySelector('span');
+        if (spinner && submitText) {
+            if ( spinner.style.zIndex == 1 ) {
+                submitText.style.opacity = 1;
+                spinner.style.zIndex = -1;
+                spinner.style.opacity = 0;
+            } else {
+                submitText.style.opacity = 0;
+                spinner.style.zIndex = 1;
+                spinner.style.opacity = 1;
+            }
+        }
+    }
 }
 
 /**
@@ -4335,7 +4759,7 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
 }
 // clear protected iframes list
 apbctLocalStorage.set('apbct_iframes_protected', []);
-window.onload = function() {
+window.addEventListener('load', function() {
     if ( ! +ctPublic.settings__forms__check_external ) {
         return;
     }
@@ -4348,7 +4772,7 @@ window.onload = function() {
     }, 2000);
 
     ctProtectKlaviyoForm();
-};
+});
 
 /**
  * Protect klaviyo forms
@@ -4414,6 +4838,7 @@ function ctProtectOutsideIframe() {
             if (iframe.src.indexOf('form.typeform.com') !== -1 ||
                 iframe.src.indexOf('forms.zohopublic.com') !== -1 ||
                 iframe.src.indexOf('link.surepathconnect.com') !== -1 ||
+                iframe.src.indexOf('hello.dubsado.com') !== -1 ||
                 iframe.classList.contains('hs-form-iframe') ||
                 ( iframe.src.indexOf('facebook.com') !== -1 && iframe.src.indexOf('plugins/comments.php') !== -1)
             ) {
@@ -4595,7 +5020,10 @@ function isIntegratedForm(formObj) {
     const formId = formObj.getAttribute('id') !== null ? formObj.getAttribute('id') : '';
 
     if (
-        formAction.indexOf('app.convertkit.com') !== -1 || // ConvertKit form
+        (
+            formAction.indexOf('app.convertkit.com') !== -1 || // ConvertKit form
+            formAction.indexOf('app.kit.com') !== -1 // ConvertKit new form
+        ) ||
         ( formObj.firstChild.classList !== undefined &&
         formObj.firstChild.classList.contains('cb-form-group') ) || // Convertbox form
         formAction.indexOf('mailerlite.com') !== -1 || // Mailerlite integration
@@ -4684,7 +5112,20 @@ function sendAjaxCheckingFormData(form) {
         {
             async: false,
             callback: function( result, data, params, obj ) {
+                // MooSend spinner deactivate
+                apbctMoosendSpinnerToggle(form);
                 if ( result.apbct === undefined || ! +result.apbct.blocked ) {
+                    // Clear service fields
+                    for (const el of form.querySelectorAll('input[name="apbct_visible_fields"]')) {
+                        el.remove();
+                    }
+                    for (const el of form.querySelectorAll('input[value="cleantalk_force_ajax_check"]')) {
+                        el.remove();
+                    }
+                    for (const el of form.querySelectorAll('input[name="ct_no_cookie_hidden_field"]')) {
+                        el.remove();
+                    }
+
                     // Klaviyo integration
                     if (form.classList !== undefined && form.classList.contains('klaviyo-form')) {
                         const cover = document.getElementById('apbct-klaviyo-cover');
@@ -4825,20 +5266,22 @@ function catchDynamicRenderedForm() {
 }
 
 /**
- * Process dynamic rendered form
- * @param {HTMLElements} forms
- * @param {HTMLElement} documentObject
+ * Handles dynamic rendered forms by attaching an onsubmit event handler to them.
+ *
+ * @param {HTMLCollection} forms - A collection of form elements to be processed.
+ * @param {Document} [documentObject=document] - The document object to use for querying elements.
  */
 function catchDynamicRenderedFormHandler(forms, documentObject = document) {
     const neededFormIds = [];
     for (const form of forms) {
-        if (form.id.indexOf('hsForm') !== -1) {
-            neededFormIds.push(form.id);
+        const formIdAttr = form.getAttribute('id');
+        if (formIdAttr && formIdAttr.indexOf('hsForm') !== -1) {
+            neededFormIds.push(formIdAttr);
         }
-        if (form.id.indexOf('createuser') !== -1 &&
+        if (formIdAttr && formIdAttr.indexOf('createuser') !== -1 &&
         (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
         ) {
-            neededFormIds.push(form.id);
+            neededFormIds.push(formIdAttr);
         }
     }
 
@@ -5055,6 +5498,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Selectors. Try to handle the WIDE range of themes.
     let themesCommentsSelector = '.apbct-trp *[class*="comment-author"]';
+    if ( document.querySelector('.apbct-trp .comment-author .comment-author-link') ) {
+        // For Spacious theme
+        themesCommentsSelector = '.apbct-trp *[class*="comment-author-link"]';
+    }
     let woocommerceReviewsSelector = '.apbct-trp *[class*="review__author"]';
     let adminCommentsListSelector = '.apbct-trp td[class*="column-author"] > strong';
     const trpComments = document.querySelectorAll(

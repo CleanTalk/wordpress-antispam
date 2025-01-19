@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\DTO\GetFieldsAnyDTO;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Honeypot;
@@ -339,6 +340,74 @@ function ct_woocommerce_checkout_check($_data, $errors)
                 'refresh'  => 'false',
                 'reload'   => 'false'
             ));
+        }
+    }
+}
+
+/**
+ * @param \WC_Order $order
+ * @return void
+ * @throws \Automattic\WooCommerce\StoreApi\Exceptions\RouteException
+ * @psalm-suppress UndefinedClass
+ */
+function ct_woocommerce_checkout_check_from_rest($order)
+{
+    global $apbct, $cleantalk_executed;
+
+    if ( is_null($order) || ! ($order instanceof \WC_Order) ) {
+        return;
+    }
+
+    $sender_email    = $order->get_billing_email();
+    $sender_nickname = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
+    $message         = $order->get_customer_note();
+
+    $post_info = array();
+    $post_info['comment_type'] = 'order';
+    $post_info['post_url']     = Server::get('HTTP_REFERER');
+
+    $base_call_data = array(
+        'message'         => $message,
+        'sender_email'    => $sender_email,
+        'sender_nickname' => $sender_nickname,
+        'post_info'       => $post_info,
+        'sender_info'     => array('sender_url' => null)
+    );
+
+    //Making a call
+    $base_call_result = apbct_base_call($base_call_data);
+
+    if ( $apbct->settings['forms__wc_register_from_order'] ) {
+        $cleantalk_executed = false;
+    }
+
+    if ( isset($base_call_result['ct_result']) ) {
+        $ct_result = $base_call_result['ct_result'];
+
+        // Get request_id and save to static $hash
+        ct_hash($ct_result->id);
+
+        if ( $ct_result->allow == 0 ) {
+            if ( $apbct->settings['data__wc_store_blocked_orders'] ) {
+                apbct_woocommerce__store_blocked_order();
+            }
+
+            if ( $order->get_status() === 'checkout-draft' ) {
+                try {
+                    $order->delete(true);
+                } catch (Exception $e) {
+                    error_log('Error deleting order: ' . $e->getMessage());
+                }
+            }
+
+            if ( class_exists('\Automattic\WooCommerce\StoreApi\Exceptions\RouteException') ) {
+                /** @psalm-suppress InvalidThrow */
+                throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
+                    'woocommerce_store_api_checkout_order_processed',
+                    $ct_result->comment,
+                    403
+                );
+            }
         }
     }
 }
@@ -1966,17 +2035,17 @@ function apbct_form__ninjaForms__testSpam()
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
 
     try {
-        $params = apbct_form__ninjaForms__collect_fields_new();
+        $gfa_dto = apbct_form__ninjaForms__collect_fields_new();
     } catch (\Exception $_e) {
         // It is possible here check the reason if the new way collecting fields is not available.
-        $params = apbct_form__ninjaForms__collect_fields_old();
+        $gfa_dto = apbct_form__ninjaForms__collect_fields_old();
     }
 
-    $sender_email    = isset($params['email']) ? $params['email'] : '';
-    $sender_emails_array = isset($params['emails_array']) ? $params['emails_array'] : '';
-    $sender_nickname = isset($params['nickname']) ? $params['nickname'] : '';
-    $subject         = isset($params['subject']) ? $params['subject'] : '';
-    $message         = isset($params['message']) ? $params['message'] : array();
+    $sender_email           = $gfa_dto->email;
+    $sender_emails_array    = $gfa_dto->emails_array;
+    $sender_nickname        = $gfa_dto->nickname;
+    $subject                = $gfa_dto->subject;
+    $message                = $gfa_dto->message;
     if ( $subject != '' ) {
         $message = array_merge(array('subject' => $subject), $message);
     }
@@ -2037,7 +2106,7 @@ function apbct_form__ninjaForms__testSpam()
 /**
  * Old way to collecting NF fields data.
  *
- * @return array
+ * @return GetFieldsAnyDTO
  */
 function apbct_form__ninjaForms__collect_fields_old()
 {
@@ -2047,7 +2116,7 @@ function apbct_form__ninjaForms__collect_fields_old()
     $input_array = apply_filters('apbct__filter_post', $_POST);
 
     // Choosing between POST and GET
-    return ct_gfa(
+    return ct_gfa_dto(
         Get::get('ninja_forms_ajax_submit') || Get::get('nf_ajax_submit') ? $_GET : $input_array
     );
 }
@@ -2055,7 +2124,7 @@ function apbct_form__ninjaForms__collect_fields_old()
 /**
  * New way to collecting NF fields data - try to get username and email.
  *
- * @return array
+ * @return GetFieldsAnyDTO
  * @throws Exception
  * @psalm-suppress UndefinedClass
  */
@@ -2101,17 +2170,17 @@ function apbct_form__ninjaForms__collect_fields_new()
                 $field_key = TT::toString($field_info['field_key']);
                 $field_type = TT::toString($field_info['field_type']);
                 $fields['nf-field-' . $field['id'] . '-' . $field_type] = $field['value'];
-                if ( stripos($field_key, 'name') !== false ) {
-                    $nickname = $field['value'];
+                if ( stripos($field_key, 'name') !== false && stripos($field_type, 'name') !== false ) {
+                    $nickname .= ' ' . $field['value'];
                 }
-                if ( stripos($field_key, 'email') !== false ) {
+                if ( stripos($field_key, 'email') !== false && $field_type === 'email' ) {
                     $email = $field['value'];
                 }
             }
         }
     }
 
-    return ct_gfa($fields, $email, $nickname);
+    return ct_gfa_dto($fields, $email, $nickname);
 }
 
 /**
@@ -3379,7 +3448,10 @@ function apbct_custom_forms_trappings()
     // Registration form of masteriyo registration
     if ( $apbct->settings['forms__registrations_test'] &&
          Post::get('masteriyo-registration') === 'yes' &&
-         apbct_is_plugin_active('learning-management-system/lms.php')
+         (
+             apbct_is_plugin_active('learning-management-system/lms.php') ||
+             apbct_is_plugin_active('learning-management-system-pro/lms.php')
+         )
     ) {
         return true;
     }
@@ -3904,6 +3976,40 @@ function apbct_dhvcform_request_test()
             'sender_email'    => isset($params['email']) ? $params['email'] : '',
             'sender_nickname' => isset($params['nickname']) ? $params['nickname'] : '',
             'post_info'       => array('comment_type' => 'dhvcform_form'),
+            'sender_info'     => $sender_info,
+        )
+    );
+
+    if (isset($base_call_result['ct_result'])) {
+        $ct_result = $base_call_result['ct_result'];
+        if ((int)$ct_result->allow === 0) {
+            $ct_comment = $ct_result->comment;
+            ct_die(null, null);
+        }
+    }
+}
+
+/**
+ * Test SeedConfirmPro form for spam
+ * @return void
+ */
+function apbct_seedConfirmPro_request_test()
+{
+    global $ct_comment;
+
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $params = ct_gfa($input_array);
+
+    $sender_info = [];
+    if ( ! empty($params['emails_array']) ) {
+        $sender_info['sender_emails_array'] = $params['emails_array'];
+    }
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => isset($params['email']) ? $params['email'] : '',
+            'sender_nickname' => isset($params['nickname']) ? $params['nickname'] : '',
+            'post_info'       => array('comment_type' => 'seedConfirmPro_form'),
             'sender_info'     => $sender_info,
         )
     );

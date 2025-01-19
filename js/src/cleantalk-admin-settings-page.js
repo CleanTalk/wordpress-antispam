@@ -626,18 +626,14 @@ function apbctSettingsDependenciesGetState(elem) {
  */
 function apbctSettingsShowDescription(label, settingId) {
     let removeDescFunc = function(e) {
-        if (typeof e === 'undefined' || (
-            (jQuery(e.target).parent('.apbct_long_desc').length == 0 ||
-            jQuery(e.target).hasClass('apbct_long_desc__cancel')
-            ) &&
-            !jQuery(e.target).hasClass('apbct_long_description__show'))
-        ) {
+        const callerIsPopup = jQuery(e.target).parent('.apbct_long_desc').length != 0;
+        const callerIsHideCross = jQuery(e.target).hasClass('apbct_long_desc__cancel');
+        const descIsShown = jQuery('.apbct_long_desc__title').length > 0;
+        if (descIsShown && !callerIsPopup || callerIsHideCross) {
             jQuery('.apbct_long_desc').remove();
             jQuery(document).off('click', removeDescFunc);
         }
     };
-
-    removeDescFunc();
 
     label.after('<div id=\'apbct_long_desc__'+settingId+'\' class=\'apbct_long_desc\'></div>');
     let obj = jQuery('#apbct_long_desc__'+settingId);

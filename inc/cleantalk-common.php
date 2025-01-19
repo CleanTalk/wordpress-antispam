@@ -7,6 +7,7 @@ use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\DB;
+use Cleantalk\ApbctWP\DTO\GetFieldsAnyDTO;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
@@ -200,6 +201,10 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
     if (Cookie::get('typo')) {
         $default_params['sender_info']['typo'] = Cookie::get('typo');
+    }
+
+    if (Cookie::get('form_decoration_mouse_data')) {
+        $default_params['sender_info']['form_decoration_mouse_data'] = Cookie::get('form_decoration_mouse_data');
     }
 
     /**
@@ -539,6 +544,12 @@ function apbct_get_sender_info()
     $site_landing_ts = RequestParameters::get('apbct_site_landing_ts', true);
     $site_landing_ts = !empty($site_landing_ts) ? TT::toString($site_landing_ts) : null;
 
+    $site_referer = RequestParameters::get('apbct_site_referer', true);
+    $site_referer = !empty($site_referer) ? TT::toString($site_referer) : null;
+
+    $page_hits = RequestParameters::get('apbct_page_hits', true);
+    $page_hits = !empty($page_hits) ? TT::toString($page_hits) : null;
+
     //Let's keep $data_array for debugging
     $data_array = array(
         'plugin_request_id'         => $apbct->plugin_request_id,
@@ -557,12 +568,12 @@ function apbct_get_sender_info()
         'cookies_enabled'           => $cookie_is_ok,
         'data__set_cookies'         => $apbct->settings['data__set_cookies'],
         'data__cookies_type'        => $apbct->data['cookies_type'],
-        'REFFERRER'                 => Cookie::$force_alt_cookies_global ? Cookie::get('apbct_site_referer') : Server::get('HTTP_REFERER'),
+        'REFFERRER'                 => Cookie::$force_alt_cookies_global ? $site_referer : Server::get('HTTP_REFERER'),
         'REFFERRER_PREVIOUS'        => Cookie::get('apbct_prev_referer') && $cookie_is_ok
             ? Cookie::get('apbct_prev_referer')
             : null,
         'site_landing_ts'           => $site_landing_ts,
-        'page_hits'                 => Cookie::get('apbct_page_hits') ?: null,
+        'page_hits'                 => $page_hits,
         'mouse_cursor_positions'    => $param_mouse_cursor_positions,
         'js_timezone'               => Cookie::get('ct_timezone') ?: null,
         'key_press_timestamp'       => Cookie::get('ct_fkp_timestamp') ?: null,
@@ -580,7 +591,7 @@ function apbct_get_sender_info()
             ? $visible_fields['invisible_fields']
             : null,
         // Misc
-        'site_referer'              => Cookie::get('apbct_site_referer') ?: null,
+        'site_referer'              => $site_referer,
         'source_url'                => $apbct_urls,
         'pixel_url'                 => $param_pixel_url,
         'pixel_setting'             => $apbct->settings['data__pixel'],
@@ -729,6 +740,14 @@ function apbct_email_check_exist_post()
 }
 
 /**
+ * Force protection check bot
+ */
+function apbct_force_protection_check_bot()
+{
+    die(\Cleantalk\ApbctWP\Antispam\ForceProtection::getInstance()->checkBot());
+}
+
+/**
  * Get ct_get_checkjs_value
  *
  * @param bool $random_key
@@ -802,6 +821,8 @@ function ct_get_checkjs_value()
 
 function apbct_is_cache_plugins_exists($return_names = false)
 {
+    global $apbct;
+
     $out = array();
 
     $constants_of_cache_plugins = array(
@@ -819,6 +840,7 @@ function apbct_is_cache_plugins_exists($return_names = false)
         'TWO_PLUGIN_FILE'                             => '10Web Booster',
         'FLYING_PRESS_VERSION'                        => 'Flying Press',
         'BREEZE_VERSION'                              => 'Breeze',
+        'SPEEDYCACHE_VERSION'                         => 'SpeedyCache',
     );
 
     $classes_of_cache_plugins = array (
@@ -1081,7 +1103,7 @@ function ct_delete_spam_comments()
  * @param string|array $nickname
  *
  * @return array
- * @deprecated Use ct_gfa()
+ * @deprecated Use ct_gfa_dto() to work with DTO object
  */
 function ct_get_fields_any($arr, $email = '', $nickname = '')
 {
@@ -1097,12 +1119,13 @@ function ct_get_fields_any($arr, $email = '', $nickname = '')
 }
 
 /**
- * Get data from an ARRAY recursively
+ * Get data as assoc array from an ARRAY recursively
  *
- * @param array $input_array
- * @param string $email
- * @param string $nickname
- *
+ * @see getFieldsAnyDTO to understand the structure of the result
+ * @param array $input_array maybe raw POST array or other preprocessed POST data.
+ * @param string $email email, rewriting result of process $input_array data
+ * @param string $nickname nickname, rewriting result of process $input_array data
+ * @deprecated since 6.48, use ct_gfa_dto() instead
  * @return array
  */
 function ct_gfa($input_array, $email = '', $nickname = '')
@@ -1112,37 +1135,21 @@ function ct_gfa($input_array, $email = '', $nickname = '')
     return $gfa->getFields($email, $nickname);
 }
 
-//New ct_get_fields_any_postdata
-function ct_get_fields_any_postdata($arr, $message = array())
+/**
+ * Get data as GetFieldsAnyDTO object from an ARRAY recursively
+ *
+ * @see getFieldsAnyDTO to understand the structure of the result
+ * @param array $input_array maybe raw POST array or other preprocessed POST data.
+ * @param string $email email, rewriting result of process $input_array data
+ * @param string $nickname nickname, rewriting result of process $input_array data
+ *
+ * @return GetFieldsAnyDTO
+ */
+function ct_gfa_dto($input_array, $email = '', $nickname = '')
 {
-    $skip_params = array(
-        'ipn_track_id', // PayPal IPN #
-        'txn_type', // PayPal transaction type
-        'payment_status', // PayPal payment status
-    );
+    $gfa = new GetFieldsAny($input_array);
 
-    foreach ( $arr as $key => $value ) {
-        if ( ! is_array($value) ) {
-            if ( $value == '' ) {
-                continue;
-            }
-            if ( ! (in_array($key, $skip_params) || preg_match("/^ct_checkjs/", $key)) && $value != '' ) {
-                $message[$key] = $value;
-            }
-        } else {
-            $temp    = ct_get_fields_any_postdata($value);
-            $message = (count($temp) == 0 ? $message : array_merge($message, $temp));
-        }
-    }
-
-    return $message;
-}
-
-function cleantalk_debug($key, $value)
-{
-    if ( Cookie::get('cleantalk_debug')) {
-        @header($key . ": " . $value);
-    }
+    return $gfa->getFieldsDTO($email, $nickname);
 }
 
 /**
@@ -1206,7 +1213,6 @@ function apbct_add_async_attribute($tag, $handle)
     $scripts_handles_names = array(
         'ct_public',
         'ct_public_functions',
-        'ct_debug_js',
         'ct_public_admin_js',
         'ct_internal',
         'ct_external',

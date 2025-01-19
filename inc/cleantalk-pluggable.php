@@ -1199,7 +1199,10 @@ function apbct_is_skip_request($ajax = false)
 
         // skip masteriyo_login LMS
         if (
-            apbct_is_plugin_active('learning-management-system/lms.php') &&
+            (
+                apbct_is_plugin_active('learning-management-system/lms.php') ||
+                apbct_is_plugin_active('learning-management-system-pro/lms.php')
+            ) &&
             Post::get('action') === 'masteriyo_login'
         ) {
             return 'masteriyo_login LMS';
@@ -1227,15 +1230,16 @@ function apbct_is_skip_request($ajax = false)
             return 'Broken Link Notifier service action';
         }
 
-        // skip WP Rocket image dimensions
+        // skip WP Rocket service requests
         if (
             apbct_is_plugin_active('wp-rocket/wp-rocket.php') &&
             (
                 Get::get('wpr_imagedimensions') ||
-                Post::get('wpr_imagedimensions')
+                Post::get('wpr_imagedimensions') ||
+                Post::get('action') === 'rocket_beacon'
             )
         ) {
-            return 'WP Rocket image dimensions';
+            return 'WP Rocket service requests';
         }
         // skip Check email before POST request
         if (
@@ -1246,6 +1250,19 @@ function apbct_is_skip_request($ajax = false)
         // BuddyPress has the direct integration
         if ( apbct_is_plugin_active('buddypress/bp-loader.php') && Post::get('action') === 'messages_send_message' ) {
             return 'buddypress_messages_send_message';
+        }
+
+        // skip Force Protection check bot
+        if (Post::get('action') === 'apbct_force_protection_check_bot') {
+            return 'apbct_force_protection_check_bot_skip';
+        }
+
+        // TEvolution checking email existence need to be excluded
+        if (
+            apbct_is_plugin_active('Tevolution/templatic.php') &&
+            Post::get('action') === 'tmpl_ajax_check_user_email'
+        ) {
+            return 'tevolution email exitence';
         }
     } else {
         /*****************************************/
@@ -1641,6 +1658,18 @@ function apbct__check_admin_ajax_request($query_arg = 'security')
     if ( ! current_user_can('manage_options') ) {
         wp_die('-1', 403);
     }
+}
+
+/**
+ * @return bool
+ */
+function apbct__is_wp_rocket_preloader_request()
+{
+    return (
+        isset($_SERVER['HTTP_USER_AGENT'], $_SERVER['REMOTE_ADDR'], $_SERVER['SERVER_ADDR']) &&
+        strpos($_SERVER['HTTP_USER_AGENT'], 'WP Rocket/Preload') !== false &&
+        $_SERVER['REMOTE_ADDR'] === $_SERVER['SERVER_ADDR']
+    );
 }
 
 /**

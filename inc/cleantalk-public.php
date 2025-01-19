@@ -162,6 +162,7 @@ function apbct_init()
         }
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
             add_action('woocommerce_after_checkout_validation', 'ct_woocommerce_checkout_check', 1, 2);
+            add_action('woocommerce_store_api_checkout_order_processed', 'ct_woocommerce_checkout_check_from_rest', 1, 1);
             add_action('woocommerce_checkout_update_order_meta', 'apbct_woocommerce__add_request_id_to_order_meta');
             add_action('woocommerce_store_api_checkout_update_customer_from_request', 'apbct_wc_store_api_checkout_update_customer_from_request', 10, 2);
         }
@@ -549,13 +550,17 @@ function apbct_hook__wp_footer()
         $timeout = $apbct->settings['misc__async_js'] ? 1000 : 0;
 
         if ( $apbct->data['ajax_type'] == 'rest' ) {
-            $send_way_asset = "apbct_public_sendREST(
+            $send_way_asset = "if (typeof apbct_public_sendREST === 'function' && typeof apbct_js_keys__set_input_value === 'function') {
+                                    apbct_public_sendREST(
                                     'js_keys__get',
-                                    { callback: apbct_js_keys__set_input_value }";
+                                    { callback: apbct_js_keys__set_input_value })
+                                }";
         } else {
-            $send_way_asset = "apbct_public_sendAJAX(	
+            $send_way_asset = "if (typeof apbct_public_sendAJAX === 'function' && typeof apbct_js_keys__set_input_value === 'function') {
+                                    apbct_public_sendAJAX(	
                                     { action: 'apbct_js_keys__get' },	
-                                    { callback: apbct_js_keys__set_input_value }";
+                                    { callback: apbct_js_keys__set_input_value })
+                                }";
         }
 
         $cookie_bot_asset = (class_exists('Cookiebot_WP')) ? 'data-cookieconsent="ignore"' : '';
@@ -567,7 +572,6 @@ function apbct_hook__wp_footer()
                         setTimeout(function(){
                             if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
                                 " . $send_way_asset . "
-                                )
                             }
                         }," . $timeout . ")					    
                     })				
@@ -1235,23 +1239,6 @@ function ct_enqueue_scripts_public($_hook)
             ));
         }
     }
-
-    // Debug
-    if ( $apbct->settings['misc__debug_ajax'] ) {
-        wp_enqueue_script(
-            'ct_debug_js',
-            APBCT_JS_ASSETS_PATH . '/cleantalk-debug-ajax.min.js',
-            // keep this jquery dependency if option misc__debug_ajax is enabled
-            array('jquery'),
-            APBCT_VERSION,
-            false /*in header*/
-        );
-
-        wp_localize_script('ct_debug_js', 'apbctDebug', array(
-            'reload'      => false,
-            'reload_time' => 10000,
-        ));
-    }
 }
 
 function ct_enqueue_styles_public()
@@ -1313,6 +1300,10 @@ function ct_enqueue_styles_public()
     }
 }
 
+/**
+ * @return void
+ * @psalm-suppress InvalidArgument - wp_enqueue_script() does not await bool as psalm predicts, array values are allowed
+ */
 function apbct_enqueue_and_localize_public_scripts()
 {
     global $apbct;
@@ -1335,7 +1326,10 @@ function apbct_enqueue_and_localize_public_scripts()
             '/js-bot-detector/ct-bot-detector.min.js',
             [],
             APBCT_VERSION,
-            $in_footer
+            array(
+                'in_footer' => $in_footer,
+                'strategy' => 'defer'
+                )
         );
     }
 
