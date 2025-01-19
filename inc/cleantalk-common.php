@@ -1800,6 +1800,12 @@ function apbct__bot_detector_get_fd_log()
     );
     // Initialize result array with default values
 
+    if (defined('APBCT_DO_NOT_COLLECT_FRONTEND_DATA_LOGS')) {
+        $result['plugin_status'] = 'OK';
+        $result['error_msg'] = 'bot detector logs collection is disabled via constant definition';
+        return json_encode($result);
+    }
+
     try {
         if ( TT::toString($apbct->settings['data__bot_detector_enabled']) === '0') {
             throw new \Exception('bot detector library usage is disabled');
