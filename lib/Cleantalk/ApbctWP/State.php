@@ -382,6 +382,11 @@ class State extends \Cleantalk\Common\State
 
     public $errors;
 
+     /**
+      * @var AJAXService
+      */
+    public $ajax_service;
+
     /**
      * Create vars list. Use all the vars that has 'default_' in theirs name.
      * @return bool
@@ -588,6 +593,7 @@ class State extends \Cleantalk\Common\State
 
     protected function init()
     {
+        $this->ajax_service = new AJAXService();
         // Standalone or main site
         $this->api_key        = $this->settings['apikey'];
         //HANDLE LINK

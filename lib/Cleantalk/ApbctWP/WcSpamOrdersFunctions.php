@@ -8,7 +8,7 @@ class WcSpamOrdersFunctions
 {
     public static function restoreOrderAction()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins();
 
         $order_id = Post::get('order_id', 'int');
 

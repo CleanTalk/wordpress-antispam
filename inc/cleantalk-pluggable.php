@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -523,7 +524,7 @@ function apbct_is_skip_request($ajax = false)
 
     if (
         TT::toString(Post::get('action')) === 'apbct_alt_session__save__AJAX' &&
-        wp_verify_nonce(TT::toString(Post::get('_ajax_nonce')), 'ct_secret_stuff')
+        wp_verify_nonce(TT::toString(Post::get('_ajax_nonce')), AJAXService::$public_nonce_id)
     ) {
         return 'CleanTalk AltCookies request.';
     }
@@ -729,7 +730,7 @@ function apbct_is_skip_request($ajax = false)
         // APBCT service actions
         if (
             apbct_is_plugin_active('cleantalk-spam-protect/cleantalk.php') &&
-            ( TT::toString(Post::get('action')) === 'apbct_get_pixel_url' && wp_verify_nonce(TT::toString(Post::get('_ajax_nonce')), 'ct_secret_stuff') )
+            ( TT::toString(Post::get('action')) === 'apbct_get_pixel_url' && wp_verify_nonce(TT::toString(Post::get('_ajax_nonce')), AJAXService::$public_nonce_id) )
         ) {
             return 'APBCT service actions';
         }
@@ -1649,15 +1650,6 @@ function apbct__is_rest_api_request()
     }
 
     return false;
-}
-
-function apbct__check_admin_ajax_request($query_arg = 'security')
-{
-    check_ajax_referer('ct_secret_nonce', $query_arg);
-
-    if ( ! current_user_can('manage_options') ) {
-        wp_die('-1', 403);
-    }
 }
 
 /**
