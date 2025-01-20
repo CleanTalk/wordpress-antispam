@@ -2,6 +2,10 @@
 
 namespace Cleantalk\Common\HTTP;
 
+use Cleantalk\Common\API;
+use Cleantalk\Common\DNS;
+use Cleantalk\Common\Helper;
+
 /**
  * Class Request
  *
@@ -188,16 +192,25 @@ class Request
             ? $this->requestMulti()
             : $this->requestSingle();
 
-        // Process the error. Unavailable for multiple URLs.
+        // Process the error with socket. Unavailable for multiple URLs.
         if (
             ! is_array($this->url) &&
             $this->response->getError() &&
             in_array('retry_with_socket', $this->presets, true)
         ) {
             $this->response = $this->requestWithSocket();
-            if ( $this->response->getError() ) {
-                return $this->response->getError();
-            }
+        }
+
+        // Process the error with ip form DNS. Unavailable for multiple URLs.
+        if ( ! is_array($this->url) &&
+            in_array('retry_with_ip_from_dns', $this->presets, true) &&
+            $this->response->getError()
+        ) {
+            $this->response = $this->requestWithIPFromDNS();
+        }
+
+        if (! is_array($this->url) && $this->response->getError() ) {
+            return $this->response->getError();
         }
 
         return $this->runCallbacks();
@@ -567,5 +580,89 @@ class Request
     public static function isJson($string)
     {
         return is_string($string) && is_array(json_decode($string, true));
+    }
+
+    /**
+     * Make a request with IP from DNS resolve.
+     * @return Response
+     */
+    protected function requestWithIPFromDNS()
+    {
+        //parse host for DNS resolve
+        $host_data = parse_url($this->url);
+        $host = isset($host_data['host']) ? $host_data['host'] : '';
+        if ( empty($host) ) {
+            //get default host
+            //todo API:URL as default host is probably incorrect (probably moderate)
+            $host_data = parse_url(API::URL);
+            $host = isset($host_data['host']) ? $host_data['host'] : '';
+        }
+
+        $dns_ip_list = DNS::getIPListFromDNS($host);
+        foreach ($dns_ip_list as $dns_ip) {
+            $new_options = $this->options;
+            // todo No way to test if it works with ipv6
+            if (Helper::ipValidate($dns_ip) === 'v6' && defined('CURLOPT_IPRESOLVE') && defined('CURLOPT_IPRESOLVE_V6')) {
+                $dns_ip = '[' . $dns_ip . ']';
+                //$new_options[CURLOPT_IPRESOLVE] = CURL_IPRESOLVE_V6;
+            }
+            $new_options[CURLOPT_URL] = $dns_ip;
+            $this->setOptions($new_options);
+            $response = $this->requestSingle();
+            if ($response->getResponseCode() === 200 && empty($response->getError())) {
+                $this->setLastIPFromDNS($dns_ip, time());
+                return $response;
+            }
+        }
+
+        $this->setIpFromDNSCooldown($host);
+
+        return new Response(array('error' => 'IP_FROM_DNS_RETRY_FAILED__NO_ADDRESS_REACHABLE'), []);
+    }
+
+    /**
+     * Returns the last successfully connected IP from DNS.
+     * Rewrite this method to use your own storage.
+     * @return false|string
+     */
+    public static function useLastIPFromDNS()
+    {
+        //override this method
+        return false;
+    }
+
+    /**
+     * Save the last successfully connected IP from DNS.
+     * Rewrite this method to use your own storage.
+     *
+     * @param $ip string
+     * @param $last_update_timestamp int
+     *
+     * @return void
+     */
+    protected static function setLastIPFromDNS($ip, $last_update_timestamp)
+    {
+        //override this method
+    }
+
+    /**
+     * @param $host
+     *
+     * @return void
+     */
+    protected static function setIpFromDNSCooldown($host)
+    {
+        //override this method
+    }
+
+    /**
+     * @param $current_host
+     *
+     * @return bool
+     */
+    public static function isIpFromDNSCooldown($current_host)
+    {
+        //override this method
+        return false;
     }
 }

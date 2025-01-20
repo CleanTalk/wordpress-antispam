@@ -7,6 +7,10 @@ use Cleantalk\Common\TT;
 
 class Request extends \Cleantalk\Common\HTTP\Request
 {
+    private static $ip_from_dns__lifetime = 86400;
+    private static $ip_from_dns_cooldown = 60;
+    private static $ip_from_dns__last_ip_option_name = 'cleantalk_ip_from_dns';
+    private static $ip_from_dns_cooldown_option_name = 'cleantalk_ip_from_dns_cooldown';
     public function request()
     {
         global $apbct;
@@ -269,5 +273,58 @@ class Request extends \Cleantalk\Common\HTTP\Request
         }
 
         return $headers_for_api;
+    }
+
+    /**
+     * @return false|string
+     */
+    public static function useLastIPFromDNS()
+    {
+        $last_saved = get_option(self::$ip_from_dns__last_ip_option_name, false);
+        if ( $last_saved && ! empty($last_saved['ip']) && ! empty($last_saved['last_update']) ) {
+            if ( time() - (int)$last_saved['last_update'] < self::$ip_from_dns__lifetime ) {
+                return TT::toString($last_saved['ip']);
+            } else {
+                delete_option(self::$ip_from_dns__last_ip_option_name);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param $ip
+     * @param $last_update_timestamp
+     *
+     * @return void
+     */
+    protected static function setLastIPFromDNS($ip, $last_update_timestamp)
+    {
+        update_option(self::$ip_from_dns__last_ip_option_name, ['ip' => $ip, 'last_update' => $last_update_timestamp]);
+    }
+
+    /**
+     * @param $host
+     *
+     * @return void
+     */
+    protected static function setIpFromDNSCooldown($host)
+    {
+        update_option(static::$ip_from_dns_cooldown_option_name, ['host' => $host, 'cooldown' => time() + static::$ip_from_dns_cooldown]);
+    }
+
+    /**
+     * @param $current_host
+     *
+     * @return bool
+     */
+    public static function isIpFromDNSCooldown($current_host)
+    {
+        $cooldown_data = get_option(static::$ip_from_dns_cooldown_option_name, false);
+        $cooldown = TT::getArrayValueAsInt('cooldown', $cooldown_data);
+        $saved_host = TT::getArrayValueAsString('host', $cooldown_data);
+        if ( strpos($current_host, $saved_host) !== false) {
+            return (time() < $cooldown);
+        }
+        return false;
     }
 }
