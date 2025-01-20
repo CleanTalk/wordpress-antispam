@@ -22,6 +22,7 @@
         <directory name="./lib/Cleantalk/Antispam"/>
         <directory name="./lib/Cleantalk/ApbctWP"/>
         <directory name="./lib/Cleantalk/Common/Firewall"/>
+        <directory name="./lib/Cleantalk/Common/HTTP"/>
         <file name="./lib/Cleantalk/Common/Firewall.php"/>
         <file name="lib/Cleantalk/Variables/ServerVariables.php"/>
 
