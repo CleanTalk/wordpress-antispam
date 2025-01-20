@@ -23,7 +23,9 @@
         <directory name="./lib/Cleantalk/ApbctWP"/>
         <directory name="./lib/Cleantalk/Common/Firewall"/>
         <directory name="./lib/Cleantalk/Common/HTTP"/>
+        <directory name="./lib/Cleantalk/Common/UniversalBanner"/>
         <file name="./lib/Cleantalk/Common/Firewall.php"/>
+        <file name="./lib/Cleantalk/Common/API.php"/>
         <file name="lib/Cleantalk/Variables/ServerVariables.php"/>
 
         <ignoreFiles allowMissingFiles="true">
