@@ -10,6 +10,7 @@ function ctSetCookie( cookies, value, expires ) {
         'ct_sfw_passed',
         'wordpress_apbct_antibot',
         'apbct_anticrawler_passed',
+        'apbct_bot_detector_exist',
         'apbct_antiflood_passed',
         'apbct_email_encoder_passed',
     ];

@@ -154,19 +154,35 @@ function ct_contact_form_validate()
         }
     }
 
+    /**
+     * Get fields any usage
+     */
+
     $ct_temp_msg_data = ct_get_fields_any($input_array, $ct_tmp_email);
 
-    $sender_email    = (isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '');
+    /**
+     * Email and emails array preparing
+     */
+
+    //prepare email
+    $sender_email    = isset($ct_temp_msg_data['email']) ? TT::toString($ct_temp_msg_data['email']) : '';
+
     //prepare emails array
-    $sender_emails_array = (isset($ct_temp_msg_data['emails_array']) ? $ct_temp_msg_data['emails_array'] : '');
-    if ( !empty($sender_emails_array) ) {
-        $sender_emails_array = json_encode($sender_emails_array);
-        $sender_emails_array = TT::toString($sender_emails_array);
-    }
+    $sender_emails_array = isset($ct_temp_msg_data['emails_array']) && is_array($ct_temp_msg_data['emails_array'])
+        ? $ct_temp_msg_data['emails_array']
+        : array();
+    $sender_emails_array = json_encode($sender_emails_array);
+    $sender_emails_array = TT::toString($sender_emails_array);
+
+    //prepare email data to sender info
     $sender_info = array(
         'sender_email' => urlencode($sender_email),
         'sender_emails_array' => urlencode($sender_emails_array)
     );
+
+    /**
+     * Other sender data collection
+     */
 
     $sender_nickname = (isset($ct_temp_msg_data['nickname']) ? $ct_temp_msg_data['nickname'] : '');
     $subject         = (isset($ct_temp_msg_data['subject']) ? $ct_temp_msg_data['subject'] : '');
@@ -176,7 +192,7 @@ function ct_contact_form_validate()
         $message = array_merge(array('subject' => $subject), $message);
     }
 
-    // Skip submission if no data found
+    // Skip submission if "get fields any" decided this is not a contact form
     if ( ! $contact_form ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 

@@ -1103,7 +1103,7 @@ function ct_delete_spam_comments()
  * @param string|array $nickname
  *
  * @return array
- * @deprecated Use ct_gfa()
+ * @deprecated Use ct_gfa_dto() to work with DTO object
  */
 function ct_get_fields_any($arr, $email = '', $nickname = '')
 {

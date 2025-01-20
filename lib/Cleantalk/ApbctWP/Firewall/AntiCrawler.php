@@ -331,10 +331,6 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     {
         global $apbct;
 
-        if ( $apbct->data['cookies_type'] === 'none' && ! is_admin() ) {
-            return;
-        }
-
         $script =
         "<script>
             window.addEventListener('DOMContentLoaded', function () {

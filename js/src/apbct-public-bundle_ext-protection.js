@@ -1032,6 +1032,10 @@ class ApbctXhr {
         }
 
         this.errorOutput( errorString );
+
+        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function') {
+            this.onErrorCallback(this.status_text);
+        }
     }
 
     /**
@@ -1389,6 +1393,7 @@ function ctSetCookie( cookies, value, expires ) {
         'ct_sfw_passed',
         'wordpress_apbct_antibot',
         'apbct_anticrawler_passed',
+        'apbct_bot_detector_exist',
         'apbct_antiflood_passed',
         'apbct_email_encoder_passed',
     ];
@@ -4831,8 +4836,35 @@ function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObj
 
     documentObject.forms[iterator].onsubmit = function(event) {
         event.preventDefault();
+
+        // MooSend spinner activate
+        apbctMoosendSpinnerToggle(event.currentTarget);
+
         sendAjaxCheckingFormData(event.currentTarget);
     };
+}
+
+/**
+ * Activate or deactivate spinner for Moosend form during request checking
+ * @param {HTMLElement} form
+ */
+function apbctMoosendSpinnerToggle(form) {
+    const buttonElement = form.querySelector('button[type="submit"]');
+    if ( buttonElement ) {
+        const spinner = buttonElement.querySelector('i');
+        const submitText = buttonElement.querySelector('span');
+        if (spinner && submitText) {
+            if ( spinner.style.zIndex == 1 ) {
+                submitText.style.opacity = 1;
+                spinner.style.zIndex = -1;
+                spinner.style.opacity = 0;
+            } else {
+                submitText.style.opacity = 0;
+                spinner.style.zIndex = 1;
+                spinner.style.opacity = 1;
+            }
+        }
+    }
 }
 
 /**
@@ -4877,7 +4909,7 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
 }
 // clear protected iframes list
 apbctLocalStorage.set('apbct_iframes_protected', []);
-window.onload = function() {
+window.addEventListener('load', function() {
     if ( ! +ctPublic.settings__forms__check_external ) {
         return;
     }
@@ -4890,7 +4922,7 @@ window.onload = function() {
     }, 2000);
 
     ctProtectKlaviyoForm();
-};
+});
 
 /**
  * Protect klaviyo forms
@@ -4956,6 +4988,7 @@ function ctProtectOutsideIframe() {
             if (iframe.src.indexOf('form.typeform.com') !== -1 ||
                 iframe.src.indexOf('forms.zohopublic.com') !== -1 ||
                 iframe.src.indexOf('link.surepathconnect.com') !== -1 ||
+                iframe.src.indexOf('hello.dubsado.com') !== -1 ||
                 iframe.classList.contains('hs-form-iframe') ||
                 ( iframe.src.indexOf('facebook.com') !== -1 && iframe.src.indexOf('plugins/comments.php') !== -1)
             ) {
@@ -5229,7 +5262,20 @@ function sendAjaxCheckingFormData(form) {
         {
             async: false,
             callback: function( result, data, params, obj ) {
+                // MooSend spinner deactivate
+                apbctMoosendSpinnerToggle(form);
                 if ( result.apbct === undefined || ! +result.apbct.blocked ) {
+                    // Clear service fields
+                    for (const el of form.querySelectorAll('input[name="apbct_visible_fields"]')) {
+                        el.remove();
+                    }
+                    for (const el of form.querySelectorAll('input[value="cleantalk_force_ajax_check"]')) {
+                        el.remove();
+                    }
+                    for (const el of form.querySelectorAll('input[name="ct_no_cookie_hidden_field"]')) {
+                        el.remove();
+                    }
+
                     // Klaviyo integration
                     if (form.classList !== undefined && form.classList.contains('klaviyo-form')) {
                         const cover = document.getElementById('apbct-klaviyo-cover');

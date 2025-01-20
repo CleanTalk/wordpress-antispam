@@ -362,6 +362,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
+    'Tevolution' => array(
+        'hook'    => 'register_post',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_active_integrations) {

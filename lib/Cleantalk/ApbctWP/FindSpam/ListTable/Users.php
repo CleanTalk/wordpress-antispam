@@ -16,7 +16,8 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
     {
         parent::__construct(array(
             'singular' => 'spam',
-            'plural'   => 'spam'
+            'plural'   => 'spam',
+            'screen'   => str_replace('users_page_', '', current_action())
         ));
 
         $this->bulk_actions_handler();
@@ -47,6 +48,27 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         );
         if ( $this->wc_active ) {
             $columns['ct_orders'] = esc_html__('Completed WC orders', 'cleantalk-spam-protect');
+        }
+
+        return $columns;
+    }
+
+    /**
+     * @return array|array[]
+     */
+    protected function get_sortable_columns() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        $columns = array(
+            'ct_username'  => array('ct_username'),
+            'ct_email'  => array('ct_email'),
+            'ct_name'  => array('ct_name'),
+            'ct_signed_up'  => array('ct_signed_up','desc'),
+            'ct_role'  => array('ct_role'),
+            'ct_posts'  => array('ct_posts'),
+        );
+
+        if ( $this->wc_active ) {
+            $columns['ct_orders'] = array('ct_orders');
         }
 
         return $columns;
@@ -306,19 +328,157 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
     }
 
     /**
-     * @return \WP_User_Query
+     * Get spam users.
+     * @param integer|null $per_page if null - then just count users
+     * @param integer|null $current_page
+     * @param string $orderby
+     * @param string $order
+     * @return array
      */
-    public function getSpamNow($per_page, $current_page)
+    public function getSpamNow($per_page, $current_page, $orderby = 'ct_signed_up', $order = 'ASC')
     {
-        $params_spam = array(
-            'number'   => $per_page,
-            'offset'   => ( $current_page - 1 ) * $per_page,
-            'fields'      => 'ID',
-            'meta_key' => 'ct_marked_as_spam',
-            'count_total' => true,
-        );
+        global $wpdb;
+        //table names
+        $wc_orders_table = $wpdb->prefix . 'wc_orders';
+        $wp_usermeta_table = $wpdb->usermeta;
+        $wp_posts_table = $wpdb->posts;
+        $wp_users = $wpdb->users;
+        $wp_capabilities = $wpdb->prefix . 'capabilities';
 
-        return new \WP_User_Query($params_spam);
+        $wc_exists = $this->wc_active && $wpdb->get_row("SHOW TABLES LIKE '$wc_orders_table'");
+
+        // get ordering and sanitizing it
+        $sortable_columns = array_keys(Users::get_sortable_columns());
+
+        $orderby = !empty($orderby) ? $orderby : 'ct_signed_up';
+        $orderby = is_string($orderby) && in_array($orderby, $sortable_columns) ? $orderby : false;
+
+        $order = !empty($order) ? strtoupper($order) : 'ASC';
+        $order = in_array($order, array('ASC', 'DESC')) ? $order : false;
+
+        $order_by_chunk = $order && $orderby && !is_null($per_page) ? " ORDER BY $orderby $order " : '';
+
+        // chunks
+
+        //woo commerce orders
+        $wc_sql_chunk_count = $wc_exists ? " COUNT( DISTINCT $wc_orders_table.ID ) AS ct_orders, " : '';
+        $wc_sql_chunk_join = $wc_exists
+            ? " LEFT JOIN $wc_orders_table ON 
+                users.ID = $wc_orders_table.customer_id 
+                AND $wc_orders_table.status LIKE '%wc_completed%' "
+            : '';
+
+        if (!isset($current_page)) {
+            $current_page = 1;
+        }
+
+        if (is_null($per_page)) { // if null - just count users
+            //limit is no limit
+            $limit_sql_chunk = '';
+            // global selector is count only
+            $selectors_sql_chunk = ' COUNT(*) as cnt ';
+            //ordering and group chunks empty
+            $group_by_chunk = '';
+            // drop wc_orders_join on count
+            $wc_sql_chunk_join = '';
+        } else { // else - get users select with limit, group and order
+            //limit
+            $limit_sql_chunk =  "LIMIT " . ($current_page - 1) * $per_page . ", " . $per_page;
+
+            // global selector
+            $selectors_sql_chunk = ' user_login AS ct_username,
+            user_nicename AS ct_name,
+            user_email AS ct_email,
+            user_registered AS ct_signed_up,
+            users.ID AS user_id,
+            ' . $wc_sql_chunk_count . '
+            ( SELECT meta_table.meta_value 
+                    FROM ' . $wp_usermeta_table . ' as meta_table
+                        WHERE meta_table.meta_key LIKE \'' . $wp_capabilities . '\'
+                        AND meta_table.user_id = users.ID
+                        LIMIT 1
+                ) AS ct_role,
+            ( SELECT COUNT( posts_table.ID ) 
+                     FROM ' . $wp_posts_table . ' as posts_table
+                        WHERE posts_table.post_author = users.ID
+                        AND posts_table.post_type = \'post\'
+                        AND posts_table.post_status = \'publish\'
+                ) AS ct_posts';
+
+            //ordering chunks
+            $group_by_chunk = ' GROUP BY users.ID ';
+        }
+
+        $the_final_query = "
+            SELECT 
+              $selectors_sql_chunk
+            FROM 
+                $wp_users AS users
+            $wc_sql_chunk_join
+            LEFT JOIN 
+                $wp_usermeta_table ON users.ID = $wp_usermeta_table.user_id
+            LEFT JOIN $wp_posts_table ON users.ID = $wp_posts_table.post_author
+            WHERE $wp_usermeta_table.meta_key LIKE '%ct_marked_as_spam%'
+            $group_by_chunk
+            $order_by_chunk
+            $limit_sql_chunk;
+        ";
+
+        /** The final common SQL query looks LIKE
+         * SELECT
+         *  user_login AS ct_username,
+         *  user_nicename AS ct_name,
+         *  user_email AS ct_email,
+         *  user_registered AS ct_signed_up,
+         *  users.ID AS user_id,
+         *  COUNT( DISTINCT wp_wc_orders.ID ) AS ct_orders,
+         *  ( SELECT meta_table.meta_value
+         *      FROM wp_usermeta as meta_table
+         *      WHERE meta_table.meta_key LIKE \'wp_capabilities\'
+         *      AND meta_table.user_id = users.ID
+         *      LIMIT 1
+         *  ) AS ct_role,
+         *  ( SELECT COUNT( posts_table.ID )
+         *      FROM wp_posts as posts_table
+         *      WHERE posts_table.post_author = users.ID
+         *      AND posts_table.post_type = \'post\'
+         *      AND posts_table.post_status = \'publish\'
+         *  ) AS ct_posts
+         * FROM
+         *  wp_users AS users
+         * LEFT JOIN wp_wc_orders ON
+         *      users.ID = wp_wc_orders.customer_id
+         *      AND wp_wc_orders.status LIKE \'%wc_completed%\'
+         * LEFT JOIN wp_usermeta ON
+         *      users.ID = wp_usermeta.user_id
+         * LEFT JOIN wp_posts ON
+         *      users.ID = wp_posts.post_author
+         * WHERE wp_usermeta.meta_key LIKE \'%ct_marked_as_spam%\'
+         * GROUP BY users.ID
+         * ORDER BY ct_posts desc
+         * LIMIT 0, 10;
+         */
+
+        /**
+         * The final count SQL looks like
+         * SELECT
+         *  COUNT(*) as cnt
+         * FROM
+         *  wp_users AS users
+         * LEFT JOIN wp_usermeta ON
+         *      users.ID = wp_usermeta.user_id
+         * LEFT JOIN wp_posts ON
+         *      users.ID = wp_posts.post_author
+         * WHERE wp_usermeta.meta_key LIKE \'%ct_marked_as_spam%\'
+         */
+
+        $result = $wpdb->get_results($the_final_query);
+
+        if ( !is_array($result) ) {
+            $result = array();
+        }
+
+        return $result;
     }
 
     /**
@@ -365,28 +525,5 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             "DELETE FROM " . APBCT_SPAMSCAN_LOGS . " WHERE 
                 ID IN ($ids_string)"
         );
-    }
-
-    /**
-     * @param int $user_id
-     *
-     * @return string
-     */
-    protected function getWcOrdersCount($user_id)
-    {
-        $args = array(
-            'post_type'   => 'shop_order',
-            'post_status' => 'wc-completed',
-            'numberposts' => -1,
-            'meta_key'    => '_customer_user',
-            'meta_value'  => $user_id,
-        );
-
-        $description = '';
-        if ( $count = count(get_posts($args)) ) {
-            $description = esc_html__('Do "accurate check" to skip checking this user', 'cleantalk-spam-protect');
-        }
-
-        return '<p>' . $count . '</p><i>' . $description . '</i>';
     }
 }
