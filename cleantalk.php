@@ -1479,13 +1479,16 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
             if (is_array($http_results)) {
                 $results = array_merge($results, $http_results);
             }
+            // to handle case if we request only one url, then Helper::httpMultiRequest returns string 'success' instead of array
+            if (count($batch_urls) === 1 && $http_results === 'success') {
+                $results = array_merge($results, $batch_urls);
+            }
         }
     }
 
     $results       = TT::toArray($results);
     $count_urls    = count($urls);
     $count_results = count($results);
-
 
     if ( empty($results['error']) && ($count_urls === $count_results) ) {
         if ( $direct_update ) {
