@@ -26,6 +26,9 @@
         <directory name="./lib/Cleantalk/Common/UniversalBanner"/>
         <file name="./lib/Cleantalk/Common/Firewall.php"/>
         <file name="./lib/Cleantalk/Common/API.php"/>
+        <file name="./lib/Cleantalk/Common/Arr.php"/>
+        <file name="./lib/Cleantalk/Common/Compatibility.php"/>
+        <file name="./lib/Cleantalk/Common/Cron.php"/>
         <file name="lib/Cleantalk/Variables/ServerVariables.php"/>
 
         <ignoreFiles allowMissingFiles="true">
