@@ -298,6 +298,19 @@ function apbct_admin__init()
 {
     global $apbct, $spbc;
 
+    // TODO: need to find another way to be compatible with WP Rocket and WPEngine
+    if (defined('WP_ROCKET_VERSION') &&
+        Server::get('IS_WPE') &&
+        strpos(TT::toString(Server::get('REQUEST_URI')), 'wp-admin/admin-ajax.php') === false
+    ) {
+        ob_start(function ($buffer) {
+            $pattern = '/<script\s+type="rocketlazyloadscript"[^>]*cleantalk-admin\.min\.js[^>]*>/i';
+
+            return preg_replace($pattern, '<script src="' . APBCT_JS_ASSETS_PATH . '/cleantalk-admin.min.js' .
+                '?ver=' . APBCT_VERSION . '" id="ct_admin_common-js"></script>', $buffer);
+        });
+    }
+
     // Admin bar
     $apbct->admin_bar_enabled = $apbct->settings['admin_bar__show'] &&
                                 current_user_can('activate_plugins');

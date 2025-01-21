@@ -73,6 +73,7 @@ class TestApbctCron extends TestCase {
 
 	public function testCompareStructureAfterUpdatingTask()
 	{
+		$during_update_time = 10;
 		$tasks = $this->tasks;
 		//Some modify tasks and try to save it
 		++ $tasks['sfw_update']['next_call'];
@@ -88,7 +89,7 @@ class TestApbctCron extends TestCase {
 			self::assertArrayHasKey( 'handler', $task_from_obj );
 			self::assertArrayHasKey( 'next_call', $task_from_obj );
 			self::assertIsInt( $task_from_obj['next_call'] );
-			self::assertGreaterThanOrEqual( time() + $task_from_obj['period'], $task_from_obj['next_call'] );
+			self::assertGreaterThanOrEqual( time() + $task_from_obj['period'], $task_from_obj['next_call'] + $during_update_time );
 			self::assertArrayHasKey( 'period', $task_from_obj );
 			self::assertIsInt( $task_from_obj['period'] );
 			self::assertArrayHasKey( 'params', $task_from_obj );

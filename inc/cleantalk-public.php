@@ -550,13 +550,17 @@ function apbct_hook__wp_footer()
         $timeout = $apbct->settings['misc__async_js'] ? 1000 : 0;
 
         if ( $apbct->data['ajax_type'] == 'rest' ) {
-            $send_way_asset = "apbct_public_sendREST(
+            $send_way_asset = "if (typeof apbct_public_sendREST === 'function' && typeof apbct_js_keys__set_input_value === 'function') {
+                                    apbct_public_sendREST(
                                     'js_keys__get',
-                                    { callback: apbct_js_keys__set_input_value }";
+                                    { callback: apbct_js_keys__set_input_value })
+                                }";
         } else {
-            $send_way_asset = "apbct_public_sendAJAX(	
+            $send_way_asset = "if (typeof apbct_public_sendAJAX === 'function' && typeof apbct_js_keys__set_input_value === 'function') {
+                                    apbct_public_sendAJAX(	
                                     { action: 'apbct_js_keys__get' },	
-                                    { callback: apbct_js_keys__set_input_value }";
+                                    { callback: apbct_js_keys__set_input_value })
+                                }";
         }
 
         $cookie_bot_asset = (class_exists('Cookiebot_WP')) ? 'data-cookieconsent="ignore"' : '';
@@ -568,7 +572,6 @@ function apbct_hook__wp_footer()
                         setTimeout(function(){
                             if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
                                 " . $send_way_asset . "
-                                )
                             }
                         }," . $timeout . ")					    
                     })				
@@ -1308,13 +1311,45 @@ function apbct_enqueue_and_localize_public_scripts()
     $in_footer = defined('CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER') && CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER;
 
     // Different JS params
-    wp_enqueue_script(
-        'ct_public_functions',
-        APBCT_URL_PATH . '/js/apbct-public-bundle.min.js',
-        array(),
-        APBCT_VERSION,
-        $in_footer
-    );
+    if (!$apbct->settings['forms__check_external'] && !$apbct->settings['forms__check_internal']) {
+        wp_enqueue_script(
+            'ct_public_functions',
+            APBCT_URL_PATH . '/js/apbct-public-bundle.min.js',
+            array(),
+            APBCT_VERSION,
+            $in_footer
+        );
+    }
+
+    if ($apbct->settings['forms__check_external'] && !$apbct->settings['forms__check_internal']) {
+        wp_enqueue_script(
+            'ct_public_functions-external_forms',
+            APBCT_URL_PATH . '/js/apbct-public-bundle_ext-protection.min.js',
+            array(),
+            APBCT_VERSION,
+            $in_footer
+        );
+    }
+
+    if ($apbct->settings['forms__check_internal'] && !$apbct->settings['forms__check_external']) {
+        wp_enqueue_script(
+            'ct_public_functions-internal_forms',
+            APBCT_URL_PATH . '/js/apbct-public-bundle_int-protection.min.js',
+            array(),
+            APBCT_VERSION,
+            $in_footer
+        );
+    }
+
+    if ($apbct->settings['forms__check_external'] && $apbct->settings['forms__check_internal']) {
+        wp_enqueue_script(
+            'ct_public_functions',
+            APBCT_URL_PATH . '/js/apbct-public-bundle_full-protection.min.js',
+            array(),
+            APBCT_VERSION,
+            $in_footer
+        );
+    }
 
     // Bot detector
     if ( $apbct->settings['data__bot_detector_enabled'] && ! apbct_bot_detector_scripts_exclusion()) {
