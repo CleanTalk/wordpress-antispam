@@ -1815,7 +1815,7 @@ function apbctCancelAutocomplete(element) {
 }
 
 if (ctPublic.data__key_is_ok) {
-    if (document.readyState !== 'loading') {
+    if (document.readyState !== 'loading' && typeof ApbctForceProtection !== 'undefined') {
         apbctForceProtect();
     } else {
         apbct_attach_event_handler(document, 'DOMContentLoaded', apbctForceProtect);
