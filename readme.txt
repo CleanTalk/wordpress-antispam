@@ -442,7 +442,7 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
-= 6.48.2 21.01.2025 =
+= 6.48.2 23.01.2025 =
 * Fix. SFW. Fixed update flow, to prevent warning occur on download stage.
 * Fix. Force Protection. Preventing notice occurs from js.
 
