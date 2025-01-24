@@ -310,7 +310,6 @@ function viewCheckEmailExist(e, state, textResult) {
         return;
     }
 
-    const envelopeWidth = 35;
     let envelope;
     let hint;
 
@@ -321,15 +320,9 @@ function viewCheckEmailExist(e, state, textResult) {
         envelope = document.createElement('div');
         envelope.setAttribute('class', 'apbct-check_email_exist-block');
         envelope.setAttribute('id', 'apbct-check_email_exist-block');
-        envelope.style.top = inputEmail.getBoundingClientRect().top + 'px';
-        envelope.style.left = inputEmail.getBoundingClientRect().right - envelopeWidth - 10 + 'px';
-        envelope.style.height = inputEmail.offsetHeight + 'px';
-        envelope.style.width = envelopeWidth + 'px';
-
         window.addEventListener('scroll', function() {
             envelope.style.top = inputEmail.getBoundingClientRect().top + 'px';
         });
-
         parentElement.after(envelope);
     }
 
@@ -340,15 +333,18 @@ function viewCheckEmailExist(e, state, textResult) {
         hint = document.createElement('div');
         hint.setAttribute('class', 'apbct-check_email_exist-popup_description');
         hint.setAttribute('id', 'apbct-check_email_exist-popup_description');
-        hint.style.width = inputEmail.offsetWidth + 'px';
-        hint.style.left = inputEmail.getBoundingClientRect().left + 'px';
-
         window.addEventListener('scroll', function() {
             hint.style.top = envelope.getBoundingClientRect().top + 'px';
         });
 
         envelope.after(hint);
     }
+
+    ctEmailExistSetElementsPositions();
+
+    window.addEventListener('resize', function(event) {
+        ctEmailExistSetElementsPositions();
+    });
 
     switch (state) {
     case 'load':
@@ -392,6 +388,32 @@ function viewCheckEmailExist(e, state, textResult) {
 
     default:
         break;
+    }
+}
+
+/**
+ * Shift the envelope to the input field on resizing the window
+ * @param {object} envelope
+ * @param {object} inputEmail
+ */
+function ctEmailExistSetElementsPositions() {
+    const envelopeWidth = 35;
+    const inputEmail = document.querySelector('comment-form input[name*="email"], input#email');
+    if (!inputEmail) {
+        return;
+    }
+    const envelope = document.getElementById('apbct-check_email_exist-block');
+    if (envelope) {
+        envelope.style.top = inputEmail.getBoundingClientRect().top + 'px';
+        envelope.style.left = inputEmail.getBoundingClientRect().right - envelopeWidth - 10 + 'px';
+        envelope.style.height = inputEmail.offsetHeight + 'px';
+        envelope.style.width = envelopeWidth + 'px';
+    }
+
+    const hint = document.getElementById('apbct-check_email_exist-popup_description');
+    if (hint) {
+        hint.style.width = inputEmail.offsetWidth + 'px';
+        hint.style.left = inputEmail.getBoundingClientRect().left + 'px';
     }
 }
 
