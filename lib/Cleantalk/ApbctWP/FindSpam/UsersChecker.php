@@ -189,10 +189,6 @@ class UsersChecker extends Checker
             }
 
             $user_meta = self::getUserMeta($user->ID);
-            if (empty($user_meta)) {
-                unset($users[$index]);
-                continue;
-            }
             $ip_of_user_meta = TT::getArrayValueAsString($user_meta, 'ip');
             $user_ip    = ! empty($ip_of_user_meta) ? trim($ip_of_user_meta) : false;
             $user_email = ! empty($user->user_email) ? trim($user->user_email) : false;

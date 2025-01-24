@@ -2048,7 +2048,6 @@ let ctMouseReadInterval;
 let ctMouseWriteDataInterval;
 let tokenCheckerIntervalId;
 let botDetectorLogLastUpdate = 0;
-let botDetectorLogEventTypesCollected = [];
 
 // eslint-disable-next-line require-jsdoc,camelcase
 function apbct_attach_event_handler(elem, event, callback) {
@@ -2077,11 +2076,9 @@ cronFormsHandler(2000);
 // bot_detector frontend_data log alt session saving cron
 if (
     ctPublicFunctions.hasOwnProperty('data__bot_detector_enabled') &&
-    ctPublicFunctions.data__bot_detector_enabled == 1 &&
-    ctPublicFunctions.hasOwnProperty('data__frontend_data_log_enabled') &&
-    ctPublicFunctions.data__frontend_data_log_enabled == 1
+    ctPublicFunctions.data__bot_detector_enabled == 1
 ) {
-    sendBotDetectorLogToAltSessions(1000);
+    sendBotDetectorLogToAltSessions(500);
 }
 /**
  * Cron jobs end.
@@ -2133,7 +2130,7 @@ function cronFormsHandler(cronStartTimeout = 2000) {
 
 /**
  * Send BotDetector logs data to alternative sessions.
- * If log_last_update has changed and log contains new event types, the log will be sent to the alternative sessions.
+ * If log_last_update has changed, the log will be sent to the alternative sessions.
  * @param {int} cronStartTimeout delay before cron start
  * @param {int} interval check fires on interval
  */
@@ -2141,41 +2138,15 @@ function sendBotDetectorLogToAltSessions(cronStartTimeout = 3000, interval = 100
     setTimeout(function() {
         setInterval(function() {
             const currentLog = apbctLocalStorage.get('ct_bot_detector_frontend_data_log');
-            if (needsSaveLogToAltSessions(currentLog)) {
-                botDetectorLogLastUpdate = currentLog.log_last_update;
-                // the log will be taken from javascriptclientdata
-                ctSetAlternativeCookie([], {forceAltCookies: true});
+            if (currentLog && currentLog.hasOwnProperty('log_last_update')) {
+                if (botDetectorLogLastUpdate !== currentLog.log_last_update) {
+                    botDetectorLogLastUpdate = currentLog.log_last_update;
+                    // the log will be taken from javascriptclientdata
+                    ctSetAlternativeCookie([], {forceAltCookies: true});
+                }
             }
         }, interval);
     }, cronStartTimeout);
-}
-
-/**
- * Check if the log needs to be saved to the alt sessions. If the log has new event types, it will be saved.
- * @param {object} currentLog
- * @return {boolean}
- */
-function needsSaveLogToAltSessions(currentLog) {
-    if (
-        currentLog && currentLog.hasOwnProperty('log_last_update') &&
-        botDetectorLogLastUpdate !== currentLog.log_last_update
-    ) {
-        try {
-            for (let i = 0; i < currentLog.records.length; i++) {
-                const currentType = currentLog.records[i].frontend_data.js_event;
-                // check if this event type was already collected
-                if (currentType !== undefined && botDetectorLogEventTypesCollected.includes(currentType)) {
-                    continue;
-                }
-                // add new event type to collection, this type will be sent to the alt sessions further
-                botDetectorLogEventTypesCollected.push(currentType);
-                return true;
-            }
-        } catch (e) {
-            console.log('APBCT: bot detector log collection error: ' . e.toString());
-        }
-    }
-    return false;
 }
 
 /**
@@ -4574,3 +4545,93 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+/**
+ * Check form as internal.
+ * @param {int} currForm Current form.
+ */
+function ctCheckInternal(currForm) {
+    //  Gathering data
+    const ctData = {};
+    const elems = currForm.elements;
+    let key;
+
+    for (key in elems) {
+        if (elems[key].type !== 'submit' &&
+            elems[key].value !== undefined &&
+            elems[key].value !== '') {
+            ctData[elems[key].name] = currForm.elements[key].value;
+        }
+    }
+    ctData.action = 'ct_check_internal';
+
+    //  AJAX Request
+    apbct_public_sendAJAX(
+        ctData,
+        {
+            url: ctPublicFunctions._ajax_url,
+            callback: function(data) {
+                if (data.success === true) {
+                    currForm.origSubmit();
+                } else {
+                    alert(data.data);
+                    return false;
+                }
+            },
+        },
+    );
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    let ctCurrAction = '';
+    let ctCurrForm = '';
+
+    if ( ! +ctPublic.settings__forms__check_internal ) {
+        return;
+    }
+
+    setTimeout(() => {
+        for ( let i = 0; i < document.forms.length; i++ ) {
+            if ( typeof(document.forms[i].action) == 'string' ) {
+                ctCurrForm = document.forms[i];
+                ctCurrAction = ctCurrForm.action;
+                if (
+                    ctCurrAction.indexOf('https?://') !== null && // The protocol is obligatory
+                    ctCurrAction.match(ctPublic.blog_home + '.*?\.php') !== null && // Main check
+                    ! ctCheckInternalIsExcludedForm(ctCurrAction) // Exclude WordPress native scripts from processing
+                ) {
+                    const formClone = ctCurrForm.cloneNode(true);
+                    ctCurrForm.parentNode.replaceChild(formClone, ctCurrForm);
+
+                    formClone.origSubmit = ctCurrForm.submit;
+                    formClone.submit = null;
+
+                    formClone.addEventListener('submit', function(event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        event.stopImmediatePropagation();
+                        ctCheckInternal(event.target);
+                        return false;
+                    });
+                }
+            }
+        }
+    }, 500);
+});
+
+/**
+ * Check by action to exclude the form checking
+ * @param {string} action
+ * @return {boolean}
+ */
+function ctCheckInternalIsExcludedForm(action) {
+    // An array contains forms action need to be excluded.
+    const ctInternalScriptExclusions = [
+        'wp-login.php', // WordPress login page
+        'wp-comments-post.php', // WordPress Comments Form
+    ];
+
+    return ctInternalScriptExclusions.some((item) => {
+        return action.match(new RegExp(ctPublic.blog_home + '.*' + item)) !== null;
+    });
+}
