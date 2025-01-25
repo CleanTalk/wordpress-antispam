@@ -1818,21 +1818,6 @@ function apbctCancelAutocomplete(element) {
     }));
 }
 
-if (ctPublic.data__key_is_ok) {
-    if (document.readyState !== 'loading' && typeof ApbctForceProtection !== 'undefined') {
-        apbctForceProtect();
-    } else {
-        apbct_attach_event_handler(document, 'DOMContentLoaded', apbctForceProtect);
-    }
-}
-
-/**
- * Force protection
- */
-function apbctForceProtect() {
-    new ApbctForceProtection();
-}
-
 /**
  * ApbctForceProtection
  */
@@ -1947,6 +1932,23 @@ class ApbctForceProtection {
                 wrapper.outerHTML = '<div class="ct-encoded-form-forbidden">' + message + '</div>';
             }
         });
+    }
+}
+
+/**
+ * Force protection
+ */
+function apbctForceProtect() {
+    if (ctPublic.settings__forms__force_protection && typeof ApbctForceProtection !== 'undefined') {
+        new ApbctForceProtection();
+    }
+}
+
+if (ctPublic.data__key_is_ok) {
+    if (document.readyState !== 'loading') {
+        apbctForceProtect();
+    } else {
+        apbct_attach_event_handler(document, 'DOMContentLoaded', apbctForceProtect);
     }
 }
 
