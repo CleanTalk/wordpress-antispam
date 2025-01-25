@@ -460,7 +460,7 @@ class EmailEncoder
      * @param string $content The full content
      * @return bool
      */
-    private function isInsideScriptTag($email, $content) 
+    private function isInsideScriptTag($email, $content)
     {
         // Find position of the email in content
         $pos = strpos($content, $email);
