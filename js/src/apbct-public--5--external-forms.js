@@ -800,7 +800,10 @@ function sendAjaxCheckingFormData(form) {
                     apbctReplaceInputsValuesFromOtherForm(formNew, formOriginal);
 
                     // mautic forms integration
-                    if (formOriginal && typeof formOriginal.id === 'string' && formOriginal.id.indexOf('mautic') !== -1) {
+                    if (formOriginal &&
+                        typeof formOriginal.id === 'string' &&
+                        formOriginal.id.indexOf('mautic') !== -1
+                    ) {
                         mauticIntegration = true;
                     }
 
