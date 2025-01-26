@@ -4409,6 +4409,7 @@ function ctProtectExternal() {
 
             // Ajax checking for the integrated forms - will be changed the whole form object to make protection
             if ( isIntegratedForm(currentForm) ) {
+                console.log('isIntegratedForm', currentForm);
                 apbctProcessExternalForm(currentForm, i, document);
 
             // Ajax checking for the integrated forms - will be changed only submit button to make protection
@@ -4420,6 +4421,7 @@ function ctProtectExternal() {
                 (typeof(currentForm.action) == 'string' &&
                 currentForm.querySelector('[href*="activecampaign"]'))
             ) {
+                console.log('isIntegratedFormByFakeButton', currentForm);
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
             // Common flow - modify form's action
             } else if (
@@ -4427,11 +4429,13 @@ function ctProtectExternal() {
                 ( currentForm.action.indexOf('http://') !== -1 ||
                 currentForm.action.indexOf('https://') !== -1 )
             ) {
+                console.log('isIntegratedFormByAction', currentForm);
                 let tmp = currentForm.action.split('//');
                 tmp = tmp[1].split('/');
                 const host = tmp[0].toLowerCase();
 
                 if (host !== location.hostname.toLowerCase()) {
+                    console.log('isIntegratedFormByAction - host !== location.hostname.toLowerCase()', currentForm);
                     const ctAction = document.createElement('input');
                     ctAction.name = 'cleantalk_hidden_action';
                     ctAction.value = currentForm.action;
@@ -4726,9 +4730,12 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     const inputsSource = formSource.querySelectorAll('button, input, textarea, select');
     const inputsTarget = formTarget.querySelectorAll('button, input, textarea, select');
 
+    console.log('apbctReplaceInputsValuesFromOtherForm', formSource, formTarget);
+
     if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1 ||
         isFormHasDiviRedirect(formSource) ||
-        formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1
+        formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1 ||
+        formSource.outerHTML.indexOf('action="https://api.kit.com') !== -1
     ) {
         inputsSource.forEach((elemSource) => {
             inputsTarget.forEach((elemTarget) => {
@@ -5022,7 +5029,8 @@ function isIntegratedForm(formObj) {
     if (
         (
             formAction.indexOf('app.convertkit.com') !== -1 || // ConvertKit form
-            formAction.indexOf('app.kit.com') !== -1 // ConvertKit new form
+            formAction.indexOf('app.kit.com') !== -1 || // ConvertKit new form
+            formAction.indexOf('api.kit.com') !== -1 // ConvertKit new form
         ) ||
         ( formObj.firstChild.classList !== undefined &&
         formObj.firstChild.classList.contains('cb-form-group') ) || // Convertbox form
@@ -5186,7 +5194,7 @@ function sendAjaxCheckingFormData(form) {
                     apbctReplaceInputsValuesFromOtherForm(formNew, formOriginal);
 
                     // mautic forms integration
-                    if (formOriginal.id.indexOf('mautic') !== -1) {
+                    if (formOriginal && typeof formOriginal.id === 'string' && formOriginal.id.indexOf('mautic') !== -1) {
                         mauticIntegration = true;
                     }
 
@@ -5221,6 +5229,11 @@ function sendAjaxCheckingFormData(form) {
 
                     // ConvertKit direct integration
                     submButton = formOriginal.querySelectorAll('button[data-element="submit"]');
+                    if ( submButton.length !== 0 ) {
+                        submButton[0].click();
+                        return;
+                    }
+                    submButton = formOriginal.querySelectorAll('button#ck_subscribe_button');
                     if ( submButton.length !== 0 ) {
                         submButton[0].click();
                         return;
