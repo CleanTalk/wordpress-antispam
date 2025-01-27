@@ -16,7 +16,8 @@ class Cookie extends \Cleantalk\Variables\Cookie
         'wordpress_apbct_antibot',
         'apbct_anticrawler_passed',
         'apbct_antiflood_passed',
-        'apbct_email_encoder_passed'
+        'apbct_email_encoder_passed',
+        'apbct_bot_detector_exist'
     );
 
     /**
@@ -46,8 +47,6 @@ class Cookie extends \Cleantalk\Variables\Cookie
                         if ( in_array($name, array(
                             'apbct_page_hits',
                             'apbct_prev_referer',
-                            'apbct_site_landing_ts',
-                            //'apbct_urls',
                             'apbct_timestamp',
                             'apbct_site_referer'))
                         ) {

@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\Firewall;
 
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\TT;
 
 class SFWUpdateSentinel
 {
@@ -87,7 +88,7 @@ class SFWUpdateSentinel
         }
 
         $to = $apbct->data['wl_support_email'];
-        $subject = "SFW failed updates report for " . Server::get('HTTP_HOST');
+        $subject = "SFW failed updates report for " . TT::toString(Server::get('HTTP_HOST'));
         $message = '
             <html lang="en">
                 <head>
@@ -117,10 +118,12 @@ class SFWUpdateSentinel
         $counter = 0;
 
         foreach ( $ids_list as $_id => $data ) {
+            $date = date('m-d-y H:i:s', TT::getArrayValueAsInt($data, 'started'));
+            $date = is_string($date) ? $date : 'Unknown date';
             $message .= '<tr>'
                 . '<td>' . (++$counter) . '.</td>'
                 . '<td>' . $_id . '</td>'
-                . '<td>' . date('m-d-y H:i:s', $data['started']) . '</td>'
+                . '<td>' . $date . '</td>'
                 . '</tr>';
         }
 

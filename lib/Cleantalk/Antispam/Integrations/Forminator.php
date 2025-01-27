@@ -8,11 +8,11 @@ class Forminator extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        $data = $_POST;
+        $data = apply_filters('apbct__filter_post', $_POST);
 
         $username = '';
         $email = '';
-        foreach ($_POST as $key => $value) {
+        foreach ($data as $key => $value) {
             if (is_string($key) && strpos($key, 'name-') === 0) {
                 $username = $value;
                 continue;

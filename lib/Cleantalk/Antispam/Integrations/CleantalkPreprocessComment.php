@@ -46,7 +46,7 @@ class CleantalkPreprocessComment extends IntegrationBase
 
         $this->wp_comment = $argument;
         $this->apbct = $apbct;
-        $this->ct_jp_comments = $ct_jp_comments;
+        $this->ct_jp_comments = $ct_jp_comments && Post::getBool('jetpack_comments_nonce');
 
         $comment_post_id = $this->wp_comment['comment_post_ID'];
         $this->wp_comment_post_id = $comment_post_id;

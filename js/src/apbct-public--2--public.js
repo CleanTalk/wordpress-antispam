@@ -9,6 +9,7 @@ let ctCheckedEmailsExist = {};
 let ctMouseReadInterval;
 let ctMouseWriteDataInterval;
 let tokenCheckerIntervalId;
+let botDetectorLogLastUpdate = 0;
 
 // eslint-disable-next-line require-jsdoc,camelcase
 function apbct_attach_event_handler(elem, event, callback) {
@@ -28,8 +29,22 @@ const ctFunctionFirstKey = function output(event) {
     ctKeyStopStopListening();
 };
 
-// run cron jobs
+/**
+ * Run cron jobs
+ */
+// forms handler cron
 cronFormsHandler(2000);
+
+// bot_detector frontend_data log alt session saving cron
+if (
+    ctPublicFunctions.hasOwnProperty('data__bot_detector_enabled') &&
+    ctPublicFunctions.data__bot_detector_enabled == 1
+) {
+    sendBotDetectorLogToAltSessions(500);
+}
+/**
+ * Cron jobs end.
+ */
 
 // mouse read
 if (ctPublic.data__key_is_ok) {
@@ -72,6 +87,27 @@ function cronFormsHandler(cronStartTimeout = 2000) {
             restartFieldsListening();
             restartBotDetectorEventTokenAttach();
         }, 2000);
+    }, cronStartTimeout);
+}
+
+/**
+ * Send BotDetector logs data to alternative sessions.
+ * If log_last_update has changed, the log will be sent to the alternative sessions.
+ * @param {int} cronStartTimeout delay before cron start
+ * @param {int} interval check fires on interval
+ */
+function sendBotDetectorLogToAltSessions(cronStartTimeout = 3000, interval = 1000) {
+    setTimeout(function() {
+        setInterval(function() {
+            const currentLog = apbctLocalStorage.get('ct_bot_detector_frontend_data_log');
+            if (currentLog && currentLog.hasOwnProperty('log_last_update')) {
+                if (botDetectorLogLastUpdate !== currentLog.log_last_update) {
+                    botDetectorLogLastUpdate = currentLog.log_last_update;
+                    // the log will be taken from javascriptclientdata
+                    ctSetAlternativeCookie([], {forceAltCookies: true});
+                }
+            }
+        }, interval);
     }, cronStartTimeout);
 }
 
@@ -914,13 +950,6 @@ function apbct_ready() {
     ctPublic.encodedEmailNodes = encodedEmailNodes;
     if (encodedEmailNodes.length) {
         for (let i = 0; i < encodedEmailNodes.length; ++i) {
-            if (
-                encodedEmailNodes[i].parentElement.href ||
-                encodedEmailNodes[i].parentElement.parentElement.href
-            ) {
-                // Skip listening click on hyperlinks
-                continue;
-            }
             encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
         }
     }
@@ -936,6 +965,11 @@ function apbct_ready() {
                 (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
             )
         ) {
+            // fibosearch integration
+            if (_form.querySelector('input.dgwt-wcas-search-input')) {
+                continue;
+            }
+
             // this handles search forms onsubmit process
             _form.apbctSearchPrevOnsubmit = _form.onsubmit;
             _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
@@ -945,52 +979,33 @@ function apbct_ready() {
     // Check any XMLHttpRequest connections
     apbctCatchXmlHttpRequest();
 
+    // Init form skin
+    if (ctPublic.settings__comments__form_decoration) {
+        new ApbctFormDecorator();
+    }
+
     // Set important paramaters via ajax if problematic cache solutions found
     apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
 
-    if (typeof apbctTrpBrokenIntervalId !== 'undefined') {
-        setTimeout(() => {
-            clearInterval(apbctTrpBrokenIntervalId);
-        }, 1000);
+    // Checking that the bot detector has loaded and received the event token for Anti-Crawler
+    if (ctPublic.settings__sfw__anti_crawler) {
+        checkBotDetectorExist();
     }
 }
 
 /**
- * Check broken TRP every 100ms until the page is loaded
+ * Checking that the bot detector has loaded and received the event token
  */
-const apbctTrpBrokenIntervalId = setInterval(apbctFixBrokenTRP, 100);
+function checkBotDetectorExist() {
+    if (ctPublic.settings__data__bot_detector_enabled) {
+        const botDetectorIntervalSearch = setInterval(() => {
+            let botDetectorEventToken = localStorage.bot_detector_event_token ? true : false;
 
-/**
- * Fix broken TRP - clean author names from html tags
- */
-function apbctFixBrokenTRP() {
-    let author;
-    let comments;
-    let reviews;
-    let pattern = '<div class="apbct-real-user-author-name">';
-
-    if (document.documentElement.textContent.indexOf(pattern) > -1) {
-        author = document.documentElement.textContent.match(new RegExp(pattern + '(.*?)<\/div>'))[1];
-
-        comments = document.querySelectorAll('.comment-author');
-        for (let i = 0; i < comments.length; i++) {
-            comments[i].childNodes.forEach((node) => {
-                if (node.textContent.includes(pattern)) {
-                    node.textContent = author;
-                    apbctFixBrokenTRP();
-                }
-            });
-        }
-
-        reviews = document.querySelectorAll('.woocommerce-review__author');
-        for (let i = 0; i < reviews.length; i++) {
-            reviews[i].childNodes.forEach((node) => {
-                if (node.textContent.includes(pattern)) {
-                    node.textContent = author;
-                    apbctFixBrokenTRP();
-                }
-            });
-        }
+            if (botDetectorEventToken) {
+                ctSetCookie('apbct_bot_detector_exist', '1', '3600');
+                clearInterval(botDetectorIntervalSearch);
+            }
+        }, 500);
     }
 }
 
@@ -1274,24 +1289,6 @@ function ctFillDecodedEmailHandler(event) {
     // popup show
     let encoderPopup = document.getElementById('apbct_popup');
     if (!encoderPopup) {
-        // get obfuscated email
-        let obfuscatedEmail = null;
-        if (event.currentTarget.tagName === 'A') {
-            obfuscatedEmail = event.currentTarget.querySelector('span.apbct-ee-blur_email-text');
-            if (obfuscatedEmail) {
-                obfuscatedEmail = obfuscatedEmail.innerHTML;
-            }
-        }
-        if (event.currentTarget.tagName === 'SPAN') {
-            obfuscatedEmail = event.currentTarget.querySelector('span.apbct-ee-blur_email-text').innerHTML;
-        }
-        if (event.currentTarget.tagName === 'IMG') {
-            obfuscatedEmail = event.currentTarget.parentNode.innerHTML;
-        }
-        if (obfuscatedEmail === null) {
-            obfuscatedEmail = 'obfuscated email';
-        }
-
         // construct popup
         let waitingPopup = document.createElement('div');
         waitingPopup.setAttribute('class', 'apbct-popup apbct-email-encoder-popup');
@@ -1302,6 +1299,7 @@ function ctFillDecodedEmailHandler(event) {
         popupHeaderWrapper.classList = 'apbct-email-encoder-elements_center';
         let popupHeader = document.createElement('p');
         popupHeader.innerText = ctPublic.wl_brandname;
+        popupHeader.setAttribute('class', 'apbct-email-encoder--popup-header');
         popupHeaderWrapper.append(popupHeader);
 
         // construct text wrapper
@@ -1311,20 +1309,21 @@ function ctFillDecodedEmailHandler(event) {
         popupTextWrapper.style.color = 'black';
 
         // construct text first node
-        // todo make translateable
-        let popupTextDecoding = document.createElement('p');
-        popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_first';
-        popupTextDecoding.innerText = 'Decoding ' + obfuscatedEmail + ' to the original one.';
-
-        // construct text first node
-        // todo make translateable
+        // todo make translatable
         let popupTextWaiting = document.createElement('p');
-        popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_second';
+        popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_first';
         popupTextWaiting.innerText = 'The magic is on the way, please wait for a few seconds!';
+        popupTextWaiting.setAttribute('class', 'apbct-email-encoder-elements_center');
 
-        // appendings
-        popupTextWrapper.append(popupTextDecoding);
+        // construct text second node
+        // todo make translatable
+        let popupTextDecoding = document.createElement('p');
+        popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_second';
+        popupTextDecoding.innerText = 'Decoding process to the original data.';
+
+        // appending
         popupTextWrapper.append(popupTextWaiting);
+        popupTextWrapper.append(popupTextDecoding);
         waitingPopup.append(popupHeaderWrapper);
         waitingPopup.append(popupTextWrapper);
         waitingPopup.append(apbctSetEmailDecoderPopupAnimation());
@@ -1447,51 +1446,47 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 });
 
                 let email = currentResultData.decoded_email.split(/[&?]/)[0];
-
-                // copy icon
-                const copyIcon = document.createElement('span');
-                copyIcon.classList.add('copy-email-icon');
-                copyIcon.innerHTML = '📋'; // You can replace this with an actual icon if needed
-                copyIcon.style.cursor = 'pointer';
-                copyIcon.title = 'Copy email to clipboard';
-
-                copyIcon.addEventListener('click', function() {
-                    if (navigator.clipboard) {
-                        navigator.clipboard.writeText(email).then(() => {
-                            console.log('Email copied to clipboard!');
-                        }).catch((err) => {
-                            console.log('Failed to copy email: ', err);
-                        });
-                    } else {
-                        console.log('Clipboard API not supported');
-                    }
-                });
-
-                // change text
+                // handle first node
                 let firstNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_first');
+                // get email selectable by click
+                let selectableEmail = document.createElement('b');
+                selectableEmail.setAttribute('class', 'apbct-email-encoder-select-whole-email');
+                selectableEmail.innerText = email;
+                selectableEmail.title = 'Click to select the whole data';
+                // add email to the first node
+                if (firstNode) {
+                    firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML;
+                    firstNode.setAttribute('style', 'flex-direction: row;');
+                }
+                // remove animation
+                let wrapper = popup.querySelector('.apbct-ee-animation-wrapper');
+                if (wrapper) {
+                    wrapper.remove();
+                }
+                // remove second node
                 let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
-                firstNode.innerText = 'The original one is ' + email + '.';
-                firstNode.append(copyIcon);
-                secondNode.innerText = 'Happy conversations!';
-                // remove antimation
-                popup.querySelector('.apbct-ee-animation-wrapper').remove();
+                if (secondNode) {
+                    secondNode.remove();
+                }
                 // add button
                 let buttonWrapper = document.createElement('span');
                 buttonWrapper.classList = 'apbct-email-encoder-elements_center top-margin-long';
-                let button = document.createElement('button');
-                button.innerText = 'Got it';
-                button.addEventListener('click', function() {
-                    document.body.classList.remove('apbct-popup-fade');
-                    popup.setAttribute('style', 'display:none');
-                    fillDecodedEmails(encodedEmailNodes, result);
-                    // click on mailto if so
-                    if (ctPublic.encodedEmailNodesIsMixed) {
-                        clickSource.click();
-                    }
-                });
-                button.style.cursor = 'pointer';
-                buttonWrapper.append(button);
-                popup.append(buttonWrapper);
+                if (!document.querySelector('.apbct-email-encoder-got-it-button')) {
+                    let button = document.createElement('button');
+                    button.innerText = 'Got it';
+                    button.classList = 'apbct-email-encoder-got-it-button';
+                    button.addEventListener('click', function() {
+                        document.body.classList.remove('apbct-popup-fade');
+                        popup.setAttribute('style', 'display:none');
+                        fillDecodedEmails(encodedEmailNodes, result);
+                        // click on mailto if so
+                        if (ctPublic.encodedEmailNodesIsMixed) {
+                            clickSource.click();
+                        }
+                    });
+                    buttonWrapper.append(button);
+                    popup.append(buttonWrapper);
+                }
             }
         }, 3000);
     } else {
@@ -1525,21 +1520,29 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
         // handler for mailto
         if (
             typeof encodedEmailNodes[i].href !== 'undefined' &&
-            encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
+            encodedEmailNodes[i].href.indexOf('mailto:') === 0
+        ) {
             let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
             let baseElementContent = encodedEmailNodes[i].innerHTML;
-            encodedEmailNodes[i].innerHTML =
-                baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
+            encodedEmailNodes[i].innerHTML = baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
             encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
-            encodedEmailNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((span) => {
-                let firstEmail = currentResultData.decoded_email.split('&')[0];
-                span.querySelector('.apbct-ee-blur_email-text').innerHTML = firstEmail;
+
+            encodedEmailNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((el) => {
+                let encodedEmailTextInsideMailto = '';
+                decodingResult.data.forEach((row) => {
+                    if (row.encoded_email === el.dataset.originalString) {
+                        encodedEmailTextInsideMailto = row.decoded_email;
+                    }
+                });
+                el.innerHTML = encodedEmailTextInsideMailto;
             });
         } else {
+            encodedEmailNodes[i].classList.add('no-blur');
             // fill the nodes
-            ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
+            setTimeout(() => {
+                ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
+            }, 2000);
         }
-        ctPerformMagicBlur(encodedEmailNodes[i]);
         // remove listeners
         encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
     }
@@ -1581,6 +1584,9 @@ function getJavascriptClientData(commonCookies = []) {
     const ctJsErrorsLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_js_errors');
     const ctPixelUrl = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
     const apbctHeadless = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_headless');
+    const ctBotDetectorFrontendDataLog = apbctLocalStorage.get(
+        ctPublicFunctions.cookiePrefix + 'ct_bot_detector_frontend_data_log',
+    );
 
     // collecting data from cookies
     const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
@@ -1600,6 +1606,8 @@ function getJavascriptClientData(commonCookies = []) {
         ctPixelUrl : ctCookiesPixelUrl;
     resultDataJson.apbct_headless = apbctHeadless !== undefined ?
         apbctHeadless : apbctHeadlessNative;
+    resultDataJson.ct_bot_detector_frontend_data_log = ctBotDetectorFrontendDataLog !== undefined ?
+        ctBotDetectorFrontendDataLog : '';
     if (resultDataJson.apbct_pixel_url && typeof(resultDataJson.apbct_pixel_url) == 'string') {
         if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
             resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
@@ -1615,10 +1623,7 @@ function getJavascriptClientData(commonCookies = []) {
         resultDataJson.apbct_pixel_url = ctPublic.pixel__url;
     }
 
-    if (
-        typeof (commonCookies) === 'object' &&
-        commonCookies !== []
-    ) {
+    if ( typeof (commonCookies) === 'object') {
         for (let i = 0; i < commonCookies.length; ++i) {
             if ( typeof (commonCookies[i][1]) === 'object' ) {
                 // this is for handle SFW cookies
@@ -1680,19 +1685,6 @@ function ctProcessDecodedDataResult(response, targetElement) {
     targetElement.removeAttribute('style');
     ctFillDecodedEmail(targetElement, response.decoded_email);
 }
-/**
- * @param {HTMLElement} targetElement
- */
-function ctPerformMagicBlur(targetElement) {
-    const staticBlur = targetElement.querySelector('.apbct-ee-static-blur');
-    const animateBlur = targetElement.querySelector('.apbct-ee-animate-blur');
-    if (staticBlur !== null) {
-        staticBlur.style.display = 'none';
-    }
-    if (animateBlur !== null) {
-        animateBlur.style.display = 'inherit';
-    }
-}
 
 /**
  * @param {mixed} target
@@ -1702,7 +1694,7 @@ function ctFillDecodedEmail(target, email) {
     apbct(target).html(
         apbct(target)
             .html()
-            .replace(/.?<span class=["']apbct-ee-blur_email-text["'].*>(.+?)<\/span>/, email),
+            .replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1'),
     );
 }
 
@@ -1900,7 +1892,7 @@ function ctNoCookieConstructHiddenField(type) {
 
 /**
  * Retrieves the clentalk "cookie" data from starages.
- * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo}.
+ * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration}.
  * @return {string}
  */
 function getCleanTalkStorageDataArray() {
@@ -1911,7 +1903,16 @@ function getCleanTalkStorageDataArray() {
     if (document.ctTypoData && document.ctTypoData.data) {
         noCookieDataTypo = {typo: document.ctTypoData.data};
     }
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo};
+
+    let noCookieDataFromDecoration = {form_decoration_mouse_data: []};
+    if (document.ctFormDecorationMouseData) {
+        let formDecorationMouseData = JSON.parse(JSON.stringify(document.ctFormDecorationMouseData));
+        if (formDecorationMouseData.mouseMovements) {
+            delete formDecorationMouseData.mouseMovements;
+        }
+        noCookieDataFromDecoration = {form_decoration_mouse_data: formDecorationMouseData};
+    }
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration};
 }
 
 /**
@@ -1994,12 +1995,17 @@ function ctGetHiddenFieldExclusionsType(form) {
  * @return {boolean}
  */
 function ctCheckHiddenFieldsExclusions(form, hiddenFieldType) {
+    const formAction = typeof(form.action) == 'string' ? form.action : '';
     // Ajax Search Lite
     if (Boolean(form.querySelector('fieldset.asl_sett_scroll'))) {
         return true;
     }
     // Super WooCommerce Product Filter
     if (form.classList.contains('swpf-instant-filtering')) {
+        return true;
+    }
+    // PayU 3-rd party service forms
+    if (formAction.indexOf('secure.payu.com') !== -1 ) {
         return true;
     }
     if (typeof (hiddenFieldType) === 'string' &&
@@ -2049,35 +2055,6 @@ if (document.readyState !== 'loading') {
     checkFormsExistForCatching();
 } else {
     apbct_attach_event_handler(document, 'DOMContentLoaded', checkFormsExistForCatching);
-}
-
-/**
- * Handle real user badge for woocommerce
- * @param template
- * @param id
- */
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctRealUserBadgeWoocommerce(template, id) {
-    if (window.innerWidth < 768) {
-        return;
-    }
-
-    let badge = document.createElement('div');
-    badge.className = 'apbct-real-user-wrapper';
-
-    let attachmentPlace = document.querySelector('#comment-' + id).querySelector('.woocommerce-review__author');
-
-    try {
-        template = atob(template);
-        badge.innerHTML = template;
-
-        if (typeof attachmentPlace !== 'undefined') {
-            attachmentPlace.style.display = 'inline-flex';
-            attachmentPlace.appendChild(badge);
-        }
-    } catch (e) {
-        console.log('APBCT error: ' + e.toString());
-    }
 }
 
 /**

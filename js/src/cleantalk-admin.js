@@ -48,6 +48,18 @@ jQuery(document).ready(function($) {
         }
     });
 
+    let btnForceProtectionOn = document.querySelector('#apbct_setting_forms__force_protection__On');
+    if (btnForceProtectionOn) {
+        btnForceProtectionOn.addEventListener('click', function(e) {
+            if (btnForceProtectionOn.checked) {
+                let result = confirm(ctAdminCommon.apbctNoticeForceProtectionOn);
+
+                if (!result) {
+                    e.preventDefault();
+                }
+            }
+        });
+    }
     // Restore spam order
     $('.apbct-restore-spam-order-button').click(function() {
         const spmOrderId = $(this).data('spam-order-id');
@@ -70,70 +82,6 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Deactivation banner
-    jQuery('#deactivate-cleantalk-spam-protect').on('click', function(e) {
-        e.preventDefault();
-        let deactivationLink = this.getAttribute('href');
-        if ( typeof cleantalkModal !== 'undefined' && ctAdminCommon.deactivation_banner_is_needed === '1') {
-            // force replace raw link to the href - fix for https://doboard.com/1/task/10192
-            bannertText = ctAdminCommon.deactivation_banner_text
-                .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
-            const modalHTML = `
-                <div class="ct-modal-message">
-                    ${bannertText}
-                </div>
-                <div class="ct-modal-buttons">
-                    <button class="button action" onclick="cleantalkModal.close();">Ok</button>
-                    <a class="button action" href="${deactivationLink}">No, deactivate anyway</a>
-                </div>
-            `;
-            // look ahead ^ deactivationLink in the href was broken after modal handler URL converison
-            cleantalkModal.loaded = modalHTML;
-            // ignore URL conversions due modal handler
-            cleantalkModal.ignoreURLConvert = true;
-            cleantalkModal.open();
-        } else {
-            window.location.href = deactivationLink;
-        }
-    });
-
-    document.querySelectorAll('.apbct-real-user').forEach((el) => {
-        el.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.currentTarget.querySelector('.apbct-real-user-popup').style.display = 'block';
-        });
-    });
-    document.querySelector('body').addEventListener('click', function(e) {
-        document.querySelectorAll('.apbct-real-user-popup').forEach((el) => {
-            el.style.display = 'none';
-        });
-    });
-    if (window.location.pathname.includes('wp-admin/edit-comments.php')) {
-        const trashElements = document.querySelectorAll('.row-actions .trash');
-        if (trashElements.length) {
-            trashElements.forEach((el) => {
-                el.addEventListener('click', (c) => {
-                    const name = c.target.parentElement.parentElement.parentElement
-                        .querySelector('.apbct-admin-real-user-author-name');
-                    if (!name || !name.textContent) {
-                        return;
-                    }
-                    setTimeout(() => {
-                        const nameForUndo = document.querySelector('.untrash .trash-undo-inside');
-                        if (!nameForUndo) {
-                            return;
-                        }
-                        const nameUndo = nameForUndo.querySelector('strong');
-                        if (nameUndo) {
-                            nameUndo.textContent = name.textContent;
-                        }
-                    }, 10);
-                });
-            });
-        }
-    }
-
     // Email decoder example
     if (window.location.href.includes('options-general.php?page=cleantalk')) {
         let encodedEmailNode = document.querySelector('[data-original-string]');
@@ -143,6 +91,8 @@ jQuery(document).ready(function($) {
             encodedEmailNode.addEventListener('click', ctFillDecodedEmailHandler);
         }
     }
+
+    ctDecorationSelectorActions();
 });
 
 /**
@@ -153,10 +103,6 @@ function ctFillDecodedEmailHandler() {
     let encoderPopup = document.getElementById('apbct_popup');
 
     if (!encoderPopup) {
-        // get obfuscated email
-        let obfuscatedEmail = null;
-        obfuscatedEmail = document.querySelector('span.apbct-ee-blur_email-text').innerHTML;
-
         // construct popup
         let waitingPopup = document.createElement('div');
         waitingPopup.setAttribute('class', 'apbct-popup apbct-email-encoder-popup');
@@ -167,6 +113,7 @@ function ctFillDecodedEmailHandler() {
         popupHeaderWrapper.classList = 'apbct-email-encoder-elements_center';
         let popupHeader = document.createElement('p');
         popupHeader.innerText = ctAdminCommon.plugin_name;
+        popupHeader.setAttribute('class', 'apbct-email-encoder--popup-header');
         popupHeaderWrapper.append(popupHeader);
 
         // construct text wrapper
@@ -176,20 +123,21 @@ function ctFillDecodedEmailHandler() {
         popupTextWrapper.style.color = 'black';
 
         // construct text first node
-        // todo make translateable
-        let popupTextDecoding = document.createElement('p');
-        popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_first';
-        popupTextDecoding.innerText = 'Decoding ' + obfuscatedEmail + ' to the original contact.';
-
-        // construct text first node
-        // todo make translateable
+        // todo make translatable
         let popupTextWaiting = document.createElement('p');
-        popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_second';
+        popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_first';
         popupTextWaiting.innerText = 'The magic is on the way, please wait for a few seconds!';
+        popupTextWaiting.setAttribute('class', 'apbct-email-encoder-elements_center');
 
-        // appendings
-        popupTextWrapper.append(popupTextDecoding);
+        // construct text second node
+        // todo make translatable
+        let popupTextDecoding = document.createElement('p');
+        popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_second';
+        popupTextDecoding.innerText = 'Decoding process to the original data.';
+
+        // appending
         popupTextWrapper.append(popupTextWaiting);
+        popupTextWrapper.append(popupTextDecoding);
         waitingPopup.append(popupHeaderWrapper);
         waitingPopup.append(popupTextWrapper);
         waitingPopup.append(apbctSetEmailDecoderPopupAnimation());
@@ -230,7 +178,7 @@ function apbctAjaxEmailDecodeBulk(encodedEmailNode) {
     // Adding a tooltip
     let apbctTooltip = document.createElement('div');
     apbctTooltip.setAttribute('class', 'apbct-tooltip');
-    encodedEmailNode.append(apbctTooltip);
+    jQuery(encodedEmailNode).append(apbctTooltip);
 
     apbct_admin_sendAJAX(
         {
@@ -251,51 +199,42 @@ function apbctAjaxEmailDecodeBulk(encodedEmailNode) {
  * @param {mixed} encodedEmailNode
  */
 function apbctEmailEncoderCallbackBulk(result, encodedEmailNode) {
-    if (result.success) {
+    if (result.success && result.data[0].is_allowed === true) {
         // start process of visual decoding
         setTimeout(function() {
-            let email = Object.values(result.data)[0];
-
-            // copy icon
-            const copyIcon = document.createElement('span');
-            copyIcon.classList.add('copy-email-icon');
-            copyIcon.innerHTML = '📋'; // You can replace this with an actual icon if needed
-            copyIcon.style.cursor = 'pointer';
-            copyIcon.title = 'Copy email to clipboard';
-
-            copyIcon.addEventListener('click', function() {
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText(email).then(() => {
-                        console.log('Email copied to clipboard!');
-                    }).catch((err) => {
-                        console.log('Failed to copy email: ', err);
-                    });
-                } else {
-                    console.log('Clipboard API not supported');
-                }
-            });
+            let email = result.data[0].decoded_email;
 
             // change text
             let popup = document.getElementById('apbct_popup');
             if (popup !== null) {
+                // handle first node
                 let firstNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_first');
+                // get email selectable by click
+                let selectableEmail = document.createElement('b');
+                selectableEmail.setAttribute('class', 'apbct-email-encoder-select-whole-email');
+                selectableEmail.innerText = email;
+                selectableEmail.title = 'Click to select the whole data';
+                // add email to the first node
+                firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML;
+                firstNode.setAttribute('style', 'flex-direction: row;');
+                // handle second node
                 let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
-                firstNode.innerText = 'The original contact is ' + email + '.';
-                firstNode.append(copyIcon);
                 secondNode.innerText = 'Happy conversations!';
-                // remove antimation
+                // remove animation
                 popup.querySelector('.apbct-ee-animation-wrapper').remove();
+                // remove second node
+                popup.querySelector('#apbct_email_ecoder__popup_text_node_second').remove();
                 // add button
                 let buttonWrapper = document.createElement('span');
                 buttonWrapper.classList = 'apbct-email-encoder-elements_center top-margin-long';
                 let button = document.createElement('button');
                 button.innerText = 'Got it';
+                button.classList = 'apbct-email-encoder-got-it-button';
                 button.addEventListener('click', function() {
                     document.body.classList.remove('apbct-popup-fade');
                     popup.setAttribute('style', 'display:none');
                     fillDecodedEmails(encodedEmailNode, result);
                 });
-                button.style.cursor = 'pointer';
                 buttonWrapper.append(button);
                 popup.append(buttonWrapper);
             }
@@ -306,32 +245,19 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNode) {
 }
 
 /**
- * @param {HTMLElement} targetElement
- */
-function ctPerformMagicBlur(targetElement) {
-    const staticBlur = targetElement.querySelector('.apbct-ee-static-blur');
-    const animateBlur = targetElement.querySelector('.apbct-ee-animate-blur');
-    if (staticBlur !== null) {
-        staticBlur.style.display = 'none';
-    }
-    if (animateBlur !== null) {
-        animateBlur.style.display = 'inherit';
-    }
-}
-
-/**
  * Run filling for every node with decoding result.
  * @param {mixed} encodedEmailNode
  * @param {mixed} decodingResult
  */
 function fillDecodedEmails(encodedEmailNode, decodingResult) {
-    let currentResultData = Object.values(decodingResult.data)[0];
-
-    encodedEmailNode.setAttribute('title', '');
-    encodedEmailNode.removeAttribute('style');
-    ctFillDecodedEmail(encodedEmailNode, currentResultData);
-
-    ctPerformMagicBlur(encodedEmailNode);
+    let currentResultData = decodingResult.data[0].decoded_email;
+    encodedEmailNode.classList.add('no-blur');
+    // fill the nodes
+    setTimeout(() => {
+        encodedEmailNode.setAttribute('title', '');
+        encodedEmailNode.removeAttribute('style');
+        ctFillDecodedEmail(encodedEmailNode, currentResultData);
+    }, 2000);
     encodedEmailNode.removeEventListener('click', ctFillDecodedEmailHandler);
 }
 
@@ -343,7 +269,7 @@ function ctFillDecodedEmail(target, email) {
     jQuery(target).html(
         jQuery(target)
             .html()
-            .replace(/.?<span class=["']apbct-ee-blur_email-text["'].*>(.+?)<\/span>/, email),
+            .replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1'),
     );
 }
 
@@ -417,4 +343,29 @@ function apbct_admin_sendAJAX(data, params, obj) {
         },
         timeout: timeout,
     });
+}
+/**
+* @return {void}
+ */
+function ctDecorationSelectorActions() {
+    const selector = document.querySelector('#apbct_setting_comments__form_decoration_selector');
+    const colorPicker = document.querySelector('#apbct_setting_comments__form_decoration_color');
+    const headingText = document.querySelector('#apbct_setting_comments__form_decoration_text');
+    const defaultThemeExpectedValue = 'Default Theme';
+    if (colorPicker && headingText && selector) {
+        if (selector.value === defaultThemeExpectedValue) {
+            colorPicker.setAttribute('disabled', 'disabled');
+            headingText.setAttribute('disabled', 'disabled');
+        }
+        selector.addEventListener('change', function(event) {
+            const selectedValue = event.target.value;
+            if (selectedValue && selectedValue.length > 0 && selectedValue === defaultThemeExpectedValue) {
+                colorPicker.setAttribute('disabled', 'disabled');
+                headingText.setAttribute('disabled', 'disabled');
+            } else {
+                colorPicker.removeAttribute('disabled');
+                headingText.removeAttribute('disabled');
+            }
+        });
+    }
 }

@@ -9,8 +9,8 @@ class AltSessions
     public static function getID()
     {
         $id = Helper::ipGet()
-              . Server::get('HTTP_USER_AGENT')
-              . Server::get('HTTP_ACCEPT_LANGUAGE');
+              . Server::getString('HTTP_USER_AGENT')
+              . Server::getString('HTTP_ACCEPT_LANGUAGE');
 
         return hash('sha256', $id);
     }
@@ -64,8 +64,8 @@ class AltSessions
 
     public static function setFromRemote($request = null)
     {
-        if ( !$request || Post::get('cookies')) {
-            $cookies_to_set = Post::get('cookies');
+        if ( !$request || !empty(Post::getString('cookies'))) {
+            $cookies_to_set = Post::getString('cookies');
         } else {
             $cookies_to_set = $request->get_param('cookies');
         }
@@ -135,10 +135,10 @@ class AltSessions
      */
     public static function getFromRemote($request = null)
     {
-        $value = Cookie::get(
+        $value = Cookie::getString(
             $request
                 ? $request->get_param('cookies')
-                : Post::get('name')
+                : Post::getString('name')
         );
 
         wp_send_json(array('success' => true, 'value' => $value));
@@ -148,12 +148,40 @@ class AltSessions
     {
         global $wpdb;
 
-        $wpdb->query(
-            'DELETE
-				FROM `' . APBCT_TBL_SESSIONS . '`
-				WHERE last_update < NOW() - INTERVAL ' . APBCT_SEESION__LIVE_TIME . ' SECOND
-				LIMIT 100000;'
+        // Get all cleantalk_sessions tables across all sites
+        $tables = $wpdb->get_col(
+            "SHOW TABLES LIKE '{$wpdb->base_prefix}%cleantalk_sessions'"
         );
+
+        foreach ($tables as $table) {
+            $wpdb->query(
+                'DELETE FROM `' . $table . '`
+                WHERE last_update < NOW() - INTERVAL ' . APBCT_SEESION__LIVE_TIME . ' SECOND
+                LIMIT 100000;'
+            );
+        }
+    }
+
+    public static function checkHasUndeletedOldSessions()
+    {
+        global $wpdb;
+
+        $tables = $wpdb->get_col(
+            "SHOW TABLES LIKE '{$wpdb->base_prefix}%cleantalk_sessions'"
+        );
+
+        foreach ($tables as $table) {
+            $query = $wpdb->prepare(
+                'SELECT COUNT(id) FROM `' . $table . '` WHERE last_update < NOW() - INTERVAL %d SECOND;',
+                APBCT_SEESION__LIVE_TIME
+            );
+
+            if ((int)$wpdb->get_var($query) > 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static function wipe()

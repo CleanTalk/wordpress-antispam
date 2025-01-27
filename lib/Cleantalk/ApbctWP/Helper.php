@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\HTTP\Request;
+use Cleantalk\Common\TT;
 
 /**
  * CleanTalk Anti-Spam Helper class.
@@ -104,8 +105,15 @@ class Helper extends \Cleantalk\Common\Helper
         $RCCounter = new RemoteCallsCounter($logging_data);
         $RCCounter->execute();
 
+        $value_for_token = '';
+        if ( $apbct->api_key ) {
+            $value_for_token = $apbct->api_key;
+        } elseif ( apbct__is_hosting_license() ) {
+            $value_for_token = $apbct->api_key . $apbct->data['salt'];
+        }
+
         $request_params = array_merge(array(
-            'spbc_remote_call_token' => md5($apbct->api_key),
+            'spbc_remote_call_token' => md5($value_for_token),
             'spbc_remote_call_action' => $rc_action,
             'plugin_name' => 'apbct',
         ), $request_params);
@@ -208,7 +216,11 @@ class Helper extends \Cleantalk\Common\Helper
         if ($response_code === 200) { // Check if it's there
             $data = static::httpRequestGetContent($url);
 
-            if (empty($data['error'])) {
+            if (is_array($data) && !empty($data['error'])) {
+                return array('error' => 'Getting datafile ' . $url . '. Error: ' . $data['error']);
+            }
+
+            if (is_string($data)) {
                 if (static::getMimeType($data, 'application/x-gzip')) {
                     if (function_exists('gzdecode')) {
                         $data = gzdecode($data);
@@ -219,16 +231,16 @@ class Helper extends \Cleantalk\Common\Helper
                             return array('error' => 'Can not unpack datafile');
                         }
                     } else {
-                        return array('error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4 ' . $data['error']);
+                        return array('error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4.');
                     }
                 } else {
                     return array('error' => 'Wrong file mime type: ' . $url);
                 }
             } else {
-                return array('error' => 'Getting datafile ' . $url . '. Error: ' . $data['error']);
+                return array('error' => 'Getting datafile ' . $url . '. Content is not a string');
             }
         } else {
-            return array('error' => 'Bad HTTP response (' . (int)$response_code . ') from file location: ' . $url);
+            return array('error' => 'Bad HTTP response (' . TT::toString($response_code) . ') from file location: ' . $url);
         }
     }
 

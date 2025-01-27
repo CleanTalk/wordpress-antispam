@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\TT;
 
 class JsErrorsReport
 {
@@ -21,7 +22,7 @@ class JsErrorsReport
         }
 
         $to = "support@cleantalk.org";
-        $subject = "JS errors report for " . Server::get('HTTP_HOST');
+        $subject = "JS errors report for " . TT::toString(Server::get('HTTP_HOST'));
         $message = '
             <html lang="en">
                 <head>

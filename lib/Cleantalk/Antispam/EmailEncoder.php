@@ -47,6 +47,8 @@ class EmailEncoder
         array('av_contact', 'email', 'from_email'),
         // Stylish Cost Calculator
         array('scc-form-field-item'),
+        // Exclusion of maps from leaflet
+        array('leaflet'),
     );
 
     /**
@@ -57,6 +59,16 @@ class EmailEncoder
         'input' => array('placeholder', 'value'),
         'img' => array('alt', 'title'),
     );
+
+    /**
+     * Attributes with possible email-like content to drop from the content to avoid unnecessary encoding.
+     * Key is a tag we want to find, value is an attribute with email to drop.
+     * @var array
+     */
+    private static $attributes_to_drop = array(
+        'a' => 'title',
+        );
+
     /**
      * @var string[]
      */
@@ -91,6 +103,10 @@ class EmailEncoder
     protected function init()
     {
         global $apbct;
+
+        if ( ! apbct_api_key__is_correct() || ! $apbct->key_is_ok ) {
+            return;
+        }
 
         $this->registerShortcodeForEncoding();
 
@@ -143,6 +159,27 @@ class EmailEncoder
             add_action('shutdown', 'apbct_buffer__end', 0);
             add_action('shutdown', array($this, 'bufferOutput'), 2);
         }
+
+        // integration with Business Directory Plugin
+        add_filter('wpbdp_form_field_display', array($this, 'modifyFormFieldDisplay'), 10, 4);
+    }
+
+    /**
+     * @param string $html
+     * @param object $field
+     * @param string $display_context
+     * @param int $post_id
+     * @return string
+     * @psalm-suppress PossiblyUnusedParam, PossiblyUnusedReturnValue
+     */
+    public function modifyFormFieldDisplay($html, $field, $display_context, $post_id)
+    {
+        if (mb_strpos($html, 'mailto:') !== false) {
+            $html = html_entity_decode($html);
+            return $this->modifyContent($html);
+        }
+
+        return $html;
     }
 
     /**
@@ -162,6 +199,19 @@ class EmailEncoder
             return $content;
         }
 
+        // skip encoding if the content is already encoded with hook
+        // Extract shortcode content to protect it from email encoding
+        $shortcode_pattern = '/\[apbct_encode_data\](.*?)\[\/apbct_encode_data\]/s';
+        $shortcode_replacements = [];
+        $shortcode_counter = 0;
+        $content = preg_replace_callback($shortcode_pattern, function ($matches) use (&$shortcode_replacements, &$shortcode_counter) {
+            $placeholder = '%%APBCT_SHORTCODE_' . ($shortcode_counter++) . '%%';
+            if (isset($matches[0])) {
+                $shortcode_replacements[$placeholder] = $matches[0];
+            }
+            return $placeholder;
+        }, $content);
+
         if ( static::skipEncodingOnHooks() ) {
             return $content;
         }
@@ -176,31 +226,116 @@ class EmailEncoder
         //will use this in regexp callback
         $this->temp_content = $content;
 
-        return $this->modifyEmails($content);
+        $content = self::dropAttributesContainEmail($content, self::$attributes_to_drop);
+
+        $content = $this->modifyEmails($content);
+
+        // Restore shortcodes
+        foreach ($shortcode_replacements as $placeholder => $original) {
+            $content = str_replace($placeholder, $original, $content);
+        }
+
+        return $content;
     }
 
+    /**
+     * Drop attributes contains email from tag in the content to avoid unnecessary encoding.
+     *
+     * Example: <code><a title="example1@mail.com" href="mailto:example2@mail.com">Email</a></code>
+     * Will be turned to <code><a href="mailto:example2@mail.com">Email</a></code>
+     *
+     * @param string $content The content to process.
+     * @return string The content with attributes removed.
+     */
+    private static function dropAttributesContainEmail($content, $tags)
+    {
+        $attribute_content_chunk = '[\s]{0,}=[\s]{0,}[\"\']\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}[\"\']';
+        foreach ($tags as $tag => $attribute) {
+            // Regular expression to match the attribute without the tag
+            $regexp_chunk_without_tag = "/{$attribute}{$attribute_content_chunk}/";
+            // Regular expression to match the attribute with the tag
+            $regexp_chunk_with_tag = "/<{$tag}.*{$attribute}{$attribute_content_chunk}/";
+            // Find all matches of the attribute with the tag in the content
+            preg_match_all($regexp_chunk_with_tag, $content, $matches);
+            if (!empty($matches[0])) {
+                // Remove the attribute without the tag from the content
+                $content = preg_replace($regexp_chunk_without_tag, '', $content, count($matches[0]));
+            }
+        }
+        return $content;
+    }
+
+    /**
+     * @param string $content
+     * @return string
+     * @psalm-suppress PossiblyUnusedReturnValue
+     * @phpcs:disable PHPCompatibility.FunctionUse.NewFunctionParameters.preg_replace_callback_flagsFound
+     */
     public function modifyEmails($content)
     {
-        $replacing_result = preg_replace_callback('/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/', function ($matches) {
+        $pattern = '/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/';
+        $replacing_result = '';
 
-            if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) && isset($matches[0]) ) {
-                return $matches[0];
-            }
+        if ( version_compare(phpversion(), '7.4.0', '>=') ) {
+            $replacing_result = preg_replace_callback($pattern, function ($matches) use ($content) {
+                if ( isset($matches[3][0], $matches[0][0]) && in_array(strtolower($matches[3][0]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
+                    return $matches[0][0];
+                }
 
-            //chek if email is placed in excluded attributes and return unchanged if so
-            if ( isset($matches[0]) && $this->hasAttributeExclusions($matches[0]) ) {
-                return $matches[0];
-            }
+                //chek if email is placed in excluded attributes and return unchanged if so
+                if ( isset($matches[0][0]) && $this->hasAttributeExclusions($matches[0][0]) ) {
+                    return $matches[0][0];
+                }
 
-            if ( isset($matches[0]) &&  $this->isMailto($matches[0]) ) {
-                return $this->encodeMailtoLink($matches[0]);
-            }
+                if ( isset($matches[0][0]) && $this->isMailto($matches[0][0]) ) {
+                    return $this->encodeMailtoLinkV2($matches[0], $content);
+                }
 
-            $this->handlePrivacyPolicyHook();
-            if ( isset($matches[0])) {
-                return $this->encodePlainEmail($matches[0]);
-            }
-        }, $content);
+                if ( isset($matches[0]) && $this->isMailtoAdditionalCopy($matches[0], $content) ) {
+                    return '';
+                }
+
+                if ( isset($matches[0], $matches[0][0]) && $this->isEmailInLink($matches[0], $content) ) {
+                    return $matches[0][0];
+                }
+
+                $this->handlePrivacyPolicyHook();
+
+                if ( isset($matches[0][0]) ) {
+                    return $this->encodePlainEmail($matches[0][0]);
+                }
+
+                return '';
+            }, $content, -1, $count, PREG_OFFSET_CAPTURE);
+        }
+
+        if ( version_compare(phpversion(), '7.4.0', '<') ) {
+            $replacing_result = preg_replace_callback($pattern, function ($matches) {
+                if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) && isset($matches[0]) ) {
+                    return $matches[0];
+                }
+
+                //chek if email is placed in excluded attributes and return unchanged if so
+                if ( isset($matches[0]) && $this->hasAttributeExclusions($matches[0]) ) {
+                    return $matches[0];
+                }
+
+                if ( isset($matches[0]) &&  $this->isMailto($matches[0]) ) {
+                    return $this->encodeMailtoLink($matches[0]);
+                }
+
+                $this->handlePrivacyPolicyHook();
+
+                if ( isset($matches[0]) ) {
+                    return $this->encodePlainEmail($matches[0]);
+                }
+
+                return '';
+            }, $content);
+        }
+
+        // modify content to turn back aria-label
+        $replacing_result = $this->modifyAriaLabelContent($replacing_result, true);
 
         //please keep this var (do not simplify the code) for further debug
         return $replacing_result;
@@ -229,7 +364,7 @@ class EmailEncoder
         if ( apbct_is_user_logged_in() ) {
             $this->decoded_emails_array = $this->ignoreOpenSSLMode()->decodeEmailFromPost();
             $this->response = $this->compileResponse($this->decoded_emails_array, true);
-            wp_send_json_success($this->decoded_emails_array);
+            wp_send_json_success($this->response);
         }
 
         $this->decoded_emails_array = $this->decodeEmailFromPost();
@@ -494,30 +629,19 @@ class EmailEncoder
 
         $encoded = $this->encodeString($string);
 
-        return '<span 
-                data-original-string="' . $encoded . '"
-                class="apbct-email-encoder"
-                title="' . esc_attr($this->getTooltip()) . '">' . $this->addMagicBlur($obfuscated) . '</span>';
+        return "<span 
+                data-original-string='" . $encoded . "'
+                class='apbct-email-encoder'
+                title='" . esc_attr($this->getTooltip()) . "'>" . $this->addMagicBlur($obfuscated) . "</span>";
     }
 
     private function addMagicBlur($obfuscated)
     {
-        $template = '
-        <span class="apbct-ee-blur-group">
-            <span class="apbct-ee-blur_email-text">%s</span>
-            <span class="apbct-ee-static-blur">
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-init"></span>
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-soft"></span>
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-hard"></span>
-            </span>
-            <span class="apbct-ee-animate-blur">
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-init apbct-ee-blur_animate-init"></span>
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-soft apbct-ee-blur_animate-soft "></span>
-                <span class="apbct-ee-blur apbct-ee-blur_rectangle-hard apbct-ee-blur_animate-hard"></span>
-            </span>
-        </span>
-';
-        return sprintf($template, $obfuscated);
+        $first_two = substr($obfuscated, 0, 2);
+        $last_two = substr($obfuscated, -2);
+        return $first_two .
+               '<span class="apbct-blur">' . substr($obfuscated, 2, -2) . '</span>' .
+               $last_two;
     }
 
     /**
@@ -530,6 +654,53 @@ class EmailEncoder
     private function isMailto($string)
     {
         return strpos($string, 'mailto:') !== false;
+    }
+
+    /**
+     * Checking if the string contains mailto: link
+     *
+     * @param $match array
+     * @param $content string
+     *
+     * @return bool
+     */
+    private function isMailtoAdditionalCopy($match, $content)
+    {
+        $position = $match[1];
+
+        $cc_position = strrpos(substr($content, 0, $position), 'cc=');
+        if ( $cc_position !== false && $cc_position + 3 == $position ) {
+            return true;
+        }
+
+        $bcc_position = strrpos(substr($content, 0, $position), 'bcc=');
+        if ( $bcc_position !== false && $bcc_position + 4 == $position ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Checking if email in link
+     *
+     * @param $match array
+     * @param $content string
+     *
+     * @return bool
+     */
+    private function isEmailInLink($match, $content)
+    {
+        $email = $match[0];
+        $position = $match[1];
+
+        $href_position = strrpos(substr($content, 0, $position), 'href=');
+
+        if ( $href_position !== false && $href_position + 6 == $position ) {
+            return true;
+        }
+
+        return strpos($email, 'mailto:') !== false;
     }
 
     /**
@@ -550,6 +721,39 @@ class EmailEncoder
                 }
             }, $matches[1]);
         }
+        $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
+        $encoded = $this->encodeString($mailto_link_str);
+
+        $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
+
+        return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
+    }
+
+    /**
+     * Method to process mailto: links
+     *
+     * @param $match array
+     * @param $content string
+     *
+     * @return string
+     */
+    private function encodeMailtoLinkV2($match, $content)
+    {
+        $position = $match[1];
+        $q_position = $position + strcspn($content, '\'"', $position);
+        $mailto_link_str = substr($content, $position, $q_position - $position);
+        // Get inner tag text and place it in $matches[1]
+        preg_match('/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/', $mailto_link_str, $matches);
+        if ( isset($matches[1]) ) {
+            $mailto_inner_text = preg_replace_callback('/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/', function ($matches) {
+                if ( isset($matches[0]) ) {
+                    return $this->obfuscateEmail($matches[0]);
+                }
+
+                return '';
+            }, $matches[1]);
+        }
+
         $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
         $encoded = $this->encodeString($mailto_link_str);
 
@@ -596,6 +800,9 @@ class EmailEncoder
                     }
                     //if each of signs in the sub-array are found return true
                     if ( $signs_found_count === count($signs) ) {
+                        if (in_array('et_pb_contact_form', $signs) && !is_admin()) {
+                            return false;
+                        }
                         return true;
                     }
                 }
@@ -610,7 +817,6 @@ class EmailEncoder
      */
     private function isExcludedRequest()
     {
-
         // Excluded request by alt cookie
         $apbct_email_encoder_passed = Cookie::get('apbct_email_encoder_passed');
         if ( $apbct_email_encoder_passed === apbct_get_email_encoder_pass_key() ) {
@@ -744,11 +950,16 @@ class EmailEncoder
 
     public function shortcodeCallback($_atts, $content, $_tag)
     {
+        if ( Cookie::get('apbct_email_encoder_passed') === apbct_get_email_encoder_pass_key() ) {
+            return $content;
+        }
+
         return $this->modifyAny($content);
     }
 
     private function registerHookHandler()
     {
         add_filter('apbct_encode_data', [$this, 'modifyAny']);
+        add_filter('apbct_encode_email_data', [$this, 'modifyContent']);
     }
 }

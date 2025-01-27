@@ -12,7 +12,7 @@ class PublicIntegrationsTest extends TestCase
     public function test_apbct_form_search__add_fields()
     {
         global $apbct;
-        $apbct = new State( 'cleantalk', array('settings', 'data', 'debug', 'errors', 'remote_calls', 'stats', 'fw_stats') );
+        $apbct = new State( 'cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats') );
         $apbct->settings['data__honeypot_field'] = 1;
 
         //define sample form test

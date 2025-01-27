@@ -405,7 +405,8 @@ function ct_ajax_hook($message_obj = null)
          (Post::get('action') === 'my_custom_login_validate') || // skip Ultimate Addons for Elementor login validate
          (Post::get('action') === 'wpforms_restricted_email') || // skip WPForm validate
          (Post::get('action') === 'fluentcrm_unsubscribe_ajax') || // skip fluentcrm unsubscribe
-         (Post::get('action') === 'forminator_submit_form_custom-forms') // skip forminator has direct integration
+         (Post::get('action') === 'forminator_submit_form_custom-forms') || // skip forminator has direct integration
+         (Post::get('action') === 'wcf_woocommerce_login') // skip WooCommerce CartFlows login
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
@@ -443,11 +444,6 @@ function ct_ajax_hook($message_obj = null)
                 $ct_post_temp['name']    = $curr_user->data->user_login;
             }
         }
-    }
-
-    if ( class_exists('BuddyPress') ) {
-        add_action('messages_message_before_save', 'apbct_integration__buddyPres__private_msg_check', 1);
-        return false;
     }
 
     //NSL integration

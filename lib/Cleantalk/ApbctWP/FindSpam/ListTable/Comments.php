@@ -4,11 +4,16 @@ namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 {
     protected $apbct;
 
+
+    /**
+     *@psalm-suppress PossiblyUnusedMethod
+     */
     public function __construct()
     {
         parent::__construct(array(
@@ -50,7 +55,8 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
      */
     public function column_cb($item) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        echo '<input type="checkbox" name="spamids[]" id="cb-select-' . $item['ct_id'] . '" value="' . $item['ct_id'] . '" />';
+        $ct_id = TT::getArrayValueAsString($item, 'ct_id');
+        echo '<input type="checkbox" name="spamids[]" id="cb-select-' . esc_html($ct_id) . '" value="' . esc_html($ct_id) . '" />';
     }
 
     /**
@@ -129,20 +135,27 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
         $column_content .= '</div>';
 
+        $page = htmlspecialchars(addslashes(TT::toString(Get::get('page'))));
+
         $actions = array(
             'approve' => sprintf(
                 '<span class="approve"><a href="?page=%s&action=%s&spam=%s">Approve</a></span>',
-                htmlspecialchars(addslashes(Get::get('page'))),
+                $page,
                 'approve',
                 $id
             ),
             'spam'    => sprintf(
                 '<span class="spam"><a href="?page=%s&action=%s&spam=%s">Spam</a></span>',
-                htmlspecialchars(addslashes(Get::get('page'))),
+                $page,
                 'spam',
                 $id
             ),
-            'trash'   => sprintf('<a href="?page=%s&action=%s&spam=%s">Trash</a>', htmlspecialchars(addslashes(Get::get('page'))), 'trash', $id),
+            'trash'   => sprintf(
+                '<a href="?page=%s&action=%s&spam=%s">Trash</a>',
+                $page,
+                'trash',
+                $id
+            ),
         );
 
         return sprintf('%1$s %2$s', $column_content, $this->row_actions($actions));
@@ -197,7 +210,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
             case 'ct_checked':
             case 'ct_spam':
             case 'ct_bad':
-                return $item[$column_name];
+                return TT::getArrayValueAsString($item, $column_name);
             default:
                 return print_r($item, true);
         }
@@ -221,11 +234,12 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
             return;
         }
 
-        if ( ! wp_verify_nonce(Post::get('_wpnonce'), 'bulk-' . $this->_args['plural']) ) {
+        $awaited_action = 'bulk-' . TT::getArrayValueAsString($this->_args, 'plural');
+        if ( ! wp_verify_nonce(TT::toString(Post::get('_wpnonce')), $awaited_action)) {
             wp_die('nonce error');
         }
 
-        $spam_ids = wp_parse_id_list(Post::get('spamids'));
+        $spam_ids = wp_parse_id_list(TT::toString(Post::get('spamids')));
         if ( 'trash' === $action ) {
             $this->moveToTrash($spam_ids);
         }
@@ -283,7 +297,9 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
             foreach ( $ids as $id ) {
                 delete_comment_meta((int)$id, 'ct_marked_as_spam');
                 $comment = get_comment((int)$id);
-                wp_trash_comment($comment);
+                if (is_int($comment) || $comment instanceof \WP_Comment) {
+                    wp_trash_comment($comment);
+                }
             }
         }
     }
@@ -294,7 +310,9 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
             foreach ( $ids as $id ) {
                 delete_comment_meta((int)$id, 'ct_marked_as_spam');
                 $comment = get_comment((int)$id);
-                wp_spam_comment($comment);
+                if (is_int($comment) || $comment instanceof \WP_Comment) {
+                    wp_spam_comment($comment);
+                }
             }
         }
     }

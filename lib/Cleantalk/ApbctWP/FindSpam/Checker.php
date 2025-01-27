@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\FindSpam;
 
 use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Common\TT;
 
 abstract class Checker
 {
@@ -89,15 +90,15 @@ abstract class Checker
             $dates_allowed  = 'checked';
             $dates_disabled = '';
         }
-
         $dates_from = $dates_till = '';
-
+        $cookie_dates_from = TT::toString(Cookie::get('ct_' . $this->page_slug . '_dates_from'));
+        $cookie_dates_till = TT::toString(Cookie::get('ct_' . $this->page_slug . '_dates_till'));
         if (
-            preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', Cookie::get('ct_' . $this->page_slug . '_dates_from')) &&
-            preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', Cookie::get('ct_' . $this->page_slug . '_dates_till'))
+            preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $cookie_dates_from) &&
+            preg_match('/^[a-zA-Z]{3}\s{1}\d{1,2}\s{1}\d{4}$/', $cookie_dates_till)
         ) {
-            $dates_from = Cookie::get('ct_' . $this->page_slug . '_dates_from');
-            $dates_till = Cookie::get('ct_' . $this->page_slug . '_dates_till');
+            $dates_from = $cookie_dates_from;
+            $dates_till = $cookie_dates_till;
         }
         ?>
 
@@ -151,8 +152,8 @@ abstract class Checker
                     class="ct_date"
                     type="text"
                     id="ct_date_range_from"
-                    value="<?php echo $dates_from; ?>"
-                    <?php echo $dates_disabled; ?>
+                    value="<?php echo esc_html($dates_from); ?>"
+                    <?php echo esc_html($dates_disabled); ?>
                     readonly
                 />
                 <label for="ct_date_range_till"></label>
@@ -160,8 +161,8 @@ abstract class Checker
                     class="ct_date"
                     type="text"
                     id="ct_date_range_till"
-                    value="<?php echo $dates_till; ?>"
-                    <?php echo $dates_disabled; ?>
+                    value="<?php echo esc_html($dates_till); ?>"
+                    <?php echo esc_html($dates_disabled); ?>
                     readonly
                 />
             </div>
@@ -213,10 +214,10 @@ abstract class Checker
                 IP - >=3 spam<br/>
                 E-mail - >=5 spam</br>
                 <br/>
-                <strong>Total count of comments - </strong>the number of active comments with the status 'comment',
+                <strong>&#42; Total count of comments - </strong>the number of active comments with the status 'comment',
                 'approve', 'disapprove', without statuses 'spam', 'trash', and only on existing pages.<br/>
-                <strong>Number of checked comments - </strong>all comments with all statuses except spam and
-                trash, such as review, trackback, ping, and comments from deleted pages. Therefore, this
+                <strong>&#42;&#42; Number of checked comments - </strong>all comments with all statuses except 'spam',
+                'trash' and 'order_note', such as review, trackback, ping, and comments. The comments on deleted pages have also been taken. Therefore, this
                 number may be more than the total number of comments.<br/>
             </p>
         </div>

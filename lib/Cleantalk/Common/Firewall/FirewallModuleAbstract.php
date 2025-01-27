@@ -25,7 +25,13 @@ abstract class FirewallModuleAbstract
      * @var DB
      */
     protected $db;
+    /**
+     * @var string
+     */
     protected $db__table__logs;
+    /**
+     * @var string
+     */
     protected $db__table__data;
 
     protected $service_id;

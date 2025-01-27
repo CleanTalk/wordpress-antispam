@@ -2,9 +2,9 @@
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
-Tested up to: 6.6
+Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 6.44
+Stable tag: 6.48.2
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -37,6 +37,7 @@ Top-rated anti-spam protection for WordPress. No CAPTCHA, no questions, no anima
 21. Hide «Website» field for comments.
 22. Block messages by languages, countries, networks and stop words.
 23. Email Address Encoder - protection for email addresses published on your site.
+24. No jQuery.
 
 = Free trial then $12 per year =
 CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
@@ -433,16 +434,118 @@ Yes, it is. Please read this article,
 1. AntiSpam settings are easy to use to protect any contact forms. For example - Ninja forms, Fluent forms and etc.
 2. AntiSpam plugin rejected a spam bot at the CAPTCHA less registration form. The plugin provides explanation to visitor and websites about each rejected comment/registration or contact message.
 3. Use AntiSpam analytics tool for each website in service Dashboard to have information about spam/legitimate stats.
-4. Use AntiSpam log to control anti-spam plugin.
-5. CleanTalk works faster than most of other anti-spam plugins.
-6. The Dashboard with a map of most spam active countries per your account.
-7. The plugin deletes/removes the existing spam comments and users accounts.
-8. CleanTalk's dashboard update link.
-10. Website's options.
-11. CleanTalk's dashboard.
-12. SpamFireWall log.
+4. Special interface to find spam comments.
+5. Special interface to find spammers in users.
+6. Prevent WooCommerce checkout from spammers.
+7. Prevent spam contact occurs in your life.
+8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.48.2 23.01.2025 =
+* Fix. SFW. Fixed update flow, to prevent warning occur on download stage.
+* Fix. Force Protection. Preventing notice occurs from js.
+
+= 6.48.1 21.01.2025 =
+* Fix. Settings. Improved refresh nonce flow.
+
+= 6.48 16.01.2025 =
+* New. Cookies type. Auto-detect cookies type on list of specified plugins active.
+* New. Integration. Dubsado external iframes protection implemented.
+* New. Integration. Tevolution plugin integration implemented.
+* New. ForceProtection. Added new module.
+* New. SpamProtection. Added shortcode for easily third party integration.
+* Fix. AltCookies. Trailing spaces removed.
+* Fix. Comment checker. Hints descriptions updated.
+* Fix. Comments checker. Fixed count of comments during ajax check process. Docs and descritpions updated.
+* Fix. Common. JS keys getting. Fixed case when inline script fired before public bundle loaded.
+* Fix. Common. `Helper::dnsResolve()` method fixed.
+* Fix. Common. Prevent cookies set on WP Rocket preloader requests.
+* Fix. Cron. Added cast for value from database.
+* Fix. External Forms. Use 'load' event of window object to add external forms protection instead of rewriting 'window.onload' function.
+* Fix. External forms. Clear service fields fixed.
+* Fix. Email encoder. Adaptive. Magic on the way popup layout fixed.
+* Fix. Forms decoration. Fatal error getting decoration fixed.
+* Fix. Integrations. Improved compatible with tandem of wp-rocket and wp-engine.
+* Fix. Integrations. 3rd party Moosend form behaviour (spinner) fixed.
+* Fix. Integrations. Skip CartFlows login.
+* Fix. Integrations. Ninja forms integration fixed.
+* Fix. ForceProtection. The condition for adding a listener to enable the option.
+* Fix. Search form. Error handling alt cookies set fixed.
+* Fix. SetCookies. Removed data encoding for writing cookies off.
+* Fix. Settings. Adaptive. Long description popup layout and handling fixed.
+* Fix. Settings. Long description behavior fixed.
+* Fix. SFW. Download update files by batches.
+* Fix. SFW Error Text. Checking whether the init or plugins_loaded hook was executed (#529).
+* Fix. WooCommerce. Deleted draft order after forbidden solution.
+* Upd. AntiCrawler. Fix condition.
+* Upd. AntoCrawler. Changing the logic of the conditions, receiving cookies.
+* Upd. AntiCrawler. Added a new cookie for AntiCrawler, checking the loading of the bot detector.
+* Upd. BuddyPress. Send negative feedback for deleted Buddypress users.
+* Upd. Code. ServerVariables::get is deprecated now.
+* Upd. Code. Refactoring to compatible with psalm L3.
+* Upd. ForceProtection. Added a verification cookie, added a description and confirmation before enabling the option.
+* Upd. Settings. Enabling the default 'email check exist' setting.
+* Upd. Settings. Rename get-access-key button.
+* Upd. WP CLI. Improvements.
+
+= 6.47 18 Dec 2024 =
+* New. Form decoration. Holiday form decoration option added.
+* New. JSLibrary. Bot detector log collecting.
+* New. Integrations. Sendpulse 3rd party service integration implemented.
+* New. Integrations. Added SeedConfirmationPro.
+* Upd. EmailEncoder. Remember hook decoding.
+* Upd. Settings. Updated logic to clear old sessions data.
+* Upd. Integrations. Updated EmailEncoder to integrate Business Directory.
+* Upd. EmailEncoder. Fixed warning occurs on plugin delete action.
+* Upd. EmailEncoder. Improved work to handle seldom cases.
+* Upd. Integrations. Refactoring BuddyPress handler.
+* Upd. Code. Improved clean old session data handler.
+* Mod. Bot Detector. Library JS script load strategy set to "defer".
+* Fix. Integrations. WooCommerce checkout during REST protection fixed.
+* Fix. External forms. External forms catching fixed.
+* Fix. External forms. ConvertKit integration fixed.
+* Fix. UniBanner. Edit access to a variable.
+
+= 6.46 27 Nov 2024 =
+* New. Integrations. CoBlocks integration implemented.
+* New. EmailEncoder. A new hook for encoding mail
+* Upd. TheRealPerson. Update layout.
+* Upd. Code. Psalm L3. Updated codebase
+* Upd. Integrations. Breeze cache plugin integration implemented.
+* Upd. Code. Refactoring honeypot logic.
+* Upd. TRP. Improved adaptive.
+* Upd. Integrations. Added fibosearch support.
+* Fix. Integrations. Ninja forms getting form fields fixed.
+* Fix. TRP. Popup text color fixed.
+* Fix. Email encoder. Decoding blur-magic rebuilt.
+* Fix. Integrations. Exclusion of the Elementor search form
+* Fix. Integrations. Regex to exclude search forms
+* Fix. EmailEncoder. Handling exceptions and logged-in users
+* Fix. EmailEncoder. Exclusion of maps from leaflet
+
+= 6.45.2 19 Nov 2024 =
+* Fix. Settings. Fixed banners close handler.
+
+= 6.45.1 15 Nov 2024 =
+* Fix. Email Encoder. Exclusions condition fixed.
+* Fix. Collecting JS errors. Substring fail case fixed.
+
+= 6.45 14 Nov 2024 =
+* Code. Psalm level 3. New progress.
+* Fix. Anti-Flood. Blocking page loop fixed.
+* Fix. Code. GetFieldsAny(). Added protection for unknown Gravity forms attack that ignores integration hooks.
+* Fix. Common check. Prevent spam on Formintator forms direct call attacks.
+* Fix. EmailEncoder. Editing the change of double quotes to single quotes.
+* Fix. EmailEncoder. Issue with missing tables fixed.
+* Fix. EmailEncoder. Revived lost modifyAriaLabelContent() call used to replace back the origin aria attr.
+* Fix. Remote Calls. RC calling for the services without the api key fixed.
+* Fix. Request Parameters. `apbct_site_landing_ts` parameter handling fixed.
+* Fix. Skip request. Skipping an ajax request to edit a profile.
+* Mod. EmailEncoder. Popup. Copy button removed. Email made selectable by click. Styles unified.
+* Mod. EmailEncoder. Descriptions updated.
+* Mod. Sanitize::sanitizeCleantalkServerUrl implemented.
+* Upd. Settings. Checking email existence option will be enabled by default for the new users.
 
 = 6.44 31 Oct 2024 =
 * New. Integrations. Added honeypot for elementor form.
