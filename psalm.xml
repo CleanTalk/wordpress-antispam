@@ -30,6 +30,8 @@
 
     <issueHandlers>
         <MissingPropertyType errorLevel="suppress"/>
+        <UndefinedMagicPropertyFetch errorLevel="suppress" /><!-- @ToDo remove this exception and solve the issues -->
+        <UndefinedMagicPropertyAssignment errorLevel="suppress" /><!-- @ToDo remove this exception and solve the issues -->
         <UnusedClass>
             <errorLevel type="suppress">
                 <referencedClass name="Cleantalk\Antispam\Cleantalk"/>

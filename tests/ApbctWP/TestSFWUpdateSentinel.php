@@ -1,8 +1,5 @@
 <?php
 
-use Cleantalk\ApbctWP\DB;
-use Cleantalk\ApbctWP\ConnectionReports;
-use Cleantalk\ApbctWP\HTTP\Request;
 use Cleantalk\ApbctWP\State;
 use PHPUnit\Framework\TestCase;
 
@@ -11,7 +8,6 @@ class TestSFWUpdateSentinel extends TestCase
     public function setUp() : void
     {
         global $apbct;
-        $this->db = DB::getInstance();
         $apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
         $apbct->setSFWUpdateSentinel();
 

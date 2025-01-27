@@ -2,7 +2,7 @@
 
 use Cleantalk\ApbctWP\State;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Error\Notice;
+use PHPUnit\Framework\Error\Warning;
 
 class TestApbctState extends TestCase
 {
@@ -189,7 +189,7 @@ class TestApbctState extends TestCase
         //apbct_run_update_actions('6.1','6.2');
 
         //await udefined index
-        $this->expectException(Notice::class);
+        $this->expectException(Warning::class);
         $db_result = get_option('cleantalk_fw_stats')['firewall_updating_id'];
     }
 }
