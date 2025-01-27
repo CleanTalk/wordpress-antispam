@@ -448,6 +448,12 @@ function ct_ajax_hook($message_obj = null)
         }
     }
 
+    // Nasa registration
+    if ( Post::get('action') === 'nasa_process_register' ) {
+        $post_info['comment_type'] = 'nasa_process_register';
+        $reg_flag = true;
+    }
+
     //NSL integration
     if ( Post::get('action') === 'cleantalk_nsl_ajax_check' ) {
         $post_info['comment_type'] = 'contact_form_wordpress_nsl';
