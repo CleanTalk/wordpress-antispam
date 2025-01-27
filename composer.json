@@ -9,9 +9,9 @@
         }
     ],
     "require-dev": {
-        "vimeo/psalm": "^5",
+        "vimeo/psalm": "^6",
         "phpunit/phpunit": "^9",
-        "nikic/php-parser": "^4",
+        "nikic/php-parser": "^5",
         "squizlabs/php_codesniffer": "*",
         "phpcompatibility/php-compatibility": "@dev",
         "yoast/phpunit-polyfills": "^3",
