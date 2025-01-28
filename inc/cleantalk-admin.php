@@ -304,10 +304,18 @@ function apbct_admin__init()
         strpos(TT::toString(Server::get('REQUEST_URI')), 'wp-admin/admin-ajax.php') === false
     ) {
         ob_start(function ($buffer) {
-            $pattern = '/<script\s+type="rocketlazyloadscript"[^>]*cleantalk-admin\.min\.js[^>]*>/i';
+            $pattern_admin_js = '/<script\s+type="rocketlazyloadscript"[^>]*cleantalk-admin\.min\.js[^>]*>/i';
+            $pattern_checkusers_js = '/<script\s+type="rocketlazyloadscript"[^>]*cleantalk-users-checkspam\.min\.js[^>]*>/i';
+            $pattern_checkspam_js = '/<script\s+type="rocketlazyloadscript"[^>]*cleantalk-comments-checkspam\.min\.js[^>]*>/i';
 
-            return preg_replace($pattern, '<script src="' . APBCT_JS_ASSETS_PATH . '/cleantalk-admin.min.js' .
+            $buffer = preg_replace($pattern_admin_js, '<script src="' . APBCT_JS_ASSETS_PATH . '/cleantalk-admin.min.js' .
                 '?ver=' . APBCT_VERSION . '" id="ct_admin_common-js"></script>', $buffer);
+            $buffer = preg_replace($pattern_checkusers_js, '<script src="' . APBCT_JS_ASSETS_PATH . '/cleantalk-users-checkspam.min.js' .
+                '?ver=' . APBCT_VERSION . '" id="ct_check_users-js"></script>', $buffer);
+            $buffer = preg_replace($pattern_checkspam_js, '<script src="' . APBCT_JS_ASSETS_PATH . '/cleantalk-comments-checkspam.min.js' .
+                '?ver=' . APBCT_VERSION . '" id="ct_check_spam-js"></script>', $buffer);
+
+            return $buffer;
         });
     }
 
