@@ -343,8 +343,16 @@ function apbct_admin_sendAJAX(data, params, obj) {
                 }, 1000);
                 if ( typeof cleantalkModal !== 'undefined' ) {
                     // Show the result by modal
-                    cleantalkModal.loaded = 'Error:<br>' + result.error.toString();
-                    cleantalkModal.open();
+                    if (result.hasOwnProperty('error_html')) {
+                        // has own error_html
+                        cleantalkModal.ignoreURLConvert = true;
+                        cleantalkModal.loaded = result.error_html;
+                        cleantalkModal.open();
+                    } else {
+                        // common way
+                        cleantalkModal.loaded = 'Error:<br>' + result.error.toString();
+                        cleantalkModal.open();
+                    }
                 } else {
                     alert('Error happens: ' + (result.error || 'Unkown'));
                 }

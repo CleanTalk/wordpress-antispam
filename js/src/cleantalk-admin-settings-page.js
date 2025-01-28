@@ -28,32 +28,7 @@ jQuery(document).ready(function() {
     jQuery('#ct_admin_timezone').val(timezone);
 
     // Key KEY automatically
-    jQuery('#apbct_button__get_key_auto').on('click', function() {
-        apbct_admin_sendAJAX(
-            {action: 'apbct_get_key_auto', ct_admin_timezone: timezone},
-            {
-                timeout: 25000,
-                button: document.getElementById('apbct_button__get_key_auto' ),
-                spinner: jQuery('#apbct_button__get_key_auto .apbct_preloader_button' ),
-                callback: function(result, data, params, obj) {
-                    jQuery('#apbct_button__get_key_auto .apbct_success').show(300);
-                    setTimeout(function() {
-                        jQuery('#apbct_button__get_key_auto .apbct_success').hide(300);
-                    }, 2000);
-                    if (result.reload) {
-                        document.location.reload();
-                    }
-                    if (result.getTemplates) {
-                        cleantalkModal.loaded = result.getTemplates;
-                        cleantalkModal.open();
-                        document.addEventListener('cleantalkModalClosed', function( e ) {
-                            document.location.reload();
-                        });
-                    }
-                },
-            },
-        );
-    });
+    jQuery('#apbct_button__get_key_auto').on('click', apbctGetKeyAutoAjax);
 
     // Import settings
     jQuery( document ).on('click', '#apbct_settings_templates_import_button', function() {
@@ -734,4 +709,88 @@ function apbctHighlightElement(id, times) {
             }
         });
     });
+}
+
+/**
+ * Wrapper for apbct_get_key_auto AJAX request.
+ * @param {null|HTMLElement} event
+ * @param {bool} tryToUpgrade
+ */
+function apbctGetKeyAutoAjax(event = null, tryToUpgrade = false)
+{
+    apbct_admin_sendAJAX(
+        {
+            action: 'apbct_get_key_auto',
+            ct_admin_timezone: jQuery('#ct_admin_timezone').val(),
+            try_to_upgrade: tryToUpgrade ? 1 : 0,
+        },
+        {
+            timeout: 25000,
+            button: document.getElementById('apbct_button__get_key_auto' ),
+            spinner: jQuery('#apbct_button__get_key_auto .apbct_preloader_button' ),
+            callback: function(result, data, params, obj) {
+                // auto_upgrade entry point
+                if (result.hasOwnProperty('auto_upgrade_notice') && typeof result.auto_upgrade_notice === 'string') {
+                    // get modal content
+                    const upgradeTariffNoticeHTML = ctModalPrepareUpgradeTariffNotice(result.auto_upgrade_notice);
+                    // set modal content
+                    cleantalkModal.loaded = upgradeTariffNoticeHTML.innerHTML;
+                    // open modal
+                    cleantalkModal.open();
+                    // add event listeners
+                    // on OK button retry ajax call with tryToUpgrade flag
+                    document.getElementById('ct_next_step_button_allow').addEventListener('click', function() {
+                        cleantalkModal.close();
+                        apbctGetKeyAutoAjax(null,true);
+                    });
+                    // do the saem on close modal
+                    document.getElementById('cleantalk-modal-close').addEventListener('click', function(event) {
+                        apbctGetKeyAutoAjax(null,true);
+                    });
+                    // stop execution - waiting for apbctGetKeyAutoAjax response
+                    // Notice. If the call returns error on upgrading procees this will be handled in apbct_admin_sendAJAX error handler.
+                    return;
+                }
+                jQuery('#apbct_button__get_key_auto .apbct_success').show(300);
+                setTimeout(function() {
+                    jQuery('#apbct_button__get_key_auto .apbct_success').hide(300);
+                }, 2000);
+                if (result.reload) {
+                    document.location.reload();
+                }
+                if (result.getTemplates) {
+                    cleantalkModal.loaded = result.getTemplates;
+                    cleantalkModal.open();
+                    document.addEventListener('cleantalkModalClosed', function( e ) {
+                        document.location.reload();
+                    });
+                }
+            },
+        },
+    );
+}
+
+/**
+ * Construct modal content for upgrade notice
+ * @param noticeMessage
+ * @return {HTMLDivElement}
+ */
+function ctModalPrepareUpgradeTariffNotice(noticeMessage) {
+    const buttonAllowButton = document.createElement('button');
+    buttonAllowButton.classList.add('button', 'button-primary');
+    buttonAllowButton.innerText = 'OK';
+    buttonAllowButton.id = 'ct_next_step_button_allow'
+
+    const buttonWrapperDiv = document.createElement('div');
+    buttonWrapperDiv.classList.add('ct-modal-buttons');
+    buttonWrapperDiv.append(buttonAllowButton);
+
+    const messageP = document.createElement('p');
+    messageP.innerText = noticeMessage;
+
+    const modalDiv = document.createElement('div');
+    modalDiv.append(messageP);
+    modalDiv.append(buttonWrapperDiv);
+
+    return modalDiv;
 }

@@ -734,7 +734,7 @@ function apbct_comment__Wordpress__changeMailNotification($notify_message, $_com
                //HANDLE LINK
                'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=wp_spam_comment_passed'
                . ($apbct->data['user_token']
-                   ? '&iser_token=' . $apbct->data['user_token']
+                   ? '&user_token=' . $apbct->data['user_token']
                    : ''
                )
            )

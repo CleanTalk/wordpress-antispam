@@ -200,6 +200,10 @@ class Request
             }
         }
 
+        if (in_array('get_raw_response', $this->presets)) {
+            return array($this->response->getContentRaw());
+        }
+
         return $this->runCallbacks();
     }
 
@@ -226,7 +230,6 @@ class Request
         }
 
         curl_close($ch);
-
 
         return new Response($request_result, $curl_info);
     }
