@@ -62,8 +62,11 @@ class API
      * @param bool $wpms
      * @param bool $white_label
      * @param string $hoster_api_key
+     * @param bool $email_filtered
+     * @param string $user_token
+     * @param int $allow_upgrade
      *
-     * @return array|bool|mixed
+     * @return array|bool
      */
     public static function methodGetApiKey(
         $product_name,
@@ -76,7 +79,9 @@ class API
         $wpms = false,
         $white_label = false,
         $hoster_api_key = '',
-        $email_filtered = false
+        $email_filtered = false,
+        $user_token = null,
+        $allow_upgrade = null
     ) {
         $request = array(
             'method_name'          => 'get_api_key',
@@ -90,10 +95,18 @@ class API
             'wpms_setup'           => $wpms,
             'hoster_whitelabel'    => $white_label,
             'hoster_api_key'       => $hoster_api_key,
-            'email_filtered'       => $email_filtered
+            'email_filtered'       => $email_filtered,
         );
 
-        return static::sendRequest($request);
+        $use_raw_response = false;
+
+        if (isset($allow_upgrade, $user_token)) {
+            $request['user_token'] = TT::toString($user_token);
+            $request['allow_upgrade'] = TT::toInt($allow_upgrade);
+            $use_raw_response = true;
+        }
+
+        return static::sendRequest($request, self::URL, 10, $use_raw_response);
     }
 
     /**
@@ -800,7 +813,7 @@ class API
      *
      * @return array|bool
      */
-    public static function sendRequest($data, $_url = self::URL, $timeout = 10)
+    public static function sendRequest($data, $_url = self::URL, $timeout = 10, $_get_raw_response = false)
     {
         // Possibility to switch agent version
         $data['agent'] = ! empty($data['agent'])

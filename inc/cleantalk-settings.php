@@ -2696,7 +2696,7 @@ function apbct_settings__get_key_auto($direct_call = false)
     $platform       = 'wordpress';
     $user_ip        = Helper::ipGet('real', false);
     $timezone       = filter_input(INPUT_POST, 'ct_admin_timezone');
-    $language       = Server::get('HTTP_ACCEPT_LANGUAGE');
+    $language       = Server::getString('HTTP_ACCEPT_LANGUAGE');
     $wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && ! SUBDOMAIN_INSTALL ? true : false;
     $white_label    = $apbct->network_settings['multisite__white_label'] ? true : false;
     $hoster_api_key = $apbct->network_settings['multisite__hoster_api_key'];
@@ -2705,11 +2705,20 @@ function apbct_settings__get_key_auto($direct_call = false)
     /**
      * Filters the email to get Access key
      *
-     * @param string email to get Access key
+     * @param string $admin_email email to get Access key
      */
     $filtered_admin_email = apply_filters('apbct_get_api_key_email', $admin_email);
 
-    $language = is_string($language) ? $language : null;
+
+    /**
+     * Is this first step of tariff upgrading?
+     */
+    $user_token = null;
+    $try_to_upgrade = 0;
+    if ( !$direct_call ) {
+        $try_to_upgrade = Post::getInt('try_to_upgrade');
+        $user_token     = $apbct->data['user_token'];
+    }
 
     $result = \Cleantalk\ApbctWP\API::methodGetApiKey(
         'antispam',
@@ -2722,8 +2731,62 @@ function apbct_settings__get_key_auto($direct_call = false)
         $wpms,
         $white_label,
         $hoster_api_key,
-        $filtered_admin_email !== $admin_email
+        $filtered_admin_email !== $admin_email,
+        $user_token,
+        $try_to_upgrade
     );
+
+    /**
+     * Need to use raw response to handle tariff upgrades
+     */
+    if (isset($result[0]) && is_string($result[0])) {
+        $result = @json_decode($result[0], true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $result = array('error' => 'JSON decode error');
+        }
+    }
+
+    /**
+     * If this is first step of tariff upgrading, API returns flag ask_upgrade_tariff = 1
+     * In this case we need to inform user about upgrade tariff via JS output and next AJAX call with flag try_to_upgrade = 1
+     */
+
+    if (!$direct_call && isset($result['ask_upgrade_tariff']) && $result['ask_upgrade_tariff'] == 1) {
+        // If this is still try to upgrade - we need to stop loop calling. Response error.
+        $failed_try = TT::toInt($try_to_upgrade) === 1;
+        if ($failed_try) {
+            $link = LinkConstructor::buildRenewalLink(
+                $user_token,
+                'get_key_auto_failed'
+            );
+            $error = '<span>'
+                     . __('Unable to automatically upgrade the tariff. Please, visit your dashboard to upgrade tariff manually', 'cleantalk-spam-protect')
+                     . '</span>'
+                     . '<br>'
+                     . '<div>'
+                     . '<button class="cleantalk_link cleantalk_link-manual" value="get_key_auto"><a href="%s">' . __('Dashboard') . '</a></button>'
+                     . '</div>';
+            $error = sprintf($error, $link);
+            $out = array(
+                'success' => true,
+                'reload'  => false,
+                'error_html' => $error,
+                'error' => true,
+            );
+        } else {
+            $out = array(
+                'success' => true,
+                'reload'  => false,
+                'auto_upgrade_notice' => __('Adding a new site exceeds your current package, we will try to do it automatically.', 'cleantalk-spam-protect'),
+            );
+        }
+        die(json_encode($out));
+    }
+
+    /**
+     * Common cases.
+     */
+
 
     if ( ! empty($result['error']) ) {
         $apbct->errorAdd(
@@ -2745,10 +2808,10 @@ function apbct_settings__get_key_auto($direct_call = false)
         $out = array(
             'success' => true,
             'reload'  => false,
-            'error' => sprintf(
+            'error' => '<span>' . sprintf(
                 __('Please, get the Access Key from CleanTalk Control Panel %s and insert it in the Access Key field', 'cleantalk-spam-protect'),
-                'https://cleantalk.org/my/?cp_mode=antispam'
-            )
+                '<a href="https://cleantalk.org/my/?cp_mode=antispam">https://cleantalk.org/my/?cp_mode=antispam</a>'
+            ) . '</span>',
         );
     } else {
         if ( isset($result['user_token']) ) {
