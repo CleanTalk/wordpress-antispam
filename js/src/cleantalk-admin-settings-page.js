@@ -716,8 +716,7 @@ function apbctHighlightElement(id, times) {
  * @param {null|HTMLElement} event
  * @param {bool} tryToUpgrade
  */
-function apbctGetKeyAutoAjax(event = null, tryToUpgrade = false)
-{
+function apbctGetKeyAutoAjax(event = null, tryToUpgrade = false) {
     apbct_admin_sendAJAX(
         {
             action: 'apbct_get_key_auto',
@@ -741,14 +740,15 @@ function apbctGetKeyAutoAjax(event = null, tryToUpgrade = false)
                     // on OK button retry ajax call with tryToUpgrade flag
                     document.getElementById('ct_next_step_button_allow').addEventListener('click', function() {
                         cleantalkModal.close();
-                        apbctGetKeyAutoAjax(null,true);
+                        apbctGetKeyAutoAjax(null, true);
                     });
                     // do the saem on close modal
                     document.getElementById('cleantalk-modal-close').addEventListener('click', function(event) {
-                        apbctGetKeyAutoAjax(null,true);
+                        apbctGetKeyAutoAjax(null, true);
                     });
                     // stop execution - waiting for apbctGetKeyAutoAjax response
-                    // Notice. If the call returns error on upgrading procees this will be handled in apbct_admin_sendAJAX error handler.
+                    // Notice. If the call returns error on upgrading procees this
+                    // will be handled in apbct_admin_sendAJAX error handler.
                     return;
                 }
                 jQuery('#apbct_button__get_key_auto .apbct_success').show(300);
@@ -772,14 +772,14 @@ function apbctGetKeyAutoAjax(event = null, tryToUpgrade = false)
 
 /**
  * Construct modal content for upgrade notice
- * @param noticeMessage
+ * @param {string} noticeMessage
  * @return {HTMLDivElement}
  */
 function ctModalPrepareUpgradeTariffNotice(noticeMessage) {
     const buttonAllowButton = document.createElement('button');
     buttonAllowButton.classList.add('button', 'button-primary');
     buttonAllowButton.innerText = 'OK';
-    buttonAllowButton.id = 'ct_next_step_button_allow'
+    buttonAllowButton.id = 'ct_next_step_button_allow';
 
     const buttonWrapperDiv = document.createElement('div');
     buttonWrapperDiv.classList.add('ct-modal-buttons');

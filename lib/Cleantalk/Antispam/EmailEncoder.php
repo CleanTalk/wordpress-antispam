@@ -49,6 +49,8 @@ class EmailEncoder
         array('scc-form-field-item'),
         // Exclusion of maps from leaflet
         array('leaflet'),
+        // prevent broking elementor swiper gallery
+        array('class', 'elementor-swiper', 'elementor-testimonial', 'swiper-pagination'),
     );
 
     /**
@@ -287,6 +289,11 @@ class EmailEncoder
                     return $matches[0][0];
                 }
 
+                // skip encoding if the content in script tag
+                if ( isset($matches[0][0]) && $this->isInsideScriptTag($matches[0][0], $content) ) {
+                    return $matches[0][0];
+                }
+
                 if ( isset($matches[0][0]) && $this->isMailto($matches[0][0]) ) {
                     return $this->encodeMailtoLinkV2($matches[0], $content);
                 }
@@ -445,6 +452,37 @@ class EmailEncoder
             $encoded_email = htmlspecialchars(base64_encode(str_rot13($plain_string)));
         }
         return $encoded_email;
+    }
+
+    /**
+     * Check if the given email is inside a script tag
+     * @param string $email The email to check
+     * @param string $content The full content
+     * @return bool
+     */
+    private function isInsideScriptTag($email, $content)
+    {
+        // Find position of the email in content
+        $pos = strpos($content, $email);
+        if ($pos === false) {
+            return false;
+        }
+
+
+        // Find the last script opening tag before the email
+        $last_script_start = strrpos(substr($content, 0, $pos), '<script');
+        if ($last_script_start === false) {
+            return false;
+        }
+
+        // Find the first script closing tag after the last opening tag
+        $script_end = strpos($content, '</script>', $last_script_start);
+        if ($script_end === false) {
+            return false;
+        }
+
+        // The email is inside a script tag if its position is between the opening and closing tags
+        return ($pos > $last_script_start && $pos < $script_end);
     }
 
     /**

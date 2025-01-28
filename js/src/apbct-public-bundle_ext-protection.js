@@ -1818,21 +1818,6 @@ function apbctCancelAutocomplete(element) {
     }));
 }
 
-if (ctPublic.data__key_is_ok) {
-    if (document.readyState !== 'loading' && typeof ApbctForceProtection !== 'undefined') {
-        apbctForceProtect();
-    } else {
-        apbct_attach_event_handler(document, 'DOMContentLoaded', apbctForceProtect);
-    }
-}
-
-/**
- * Force protection
- */
-function apbctForceProtect() {
-    new ApbctForceProtection();
-}
-
 /**
  * ApbctForceProtection
  */
@@ -1951,6 +1936,23 @@ class ApbctForceProtection {
 }
 
 /**
+ * Force protection
+ */
+function apbctForceProtect() {
+    if (ctPublic.settings__forms__force_protection && typeof ApbctForceProtection !== 'undefined') {
+        new ApbctForceProtection();
+    }
+}
+
+if (ctPublic.data__key_is_ok) {
+    if (document.readyState !== 'loading') {
+        apbctForceProtect();
+    } else {
+        apbct_attach_event_handler(document, 'DOMContentLoaded', apbctForceProtect);
+    }
+}
+
+/**
  * Class for gathering data about user typing.
  *
  * ==============================
@@ -2048,6 +2050,7 @@ let ctMouseReadInterval;
 let ctMouseWriteDataInterval;
 let tokenCheckerIntervalId;
 let botDetectorLogLastUpdate = 0;
+let botDetectorLogEventTypesCollected = [];
 
 // eslint-disable-next-line require-jsdoc,camelcase
 function apbct_attach_event_handler(elem, event, callback) {
@@ -2076,9 +2079,11 @@ cronFormsHandler(2000);
 // bot_detector frontend_data log alt session saving cron
 if (
     ctPublicFunctions.hasOwnProperty('data__bot_detector_enabled') &&
-    ctPublicFunctions.data__bot_detector_enabled == 1
+    ctPublicFunctions.data__bot_detector_enabled == 1 &&
+    ctPublicFunctions.hasOwnProperty('data__frontend_data_log_enabled') &&
+    ctPublicFunctions.data__frontend_data_log_enabled == 1
 ) {
-    sendBotDetectorLogToAltSessions(500);
+    sendBotDetectorLogToAltSessions(1000);
 }
 /**
  * Cron jobs end.
@@ -2130,7 +2135,7 @@ function cronFormsHandler(cronStartTimeout = 2000) {
 
 /**
  * Send BotDetector logs data to alternative sessions.
- * If log_last_update has changed, the log will be sent to the alternative sessions.
+ * If log_last_update has changed and log contains new event types, the log will be sent to the alternative sessions.
  * @param {int} cronStartTimeout delay before cron start
  * @param {int} interval check fires on interval
  */
@@ -2138,15 +2143,41 @@ function sendBotDetectorLogToAltSessions(cronStartTimeout = 3000, interval = 100
     setTimeout(function() {
         setInterval(function() {
             const currentLog = apbctLocalStorage.get('ct_bot_detector_frontend_data_log');
-            if (currentLog && currentLog.hasOwnProperty('log_last_update')) {
-                if (botDetectorLogLastUpdate !== currentLog.log_last_update) {
-                    botDetectorLogLastUpdate = currentLog.log_last_update;
-                    // the log will be taken from javascriptclientdata
-                    ctSetAlternativeCookie([], {forceAltCookies: true});
-                }
+            if (needsSaveLogToAltSessions(currentLog)) {
+                botDetectorLogLastUpdate = currentLog.log_last_update;
+                // the log will be taken from javascriptclientdata
+                ctSetAlternativeCookie([], {forceAltCookies: true});
             }
         }, interval);
     }, cronStartTimeout);
+}
+
+/**
+ * Check if the log needs to be saved to the alt sessions. If the log has new event types, it will be saved.
+ * @param {object} currentLog
+ * @return {boolean}
+ */
+function needsSaveLogToAltSessions(currentLog) {
+    if (
+        currentLog && currentLog.hasOwnProperty('log_last_update') &&
+        botDetectorLogLastUpdate !== currentLog.log_last_update
+    ) {
+        try {
+            for (let i = 0; i < currentLog.records.length; i++) {
+                const currentType = currentLog.records[i].frontend_data.js_event;
+                // check if this event type was already collected
+                if (currentType !== undefined && botDetectorLogEventTypesCollected.includes(currentType)) {
+                    continue;
+                }
+                // add new event type to collection, this type will be sent to the alt sessions further
+                botDetectorLogEventTypesCollected.push(currentType);
+                return true;
+            }
+        } catch (e) {
+            console.log('APBCT: bot detector log collection error: ' . e.toString());
+        }
+    }
+    return false;
 }
 
 /**
@@ -2348,7 +2379,6 @@ function viewCheckEmailExist(e, state, textResult) {
         return;
     }
 
-    const envelopeWidth = 35;
     let envelope;
     let hint;
 
@@ -2359,15 +2389,9 @@ function viewCheckEmailExist(e, state, textResult) {
         envelope = document.createElement('div');
         envelope.setAttribute('class', 'apbct-check_email_exist-block');
         envelope.setAttribute('id', 'apbct-check_email_exist-block');
-        envelope.style.top = inputEmail.getBoundingClientRect().top + 'px';
-        envelope.style.left = inputEmail.getBoundingClientRect().right - envelopeWidth - 10 + 'px';
-        envelope.style.height = inputEmail.offsetHeight + 'px';
-        envelope.style.width = envelopeWidth + 'px';
-
         window.addEventListener('scroll', function() {
             envelope.style.top = inputEmail.getBoundingClientRect().top + 'px';
         });
-
         parentElement.after(envelope);
     }
 
@@ -2378,15 +2402,18 @@ function viewCheckEmailExist(e, state, textResult) {
         hint = document.createElement('div');
         hint.setAttribute('class', 'apbct-check_email_exist-popup_description');
         hint.setAttribute('id', 'apbct-check_email_exist-popup_description');
-        hint.style.width = inputEmail.offsetWidth + 'px';
-        hint.style.left = inputEmail.getBoundingClientRect().left + 'px';
-
         window.addEventListener('scroll', function() {
             hint.style.top = envelope.getBoundingClientRect().top + 'px';
         });
 
         envelope.after(hint);
     }
+
+    ctEmailExistSetElementsPositions();
+
+    window.addEventListener('resize', function(event) {
+        ctEmailExistSetElementsPositions();
+    });
 
     switch (state) {
     case 'load':
@@ -2430,6 +2457,32 @@ function viewCheckEmailExist(e, state, textResult) {
 
     default:
         break;
+    }
+}
+
+/**
+ * Shift the envelope to the input field on resizing the window
+ * @param {object} envelope
+ * @param {object} inputEmail
+ */
+function ctEmailExistSetElementsPositions() {
+    const envelopeWidth = 35;
+    const inputEmail = document.querySelector('comment-form input[name*="email"], input#email');
+    if (!inputEmail) {
+        return;
+    }
+    const envelope = document.getElementById('apbct-check_email_exist-block');
+    if (envelope) {
+        envelope.style.top = inputEmail.getBoundingClientRect().top + 'px';
+        envelope.style.left = inputEmail.getBoundingClientRect().right - envelopeWidth - 10 + 'px';
+        envelope.style.height = inputEmail.offsetHeight + 'px';
+        envelope.style.width = envelopeWidth + 'px';
+    }
+
+    const hint = document.getElementById('apbct-check_email_exist-popup_description');
+    if (hint) {
+        hint.style.width = inputEmail.offsetWidth + 'px';
+        hint.style.left = inputEmail.getBoundingClientRect().left + 'px';
     }
 }
 
@@ -4563,6 +4616,7 @@ function ctProtectExternal() {
 
             // Ajax checking for the integrated forms - will be changed the whole form object to make protection
             if ( isIntegratedForm(currentForm) ) {
+                console.log('isIntegratedForm', currentForm);
                 apbctProcessExternalForm(currentForm, i, document);
 
             // Ajax checking for the integrated forms - will be changed only submit button to make protection
@@ -4574,6 +4628,7 @@ function ctProtectExternal() {
                 (typeof(currentForm.action) == 'string' &&
                 currentForm.querySelector('[href*="activecampaign"]'))
             ) {
+                console.log('isIntegratedFormByFakeButton', currentForm);
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
             // Common flow - modify form's action
             } else if (
@@ -4581,11 +4636,13 @@ function ctProtectExternal() {
                 ( currentForm.action.indexOf('http://') !== -1 ||
                 currentForm.action.indexOf('https://') !== -1 )
             ) {
+                console.log('isIntegratedFormByAction', currentForm);
                 let tmp = currentForm.action.split('//');
                 tmp = tmp[1].split('/');
                 const host = tmp[0].toLowerCase();
 
                 if (host !== location.hostname.toLowerCase()) {
+                    console.log('isIntegratedFormByAction - host !== location.hostname.toLowerCase()', currentForm);
                     const ctAction = document.createElement('input');
                     ctAction.name = 'cleantalk_hidden_action';
                     ctAction.value = currentForm.action;
@@ -4880,9 +4937,12 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     const inputsSource = formSource.querySelectorAll('button, input, textarea, select');
     const inputsTarget = formTarget.querySelectorAll('button, input, textarea, select');
 
+    console.log('apbctReplaceInputsValuesFromOtherForm', formSource, formTarget);
+
     if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1 ||
         isFormHasDiviRedirect(formSource) ||
-        formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1
+        formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1 ||
+        formSource.outerHTML.indexOf('action="https://api.kit.com') !== -1
     ) {
         inputsSource.forEach((elemSource) => {
             inputsTarget.forEach((elemTarget) => {
@@ -5176,7 +5236,8 @@ function isIntegratedForm(formObj) {
     if (
         (
             formAction.indexOf('app.convertkit.com') !== -1 || // ConvertKit form
-            formAction.indexOf('app.kit.com') !== -1 // ConvertKit new form
+            formAction.indexOf('app.kit.com') !== -1 || // ConvertKit new form
+            formAction.indexOf('api.kit.com') !== -1 // ConvertKit new form
         ) ||
         ( formObj.firstChild.classList !== undefined &&
         formObj.firstChild.classList.contains('cb-form-group') ) || // Convertbox form
@@ -5340,7 +5401,10 @@ function sendAjaxCheckingFormData(form) {
                     apbctReplaceInputsValuesFromOtherForm(formNew, formOriginal);
 
                     // mautic forms integration
-                    if (formOriginal.id.indexOf('mautic') !== -1) {
+                    if (formOriginal &&
+                        typeof formOriginal.id === 'string' &&
+                        formOriginal.id.indexOf('mautic') !== -1
+                    ) {
                         mauticIntegration = true;
                     }
 
@@ -5375,6 +5439,11 @@ function sendAjaxCheckingFormData(form) {
 
                     // ConvertKit direct integration
                     submButton = formOriginal.querySelectorAll('button[data-element="submit"]');
+                    if ( submButton.length !== 0 ) {
+                        submButton[0].click();
+                        return;
+                    }
+                    submButton = formOriginal.querySelectorAll('button#ck_subscribe_button');
                     if ( submButton.length !== 0 ) {
                         submButton[0].click();
                         return;
