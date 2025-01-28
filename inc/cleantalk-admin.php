@@ -208,9 +208,9 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
 
                         <td class="ct_widget_block__country_cell">
                             <?php
-                            echo $val[1] ? "<img src='" . Escape::escHtml(APBCT_URL_PATH) . "/inc/images/flags/" . strtolower(
-                                isset($val[1]['country_code']) ? Escape::escHtml($val[1]['country_code']) : 'a1'
-                            ) . ".png'>" : ''; ?>
+                            echo $val[1]
+                                ? "<img src='" . Escape::escHtml(APBCT_URL_PATH) . "/inc/images/flags/countries_collection.svg#" . strtolower(isset($val[1]['country_code']) ? Escape::escHtml($val[1]['country_code']) : 'xx') . "'>"
+                                : ''; ?>
                             <?php
                             echo isset($val[1]['country_name']) ? Escape::escHtml($val[1]['country_name']) : 'Unknown'; ?>
                         </td>
