@@ -2745,7 +2745,7 @@ function ct_account_status_check($api_key = null, $process_errors = true)
             $apbct->data['wl_support_email'] = isset($result['wl_support_email'])
                 ? Sanitize::cleanEmail($result['wl_support_email'])
                 : $apbct->default_data['wl_support_email'];
-            $plugin_data_wl = get_file_data('cleantalk-spam-protect/cleantalk.php', array('Description' => 'Description'));
+            $plugin_data_wl = get_file_data(__FILE__, array('Description' => 'Description'));
             $plugin_data_wl = is_array($plugin_data_wl) && isset($plugin_data_wl['Description'])
                 ? $plugin_data_wl['Description']
                 : 'No description provided';
