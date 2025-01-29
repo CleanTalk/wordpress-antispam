@@ -524,17 +524,18 @@ class UsersChecker extends Checker
 
         $u = get_users($params);
         foreach ( $u as $iValue ) {
-            $user_meta = get_user_meta($iValue->ID, 'session_tokens', true);
-            $user_meta_array = reset($user_meta);
-            $user_meta_array = !empty($user_meta_array) ? $user_meta_array : false;
-            // skip empty or invalid data users
-            if (!$user_meta_array || !is_array($user_meta_array)) {
-                continue;
+            // gain IP from meta session_tokens
+            $ip_of_user_meta = 'N/A';
+            $user_meta_session_tokens = get_user_meta($iValue->ID, 'session_tokens', true);
+            if (!empty($user_meta_session_tokens) && is_array($user_meta_session_tokens)) {
+                $user_meta_array = reset($user_meta_session_tokens);
+                $user_meta_array = !empty($user_meta_array) && is_array($user_meta_array) ? $user_meta_array : false;
+                $ip_of_user_meta = $user_meta_array ? TT::getArrayValueAsString($user_meta_array, 'ip') : $ip_of_user_meta;
             }
-            $ip_of_user_meta = TT::getArrayValueAsString($user_meta_array, 'ip');
+
             $text .= $iValue->user_login . ',';
             $text .= $iValue->data->user_email . ',';
-            $text .= ! empty($ip_of_user_meta) ? trim($ip_of_user_meta) : '';
+            $text .= $ip_of_user_meta;
             $text .= PHP_EOL;
         }
 
