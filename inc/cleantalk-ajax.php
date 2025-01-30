@@ -406,7 +406,9 @@ function ct_ajax_hook($message_obj = null)
          (Post::get('action') === 'wpforms_restricted_email') || // skip WPForm validate
          (Post::get('action') === 'fluentcrm_unsubscribe_ajax') || // skip fluentcrm unsubscribe
          (Post::get('action') === 'forminator_submit_form_custom-forms') || // skip forminator has direct integration
-         (Post::get('action') === 'wcf_woocommerce_login') // skip WooCommerce CartFlows login
+         (Post::get('action') === 'wcf_woocommerce_login') || // skip WooCommerce CartFlows login
+         (Post::get('action') === 'nasa_process_login') || // skip Nasa login
+         (Post::get('action') === 'leaky_paywall_validate_registration') // skip Leaky Paywall validation request
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
@@ -444,6 +446,12 @@ function ct_ajax_hook($message_obj = null)
                 $ct_post_temp['name']    = $curr_user->data->user_login;
             }
         }
+    }
+
+    // Nasa registration
+    if ( Post::get('action') === 'nasa_process_register' ) {
+        $post_info['comment_type'] = 'nasa_process_register';
+        $reg_flag = true;
     }
 
     //NSL integration

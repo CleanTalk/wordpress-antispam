@@ -351,7 +351,6 @@ function ct_delete_all_users( e ){
 	};
 
 	jQuery('.' + e.target.id).addClass('disabled');
-	jQuery('.spinner').css('visibility', 'visible');
 	jQuery.ajax({
 		type: "POST",
 		url: ajaxurl,
@@ -362,7 +361,6 @@ function ct_delete_all_users( e ){
 				ct_delete_all_users( e, data );
 			}else{
 				jQuery('.' + e.target.id).removeClass('disabled');
-				jQuery('.spinner').css('visibility', 'hidden');
 				location.href='users.php?page=ct_check_users';
 			}
 		},
@@ -453,7 +451,6 @@ jQuery(document).ready(function(){
 	//Approve button
 	jQuery(".cleantalk_delete_from_list_button").click(function(){
 		ct_id = jQuery(this).attr("data-id");
-
 		// Approving
 		var data = {
 			'action': 'ajax_ct_approve_user',
@@ -503,6 +500,14 @@ jQuery(document).ready(function(){
 
 	});
 
+	function blinkElement(id) {
+		jQuery("#" + id).fadeTo(500, 0.25).fadeTo(500, 1);
+	}
+
+	function stopBlinkElement(id) {
+		jQuery("#" + id).fadeTo(1)
+	}
+
 	// Request to Download CSV file.
 	jQuery(".ct_get_csv_file").click(function( e ){
 		var data = {
@@ -512,7 +517,7 @@ jQuery(document).ready(function(){
 			'no_cache': Math.random()
 		};
 		jQuery('.' + e.target.id).addClass('disabled');
-		jQuery('.spinner').css('visibility', 'visible');
+		blinkElement('ct_get_csv_file');
 		jQuery.ajax({
 			type: "POST",
 			url: ajaxurl,
@@ -531,7 +536,7 @@ jQuery(document).ready(function(){
 					dummy.click();
 				}
 				jQuery('.' + e.target.id).removeClass('disabled');
-				jQuery('.spinner').css('visibility', 'hidden');
+				stopBlinkElement('ct_get_csv_file');
 			}
 		});
 	});
@@ -551,7 +556,7 @@ jQuery(document).ready(function(){
 
 		if ( ! confirm( ctUsersCheck.ct_confirm_deletion_all ) )
 			return false;
-
+		blinkElement('ct_delete_all_users');
 		ct_delete_all_users( e );
 
 	});

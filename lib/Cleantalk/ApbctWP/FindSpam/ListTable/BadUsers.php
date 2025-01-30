@@ -12,6 +12,10 @@ class BadUsers extends Users
      */
     public function prepare_items()  // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        /**
+         * This code chunk disables sorting, to make it sortable, remove it.
+         * Do not forget adapt getBadUsers() method like Users->getSpamNow() to handle sorting.
+         **/
         $columns               = $this->get_columns();
         $this->_column_headers = array($columns, array(), array());
 

@@ -208,9 +208,9 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
 
                         <td class="ct_widget_block__country_cell">
                             <?php
-                            echo $val[1] ? "<img src='" . Escape::escHtml(APBCT_URL_PATH) . "/inc/images/flags/" . strtolower(
-                                isset($val[1]['country_code']) ? Escape::escHtml($val[1]['country_code']) : 'a1'
-                            ) . ".png'>" : ''; ?>
+                            echo $val[1]
+                                ? "<img src='" . Escape::escHtml(APBCT_URL_PATH) . "/inc/images/flags/countries_collection.svg#" . strtolower(isset($val[1]['country_code']) ? Escape::escHtml($val[1]['country_code']) : 'xx') . "'>"
+                                : ''; ?>
                             <?php
                             echo isset($val[1]['country_name']) ? Escape::escHtml($val[1]['country_name']) : 'Unknown'; ?>
                         </td>
@@ -304,10 +304,18 @@ function apbct_admin__init()
         strpos(TT::toString(Server::get('REQUEST_URI')), 'wp-admin/admin-ajax.php') === false
     ) {
         ob_start(function ($buffer) {
-            $pattern = '/<script\s+type="rocketlazyloadscript"[^>]*cleantalk-admin\.min\.js[^>]*>/i';
+            $pattern_admin_js = '/<script\s+type="rocketlazyloadscript"[^>]*cleantalk-admin\.min\.js[^>]*>/i';
+            $pattern_checkusers_js = '/<script\s+type="rocketlazyloadscript"[^>]*cleantalk-users-checkspam\.min\.js[^>]*>/i';
+            $pattern_checkspam_js = '/<script\s+type="rocketlazyloadscript"[^>]*cleantalk-comments-checkspam\.min\.js[^>]*>/i';
 
-            return preg_replace($pattern, '<script src="' . APBCT_JS_ASSETS_PATH . '/cleantalk-admin.min.js' .
+            $buffer = preg_replace($pattern_admin_js, '<script src="' . APBCT_JS_ASSETS_PATH . '/cleantalk-admin.min.js' .
                 '?ver=' . APBCT_VERSION . '" id="ct_admin_common-js"></script>', $buffer);
+            $buffer = preg_replace($pattern_checkusers_js, '<script src="' . APBCT_JS_ASSETS_PATH . '/cleantalk-users-checkspam.min.js' .
+                '?ver=' . APBCT_VERSION . '" id="ct_check_users-js"></script>', $buffer);
+            $buffer = preg_replace($pattern_checkspam_js, '<script src="' . APBCT_JS_ASSETS_PATH . '/cleantalk-comments-checkspam.min.js' .
+                '?ver=' . APBCT_VERSION . '" id="ct_check_spam-js"></script>', $buffer);
+
+            return $buffer;
         });
     }
 
@@ -537,8 +545,6 @@ function apbct_admin__enqueue_scripts($hook)
         'logo_small'         => '<img src="' . Escape::escUrl($apbct->logo__small) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'logo_small_colored' => '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'notice_when_deleting_user_text' => esc_html__('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.', 'cleantalk-spam-protect'),
-        'deactivation_banner_text' => esc_html__('If you have any difficulties using the CleanTalk Anti-Spam Plugin, please contact our Technical Support here:<br>https://wordpress.org/support/plugin/cleantalk-spam-protect', 'cleantalk-spam-protect'),
-        'deactivation_banner_is_needed' => (!$apbct->data['wl_mode_enabled'] && !$apbct->settings['misc__complete_deactivation']) ? 1 : 0,
         'apbctNoticeDismissSuccess'       => esc_html__('Thank you for the review! We strive to make our Anti-Spam plugin better every day.', 'cleantalk-spam-protect'),
         'apbctNoticeForceProtectionOn'       => esc_html__('This option affects the reflection of the page by checking the user and adds a cookie "apbct_force_protection_check", which serves as an indicator of successful or unsuccessful verification. If the check is successful, it will no longer run.', 'cleantalk-spam-protect'),
     ));

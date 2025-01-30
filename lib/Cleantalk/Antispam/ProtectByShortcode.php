@@ -8,11 +8,11 @@ class ProtectByShortcode
 {
     public function __construct()
     {
-        add_filter('ct_wordpress_protect_from_spam', array($this, 'protectByShortcode'), 10, 2);
+        add_filter('apbct_wordpress_protect_from_spam', array($this, 'protectByShortcode'), 10, 2);
     }
 
     /**
-     * A function to protect the data of $_POST, $_GET custom forms by the ct_wordpress_protect_from_spam hook.
+     * A function to protect the data of $_POST, $_GET custom forms by the apbct_wordpress_protect_from_spam hook.
      * Returns an array with the result of the check. Also, if $options['redirect_to_block_page'] = 1 is passed,
      * a redirect will be made to the blocking page.
      * @param array $data

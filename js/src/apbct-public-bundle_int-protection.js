@@ -1,3 +1,2043 @@
+/**
+ * Base class
+ */
+class ApbctCore {
+    ajax_parameters = {};
+    restParameters = {};
+
+    selector = null;
+    elements = [];
+
+    // Event properties
+    eventCallback;
+    eventSelector;
+    event;
+
+    /**
+     * Default constructor
+     * @param {string} selector
+     */
+    constructor(selector) {
+        this.select(selector);
+    }
+
+    /**
+     * Get elements by CSS selector
+     *
+     * @param {string} selector
+     * @return {*}
+     */
+    select(selector) {
+        if (selector instanceof HTMLCollection) {
+            this.selector = null;
+            this.elements = [];
+            this.elements = Array.prototype.slice.call(selector);
+        } else if ( typeof selector === 'object' ) {
+            this.selector = null;
+            this.elements = [];
+            this.elements[0] = selector;
+        } else if ( typeof selector === 'string' ) {
+            this.selector = selector;
+            this.elements = Array.prototype.slice.call(document.querySelectorAll(selector));
+            // this.elements = document.querySelectorAll(selector)[0];
+        } else {
+            this.deselect();
+        }
+
+        return this;
+    }
+
+    /**
+     * @param {object|string} elemToAdd
+     */
+    addElement(elemToAdd) {
+        if ( typeof elemToAdd === 'object' ) {
+            this.elements.push(elemToAdd);
+        } else if ( typeof elemToAdd === 'string' ) {
+            this.selector = elemToAdd;
+            this.elements = Array.prototype.slice.call(document.querySelectorAll(elemToAdd));
+        } else {
+            this.deselect();
+        }
+    }
+
+    /**
+     * @param {object} elem
+     */
+    push(elem) {
+        this.elements.push(elem);
+    }
+
+    /**
+     * reduce
+     */
+    reduce() {
+        this.elements = this.elements.slice(0, -1);
+    }
+
+    /**
+     * deselect
+     */
+    deselect() {
+        this.elements = [];
+    }
+
+    /**
+     * Set or get CSS for/of currently selected element
+     *
+     * @param {object|string} style
+     * @param {boolean} getRaw
+     *
+     * @return {boolean|*}
+     */
+    css(style, getRaw) {
+        getRaw = getRaw || false;
+
+        // Set style
+        if (typeof style === 'object') {
+            const stringToCamelCase = (str) =>
+                str.replace(/([-_][a-z])/g, (group) =>
+                    group
+                        .toUpperCase()
+                        .replace('-', '')
+                        .replace('_', ''),
+                );
+
+            // Apply multiple styles
+            for (const styleName in style) {
+                if (Object.hasOwn(style, styleName)) {
+                    const DomStyleName = stringToCamelCase(styleName);
+
+                    // Apply to multiple elements (currently selected)
+                    for (let i=0; i<this.elements.length; i++) {
+                        this.elements[i].style[DomStyleName] = style[styleName];
+                    }
+                }
+            }
+
+            return this;
+        }
+
+        // Get style of first currently selected element
+        if (typeof style === 'string') {
+            let computedStyle = getComputedStyle(this.elements[0])[style];
+
+            // Process
+            if ( typeof computedStyle !== 'undefined' && ! getRaw) {
+                // Cut of units
+                computedStyle = computedStyle.replace(/(\d)(em|pt|%|px){1,2}$/, '$1');
+                // Cast to INT
+                computedStyle = Number(computedStyle) == computedStyle ? Number(computedStyle) : computedStyle;
+                return computedStyle;
+            }
+
+            // Return unprocessed
+            return computedStyle;
+        }
+    }
+
+    /**
+     * hide
+     */
+    hide() {
+        this.prop('prev-display', this.css('display'));
+        this.css({'display': 'none'});
+    }
+
+    /**
+     * show
+     */
+    show() {
+        this.css({'display': this.prop('prev-display')});
+    }
+
+    /**
+     * addClass
+     */
+    addClass() {
+        for (let i=0; i<this.elements.length; i++) {
+            this.elements[i].classList.add(className);
+        }
+    }
+
+    /**
+     * removeClass
+     */
+    removeClass() {
+        for (let i=0; i<this.elements.length; i++) {
+            this.elements[i].classList.remove(className);
+        }
+    }
+
+    /**
+     * @param {string} className
+     */
+    toggleClass(className) {
+        for (let i=0; i<this.elements.length; i++) {
+            this.elements[i].classList.toggle(className);
+        }
+    }
+
+    /**
+     * Wrapper for apbctAJAX class
+     *
+     * @param {object|array} ajaxParameters
+     * @return {ApbctAjax}
+     */
+    ajax(ajaxParameters) {
+        this.ajax_parameters = ajaxParameters;
+        return new ApbctAjax(ajaxParameters);
+    }
+
+    /**
+     * Wrapper for apbctREST class
+     *
+     * @param {object|array} restParameters
+     * @return {ApbctRest}
+     */
+    rest(restParameters) {
+        this.restParameters = restParameters;
+        return new ApbctRest(restParameters);
+    }
+
+    /**
+     * ************ EVENTS *************
+     */
+
+    /**
+     *
+     * Why the mess with arguments?
+     *
+     * Because we need to support the following function signatures:
+     *      on('click',                   function(){ alert('some'); });
+     *      on('click', 'inner_selector', function(){ alert('some'); });
+     *
+     * @param {object|array} args
+     */
+    on(...args) {
+        this.event = args[0];
+        this.eventCallback = args[2] || args[1];
+        this.eventSelector = typeof args[1] === 'string' ? args[1] : null;
+
+        for (let i=0; i<this.elements.length; i++) {
+            this.elements[i].addEventListener(
+                this.event,
+                this.eventSelector !== null ?
+                    this.onChecker.bind(this) :
+                    this.eventCallback,
+            );
+        }
+    }
+
+    /**
+     * Check if a selector of an event matches current target
+     *
+     * @param {object} event
+     * @return {*}
+     */
+    onChecker(event) {
+        if (event.target === document.querySelector(this.eventSelector)) {
+            event.stopPropagation();
+            return this.eventCallback(event);
+        }
+    }
+
+    /**
+     * @param {object|function|string} callback
+     */
+    ready(callback) {
+        document.addEventListener('DOMContentLoaded', callback);
+    }
+
+    /**
+     * @param {object|function|string} callback
+     */
+    change(callback) {
+        this.on('change', callback);
+    }
+
+    /**
+     * ATTRIBUTES
+     */
+
+    /**
+     * Get an attribute or property of an element
+     *
+     * @param {string} attrName
+     * @return {*|*[]}
+     */
+    attr(attrName) {
+        let outputValue = [];
+
+        for (let i=0; i<this.elements.length; i++) {
+            // Use property instead of attribute if possible
+            if (typeof this.elements[i][attrName] !== 'undefined') {
+                outputValue.push(this.elements[i][attrName]);
+            } else {
+                outputValue.push(this.elements[i].getAttribute(attrName));
+            }
+        }
+
+        // Return a single value instead of array if only one value is present
+        return outputValue.length === 1 ? outputValue[0] : outputValue;
+    }
+
+    /**
+     * @param {string} propName
+     * @param {mixed} value
+     * @return {*|*[]|ApbctCore}
+     */
+    prop(propName, value) {
+        // Setting values
+        if (typeof value !== 'undefined') {
+            for (let i=0; i<this.elements.length; i++) {
+                this.elements[i][propName] = value;
+            }
+
+            return this;
+
+            // Getting values
+        } else {
+            const outputValue = [];
+
+            for (let i=0; i<this.elements.length; i++) {
+                outputValue.push(this.elements[i][propName]);
+            }
+
+            // Return a single value instead of array if only one value is present
+            return outputValue.length === 1 ? outputValue[0] : outputValue;
+        }
+    }
+
+    /**
+     * Set or get inner HTML
+     *
+     * @param {string} value
+     * @return {*|*[]}
+     */
+    html(value) {
+        return typeof value !== 'undefined' ?
+            this.prop('innerHTML', value) :
+            this.prop('innerHTML');
+    }
+
+    /**
+     * Set or get value of input tags
+     *
+     * @param {mixed} value
+     * @return {*|*[]|undefined}
+     */
+    val(value) {
+        return typeof value !== 'undefined' ?
+            this.prop('value', value) :
+            this.prop('value');
+    }
+
+    /**
+     * @param {string} name
+     * @param {mixed} value
+     * @return {*|*[]|ApbctCore}
+     */
+    data(name, value) {
+        return typeof value !== 'undefined' ?
+            this.prop('apbct-data', name, value) :
+            this.prop('apbct-data');
+    }
+
+    /**
+     * END OF ATTRIBUTES
+     */
+
+    /**
+     * FILTERS
+     */
+
+    /**
+     * Check if the current elements are corresponding to filter
+     *
+     * @param {mixed} filter
+     * @return {boolean}
+     */
+    is(filter) {
+        let outputValue = false;
+
+        for (let elem of this.elements) {
+            outputValue ||= this.isElem(elem, filter);
+        }
+
+        return outputValue;
+    }
+
+    /**
+     * @param {string|object} elemToCheck
+     * @param {mixed} filter
+     * @return {boolean}
+     */
+    isElem(elemToCheck, filter) {
+        let is = false;
+        let isRegisteredTagName = function(name) {
+            let newlyCreatedElement = document.createElement(name).constructor;
+            return ! Boolean( ~[HTMLElement, HTMLUnknownElement].indexOf(newlyCreatedElement) );
+        };
+
+        // Check for filter function
+        if (typeof filter === 'function') {
+            is ||= filter.call(this, elemToCheck);
+        }
+
+        // Check for filter function
+        if (typeof filter === 'string') {
+            // Filter is tag name
+            if ( filter.match(/^[a-z]/) && isRegisteredTagName(filter) ) {
+                is ||= elemToCheck.tagName.toLowerCase() === filter.toLowerCase();
+
+                // Filter is property
+            } else if ( filter.match(/^[a-z]/) ) {
+                is ||= Boolean(elemToCheck[filter]);
+
+                // Filter is CSS selector
+            } else {
+                is ||= this.selector !== null ?
+                    document.querySelector(this.selector + filter) !== null : // If possible
+                    this.isWithoutSelector(elemToCheck, filter); // Search through all elems with such selector
+            }
+        }
+
+        return is;
+    }
+
+    /**
+     * @param {object|string} elemToCheck
+     * @param {mixed} filter
+     * @return {boolean}
+     */
+    isWithoutSelector(elemToCheck, filter) {
+        const elems = document.querySelectorAll(filter);
+        let outputValue = false;
+
+        for (let elem of elems) {
+            outputValue ||= elemToCheck === elem;
+        }
+
+        return outputValue;
+    }
+
+    /**
+     * @param {mixed} filter
+     * @return {ApbctCore}
+     */
+    filter(filter) {
+        this.selector = null;
+
+        for ( let i = this.elements.length - 1; i >= 0; i-- ) {
+            if ( ! this.isElem(this.elements[i], filter) ) {
+                this.elements.splice(Number(i), 1);
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     * NODES
+     */
+
+    /**
+     * @param {mixed} filter
+     * @return {ApbctCore}
+     */
+    parent(filter) {
+        this.select(this.elements[0].parentElement);
+
+        if ( typeof filter !== 'undefined' && ! this.is(filter) ) {
+            this.deselect();
+        }
+
+        return this;
+    }
+
+    /**
+     * @param {mixed} filter
+     * @return {ApbctCore}
+     */
+    parents(filter) {
+        this.select(this.elements[0]);
+
+        for ( ; this.elements[this.elements.length - 1].parentElement !== null; ) {
+            this.push(this.elements[this.elements.length - 1].parentElement);
+        }
+
+        this.elements.splice(0, 1); // Deleting initial element from the set
+
+        if ( typeof filter !== 'undefined' ) {
+            this.filter(filter);
+        }
+
+        return this;
+    }
+
+    /**
+     * @param {mixed} filter
+     * @return {ApbctCore}
+     */
+    children(filter) {
+        this.select(this.elements[0].children);
+
+        if ( typeof filter !== 'undefined' ) {
+            this.filter(filter);
+        }
+
+        return this;
+    }
+
+    /**
+     * @param {mixed} filter
+     * @return {ApbctCore}
+     */
+    siblings(filter) {
+        let current = this.elements[0]; // Remember current to delete it later
+
+        this.parent();
+        this.children(filter);
+        this.elements.splice(this.elements.indexOf(current), 1); // Remove current element
+
+        return this;
+    }
+
+    /** ************ DOM MANIPULATIONS **************/
+    remove() {
+        for (let elem of this.elements) {
+            elem.remove();
+        }
+    }
+
+    /**
+     * @param {string} content
+     */
+    after(content) {
+        for (let elem of this.elements) {
+            elem.after(content);
+        }
+    }
+
+    /**
+     * @param {string} content
+     */
+    append(content) {
+        for (let elem of this.elements) {
+            elem.append(content);
+        }
+    }
+
+    /** ************  ANIMATION  **************/
+    /**
+     * @param {number} time
+     */
+    fadeIn(time) {
+        for (let elem of this.elements) {
+            elem.style.opacity = 0;
+            elem.style.display = 'block';
+
+            let last = +new Date();
+            const tick = function() {
+                elem.style.opacity = +elem.style.opacity + (new Date() - last) / time;
+                last = +new Date();
+
+                if (+elem.style.opacity < 1) {
+                    (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
+                }
+            };
+
+            tick();
+        }
+    }
+
+    /**
+     * @param {number} time
+     */
+    fadeOut(time) {
+        for (let elem of this.elements) {
+            elem.style.opacity = 1;
+
+            let last = +new Date();
+            const tick = function() {
+                elem.style.opacity = +elem.style.opacity - (new Date() - last) / time;
+                last = +new Date();
+
+                if (+elem.style.opacity > 0) {
+                    (window.requestAnimationFrame && requestAnimationFrame(tick)) || setTimeout(tick, 16);
+                } else {
+                    elem.style.display = 'none';
+                }
+            };
+
+            tick();
+        }
+    }
+}
+
+/**
+ * Hack
+ *
+ * Make a proxy to keep both properties and methods from:
+ *  - the native object and
+ *  - the new one from ApbctCore for selected element.
+ *
+ * For example:
+ * apbct('#id).innerHTML = 'some';
+ * apbct('#id).css({'backgorund-color': 'black'});
+ */
+// apbct = new Proxy(
+//         apbct,
+//         {
+//             get(target, prop) {
+//                 if (target.elements.length) {
+//                     return target.elements[0][prop];
+//                 } else {
+//                     return null;
+//                 }
+//             },
+//             set(target, prop, value){
+//                 if (target.elements.length) {
+//                     target.elements[0][prop] = value;
+//                     return true;
+//                 } else {
+//                     return false;
+//                 }
+//             },
+//             apply(target, thisArg, argArray) {
+//
+//             }
+//         }
+//     );
+
+/**
+ * @param {mixed} msg
+ * @param {string} url
+ */
+function ctProcessError(msg, url) {
+    let log = {};
+    if (msg && msg.message) {
+        log.err = {
+            'msg': msg.message,
+            'file': !!msg.fileName ? msg.fileName : false,
+            'ln': !!msg.lineNumber ? msg.lineNumber : !!lineNo ? lineNo : false,
+            'col': !!msg.columnNumber ? msg.columnNumber : !!columnNo ? columnNo : false,
+            'stacktrace': !!msg.stack ? msg.stack : false,
+            'cause': !!url ? JSON.stringify(url) : false,
+            'errorObj': !!error ? error : false,
+        };
+    } else {
+        log.err = {
+            'msg': msg,
+        };
+
+        if (!!url) {
+            log.err.file = url;
+        }
+    }
+
+    log.url = window.location.href;
+    log.userAgent = window.navigator.userAgent;
+
+    let ctJsErrors = 'ct_js_errors';
+    let errArray = localStorage.getItem(ctJsErrors);
+    if (errArray === null) errArray = '[]';
+    errArray = JSON.parse(errArray);
+    for (let i = 0; i < errArray.length; i++) {
+        if (errArray[i].err.msg === log.err.msg) {
+            return;
+        }
+    }
+
+    errArray.push(log);
+    localStorage.setItem(ctJsErrors, JSON.stringify(errArray));
+}
+
+if (Math.floor(Math.random() * 100) === 1) {
+    window.onerror = function(exception, url) {
+        let filterWords = ['apbct', 'ctPublic'];
+        let length = filterWords.length;
+        while (length--) {
+            if (exception.indexOf(filterWords[length]) !== -1) {
+                ctProcessError(exception, url);
+            }
+        }
+
+        return false;
+    };
+}
+
+/**
+ * Select actual WP nonce depending on the ajax type and the fresh nonce provided.
+ * @return {string} url
+ */
+function selectActualNonce() {
+    let defaultNonce = '';
+    // return fresh nonce immediately if persists
+    if (
+        ctPublicFunctions.hasOwnProperty('_fresh_nonce') &&
+        typeof ctPublicFunctions._fresh_nonce === 'string' &&
+        ctPublicFunctions._fresh_nonce.length > 0
+    ) {
+        return ctPublicFunctions._fresh_nonce;
+    }
+    // select from default rest/ajax nonces
+    if (
+        ctPublicFunctions.data__ajax_type === 'admin_ajax' &&
+        ctPublicFunctions.hasOwnProperty('_ajax_nonce') &&
+        typeof ctPublicFunctions._ajax_nonce === 'string' &&
+        ctPublicFunctions._ajax_nonce.length > 0
+    ) {
+        defaultNonce = ctPublicFunctions._ajax_nonce;
+    }
+    if (
+        ctPublicFunctions.data__ajax_type === 'rest' &&
+        ctPublicFunctions.hasOwnProperty('_rest_nonce') &&
+        typeof ctPublicFunctions._rest_nonce === 'string' &&
+        ctPublicFunctions._rest_nonce.length > 0
+    ) {
+        defaultNonce = ctPublicFunctions._rest_nonce;
+    }
+
+    return defaultNonce;
+}
+
+/**
+ * Enter point to ApbctCore class
+ *
+ * @param {array|object} params
+ * @return {*}
+ */
+// eslint-disable-next-line no-unused-vars, require-jsdoc
+function apbct(params) {
+    return new ApbctCore()
+        .select(params);
+}
+
+/**
+ * ApbctXhr
+ */
+class ApbctXhr {
+    xhr = new XMLHttpRequest();
+
+    // Base parameters
+    method = 'POST'; // HTTP-request type
+    url = ''; // URL to send the request
+    async = true;
+    user = null; // HTTP-authorization username
+    password = null; // HTTP-authorization password
+    data = {}; // Data to send
+
+    // Optional params
+    button = null; // Button that should be disabled when request is performing
+    spinner = null; // Spinner that should appear when request is in process
+    progressbar = null; // Progress bar for the current request
+    context = this; // Context
+    callback = null;
+    onErrorCallback = null;
+
+    responseType = 'json'; // Expected data type from server
+    headers = {};
+    timeout = 15000; // Request timeout in milliseconds
+
+    methods_to_convert_data_to_URL = [
+        'GET',
+        'HEAD',
+    ];
+
+    body = null;
+    http_code = 0;
+    status_text = '';
+
+    // eslint-disable-next-line require-jsdoc
+    constructor(parameters) {
+        // Set class properties
+        for ( let key in parameters ) {
+            if ( typeof this[key] !== 'undefined' ) {
+                this[key] = parameters[key];
+            }
+        }
+
+        // Modifying DOM-elements
+        this.prepare();
+
+        // Modify URL with data for GET and HEAD requests
+        if ( Object.keys(this.data).length ) {
+            this.deleteDoubleJSONEncoding(this.data);
+            this.convertData();
+        }
+
+        if ( ! this.url ) {
+            console.log('%cXHR%c not URL provided',
+                'color: red; font-weight: bold;', 'color: grey; font-weight: normal;');
+            return false;
+        }
+
+        // Configure the request
+        this.xhr.open(this.method, this.url, this.async, this.user, this.password);
+        this.setHeaders();
+
+        this.xhr.responseType = this.responseType;
+        this.xhr.timeout = this.timeout;
+
+        /* EVENTS */
+        // Monitoring status
+        this.xhr.onreadystatechange = function() {
+            if (this.isWpNonceError()) {
+                this.getFreshNonceAndRerunXHR(parameters);
+                return;
+            }
+            this.onReadyStateChange();
+        }.bind(this);
+
+        // Run callback
+        this.xhr.onload = function() {
+            this.onLoad();
+        }.bind(this);
+
+        // On progress
+        this.xhr.onprogress = function(event) {
+            this.onProgress(event);
+        }.bind(this);
+
+        // On error
+        this.xhr.onerror = function() {
+            this.onError();
+        }.bind(this);
+
+        this.xhr.ontimeout = function() {
+            this.onTimeout();
+        }.bind(this);
+
+        // Send the request
+        this.xhr.send(this.body);
+    }
+
+    /**
+     * prepare
+     */
+    prepare() {
+        // Disable button
+        if (this.button) {
+            this.button.setAttribute('disabled', 'disabled');
+            this.button.style.cursor = 'not-allowed';
+        }
+
+        // Enable spinner
+        if (this.spinner) {
+            this.spinner.style.display = 'inline';
+        }
+    }
+
+    /**
+     * complete
+     */
+    complete() {
+        this.http_code = this.xhr.status;
+        this.status_text = this.xhr.statusText;
+
+        // Disable button
+        if (this.button) {
+            this.button.removeAttribute('disabled');
+            this.button.style.cursor = 'auto';
+        }
+
+        // Enable spinner
+        if (this.spinner) {
+            this.spinner.style.display = 'none';
+        }
+
+        if ( this.progressbar ) {
+            this.progressbar.fadeOut('slow');
+        }
+    }
+
+    /**
+     * onReadyStateChange
+     */
+    onReadyStateChange() {
+        if (this.on_ready_state_change !== null && typeof this.on_ready_state_change === 'function') {
+            this.on_ready_state_change();
+        }
+    }
+
+    /**
+     * @param {object} event
+     */
+    onProgress(event) {
+        if (this.on_progress !== null && typeof this.on_progress === 'function') {
+            this.on_progress();
+        }
+    }
+
+    /**
+     * onError
+     */
+    onError() {
+        console.log('error');
+
+        this.complete();
+        this.error(
+            this.http_code,
+            this.status_text,
+        );
+
+        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function') {
+            this.onErrorCallback(this.status_text);
+        }
+    }
+
+    /**
+     * onTimeout
+     */
+    onTimeout() {
+        this.complete();
+        this.error(
+            0,
+            'timeout',
+        );
+
+        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function') {
+            this.onErrorCallback('Timeout');
+        }
+    }
+
+    /**
+     * @return {boolean}
+     */
+    onLoad() {
+        this.complete();
+
+        if (this.responseType === 'json' ) {
+            if (this.xhr.response === null) {
+                this.error(this.http_code, this.status_text, 'No response');
+                return false;
+            } else if ( typeof this.xhr.response.error !== 'undefined') {
+                this.error(this.http_code, this.status_text, this.xhr.response.error);
+                return false;
+            }
+        }
+
+        if (this.callback !== null && typeof this.callback === 'function') {
+            this.callback.call(this.context, this.xhr.response, this.data);
+        }
+    }
+
+    /**
+     * Check if 403 code of WP nonce error
+     * @return {bool}
+     */
+    isWpNonceError() {
+        let restErrror = false;
+        let ajaxErrror = false;
+        // check rest error
+        if (this.xhr.readyState == 4) {
+            restErrror = (
+                typeof this.xhr.response === 'object' && this.xhr.response !== null &&
+                this.xhr.response.hasOwnProperty('data') &&
+                this.xhr.response.data.hasOwnProperty('status') &&
+                this.xhr.response.data.status === 403
+            );
+            ajaxErrror = this.xhr.response === '-1' && this.xhr.status === 403;
+        }
+        // todo check AJAX error
+        return restErrror || ajaxErrror;
+    }
+
+    /**
+     * Get the fresh nonce and rerun the initial XHR with params
+     * @param {[]} initialRequestParams
+     */
+    getFreshNonceAndRerunXHR(initialRequestParams) {
+        let noncePrev = '';
+
+        // Check if initialRequestParams['headers']['X-WP-Nonce'] exists.
+        if (
+            initialRequestParams.hasOwnProperty('headers') &&
+            initialRequestParams.headers.hasOwnProperty('X-WP-Nonce')
+        ) {
+            noncePrev = initialRequestParams['headers']['X-WP-Nonce'];
+        }
+
+        // Check if initialRequestParams['data']['_ajax_nonce'] exists.
+        if (
+            initialRequestParams.hasOwnProperty('data') &&
+            initialRequestParams.data.hasOwnProperty('_ajax_nonce')
+        ) {
+            noncePrev = initialRequestParams['data']['_ajax_nonce'];
+        }
+
+        // Nonce is not provided. Exit.
+        if ( noncePrev === '' ) {
+            return;
+        }
+
+        // prepare params for refreshing nonce
+        let params = {};
+        params.method = 'POST';
+        params.data = {
+            'spbc_remote_call_action': 'get_fresh_wpnonce',
+            'plugin_name': 'antispam',
+            'nonce_prev': noncePrev,
+            'initial_request_params': initialRequestParams,
+        };
+        params.notJson = true;
+        params.url = ctPublicFunctions.host_url;
+        // this callback will rerun the XHR with initial params
+        params.callback = function(...args) {
+            // the refresh result itself
+            let freshNonceResult = args[0];
+            let newRequestParams = false;
+            // provided initial params
+            if (args[1] !== undefined && args[1].hasOwnProperty('initial_request_params')) {
+                newRequestParams = args[1].initial_request_params;
+            }
+            if (newRequestParams && freshNonceResult.hasOwnProperty('wpnonce')) {
+                ctPublicFunctions._fresh_nonce = freshNonceResult.wpnonce;
+                if (ctPublicFunctions.data__ajax_type === 'rest') {
+                    new ApbctCore().rest(newRequestParams);
+                } else {
+                    new ApbctCore().ajax(newRequestParams);
+                }
+            }
+        };
+        // run the nonce refreshing call
+        new ApbctXhr(params);
+    }
+
+    /**
+     * @param {number} httpCode
+     * @param {string} statusText
+     * @param {string} additionalMsg
+     */
+    error(httpCode, statusText, additionalMsg) {
+        let errorString = '';
+
+        if ( statusText === 'timeout' ) {
+            errorString += 'Server response timeout';
+        } else if ( httpCode === 200 ) {
+            if ( statusText === 'parsererror' ) {
+                errorString += 'Unexpected response from server. See console for details.';
+            } else {
+                errorString += 'Unexpected error. Status: ' + statusText + '.';
+                if ( typeof additionalMsg !== 'undefined' ) {
+                    errorString += ' Additional error info: ' + additionalMsg;
+                }
+            }
+        } else if (httpCode === 500) {
+            errorString += 'Internal server error.';
+        } else {
+            errorString += 'Unexpected response code:' + httpCode;
+        }
+
+        this.errorOutput( errorString );
+
+        if (this.onErrorCallback !== null && typeof this.onErrorCallback === 'function') {
+            this.onErrorCallback(this.status_text);
+        }
+    }
+
+    /**
+     * @param {string} errorMsg
+     */
+    errorOutput(errorMsg) {
+        console.log( '%c ctXHR error: %c' + errorMsg, 'color: red;', 'color: grey;' );
+    }
+
+    /**
+     * setHeaders
+     */
+    setHeaders() {
+        // Set headers if passed
+        for ( let headerName in this.headers ) {
+            if ( typeof this.headers[headerName] !== 'undefined' ) {
+                this.xhr.setRequestHeader(headerName, this.headers[headerName]);
+            }
+        }
+    }
+
+    /**
+     * @return {string|*}
+     */
+    convertData() {
+        // GET, HEAD request-type
+        if ( ~this.methods_to_convert_data_to_URL.indexOf( this.method ) ) {
+            return this.convertDataToURL();
+
+            // POST request-type
+        } else {
+            return this.convertDataToBody();
+        }
+    }
+
+    /**
+     * @return {string}
+     */
+    convertDataToURL() {
+        let paramsAppendix = new URLSearchParams(this.data).toString();
+        let paramsPrefix = this.url.match(/^(https?:\/{2})?[a-z0-9.]+\?/) ? '&' : '?';
+        this.url += paramsPrefix + paramsAppendix;
+
+        return this.url;
+    }
+
+    /**
+     * @return {null}
+     */
+    convertDataToBody() {
+        this.body = new FormData();
+        for (let dataKey in this.data) {
+            if (Object.hasOwn(this.data, dataKey)) {
+                this.body.append(
+                    dataKey,
+                    typeof this.data[dataKey] === 'object' ?
+                        JSON.stringify(this.data[dataKey]) :
+                        this.data[dataKey],
+                );
+            }
+        }
+
+        return this.body;
+    }
+
+    /**
+     * Recursive
+     *
+     * Recursively decode JSON-encoded properties
+     *
+     * @param {object} object
+     * @return {*}
+     */
+    deleteDoubleJSONEncoding(object) {
+        if ( typeof object === 'object') {
+            for (let objectKey in object) {
+                if (Object.hasOwn(object, objectKey)) {
+                    // Recursion
+                    if ( typeof object[objectKey] === 'object') {
+                        object[objectKey] = this.deleteDoubleJSONEncoding(object[objectKey]);
+                    }
+
+                    // Common case (out)
+                    if (
+                        typeof object[objectKey] === 'string' &&
+                        object[objectKey].match(/^[\[{].*?[\]}]$/) !== null // is like JSON
+                    ) {
+                        let parsedValue = JSON.parse(object[objectKey]);
+                        if ( typeof parsedValue === 'object' ) {
+                            object[objectKey] = parsedValue;
+                        }
+                    }
+                }
+            }
+        }
+
+        return object;
+    }
+}
+// eslint-disable-next-line require-jsdoc
+class ApbctAjax extends ApbctXhr {
+    // eslint-disable-next-line require-jsdoc
+    constructor(...args) {
+        args = args[0];
+        args.data._ajax_nonce = selectActualNonce();
+        super(args);
+    }
+}
+// eslint-disable-next-line require-jsdoc
+class ApbctRest extends ApbctXhr {
+    static default_route = ctPublicFunctions._rest_url + 'cleantalk-antispam/v1/';
+    route = '';
+
+    // eslint-disable-next-line require-jsdoc
+    constructor(...args) {
+        args = args[0];
+        const nonce = selectActualNonce();
+        args.url = ApbctRest.default_route + args.route;
+        args.headers = {
+            'X-WP-Nonce': nonce,
+        };
+        super(args);
+    }
+}
+
+// add hasOwn
+if (!Object.prototype.hasOwn) {
+    Object.defineProperty(Object.prototype, 'hasOwn', { // eslint-disable-line
+        value: function(property) {
+            return Object.prototype.hasOwnProperty.call(this, property);
+        },
+        enumerable: false,
+        configurable: true,
+        writable: true,
+    });
+}
+
+/**
+ * Form skin class
+ *
+ */
+// eslint-disable-next-line no-unused-vars, require-jsdoc
+class ApbctFormDecorator {
+    elements = [];
+
+    /**
+     * Constructor
+     */
+    constructor() {
+        this.getElements();
+        this.setListeners();
+    }
+
+    /**
+     * Get elements
+     */
+    getElements() {
+        const elements = document.querySelectorAll('*');
+        const regexId = /^apbct-trusted-text--label/;
+        const regexClass = /apbct_form_decoration--/;
+
+        this.setDecorationBackground();
+
+        // Collect elements with id or class that contains apbct-trusted-text--label or apbct_form_decoration--
+        // id
+        let matchingElements = Array.from(elements).filter((element) => {
+            return regexId.test(element.id);
+        });
+        matchingElements.forEach((element) => {
+            this.elements.push(element);
+        });
+
+        // class
+        matchingElements = Array.from(elements).filter((element) => {
+            return regexClass.test(element.className);
+        });
+
+        matchingElements.forEach((element) => {
+            this.elements.push(element);
+        });
+
+        const flagWrap = document.querySelector('.apbct_form_decoration');
+        if (flagWrap) {
+            const flagLeft = window.getComputedStyle(flagWrap, '::before');
+            const flagRight = window.getComputedStyle(flagWrap, '::after');
+            if (flagLeft && flagRight) {
+                this.elements.push(flagWrap);
+            }
+        }
+    }
+
+    /**
+     * Set decoration background
+     */
+    setDecorationBackground() {
+        let blockForms = document.querySelectorAll('#respond');
+
+        if (document.querySelector('[class*="apbct_form_decoration"]')) {
+            let classHeaderWrapper = document.querySelector('[class*="apbct_form_decoration"]').getAttribute('class');
+            let endPosition = classHeaderWrapper.indexOf('_header__wrapper');
+            let classTemplate = classHeaderWrapper.substring(0, endPosition);
+
+            blockForms.forEach((blockForm) => {
+                blockForm.className += ' ' + classTemplate;
+            });
+        }
+    }
+
+    /**
+     * Set listeners
+     */
+    setListeners() {
+        this.elements.forEach((element) => {
+            if (!element) {
+                return;
+            }
+
+            element.addEventListener('click', (event) => {
+                if (element.className.indexOf('apbct_form_decoration') !== -1) {
+                    if (element.className.indexOf('header__wrapper') !== -1) {
+                        this.addClicks();
+                        return;
+                    }
+
+                    const clickX = event.offsetX;
+                    const clickY = event.offsetY;
+                    const flagLeftWidth = parseFloat(window.getComputedStyle(element, '::before').width) / 2;
+                    const flagLeftHeight = parseFloat(window.getComputedStyle(element, '::before').height) / 2;
+                    const flagRightWidth = parseFloat(window.getComputedStyle(element, '::after').width) / 2;
+                    const flagRightHeight = parseFloat(window.getComputedStyle(element, '::after').height) / 2;
+
+                    if (element.className.indexOf('christmas') !== -1) {
+                        if (
+                            clickY < flagLeftHeight / 3 && clickX < flagLeftWidth ||
+                            clickY < flagRightHeight / 3 && clickX > flagRightWidth
+                        ) {
+                            this.addClicks();
+                            return;
+                        }
+                    }
+
+                    if (
+                        (element.className.indexOf('new-year') !== -1) ||
+                        (element.className.indexOf('fourth-july') !== -1)
+                    ) {
+                        if (
+                            clickY > flagLeftHeight && clickX < flagLeftWidth ||
+                            clickY > flagRightHeight && clickX > flagRightWidth
+                        ) {
+                            this.addClicks();
+                        }
+                    }
+
+                    if (element.className.indexOf('signature')) {
+                        this.addClicks();
+                    }
+
+                    return;
+                }
+
+                this.addClicks();
+            });
+
+            element.addEventListener('mouseup', (event) => {
+                setTimeout(() => {
+                    const selectedText = window.getSelection().toString();
+                    if (selectedText) {
+                        this.addSelected();
+                    }
+                }, 100);
+            });
+
+            element.addEventListener('mousemove', (event) => {
+                if (element.className.indexOf('apbct_form_decoration') !== -1) {
+                    const mouseX = event.offsetX;
+                    const mouseY = event.offsetY;
+                    const flagLeftWidth = parseFloat(window.getComputedStyle(element, '::before').width) / 2;
+                    const flagLeftHeight = parseFloat(window.getComputedStyle(element, '::before').height) / 2;
+                    const flagRightWidth = parseFloat(window.getComputedStyle(element, '::after').width) / 2;
+                    const flagRightHeight = parseFloat(window.getComputedStyle(element, '::after').height) / 2;
+
+                    if (mouseY > flagLeftHeight && mouseX < flagLeftWidth ||
+                    mouseY > flagRightHeight && mouseX > flagRightWidth
+                    ) {
+                        this.trackMouseMovement();
+                    }
+                    return;
+                }
+
+                this.trackMouseMovement();
+            });
+        });
+    }
+
+    /**
+     * Add clicks
+     */
+    addClicks() {
+        if (document.ctFormDecorationMouseData) {
+            if (document.ctFormDecorationMouseData.clicks) {
+                document.ctFormDecorationMouseData.clicks++;
+            } else {
+                document.ctFormDecorationMouseData.clicks = 1;
+            }
+            return;
+        }
+
+        document.ctFormDecorationMouseData = {clicks: 1};
+    }
+
+    /**
+     * Add selected
+     */
+    addSelected() {
+        if (document.ctFormDecorationMouseData) {
+            if (document.ctFormDecorationMouseData.selected) {
+                document.ctFormDecorationMouseData.selected++;
+            } else {
+                document.ctFormDecorationMouseData.selected = 1;
+            }
+            return;
+        }
+
+        document.ctFormDecorationMouseData = {selected: 1};
+    }
+
+    /**
+     * Track mouse movement
+     */
+    trackMouseMovement() {
+        if (!document.ctFormDecorationMouseData) {
+            document.ctFormDecorationMouseData = {};
+        }
+        if (!document.ctFormDecorationMouseData.mouseMovements) {
+            document.ctFormDecorationMouseData.mouseMovements = [];
+        }
+
+        document.ctFormDecorationMouseData.mouseMovements.push({timestamp: Date.now()});
+
+        if (document.ctFormDecorationMouseData.mouseMovements.length > 1) {
+            const index = document.ctFormDecorationMouseData.mouseMovements.length - 1;
+            const lastMovement = document.ctFormDecorationMouseData.mouseMovements[index];
+            const firstMovement = document.ctFormDecorationMouseData.mouseMovements[0];
+            const timeDiff = lastMovement.timestamp - firstMovement.timestamp;
+            document.ctFormDecorationMouseData.hovering = timeDiff;
+        }
+    }
+}
+
+/**
+ * @param {object|array|string} cookies
+ * @param {object|array|string} value
+ * @param {string|number} expires
+ */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function ctSetCookie( cookies, value, expires ) {
+    let listOfCookieNamesToForceAlt = [
+        'ct_sfw_pass_key',
+        'ct_sfw_passed',
+        'wordpress_apbct_antibot',
+        'apbct_anticrawler_passed',
+        'apbct_bot_detector_exist',
+        'apbct_antiflood_passed',
+        'apbct_email_encoder_passed',
+    ];
+
+    let skipAlt = false;
+
+    if ( typeof cookies === 'string') {
+        skipAlt = cookies === 'ct_pointer_data';
+        if ( typeof value === 'string' || typeof value === 'number' ) {
+            cookies = [[cookies, value, expires]];
+        }
+    }
+
+    // Cookies disabled
+    if ( ctPublicFunctions.data__cookies_type === 'none' ) {
+        let forcedAltCookiesSet = [];
+        cookies.forEach( function(item) {
+            if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
+                forcedAltCookiesSet.push(item);
+            } else {
+                apbctLocalStorage.set(item[0], item[1]);
+            }
+        });
+
+        // if cookies from list found use alt cookies for this selection set
+        if ( forcedAltCookiesSet.length > 0 ) {
+            ctSetAlternativeCookie(forcedAltCookiesSet);
+        }
+
+        // If problem integration forms detected use alt cookies for whole cookies set
+        if ( ctPublic.force_alt_cookies && !skipAlt) {
+            // do it just once
+            ctSetAlternativeCookie(cookies, {forceAltCookies: true});
+        } else {
+            ctNoCookieAttachHiddenFieldsToForms();
+        }
+
+        // Using traditional cookies
+    } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
+        // If problem integration forms detected use alt cookies for whole cookies set
+        if ( ctPublic.force_alt_cookies && !skipAlt) {
+            // do it just once
+            ctSetAlternativeCookie(cookies, {forceAltCookies: true});
+        }
+        cookies.forEach( function(item) {
+            const _expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
+            let ctSecure = location.protocol === 'https:' ? '; secure' : '';
+            document.cookie = ctPublicFunctions.cookiePrefix +
+                item[0] +
+                '=' +
+                encodeURIComponent(item[1]) +
+                '; ' +
+                _expires +
+                'path=/; samesite=lax' +
+                ctSecure;
+        });
+
+        // Using alternative cookies
+    } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && !skipAlt ) {
+        ctSetAlternativeCookie(cookies);
+    }
+}
+
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function ctDetectForcedAltCookiesForms() {
+    let ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
+    let elementorUltimateAddonsRegister = document.querySelectorAll('.uael-registration-form-wrapper').length > 0;
+    let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
+    let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
+    let cwginstockForm = document.querySelectorAll('.cwginstock-subscribe-form').length > 0;
+    let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
+    let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
+    let fluentBookingApp = document.querySelectorAll('div[class^="fluent_booking_app"]').length > 0;
+    let bloomPopup = document.querySelectorAll('div[class^="et_bloom_form_container"]').length > 0;
+    let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
+    let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
+    ctPublic.force_alt_cookies = smartFormsSign ||
+        ninjaFormsSign ||
+        jetpackCommentsForm ||
+        elementorUltimateAddonsRegister ||
+        cwginstockForm ||
+        userRegistrationProForm ||
+        etPbDiviSubscriptionForm ||
+        fluentBookingApp ||
+        pafeFormsFormElementor ||
+        bloomPopup ||
+        otterForm;
+
+    setTimeout(function() {
+        if (!ctPublic.force_alt_cookies) {
+            let bookingPress = document.querySelectorAll('main[id^="bookingpress_booking_form"]').length > 0;
+            ctPublic.force_alt_cookies = bookingPress;
+        }
+    }, 1000);
+}
+
+// eslint-disable-next-line require-jsdoc
+function ctSetAlternativeCookie(cookies, params) {
+    if (typeof (getJavascriptClientData) === 'function' ) {
+        // reprocess already gained cookies data
+        if (Array.isArray(cookies)) {
+            cookies = getJavascriptClientData(cookies);
+        }
+    } else {
+        console.log('APBCT ERROR: getJavascriptClientData() is not loaded');
+    }
+
+    try {
+        cookies = JSON.parse(cookies);
+    } catch (e) {
+        console.log('APBCT ERROR: JSON parse error:' + e);
+        return;
+    }
+
+    if (!cookies.apbct_site_referer) {
+        cookies.apbct_site_referer = location.href;
+    }
+
+    const callback = params && params.callback || null;
+    const onErrorCallback = params && params.onErrorCallback || null;
+
+    if ( params && params.forceAltCookies ) {
+        cookies.apbct_force_alt_cookies = true;
+    }
+
+    // Using REST API handler
+    if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
+        // fix for url encoded cookie apbct_pixel_url on REST route
+        if (typeof cookies.apbct_pixel_url === 'string' &&
+            cookies.apbct_pixel_url.indexOf('%3A') !== -1
+        ) {
+            cookies.apbct_pixel_url = decodeURIComponent(cookies.apbct_pixel_url);
+        }
+        apbct_public_sendREST(
+            'alt_sessions',
+            {
+                method: 'POST',
+                data: {cookies: cookies},
+                callback: callback,
+                onErrorCallback: onErrorCallback,
+            },
+        );
+
+        // Using AJAX request and handler
+    } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
+        apbct_public_sendAJAX(
+            {
+                action: 'apbct_alt_session__save__AJAX',
+                cookies: cookies,
+            },
+            {
+                notJson: 1,
+                callback: callback,
+                onErrorCallback: onErrorCallback,
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-Robots-Tag', 'noindex, nofollow');
+                },
+            },
+        );
+    }
+}
+
+/**
+ * Get cookie by name
+ * @param name
+ * @return {string|undefined}
+ */
+// eslint-disable-next-line require-jsdoc,no-unused-vars
+function ctGetCookie(name) {
+    let matches = document.cookie.match(new RegExp(
+        '(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)',
+    ));
+    return matches ? decodeURIComponent(matches[1]) : undefined;
+}
+
+// eslint-disable-next-line require-jsdoc,no-unused-vars
+function ctDeleteCookie(cookieName) {
+    // Cookies disabled
+    if ( ctPublicFunctions.data__cookies_type === 'none' ) {
+        return;
+
+    // Using traditional cookies
+    } else if ( ctPublicFunctions.data__cookies_type === 'native' ) {
+        let ctSecure = location.protocol === 'https:' ? '; secure' : '';
+        document.cookie = cookieName + '=""; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; samesite=lax' + ctSecure;
+
+    // Using alternative cookies
+    } else if ( ctPublicFunctions.data__cookies_type === 'alternative' ) {
+        // @ToDo implement this logic
+    }
+}
+
+// eslint-disable-next-line require-jsdoc,camelcase
+function apbct_public_sendAJAX(data, params, obj) {
+    // Default params
+    let _params = [];
+    _params['callback'] = params.callback || null;
+    _params['onErrorCallback'] = params.onErrorCallback || null;
+    _params['callback_context'] = params.callback_context || null;
+    _params['callback_params'] = params.callback_params || null;
+    _params['async'] = params.async || true;
+    _params['notJson'] = params.notJson || null;
+    _params['responseType']= params.notJson ? 'text' : 'json';
+    _params['timeout'] = params.timeout || 15000;
+    _params['obj'] = obj || null;
+    _params['button'] = params.button || null;
+    _params['spinner'] = params.spinner || null;
+    _params['progressbar'] = params.progressbar || null;
+    _params['silent'] = params.silent || null;
+    _params['no_nonce'] = params.no_nonce || null;
+    _params['data'] = data;
+    _params['url'] = ctPublicFunctions._ajax_url;
+    const nonce = selectActualNonce();
+
+    if (typeof (data) === 'string') {
+        if ( ! _params['no_nonce'] ) {
+            _params['data'] = _params['data'] + '&_ajax_nonce=' + nonce;
+        }
+        _params['data'] = _params['data'] + '&no_cache=' + Math.random();
+    } else {
+        if ( ! _params['no_nonce'] ) {
+            _params['data']._ajax_nonce = nonce;
+        }
+        _params['data'].no_cache = Math.random();
+    }
+
+    new ApbctCore().ajax(_params);
+}
+
+// eslint-disable-next-line require-jsdoc,camelcase
+function apbct_public_sendREST( route, params ) {
+    let _params = [];
+    _params['route'] = route;
+    _params['callback'] = params.callback || null;
+    _params['onErrorCallback'] = params.onErrorCallback || null;
+    _params['data'] = params.data || [];
+    _params['method'] = params.method || 'POST';
+
+    new ApbctCore().rest(_params);
+}
+
+/**
+ * Generate unique ID
+ * @return {string}
+ */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function apbctGenerateUniqueID() {
+    return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
+}
+
+let apbctLocalStorage = {
+    get: function(key, property) {
+        if ( typeof property === 'undefined' ) {
+            property = 'value';
+        }
+        const storageValue = localStorage.getItem(key);
+        if ( storageValue !== null ) {
+            try {
+                const json = JSON.parse(storageValue);
+                if ( json.hasOwnProperty(property) ) {
+                    try {
+                        // if property can be parsed as JSON - do it
+                        return JSON.parse( json[property] );
+                    } catch (e) {
+                        // if not - return string of value
+                        return json[property].toString();
+                    }
+                } else {
+                    return json;
+                }
+            } catch (e) {
+                return storageValue;
+            }
+        }
+        return false;
+    },
+    set: function(key, value, isJson = true) {
+        if (isJson) {
+            let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+            localStorage.setItem(key, JSON.stringify(objToSave));
+        } else {
+            localStorage.setItem(key, value);
+        }
+    },
+    isAlive: function(key, maxLifetime) {
+        if ( typeof maxLifetime === 'undefined' ) {
+            maxLifetime = 86400;
+        }
+        const keyTimestamp = this.get(key, 'timestamp');
+        return keyTimestamp + maxLifetime > Math.floor(new Date().getTime() / 1000);
+    },
+    isSet: function(key) {
+        return localStorage.getItem(key) !== null;
+    },
+    delete: function(key) {
+        localStorage.removeItem(key);
+    },
+    getCleanTalkData: function() {
+        let data = {};
+        for (let i=0; i<localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1) {
+                data[key.toString()] = apbctLocalStorage.get(key);
+            }
+        }
+        return data;
+    },
+
+};
+
+let apbctSessionStorage = {
+    get: function(key, property) {
+        if ( typeof property === 'undefined' ) {
+            property = 'value';
+        }
+        const storageValue = sessionStorage.getItem(key);
+        if ( storageValue !== null ) {
+            try {
+                const json = JSON.parse(storageValue);
+                return json.hasOwnProperty(property) ? JSON.parse(json[property]) : json;
+            } catch (e) {
+                return storageValue;
+            }
+        }
+        return false;
+    },
+    set: function(key, value, isJson = true) {
+        if (isJson) {
+            let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
+            sessionStorage.setItem(key, JSON.stringify(objToSave));
+        } else {
+            sessionStorage.setItem(key, value);
+        }
+    },
+    isSet: function(key) {
+        return sessionStorage.getItem(key) !== null;
+    },
+    delete: function(key) {
+        sessionStorage.removeItem(key);
+    },
+    getCleanTalkData: function() {
+        let data = {};
+        for (let i=0; i<sessionStorage.length; i++) {
+            let key = sessionStorage.key(i);
+            if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1) {
+                data[key.toString()] = apbctSessionStorage.get(key);
+            }
+        }
+        return data;
+    },
+};
+
+/**
+ * Handler for -webkit based browser that listen for a custom
+ * animation create using the :pseudo-selector in the stylesheet.
+ * Works with Chrome, Safari
+ *
+ * @param {AnimationEvent} event
+ */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function apbctOnAnimationStart(event) {
+    ('onautofillstart' === event.animationName) ?
+        apbctAutocomplete(event.target) : apbctCancelAutocomplete(event.target);
+}
+
+/**
+ * Handler for non-webkit based browser that listen for input
+ * event to trigger the autocomplete-cancel process.
+ * Works with Firefox, Edge, IE11
+ *
+ * @param {InputEvent} event
+ */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function apbctOnInput(event) {
+    ('insertReplacementText' === event.inputType || !('data' in event)) ?
+        apbctAutocomplete(event.target) : apbctCancelAutocomplete(event.target);
+}
+
+/**
+ * Manage an input element when its value is autocompleted
+ * by the browser in the following steps:
+ * - add [autocompleted] attribute from event.target
+ * - create 'onautocomplete' cancelable CustomEvent
+ * - dispatch the Event
+ *
+ * @param {HtmlInputElement} element
+ */
+function apbctAutocomplete(element) {
+    if (element.hasAttribute('autocompleted')) return;
+    element.setAttribute('autocompleted', '');
+
+    let event = new window.CustomEvent('onautocomplete', {
+        bubbles: true, cancelable: true, detail: null,
+    });
+
+    // no autofill if preventDefault is called
+    if (!element.dispatchEvent(event)) {
+        element.value = '';
+    }
+}
+
+/**
+ * Manage an input element when its autocompleted value is
+ * removed by the browser in the following steps:
+ * - remove [autocompleted] attribute from event.target
+ * - create 'onautocomplete' non-cancelable CustomEvent
+ * - dispatch the Event
+ *
+ * @param {HtmlInputElement} element
+ */
+function apbctCancelAutocomplete(element) {
+    if (!element.hasAttribute('autocompleted')) return;
+    element.removeAttribute('autocompleted');
+
+    // dispatch event
+    element.dispatchEvent(new window.CustomEvent('onautocomplete', {
+        bubbles: true, cancelable: false, detail: null,
+    }));
+}
+
+/**
+ * ApbctForceProtection
+ */
+class ApbctForceProtection {
+    wrappers = [];
+
+    /**
+     * Constructor
+     */
+    constructor() {
+        this.wrappers = this.findWrappers();
+
+        if (this.wrappers.length < 1) {
+            return;
+        }
+
+        this.checkBot();
+    }
+
+    /**
+     * Find wrappers
+     * @return {HTMLElement[]}
+     */
+    findWrappers() {
+        return document.querySelectorAll('div.ct-encoded-form-wrapper');
+    }
+
+    /**
+     * Check bot
+     * @return {void}
+     */
+    checkBot() {
+        let data = {
+            event_javascript_data: getJavascriptClientData(),
+            post_url: document.location.href,
+            referrer: document.referrer,
+        };
+
+        if (ctPublicFunctions.data__ajax_type === 'rest') {
+            apbct_public_sendREST('force_protection_check_bot', {
+                data,
+                method: 'POST',
+                callback: (result) => this.checkBotCallback(result),
+            });
+        } else if (ctPublicFunctions.data__ajax_type === 'admin_ajax') {
+            data.action = 'apbct_force_protection_check_bot';
+            apbct_public_sendAJAX(data, {callback: (result) => this.checkBotCallback(result)});
+        }
+    }
+
+    /**
+     * Check bot callback
+     * @param {Object} result
+     * @return {void}
+     */
+    checkBotCallback(result) {
+        // if error occurred
+        if (result.data && result.data.status && result.data.status !== 200) {
+            console.log('ApbctForceProtection connection error occurred');
+            this.decodeForms();
+            return;
+        }
+
+        if (typeof result === 'string') {
+            try {
+                result = JSON.parse(result);
+            } catch (e) {
+                console.log('ApbctForceProtection decodeForms error', e);
+                this.decodeForms();
+                return;
+            }
+        }
+
+        if (typeof result === 'object' && result.allow && result.allow === 1) {
+            this.decodeForms();
+        } else {
+            this.showMessageForBot(result.message);
+        }
+    }
+
+    /**
+     * Decode forms
+     * @return {void}
+     */
+    decodeForms() {
+        let form;
+
+        this.wrappers.forEach((wrapper) => {
+            form = wrapper.querySelector('div.ct-encoded-form').dataset.encodedForm;
+
+            try {
+                if (form && typeof(form) == 'string') {
+                    wrapper.outerHTML = atob(form);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        });
+    }
+
+    /**
+     * Show message for bot
+     * @param {string} message
+     * @return {void}
+     */
+    showMessageForBot(message) {
+        let form;
+
+        this.wrappers.forEach((wrapper) => {
+            form = wrapper.querySelector('div.ct-encoded-form').dataset.encodedForm;
+            if (form) {
+                wrapper.outerHTML = '<div class="ct-encoded-form-forbidden">' + message + '</div>';
+            }
+        });
+    }
+}
+
+/**
+ * Force protection
+ */
+function apbctForceProtect() {
+    if (ctPublic.settings__forms__force_protection && typeof ApbctForceProtection !== 'undefined') {
+        new ApbctForceProtection();
+    }
+}
+
+if (ctPublic.data__key_is_ok) {
+    if (document.readyState !== 'loading') {
+        apbctForceProtect();
+    } else {
+        apbct_attach_event_handler(document, 'DOMContentLoaded', apbctForceProtect);
+    }
+}
+
+/**
+ * Class for gathering data about user typing.
+ *
+ * ==============================
+ * isAutoFill       - only person can use auto fill
+ * isUseBuffer      - use buffer for fill current field
+ * ==============================
+ * lastKeyTimestamp - timestamp of last key press in current field
+ * speedDelta       - change for each key press in current field,
+ *                    as difference between current and previous key press timestamps,
+ *                    robots in general have constant speed of typing.
+ *                    If speedDelta is constant for each key press in current field,
+ *                    so, speedDelta will be roughly to 0, then it is robot.
+ * ==============================
+ */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+class CTTypoData {
+    fieldData = {
+        isAutoFill: false,
+        isUseBuffer: false,
+        speedDelta: 0,
+        firstKeyTimestamp: 0,
+        lastKeyTimestamp: 0,
+        lastDelta: 0,
+        countOfKey: 0,
+    };
+
+    fields = document.querySelectorAll('textarea[name=comment]');
+
+    data = [];
+
+    /**
+     * Gather fields.
+     */
+    gatheringFields() {
+        let fieldSet = Array.prototype.slice.call(this.fields);
+        fieldSet.forEach((field, i) => {
+            this.data.push(Object.assign({}, this.fieldData));
+        });
+    }
+
+    /**
+     * Set listeners.
+     */
+    setListeners() {
+        this.fields.forEach((field, i) => {
+            field.addEventListener('paste', () => {
+                this.data[i].isUseBuffer = true;
+            });
+        });
+
+        this.fields.forEach((field, i) => {
+            field.addEventListener('onautocomplete', () => {
+                this.data[i].isAutoFill = true;
+            });
+        });
+
+        this.fields.forEach((field, i) => {
+            field.addEventListener('input', () => {
+                this.data[i].countOfKey++;
+                let time = + new Date();
+                let currentDelta = 0;
+
+                if (this.data[i].countOfKey === 1) {
+                    this.data[i].lastKeyTimestamp = time;
+                    this.data[i].firstKeyTimestamp = time;
+                    return;
+                }
+
+                currentDelta = time - this.data[i].lastKeyTimestamp;
+                if (this.data[i].countOfKey === 2) {
+                    this.data[i].lastKeyTimestamp = time;
+                    this.data[i].lastDelta = currentDelta;
+                    return;
+                }
+
+                if (this.data[i].countOfKey > 2) {
+                    this.data[i].speedDelta += Math.abs(this.data[i].lastDelta - currentDelta);
+                    this.data[i].lastKeyTimestamp = time;
+                    this.data[i].lastDelta = currentDelta;
+                }
+            });
+        });
+    }
+}
+
 // eslint-disable-next-line camelcase
 const ctDate = new Date();
 const ctTimeMs = new Date().getTime();
@@ -2217,5 +4257,434 @@ function apbctCheckAddToCartByGet() {
                 el.setAttribute('href', href);
             }
         });
+    });
+}
+
+/* Cleantalk Modal object */
+let cleantalkModal = {
+
+    // Flags
+    loaded: false,
+    loading: false,
+    opened: false,
+    opening: false,
+    ignoreURLConvert: false,
+
+    // Methods
+    load: function( action ) {
+        if ( ! this.loaded ) {
+            this.loading = true;
+            let callback = function( result, data, params, obj ) {
+                cleantalkModal.loading = false;
+                cleantalkModal.loaded = result;
+                document.dispatchEvent(
+                    new CustomEvent( 'cleantalkModalContentLoaded', {
+                        bubbles: true,
+                    } ),
+                );
+            };
+            // eslint-disable-next-line camelcase
+            if ( typeof apbct_admin_sendAJAX === 'function' ) {
+                apbct_admin_sendAJAX( {'action': action}, {'callback': callback, 'notJson': true} );
+            } else {
+                apbct_public_sendAJAX( {'action': action}, {'callback': callback, 'notJson': true} );
+            }
+        }
+    },
+
+    open: function() {
+        /* Cleantalk Modal CSS start */
+        let renderCss = function() {
+            let cssStr = '';
+            // eslint-disable-next-line guard-for-in
+            for ( const key in this.styles ) {
+                cssStr += key + ':' + this.styles[key] + ';';
+            }
+            return cssStr;
+        };
+        let overlayCss = {
+            styles: {
+                'z-index': '9999999999',
+                'position': 'fixed',
+                'top': '0',
+                'left': '0',
+                'width': '100%',
+                'height': '100%',
+                'background': 'rgba(0,0,0,0.5)',
+                'display': 'flex',
+                'justify-content': 'center',
+                'align-items': 'center',
+            },
+            toString: renderCss,
+        };
+        let innerCss = {
+            styles: {
+                'position': 'relative',
+                'padding': '30px',
+                'background': '#FFF',
+                'border': '1px solid rgba(0,0,0,0.75)',
+                'border-radius': '4px',
+                'box-shadow': '7px 7px 5px 0px rgba(50,50,50,0.75)',
+            },
+            toString: renderCss,
+        };
+        let closeCss = {
+            styles: {
+                'position': 'absolute',
+                'background': '#FFF',
+                'width': '20px',
+                'height': '20px',
+                'border': '2px solid rgba(0,0,0,0.75)',
+                'border-radius': '15px',
+                'cursor': 'pointer',
+                'top': '-8px',
+                'right': '-8px',
+                'box-sizing': 'content-box',
+            },
+            toString: renderCss,
+        };
+        let closeCssBefore = {
+            styles: {
+                'content': '""',
+                'display': 'block',
+                'position': 'absolute',
+                'background': '#000',
+                'border-radius': '1px',
+                'width': '2px',
+                'height': '16px',
+                'top': '2px',
+                'left': '9px',
+                'transform': 'rotate(45deg)',
+            },
+            toString: renderCss,
+        };
+        let closeCssAfter = {
+            styles: {
+                'content': '""',
+                'display': 'block',
+                'position': 'absolute',
+                'background': '#000',
+                'border-radius': '1px',
+                'width': '2px',
+                'height': '16px',
+                'top': '2px',
+                'left': '9px',
+                'transform': 'rotate(-45deg)',
+            },
+            toString: renderCss,
+        };
+        let bodyCss = {
+            styles: {
+                'overflow': 'hidden',
+            },
+            toString: renderCss,
+        };
+        let cleantalkModalStyle = document.createElement( 'style' );
+        cleantalkModalStyle.setAttribute( 'id', 'cleantalk-modal-styles' );
+        cleantalkModalStyle.innerHTML = 'body.cleantalk-modal-opened{' + bodyCss + '}';
+        cleantalkModalStyle.innerHTML += '#cleantalk-modal-overlay{' + overlayCss + '}';
+        cleantalkModalStyle.innerHTML += '#cleantalk-modal-close{' + closeCss + '}';
+        cleantalkModalStyle.innerHTML += '#cleantalk-modal-close:before{' + closeCssBefore + '}';
+        cleantalkModalStyle.innerHTML += '#cleantalk-modal-close:after{' + closeCssAfter + '}';
+        document.body.append( cleantalkModalStyle );
+        /* Cleantalk Modal CSS end */
+
+        let overlay = document.createElement( 'div' );
+        overlay.setAttribute( 'id', 'cleantalk-modal-overlay' );
+        document.body.append( overlay );
+
+        document.body.classList.add( 'cleantalk-modal-opened' );
+
+        let inner = document.createElement( 'div' );
+        inner.setAttribute( 'id', 'cleantalk-modal-inner' );
+        inner.setAttribute( 'style', innerCss );
+        overlay.append( inner );
+
+        let close = document.createElement( 'div' );
+        close.setAttribute( 'id', 'cleantalk-modal-close' );
+        inner.append( close );
+
+        let content = document.createElement( 'div' );
+        if ( this.loaded ) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const serviceContentRegex = /.*\/inc/g;
+            if (serviceContentRegex.test(this.loaded) || this.ignoreURLConvert) {
+                content.innerHTML = this.loaded;
+            } else {
+                content.innerHTML = this.loaded.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+            }
+        } else {
+            content.innerHTML = 'Loading...';
+            // @ToDo Here is hardcoded parameter. Have to get this from a 'data-' attribute.
+            this.load( 'get_options_template' );
+        }
+        content.setAttribute( 'id', 'cleantalk-modal-content' );
+        inner.append( content );
+
+        this.opened = true;
+    },
+
+    close: function() {
+        document.body.classList.remove( 'cleantalk-modal-opened' );
+        document.getElementById( 'cleantalk-modal-overlay' ).remove();
+        document.getElementById( 'cleantalk-modal-styles' ).remove();
+        document.dispatchEvent(
+            new CustomEvent( 'cleantalkModalClosed', {
+                bubbles: true,
+            } ),
+        );
+    },
+
+};
+
+/* Cleantalk Modal helpers */
+document.addEventListener('click', function( e ) {
+    if ( e.target && (e.target.id === 'cleantalk-modal-overlay' || e.target.id === 'cleantalk-modal-close') ) {
+        cleantalkModal.close();
+    }
+});
+document.addEventListener('cleantalkModalContentLoaded', function( e ) {
+    if ( cleantalkModal.opened && cleantalkModal.loaded ) {
+        document.getElementById( 'cleantalk-modal-content' ).innerHTML = cleantalkModal.loaded;
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    let ctTrpLocalize = undefined;
+    let ctTrpIsAdminCommentsList = false;
+
+    if ( typeof ctPublic !== 'undefined' || typeof ctTrpAdminLocalize !== 'undefined' ) {
+        if ( typeof ctPublic !== 'undefined' && ctPublic.theRealPerson ) {
+            ctTrpLocalize = ctPublic.theRealPerson;
+        }
+        if (
+            typeof ctTrpLocalize === 'undefined' &&
+            typeof ctTrpAdminLocalize !== 'undefined' &&
+            ctTrpAdminLocalize.theRealPerson
+        ) {
+            ctTrpLocalize = ctTrpAdminLocalize.theRealPerson;
+            ctTrpIsAdminCommentsList = true;
+        }
+    }
+
+    if ( ! ctTrpLocalize ) {
+        return;
+    }
+
+    // Selectors. Try to handle the WIDE range of themes.
+    let themesCommentsSelector = '.apbct-trp *[class*="comment-author"]';
+    if ( document.querySelector('.apbct-trp .comment-author .comment-author-link') ) {
+        // For Spacious theme
+        themesCommentsSelector = '.apbct-trp *[class*="comment-author-link"]';
+    }
+    let woocommerceReviewsSelector = '.apbct-trp *[class*="review__author"]';
+    let adminCommentsListSelector = '.apbct-trp td[class*="column-author"] > strong';
+    const trpComments = document.querySelectorAll(
+        themesCommentsSelector + ',' +
+        woocommerceReviewsSelector + ',' +
+        adminCommentsListSelector);
+
+    if ( trpComments.length === 0 ) {
+        return;
+    }
+
+    trpComments.forEach(( element, index ) => {
+        let trpLayout = document.createElement('div');
+        trpLayout.setAttribute('class', 'apbct-real-user-badge');
+
+        let trpImage = document.createElement('img');
+        trpImage.setAttribute('src', ctTrpLocalize.imgPersonUrl);
+        trpImage.setAttribute('class', 'apbct-real-user-popup-img');
+
+        let trpDescription = document.createElement('div');
+        trpDescription.setAttribute('class', 'apbct-real-user-popup');
+
+        let trpDescriptionHeading = document.createElement('p');
+        trpDescriptionHeading.setAttribute('class', 'apbct-real-user-popup-header');
+        trpDescriptionHeading.append(ctTrpLocalize.phrases.trpHeading);
+
+        let trpDescriptionContent = document.createElement('div');
+        trpDescriptionContent.setAttribute('class', 'apbct-real-user-popup-content_row');
+
+        let trpDescriptionContentSpan = document.createElement('span');
+        trpDescriptionContentSpan.append(ctTrpLocalize.phrases.trpContent1 + ' ');
+        trpDescriptionContentSpan.append(ctTrpLocalize.phrases.trpContent2);
+
+        if ( ctTrpIsAdminCommentsList ) {
+            let learnMoreLink = document.createElement('a');
+            learnMoreLink.setAttribute('href', ctTrpLocalize.trpContentLink);
+            learnMoreLink.setAttribute('target', '_blank');
+            learnMoreLink.text = ctTrpLocalize.phrases.trpContentLearnMore;
+            trpDescriptionContentSpan.append(' '); // Need one space
+            trpDescriptionContentSpan.append(learnMoreLink);
+        }
+
+        trpDescriptionContent.append(trpDescriptionContentSpan);
+        trpDescription.append(trpDescriptionHeading, trpDescriptionContent);
+        trpLayout.append(trpImage);
+        element.append(trpLayout);
+        element.append(trpDescription);
+    });
+
+    const badges = document.querySelectorAll('.apbct-real-user-badge');
+
+    badges.forEach((badge) => {
+        let hideTimeout = undefined;
+
+        badge.addEventListener('click', function() {
+            const popup = this.nextElementSibling;
+            if (popup && popup.classList.contains('apbct-real-user-popup')) {
+                popup.classList.toggle('visible');
+            }
+        });
+
+        badge.addEventListener('mouseenter', function() {
+            const popup = this.nextElementSibling;
+            if (popup && popup.classList.contains('apbct-real-user-popup')) {
+                popup.classList.add('visible');
+            }
+        });
+
+        badge.addEventListener('mouseleave', function() {
+            hideTimeout = setTimeout(() => {
+                const popup = this.nextElementSibling;
+                if (popup && popup.classList.contains('apbct-real-user-popup')) {
+                    popup.classList.remove('visible');
+                }
+            }, 1000);
+        });
+
+        const popup = badge.nextElementSibling;
+        popup.addEventListener('mouseenter', function() {
+            clearTimeout(hideTimeout);
+            popup.classList.add('visible');
+        });
+
+        popup.addEventListener('mouseleave', function() {
+            hideTimeout = setTimeout(() => {
+                if (popup.classList.contains('apbct-real-user-popup')) {
+                    popup.classList.remove('visible');
+                }
+            }, 1000);
+        });
+
+        // For mobile devices
+        badge.addEventListener('touchend', function() {
+            hideTimeout = setTimeout(() => {
+                const popup = this.nextElementSibling;
+                const selection = window.getSelection();
+                // Check if no text is selected
+                if (popup && selection && popup.classList.contains('apbct-real-user-popup') &&
+                    selection.toString().length === 0
+                ) {
+                    popup.classList.remove('visible');
+                } else {
+                    clearTimeout(hideTimeout);
+                    document.addEventListener('selectionchange', function onSelectionChange() {
+                        const selection = window.getSelection();
+                        if (selection && selection.toString().length === 0) {
+                            // Restart the hide timeout when selection is cleared
+                            hideTimeout = setTimeout(() => {
+                                const popup = badge.nextElementSibling;
+                                if (popup && popup.classList.contains('apbct-real-user-popup')) {
+                                    popup.classList.remove('visible');
+                                }
+                            }, 3000);
+                            document.removeEventListener('selectionchange', onSelectionChange);
+                        }
+                    });
+                }
+            }, 3000);
+        });
+    });
+});
+
+/**
+ * Check form as internal.
+ * @param {int} currForm Current form.
+ */
+function ctCheckInternal(currForm) {
+    //  Gathering data
+    const ctData = {};
+    const elems = currForm.elements;
+    let key;
+
+    for (key in elems) {
+        if (elems[key].type !== 'submit' &&
+            elems[key].value !== undefined &&
+            elems[key].value !== '') {
+            ctData[elems[key].name] = currForm.elements[key].value;
+        }
+    }
+    ctData.action = 'ct_check_internal';
+
+    //  AJAX Request
+    apbct_public_sendAJAX(
+        ctData,
+        {
+            url: ctPublicFunctions._ajax_url,
+            callback: function(data) {
+                if (data.success === true) {
+                    currForm.origSubmit();
+                } else {
+                    alert(data.data);
+                    return false;
+                }
+            },
+        },
+    );
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    let ctCurrAction = '';
+    let ctCurrForm = '';
+
+    if ( ! +ctPublic.settings__forms__check_internal ) {
+        return;
+    }
+
+    setTimeout(() => {
+        for ( let i = 0; i < document.forms.length; i++ ) {
+            if ( typeof(document.forms[i].action) == 'string' ) {
+                ctCurrForm = document.forms[i];
+                ctCurrAction = ctCurrForm.action;
+                if (
+                    ctCurrAction.indexOf('https?://') !== null && // The protocol is obligatory
+                    ctCurrAction.match(ctPublic.blog_home + '.*?\.php') !== null && // Main check
+                    ! ctCheckInternalIsExcludedForm(ctCurrAction) // Exclude WordPress native scripts from processing
+                ) {
+                    const formClone = ctCurrForm.cloneNode(true);
+                    ctCurrForm.parentNode.replaceChild(formClone, ctCurrForm);
+
+                    formClone.origSubmit = ctCurrForm.submit;
+                    formClone.submit = null;
+
+                    formClone.addEventListener('submit', function(event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        event.stopImmediatePropagation();
+                        ctCheckInternal(event.target);
+                        return false;
+                    });
+                }
+            }
+        }
+    }, 500);
+});
+
+/**
+ * Check by action to exclude the form checking
+ * @param {string} action
+ * @return {boolean}
+ */
+function ctCheckInternalIsExcludedForm(action) {
+    // An array contains forms action need to be excluded.
+    const ctInternalScriptExclusions = [
+        'wp-login.php', // WordPress login page
+        'wp-comments-post.php', // WordPress Comments Form
+    ];
+
+    return ctInternalScriptExclusions.some((item) => {
+        return action.match(new RegExp(ctPublic.blog_home + '.*' + item)) !== null;
     });
 }

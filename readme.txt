@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 6.48.2
+Stable tag: 6.49
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -441,6 +441,29 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.49 30.01.2025 =
+* Fix. Email Existence check. The icon and popup now adaptive on window resizing.
+* Fix. EmailEncoder. Improved flow to skip encoding inside inline js.
+* Fix. Force Protection. Correcting the error of using the class before initialization, adding an option check.
+* Fix. Force Protection. Preventing notice occurs from js.
+* Fix. Integrations. Added nasa login exclusion.
+* Fix. Integrations. Improved ConvertKit forms integrations.
+* Fix. Integrations. Improved flow to prevent error occurs.
+* Fix. Integrations. Improved nasa registration params.
+* Fix. Integrations. Prevent broking elementor swiper gallery.
+* Fix. SFW. Fixed update flow, to prevent warning occur on download stage.
+* Fix. Settings. Improved refresh nonce flow.
+* Fix. Users checker. Selecting users for the checking was fixed.
+* New. Bot detector frontend data log. Save logs to alt sessions only if records has new event types.
+* New. FormDecoration. The plugin's signature has been added to all the decorations. Added click counting for signatures.
+* New. JS-Bundles. Branching the js bundle into external and internal and depending on their options.
+* New. UsersChecker. Sorting users implemented.
+* Upd. Dashboard widget. Countries flags convert to the svg sprite.
+* Upd. DeactivationPopup. Deleted the plugin deactivation pop-up.
+* Upd. Integrations. Skip Leaky Paywall validation request.
+* Upd. JS-Bundles. Changes to the assembly of bundles and their use.
+* Upd. ProtectByShortcode. Renaming the hook.
 
 = 6.48.2 23.01.2025 =
 * Fix. SFW. Fixed update flow, to prevent warning occur on download stage.
