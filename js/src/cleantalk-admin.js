@@ -11,6 +11,14 @@ jQuery(document).ready(function($) {
         .css('display', 'inline-block');
 
     jQuery('body').on('click', '.apbct-notice .notice-dismiss-link', function(e) {
+        jQuery(e.target).parent()
+            .parent('.notice')
+            .after('<div id="apbct-notice-dismiss-success" class="notice notice-success is-dismissible"><p>' +
+                ctAdminCommon.apbctNoticeDismissSuccess +
+                '</p></div>');
+        setTimeout(function() {
+            jQuery('#apbct-notice-dismiss-success').fadeOut();
+        }, 2000);
         jQuery(e.target).parent().siblings('.apbct-notice .notice-dismiss').click();
     });
     jQuery('body').on('click', '.apbct-notice .notice-dismiss', function(e) {
@@ -26,14 +34,6 @@ jQuery(document).ready(function($) {
                     'notJson': true,
                 },
             );
-            jQuery(e.target)
-                .parent('.notice')
-                .after('<div id="apbct-notice-dismiss-success" class="notice notice-success is-dismissible"><p>' +
-                    ctAdminCommon.apbctNoticeDismissSuccess +
-                    '</p></div>');
-            setTimeout(function() {
-                jQuery('#apbct-notice-dismiss-success').fadeOut();
-            }, 2000);
         }
     });
 
