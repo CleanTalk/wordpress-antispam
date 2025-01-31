@@ -77,6 +77,7 @@ class GetFieldsAnyDTO extends DTO
     /**
      * Is registration form?
      * @var bool
+     * @psalm-suppress PossiblyUnusedProperty
      */
     public $register = false;
 
