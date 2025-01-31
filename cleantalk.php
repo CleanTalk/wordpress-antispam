@@ -506,6 +506,15 @@ if (!empty($_POST) &&
     apbct_seedConfirmPro_request_test();
 }
 
+// LeakyPaywall
+if (!empty($_POST) &&
+    apbct_is_plugin_active('leaky-paywall/leaky-paywall.php') &&
+    apbct_is_in_uri('registration-form') &&
+    Post::get('level_id')
+) {
+    apbct_leakyPaywall_request_test();
+}
+
 add_action('wp_ajax_nopriv_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
 add_action('wp_ajax_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
 add_action('wp_ajax_nopriv_nf_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);

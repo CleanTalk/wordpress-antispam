@@ -74,6 +74,12 @@ class GetFieldsAnyDTO extends DTO
      */
     public $message = array();
 
+    /**
+     * Is registration form?
+     * @var bool
+     */
+    public $register = false;
+
     protected $obligatory_properties = array(
         'email',
         'emails_array',
