@@ -153,4 +153,42 @@ class DNS
 
         return $server['ttl'];
     }
+
+    /**
+     * Retrieve list of IP addresses resolved from DNS cache.
+     *
+     * @param $host_url
+     *
+     * @return array
+     * @psalm-suppress RedundantFunctionCall
+     */
+    public static function getIPListFromDNS($host_url)
+    {
+        $list = array();
+        // Check of dns_get_record function exists
+        if ( !function_exists('dns_get_record') ) {
+            return $list;
+        }
+        // Get DNS records about URL
+        $records_v4 = @dns_get_record($host_url, DNS_A);
+        $records_v4 = !empty($records_v4) ? $records_v4 : array();
+        $records_v6 = @dns_get_record($host_url, DNS_AAAA);
+        $records_v6 = !empty($records_v6) ? $records_v6 : array();
+        $data_list_from_dns = array_merge(array_values($records_v4), array_values($records_v6));
+
+        foreach ($data_list_from_dns as $data) {
+            if (!empty($data)) {
+                $ip = '';
+                if (isset($data['ipv6'])) {
+                    $ip = $data['ipv6'];
+                } else if (isset($data['ip'])) {
+                    $ip = $data['ip'];
+                }
+                if (Helper::ipValidate($ip)) {
+                    $list[] = $ip;
+                }
+            }
+        }
+        return $list;
+    }
 }
