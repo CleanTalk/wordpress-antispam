@@ -51,6 +51,8 @@ class EmailEncoder
         array('leaflet'),
         // prevent broking elementor swiper gallery
         array('class', 'elementor-swiper', 'elementor-testimonial', 'swiper-pagination'),
+        // ics-calendar
+        array('ics_calendar'),
     );
 
     /**
