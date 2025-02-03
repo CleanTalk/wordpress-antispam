@@ -11,6 +11,8 @@ namespace Cleantalk\Common\HTTP;
  * @copyright (C) CleanTalk team (http://cleantalk.org)
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  * @see           https://github.com/CleanTalk/security-malware-firewall
+ *
+ * @psalm-suppress PossiblyUndefinedIntArrayOffset
  */
 class Request
 {
@@ -30,7 +32,7 @@ class Request
     protected $data = [];
 
     /**
-     * @var string|string[] Array with presets
+     * @var string[] Array with presets
      *                          Example: array('get_code', 'async')
      *                      Or space separated string with presets
      *                          Example: 'get_code async get'
@@ -191,7 +193,7 @@ class Request
         // Process the error. Unavailable for multiple URLs.
         if (
             ! is_array($this->url) &&
-            $this->response->getError() &&
+            ! is_array($this->response) && $this->response->getError() &&
             in_array('retry_with_socket', $this->presets, true)
         ) {
             $this->response = $this->requestWithSocket();
@@ -236,13 +238,20 @@ class Request
      * Do multi curl requests without processing it.
      *
      * @return array<Response>
+     *
+     * @psalm-suppress PossiblyInvalidArgument
      */
     protected function requestMulti()
     {
+        $this->response = [];
+
+        if ( ! is_array($this->url) ) {
+            return $this->response;
+        }
+
         $urls_count     = count($this->url);
         $curl_arr       = array();
         $mh             = curl_multi_init();
-        $this->response = [];
 
         for ( $i = 0; $i < $urls_count; $i++ ) {
             $this->options[CURLOPT_URL] = $this->url[$i];
@@ -280,6 +289,9 @@ class Request
      * Make a request with socket, exactly with file_get_contents()
      *
      * @return Response
+     *
+     * @psalm-suppress PossiblyInvalidArgument
+     * @psalm-suppress PossiblyInvalidCast
      */
     private function requestWithSocket()
     {
