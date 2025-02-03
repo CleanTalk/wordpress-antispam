@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\FindSpam;
 
+use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\TT;
 
@@ -9,6 +10,7 @@ class CommentsChecker extends Checker
 {
     public function __construct()
     {
+        global $apbct;
         parent::__construct();
 
         $this->page_title       = esc_html__('Check comments for spam', 'cleantalk-spam-protect');
@@ -36,7 +38,7 @@ class CommentsChecker extends Checker
             APBCT_VERSION
         );
         wp_localize_script('ct_comments_checkspam', 'ctCommentsCheck', array(
-            'ct_ajax_nonce'            => wp_create_nonce('ct_secret_nonce'),
+            'ct_ajax_nonce'            => $apbct->ajax_service->getAdminNonce(),
             'ct_prev_accurate'         => ! empty($prev_check['accurate']) ? true : false,
             'ct_prev_from'             => ! empty($prev_check_from) ? $prev_check_from : false,
             'ct_prev_till'             => ! empty($prev_check_till) ? $prev_check_till : false,
@@ -60,9 +62,31 @@ class CommentsChecker extends Checker
     }
 
     /**
-     * Get all comments from DB
+     * Get all comments from DB that:
+     * * not marked as spam
+     * * not marked as trash
+     * * comment type is in list of 'comment', 'review', 'trackback', 'pings'
+     * * comment_ID has no comment_meta with meta_key 'ct_marked_as_approved'
      *
-     * @return array
+     * If date_from and date_till are set, get comments from this period (used in accurate check).
+     *
+     * After DB request, method filter data to skip comments:
+     * * with user_id that has role from skip_roles
+     * * uncheckable comments - without comment_author_IP and comment_author_email
+     * @return object[] Assoc array of db result object:
+     * <code>
+     * array(
+     *  0 => object
+     *    ->comment_ID int,
+     *    ->comment_date_gmt string,
+     *    ->comment_author_IP string,
+     *    ->comment_author_email string,
+     *    ->user_id int
+     *  ,
+     * ...
+     * );
+     * </code>
+     * @example Example
      */
     private static function getAllComments(CommentsScanParameters $commentsScanParameters)
     {
@@ -189,7 +213,11 @@ class CommentsChecker extends Checker
         $res = wp_count_comments();
 
         if ( $res->all ) {
-            $text = sprintf(esc_html__('Total count of comments: %s.', 'cleantalk-spam-protect'), $res->all);
+            $unicode_star = '&#42;';
+            $text         = sprintf(
+                esc_html__('Total count of comments: %s.', 'cleantalk-spam-protect'),
+                $res->all . $unicode_star
+            );
         } else {
             $text = esc_html__('No comments found.', 'cleantalk-spam-protect');
         }
@@ -229,7 +257,7 @@ class CommentsChecker extends Checker
 
     public static function ctAjaxCheckComments()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins();
 
         $commentScanParameters = new CommentsScanParameters($_POST);
 
@@ -248,7 +276,7 @@ class CommentsChecker extends Checker
         global $wpdb, $apbct;
 
         if ( ! $direct_call ) {
-            apbct__check_admin_ajax_request();
+            AJAXService::checkNonceRestrictingNonAdmins();
         }
 
         $cnt_checked = TT::toInt($apbct->data['count_checked_comments']);
@@ -270,7 +298,7 @@ class CommentsChecker extends Checker
         if (!is_int($cnt_spam)) {
             $cnt_spam = 'unknown';
         } else {
-            $cnt_spam = TT::toString($cnt_spam);
+            $cnt_spam = TT::toInt($cnt_spam);
         }
 
         // Bad comments (without IP and Email)
@@ -289,13 +317,15 @@ class CommentsChecker extends Checker
             'total'   => $total_comments
         );
 
+        $unicode_star = '&#42;';
+
         if ( ! $direct_call ) {
             $return['message'] .= sprintf(
                 esc_html__(
                     "Checked %s comments total (excluding admins), found %s spam comments and %s non-checkable comments (no IP and email found).",
                     'cleantalk-spam-protect'
                 ),
-                $cnt_checked,
+                TT::toString($cnt_checked) . $unicode_star . $unicode_star,
                 $cnt_spam,
                 $cnt_bad
             );
@@ -306,11 +336,11 @@ class CommentsChecker extends Checker
             if ( $res ) {
                 $return['message'] .= sprintf(
                     __(
-                        "Last check %s: checked %s comments total (excluding admins), found %s spam comments and %s non-checkable comments (no IP and email found).",
+                        "Last check %s: checked %s comments, found %s spam comments and %s non-checkable comments (no IP and email found).",
                         'cleantalk-spam-protect'
                     ),
                     self::lastCheckDate(),
-                    $cnt_checked,
+                    TT::toString($cnt_checked) . $unicode_star . $unicode_star,
                     $cnt_spam,
                     $cnt_bad
                 );
@@ -346,7 +376,7 @@ class CommentsChecker extends Checker
     {
         global $wpdb ,$apbct;
 
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins();
 
         $apbct->data['count_checked_comments'] = 0;
         $apbct->saveData();
@@ -386,7 +416,7 @@ class CommentsChecker extends Checker
 
     public static function ctAjaxTrashAll()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins();
 
         $args_spam = array(
             'number'     => 100,
@@ -428,7 +458,7 @@ class CommentsChecker extends Checker
 
     public static function ctAjaxSpamAll()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins();
 
         $args_spam = array(
             'number'     => 100,

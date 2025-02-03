@@ -331,10 +331,6 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     {
         global $apbct;
 
-        if ( $apbct->data['cookies_type'] === 'none' && ! is_admin() ) {
-            return;
-        }
-
         $script =
         "<script>
             window.addEventListener('DOMContentLoaded', function () {
@@ -488,7 +484,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         parent::diePage('');
 
         $localize_js = array(
-            '_ajax_nonce'                          => wp_create_nonce('ct_secret_stuff'),
+            '_ajax_nonce'                          => $apbct->ajax_service->getPublicNonce(),
             '_rest_nonce'                          => wp_create_nonce('wp_rest'),
             '_ajax_url'                            => admin_url('admin-ajax.php', 'relative'),
             '_rest_url'                            => esc_url(get_rest_url()),

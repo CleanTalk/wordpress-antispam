@@ -382,6 +382,11 @@ class State extends \Cleantalk\Common\State
 
     public $errors;
 
+     /**
+      * @var AJAXService
+      */
+    public $ajax_service;
+
     /**
      * Create vars list. Use all the vars that has 'default_' in theirs name.
      * @return bool
@@ -588,6 +593,7 @@ class State extends \Cleantalk\Common\State
 
     protected function init()
     {
+        $this->ajax_service = new AJAXService();
         // Standalone or main site
         $this->api_key        = $this->settings['apikey'];
         //HANDLE LINK
@@ -600,10 +606,11 @@ class State extends \Cleantalk\Common\State
                 $this->data['cookies_type'] = 'native';
                 break;
             case '2':
+                $this->data['cookies_type'] = 'alternative';
+                break;
             case '3':
                 $this->data['cookies_type'] =
-                    ( $this->settings['data__set_cookies'] == 3 && $this->isServerCacheDetected() ) ||
-                    $this->settings['data__set_cookies'] == 2
+                    ( $this->settings['data__set_cookies'] == 3 && $this->isAltSessionsRequired() )
                         ? 'alternative'
                         : 'none';
                 break;
@@ -949,6 +956,27 @@ class State extends \Cleantalk\Common\State
         return
             isset($headers['X-Varnish']) || //Set alt cookies if varnish is installed
             defined('SiteGround_Optimizer\VERSION'); //Set alt cookies if sg optimizer is installed
+    }
+
+    /**
+    * Do we need to use alternative sessions in auto mode of cookies type
+    * @param bool $get_reason Return reason of alt sessions requirement
+    * @return bool|string
+    */
+    public function isAltSessionsRequired($get_reason = false)
+    {
+        $result = false;
+
+        if ( $this->isServerCacheDetected() ) {
+            $result = 'server_cache_detected';
+        }
+
+        //moosend plugin requires alt sessions https://doboard.com/1/task/13735
+        if (apbct_is_plugin_active('moosend-email-marketing/index.php')) {
+            $result = 'plugin_active__moosend-email-marketing';
+        }
+
+        return $get_reason ? $result : $result !== false;
     }
 
     /**

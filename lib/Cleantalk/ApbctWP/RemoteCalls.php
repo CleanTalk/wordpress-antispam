@@ -315,6 +315,9 @@ class RemoteCalls
         $out['queue']              = get_option('cleantalk_sfw_update_queue');
         $out['connection_reports'] = $apbct->getConnectionReports()->remoteCallOutput();
         $out['cache_plugins_detected'] = apbct_is_cache_plugins_exists(true);
+        if ($apbct->settings['data__set_cookies'] == 3 && $apbct->data['cookies_type'] === 'alternative') {
+            $out['alt_sessions_auto_state_reason'] = $apbct->isAltSessionsRequired(true);
+        }
 
         if ( APBCT_WPMS ) {
             $out['network_settings'] = $apbct->network_settings;
@@ -544,10 +547,10 @@ class RemoteCalls
             return json_encode(array('error' => 'No nonce provided'));
         }
 
-        $nonce_prev = Post::getString(['nonce_prev']);
+        $nonce_prev = Post::getString('nonce_prev');
         $nonce_name = apbct_settings__get_ajax_type() === 'rest'
             ? 'wp_rest'
-            : 'ct_secret_stuff';
+            : AJAXService::$public_nonce_id;
 
         // Check $nonce_prev by regexp '^[a-f0-9]{10}$'
         if ( ! preg_match('/^[a-f0-9]{10}$/', $nonce_prev) ) {

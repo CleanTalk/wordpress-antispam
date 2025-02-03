@@ -4,8 +4,8 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.47.1-dev
-  Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
+  Version: 6.49.1-dev
+  Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
   Domain Path: /i18n
@@ -14,6 +14,7 @@
 use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
+use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\ApbctWP\Antispam\ForceProtection;
 use Cleantalk\ApbctWP\API;
@@ -219,33 +220,40 @@ function apbct_register_my_rest_routes()
 }
 
 // Alt cookies via WP ajax handler
-add_action('wp_ajax_nopriv_apbct_alt_session__save__AJAX', 'apbct_alt_session__save__WP_AJAX');
-add_action('wp_ajax_apbct_alt_session__save__AJAX', 'apbct_alt_session__save__WP_AJAX');
-function apbct_alt_session__save__WP_AJAX()
-{
-    Cleantalk\ApbctWP\Variables\AltSessions::setFromRemote();
-}
-
+$apbct->ajax_service->addPublicAction(
+    'apbct_alt_session__save__AJAX',
+    array(
+        Cleantalk\ApbctWP\Variables\AltSessions::class,
+        'setFromRemote'
+    )
+);
 // Get JS via WP ajax handler
-add_action('wp_ajax_nopriv_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
-add_action('wp_ajax_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
-
+$apbct->ajax_service->addPublicAction('apbct_js_keys__get', array($apbct->ajax_service, 'getJSKeys'));
 // Get Pixel URL via WP ajax handler
-add_action('wp_ajax_nopriv_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
-add_action('wp_ajax_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
-
+$apbct->ajax_service->addPublicAction('apbct_get_pixel_url', 'apbct_get_pixel_url');
 // Checking email before POST
-add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_before_post');
-
+$apbct->ajax_service->addPublicAction(
+    'apbct_email_check_before_post',
+    'apbct_email_check_before_post',
+    'no_priv'
+);
 // Checking email exist POST
-add_action('wp_ajax_nopriv_apbct_email_check_exist_post', 'apbct_email_check_exist_post');
-
+$apbct->ajax_service->addPublicAction(
+    'apbct_email_check_exist_post',
+    'apbct_email_check_exist_post',
+    'no_priv'
+);
 // Force Protection check bot
-add_action('wp_ajax_nopriv_apbct_force_protection_check_bot', 'apbct_force_protection_check_bot');
-
+$apbct->ajax_service->addPublicAction(
+    'apbct_force_protection_check_bot',
+    'apbct_force_protection_check_bot',
+    'no_priv'
+);
 // Force ajax set important parameters (apbct_timestamp etc)
-add_action('wp_ajax_nopriv_apbct_set_important_parameters', 'apbct_cookie');
-add_action('wp_ajax_apbct_set_important_parameters', 'apbct_cookie');
+$apbct->ajax_service->addPublicAction(
+    'apbct_set_important_parameters',
+    'apbct_cookie'
+);
 
 // Database prefix
 global $wpdb, $wp_version;
@@ -315,6 +323,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
      && empty(Get::get('ct_checkjs_search_default')) // Search form fix
      && empty(Post::get('action')) //bbPress
      && ! \Cleantalk\Variables\Server::inUri('/favicon.ico') // /favicon request rewritten cookies fix
+     && ! apbct__is_wp_rocket_preloader_request()
 ) {
     if ( $apbct->data['cookies_type'] !== 'alternative' ) {
         if ( !$apbct->settings['forms__search_test'] && !Get::get('s') ) { //skip cookie set for search form redirect page
@@ -668,9 +677,9 @@ add_action('init', 'apbct_plugin_loaded');
 
 if ( ! empty($apbct->settings['data__use_ajax']) &&
      ! apbct_is_in_uri('.xml') &&
-     ! apbct_is_in_uri('.xsl') ) {
-    add_action('wp_ajax_nopriv_ct_get_cookie', 'ct_get_cookie', 1);
-    add_action('wp_ajax_ct_get_cookie', 'ct_get_cookie', 1);
+     ! apbct_is_in_uri('.xsl')
+) {
+    $apbct->ajax_service->addPublicAction('ct_get_cookie', 'ct_get_cookie');
 }
 
 // Admin panel actions
@@ -1465,11 +1474,29 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
 
     //Reset keys
     $urls          = array_values(array_unique($urls));
-    $results       = Helper::httpMultiRequest($urls, $apbct->fw_stats['updating_folder']);
+
+    $results = array();
+    $batch_size = 10;
+    $total_urls = count($urls);
+    $batches = ceil($total_urls / $batch_size);
+
+    for ($i = 0; $i < $batches; $i++) {
+        $batch_urls = array_slice($urls, $i * $batch_size, $batch_size);
+        if (!empty($batch_urls)) {
+            $http_results = Helper::httpMultiRequest($batch_urls, $apbct->fw_stats['updating_folder']);
+            if (is_array($http_results)) {
+                $results = array_merge($results, $http_results);
+            }
+            // to handle case if we request only one url, then Helper::httpMultiRequest returns string 'success' instead of array
+            if (count($batch_urls) === 1 && $http_results === 'success') {
+                $results = array_merge($results, $batch_urls);
+            }
+        }
+    }
+
     $results       = TT::toArray($results);
     $count_urls    = count($urls);
     $count_results = count($results);
-
 
     if ( empty($results['error']) && ($count_urls === $count_results) ) {
         if ( $direct_update ) {
@@ -2726,7 +2753,7 @@ function ct_account_status_check($api_key = null, $process_errors = true)
             $apbct->data['wl_support_email'] = isset($result['wl_support_email'])
                 ? Sanitize::cleanEmail($result['wl_support_email'])
                 : $apbct->default_data['wl_support_email'];
-            $plugin_data_wl = get_file_data('cleantalk-spam-protect/cleantalk.php', array('Description' => 'Description'));
+            $plugin_data_wl = get_file_data(__FILE__, array('Description' => 'Description'));
             $plugin_data_wl = is_array($plugin_data_wl) && isset($plugin_data_wl['Description'])
                 ? $plugin_data_wl['Description']
                 : 'No description provided';

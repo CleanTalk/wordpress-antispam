@@ -11,6 +11,14 @@ jQuery(document).ready(function($) {
         .css('display', 'inline-block');
 
     jQuery('body').on('click', '.apbct-notice .notice-dismiss-link', function(e) {
+        jQuery(e.target).parent()
+            .parent('.notice')
+            .after('<div id="apbct-notice-dismiss-success" class="notice notice-success is-dismissible"><p>' +
+                ctAdminCommon.apbctNoticeDismissSuccess +
+                '</p></div>');
+        setTimeout(function() {
+            jQuery('#apbct-notice-dismiss-success').fadeOut();
+        }, 2000);
         jQuery(e.target).parent().siblings('.apbct-notice .notice-dismiss').click();
     });
     jQuery('body').on('click', '.apbct-notice .notice-dismiss', function(e) {
@@ -26,14 +34,6 @@ jQuery(document).ready(function($) {
                     'notJson': true,
                 },
             );
-            jQuery(e.target)
-                .parent('.notice')
-                .after('<div id="apbct-notice-dismiss-success" class="notice notice-success is-dismissible"><p>' +
-                    ctAdminCommon.apbctNoticeDismissSuccess +
-                    '</p></div>');
-            setTimeout(function() {
-                jQuery('#apbct-notice-dismiss-success').fadeOut();
-            }, 2000);
         }
     });
 
@@ -80,33 +80,6 @@ jQuery(document).ready(function($) {
                 }
             },
         });
-    });
-
-    // Deactivation banner
-    jQuery('#deactivate-cleantalk-spam-protect').on('click', function(e) {
-        e.preventDefault();
-        let deactivationLink = this.getAttribute('href');
-        if ( typeof cleantalkModal !== 'undefined' && ctAdminCommon.deactivation_banner_is_needed === '1') {
-            // force replace raw link to the href - fix for https://doboard.com/1/task/10192
-            bannertText = ctAdminCommon.deactivation_banner_text
-                .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
-            const modalHTML = `
-                <div class="ct-modal-message">
-                    ${bannertText}
-                </div>
-                <div class="ct-modal-buttons">
-                    <button class="button action" onclick="cleantalkModal.close();">Ok</button>
-                    <a class="button action" href="${deactivationLink}">No, deactivate anyway</a>
-                </div>
-            `;
-            // look ahead ^ deactivationLink in the href was broken after modal handler URL converison
-            cleantalkModal.loaded = modalHTML;
-            // ignore URL conversions due modal handler
-            cleantalkModal.ignoreURLConvert = true;
-            cleantalkModal.open();
-        } else {
-            window.location.href = deactivationLink;
-        }
     });
 
     // Email decoder example

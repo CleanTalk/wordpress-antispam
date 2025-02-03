@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\FindSpam;
 
+use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\FindSpam\ListTable\BadUsers;
 use Cleantalk\ApbctWP\FindSpam\ListTable\UsersLogs;
 use Cleantalk\ApbctWP\FindSpam\ListTable\UsersScan;
@@ -13,6 +14,7 @@ class UsersChecker extends Checker
 {
     public function __construct()
     {
+        global $apbct;
         parent::__construct();
 
         $this->page_title       = esc_html__('Check users for spam', 'cleantalk-spam-protect');
@@ -42,7 +44,7 @@ class UsersChecker extends Checker
             APBCT_VERSION
         );
         wp_localize_script('ct_users_checkspam', 'ctUsersCheck', array(
-            'ct_ajax_nonce'            => wp_create_nonce('ct_secret_nonce'),
+            'ct_ajax_nonce'            => $apbct->ajax_service->getAdminNonce(),
             'ct_prev_accurate'         => ! empty($prev_check['accurate']) ? true : false,
             'ct_prev_from'             => ! empty($prev_check_from) ? $prev_check_from : false,
             'ct_prev_till'             => ! empty($prev_check_till) ? $prev_check_till : false,
@@ -189,10 +191,6 @@ class UsersChecker extends Checker
             }
 
             $user_meta = self::getUserMeta($user->ID);
-            if (empty($user_meta)) {
-                unset($users[$index]);
-                continue;
-            }
             $ip_of_user_meta = TT::getArrayValueAsString($user_meta, 'ip');
             $user_ip    = ! empty($ip_of_user_meta) ? trim($ip_of_user_meta) : false;
             $user_email = ! empty($user->user_email) ? trim($user->user_email) : false;
@@ -283,6 +281,7 @@ class UsersChecker extends Checker
         $this->list_table = new UsersScan();
 
         $this->getCurrentScanPanel($this);
+        echo UsersScan::getExtraTableNavInsertDeleteUsers();
         echo '<form action="" method="POST">';
         $this->list_table->display();
         echo '</form>';
@@ -374,7 +373,7 @@ class UsersChecker extends Checker
 
     public static function ctAjaxCheckUsers()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins();
 
         $userScanParameters = new UsersScanParameters($_POST);
 
@@ -395,7 +394,7 @@ class UsersChecker extends Checker
      */
     public static function ctAjaxClearUsers()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins();
 
         global $wpdb, $apbct;
 
@@ -411,7 +410,7 @@ class UsersChecker extends Checker
     public static function ctAjaxInfo($direct_call = false)
     {
         if ( ! $direct_call ) {
-            apbct__check_admin_ajax_request();
+            AJAXService::checkNonceRestrictingNonAdmins();
         }
 
         global $wpdb, $apbct;
@@ -510,7 +509,7 @@ class UsersChecker extends Checker
      */
     public static function ctGetCsvFile()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins();
 
         $text = 'login,email,ip' . PHP_EOL;
 
@@ -527,17 +526,18 @@ class UsersChecker extends Checker
 
         $u = get_users($params);
         foreach ( $u as $iValue ) {
-            $user_meta = get_user_meta($iValue->ID, 'session_tokens', true);
-            $user_meta_array = reset($user_meta);
-            $user_meta_array = !empty($user_meta_array) ? $user_meta_array : false;
-            // skip empty or invalid data users
-            if (!$user_meta_array || !is_array($user_meta_array)) {
-                continue;
+            // gain IP from meta session_tokens
+            $ip_of_user_meta = 'N/A';
+            $user_meta_session_tokens = get_user_meta($iValue->ID, 'session_tokens', true);
+            if (!empty($user_meta_session_tokens) && is_array($user_meta_session_tokens)) {
+                $user_meta_array = reset($user_meta_session_tokens);
+                $user_meta_array = !empty($user_meta_array) && is_array($user_meta_array) ? $user_meta_array : false;
+                $ip_of_user_meta = $user_meta_array ? TT::getArrayValueAsString($user_meta_array, 'ip') : $ip_of_user_meta;
             }
-            $ip_of_user_meta = TT::getArrayValueAsString($user_meta_array, 'ip');
+
             $text .= $iValue->user_login . ',';
             $text .= $iValue->data->user_email . ',';
-            $text .= ! empty($ip_of_user_meta) ? trim($ip_of_user_meta) : '';
+            $text .= $ip_of_user_meta;
             $text .= PHP_EOL;
         }
 
@@ -554,7 +554,7 @@ class UsersChecker extends Checker
 
     public static function ctAjaxInsertUsers()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins();
 
         global $wpdb;
 
@@ -577,8 +577,10 @@ class UsersChecker extends Checker
 
         // TEST INSERTION
         $to_insert = 500;
+        $query = 'SELECT network FROM `' . APBCT_TBL_FIREWALL_DATA . '` LIMIT ' . $to_insert . ';';
+
         $result    = $wpdb->get_results(
-            'SELECT network FROM `' . APBCT_TBL_FIREWALL_DATA . '` LIMIT ' . $to_insert . ';',
+            $query,
             ARRAY_A
         );
 
@@ -593,7 +595,7 @@ class UsersChecker extends Checker
                 $rnd = mt_rand(1, 10000000);
 
                 $user_name = "user_$rnd";
-                $email     = "stop_email_$rnd@example.com";
+                $email     = TT::toString($rnd - mt_rand(1, 10000)) . "_stop_email_$rnd@example.com";
 
                 $user_id = wp_create_user(
                     $user_name,
@@ -623,7 +625,7 @@ class UsersChecker extends Checker
 
     public static function ctAjaxDeleteAllUsers($count_all = 0)
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins();
 
         global $wpdb;
 

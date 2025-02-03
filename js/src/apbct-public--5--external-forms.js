@@ -15,6 +15,7 @@ function ctProtectExternal() {
 
             // Ajax checking for the integrated forms - will be changed the whole form object to make protection
             if ( isIntegratedForm(currentForm) ) {
+                console.log('isIntegratedForm', currentForm);
                 apbctProcessExternalForm(currentForm, i, document);
 
             // Ajax checking for the integrated forms - will be changed only submit button to make protection
@@ -26,6 +27,7 @@ function ctProtectExternal() {
                 (typeof(currentForm.action) == 'string' &&
                 currentForm.querySelector('[href*="activecampaign"]'))
             ) {
+                console.log('isIntegratedFormByFakeButton', currentForm);
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
             // Common flow - modify form's action
             } else if (
@@ -33,11 +35,13 @@ function ctProtectExternal() {
                 ( currentForm.action.indexOf('http://') !== -1 ||
                 currentForm.action.indexOf('https://') !== -1 )
             ) {
+                console.log('isIntegratedFormByAction', currentForm);
                 let tmp = currentForm.action.split('//');
                 tmp = tmp[1].split('/');
                 const host = tmp[0].toLowerCase();
 
                 if (host !== location.hostname.toLowerCase()) {
+                    console.log('isIntegratedFormByAction - host !== location.hostname.toLowerCase()', currentForm);
                     const ctAction = document.createElement('input');
                     ctAction.name = 'cleantalk_hidden_action';
                     ctAction.value = currentForm.action;
@@ -292,8 +296,35 @@ function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObj
 
     documentObject.forms[iterator].onsubmit = function(event) {
         event.preventDefault();
+
+        // MooSend spinner activate
+        apbctMoosendSpinnerToggle(event.currentTarget);
+
         sendAjaxCheckingFormData(event.currentTarget);
     };
+}
+
+/**
+ * Activate or deactivate spinner for Moosend form during request checking
+ * @param {HTMLElement} form
+ */
+function apbctMoosendSpinnerToggle(form) {
+    const buttonElement = form.querySelector('button[type="submit"]');
+    if ( buttonElement ) {
+        const spinner = buttonElement.querySelector('i');
+        const submitText = buttonElement.querySelector('span');
+        if (spinner && submitText) {
+            if ( spinner.style.zIndex == 1 ) {
+                submitText.style.opacity = 1;
+                spinner.style.zIndex = -1;
+                spinner.style.opacity = 0;
+            } else {
+                submitText.style.opacity = 0;
+                spinner.style.zIndex = 1;
+                spinner.style.opacity = 1;
+            }
+        }
+    }
 }
 
 /**
@@ -305,9 +336,12 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     const inputsSource = formSource.querySelectorAll('button, input, textarea, select');
     const inputsTarget = formTarget.querySelectorAll('button, input, textarea, select');
 
+    console.log('apbctReplaceInputsValuesFromOtherForm', formSource, formTarget);
+
     if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1 ||
         isFormHasDiviRedirect(formSource) ||
-        formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1
+        formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1 ||
+        formSource.outerHTML.indexOf('action="https://api.kit.com') !== -1
     ) {
         inputsSource.forEach((elemSource) => {
             inputsTarget.forEach((elemTarget) => {
@@ -338,7 +372,7 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
 }
 // clear protected iframes list
 apbctLocalStorage.set('apbct_iframes_protected', []);
-window.onload = function() {
+window.addEventListener('load', function() {
     if ( ! +ctPublic.settings__forms__check_external ) {
         return;
     }
@@ -351,7 +385,7 @@ window.onload = function() {
     }, 2000);
 
     ctProtectKlaviyoForm();
-};
+});
 
 /**
  * Protect klaviyo forms
@@ -417,6 +451,7 @@ function ctProtectOutsideIframe() {
             if (iframe.src.indexOf('form.typeform.com') !== -1 ||
                 iframe.src.indexOf('forms.zohopublic.com') !== -1 ||
                 iframe.src.indexOf('link.surepathconnect.com') !== -1 ||
+                iframe.src.indexOf('hello.dubsado.com') !== -1 ||
                 iframe.classList.contains('hs-form-iframe') ||
                 ( iframe.src.indexOf('facebook.com') !== -1 && iframe.src.indexOf('plugins/comments.php') !== -1)
             ) {
@@ -600,7 +635,8 @@ function isIntegratedForm(formObj) {
     if (
         (
             formAction.indexOf('app.convertkit.com') !== -1 || // ConvertKit form
-            formAction.indexOf('app.kit.com') !== -1 // ConvertKit new form
+            formAction.indexOf('app.kit.com') !== -1 || // ConvertKit new form
+            formAction.indexOf('api.kit.com') !== -1 // ConvertKit new form
         ) ||
         ( formObj.firstChild.classList !== undefined &&
         formObj.firstChild.classList.contains('cb-form-group') ) || // Convertbox form
@@ -690,7 +726,20 @@ function sendAjaxCheckingFormData(form) {
         {
             async: false,
             callback: function( result, data, params, obj ) {
+                // MooSend spinner deactivate
+                apbctMoosendSpinnerToggle(form);
                 if ( result.apbct === undefined || ! +result.apbct.blocked ) {
+                    // Clear service fields
+                    for (const el of form.querySelectorAll('input[name="apbct_visible_fields"]')) {
+                        el.remove();
+                    }
+                    for (const el of form.querySelectorAll('input[value="cleantalk_force_ajax_check"]')) {
+                        el.remove();
+                    }
+                    for (const el of form.querySelectorAll('input[name="ct_no_cookie_hidden_field"]')) {
+                        el.remove();
+                    }
+
                     // Klaviyo integration
                     if (form.classList !== undefined && form.classList.contains('klaviyo-form')) {
                         const cover = document.getElementById('apbct-klaviyo-cover');
@@ -751,7 +800,10 @@ function sendAjaxCheckingFormData(form) {
                     apbctReplaceInputsValuesFromOtherForm(formNew, formOriginal);
 
                     // mautic forms integration
-                    if (formOriginal.id.indexOf('mautic') !== -1) {
+                    if (formOriginal &&
+                        typeof formOriginal.id === 'string' &&
+                        formOriginal.id.indexOf('mautic') !== -1
+                    ) {
                         mauticIntegration = true;
                     }
 
@@ -786,6 +838,11 @@ function sendAjaxCheckingFormData(form) {
 
                     // ConvertKit direct integration
                     submButton = formOriginal.querySelectorAll('button[data-element="submit"]');
+                    if ( submButton.length !== 0 ) {
+                        submButton[0].click();
+                        return;
+                    }
+                    submButton = formOriginal.querySelectorAll('button#ck_subscribe_button');
                     if ( submButton.length !== 0 ) {
                         submButton[0].click();
                         return;

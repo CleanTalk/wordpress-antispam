@@ -18,7 +18,7 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/js_keys__get", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => 'apbct_js_keys__get__ajax',
+                'callback'            => array(AJAXService::class, 'getJSKeys'),
                 'permission_callback' => '__return_true',
             )
         ));
@@ -26,7 +26,7 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/apbct_get_pixel_url", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => 'apbct_get_pixel_url__ajax',
+                'callback'            => 'apbct_get_pixel_url',
                 'permission_callback' => '__return_true',
             )
         ));

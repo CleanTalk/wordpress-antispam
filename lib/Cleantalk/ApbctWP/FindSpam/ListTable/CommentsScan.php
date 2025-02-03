@@ -51,15 +51,15 @@ class CommentsScan extends Comments
         $button_id_spam  = ($which) ? "ct_spam_all_$which" : "ct_spam_all";
         $button_id_trash = ($which) ? "ct_trash_all_$which" : "ct_trash_all";
         ?>
-        <div class="alignleft actions bulkactions">
+        <div class="alignleft actions bulkactions apbct-table-actions-wrapper">
             <button type="button" id="<?php
             echo $button_id_spam; ?>" class="button action ct_spam_all"><?php
                 esc_html_e('Mark as spam all comments from the list', 'cleantalk-spam-protect'); ?></button>
             <button type="button" id="<?php
             echo $button_id_trash; ?>" class="button action ct_trash_all"><?php
                 esc_html_e('Move to trash all comments from the list', 'cleantalk-spam-protect'); ?></button>
-            <span class="spinner"></span>
         </div>
+        <span class="spinner" style="float: left"></span>
         <?php
     }
 }
