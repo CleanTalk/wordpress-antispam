@@ -2,7 +2,6 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
-use AllowDynamicProperties;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Helper;
