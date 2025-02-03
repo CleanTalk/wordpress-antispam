@@ -43,12 +43,12 @@ class Server extends ServerVariables
         }
 
         // Convert to upper case for REQUEST_METHOD
-        if ($name === 'REQUEST_METHOD') {
+        if ( is_string($value) && $name === 'REQUEST_METHOD' ) {
             $value = strtoupper($value);
         }
 
         // Convert HTML chars for HTTP_USER_AGENT, HTTP_USER_AGENT, SERVER_NAME
-        if (in_array($name, array('HTTP_USER_AGENT', 'HTTP_USER_AGENT', 'SERVER_NAME'))) {
+        if ( is_string($value) && in_array($name, array('HTTP_USER_AGENT', 'HTTP_USER_AGENT', 'SERVER_NAME')) ) {
             $value = htmlspecialchars($value);
         }
 
@@ -92,7 +92,7 @@ class Server extends ServerVariables
      */
     public static function getDomain()
     {
-        preg_match('@\S+\.(\S+)\/?$@', self::get('HTTP_HOST'), $matches);
+        preg_match('@\S+\.(\S+)\/?$@', self::getString('HTTP_HOST'), $matches);
 
         return isset($matches[1]) ? $matches[1] : false;
     }
