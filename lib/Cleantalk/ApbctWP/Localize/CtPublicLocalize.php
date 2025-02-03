@@ -14,7 +14,7 @@ class CtPublicLocalize
         global $apbct;
 
         $localize_array = array(
-            '_ajax_nonce'                     => wp_create_nonce('ct_secret_stuff'), // !!! For WP-Rocket minification preventing !!!
+            '_ajax_nonce'                     => $apbct->ajax_service->getPublicNonce(), // !!! For WP-Rocket minification preventing !!!
             'settings__forms__check_internal' => $apbct->settings['forms__check_internal'],
             'settings__forms__check_external' => $apbct->settings['forms__check_external'],
             'settings__forms__force_protection' => $apbct->settings['forms__force_protection'],

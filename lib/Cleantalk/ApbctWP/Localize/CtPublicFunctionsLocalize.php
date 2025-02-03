@@ -15,7 +15,7 @@ class CtPublicFunctionsLocalize
         global $apbct;
 
         return array(
-            '_ajax_nonce'                          => wp_create_nonce('ct_secret_stuff'),
+            '_ajax_nonce'                          => $apbct->ajax_service->getPublicNonce(),
             '_rest_nonce'                          => wp_create_nonce('wp_rest'),
             '_ajax_url'                            => admin_url('admin-ajax.php', 'relative'),
             '_rest_url'                            => Escape::escUrl(apbct_get_rest_url()),

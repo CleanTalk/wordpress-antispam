@@ -410,7 +410,7 @@ class AdminNotices
 
     public function setNoticeDismissed()
     {
-        check_ajax_referer('ct_secret_nonce');
+        AJAXService::checkAdminNonce();
 
         if ( ! Post::get('notice_id') ) {
             wp_send_json_error(esc_html__('Wrong request.', 'cleantalk-spam-protect'));
