@@ -1697,6 +1697,8 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
         return $spam;
     }
 
+    apbct_form__get_no_cookie_data();
+
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get($ct_checkjs_cf7)));
     /**
      * Filter for POST
