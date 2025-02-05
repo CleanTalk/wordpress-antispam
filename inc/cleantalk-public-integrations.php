@@ -1697,6 +1697,8 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
         return $spam;
     }
 
+    apbct_form__get_no_cookie_data();
+
     $checkjs = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ?: apbct_js_test(Sanitize::cleanTextField(Post::get($ct_checkjs_cf7)));
     /**
      * Filter for POST
@@ -3906,6 +3908,38 @@ function apbct_memberpress_signup_request_test()
                 'sender_emails_array' => isset($params['emails_array']) ? $params['emails_array'] : '',
             ),
         )
+    );
+
+    if (isset($base_call_result['ct_result'])) {
+        $ct_result = $base_call_result['ct_result'];
+        if ((int)$ct_result->allow === 0) {
+            $ct_comment = $ct_result->comment;
+            ct_die(null, null);
+        }
+    }
+
+    $cleantalk_executed = true;
+}
+
+function apbct_leakyPaywall_request_test()
+{
+    global $cleantalk_executed, $ct_comment;
+
+    if ($cleantalk_executed) {
+        return;
+    }
+
+    $input_array = apply_filters('apbct__filter_post', $_POST);
+    $params = ct_gfa_dto($input_array);
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => $params->email,
+            'sender_nickname' => $params->nickname,
+            'post_info'       => array('comment_type' => 'leakyPaywall_signup_form'),
+            'sender_info'     => ['sender_emails_array' => $params->emails_array],
+        ),
+        true
     );
 
     if (isset($base_call_result['ct_result'])) {
