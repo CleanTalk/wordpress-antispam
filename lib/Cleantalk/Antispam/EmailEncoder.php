@@ -885,7 +885,7 @@ class EmailEncoder
     {
         foreach ( $this->attribute_exclusions_signs as $tag => $array_of_attributes ) {
             foreach ( $array_of_attributes as $attribute ) {
-                $pattern = '/<' . $tag . '.*' . $attribute . '=".*' . $email_match . '.*"/';
+                $pattern = '/<' . $tag . '+\s+[^>]*\b' . $attribute . '="[^"]*\b' . $email_match . '\b[^"]*"[^>]*>/m';
                 preg_match($pattern, $this->temp_content, $attr_match);
                 if ( !empty($attr_match) ) {
                     return true;
