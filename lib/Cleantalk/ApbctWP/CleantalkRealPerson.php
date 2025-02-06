@@ -30,7 +30,13 @@ class CleantalkRealPerson
     public function publicCommentAddTrpClass($classes, $_css_class, $comment_id, $comment, $_post)
     {
         $ct_hash = get_comment_meta((int)$comment_id, 'ct_real_user_badge_hash', true);
-        if ( $ct_hash && $comment->comment_author ) {
+        //var_dump($comment);
+        $ct_hash = true;
+        if (
+            $ct_hash &&
+            $comment->comment_author &&
+            !email_exists($comment->comment_author_email)
+        ) {
             $classes[] = 'apbct-trp';
             return $classes;
         }
