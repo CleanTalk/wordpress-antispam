@@ -4100,6 +4100,11 @@ function ctCheckHiddenFieldsExclusions(form, hiddenFieldType) {
     if (formAction.indexOf('secure.payu.com') !== -1 ) {
         return true;
     }
+
+    if (formAction.indexOf('hsforms') !== -1 ) {
+        return true;
+    }
+
     if (typeof (hiddenFieldType) === 'string' &&
         ['visible_fields', 'no_cookie'].indexOf(hiddenFieldType) !== -1) {
         const exclusions = ctGetHiddenFieldExclusionsType(form);
@@ -4617,7 +4622,6 @@ function ctProtectExternal() {
 
             // Ajax checking for the integrated forms - will be changed the whole form object to make protection
             if ( isIntegratedForm(currentForm) ) {
-                console.log('isIntegratedForm', currentForm);
                 apbctProcessExternalForm(currentForm, i, document);
 
             // Ajax checking for the integrated forms - will be changed only submit button to make protection
@@ -4627,7 +4631,8 @@ function ctProtectExternal() {
                 (typeof(currentForm.action) == 'string' &&
                 (currentForm.action.indexOf('webto.salesforce.com') !== -1)) ||
                 (typeof(currentForm.action) == 'string' &&
-                currentForm.querySelector('[href*="activecampaign"]'))
+                currentForm.querySelector('[href*="activecampaign"]')) ||
+                (currentForm.action.indexOf('hsforms.com') !== -1 && currentForm.getAttribute('data-hs-cf-bound'))
             ) {
                 console.log('isIntegratedFormByFakeButton', currentForm);
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
@@ -4637,7 +4642,6 @@ function ctProtectExternal() {
                 ( currentForm.action.indexOf('http://') !== -1 ||
                 currentForm.action.indexOf('https://') !== -1 )
             ) {
-                console.log('isIntegratedFormByAction', currentForm);
                 let tmp = currentForm.action.split('//');
                 tmp = tmp[1].split('/');
                 const host = tmp[0].toLowerCase();
@@ -4735,7 +4739,11 @@ function formIsExclusion(currentForm) {
             }
             const formClass = foundClass;
             if ( formClass !== null && typeof formClass !== 'undefined' && formClass.indexOf(exclusionClass) !== -1 ) {
-                result = true;
+                if (currentForm.getAttribute('data-hs-cf-bound')) {
+                    result = false;
+                } else {
+                    result = true;
+                }
             }
         });
 
@@ -4937,8 +4945,6 @@ function apbctMoosendSpinnerToggle(form) {
 function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     const inputsSource = formSource.querySelectorAll('button, input, textarea, select');
     const inputsTarget = formTarget.querySelectorAll('button, input, textarea, select');
-
-    console.log('apbctReplaceInputsValuesFromOtherForm', formSource, formTarget);
 
     if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1 ||
         isFormHasDiviRedirect(formSource) ||
@@ -5342,6 +5348,11 @@ function sendAjaxCheckingFormData(form) {
                         el.remove();
                     }
 
+                    const isHubSpotEmbedForm = (
+                        form.hasAttribute('action') &&
+                        form.getAttribute('action').indexOf('hsforms') !== -1
+                    );
+
                     // Klaviyo integration
                     if (form.classList !== undefined && form.classList.contains('klaviyo-form')) {
                         const cover = document.getElementById('apbct-klaviyo-cover');
@@ -5381,8 +5392,13 @@ function sendAjaxCheckingFormData(form) {
                         return;
                     }
 
-                    // Active Campaign integration
-                    if (form.querySelector('[href*="activecampaign"]')) {
+
+                    if (
+                        // Active Campaign integration
+                        form.querySelector('[href*="activecampaign"]') ||
+                        // Hubspot bounded integration
+                        isHubSpotEmbedForm
+                    ) {
                         let submitButton = form.querySelector('[type="submit"]');
                         submitButton.remove();
                         const parent = form.apbctParent;
@@ -5458,6 +5474,12 @@ function sendAjaxCheckingFormData(form) {
                 }
                 if (result.apbct !== undefined && +result.apbct.blocked) {
                     ctParseBlockMessage(result);
+                    // hubspot embed form needs to reload page to prevent forms mishandling
+                    if (isHubSpotEmbedForm) {
+                        setTimeout(function() {
+                            document.location.reload();
+                        }, 3000);
+                    }
                 }
             },
         });

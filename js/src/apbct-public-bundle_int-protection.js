@@ -4100,6 +4100,11 @@ function ctCheckHiddenFieldsExclusions(form, hiddenFieldType) {
     if (formAction.indexOf('secure.payu.com') !== -1 ) {
         return true;
     }
+
+    if (formAction.indexOf('hsforms') !== -1 ) {
+        return true;
+    }
+
     if (typeof (hiddenFieldType) === 'string' &&
         ['visible_fields', 'no_cookie'].indexOf(hiddenFieldType) !== -1) {
         const exclusions = ctGetHiddenFieldExclusionsType(form);
