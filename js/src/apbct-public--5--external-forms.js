@@ -667,6 +667,7 @@ function isIntegratedForm(formObj) {
         isFormHasDiviRedirect(formObj) || // Divi contact form
         formAction.indexOf('eocampaign1.com') !== -1 || // EmailOctopus Campaign form
         formAction.indexOf('wufoo.com') !== -1 || // Wufoo form
+        formAction.indexOf('publisher.copernica.com') !== -1 || // publisher.copernica
         ( formObj.classList !== undefined &&
             formObj.classList.contains('sp-element-container') ) // Sendpulse form
     ) {
@@ -729,6 +730,11 @@ function sendAjaxCheckingFormData(form) {
             callback: function( result, data, params, obj ) {
                 // MooSend spinner deactivate
                 apbctMoosendSpinnerToggle(form);
+                // hubspot flag
+                const isHubSpotEmbedForm = (
+                    form.hasAttribute('action') &&
+                    form.getAttribute('action').indexOf('hsforms') !== -1
+                );
                 if ( result.apbct === undefined || ! +result.apbct.blocked ) {
                     // Clear service fields
                     for (const el of form.querySelectorAll('input[name="apbct_visible_fields"]')) {
@@ -740,11 +746,6 @@ function sendAjaxCheckingFormData(form) {
                     for (const el of form.querySelectorAll('input[name="ct_no_cookie_hidden_field"]')) {
                         el.remove();
                     }
-
-                    const isHubSpotEmbedForm = (
-                        form.hasAttribute('action') &&
-                        form.getAttribute('action').indexOf('hsforms') !== -1
-                    );
 
                     // Klaviyo integration
                     if (form.classList !== undefined && form.classList.contains('klaviyo-form')) {
