@@ -27,7 +27,6 @@ function ctProtectExternal() {
                 currentForm.querySelector('[href*="activecampaign"]')) ||
                 (currentForm.action.indexOf('hsforms.com') !== -1 && currentForm.getAttribute('data-hs-cf-bound'))
             ) {
-                console.log('isIntegratedFormByFakeButton', currentForm);
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
             // Common flow - modify form's action
             } else if (
@@ -40,7 +39,6 @@ function ctProtectExternal() {
                 const host = tmp[0].toLowerCase();
 
                 if (host !== location.hostname.toLowerCase()) {
-                    console.log('isIntegratedFormByAction - host !== location.hostname.toLowerCase()', currentForm);
                     const ctAction = document.createElement('input');
                     ctAction.name = 'cleantalk_hidden_action';
                     ctAction.value = currentForm.action;
