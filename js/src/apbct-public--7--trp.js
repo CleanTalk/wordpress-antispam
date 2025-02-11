@@ -38,6 +38,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     trpComments.forEach(( element, index ) => {
+        // Exceptions for items that are included in the selection
+        if (
+            element.parentElement.className.indexOf('group') < 0 &&
+            element.tagName != 'DIV'
+        ) {
+            return;
+        }
+
         let trpLayout = document.createElement('div');
         trpLayout.setAttribute('class', 'apbct-real-user-badge');
 
