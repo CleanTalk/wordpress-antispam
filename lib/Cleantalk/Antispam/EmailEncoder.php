@@ -253,7 +253,7 @@ class EmailEncoder
      */
     private static function dropAttributesContainEmail($content, $tags)
     {
-        $attribute_content_chunk = '[\s]{0,}=[\s]{0,}[\"\']\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}[\"\']';
+        $attribute_content_chunk = '[\s]{0,}=[\s]{0,}[\"\']\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\..*\b[\"\']';
         foreach ($tags as $tag => $attribute) {
             // Regular expression to match the attribute without the tag
             $regexp_chunk_without_tag = "/{$attribute}{$attribute_content_chunk}/";
