@@ -105,31 +105,20 @@ class Honeypot
         $honeypot_potential_values = array();
 
         if ( ! empty($_POST) ) {
-            $honeypot_potential_values = array_filter($_POST, function($key) {
+            $honeypot_potential_values = array_filter($_POST, function ($key) {
                 return strpos($key, 'apbct_email_id') !== false;
             }, ARRAY_FILTER_USE_KEY);
         }
 
         // AltSessions way to collect search forms honeypot
         if ( $apbct->settings['forms__search_test'] ) {
-            $alt_search_event_id = AltSessions::get("apbct_search_form__honeypot_id");
-            $alt_search_value = AltSessions::get("apbct_search_form__honeypot_value");
-            if ( $alt_search_event_id && $alt_search_value ) {
-                $honeypot_potential_values['apbct__email_id__search_form'] = $alt_search_value;
-            }
+            $honeypot_potential_values['apbct__email_id__search_form'] = AltSessions::get("apbct_search_form__honeypot_value");
         }
 
         // if source is filled then pass them to params as additional fields
         if ( ! empty($honeypot_potential_values) ) {
             foreach ( $honeypot_potential_values as $source_name => $source_value ) {
-
                 $hp_exists = true;
-
-                // handle search form separately
-                if ($source_name === 'apbct_email_id__search_form') {
-                    // @ ToDo check this $hp_id and remove it
-                    $hp_id = isset($alt_search_event_id) ? $alt_search_event_id : $hp_id;
-                }
 
                 // detect only values that is not empty (i.e. malformed)
                 if ( $source_value !== '' ) {

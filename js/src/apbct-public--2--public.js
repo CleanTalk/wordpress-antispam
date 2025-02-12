@@ -1258,16 +1258,14 @@ if (ctPublic.data__key_is_ok) {
 function ctSearchFormOnSubmitHandler(e, targetForm) {
     try {
         // get honeypot field and it's value
-        const honeyPotField = targetForm.querySelector('[name*="apbct__email_id__"]');
+        const honeyPotField = targetForm.querySelector('[name*="apbct_email_id__"]');
         let hpValue = null;
         let hpEventId = null;
         if (
             honeyPotField !== null &&
-            honeyPotField.value !== null &&
-            honeyPotField.getAttribute('apbct_event_id') !== null
+            honeyPotField.value !== null
         ) {
             hpValue = honeyPotField.value;
-            hpEventId = honeyPotField.getAttribute('apbct_event_id');
         }
 
         // get cookie data from storages
@@ -1293,9 +1291,8 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
             let cookiesArray = cleantalkStorageDataArray;
 
             // if honeypot data provided add the fields to the parsed data
-            if ( hpValue !== null && hpEventId !== null ) {
+            if ( hpValue !== null ) {
                 cookiesArray.apbct_search_form__honeypot_value = hpValue;
-                cookiesArray.apbct_search_form__honeypot_id = hpEventId;
             }
 
             // set event token
