@@ -22,7 +22,7 @@ class Honeypot
 
         // generate the honeypot trap input
         $honeypot =
-            '<label>' . // field label (preventing validators warning)
+            '<label class="apbct_special_field">' . // field label (preventing validators warning)
                 '<input
                     class="apbct_special_field apbct__email_id__' . $form_type . '"
                     name="apbct_email_id__' . $form_type . '"
