@@ -3298,7 +3298,7 @@ if (ctPublic.data__key_is_ok) {
 function ctSearchFormOnSubmitHandler(e, targetForm) {
     try {
         // get honeypot field and it's value
-        const honeyPotField = targetForm.querySelector('[id*="apbct__email_id__"]');
+        const honeyPotField = targetForm.querySelector('[name*="apbct__email_id__"]');
         let hpValue = null;
         let hpEventId = null;
         if (

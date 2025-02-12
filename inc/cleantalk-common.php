@@ -1296,6 +1296,7 @@ function apbct__change_type_website_field($fields)
 add_filter('woocommerce_checkout_fields', 'apbct__wc_add_honeypot_field');
 function apbct__wc_add_honeypot_field($fields)
 {
+    error_log(var_export($fields, true));
     if (apbct_exclusions_check__url()) {
         return $fields;
     }
