@@ -3546,7 +3546,8 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
                 selectableEmail.title = ctPublicFunctions.text__ee_click_to_select;
                 // add email to the first node
                 if (firstNode) {
-                    firstNode.innerHTML = ctPublicFunctions.text__ee_original_email + '&nbsp;' + selectableEmail.outerHTML;
+                    let msg = ctPublicFunctions.text__ee_original_email + '&nbsp;' + selectableEmail.outerHTML;
+                    firstNode.innerHTML = msg;
                     firstNode.setAttribute('style', 'flex-direction: row;');
                 }
                 // remove animation
