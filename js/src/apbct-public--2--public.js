@@ -1260,7 +1260,6 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
         // get honeypot field and it's value
         const honeyPotField = targetForm.querySelector('[name*="apbct_email_id__"]');
         let hpValue = null;
-        let hpEventId = null;
         if (
             honeyPotField !== null &&
             honeyPotField.value !== null
