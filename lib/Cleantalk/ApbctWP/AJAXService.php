@@ -193,8 +193,22 @@ class AJAXService
                 ? static::checkPublicNonce()
                 : static::checkAdminNonce();
 
-            if ($handler_class && is_callable(array($handler_class, $ajax_handler))) {
-                call_user_func(array($handler_class, $ajax_handler), $args);
+            if ($handler_class &&
+                is_array($current_hook_data['ajax_handler']) &&
+                isset($current_hook_data['ajax_handler'][1])
+            ) {
+                $method = $current_hook_data['ajax_handler'][1];
+
+                // Use Reflection to check if method is static
+                $reflection = new \ReflectionMethod($handler_class, $method);
+                $is_static = $reflection->isStatic();
+                
+                if ($is_static) {
+                    $handler_class::$method($args);
+                } else {
+                    $instance = new $handler_class();
+                    $instance->$method($args);
+                }
             } else if (is_callable($ajax_handler)) {
                 call_user_func($ajax_handler, $args);
             }
