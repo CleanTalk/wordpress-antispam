@@ -64,14 +64,14 @@ function ctFillDecodedEmailHandler(event = false) {
         // todo make translatable
         let popupTextWaiting = document.createElement('p');
         popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_first';
-        popupTextWaiting.innerText = 'The magic is on the way, please wait for a few seconds!';
+        popupTextWaiting.innerText = ctPublicFunctions.text__ee_wait_for_decoding;
         popupTextWaiting.setAttribute('class', 'apbct-email-encoder-elements_center');
 
         // construct text second node
         // todo make translatable
         let popupTextDecoding = document.createElement('p');
         popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_second';
-        popupTextDecoding.innerText = 'Decoding process to the original data.';
+        popupTextDecoding.innerText = ctPublicFunctions.text__ee_decoding_process;
 
         // appending
         popupTextWrapper.append(popupTextWaiting);
@@ -82,8 +82,7 @@ function ctFillDecodedEmailHandler(event = false) {
         document.body.append(waitingPopup);
     } else {
         encoderPopup.setAttribute('style', 'display: inherit');
-        document.getElementById('apbct_popup_text').innerHTML =
-            'Please wait while ' + ctWlBrandname + ' is decoding the email addresses.';
+        document.getElementById('apbct_popup_text').innerHTML = ctPublicFunctions.text__ee_wait_for_decoding_2;
     }
 
     apbctAjaxEmailDecodeBulk(event, encodedEmail, clickSource);
@@ -222,10 +221,11 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
                 let selectableEmail = document.createElement('b');
                 selectableEmail.setAttribute('class', 'apbct-email-encoder-select-whole-email');
                 selectableEmail.innerText = email;
-                selectableEmail.title = 'Click to select the whole data';
+                selectableEmail.title = ctPublicFunctions.text__ee_click_to_select;
                 // add email to the first node
                 if (firstNode) {
-                    firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML;
+                    let msg = ctPublicFunctions.text__ee_original_email + '&nbsp;' + selectableEmail.outerHTML;
+                    firstNode.innerHTML = msg;
                     firstNode.setAttribute('style', 'flex-direction: row;');
                 }
                 // remove animation
@@ -243,7 +243,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
                 buttonWrapper.classList = 'apbct-email-encoder-elements_center top-margin-long';
                 if (!document.querySelector('.apbct-email-encoder-got-it-button')) {
                     let button = document.createElement('button');
-                    button.innerText = 'Got it';
+                    button.innerText = ctPublicFunctions.text__ee_got_it;
                     button.classList = 'apbct-email-encoder-got-it-button';
                     button.addEventListener('click', function() {
                         document.body.classList.remove('apbct-popup-fade');
@@ -263,10 +263,10 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
         if (clickSource) {
             if (result.success) {
                 resetEncodedNodes();
-                ctShowDecodeComment('Blocked: ' + result.data[0].comment);
+                ctShowDecodeComment(ctPublicFunctions.text__ee_blocked + ': ' + result.data[0].comment);
             } else {
                 resetEncodedNodes();
-                ctShowDecodeComment('Cannot connect with CleanTalk server: ' + result.data[0].comment);
+                ctShowDecodeComment(ctPublicFunctions.text__ee_cannot_connect + ': ' + result.apbct.comment);
             }
         } else {
             console.log('result', result);
@@ -291,14 +291,14 @@ function resetEncodedNodes() {
  */
 function ctShowDecodeComment(comment) {
     if ( ! comment ) {
-        comment = 'Can not decode email. Unknown reason';
+        comment = ctPublicFunctions.text__ee_cannot_decode;
     }
 
     let popup = document.getElementById('apbct_popup');
     let popupText = document.getElementById('apbct_popup_text');
     if (popup !== null) {
         document.body.classList.remove('apbct-popup-fade');
-        popupText.innerText = 'CleanTalk email decoder: ' + comment;
+        popupText.innerText = ctPublicFunctions.text__ee_email_decoder + ': ' + comment;
         setTimeout(function() {
             popup.setAttribute('style', 'display:none');
         }, 3000);
