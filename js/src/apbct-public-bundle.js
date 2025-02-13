@@ -4497,6 +4497,7 @@ document.addEventListener('DOMContentLoaded', function() {
     trpComments.forEach(( element, index ) => {
         // Exceptions for items that are included in the selection
         if (
+            typeof pagenow == 'undefined' &&
             element.parentElement.className.indexOf('group') < 0 &&
             element.tagName != 'DIV'
         ) {
