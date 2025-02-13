@@ -6,8 +6,12 @@ class AwesomeSupportTickets extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        $email = wp_get_current_user() ? wp_get_current_user()->user_email : '';
-        return ct_gfa_dto(apply_filters('apbct__filter_post', $_POST), $email)->getArray();
+        global $apbct;
+
+        if ($apbct->settings['data__protect_logged_in'] == 1) {
+            $email = wp_get_current_user() ? wp_get_current_user()->user_email : '';
+            return ct_gfa_dto(apply_filters('apbct__filter_post', $_POST), $email)->getArray();
+        }
     }
 
     public function doBlock($message)
