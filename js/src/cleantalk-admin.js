@@ -98,6 +98,7 @@ jQuery(document).ready(function($) {
 /**
  * @param {mixed} event
  */
+/*
 function ctFillDecodedEmailHandler() {
     document.body.classList.add('apbct-popup-fade');
     let encoderPopup = document.getElementById('apbct_popup');
@@ -150,9 +151,11 @@ function ctFillDecodedEmailHandler() {
 
     apbctAjaxEmailDecodeBulk(ctAdminCommon.encodedEmailNode);
 }
+*/
 /**
  * @return {HTMLElement} event
  */
+/*
 function apbctSetEmailDecoderPopupAnimation() {
     const animationElements = ['apbct_dog_one', 'apbct_dog_two', 'apbct_dog_three'];
     const animationWrapper = document.createElement('div');
@@ -165,10 +168,11 @@ function apbctSetEmailDecoderPopupAnimation() {
     }
     return animationWrapper;
 }
-
+*/
 /**
  * @param {HTMLElement} encodedEmailNode
  */
+/*
 function apbctAjaxEmailDecodeBulk(encodedEmailNode) {
     const encodedEmail = encodedEmailNode.dataset.originalString;
     let data = {
@@ -193,11 +197,12 @@ function apbctAjaxEmailDecodeBulk(encodedEmailNode) {
         },
     );
 }
-
+*/
 /**
  * @param {mixed} result
  * @param {mixed} encodedEmailNode
  */
+/*
 function apbctEmailEncoderCallbackBulk(result, encodedEmailNode) {
     if (result.success && result.data[0].is_allowed === true) {
         // start process of visual decoding
@@ -243,12 +248,13 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNode) {
         console.log('result', result);
     }
 }
-
+*/
 /**
  * Run filling for every node with decoding result.
  * @param {mixed} encodedEmailNode
  * @param {mixed} decodingResult
  */
+/*
 function fillDecodedEmails(encodedEmailNode, decodingResult) {
     let currentResultData = decodingResult.data[0].decoded_email;
     encodedEmailNode.classList.add('no-blur');
@@ -260,11 +266,12 @@ function fillDecodedEmails(encodedEmailNode, decodingResult) {
     }, 2000);
     encodedEmailNode.removeEventListener('click', ctFillDecodedEmailHandler);
 }
-
+*/
 /**
  * @param {mixed} target
  * @param {string} email
  */
+/*
 function ctFillDecodedEmail(target, email) {
     jQuery(target).html(
         jQuery(target)
@@ -272,7 +279,7 @@ function ctFillDecodedEmail(target, email) {
             .replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1'),
     );
 }
-
+*/
 // eslint-disable-next-line camelcase,require-jsdoc,no-unused-vars
 function apbct_admin_sendAJAX(data, params, obj) {
     // Default params
