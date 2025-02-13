@@ -28,17 +28,9 @@ function ctSetCookie( cookies, value, expires ) {
     if ( ctPublicFunctions.data__cookies_type === 'none' ) {
         let forcedAltCookiesSet = [];
         cookies.forEach( function(item) {
-            if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
-                if (item[0] == 'apbct_email_encoder_passed') {
-                    console.log('listOfCookieNamesToForceAlt ' + item);
-                }
-                
+            if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {                
                 forcedAltCookiesSet.push(item);
             } else {
-                if (item[0] == 'apbct_email_encoder_passed') {
-                    console.log('apbctLocalStorage ' + item);
-                }
-
                 apbctLocalStorage.set(item[0], item[1]);
             }
         });

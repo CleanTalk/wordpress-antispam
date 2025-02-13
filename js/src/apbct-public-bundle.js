@@ -1415,17 +1415,9 @@ function ctSetCookie( cookies, value, expires ) {
     if ( ctPublicFunctions.data__cookies_type === 'none' ) {
         let forcedAltCookiesSet = [];
         cookies.forEach( function(item) {
-            if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
-                if (item[0] == 'apbct_email_encoder_passed') {
-                    console.log('listOfCookieNamesToForceAlt ' + item);
-                }
-                
+            if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {                
                 forcedAltCookiesSet.push(item);
             } else {
-                if (item[0] == 'apbct_email_encoder_passed') {
-                    console.log('apbctLocalStorage ' + item);
-                }
-
                 apbctLocalStorage.set(item[0], item[1]);
             }
         });
@@ -3374,298 +3366,6 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
         console.warn('APBCT search form onsubmit handler error. ' + error);
     }
 }
-
-/**
- * @param {mixed} event
- */
-/*
-function ctFillDecodedEmailHandler(event) {
-    this.removeEventListener('click', ctFillDecodedEmailHandler);
-    // remember clickSource
-    let clickSource = this;
-    // globally remember if emails is mixed with mailto
-    ctPublic.encodedEmailNodesIsMixed = false;
-    // get fade
-    document.body.classList.add('apbct-popup-fade');
-    // popup show
-    let encoderPopup = document.getElementById('apbct_popup');
-    if (!encoderPopup) {
-        // construct popup
-        let waitingPopup = document.createElement('div');
-        waitingPopup.setAttribute('class', 'apbct-popup apbct-email-encoder-popup');
-        waitingPopup.setAttribute('id', 'apbct_popup');
-
-        // construct text header
-        let popupHeaderWrapper = document.createElement('span');
-        popupHeaderWrapper.classList = 'apbct-email-encoder-elements_center';
-        let popupHeader = document.createElement('p');
-        popupHeader.innerText = ctPublic.wl_brandname;
-        popupHeader.setAttribute('class', 'apbct-email-encoder--popup-header');
-        popupHeaderWrapper.append(popupHeader);
-
-        // construct text wrapper
-        let popupTextWrapper = document.createElement('div');
-        popupTextWrapper.setAttribute('id', 'apbct_popup_text');
-        popupTextWrapper.setAttribute('class', 'apbct-email-encoder-elements_center');
-        popupTextWrapper.style.color = 'black';
-
-        // construct text first node
-        // todo make translatable
-        let popupTextWaiting = document.createElement('p');
-        popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_first';
-        popupTextWaiting.innerText = 'The magic is on the way, please wait for a few seconds!';
-        popupTextWaiting.setAttribute('class', 'apbct-email-encoder-elements_center');
-
-        // construct text second node
-        // todo make translatable
-        let popupTextDecoding = document.createElement('p');
-        popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_second';
-        popupTextDecoding.innerText = 'Decoding process to the original data.';
-
-        // appending
-        popupTextWrapper.append(popupTextWaiting);
-        popupTextWrapper.append(popupTextDecoding);
-        waitingPopup.append(popupHeaderWrapper);
-        waitingPopup.append(popupTextWrapper);
-        waitingPopup.append(apbctSetEmailDecoderPopupAnimation());
-        document.body.append(waitingPopup);
-    } else {
-        encoderPopup.setAttribute('style', 'display: inherit');
-        document.getElementById('apbct_popup_text').innerHTML =
-            'Please wait while ' + ctPublic.wl_brandname + ' is decoding the email addresses.';
-    }
-
-    apbctAjaxEmailDecodeBulk(event, ctPublic.encodedEmailNodes, clickSource);
-}
-*/
-/**
- * @return {HTMLElement} event
- */
-/*
-function apbctSetEmailDecoderPopupAnimation() {
-    const animationElements = ['apbct_dog_one', 'apbct_dog_two', 'apbct_dog_three'];
-    const animationWrapper = document.createElement('div');
-    animationWrapper.classList = 'apbct-ee-animation-wrapper';
-    for (let i = 0; i < animationElements.length; i++) {
-        const apbctEEAnimationDogOne = document.createElement('span');
-        apbctEEAnimationDogOne.classList = 'apbct_dog ' + animationElements[i];
-        apbctEEAnimationDogOne.innerText = '@';
-        animationWrapper.append(apbctEEAnimationDogOne);
-    }
-    return animationWrapper;
-}*/
-
-/**
- * @param {mixed} event
- * @param {mixed} encodedEmailNodes
- * @param {mixed} clickSource
- */
-/*
-function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
-    // collect data
-    const javascriptClientData = getJavascriptClientData();
-    let data = {
-        event_javascript_data: javascriptClientData,
-        post_url: document.location.href,
-        referrer: document.referrer,
-        encodedEmails: '',
-    };
-    let encodedEmailsCollection = {};
-    for (let i = 0; i < encodedEmailNodes.length; i++) {
-        // disable click for mailto
-        if (typeof encodedEmailNodes[i].href !== 'undefined' && encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
-            event.preventDefault();
-            ctPublic.encodedEmailNodesIsMixed = true;
-        }
-
-        // Adding a tooltip
-        let apbctTooltip = document.createElement('div');
-        apbctTooltip.setAttribute('class', 'apbct-tooltip');
-        apbct(encodedEmailNodes[i]).append(apbctTooltip);
-
-        // collect encoded email strings
-        encodedEmailsCollection[i] = encodedEmailNodes[i].dataset.originalString;
-    }
-
-    // JSONify encoded email strings
-    data.encodedEmails = JSON.stringify(encodedEmailsCollection);
-
-    // Using REST API handler
-    if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
-        apbct_public_sendREST(
-            'apbct_decode_email',
-            {
-                data: data,
-                method: 'POST',
-                callback: function(result) {
-                    // set alternative cookie to skip next pages encoding
-                    ctSetCookie('apbct_email_encoder_passed', ctPublic.emailEncoderPassKey);
-                    apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource);
-                },
-                onErrorCallback: function(res) {
-                    resetEncodedNodes();
-                    ctShowDecodeComment(res);
-                },
-            },
-        );
-
-        // Using AJAX request and handler
-    } else {
-        data.action = 'apbct_decode_email';
-        apbct_public_sendAJAX(
-            data,
-            {
-                notJson: false,
-                callback: function(result) {
-                    // set alternative cookie to skip next pages encoding
-                    ctSetCookie('apbct_email_encoder_passed', ctPublic.emailEncoderPassKey);
-                    apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource);
-                },
-                onErrorCallback: function(res) {
-                    resetEncodedNodes();
-                    ctShowDecodeComment(res);
-                },
-            },
-        );
-    }
-}
-*/
-/**
- * @param {mixed} result
- * @param {mixed} encodedEmailNodes
- * @param {mixed} clickSource
- */
-/*
-function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource) {
-    if (result.success && result.data[0].is_allowed === true) {
-        // start process of visual decoding
-        setTimeout(function() {
-            // popup remove
-            let popup = document.getElementById('apbct_popup');
-            if (popup !== null) {
-                let currentResultData;
-                result.data.forEach((row) => {
-                    if (row.encoded_email === clickSource.dataset.originalString) {
-                        currentResultData = row;
-                    }
-                });
-
-                let email = currentResultData.decoded_email.split(/[&?]/)[0];
-                // handle first node
-                let firstNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_first');
-                // get email selectable by click
-                let selectableEmail = document.createElement('b');
-                selectableEmail.setAttribute('class', 'apbct-email-encoder-select-whole-email');
-                selectableEmail.innerText = email;
-                selectableEmail.title = 'Click to select the whole data';
-                // add email to the first node
-                if (firstNode) {
-                    firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML;
-                    firstNode.setAttribute('style', 'flex-direction: row;');
-                }
-                // remove animation
-                let wrapper = popup.querySelector('.apbct-ee-animation-wrapper');
-                if (wrapper) {
-                    wrapper.remove();
-                }
-                // remove second node
-                let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
-                if (secondNode) {
-                    secondNode.remove();
-                }
-                // add button
-                let buttonWrapper = document.createElement('span');
-                buttonWrapper.classList = 'apbct-email-encoder-elements_center top-margin-long';
-                if (!document.querySelector('.apbct-email-encoder-got-it-button')) {
-                    let button = document.createElement('button');
-                    button.innerText = 'Got it';
-                    button.classList = 'apbct-email-encoder-got-it-button';
-                    button.addEventListener('click', function() {
-                        document.body.classList.remove('apbct-popup-fade');
-                        popup.setAttribute('style', 'display:none');
-                        fillDecodedEmails(encodedEmailNodes, result);
-                        // click on mailto if so
-                        if (ctPublic.encodedEmailNodesIsMixed) {
-                            clickSource.click();
-                        }
-                    });
-                    buttonWrapper.append(button);
-                    popup.append(buttonWrapper);
-                }
-            }
-        }, 3000);
-    } else {
-        if (result.success) {
-            resetEncodedNodes();
-            ctShowDecodeComment('Blocked: ' + result.data[0].comment);
-        } else {
-            resetEncodedNodes();
-            ctShowDecodeComment('Cannot connect with CleanTalk server: ' + result.data[0].comment);
-        }
-    }
-}*/
-/**
- * Run filling for every node with decoding result.
- * @param {mixed} encodedEmailNodes
- * @param {mixed} decodingResult
- */
-/*
-function fillDecodedEmails(encodedEmailNodes, decodingResult) {
-    for (let i = 0; i < encodedEmailNodes.length; i++) {
-        // chek what is what
-        let currentResultData;
-        decodingResult.data.forEach((row) => {
-            if (row.encoded_email === encodedEmailNodes[i].dataset.originalString) {
-                currentResultData = row;
-            }
-        });
-        // quit case on cloud block
-        if (currentResultData.is_allowed === false) {
-            return;
-        }
-        // handler for mailto
-        if (
-            typeof encodedEmailNodes[i].href !== 'undefined' &&
-            encodedEmailNodes[i].href.indexOf('mailto:') === 0
-        ) {
-            let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
-            let baseElementContent = encodedEmailNodes[i].innerHTML;
-            encodedEmailNodes[i].innerHTML = baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
-            encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
-
-            encodedEmailNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((el) => {
-                let encodedEmailTextInsideMailto = '';
-                decodingResult.data.forEach((row) => {
-                    if (row.encoded_email === el.dataset.originalString) {
-                        encodedEmailTextInsideMailto = row.decoded_email;
-                    }
-                });
-                el.innerHTML = encodedEmailTextInsideMailto;
-            });
-        } else {
-            encodedEmailNodes[i].classList.add('no-blur');
-            // fill the nodes
-            setTimeout(() => {
-                ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
-            }, 2000);
-        }
-        // remove listeners
-        encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
-    }
-}
-*/
-/**
- * resetEncodedNodes
- */
-/*
-function resetEncodedNodes() {
-    if (typeof ctPublic.encodedEmailNodes !== 'undefined') {
-        ctPublic.encodedEmailNodes.forEach(function(element) {
-            element.addEventListener('click', ctFillDecodedEmailHandler);
-        });
-    }
-}*/
-
 /**
  * @param {mixed} commonCookies
  * @return {string}
@@ -3783,51 +3483,6 @@ function removeDoubleJsonEncoding(object) {
 
     return object;
 }
-
-/**
- * @param {mixed} response
- * @param {mixed} targetElement
- */
-/*
-function ctProcessDecodedDataResult(response, targetElement) {
-    targetElement.setAttribute('title', '');
-    targetElement.removeAttribute('style');
-    ctFillDecodedEmail(targetElement, response.decoded_email);
-}*/
-
-/**
- * @param {mixed} target
- * @param {string} email
- */
-/*
-function ctFillDecodedEmail(target, email) {
-    apbct(target).html(
-        apbct(target)
-            .html()
-            .replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1'),
-    );
-}
-*/
-/**
- * @param {string} comment
- */
-/*
-function ctShowDecodeComment(comment) {
-    if ( ! comment ) {
-        comment = 'Can not decode email. Unknown reason';
-    }
-
-    let popup = document.getElementById('apbct_popup');
-    let popupText = document.getElementById('apbct_popup_text');
-    if (popup !== null) {
-        document.body.classList.remove('apbct-popup-fade');
-        popupText.innerText = 'CleanTalk email decoder: ' + comment;
-        setTimeout(function() {
-            popup.setAttribute('style', 'display:none');
-        }, 3000);
-    }
-}
-*/
 // eslint-disable-next-line camelcase,require-jsdoc
 function apbct_collect_visible_fields( form ) {
     // Get only fields
@@ -4698,14 +4353,14 @@ function ctFillDecodedEmailHandler(event = false) {
         // todo make translatable
         let popupTextWaiting = document.createElement('p');
         popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_first';
-        popupTextWaiting.innerText = 'The magic is on the way, please wait for a few seconds!';
+        popupTextWaiting.innerText = ctPublicFunctions.text__ee_wait_for_decoding;
         popupTextWaiting.setAttribute('class', 'apbct-email-encoder-elements_center');
 
         // construct text second node
         // todo make translatable
         let popupTextDecoding = document.createElement('p');
         popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_second';
-        popupTextDecoding.innerText = 'Decoding process to the original data.';
+        popupTextDecoding.innerText = ctPublicFunctions.text__ee_decoding_process;
 
         // appending
         popupTextWrapper.append(popupTextWaiting);
@@ -4716,8 +4371,7 @@ function ctFillDecodedEmailHandler(event = false) {
         document.body.append(waitingPopup);
     } else {
         encoderPopup.setAttribute('style', 'display: inherit');
-        document.getElementById('apbct_popup_text').innerHTML =
-            'Please wait while ' + ctWlBrandname + ' is decoding the email addresses.';
+        document.getElementById('apbct_popup_text').innerHTML = ctPublicFunctions.text__ee_wait_for_decoding_2;
     }
 
     apbctAjaxEmailDecodeBulk(event, encodedEmail, clickSource);
@@ -4856,10 +4510,11 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
                 let selectableEmail = document.createElement('b');
                 selectableEmail.setAttribute('class', 'apbct-email-encoder-select-whole-email');
                 selectableEmail.innerText = email;
-                selectableEmail.title = 'Click to select the whole data';
+                selectableEmail.title = ctPublicFunctions.text__ee_click_to_select;
                 // add email to the first node
                 if (firstNode) {
-                    firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML;
+                    let msg = ctPublicFunctions.text__ee_original_email + '&nbsp;' + selectableEmail.outerHTML;
+                    firstNode.innerHTML = msg;
                     firstNode.setAttribute('style', 'flex-direction: row;');
                 }
                 // remove animation
@@ -4877,7 +4532,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
                 buttonWrapper.classList = 'apbct-email-encoder-elements_center top-margin-long';
                 if (!document.querySelector('.apbct-email-encoder-got-it-button')) {
                     let button = document.createElement('button');
-                    button.innerText = 'Got it';
+                    button.innerText = ctPublicFunctions.text__ee_got_it;
                     button.classList = 'apbct-email-encoder-got-it-button';
                     button.addEventListener('click', function() {
                         document.body.classList.remove('apbct-popup-fade');
@@ -4897,10 +4552,10 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
         if (clickSource) {
             if (result.success) {
                 resetEncodedNodes();
-                ctShowDecodeComment('Blocked: ' + result.data[0].comment);
+                ctShowDecodeComment(ctPublicFunctions.text__ee_blocked + ': ' + result.data[0].comment);
             } else {
                 resetEncodedNodes();
-                ctShowDecodeComment('Cannot connect with CleanTalk server: ' + result.data[0].comment);
+                ctShowDecodeComment(ctPublicFunctions.text__ee_cannot_connect + ': ' + result.apbct.comment);
             }
         } else {
             console.log('result', result);
@@ -4925,14 +4580,14 @@ function resetEncodedNodes() {
  */
 function ctShowDecodeComment(comment) {
     if ( ! comment ) {
-        comment = 'Can not decode email. Unknown reason';
+        comment = ctPublicFunctions.text__ee_cannot_decode;
     }
 
     let popup = document.getElementById('apbct_popup');
     let popupText = document.getElementById('apbct_popup_text');
     if (popup !== null) {
         document.body.classList.remove('apbct-popup-fade');
-        popupText.innerText = 'CleanTalk email decoder: ' + comment;
+        popupText.innerText = ctPublicFunctions.text__ee_email_decoder + ': ' + comment;
         setTimeout(function() {
             popup.setAttribute('style', 'display:none');
         }, 3000);
