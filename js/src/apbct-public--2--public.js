@@ -1330,7 +1330,7 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
  * @param {mixed} commonCookies
  * @return {string}
  */
-function getJavascriptClientData(commonCookies = []) {
+function getJavascriptClientData(commonCookies = []) { // eslint-disable-line no-unused-vars
     let resultDataJson = {};
 
     resultDataJson.ct_checked_emails = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails');

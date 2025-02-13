@@ -28,7 +28,7 @@ function ctSetCookie( cookies, value, expires ) {
     if ( ctPublicFunctions.data__cookies_type === 'none' ) {
         let forcedAltCookiesSet = [];
         cookies.forEach( function(item) {
-            if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {                
+            if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
                 forcedAltCookiesSet.push(item);
             } else {
                 apbctLocalStorage.set(item[0], item[1]);

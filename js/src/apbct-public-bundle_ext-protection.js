@@ -1415,7 +1415,7 @@ function ctSetCookie( cookies, value, expires ) {
     if ( ctPublicFunctions.data__cookies_type === 'none' ) {
         let forcedAltCookiesSet = [];
         cookies.forEach( function(item) {
-            if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {                
+            if (listOfCookieNamesToForceAlt.indexOf(item[0]) !== -1) {
                 forcedAltCookiesSet.push(item);
             } else {
                 apbctLocalStorage.set(item[0], item[1]);
@@ -3370,7 +3370,7 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
  * @param {mixed} commonCookies
  * @return {string}
  */
-function getJavascriptClientData(commonCookies = []) {
+function getJavascriptClientData(commonCookies = []) { // eslint-disable-line no-unused-vars
     let resultDataJson = {};
 
     resultDataJson.ct_checked_emails = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails');
@@ -5351,8 +5351,6 @@ function ctFillDecodedEmailHandler(event = false) {
     document.body.classList.add('apbct-popup-fade');
     // popup show
     let encoderPopup = document.getElementById('apbct_popup');
-    //let ctWlBrandname = typeof ctPublic !== 'undefined' ? ctPublic.wl_brandname : ctAdminCommon.plugin_name;
-
     if (!encoderPopup) {
         // construct popup
         let waitingPopup = document.createElement('div');
@@ -5419,7 +5417,10 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
         let encodedEmailsCollection = {};
         for (let i = 0; i < encodedEmailNodes.length; i++) {
             // disable click for mailto
-            if (typeof encodedEmailNodes[i].href !== 'undefined' && encodedEmailNodes[i].href.indexOf('mailto:') === 0) {
+            if (
+                typeof encodedEmailNodes[i].href !== 'undefined' &&
+                encodedEmailNodes[i].href.indexOf('mailto:') === 0
+            ) {
                 event.preventDefault();
                 ctPublic.encodedEmailNodesIsMixed = true;
             }
@@ -5456,7 +5457,7 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
             );
 
             // Using AJAX request and handler
-        } else {            
+        } else {
             data.action = 'apbct_decode_email';
             apbct_public_sendAJAX(
                 data,
@@ -5482,12 +5483,12 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
         let data = {
             encodedEmails: JSON.stringify({0: encodedEmail}),
         };
-    
+
         // Adding a tooltip
         let apbctTooltip = document.createElement('div');
         apbctTooltip.setAttribute('class', 'apbct-tooltip');
         jQuery(encodedEmailNodes).append(apbctTooltip);
-    
+
         apbct_admin_sendAJAX(
             {
                 'action': 'apbct_decode_email',
@@ -5516,7 +5517,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
             let popup = document.getElementById('apbct_popup');
             if (popup !== null) {
                 let email = '';
-                if (clickSource) {                    
+                if (clickSource) {
                     let currentResultData;
                     result.data.forEach((row) => {
                         if (row.encoded_email === clickSource.dataset.originalString) {
@@ -5624,7 +5625,7 @@ function ctShowDecodeComment(comment) {
  * @param {mixed} decodingResult
  */
 function fillDecodedEmails(encodedEmailNodes, decodingResult) {
-    if (encodedEmailNodes.length > 0) {        
+    if (encodedEmailNodes.length > 0) {
         for (let i = 0; i < encodedEmailNodes.length; i++) {
             // chek what is what
             let currentResultData;
@@ -5644,7 +5645,10 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
             ) {
                 let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
                 let baseElementContent = encodedEmailNodes[i].innerHTML;
-                encodedEmailNodes[i].innerHTML = baseElementContent.replace(encodedEmail, currentResultData.decoded_email);
+                encodedEmailNodes[i].innerHTML = baseElementContent.replace(
+                    encodedEmail,
+                    currentResultData.decoded_email,
+                );
                 encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
 
                 encodedEmailNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((el) => {
@@ -5667,7 +5671,7 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
             encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
         }
     } else {
-        let currentResultData = decodingResult.data[0];        
+        let currentResultData = decodingResult.data[0];
         encodedEmailNodes.classList.add('no-blur');
         // fill the nodes
         setTimeout(() => {
@@ -5691,7 +5695,7 @@ function ctProcessDecodedDataResult(response, targetElement) {
  * @param {mixed} target
  * @param {string} email
  */
-function ctFillDecodedEmail(target, email) {    
+function ctFillDecodedEmail(target, email) {
     jQuery(target).html(
         jQuery(target)
             .html()
