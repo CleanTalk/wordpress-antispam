@@ -2,7 +2,6 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
-use AllowDynamicProperties;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Helper;
@@ -518,7 +517,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         parent::diePage('');
 
         $localize_js = array(
-            '_ajax_nonce'                          => wp_create_nonce('ct_secret_stuff'),
+            '_ajax_nonce'                          => $apbct->ajax_service->getPublicNonce(),
             '_rest_nonce'                          => wp_create_nonce('wp_rest'),
             '_ajax_url'                            => admin_url('admin-ajax.php', 'relative'),
             '_rest_url'                            => esc_url(get_rest_url()),

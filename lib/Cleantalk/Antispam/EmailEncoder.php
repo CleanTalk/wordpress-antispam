@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Antispam;
 
+use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
@@ -51,6 +52,8 @@ class EmailEncoder
         array('leaflet'),
         // prevent broking elementor swiper gallery
         array('class', 'elementor-swiper', 'elementor-testimonial', 'swiper-pagination'),
+        // ics-calendar
+        array('ics_calendar'),
     );
 
     /**
@@ -251,7 +254,7 @@ class EmailEncoder
      */
     private static function dropAttributesContainEmail($content, $tags)
     {
-        $attribute_content_chunk = '[\s]{0,}=[\s]{0,}[\"\']\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}[\"\']';
+        $attribute_content_chunk = '[\s]{0,}=[\s]{0,}[\"\']\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\..*\b[\"\']';
         foreach ($tags as $tag => $attribute) {
             // Regular expression to match the attribute without the tag
             $regexp_chunk_without_tag = "/{$attribute}{$attribute_content_chunk}/";
@@ -275,7 +278,7 @@ class EmailEncoder
      */
     public function modifyEmails($content)
     {
-        $pattern = '/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/';
+        $pattern = '/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b))/';
         $replacing_result = '';
 
         if ( version_compare(phpversion(), '7.4.0', '>=') ) {
@@ -364,7 +367,7 @@ class EmailEncoder
     public function ajaxDecodeEmailHandler()
     {
         if (! defined('REST_REQUEST') && !apbct_is_user_logged_in()) {
-            check_ajax_referer('ct_secret_stuff');
+            AJAXService::checkPublicNonce();
         }
 
         // use non ssl mode for logged in user on settings page
@@ -883,7 +886,7 @@ class EmailEncoder
     {
         foreach ( $this->attribute_exclusions_signs as $tag => $array_of_attributes ) {
             foreach ( $array_of_attributes as $attribute ) {
-                $pattern = '/<' . $tag . '.*' . $attribute . '=".*' . $email_match . '.*"/';
+                $pattern = '/<' . $tag . '+\s+[^>]*\b' . $attribute . '="[^"]*\b' . $email_match . '\b[^"]*"[^>]*>/m';
                 preg_match($pattern, $this->temp_content, $attr_match);
                 if ( !empty($attr_match) ) {
                     return true;
