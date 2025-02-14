@@ -261,14 +261,14 @@ class GetFieldsAny
                         $arr['action'] === 'nf_ajax_submit' &&
                         isset($decoded_json_value['settings'])
                     ) {
-                            unset($decoded_json_value['settings']);
+                        unset($decoded_json_value['settings']);
                     }
 
                     $value = $decoded_json_value;
                 } elseif (
                     isset($decoded_url_value) &&
                     ! (count($decoded_url_value) === 1 &&
-                    reset($decoded_url_value) === '')
+                       reset($decoded_url_value) === '')
                 ) {
                     // If there is "URL data" set is it as a value
                     $value = $decoded_url_value;
@@ -290,6 +290,17 @@ class GetFieldsAny
              */
 
             if ( ! is_array($value) && ! is_object($value) ) {
+                // If $this->prev_name is not empty it is a recursion. So wrap the key with the '[]' brackets
+                $nested_array_key = $this->prev_name === '' ? $key : $this->prev_name . '[' . $key . ']';
+
+                // Bypass field collecting if it is not set in visible fields.
+                if (
+                    ! empty($this->visible_fields_arr) &&
+                    ! in_array($nested_array_key, $this->visible_fields_arr, true)
+                ) {
+                    continue;
+                }
+
                 if (
                     (in_array($key, $this->skip_params, true) && $key !== 0 && $key !== '') ||
                     0 === strpos($key, "ct_checkjs")
@@ -316,22 +327,15 @@ class GetFieldsAny
                     }
                 }
 
-                $value_for_email = trim(
-                    $this->stripShortcodes($value)
-                );    // Removes shortcodes to do better spam filtration on server side.
+                // Removes shortcodes to do better spam filtration on server side.
+                $value_for_email = trim($this->stripShortcodes($value));
                 // Removes whitespaces
                 $value = urldecode(trim($this->stripShortcodes($value))); // Fully cleaned message
 
                 // Email
                 $value_for_email = Validate::isUrlencoded($value_for_email) ? urldecode($value_for_email) : $value_for_email;
 
-                if (
-                    preg_match("/^\S+@\S+\.\S+$/", $value_for_email) &&
-                    (
-                        empty($this->visible_fields_arr) ||
-                        in_array($key, $this->visible_fields_arr, true)
-                    )
-                ) {
+                if ( preg_match("/^\S+@\S+\.\S+$/", $value_for_email) ) {
                     // Bypass email collecting if it is set by attribute.
                     if ($this->preprocessed_email) {
                         continue;
@@ -341,17 +345,13 @@ class GetFieldsAny
                         $this->dto->email = $value_for_email;
                     } else {
                         // if processed one is already exists, set it to the message field.
-                        $this->dto->message[$this->prev_name . $key] = $value_for_email;
+                        $this->dto->message[$nested_array_key] = $value_for_email;
                     }
-                    $this->dto->emails_array[$this->prev_name . $key] = $value_for_email;
+                    $this->dto->emails_array[$nested_array_key] = $value_for_email;
                     // Names
                 } elseif (false !== stripos($key, "name")) {
                     // Bypass name collecting if it is set by attribute or it is on invisible fields.
-                    if (
-                        $this->preprocessed_nickname &&
-                        (empty($this->visible_fields_arr) ||
-                         in_array($key, $this->visible_fields_arr, true))
-                    ) {
+                    if ( $this->preprocessed_nickname ) {
                         continue;
                     }
                     preg_match("/(name.?(your|first|for)|(your|first|for).?name)/", $key, $match_forename);
@@ -369,14 +369,14 @@ class GetFieldsAny
                     } elseif (count($match_nickname) > 1) {
                         $this->dto->nickname_nick = $value;
                     } else {
-                        $this->dto->message[$this->prev_name . $key] = $value;
+                        $this->dto->message[$nested_array_key] = $value;
                     }
                     // Subject
                 } elseif ($this->dto->subject === '' && false !== stripos($key, "subject")) {
                     $this->dto->subject = $value;
                     // Message
                 } else {
-                    $this->dto->message[$this->prev_name . $key] = $value;
+                    $this->dto->message[$nested_array_key] = $value;
                 }
             } elseif ( ! is_object($value)) {
                 /*
@@ -387,7 +387,7 @@ class GetFieldsAny
                 }
 
                 $prev_name_original = $this->prev_name;
-                $this->prev_name    = ($this->prev_name === '' ? $key . '_' : $this->prev_name . $key . '_');
+                $this->prev_name    = ($this->prev_name === '' ? $key : $this->prev_name . $key);
 
                 $this->processRecursive($value);
 
@@ -601,8 +601,21 @@ class GetFieldsAny
             return $fields;
         }
 
+        // Foreach by $_POST and convert nested array to the inline variable like variable[nested_variable]
+        $fields = array();
+        foreach ($_POST as $key => $value) {
+            if (is_array($value)) {
+                foreach ($value as $nested_key => $nested_value) {
+                    // @todo Make recursive converting here
+                    $fields[$key . '[' . $nested_key . ']'] = $nested_value;
+                }
+            } else {
+                $fields[$key] = $value;
+            }
+        }
+
         // @ToDo we have to implement a logic to find form fields (fields names, fields count) in serialized/nested/encoded items. not only $_POST.
-        return $_POST;
+        return $fields;
     }
 
     /**

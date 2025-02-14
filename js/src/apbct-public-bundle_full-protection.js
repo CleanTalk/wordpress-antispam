@@ -3012,7 +3012,7 @@ function apbct_ready() {
                 if ( ctPublic.data__cookies_type !== 'native' && typeof event.target.ctFormIndex !== 'undefined' ) {
                     const visibleFields = {};
                     visibleFields[0] = apbct_collect_visible_fields(this);
-                    apbct_visible_fields_set_cookie( visibleFields, event.target.ctFormIndex );
+                    apbct_visible_fields_set_cookie( apbct_collect_visible_fields(this), event.target.ctFormIndex );
                 }
 
                 if (ctPublic.data__cookies_type === 'none' && isFormThatNeedCatchXhr(event.target)) {
