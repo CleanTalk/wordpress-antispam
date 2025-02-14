@@ -1121,7 +1121,25 @@ function ct_ajax_hook($message_obj = null)
             echo json_encode(
                 array(
                     'loggedin' => false,
-                    'message'     => $ct_result->comment,
+                    'message'  => $ct_result->comment,
+                )
+            );
+            die();
+        }
+
+        // ACF forms
+        if ( Post::get('action') === 'acf/validate_save_post' ) {
+            echo json_encode(
+                array(
+                    'success' => true,
+                    'data'    => array(
+                        'valid'  => 0,
+                        'errors' => array(
+                            array(
+                                'message' => $ct_result->comment,
+                            )
+                        )
+                    )
                 )
             );
             die();

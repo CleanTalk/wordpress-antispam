@@ -546,6 +546,16 @@ function apbct_is_skip_request($ajax = false)
             return 'paid_memberships_pro__login_form';
         }
 
+        if ( Post::get('action') === 'acf/validate_save_post'
+             && (
+                 apbct_is_plugin_active('advanced-custom-fields-pro/acf.php') ||
+                 apbct_is_plugin_active('advanced-custom-fields/acf.php')
+             )
+             && apbct_is_user_logged_in()
+        ) {
+            return 'ACF admin - skip post saving [acf/validate_save_post]';
+        }
+
         // Thrive Ultimatum
         if (
             apbct_is_plugin_active('thrive-ultimatum/thrive-ultimatum.php') &&
