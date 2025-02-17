@@ -3,6 +3,7 @@
 use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
+use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -538,7 +539,7 @@ function apbct_admin__enqueue_scripts($hook)
     );
 
     wp_localize_script('ct_admin_common', 'ctAdminCommon', array(
-        '_ajax_nonce'        => wp_create_nonce('ct_secret_nonce'),
+        '_ajax_nonce'        => $apbct->ajax_service->getAdminNonce(),
         '_ajax_url'          => admin_url('admin-ajax.php', 'relative'),
         'plugin_name'        => $apbct->plugin_name,
         'logo'               => '<img src="' . Escape::escUrl($apbct->logo) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
@@ -676,7 +677,7 @@ function apbct_admin__enqueue_scripts($hook)
             )
         );
         wp_localize_script('ct_comments_editscreen', 'ctCommentsScreen', array(
-            'ct_ajax_nonce'               => wp_create_nonce('ct_secret_nonce'),
+            'ct_ajax_nonce'               => $apbct->ajax_service->getAdminNonce(),
             'spambutton_text'             => __("Find spam comments", 'cleantalk-spam-protect'),
             'ct_feedback_msg_whitelisted' => __("The sender has been whitelisted.", 'cleantalk-spam-protect'),
             'ct_feedback_msg_blacklisted' => __("The sender has been blacklisted.", 'cleantalk-spam-protect'),
@@ -935,7 +936,7 @@ function apbct_admin__admin_bar__prepare_counters()
 
     //Reset or create user counter
     if ( ! empty(Get::get('ct_reset_user_counter')) ) {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins();
         $apbct->data['user_counter']['accepted'] = 0;
         $apbct->data['user_counter']['blocked']  = 0;
         $apbct->data['user_counter']['since']    = date('d M');
@@ -943,7 +944,7 @@ function apbct_admin__admin_bar__prepare_counters()
     }
     //Reset or create all counters
     if ( ! empty(Get::get('ct_reset_all_counters')) ) {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins();
         $apbct->data['admin_bar__sfw_counter']      = array('all' => 0, 'blocked' => 0);
         $apbct->data['admin_bar__all_time_counter'] = array('accepted' => 0, 'blocked' => 0);
         $apbct->data['user_counter']                = array(
@@ -1108,7 +1109,7 @@ function apbct_admin__admin_bar__add_child_nodes($wp_admin_bar)
         'id'     => 'ct_reset_counter',
         'title'  =>
             '<hr style="margin-top: 7px; border: 1px solid #888;">'
-            . '<a href="?' . http_build_query(array_merge($_GET, array('ct_reset_user_counter' => 1, 'security' => wp_create_nonce('ct_secret_nonce'))))
+            . '<a href="?' . http_build_query(array_merge($_GET, array('ct_reset_user_counter' => 1, 'security' => $apbct->ajax_service->getAdminNonce())))
             . '" title="Reset your personal counter of submissions.">'
             . __('Reset first counter', 'cleantalk-spam-protect') . '</a>',
     ));
@@ -1118,7 +1119,7 @@ function apbct_admin__admin_bar__add_child_nodes($wp_admin_bar)
         'parent' => 'apbct__parent_node',
         'id'     => 'ct_reset_counters_all',
         'title'  =>
-            '<a href="?' . http_build_query(array_merge($_GET, array('ct_reset_all_counters' => 1, 'security' => wp_create_nonce('ct_secret_nonce'))))
+            '<a href="?' . http_build_query(array_merge($_GET, array('ct_reset_all_counters' => 1, 'security' => $apbct->ajax_service->getAdminNonce())))
             . '" title="' . __('Reset all counters', 'cleantalk-spam-protect') . '">'
             . __('Reset all counters', 'cleantalk-spam-protect') . '</a>',
     ));
@@ -1339,7 +1340,7 @@ function apbct_comment__send_feedback(
 ) {
     // For AJAX call
     if ( ! $direct_call ) {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
     }
 
     $comment_id     = Post::get('comment_id') ? Post::getInt('comment_id') : $comment_id;
@@ -1449,7 +1450,7 @@ function apbct_woocommerce__orders_send_feedback(array $spam_ids, $orders_status
  */
 function apbct_user__send_feedback($user_id = null, $status = null, $direct_call = null)
 {
-    apbct__check_admin_ajax_request();
+    AJAXService::checkNonceRestrictingNonAdmins();
 
     if ( ! $direct_call ) {
         $user_id = Post::getInt('user_id');
@@ -1554,7 +1555,7 @@ add_action('manage_sites_custom_column', 'apbct__manage_sites_custom_column_acti
 add_action('wp_ajax_apbct_action_adjust_change', 'apbct_action_adjust_change');
 function apbct_action_adjust_change()
 {
-    check_ajax_referer('ct_secret_nonce');
+    AJAXService::checkAdminNonce();
 
     if (in_array(Post::get('adjust'), array_keys(AdjustToEnvironmentHandler::SET_OF_ADJUST))) {
         try {
@@ -1573,7 +1574,7 @@ function apbct_action_adjust_change()
 add_action('wp_ajax_apbct_action_adjust_reverse', 'apbct_action_adjust_reverse');
 function apbct_action_adjust_reverse()
 {
-    check_ajax_referer('ct_secret_nonce');
+    AJAXService::checkAdminNonce();
 
     if (in_array(Post::getString('adjust'), array_keys(AdjustToEnvironmentHandler::SET_OF_ADJUST))) {
         $adjust = Post::getString('adjust');

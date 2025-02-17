@@ -24,7 +24,7 @@ function apbct_init()
 
     // Pixel
     if ( $apbct->settings['data__pixel'] && empty($apbct->pixel_url) ) {
-        $apbct->pixel_url = apbct_get_pixel_url__ajax(true);
+        $apbct->pixel_url = apbct_get_pixel_url(true);
     }
 
     // Localize data
@@ -1207,7 +1207,7 @@ function ct_enqueue_scripts_public($_hook)
     if ( in_array("administrator", $current_user->roles) ) {
         // Admin javascript for managing comments on public pages
         if ( $apbct->settings['comments__manage_comments_on_public_page'] ) {
-            $ajax_nonce = wp_create_nonce("ct_secret_nonce");
+            $ajax_nonce = $apbct->ajax_service->getAdminNonce();
             wp_enqueue_script(
                 'ct_public_admin_js',
                 APBCT_JS_ASSETS_PATH . '/cleantalk-public-admin.min.js',

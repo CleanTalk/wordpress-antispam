@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Antispam;
 
+use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
@@ -366,7 +367,7 @@ class EmailEncoder
     public function ajaxDecodeEmailHandler()
     {
         if (! defined('REST_REQUEST') && !apbct_is_user_logged_in()) {
-            check_ajax_referer('ct_secret_stuff');
+            AJAXService::checkPublicNonce();
         }
 
         // use non ssl mode for logged in user on settings page

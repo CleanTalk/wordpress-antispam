@@ -4,7 +4,7 @@
         xmlns="https://getpsalm.org/schema/config"
         name="Psalm for Cleantalk AntiSpam Protection"
         autoloader="tests/bootstrap.php"
-        errorLevel="4"
+        errorLevel="3"
         throwExceptionOnError="0"
         findUnusedCode="true"
         ensureArrayStringOffsetsExist="true"

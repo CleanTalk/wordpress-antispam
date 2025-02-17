@@ -222,8 +222,8 @@ abstract class Cron
             }
 
             if (
-                $task_data['processing'] === false &&
-                $task_data['next_call'] <= time() // default condition
+                TT::getArrayValueAsBool($task_data, 'processing') === false &&
+                TT::getArrayValueAsInt($task_data, 'next_call') <= time() // default condition
             ) {
                 $task_data['processing'] = true;
                 $task_data['last_call']  = time();

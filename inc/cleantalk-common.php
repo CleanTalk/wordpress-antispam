@@ -650,15 +650,7 @@ function apbct_sender_info___get_page_url()
     return  $protocol . TT::toString(Server::get('SERVER_NAME')) . TT::toString(Server::get('REQUEST_URI'));
 }
 
-/*
- * Outputs JS key for AJAX-use only. Stops script.
- */
-function apbct_js_keys__get__ajax()
-{
-    die(json_encode(array('js_key' => ct_get_checkjs_value())));
-}
-
-function apbct_get_pixel_url__ajax($direct_call = false)
+function apbct_get_pixel_url($direct_call = false)
 {
     global $apbct;
 
@@ -750,8 +742,6 @@ function apbct_force_protection_check_bot()
 /**
  * Get ct_get_checkjs_value
  *
- * @param bool $random_key
- *
  * @return int|string|null
  */
 function ct_get_checkjs_value()
@@ -821,8 +811,6 @@ function ct_get_checkjs_value()
 
 function apbct_is_cache_plugins_exists($return_names = false)
 {
-    global $apbct;
-
     $out = array();
 
     $constants_of_cache_plugins = array(

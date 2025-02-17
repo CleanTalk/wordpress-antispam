@@ -550,7 +550,7 @@ class RemoteCalls
         $nonce_prev = Post::getString('nonce_prev');
         $nonce_name = apbct_settings__get_ajax_type() === 'rest'
             ? 'wp_rest'
-            : 'ct_secret_stuff';
+            : AJAXService::$public_nonce_id;
 
         // Check $nonce_prev by regexp '^[a-f0-9]{10}$'
         if ( ! preg_match('/^[a-f0-9]{10}$/', $nonce_prev) ) {

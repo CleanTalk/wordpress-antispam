@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\FindSpam;
 
+use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\FindSpam\ListTable\BadUsers;
 use Cleantalk\ApbctWP\FindSpam\ListTable\UsersLogs;
 use Cleantalk\ApbctWP\FindSpam\ListTable\UsersScan;
@@ -13,6 +14,7 @@ class UsersChecker extends Checker
 {
     public function __construct()
     {
+        global $apbct;
         parent::__construct();
 
         $this->page_title       = esc_html__('Check users for spam', 'cleantalk-spam-protect');
@@ -42,7 +44,7 @@ class UsersChecker extends Checker
             APBCT_VERSION
         );
         wp_localize_script('ct_users_checkspam', 'ctUsersCheck', array(
-            'ct_ajax_nonce'            => wp_create_nonce('ct_secret_nonce'),
+            'ct_ajax_nonce'            => $apbct->ajax_service->getAdminNonce(),
             'ct_prev_accurate'         => ! empty($prev_check['accurate']) ? true : false,
             'ct_prev_from'             => ! empty($prev_check_from) ? $prev_check_from : false,
             'ct_prev_till'             => ! empty($prev_check_till) ? $prev_check_till : false,
@@ -371,7 +373,7 @@ class UsersChecker extends Checker
 
     public static function ctAjaxCheckUsers()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         $userScanParameters = new UsersScanParameters($_POST);
 
@@ -392,7 +394,7 @@ class UsersChecker extends Checker
      */
     public static function ctAjaxClearUsers()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         global $wpdb, $apbct;
 
@@ -408,7 +410,7 @@ class UsersChecker extends Checker
     public static function ctAjaxInfo($direct_call = false)
     {
         if ( ! $direct_call ) {
-            apbct__check_admin_ajax_request();
+            AJAXService::checkNonceRestrictingNonAdmins('security');
         }
 
         global $wpdb, $apbct;
@@ -507,7 +509,7 @@ class UsersChecker extends Checker
      */
     public static function ctGetCsvFile()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         $text = 'login,email,ip' . PHP_EOL;
 
@@ -552,7 +554,7 @@ class UsersChecker extends Checker
 
     public static function ctAjaxInsertUsers()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         global $wpdb;
 
@@ -623,7 +625,7 @@ class UsersChecker extends Checker
 
     public static function ctAjaxDeleteAllUsers($count_all = 0)
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         global $wpdb;
 

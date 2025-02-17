@@ -94,14 +94,16 @@ class Helper
                     } else {
                         $source = $headers['Cf-Connecting-Ip'];
                     }
-                    $tmp        = strpos($source, ',') !== false
+                    $tmp = strpos($source, ',') !== false
                         ? explode(',', $source)
                         : (array)$source;
-                    $ip_version = self::ipValidate(trim($tmp[0]));
-                    if ($ip_version) {
-                        $out = $ip_version === 'v6' && ! $v4_only ? self::ipV6Normalize(trim($tmp[0])) : trim(
-                            $tmp[0]
-                        );
+                    if ( isset($tmp[0]) ) {
+                        $ip_version = self::ipValidate(trim($tmp[0]));
+                        if ($ip_version) {
+                            $out = $ip_version === 'v6' && ! $v4_only
+                                ? self::ipV6Normalize(trim($tmp[0]))
+                                : trim($tmp[0]);
+                        }
                     }
                 }
                 break;
@@ -227,11 +229,11 @@ class Helper
 
             // Remote addr
             case 'remote_addr':
-                $ip_version = self::ipValidate(Server::get('REMOTE_ADDR'));
+                $ip_version = self::ipValidate(Server::getString('REMOTE_ADDR'));
                 if ($ip_version) {
                     $out = $ip_version === 'v6' && ! $v4_only ? self::ipV6Normalize(
-                        Server::get('REMOTE_ADDR')
-                    ) : Server::get('REMOTE_ADDR');
+                        Server::getString('REMOTE_ADDR')
+                    ) : Server::getString('REMOTE_ADDR');
                 }
                 break;
 
@@ -284,7 +286,10 @@ class Helper
                     (
                         is_string($ip_version) && (
                             self::ipIsPrivateNetwork($out, $ip_version) ||
-                            ($ip_version === self::ipValidate(Server::get('SERVER_ADDR')) && self::ipMaskMatch($out, Server::get('SERVER_ADDR') . '/24', $ip_version))
+                            (
+                                $ip_version === self::ipValidate(Server::getString('SERVER_ADDR')) &&
+                                self::ipMaskMatch($out, Server::getString('SERVER_ADDR') . '/24', $ip_version)
+                            )
                         )
                     )
                 ) {
@@ -301,14 +306,16 @@ class Helper
                 $out = self::ipGet('real', $v4_only, $headers);
         }
 
-        $ip_version = self::ipValidate($out);
+        if ( is_string($out) ) {
+            $ip_version = self::ipValidate($out);
 
-        if ( ! $ip_version ) {
-            $out = null;
-        }
+            if ( ! $ip_version ) {
+                $out = null;
+            }
 
-        if ( $ip_version === 'v6' && $v4_only ) {
-            $out = null;
+            if ( $ip_version === 'v6' && $v4_only ) {
+                $out = null;
+            }
         }
 
         // Store the IP of the current type to skip the work next time
@@ -363,6 +370,11 @@ class Helper
 
         // Calculate mask
         $exploded = explode('/', $cidr);
+
+        if ( ! isset($exploded[0], $exploded[1]) ) {
+            return false;
+        }
+
         $net_ip   = $exploded[0];
         $mask     = (int)$exploded[1];
 
@@ -435,13 +447,13 @@ class Helper
     /**
      * Validating IPv4, IPv6
      *
-     * @param string $ip
+     * @param string|null|false $ip
      *
      * @return string|bool
      */
     public static function ipValidate($ip)
     {
-        if ( ! $ip) { // NULL || FALSE || '' || so on...
+        if ( ! $ip ) { // NULL || FALSE || '' || so on...
             return false;
         }
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && $ip != '0.0.0.0') { // IPv4
@@ -553,7 +565,7 @@ class Helper
         // Get DNS records about URL
         if (function_exists('dns_get_record')) {
             $records = dns_get_record($host, DNS_A);
-            if ($records !== false) {
+            if ($records !== false && isset($records[0]['ip'])) {
                 $out = $records[0]['ip'];
             }
         }
@@ -561,7 +573,7 @@ class Helper
         // Another try if first failed
         if ( ! $out && function_exists('gethostbynamel')) {
             $records = gethostbynamel($host);
-            if ($records !== false) {
+            if ($records !== false && isset($records[0])) {
                 $out = $records[0];
             }
         }
@@ -884,13 +896,13 @@ class Helper
     /**
      * Pops line from buffer without formatting
      *
-     * @param $csv
+     * @param string $csv
      *
-     * @return false|string
+     * @return string
      */
     public static function bufferCsvPopLine(&$csv)
     {
-        $pos  = strpos($csv, "\n");
+        $pos  = (int) strpos($csv, "\n");
         $line = substr($csv, 0, $pos);
         $csv  = substr_replace($csv, '', 0, $pos + 1);
 
@@ -900,10 +912,9 @@ class Helper
     /**
      * Pops line from the csv buffer and format it by map to array
      *
-     * @param $csv
-     * @param array $map
+     * @param string $csv
      *
-     * @return array|false
+     * @return array
      * @psalm-suppress PossiblyUnusedMethod
      */
     public static function bufferCsvGetMap(&$csv)
@@ -919,7 +930,7 @@ class Helper
      * @param $csv
      * @param array $map
      *
-     * @return array|false
+     * @return array
      * @psalm-suppress PossiblyUnusedMethod
      */
     public static function bufferCsvPopLineToArray(&$csv, $map = array())
@@ -1020,6 +1031,7 @@ class Helper
      */
     public static function ipLong2ip($ipl32)
     {
+        $ip = [];
         $ip[0] = ($ipl32 >> 24) & 255;
         $ip[1] = ($ipl32 >> 16) & 255;
         $ip[2] = ($ipl32 >> 8) & 255;
