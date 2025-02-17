@@ -89,6 +89,15 @@ document.addEventListener('DOMContentLoaded', function() {
     badges.forEach((badge) => {
         let hideTimeout = undefined;
 
+        this.body.addEventListener('click', function(e) {
+            if (
+                e.target.className.indexOf('apbct-real-user') == -1 &&
+                e.target.parentElement.className.indexOf('apbct-real-user') == -1
+            ) {
+                closeAllPopupTRP();
+            }
+        });
+
         badge.addEventListener('click', function() {
             const popup = this.nextElementSibling;
             if (popup && popup.classList.contains('apbct-real-user-popup')) {
@@ -97,6 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         badge.addEventListener('mouseenter', function() {
+            closeAllPopupTRP();
             const popup = this.nextElementSibling;
             if (popup && popup.classList.contains('apbct-real-user-popup')) {
                 popup.classList.add('visible');
@@ -156,3 +166,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+/**
+ * Closing all TRP popup
+ */
+function closeAllPopupTRP() {
+    let allDisplayPopup = document.querySelectorAll('.apbct-real-user-popup.visible');
+    if (allDisplayPopup.length > 0) {
+        allDisplayPopup.forEach((element) => {
+            element.classList.remove('visible');
+        });
+    }
+}
