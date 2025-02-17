@@ -9,7 +9,7 @@
     display: none !important;
 }
 .um-form input[type=text].apbct_special_field,
-label.apbct_special_field,
+label[id*='apbct_label_id'].apbct_special_field,
 input[class*='apbct'].apbct_special_field{
     display: none !important;
 }
