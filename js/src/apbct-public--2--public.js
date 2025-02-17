@@ -1326,6 +1326,7 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
         console.warn('APBCT search form onsubmit handler error. ' + error);
     }
 }
+
 /**
  * @param {mixed} commonCookies
  * @return {string}
@@ -1443,6 +1444,7 @@ function removeDoubleJsonEncoding(object) {
 
     return object;
 }
+
 // eslint-disable-next-line camelcase,require-jsdoc
 function apbct_collect_visible_fields( form ) {
     // Get only fields
