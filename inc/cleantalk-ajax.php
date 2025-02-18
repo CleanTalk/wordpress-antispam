@@ -449,7 +449,7 @@ function ct_ajax_hook($message_obj = null)
     }
 
     // SiteReviews integration
-    if ( Post::get('action') === 'glsr_public_action' ) {
+    if ( Post::getString('action', 'glsr_public_action') ) {
         $post_info['comment_type'] = 'site_reviews_integration';
     }
 
