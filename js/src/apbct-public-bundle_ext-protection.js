@@ -5525,7 +5525,7 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
         // Adding a tooltip
         let apbctTooltip = document.createElement('div');
         apbctTooltip.setAttribute('class', 'apbct-tooltip');
-        jQuery(encodedEmailNodes).append(apbctTooltip);
+        encodedEmailNodes.appendChild(apbctTooltip);
 
         apbct_admin_sendAJAX(
             {
@@ -5762,9 +5762,5 @@ function ctProcessDecodedDataResult(response, targetElement) {
  * @param {string} email
  */
 function ctFillDecodedEmail(target, email) {
-    jQuery(target).html(
-        jQuery(target)
-            .html()
-            .replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1'),
-    );
+    target.innerHTML = target.innerHTML.replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1');
 }
