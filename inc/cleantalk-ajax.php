@@ -448,6 +448,11 @@ function ct_ajax_hook($message_obj = null)
         }
     }
 
+    // SiteReviews integration
+    if ( Post::get('action') === 'glsr_public_action' ) {
+        $post_info['comment_type'] = 'site_reviews_integration';
+    }
+
     // Nasa registration
     if ( Post::get('action') === 'nasa_process_register' ) {
         $post_info['comment_type'] = 'nasa_process_register';
@@ -719,6 +724,19 @@ function ct_ajax_hook($message_obj = null)
     if ( $ct_result->allow == 0 ) {
         if ( Post::get('action') === 'wpuf_submit_register' ) {
             $result = array('success' => false, 'error' => $ct_result->comment);
+            @header('Content-Type: application/json; charset=' . get_option('blog_charset'));
+            print json_encode($result);
+            die();
+        }
+
+        if ( Post::getString('action', 'glsr_public_action') ) {
+            $result = array(
+                'success' => false,
+                'data' => array(
+                    'errors' => array(),
+                    'message' => $ct_result->comment,
+                ),
+            );
             @header('Content-Type: application/json; charset=' . get_option('blog_charset'));
             print json_encode($result);
             die();
