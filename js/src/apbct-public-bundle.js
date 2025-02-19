@@ -4557,9 +4557,11 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
                 // add email to the first node
                 if (firstNode) {
                     if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_original_email) {
-                        firstNode.innerHTML = ctPublicFunctions.text__ee_original_email + '&nbsp;' + selectableEmail.outerHTML;
+                        firstNode.innerHTML = ctPublicFunctions.text__ee_original_email +
+                            '&nbsp;' + selectableEmail.outerHTML;
                     } else {
-                        firstNode.innerHTML = ctAdminCommon.text__ee_original_email + '&nbsp;' + selectableEmail.outerHTML;
+                        firstNode.innerHTML = ctAdminCommon.text__ee_original_email +
+                            '&nbsp;' + selectableEmail.outerHTML;
                     }
 
                     firstNode.setAttribute('style', 'flex-direction: row;');
