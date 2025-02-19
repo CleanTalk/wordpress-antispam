@@ -1021,6 +1021,13 @@ function apbct_ready() {
                 continue;
             }
 
+            if (
+                _form.getAttribute('id') === 'hero-search-form' ||
+                _form.getAttribute('class') === 'hb-booking-search-form'
+            ) {
+                continue;
+            }
+
             // this handles search forms onsubmit process
             _form.apbctSearchPrevOnsubmit = _form.onsubmit;
             _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
