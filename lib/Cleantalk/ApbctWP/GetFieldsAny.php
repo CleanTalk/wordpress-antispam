@@ -618,7 +618,8 @@ class GetFieldsAny
      * @param string $prefix The prefix to be used for the keys in the resulting array.
      * @return array The resulting flat array with string keys.
      */
-    public static function convertNestedArrayToString($array, $prefix = '') {
+    public static function convertNestedArrayToString($array, $prefix = '')
+    {
         $result = [];
         foreach ($array as $key => $value) {
             $new_key = $prefix === '' ? $key : $prefix . '[' . $key . ']';
