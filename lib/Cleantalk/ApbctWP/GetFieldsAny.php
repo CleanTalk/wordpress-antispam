@@ -378,7 +378,7 @@ class GetFieldsAny
                 } else {
                     $this->dto->message[$nested_array_key] = $value;
                 }
-            } elseif ( ! is_object($value)) {
+            } elseif ( ! is_object($value) ) {
                 /*
                  * NOT A STRING - PROCEED RECURSIVE
                  */
@@ -387,7 +387,7 @@ class GetFieldsAny
                 }
 
                 $prev_name_original = $this->prev_name;
-                $this->prev_name    = ($this->prev_name === '' ? $key : $this->prev_name . $key);
+                $this->prev_name    = ($this->prev_name === '' ? $key : $this->prev_name . '[' . $key . ']');
 
                 $this->processRecursive($value);
 
@@ -601,21 +601,34 @@ class GetFieldsAny
             return $fields;
         }
 
-        // Foreach by $_POST and convert nested array to the inline variable like variable[nested_variable]
-        $fields = array();
-        foreach ($_POST as $key => $value) {
-            if (is_array($value)) {
-                foreach ($value as $nested_key => $nested_value) {
-                    // @todo Make recursive converting here
-                    $fields[$key . '[' . $nested_key . ']'] = $nested_value;
-                }
-            } else {
-                $fields[$key] = $value;
-            }
-        }
+        // Foreach by $_POST and convert nested array to the inline variable like variable[nested_variable][nested_nested_variable]
+        $fields = static::convertNestedArrayToString($_POST);
 
         // @ToDo we have to implement a logic to find form fields (fields names, fields count) in serialized/nested/encoded items. not only $_POST.
         return $fields;
+    }
+
+    /**
+     * Converts a nested array to a string representation with keys wrapped in brackets.
+     *
+     * This function recursively processes a nested array and converts it into a flat array
+     * where each key is a string representing the path to the value in the original nested array.
+     *
+     * @param array $array The nested array to be converted.
+     * @param string $prefix The prefix to be used for the keys in the resulting array.
+     * @return array The resulting flat array with string keys.
+     */
+    public static function convertNestedArrayToString($array, $prefix = '') {
+        $result = [];
+        foreach ($array as $key => $value) {
+            $new_key = $prefix === '' ? $key : $prefix . '[' . $key . ']';
+            if (is_array($value)) {
+                $result = array_merge($result, static::convertNestedArrayToString($value, $new_key));
+            } else {
+                $result[$new_key] = $value;
+            }
+        }
+        return $result;
     }
 
     /**
