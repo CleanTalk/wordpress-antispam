@@ -490,7 +490,7 @@ class GetFieldsAny
                         $post_fields_to_check['action'] === 'fluentform_submit'
                     ) {
                         $fluent_forms_out = array();
-                        $fluent_forms_fields = urldecode(TT::toString($post_fields_to_check['data']));
+                        $fluent_forms_fields = is_string($post_fields_to_check['data']) ? urldecode($post_fields_to_check['data']) : '';
                         parse_str($fluent_forms_fields, $fluent_forms_fields_array);
                         $fields_array = explode(' ', $fields_string);
                         foreach ( $fields_array as $visible_field_slug ) {
