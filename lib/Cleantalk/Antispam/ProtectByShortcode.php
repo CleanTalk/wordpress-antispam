@@ -14,7 +14,8 @@ class ProtectByShortcode
     /**
      * A function to protect the data of $_POST, $_GET custom forms by the apbct_wordpress_protect_from_spam hook.
      * Returns an array with the result of the check. Also, if $options['redirect_to_block_page'] = 1 is passed,
-     * a redirect will be made to the blocking page.
+     * a redirect will be made to the blocking page. Additionaly, if $options['is_register'] = 1 is passed,
+     * the function will process the data as a registration form.
      * @param array $data
      * @param array $options
      * @return array
@@ -39,7 +40,8 @@ class ProtectByShortcode
                 'post_url'     => Server::get('HTTP_REFERER'),
             ),
         );
-        $result = apbct_base_call($base_call_data, false);
+        $is_register = isset($options['is_register']) && $options['is_register'] === true ? true : false;
+        $result = apbct_base_call($base_call_data, $is_register);
         $ct_result = isset($result['ct_result']) ? $result['ct_result'] : null;
 
         $is_spam = $ct_result !== null && $ct_result->allow !== 1;

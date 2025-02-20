@@ -1340,7 +1340,7 @@ function apbct_comment__send_feedback(
 ) {
     // For AJAX call
     if ( ! $direct_call ) {
-        AJAXService::checkNonceRestrictingNonAdmins();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
     }
 
     $comment_id     = Post::get('comment_id') ? Post::getInt('comment_id') : $comment_id;

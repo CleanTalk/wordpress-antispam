@@ -257,7 +257,7 @@ class CommentsChecker extends Checker
 
     public static function ctAjaxCheckComments()
     {
-        AJAXService::checkNonceRestrictingNonAdmins();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         $commentScanParameters = new CommentsScanParameters($_POST);
 
@@ -276,7 +276,7 @@ class CommentsChecker extends Checker
         global $wpdb, $apbct;
 
         if ( ! $direct_call ) {
-            AJAXService::checkNonceRestrictingNonAdmins();
+            AJAXService::checkNonceRestrictingNonAdmins('security');
         }
 
         $cnt_checked = TT::toInt($apbct->data['count_checked_comments']);
@@ -376,7 +376,7 @@ class CommentsChecker extends Checker
     {
         global $wpdb ,$apbct;
 
-        AJAXService::checkNonceRestrictingNonAdmins();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         $apbct->data['count_checked_comments'] = 0;
         $apbct->saveData();
@@ -416,7 +416,7 @@ class CommentsChecker extends Checker
 
     public static function ctAjaxTrashAll()
     {
-        AJAXService::checkNonceRestrictingNonAdmins();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         $args_spam = array(
             'number'     => 100,
@@ -458,7 +458,7 @@ class CommentsChecker extends Checker
 
     public static function ctAjaxSpamAll()
     {
-        AJAXService::checkNonceRestrictingNonAdmins();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         $args_spam = array(
             'number'     => 100,

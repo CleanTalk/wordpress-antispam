@@ -22,6 +22,8 @@ function compress_all_js() {
             'js/src/*.js',
             '!js/src/apbct-public--*.js',
             '!js/src/apbct-public-bundle.js',
+            '!js/src/cleantalk-admin.js',
+            '!js/src/apbct-common-functions.js',
             'js/src/apbct-public--3--cleantalk-modal.js',
             'js/src/apbct-public--7--trp.js',
         ])
@@ -30,6 +32,19 @@ function compress_all_js() {
         .pipe(rename({suffix: '.min'}))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('js'));
+}
+
+function bundle_admin_and_common_js() {
+    return gulp.src([
+        'js/src/cleantalk-admin.js',
+        'js/src/apbct-common-functions.js'
+    ])
+    .pipe(sourcemaps.init())
+    .pipe(concat('cleantalk-admin.js'))
+    .pipe(uglify())
+    .pipe(rename({suffix: '.min'}))
+    .pipe(sourcemaps.write('.'))
+    .pipe(gulp.dest('js'));
 }
 
 /**
@@ -43,6 +58,7 @@ function bundle_src_js() {
         'js/src/apbct-public--2*.js',
         'js/src/apbct-public--3*.js',
         'js/src/apbct-public--7*.js',
+        'js/src/apbct-common-functions.js',
     ])
         // Unminified bundle
         .pipe(concat('apbct-public-bundle.js'))
@@ -57,7 +73,8 @@ function bundle_src_js_external_protection() {
             'js/src/apbct-public--2*.js',
             'js/src/apbct-public--3*.js',
             'js/src/apbct-public--7*.js',
-            'js/src/apbct-public--5--external-forms.js'
+            'js/src/apbct-public--5--external-forms.js',
+            'js/src/apbct-common-functions.js',
         ])
         // Unminified bundle
         .pipe(concat('apbct-public-bundle_ext-protection.js'))
@@ -67,12 +84,14 @@ function bundle_src_js_external_protection() {
 // Bundle with internal js and without external js 
 function bundle_src_js_internal_protection() {
     return gulp.src([
+            'js/src/apbct-common-functions.js',
             'js/src/apbct-public--0*.js',
             'js/src/apbct-public--1*.js',
             'js/src/apbct-public--2*.js',
             'js/src/apbct-public--3*.js',
             'js/src/apbct-public--7*.js',
-            'js/src/apbct-public--6--internal-forms.js'
+            'js/src/apbct-public--6--internal-forms.js',
+            'js/src/apbct-common-functions.js',
         ])
         // Unminified bundle
         .pipe(concat('apbct-public-bundle_int-protection.js'))
@@ -82,13 +101,15 @@ function bundle_src_js_internal_protection() {
 // Bundle with external and internal js
 function bundle_src_js_ext_int_protection() {
     return gulp.src([
+            'js/src/apbct-common-functions.js',
             'js/src/apbct-public--0*.js',
             'js/src/apbct-public--1*.js',
             'js/src/apbct-public--2*.js',
             'js/src/apbct-public--3*.js',
             'js/src/apbct-public--7*.js',
             'js/src/apbct-public--5--external-forms.js',
-            'js/src/apbct-public--6--internal-forms.js'
+            'js/src/apbct-public--6--internal-forms.js',
+            'js/src/apbct-common-functions.js',
         ])
         // Unminified bundle
         .pipe(concat('apbct-public-bundle_full-protection.js'))
@@ -112,7 +133,8 @@ gulp.task('compress-js', gulp.series(
     bundle_src_js_internal_protection,
     bundle_src_js_ext_int_protection,
     bundle_js,
-    compress_all_js
+    compress_all_js,
+    bundle_admin_and_common_js
 ));
 
 gulp.task('compress-css:watch', function () {
