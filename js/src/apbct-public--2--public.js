@@ -1533,11 +1533,7 @@ function apbct_visible_fields_set_cookie( visibleFieldsCollection, formId ) {
             ctSetCookie('apbct_visible_fields_' + collectionIndex, JSON.stringify( collection[i] ) );
         }
     } else {
-        if (ctPublic.data__cookies_type === 'none') {
-            ctSetCookie('apbct_visible_fields', JSON.stringify( collection[0] ) );
-        } else {
-            ctSetCookie('apbct_visible_fields', JSON.stringify( collection ) );
-        }
+        ctSetCookie('apbct_visible_fields', JSON.stringify( collection ) );
     }
 }
 
