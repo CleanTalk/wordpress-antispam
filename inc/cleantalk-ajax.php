@@ -451,6 +451,9 @@ function ct_ajax_hook($message_obj = null)
     // SiteReviews integration
     if ( Post::getString('action', 'glsr_public_action') ) {
         $post_info['comment_type'] = 'site_reviews_integration';
+        if (isset($_POST['site-reviews']['title'])) {
+            $ct_post_temp['title'] = $_POST['site-reviews']['title'];
+        }
         if (isset($_POST['site-reviews']['name'])) {
             $ct_post_temp['nickname'] = $_POST['site-reviews']['name'];
         }
