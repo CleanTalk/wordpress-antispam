@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 6.49
+Stable tag: 6.50
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -441,6 +441,22 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.50 12.02.2025 =
+* New. AJAX Wrapper.
+* New. Integration. Hubspot embed forms (non-iframe).
+* New. Integration. Added LeakyPaywall register handler.
+* Fix. Code. Psalm lvl3 completed.
+* Fix. Code. Contact Form 7. Run gathering NoCookie Data before apbct_js_test() run.
+* Fix. Real Person. Editing the badge output for existing users.
+* Fix. Global variables. Cookies getting logic fixed.
+* Fix. Settings. Fixed wpms work mode select.
+* Fix. Email Encoder. Attribute drop sign upgraded.
+* Fix. Email Encoder. Regexp for exclusions updated.
+* Fix. EmailEncoder. Exclude ICS calendar.
+* Fix. JS. Removed AJAX call "apbct_set_important_parameters".
+* Fix. Integration. External forms for publisher.copernica.com custom code.
+* Fix. Honeypot field. CSS selector for labels fixed.
 
 = 6.49 30.01.2025 =
 * Fix. Email Existence check. The icon and popup now adaptive on window resizing.

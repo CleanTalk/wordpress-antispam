@@ -373,7 +373,7 @@ class UsersChecker extends Checker
 
     public static function ctAjaxCheckUsers()
     {
-        AJAXService::checkNonceRestrictingNonAdmins();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         $userScanParameters = new UsersScanParameters($_POST);
 
@@ -394,7 +394,7 @@ class UsersChecker extends Checker
      */
     public static function ctAjaxClearUsers()
     {
-        AJAXService::checkNonceRestrictingNonAdmins();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         global $wpdb, $apbct;
 
@@ -410,7 +410,7 @@ class UsersChecker extends Checker
     public static function ctAjaxInfo($direct_call = false)
     {
         if ( ! $direct_call ) {
-            AJAXService::checkNonceRestrictingNonAdmins();
+            AJAXService::checkNonceRestrictingNonAdmins('security');
         }
 
         global $wpdb, $apbct;
@@ -509,7 +509,7 @@ class UsersChecker extends Checker
      */
     public static function ctGetCsvFile()
     {
-        AJAXService::checkNonceRestrictingNonAdmins();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         $text = 'login,email,ip' . PHP_EOL;
 
@@ -554,7 +554,7 @@ class UsersChecker extends Checker
 
     public static function ctAjaxInsertUsers()
     {
-        AJAXService::checkNonceRestrictingNonAdmins();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         global $wpdb;
 
@@ -625,7 +625,7 @@ class UsersChecker extends Checker
 
     public static function ctAjaxDeleteAllUsers($count_all = 0)
     {
-        AJAXService::checkNonceRestrictingNonAdmins();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         global $wpdb;
 
