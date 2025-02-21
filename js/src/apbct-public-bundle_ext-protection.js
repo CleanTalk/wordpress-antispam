@@ -4339,7 +4339,11 @@ function ctProtectExternal() {
                 (currentForm.action.indexOf('webto.salesforce.com') !== -1)) ||
                 (typeof(currentForm.action) == 'string' &&
                 currentForm.querySelector('[href*="activecampaign"]')) ||
-                (currentForm.action.indexOf('hsforms.com') !== -1 && currentForm.getAttribute('data-hs-cf-bound'))
+                (
+                    typeof(currentForm.action) == 'string' &&
+                    currentForm.action.indexOf('hsforms.com') !== -1 &&
+                    currentForm.getAttribute('data-hs-cf-bound')
+                )
             ) {
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
             // Common flow - modify form's action
