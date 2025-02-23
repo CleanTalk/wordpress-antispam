@@ -1651,8 +1651,18 @@ function apbct_clear_superglobal_service_data($superglobal, $type)
 
     switch ($type) {
         case 'post':
+            //Magnesium Quiz special $_request clearance
+            if (
+                (
+                apbct_is_plugin_active('magnesium-quiz/magnesium-quiz.php')
+                )
+            ) {
+                $fields_to_clear[] = 'ct_bot_detector_event_token';
+                $fields_to_clear[] = 'ct_no_cookie_hidden_field';
+                $fields_to_clear[] = 'apbct_event_id';
+                $fields_to_clear[] = 'apbct__email_id';
+            }
             // It is a service field. Need to be deleted before the processing.
-            $cleared_superglobal = apbct_clear_array_fields_recursive($cleared_superglobal, $fields_to_clear);
             break;
         case 'request':
             //Optima Express special $_request clearance
@@ -1662,25 +1672,10 @@ function apbct_clear_superglobal_service_data($superglobal, $type)
                 )
             ) {
                 $fields_to_clear[] = 'ct_no_cookie_hidden_field';
-
-                $cleared_superglobal = apbct_clear_array_fields_recursive($cleared_superglobal, $fields_to_clear);
-            }
-
-            //Magnesium Quiz special $_request clearance
-            if (
-                (
-                    apbct_is_plugin_active('magnesium-quiz/magnesium-quiz.php')
-                )
-            ) {
-                $fields_to_clear[] = 'ct_bot_detector_event_token';
-                $fields_to_clear[] = 'ct_no_cookie_hidden_field';
-                $fields_to_clear[] = 'apbct_event_id';
-                $fields_to_clear[] = 'apbct_email_id';
-
-                $cleared_superglobal = apbct_clear_array_fields_recursive($cleared_superglobal, $fields_to_clear);
             }
             break;
     }
+    $cleared_superglobal = apbct_clear_array_fields_recursive($cleared_superglobal, $fields_to_clear);
     return $cleared_superglobal;
 }
 
