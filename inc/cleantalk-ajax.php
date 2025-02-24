@@ -69,12 +69,6 @@ add_action('wp_ajax_nopriv_vfb_submit', 'ct_ajax_hook', 1);
 add_action('wp_ajax_vfb_submit', 'ct_ajax_hook', 1);
 $_cleantalk_hooked_actions[] = 'vfb_submit';
 
-/*hooks for woocommerce_checkout*/
-add_action('wp_ajax_nopriv_woocommerce_checkout', 'ct_ajax_hook', 1);
-add_action('wp_ajax_woocommerce_checkout', 'ct_ajax_hook', 1);
-$_cleantalk_hooked_actions[] = 'woocommerce_checkout';
-$_cleantalk_hooked_actions[] = 'wcfm_ajax_controller';
-
 /*hooks for frm_action*/
 add_action('wp_ajax_nopriv_frm_entries_create', 'ct_ajax_hook', 1);
 add_action('wp_ajax_frm_entries_create', 'ct_ajax_hook', 1);
