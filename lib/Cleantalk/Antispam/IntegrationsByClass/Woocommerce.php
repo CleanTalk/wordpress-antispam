@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Antispam\IntegrationsByClass;
 
+use Cleantalk\Antispam\Cleantalk;
+use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -32,6 +34,10 @@ use Cleantalk\ApbctWP\Variables\Server;
  */
 class Woocommerce extends IntegrationByClassBase
 {
+    /**
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function doPublicWork()
     {
         global $_cleantalk_hooked_actions, $apbct;
@@ -214,6 +220,11 @@ class Woocommerce extends IntegrationByClassBase
         }
     }
 
+    /**
+     * @param $order
+     * @return void
+     * @psalm-suppress UndefinedClass
+     */
     public function checkoutCheckFromRest($order)
     {
         global $apbct, $cleantalk_executed;
@@ -275,6 +286,10 @@ class Woocommerce extends IntegrationByClassBase
         }
     }
 
+    /**
+     * @return void
+     * @psalm-suppress UndefinedFunction
+     */
     public function storeBlockedOrder()
     {
         global $wpdb;
@@ -302,6 +317,10 @@ class Woocommerce extends IntegrationByClassBase
         }
     }
 
+    /**
+     * @return bool
+     * @psalm-suppress UndefinedFunction, PossiblyUnusedReturnValue
+     */
     public function addToCartUnloggedUser()
     {
         global $apbct;
@@ -340,7 +359,7 @@ class Woocommerce extends IntegrationByClassBase
         if ( isset($base_call_result['ct_result']) ) {
             $ct_result = $base_call_result['ct_result'];
 
-            if ( $ct_result->allow == 0 ) {
+            if ( $ct_result->allow == 0 && function_exists('wc_add_notice') ) {
                 wc_add_notice($ct_result->comment, 'error');
                 return false;
             }
@@ -363,6 +382,12 @@ class Woocommerce extends IntegrationByClassBase
         return $add_to_cart_data;
     }
 
+    /**
+     * @param $customer
+     * @param $request
+     * @return void
+     * @psalm-suppress PossiblyUnusedParam
+     */
     public function storeApiCheckoutUpdateCustomerFromRequest($customer, $request)
     {
         global $apbct;
@@ -465,7 +490,7 @@ class Woocommerce extends IntegrationByClassBase
      * @param $ids
      *
      * @return mixed|string
-     * @psalm-suppress UndefinedClass
+     * @psalm-suppress UndefinedClass, PossiblyUnusedReturnValue
      */
     public function addSpamActionToBulkHandle($redirect, $action, $ids)
     {
