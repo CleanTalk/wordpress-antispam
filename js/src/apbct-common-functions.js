@@ -92,7 +92,7 @@ function ctFillDecodedEmailHandler(event = false) {
             document.getElementById('apbct_popup_text').innerHTML = ctPublicFunctions.text__ee_wait_for_decoding_2;
         } else {
             document.getElementById('apbct_popup_text').innerHTML =
-            ctPublicFunctions.text__ee_wait_for_decoding_2;
+                ctAdminCommon.text__ee_wait_for_decoding_2;
         }
     }
 
