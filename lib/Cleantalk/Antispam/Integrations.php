@@ -146,7 +146,13 @@ class Integrations
                     }
 
                     // Set registration flag - will be used to select method
-                    $reg_flag = !empty($base_call_data['register']) || isset($data['register']);
+                    $reg_flag = (
+                        !empty($base_call_data['register']) ||
+                        (
+                            isset($data['register']) &&
+                            $data['register'] === true
+                        )
+                    );
 
                     /**
                      * Run base call
