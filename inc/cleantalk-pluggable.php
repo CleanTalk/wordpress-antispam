@@ -508,10 +508,11 @@ function apbct_is_trackback()
  * Checking if the request must be skipped.
  *
  * @param $ajax bool The current request is the ajax request?
+ * @param $ajax_message_obj array The message object for the ajax request, default is []
  *
  * @return bool|string   false or request name for logging
  */
-function apbct_is_skip_request($ajax = false)
+function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
 {
     /* !!! Have to use more than one factor to detect the request - is_plugin active() && $_POST['action'] !!! */
     //@ToDo Implement direct integration checking - if have the direct integration will be returned false
@@ -538,6 +539,204 @@ function apbct_is_skip_request($ajax = false)
         /*    Here is ajax requests skipping     */
         /*****************************************/
 
+        // $_REQUEST['action'] to skip. Go out because of not spam data
+        $skip_for_request_actions = array(
+            'apbct_js_keys__get',
+            // Our service code
+            'gmaps_display_info_window',
+            // Geo My WP pop-up windows.
+            'gmw_ps_display_info_window',
+            // Geo My WP pop-up windows.
+            'the_champ_user_auth',
+            // Super Socializer
+            'simbatfa-init-otp',
+            //Two-Factor Auth
+            'wppb_msf_check_required_fields',
+            //ProfileBuilder skip step checking
+            'boss_we_login',
+            //Login form
+            'sidebar_login_process',
+            // Login CF7
+            'cp_update_style_settings',
+            // Convert Pro. Saving settings
+            'updraft_savesettings',
+            // UpdraftPlus
+            'wpdUpdateAutomatically',
+            //Comments update
+            'upload-attachment',
+            // Skip ulpload attachments
+            'iwj_update_profile',
+            //Skip profile page checker
+            'st_partner_create_service',
+            //Skip add hotel via admin
+            'vp_ajax_vpt_option_save',
+            // https://themeforest.net/item/motor-vehicles-parts-equipments-accessories-wordpress-woocommerce-theme/16829946
+            'mailster_send_test',
+            //Mailster send test admin
+            'admin:saveThemeOptions',
+            //Ait-theme admin checking
+            'save_tourmaster_option',
+            //Tourmaster admin save
+            'validate_register_email',
+            //Elementor Pro
+            'phone-orders-for-woocommerce',
+            //Phone orders for woocommerce backend
+            'ihc_check_reg_field_ajax',
+            //Ajax check required fields
+            'OSTC_lostPassword',
+            //Lost password ajax form
+            'check_retina_image_availability',
+            //There are too many ajax requests from mobile
+            'uap_check_reg_field_ajax',
+            // Ultimate Affiliate Pro. Form validation.
+            'edit-comment',
+            // Edit comments by admin ??? that shouldn't happen
+            'formcraft3_save_form_progress',
+            // FormCraft – Contact Form Builder for WordPress. Save progress.
+            'wpdmpp_save_settings',
+            // PayPal save settings.
+            'iwj_login',
+            // Fix for unknown plugin for user #133315
+            'custom_user_login',
+            // Fix for unknown plugin for user #466875
+            'wordfence_ls_authenticate',
+            //Fix for wordfence auth
+            'frm_strp_amount',
+            //Admin stripe form
+            'wouCheckOnlineUsers',
+            //Skip updraft admin checking users
+            'et_fb_get_shortcode_from_fb_object',
+            //Skip generate shortcode
+            'pp_lf_process_login',
+            //Skip login form
+            'check_email',
+            //Ajax email checking
+            'dflg_do_sign_in_user',
+            // Unknown plugin
+            'cartflows_save_cart_abandonment_data',
+            // WooCommerce cartflow
+            'rcp_process_register_form',
+            // WordPress Membership Plugin – Restrict Content
+            'apus_ajax_login',
+            // ???? plugin authorization
+            'bookly_save_customer',
+            //bookly
+            'postmark_test',
+            //Avocet
+            'postmark_save',
+            //Avocet
+            'ck_get_subscriber',
+            //ConvertKit checking the subscriber
+            'metorik_send_cart',
+            //Metorik skip
+            'ppom_ajax_validation',
+            // PPOM add to cart validation
+            'wpforms_form_abandonment',
+            // WPForms. Quiting without submitting
+            'post_woo_ml_email_cookie',
+            //Woocommerce system
+            'ig_es_draft_broadcast',
+            //Icegram broadcast ajax
+            'simplefilelistpro_edit_job',
+            //Simple File List editing current job
+            'wfu_ajax_action_ask_server',
+            //WFU skip ask server
+            'wfu_ajax_action',
+            //WFU skip ask server
+            'wcap_save_guest_data',
+            //WooCommerce skip
+            'ajaxlogin',
+            //Skip ajax login redirect
+            'heartbeat',
+            //Gravity multipage
+            'erforms_field_change_command',
+            //ERForms internal request
+            'wl_out_of_stock_notify',
+            // Sumo Waitlist
+            'rac_preadd_guest',
+            //Rac internal request
+            'apbct_email_check_before_post',
+            //Interal request
+            'edd_process_checkout',
+            // Easy Digital Downloads ajax skip
+            //Unknown plugin Ticket #25047
+            'alhbrmeu',
+            // Ninja Forms
+            'nf_preview_update',
+            'nf_save_form',
+            // WPUserMeta registration plugin exclusion
+            'pf_ajax_request',
+            //profilegrid addon
+            'pm_check_user_exist',
+            //Cartbounty plugin (saves every action on the page to keep abandoned carts)
+            'cartbounty_pro_save', 'cartbounty_save',
+            'wpmtst_form2', //has direct integration StrongTestimonials
+            'latepoint_route_call', //LatePoint service calls
+            'uael_login_form_submit', //Ultimate Addons for Elementor login
+            'my_custom_login_validate', //Ultimate Addons for Elementor login validate
+            'wpforms_restricted_email', //WPForm validate
+            'fluentcrm_unsubscribe_ajax', //FluentCRM unsubscribe
+            'forminator_submit_form_custom', //Forminator has direct integration
+            'wcf_woocommerce_login', //WooCommerce CartFlows login
+            'nasa_process_login', //Nasa login
+            'leaky_paywall_validate_registration', //Leaky Paywall validation request
+        );
+
+        // Skip test if
+        if ( ( ! $apbct->settings['forms__general_contact_forms_test'] && ! $apbct->settings['forms__check_external'] ) ) {
+            return 'Form testing is disabled in the plugin settings';
+        }
+
+        if ( ! apbct_is_user_enable($apbct->user) ) {
+            return 'User is admin, editor, author';
+        }
+
+        if ( ! $apbct->settings['data__protect_logged_in'] && ($apbct->user instanceof WP_User) && $apbct->user->ID !== 0 ) {
+            return 'User is logged in and protection is disabled for logged in users';
+        }
+
+        if ( apbct_exclusions_check__url() ) {
+            return 'URL exclusions';
+        }
+
+        /**
+         * Apply filtration list of actions to skip for the POST/GET request
+         */
+
+        if ( Post::getString('action') && in_array(Post::getString('action'), $skip_for_request_actions) ) {
+            return 'POST action skipped - ' . Post::getString('action');
+        }
+
+        if ( Get::getString('action') && in_array(Get::getString('action'), $skip_for_request_actions) ) {
+            return 'GET action skipped - ' . Get::getString('action');
+        }
+
+        /**
+         * End of the filtration list of actions to skip for the POST/GET request
+         */
+
+        if ( Post::get('quform_submit') ) {
+            return 'QForms multi-paged form skip';
+        }
+
+        if ( (string)current_filter() !== 'et_pre_insert_answer' &&
+             ( (isset($ajax_message_obj['author']) && (int)$ajax_message_obj['author'] === 0) ||
+               (isset($ajax_message_obj['post_author']) && (int)$ajax_message_obj['post_author'] === 0) ) ) {
+            return 'QAEngine Theme fix';
+        }
+
+        if ( Post::get('action') === 'erf_login_user' && in_array('easy-registration-forms/erforms.php', apply_filters('active_plugins', get_option('active_plugins'))) ) {
+            return'Easy Registration Forms login form skip';
+        }
+
+        if ( Post::get('action') === 'mailpoet' && Post::get('endpoint') === 'ImportExport' && Post::get('method') === 'processImport' ) {
+            return 'Mailpoet import';
+        }
+
+        if ( Post::get('action') === 'arm_shortcode_form_ajax_action' && Post::get('arm_action') === 'please-login' ) {
+            return 'ARM forms skip login';
+        }
+
         // Paid Memberships Pro - Login Form
         if (
             apbct_is_plugin_active('paid-memberships-pro/paid-memberships-pro.php') &&
@@ -545,6 +744,17 @@ function apbct_is_skip_request($ajax = false)
             TT::toString(Post::get('rm_form_sub_id'))
         ) {
             return 'paid_memberships_pro__login_form';
+        }
+
+        if (
+            Post::get('action') === 'acf/validate_save_post' &&
+            (
+             apbct_is_plugin_active('advanced-custom-fields-pro/acf.php') ||
+             apbct_is_plugin_active('advanced-custom-fields/acf.php')
+            ) &&
+            apbct_is_user_logged_in()
+        ) {
+            return 'ACF admin - skip post saving [acf/validate_save_post]';
         }
 
         // Thrive Ultimatum
