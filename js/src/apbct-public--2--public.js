@@ -1029,9 +1029,7 @@ function apbct_ready() {
     apbctCatchXmlHttpRequest();
 
     // Init form skin
-    if (ctPublic.settings__comments__form_decoration) {
-        new ApbctFormDecorator();
-    }
+    new ApbctFormDecorator();
 
     // Set important paramaters via ajax if problematic cache solutions found
     // todo These AJAX calls removed untill we find a better solution, reason is a lot of requests to the server.
