@@ -65,7 +65,7 @@ function ctFillDecodedEmailHandler(event = false) {
         if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_wait_for_decoding) {
             popupTextWaiting.innerText = ctPublicFunctions.text__ee_wait_for_decoding;
         } else {
-            popupTextWaiting.innerText = 'The magic is on the way, please wait for a few seconds!';
+            popupTextWaiting.innerText = ctAdminCommon.text__ee_wait_for_decoding;
         }
         popupTextWaiting.setAttribute('class', 'apbct-email-encoder-elements_center');
 
@@ -76,7 +76,7 @@ function ctFillDecodedEmailHandler(event = false) {
         if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_decoding_process) {
             popupTextDecoding.innerText = ctPublicFunctions.text__ee_decoding_process;
         } else {
-            popupTextDecoding.innerText = 'Decoding process to the original data.';
+            popupTextDecoding.innerText = ctAdminCommon.text__ee_decoding_process;
         }
 
         // appending
@@ -92,7 +92,7 @@ function ctFillDecodedEmailHandler(event = false) {
             document.getElementById('apbct_popup_text').innerHTML = ctPublicFunctions.text__ee_wait_for_decoding_2;
         } else {
             document.getElementById('apbct_popup_text').innerHTML =
-            'Please wait while ' + ctPublic.wl_brandname + ' is decoding the email addresses.';
+            ctPublicFunctions.text__ee_wait_for_decoding_2;
         }
     }
 
@@ -187,7 +187,7 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
         // Adding a tooltip
         let apbctTooltip = document.createElement('div');
         apbctTooltip.setAttribute('class', 'apbct-tooltip');
-        jQuery(encodedEmailNodes).append(apbctTooltip);
+        encodedEmailNodes.appendChild(apbctTooltip);
 
         apbct_admin_sendAJAX(
             {
@@ -238,17 +238,16 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
                 if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_click_to_select) {
                     selectableEmail.title = ctPublicFunctions.text__ee_click_to_select;
                 } else {
-                    selectableEmail.title = 'Click to select the whole data';
+                    selectableEmail.title = ctAdminCommon.text__ee_click_to_select;
                 }
                 // add email to the first node
                 if (firstNode) {
                     if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_original_email) {
-                        firstNode.innerHTML =
-                        ctPublicFunctions.text__ee_original_email +
-                        '&nbsp;' +
-                        selectableEmail.outerHTML;
+                        firstNode.innerHTML = ctPublicFunctions.text__ee_original_email +
+                            '&nbsp;' + selectableEmail.outerHTML;
                     } else {
-                        firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML;
+                        firstNode.innerHTML = ctAdminCommon.text__ee_original_email +
+                            '&nbsp;' + selectableEmail.outerHTML;
                     }
 
                     firstNode.setAttribute('style', 'flex-direction: row;');
@@ -271,7 +270,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
                     if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_got_it) {
                         button.innerText = ctPublicFunctions.text__ee_got_it;
                     } else {
-                        button.innerText = 'Got it';
+                        button.innerText = ctAdminCommon.text__ee_got_it;
                     }
                     button.classList = 'apbct-email-encoder-got-it-button';
                     button.addEventListener('click', function() {
@@ -295,14 +294,14 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
                 if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_blocked) {
                     ctShowDecodeComment(ctPublicFunctions.text__ee_blocked + ': ' + result.data[0].comment);
                 } else {
-                    ctShowDecodeComment('Blocked: ' + result.data[0].comment);
+                    ctShowDecodeComment(ctAdminCommon.text__ee_blocked + ': ' + result.data[0].comment);
                 }
             } else {
                 resetEncodedNodes();
                 if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_cannot_connect) {
                     ctShowDecodeComment(ctPublicFunctions.text__ee_cannot_connect + ': ' + result.apbct.comment);
                 } else {
-                    ctShowDecodeComment('Cannot connect with CleanTalk server: ' + result.data[0].comment);
+                    ctShowDecodeComment(ctAdminCommon.text__ee_cannot_connect + ': ' + result.data[0].comment);
                 }
             }
         } else {
@@ -331,7 +330,7 @@ function ctShowDecodeComment(comment) {
         if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_cannot_decode) {
             comment = ctPublicFunctions.text__ee_cannot_decode;
         } else {
-            comment = 'Can not decode email. Unknown reason';
+            comment = ctAdminCommon.text__ee_cannot_decode;
         }
     }
 
@@ -342,7 +341,7 @@ function ctShowDecodeComment(comment) {
         if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_email_decoder) {
             popupText.innerText = ctPublicFunctions.text__ee_email_decoder + ': ' + comment;
         } else {
-            popupText.innerText = 'CleanTalk email decoder: ' + comment;
+            popupText.innerText = ctAdminCommon.text__ee_email_decoder + ': ' + comment;
         }
         setTimeout(function() {
             popup.setAttribute('style', 'display:none');
@@ -427,11 +426,7 @@ function ctProcessDecodedDataResult(response, targetElement) {
  * @param {string} email
  */
 function ctFillDecodedEmail(target, email) {
-    jQuery(target).html(
-        jQuery(target)
-            .html()
-            .replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1'),
-    );
+    target.innerHTML = target.innerHTML.replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1');
 }
 
 /**
@@ -3446,9 +3441,7 @@ function apbct_ready() {
             form.ctFormIndex = i;
             form.onsubmit = function(event) {
                 if ( ctPublic.data__cookies_type !== 'native' && typeof event.target.ctFormIndex !== 'undefined' ) {
-                    const visibleFields = {};
-                    visibleFields[0] = apbct_collect_visible_fields(this);
-                    apbct_visible_fields_set_cookie( visibleFields, event.target.ctFormIndex );
+                    apbct_visible_fields_set_cookie( apbct_collect_visible_fields(this), event.target.ctFormIndex );
                 }
 
                 if (ctPublic.data__cookies_type === 'none' && isFormThatNeedCatchXhr(event.target)) {
@@ -4007,11 +4000,7 @@ function apbct_visible_fields_set_cookie( visibleFieldsCollection, formId ) {
             ctSetCookie('apbct_visible_fields_' + collectionIndex, JSON.stringify( collection[i] ) );
         }
     } else {
-        if (ctPublic.data__cookies_type === 'none') {
-            ctSetCookie('apbct_visible_fields', JSON.stringify( collection[0] ) );
-        } else {
-            ctSetCookie('apbct_visible_fields', JSON.stringify( collection ) );
-        }
+        ctSetCookie('apbct_visible_fields', JSON.stringify( collection ) );
     }
 }
 
