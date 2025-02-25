@@ -125,6 +125,4 @@ class TestGetFieldsAny extends TestCase {
         $this->assertInstanceOf(GetFieldsAnyDTO::class, $result);
         $this->assertFalse($result->contact);
     }
-
-
 }
