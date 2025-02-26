@@ -2,8 +2,6 @@
 
 namespace Cleantalk\ApbctWP\PluginSettingsPage;
 
-use Cleantalk\ApbctWP\FormDecorator\FormDecoratorSettings;
-
 class SettingsField
 {
     /**
@@ -286,10 +284,6 @@ class SettingsField
      */
     private function getInputSelect()
     {
-        if (isset($this->params['name']) && $this->params['name'] === 'comments__form_decoration_selector') {
-            $this->params = FormDecoratorSettings::filterSelectorParams($this->params, $this->disabled_string, $this->description_popup);
-        }
-
         $data = [
             'name' => isset($this->params['name']) ? $this->params['name'] : '',
             'type' => isset($this->params['type']) ? $this->params['type'] : '',
