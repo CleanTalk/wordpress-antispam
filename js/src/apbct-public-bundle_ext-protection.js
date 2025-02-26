@@ -3010,9 +3010,7 @@ function apbct_ready() {
             form.ctFormIndex = i;
             form.onsubmit = function(event) {
                 if ( ctPublic.data__cookies_type !== 'native' && typeof event.target.ctFormIndex !== 'undefined' ) {
-                    const visibleFields = {};
-                    visibleFields[0] = apbct_collect_visible_fields(this);
-                    apbct_visible_fields_set_cookie( visibleFields, event.target.ctFormIndex );
+                    apbct_visible_fields_set_cookie( apbct_collect_visible_fields(this), event.target.ctFormIndex );
                 }
 
                 if (ctPublic.data__cookies_type === 'none' && isFormThatNeedCatchXhr(event.target)) {
@@ -3058,6 +3056,13 @@ function apbct_ready() {
         ) {
             // fibosearch integration
             if (_form.querySelector('input.dgwt-wcas-search-input')) {
+                continue;
+            }
+
+            if (
+                _form.getAttribute('id') === 'hero-search-form' ||
+                _form.getAttribute('class') === 'hb-booking-search-form'
+            ) {
                 continue;
             }
 
@@ -3298,16 +3303,13 @@ if (ctPublic.data__key_is_ok) {
 function ctSearchFormOnSubmitHandler(e, targetForm) {
     try {
         // get honeypot field and it's value
-        const honeyPotField = targetForm.querySelector('[id*="apbct__email_id__"]');
+        const honeyPotField = targetForm.querySelector('[name*="apbct_email_id__"]');
         let hpValue = null;
-        let hpEventId = null;
         if (
             honeyPotField !== null &&
-            honeyPotField.value !== null &&
-            honeyPotField.getAttribute('apbct_event_id') !== null
+            honeyPotField.value !== null
         ) {
             hpValue = honeyPotField.value;
-            hpEventId = honeyPotField.getAttribute('apbct_event_id');
         }
 
         // get cookie data from storages
@@ -3333,9 +3335,8 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
             let cookiesArray = cleantalkStorageDataArray;
 
             // if honeypot data provided add the fields to the parsed data
-            if ( hpValue !== null && hpEventId !== null ) {
+            if ( hpValue !== null ) {
                 cookiesArray.apbct_search_form__honeypot_value = hpValue;
-                cookiesArray.apbct_search_form__honeypot_id = hpEventId;
             }
 
             // set event token
@@ -3575,11 +3576,7 @@ function apbct_visible_fields_set_cookie( visibleFieldsCollection, formId ) {
             ctSetCookie('apbct_visible_fields_' + collectionIndex, JSON.stringify( collection[i] ) );
         }
     } else {
-        if (ctPublic.data__cookies_type === 'none') {
-            ctSetCookie('apbct_visible_fields', JSON.stringify( collection[0] ) );
-        } else {
-            ctSetCookie('apbct_visible_fields', JSON.stringify( collection ) );
-        }
+        ctSetCookie('apbct_visible_fields', JSON.stringify( collection ) );
     }
 }
 

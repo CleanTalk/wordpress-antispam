@@ -939,7 +939,7 @@ function apbct_admin__admin_bar__prepare_counters()
 
     //Reset or create user counter
     if ( ! empty(Get::get('ct_reset_user_counter')) ) {
-        AJAXService::checkNonceRestrictingNonAdmins();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
         $apbct->data['user_counter']['accepted'] = 0;
         $apbct->data['user_counter']['blocked']  = 0;
         $apbct->data['user_counter']['since']    = date('d M');
@@ -947,7 +947,7 @@ function apbct_admin__admin_bar__prepare_counters()
     }
     //Reset or create all counters
     if ( ! empty(Get::get('ct_reset_all_counters')) ) {
-        AJAXService::checkNonceRestrictingNonAdmins();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
         $apbct->data['admin_bar__sfw_counter']      = array('all' => 0, 'blocked' => 0);
         $apbct->data['admin_bar__all_time_counter'] = array('accepted' => 0, 'blocked' => 0);
         $apbct->data['user_counter']                = array(
@@ -1453,7 +1453,7 @@ function apbct_woocommerce__orders_send_feedback(array $spam_ids, $orders_status
  */
 function apbct_user__send_feedback($user_id = null, $status = null, $direct_call = null)
 {
-    AJAXService::checkNonceRestrictingNonAdmins();
+    AJAXService::checkNonceRestrictingNonAdmins('security');
 
     if ( ! $direct_call ) {
         $user_id = Post::getInt('user_id');
