@@ -1174,11 +1174,11 @@ if (!Object.prototype.hasOwn) {
 }
 
 /**
- * Form skin class
+ * Class collecting user activity data
  *
  */
 // eslint-disable-next-line no-unused-vars, require-jsdoc
-class ApbctFormDecorator {
+class ApbctCollectingUserActivity {
     elementBody = document.querySelector('body');
     collectionForms = document.forms;
     /**
@@ -1210,83 +1210,84 @@ class ApbctFormDecorator {
         });
     }
 
+    /**
+     * Checking if there is an element in the form
+     * @param {object} event
+     * @param {string} addTarget
+     */
     checkElementInForms(event, addTarget) {
         let resultCheck;
         for (let i = 0; i < this.collectionForms.length; i++) {
-            resultCheck = event.target.innerHTML.length > 0 ? this.collectionForms[i].innerHTML.indexOf(event.target.innerHTML) : -1;
+            if (
+                event.target.outerHTML.length > 0 &&
+                this.collectionForms[i].innerHTML.length > 0
+            ) {
+                resultCheck = this.collectionForms[i].innerHTML.indexOf(event.target.outerHTML);
+            } else {
+                resultCheck = -1;
+            }
         }
 
         switch (addTarget) {
-            case 'addClicks':
-                if (resultCheck < 0) {
-                    this.addClicks();
-                }
-                break;
-            case 'trackMouseMovement':
-                if (resultCheck > -1) {
-                    console.log(resultCheck);
-                    console.log(event);
-                    this.trackMouseMovement();
-                }
-                break;
-        
-            default:
-                break;
+        case 'addClicks':
+            if (resultCheck < 0) {
+                this.addClicks();
+            }
+            break;
+        case 'trackMouseMovement':
+            if (resultCheck > -1) {
+                this.trackMouseMovement();
+            }
+            break;
+        default:
+            break;
         }
     }
 
     /**
      * Add clicks
      */
-    addClicks() {        
-        if (document.ctFormDecorationMouseData) {
-            if (document.ctFormDecorationMouseData.clicks) {
-                document.ctFormDecorationMouseData.clicks++;
+    addClicks() {
+        if (document.ctCollectingUserActivityData) {
+            if (document.ctCollectingUserActivityData.clicks) {
+                document.ctCollectingUserActivityData.clicks++;
             } else {
-                document.ctFormDecorationMouseData.clicks = 1;
+                document.ctCollectingUserActivityData.clicks = 1;
             }
             return;
         }
 
-        document.ctFormDecorationMouseData = {clicks: 1};
+        document.ctCollectingUserActivityData = {clicks: 1};
     }
 
     /**
      * Add selected
      */
     addSelected() {
-        if (document.ctFormDecorationMouseData) {
-            if (document.ctFormDecorationMouseData.selected) {
-                document.ctFormDecorationMouseData.selected++;
+        if (document.ctCollectingUserActivityData) {
+            if (document.ctCollectingUserActivityData.selected) {
+                document.ctCollectingUserActivityData.selected++;
             } else {
-                document.ctFormDecorationMouseData.selected = 1;
+                document.ctCollectingUserActivityData.selected = 1;
             }
             return;
         }
 
-        document.ctFormDecorationMouseData = {selected: 1};
+        document.ctCollectingUserActivityData = {selected: 1};
     }
 
     /**
      * Track mouse movement
      */
     trackMouseMovement() {
-        if (!document.ctFormDecorationMouseData) {
-            document.ctFormDecorationMouseData = {};
+        if (!document.ctCollectingUserActivityData) {
+            document.ctCollectingUserActivityData = {};
         }
-        if (!document.ctFormDecorationMouseData.mouseMovements) {
-            document.ctFormDecorationMouseData.mouseMovements = [];
+        if (!document.ctCollectingUserActivityData.mouseMovementsInsideForm) {
+            document.ctCollectingUserActivityData.mouseMovementsInsideForm = false;
         }
 
-        document.ctFormDecorationMouseData.mouseMovements.push({timestamp: Date.now()});
-
-        if (document.ctFormDecorationMouseData.mouseMovements.length > 1) {
-            const index = document.ctFormDecorationMouseData.mouseMovements.length - 1;
-            const lastMovement = document.ctFormDecorationMouseData.mouseMovements[index];
-            const firstMovement = document.ctFormDecorationMouseData.mouseMovements[0];
-            const timeDiff = lastMovement.timestamp - firstMovement.timestamp;
-            document.ctFormDecorationMouseData.hovering = timeDiff;
-        }
+        document.ctCollectingUserActivityData.mouseMovementsInsideForm = true;
     }
 }
 
@@ -2973,8 +2974,8 @@ function apbct_ready() {
     // Check any XMLHttpRequest connections
     apbctCatchXmlHttpRequest();
 
-    // Init form skin
-    new ApbctFormDecorator();
+    // Initializing the collection of user activity
+    new ApbctCollectingUserActivity();
 
     // Set important paramaters via ajax if problematic cache solutions found
     // todo These AJAX calls removed untill we find a better solution, reason is a lot of requests to the server.
@@ -3557,7 +3558,7 @@ function ctNoCookieConstructHiddenField(type) {
 
 /**
  * Retrieves the clentalk "cookie" data from starages.
- * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration}.
+ * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity}.
  * @return {string}
  */
 function getCleanTalkStorageDataArray() {
@@ -3569,15 +3570,14 @@ function getCleanTalkStorageDataArray() {
         noCookieDataTypo = {typo: document.ctTypoData.data};
     }
 
-    let noCookieDataFromDecoration = {form_decoration_mouse_data: []};
-    if (document.ctFormDecorationMouseData) {
-        let formDecorationMouseData = JSON.parse(JSON.stringify(document.ctFormDecorationMouseData));
-        if (formDecorationMouseData.mouseMovements) {
-            delete formDecorationMouseData.mouseMovements;
-        }
-        noCookieDataFromDecoration = {form_decoration_mouse_data: formDecorationMouseData};
+    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
+
+    if (document.ctCollectingUserActivityData) {
+        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
+        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
     }
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration};
+
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
 }
 
 /**

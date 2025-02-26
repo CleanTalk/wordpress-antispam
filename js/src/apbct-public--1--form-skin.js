@@ -1,9 +1,9 @@
 /**
- * Form skin class
+ * Class collecting user activity data
  *
  */
 // eslint-disable-next-line no-unused-vars, require-jsdoc
-class ApbctFormDecorator {
+class ApbctCollectingUserActivity {
     elementBody = document.querySelector('body');
     collectionForms = document.forms;
     /**
@@ -35,87 +35,83 @@ class ApbctFormDecorator {
         });
     }
 
+    /**
+     * Checking if there is an element in the form
+     * @param {object} event
+     * @param {string} addTarget
+     */
     checkElementInForms(event, addTarget) {
         let resultCheck;
         for (let i = 0; i < this.collectionForms.length; i++) {
-            
-            if (event.target.innerHTML.length > 0) {
-                resultCheck = this.collectionForms[i].innerHTML.indexOf(event.target.innerHTML);
+            if (
+                event.target.outerHTML.length > 0 &&
+                this.collectionForms[i].innerHTML.length > 0
+            ) {
+                resultCheck = this.collectionForms[i].innerHTML.indexOf(event.target.outerHTML);
             } else {
                 resultCheck = -1;
             }
         }
 
         switch (addTarget) {
-            case 'addClicks':
-                if (resultCheck < 0) {
-                    this.addClicks();
-                }
-                break;
-            case 'trackMouseMovement':
-                if (resultCheck > -1) {
-                    console.log(resultCheck);
-                    console.log(event);
-                    this.trackMouseMovement();
-                }
-                break;
-        
-            default:
-                break;
+        case 'addClicks':
+            if (resultCheck < 0) {
+                this.addClicks();
+            }
+            break;
+        case 'trackMouseMovement':
+            if (resultCheck > -1) {
+                this.trackMouseMovement();
+            }
+            break;
+        default:
+            break;
         }
     }
 
     /**
      * Add clicks
      */
-    addClicks() {        
-        if (document.ctFormDecorationMouseData) {
-            if (document.ctFormDecorationMouseData.clicks) {
-                document.ctFormDecorationMouseData.clicks++;
+    addClicks() {
+        if (document.ctCollectingUserActivityData) {
+            if (document.ctCollectingUserActivityData.clicks) {
+                document.ctCollectingUserActivityData.clicks++;
             } else {
-                document.ctFormDecorationMouseData.clicks = 1;
+                document.ctCollectingUserActivityData.clicks = 1;
             }
             return;
         }
 
-        document.ctFormDecorationMouseData = {clicks: 1};
+        document.ctCollectingUserActivityData = {clicks: 1};
     }
 
     /**
      * Add selected
      */
     addSelected() {
-        if (document.ctFormDecorationMouseData) {
-            if (document.ctFormDecorationMouseData.selected) {
-                document.ctFormDecorationMouseData.selected++;
+        if (document.ctCollectingUserActivityData) {
+            if (document.ctCollectingUserActivityData.selected) {
+                document.ctCollectingUserActivityData.selected++;
             } else {
-                document.ctFormDecorationMouseData.selected = 1;
+                document.ctCollectingUserActivityData.selected = 1;
             }
             return;
         }
 
-        document.ctFormDecorationMouseData = {selected: 1};
+        document.ctCollectingUserActivityData = {selected: 1};
     }
 
     /**
      * Track mouse movement
      */
     trackMouseMovement() {
-        if (!document.ctFormDecorationMouseData) {
-            document.ctFormDecorationMouseData = {};
+        if (!document.ctCollectingUserActivityData) {
+            document.ctCollectingUserActivityData = {};
         }
-        if (!document.ctFormDecorationMouseData.mouseMovements) {
-            document.ctFormDecorationMouseData.mouseMovements = [];
+        if (!document.ctCollectingUserActivityData.mouseMovementsInsideForm) {
+            document.ctCollectingUserActivityData.mouseMovementsInsideForm = false;
         }
 
-        document.ctFormDecorationMouseData.mouseMovements.push({timestamp: Date.now()});
-
-        if (document.ctFormDecorationMouseData.mouseMovements.length > 1) {
-            const index = document.ctFormDecorationMouseData.mouseMovements.length - 1;
-            const lastMovement = document.ctFormDecorationMouseData.mouseMovements[index];
-            const firstMovement = document.ctFormDecorationMouseData.mouseMovements[0];
-            const timeDiff = lastMovement.timestamp - firstMovement.timestamp;
-            document.ctFormDecorationMouseData.hovering = timeDiff;
-        }
+        document.ctCollectingUserActivityData.mouseMovementsInsideForm = true;
     }
 }
