@@ -105,8 +105,13 @@ class Honeypot
         $honeypot_potential_values = array();
 
         if ( ! empty($_POST) ) {
-            $honeypot_potential_values = array_filter($_POST, function ($key) {
-                return strpos($key, 'apbct_email_id') !== false;
+            $honeypot_potential_values = array_filter($_POST, function ($key) use (&$hp_exists) {
+                $result = strpos($key, 'apbct_email_id') !== false;
+                if ($result) {
+                    $hp_exists = true;
+                }
+
+                return $result;
             }, ARRAY_FILTER_USE_KEY);
         }
 
@@ -118,8 +123,6 @@ class Honeypot
         // if source is filled then pass them to params as additional fields
         if ( ! empty($honeypot_potential_values) ) {
             foreach ( $honeypot_potential_values as $source_name => $source_value ) {
-                $hp_exists = true;
-
                 // detect only values that is not empty (i.e. malformed)
                 if ( $source_value !== '' ) {
                     $result['field_value'] = $source_value;
