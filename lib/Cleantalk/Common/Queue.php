@@ -85,7 +85,7 @@ abstract class Queue
                 return true;
             }
 
-            $stage_to_execute = &$this->queue['stages'][$this->unstarted_stage];
+            $stage_to_execute = $this->queue['stages'][$this->unstarted_stage];
         }
 
         if ($stage_to_execute) {

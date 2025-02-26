@@ -19,6 +19,7 @@ class Cookie extends ServerVariables
      *
      * @return mixed|string
      */
+    #[\Override]
     protected function getVariable($name)
     {
         // Return from memory. From $this->variables
@@ -96,6 +97,7 @@ class Cookie extends ServerVariables
         }
     }
 
+    #[\Override]
     protected function sanitizeDefault($value)
     {
         return sanitize_textarea_field($value);

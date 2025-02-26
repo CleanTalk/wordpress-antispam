@@ -97,11 +97,17 @@ if (! function_exists("array_column")) {
 
 /**
  * array_key_first() polyfill for PHP 7.3-
+ * 
+ * @template TKey of array-key
+ * @template TArray as array<TKey, mixed>
+ * @param TArray $arr
+ * @return key-of<TArray>|null
  */
 if ( ! function_exists('array_key_first') ) {
     function array_key_first(array $arr)
     {
         foreach ( $arr as $key => $_unused ) {
+            /** @psalm-suppress InvalidReturnStatement */
             return $key;
         }
 

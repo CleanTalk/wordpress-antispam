@@ -104,7 +104,7 @@ class TT
             //todo cast methods needs
             return (bool)$value;
         }
-        return $default !== false && is_bool($default);
+        return $default;
     }
 
     /**

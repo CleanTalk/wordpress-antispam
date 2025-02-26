@@ -500,16 +500,34 @@ class Helper
     /**
      * Reduce IPv6
      *
-     * @param string $ip
-     *
-     * @return string IPv6
+     * @param string|bool|null $ip
+     * @return string
      */
     public static function ipV6Reduce($ip)
     {
+        if (!is_string($ip)) {
+            return '';
+        }
+
         if (strpos($ip, ':') !== false) {
-            $ip = preg_replace('/:0{1,4}/', ':', $ip);
-            $ip = preg_replace('/:{2,}/', '::', $ip);
-            $ip = strpos($ip, '0') === 0 && substr($ip, 1) !== false ? substr($ip, 1) : $ip;
+            $result = preg_replace('/:0{1,4}/', ':', $ip);
+            if ($result === null || $result === false) {
+                return $ip;
+            }
+            $ip = $result;
+            
+            $result = preg_replace('/:{2,}/', '::', $ip);
+            if ($result === null || $result === false) {
+                return $ip;
+            }
+            $ip = $result;
+            
+            if (strpos($ip, '0') === 0) {
+                $substr_result = substr($ip, 1);
+                if ($substr_result !== false) {
+                    $ip = $substr_result;
+                }
+            }
         }
 
         return $ip;
@@ -840,10 +858,16 @@ class Helper
     {
         $data = str_replace(chr(0), '', $data); // Clean input of null bytes
         if ( ! empty($data) && @file_exists($data)) {
-            $type = mime_content_type($data);
+            $detected_type = mime_content_type($data);
+            if ($detected_type !== false) {
+                $type = $detected_type;
+            }
         } elseif (function_exists('finfo_open')) {
             $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $type  = finfo_buffer($finfo, $data);
+            $detected_type = finfo_buffer($finfo, $data);
+            if ($detected_type !== false) {
+                $type = $detected_type;
+            }
             finfo_close($finfo);
         }
 
