@@ -2745,7 +2745,7 @@ function apbct_settings__get_key_auto($direct_call = false)
         $out = array(
             'success' => true,
             'reload'  => false,
-            'error' => __('Our service is not available in your region.', 'cleantalk-spam-protect'),
+            'error' => isset($result['error_message']) ? esc_html($result['error_message']) : esc_html('Our service is not available in your region.'),
         );
     } elseif ( ! isset($result['auth_key']) ) {
         //HANDLE LINK
