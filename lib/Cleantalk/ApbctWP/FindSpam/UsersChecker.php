@@ -105,20 +105,9 @@ class UsersChecker extends Checker
             $between_dates_sql = "WHERE $wpdb->users.user_registered >= '$date_from' AND $wpdb->users.user_registered <= '$date_till'";
         }
 
-        // Woocommerce
-        $wc_active = false;
         $wc_orders = '';
-        if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')), true)) {
-            $wc_active = true;
-        }
-        if ($wc_active && $userScanParameters->getAccurateCheck()) {
-            $wc_orders = " AND NOT EXISTS (SELECT posts.* FROM {$wpdb->posts} AS posts"
-                . " INNER JOIN {$wpdb->postmeta} AS postmeta"
-                . " WHERE posts.post_type = 'shop_order'"
-                . " AND posts.post_status = 'wc-completed'"
-                . " AND posts.ID = postmeta.post_id"
-                . " AND postmeta.meta_key = '_customer_user'"
-                . " AND postmeta.meta_value = {$wpdb->users}.ID)";
+        if ($userScanParameters->getAccurateCheck()) {
+            $wc_orders = \Cleantalk\Antispam\IntegrationsByClass\Woocommerce::getCompletedOrders();
         }
 
         $query = "SELECT {$wpdb->users}.ID, {$wpdb->users}.user_email, {$wpdb->users}.user_registered

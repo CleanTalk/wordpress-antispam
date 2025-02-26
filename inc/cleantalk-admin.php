@@ -1399,50 +1399,6 @@ function apbct_comment__remove_meta_approved($comment)
     delete_comment_meta((int)$comment->comment_ID, 'ct_marked_as_approved');
 }
 
-/**
- * @param array $spam_ids
- * @param string $orders_status
- */
-function apbct_woocommerce__orders_send_feedback(array $spam_ids, $orders_status = '0')
-{
-    if (empty($spam_ids)) {
-        return;
-    }
-
-    global $apbct;
-    $request_ids = array();
-    foreach ($spam_ids as $spam_id) {
-        $request_id = get_post_meta($spam_id, 'cleantalk_order_request_id', true);
-        if ($request_id) {
-            $request_ids[] = $request_id . ':' . $orders_status;
-        }
-    }
-
-    if (!empty($request_ids)) {
-        $feedback = implode(';', $request_ids);
-
-        try {
-            $ct_request = new CleantalkRequest(array(
-                // General
-                'auth_key' => $apbct->api_key,
-                // Additional
-                'feedback' => $feedback,
-            ));
-
-            $ct = new Cleantalk();
-
-            // Server URL handling
-            $config             = ct_get_server();
-            $ct->server_url     = APBCT_MODERATE_URL;
-            $ct->work_url       = isset($config['ct_work_url']) && preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
-            $ct->server_ttl     = isset($config['ct_server_ttl']) ? $config['ct_server_ttl'] : null;
-            $ct->server_changed = isset($config['ct_server_changed']) ? $config['ct_server_changed'] : null;
-
-            $ct->sendFeedback($ct_request);
-        } catch (\Exception $e) {
-        }
-    }
-}
 
 /**
  * Ajax action feedback form user page.
