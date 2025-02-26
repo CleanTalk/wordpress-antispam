@@ -2699,6 +2699,12 @@ function apbct_settings__get_key_auto($direct_call = false)
             'reload'  => false,
             'error' => isset($result['error_message']) ? esc_html($result['error_message']) : esc_html($result['error'])
         );
+    } elseif (isset($result['error_no']) && $result['error_no'] == '403') {
+        $out = array(
+            'success' => true,
+            'reload'  => false,
+            'error' => isset($result['error_message']) ? esc_html($result['error_message']) : esc_html('Our service is not available in your region.'),
+        );
     } elseif ( ! isset($result['auth_key']) ) {
         //HANDLE LINK
         $out = array(
