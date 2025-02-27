@@ -1628,12 +1628,10 @@ class ApbctCollectingUserActivity {
         });
 
         this.elementBody.addEventListener('mouseup', (event) => {
-            setTimeout(() => {
-                const selectedText = window.getSelection().toString();
-                if (selectedText) {
-                    this.addSelected();
-                }
-            }, 100);
+            const selectedType = document.getSelection().type.toString();
+            if (selectedType == 'Range') {
+                this.addSelected();
+            }
         });
 
         this.elementBody.addEventListener('mousemove', (event) => {
