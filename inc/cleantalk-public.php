@@ -554,7 +554,6 @@ function apbct_hook__wp_footer()
             $apbct->settings['data__bot_detector_enabled'] !== '1'
         )
     ) {
-
         echo '<img alt="Cleantalk Pixel" title="Cleantalk Pixel" id="apbct_pixel" style="display: none;" src="' . Escape::escUrl($apbct->pixel_url) . '">';
     }
 

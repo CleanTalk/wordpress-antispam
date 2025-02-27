@@ -2932,6 +2932,7 @@ function ctIsDrawPixel() {
 
 /**
  * @param {string} pixelUrl
+ * @return {bool}
  */
 function ctSetPixelImg(pixelUrl) {
     if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
@@ -2953,6 +2954,7 @@ function ctSetPixelImg(pixelUrl) {
 
 /**
  * @param {string} pixelUrl
+ * @return {bool}
  */
 function ctSetPixelImgFromLocalstorage(pixelUrl) {
     if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
@@ -2973,6 +2975,7 @@ function ctSetPixelImgFromLocalstorage(pixelUrl) {
 
 /**
  * ctGetPixelUrl
+ * @return {bool}
  */
 function ctGetPixelUrl() {
     if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
@@ -3360,13 +3363,19 @@ function apbct_ready() {
         }
     }
 
-    if ( +ctPublic.pixel__setting && !(+ctPublic.pixel__setting == 3 && ctPublic.settings__data__bot_detector_enabled == 1)) {
+    if (
+        +ctPublic.pixel__setting &&
+        !(+ctPublic.pixel__setting == 3 && ctPublic.settings__data__bot_detector_enabled == 1)
+    ) {
         if ( ctIsDrawPixel() ) {
             ctGetPixelUrl();
         } else {
             initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
         }
-    } else if (!+ctPublic.pixel__setting || (+ctPublic.pixel__setting == 3 && ctPublic.settings__data__bot_detector_enabled == 1)) {
+    } else if (
+        !+ctPublic.pixel__setting ||
+        (+ctPublic.pixel__setting == 3 && ctPublic.settings__data__bot_detector_enabled == 1)
+    ) {
         ctDeleteCookie('apbct_pixel_url');
         localStorage.removeItem('apbct_pixel_url');
     }
