@@ -643,7 +643,7 @@ function apbct_settings__set_fields()
                         )
                         . '<br>'
                         . __(
-                            '"If the "Auto" mode is enabled and the "Anti-Spam by CleanTalk JavaScript library" is enabled, the pixel setting will be disabled.',
+                            'If the "Auto" mode is enabled and the "Anti-Spam by CleanTalk JavaScript library" is enabled, the pixel setting will be disabled.',
                             'cleantalk-spam-protect'
                         ),
                     'long_description' => true,
