@@ -901,12 +901,6 @@ function apbct_ready() {
         } else {
             initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
         }
-    } else if (
-        !+ctPublic.pixel__setting ||
-        (+ctPublic.pixel__setting == 3 && ctPublic.settings__data__bot_detector_enabled == 1)
-    ) {
-        ctDeleteCookie('apbct_pixel_url');
-        localStorage.removeItem('apbct_pixel_url');
     }
 
     if ( +ctPublic.data__email_check_before_post) {
