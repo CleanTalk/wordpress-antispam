@@ -23,7 +23,14 @@ function apbct_init()
     global $ct_jp_comments, $apbct;
 
     // Pixel
-    if ( $apbct->settings['data__pixel'] && empty($apbct->pixel_url) ) {
+    if (
+        $apbct->settings['data__pixel'] &&
+        empty($apbct->pixel_url) &&
+        !(
+            $apbct->settings['data__bot_detector_enabled'] === '1' &&
+            $apbct->settings['data__pixel'] === '3'
+        )
+    ) {
         $apbct->pixel_url = apbct_get_pixel_url(true);
     }
 
@@ -541,7 +548,11 @@ function apbct_hook__wp_footer()
     // Pixel
     if (
         $apbct->settings['data__pixel'] === '1' ||
-        ($apbct->settings['data__pixel'] === '3' && ! apbct_is_cache_plugins_exists())
+        (
+            $apbct->settings['data__pixel'] === '3' &&
+            ! apbct_is_cache_plugins_exists() &&
+            $apbct->settings['data__bot_detector_enabled'] !== '1'
+        )
     ) {
         echo '<img alt="Cleantalk Pixel" title="Cleantalk Pixel" id="apbct_pixel" style="display: none;" src="' . Escape::escUrl($apbct->pixel_url) . '">';
     }

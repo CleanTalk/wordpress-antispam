@@ -2490,6 +2490,10 @@ function ctEmailExistSetElementsPositions() {
  * @return {bool}
  */
 function ctIsDrawPixel() {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
+
     return +ctPublic.pixel__enabled ||
         (ctPublic.data__cookies_type === 'none' && document.querySelectorAll('img#apbct_pixel').length === 0) ||
         (ctPublic.data__cookies_type === 'alternative' && document.querySelectorAll('img#apbct_pixel').length === 0);
@@ -2497,8 +2501,12 @@ function ctIsDrawPixel() {
 
 /**
  * @param {string} pixelUrl
+ * @return {bool}
  */
 function ctSetPixelImg(pixelUrl) {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
     ctSetCookie('apbct_pixel_url', pixelUrl);
     if ( ctIsDrawPixel() ) {
         if ( ! document.getElementById('apbct_pixel') ) {
@@ -2515,8 +2523,12 @@ function ctSetPixelImg(pixelUrl) {
 
 /**
  * @param {string} pixelUrl
+ * @return {bool}
  */
 function ctSetPixelImgFromLocalstorage(pixelUrl) {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
     if ( ctIsDrawPixel() ) {
         if ( ! document.getElementById('apbct_pixel') ) {
             let insertedImg = document.createElement('img');
@@ -2532,8 +2544,13 @@ function ctSetPixelImgFromLocalstorage(pixelUrl) {
 
 /**
  * ctGetPixelUrl
+ * @return {bool}
  */
 function ctGetPixelUrl() {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
+
     // Check if pixel is already in localstorage and is not outdated
     let localStoragePixelUrl = apbctLocalStorage.get('apbct_pixel_url');
     if ( localStoragePixelUrl !== false ) {
@@ -2915,7 +2932,10 @@ function apbct_ready() {
         }
     }
 
-    if ( +ctPublic.pixel__setting ) {
+    if (
+        +ctPublic.pixel__setting &&
+        !(+ctPublic.pixel__setting == 3 && ctPublic.settings__data__bot_detector_enabled == 1)
+    ) {
         if ( ctIsDrawPixel() ) {
             ctGetPixelUrl();
         } else {
