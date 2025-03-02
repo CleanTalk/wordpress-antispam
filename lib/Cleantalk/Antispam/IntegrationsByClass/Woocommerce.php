@@ -344,7 +344,6 @@ class Woocommerce extends IntegrationByClassBase
             apbct_form__get_no_cookie_data();
         }
 
-        //Making a call
         $base_call_result = apbct_base_call(
             array(
                 'message'     => $message,
@@ -377,6 +376,35 @@ class Woocommerce extends IntegrationByClassBase
                 ['ct_no_cookie_hidden_field' => $request->get_param('ct_no_cookie_hidden_field')],
                 false
             );
+        }
+
+        $message = apply_filters('apbct__filter_post', $_POST);
+        $post_info = array();
+        $post_info['comment_type'] = 'order__add_to_cart';
+        $post_info['post_url']     = Sanitize::cleanUrl(Server::get('HTTP_REFERER'));
+        $base_call_result = apbct_base_call(
+            array(
+                'message'     => $message,
+                'post_info'   => $post_info,
+                'js_on'       => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
+                'sender_info' => array('sender_url' => null),
+                'exception_action' => false,
+            )
+        );
+
+        if ( isset($base_call_result['ct_result']) ) {
+            $ct_result = $base_call_result['ct_result'];
+
+            if ( $ct_result->allow == 0 && function_exists('wc_add_notice') ) {
+                if ( class_exists('\Automattic\WooCommerce\StoreApi\Exceptions\RouteException') ) {
+                    /** @psalm-suppress InvalidThrow */
+                    throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
+                        'woocommerce_rest_cart_item_exists',
+                        $ct_result->comment,
+                        400
+                    );
+                }
+            }
         }
 
         return $add_to_cart_data;
