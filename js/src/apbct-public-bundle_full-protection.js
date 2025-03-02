@@ -3555,11 +3555,13 @@ function ctAddWCMiddlewares() {
             options.data.requests[0].path === '/wc/store/v1/cart/add-item'
         ) {
             options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+            options.data.requests[0].data.event_token = localStorage.getItem('bot_detector_event_token');
         }
 
         // checkout
         if (options.path === '/wc/store/v1/checkout') {
             options.data.ct_no_cookie_hidden_field = getNoCookieData();
+            options.data.event_token = localStorage.getItem('bot_detector_event_token');
         }
 
         return next(options);

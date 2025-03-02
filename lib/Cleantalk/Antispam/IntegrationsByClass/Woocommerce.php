@@ -34,6 +34,8 @@ use Cleantalk\ApbctWP\Variables\Server;
  */
 class Woocommerce extends IntegrationByClassBase
 {
+    private $event_token = null;
+
     /**
      * @return void
      * @psalm-suppress PossiblyUnusedMethod
@@ -246,7 +248,8 @@ class Woocommerce extends IntegrationByClassBase
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
             'post_info'       => $post_info,
-            'sender_info'     => array('sender_url' => null)
+            'sender_info'     => array('sender_url' => null),
+            'event_token'     => $this->event_token,
         );
 
         $base_call_result = apbct_base_call($base_call_data);
@@ -378,6 +381,14 @@ class Woocommerce extends IntegrationByClassBase
             );
         }
 
+        $event_token = $request->get_param('event_token');
+        if ($event_token && $event_token !== 'undefined' && $event_token !== 'null') {
+            $token = @json_decode($event_token, true);
+            if (is_array($token) && isset($token['value'])) {
+                $event_token = $token['value'];
+            }
+        }
+
         $message = apply_filters('apbct__filter_post', $_POST);
         $post_info = array();
         $post_info['comment_type'] = 'order__add_to_cart';
@@ -389,6 +400,7 @@ class Woocommerce extends IntegrationByClassBase
                 'js_on'       => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
                 'sender_info' => array('sender_url' => null),
                 'exception_action' => false,
+                'event_token' => $event_token,
             )
         );
 
@@ -426,6 +438,16 @@ class Woocommerce extends IntegrationByClassBase
                 false
             );
         }
+
+        $event_token = $request->get_param('event_token');
+        if ($event_token && $event_token !== 'undefined' && $event_token !== 'null') {
+            $token = @json_decode($event_token, true);
+            if (is_array($token) && isset($token['value'])) {
+                $event_token = $token['value'];
+            }
+        }
+
+        $this->event_token = $event_token;
     }
 
     /**
