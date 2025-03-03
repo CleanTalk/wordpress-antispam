@@ -4,6 +4,7 @@ use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
 use Cleantalk\ApbctWP\AJAXService;
+use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -538,7 +539,7 @@ function apbct_admin__enqueue_scripts($hook)
         APBCT_VERSION
     );
 
-    wp_localize_script('ct_admin_common', 'ctAdminCommon', array(
+    $data = array(
         '_ajax_nonce'        => $apbct->ajax_service->getAdminNonce(),
         '_ajax_url'          => admin_url('admin-ajax.php', 'relative'),
         'plugin_name'        => $apbct->plugin_name,
@@ -548,7 +549,9 @@ function apbct_admin__enqueue_scripts($hook)
         'notice_when_deleting_user_text' => esc_html__('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.', 'cleantalk-spam-protect'),
         'apbctNoticeDismissSuccess'       => esc_html__('Thank you for the review! We strive to make our Anti-Spam plugin better every day.', 'cleantalk-spam-protect'),
         'apbctNoticeForceProtectionOn'       => esc_html__('This option affects the reflection of the page by checking the user and adds a cookie "apbct_force_protection_check", which serves as an indicator of successful or unsuccessful verification. If the check is successful, it will no longer run.', 'cleantalk-spam-protect'),
-    ));
+    );
+    $data = array_merge($data, EmailEncoder::getLocalizationText());
+    wp_localize_script('ct_admin_common', 'ctAdminCommon', $data);
 
     // DASHBOARD page JavaScript and CSS
     if ( $hook == 'index.php' && apbct_is_user_role_in(array('administrator')) ) {

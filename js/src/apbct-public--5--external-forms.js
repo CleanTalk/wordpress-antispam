@@ -24,7 +24,7 @@ function ctProtectExternal() {
                 (typeof(currentForm.action) == 'string' &&
                     (currentForm.action.indexOf('webto.salesforce.com') !== -1)) ||
                 (typeof(currentForm.action) == 'string' &&
-                    currentForm.querySelector('[href*="activecampaign"]')) ||
+                currentForm.querySelector('[href*="activecampaign"]')) ||
                 (
                     typeof(currentForm.action) == 'string' &&
                     currentForm.action.indexOf('hsforms.com') !== -1 &&
