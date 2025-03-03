@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 6.50.1
+Stable tag: 6.51
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -441,6 +441,25 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.51 03.03.2025 =
+* New. Integration Awesome Support. Checking registration and creating new tickets.
+* New. Integrations. Added Site reviews handler.
+* New. Integration. Paid Member Subscription plugin.
+* Upd. EmailEncoder. Made JS message translate-ready.
+* Upd. ProtectByShortcode. Expanded the array of options.
+* Upd. EmailEncoder. Unified localization.
+* Mod. GetKeyAuto. Checking the query result code.
+* Mod. EmailEncoder. Unification of Email Encoder functionality.
+* Fix. Code. JS error during external forms protection fixed.
+* Fix. Integrations. False detecting request type registration fixed.
+* Fix. Honeypot. Honeypot layout simplified.
+* Fix. Get fields any. Collecting message fixed.
+* Fix. Common. POST clearance updated.
+* Fix. Code. SFW class. PHP 8.2+ compatibility.
+* Fix. TRP. Editing the rendering of badges in the admin area.
+* Fix. Search form. Skip hero booking forms.
+* Fix. Admin page. Admin bar. Spam counters reset fixed.
 
 = 6.50.1 21.02.2025 =
 * Fix. Integrations. Registration flag condition updated.
