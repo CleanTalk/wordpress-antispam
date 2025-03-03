@@ -970,9 +970,7 @@ function apbct_ready() {
             form.ctFormIndex = i;
             form.onsubmit = function(event) {
                 if ( ctPublic.data__cookies_type !== 'native' && typeof event.target.ctFormIndex !== 'undefined' ) {
-                    const visibleFields = {};
-                    visibleFields[0] = apbct_collect_visible_fields(this);
-                    apbct_visible_fields_set_cookie( visibleFields, event.target.ctFormIndex );
+                    apbct_visible_fields_set_cookie( apbct_collect_visible_fields(this), event.target.ctFormIndex );
                 }
 
                 if (ctPublic.data__cookies_type === 'none' && isFormThatNeedCatchXhr(event.target)) {
@@ -1021,6 +1019,13 @@ function apbct_ready() {
                 continue;
             }
 
+            if (
+                _form.getAttribute('id') === 'hero-search-form' ||
+                _form.getAttribute('class') === 'hb-booking-search-form'
+            ) {
+                continue;
+            }
+
             // this handles search forms onsubmit process
             _form.apbctSearchPrevOnsubmit = _form.onsubmit;
             _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
@@ -1030,10 +1035,8 @@ function apbct_ready() {
     // Check any XMLHttpRequest connections
     apbctCatchXmlHttpRequest();
 
-    // Init form skin
-    if (ctPublic.settings__comments__form_decoration) {
-        new ApbctFormDecorator();
-    }
+    // Initializing the collection of user activity
+    new ApbctCollectingUserActivity();
 
     // Set important paramaters via ajax if problematic cache solutions found
     // todo These AJAX calls removed untill we find a better solution, reason is a lot of requests to the server.
@@ -1258,16 +1261,13 @@ if (ctPublic.data__key_is_ok) {
 function ctSearchFormOnSubmitHandler(e, targetForm) {
     try {
         // get honeypot field and it's value
-        const honeyPotField = targetForm.querySelector('[id*="apbct__email_id__"]');
+        const honeyPotField = targetForm.querySelector('[name*="apbct_email_id__"]');
         let hpValue = null;
-        let hpEventId = null;
         if (
             honeyPotField !== null &&
-            honeyPotField.value !== null &&
-            honeyPotField.getAttribute('apbct_event_id') !== null
+            honeyPotField.value !== null
         ) {
             hpValue = honeyPotField.value;
-            hpEventId = honeyPotField.getAttribute('apbct_event_id');
         }
 
         // get cookie data from storages
@@ -1293,9 +1293,8 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
             let cookiesArray = cleantalkStorageDataArray;
 
             // if honeypot data provided add the fields to the parsed data
-            if ( hpValue !== null && hpEventId !== null ) {
+            if ( hpValue !== null ) {
                 cookiesArray.apbct_search_form__honeypot_value = hpValue;
-                cookiesArray.apbct_search_form__honeypot_id = hpEventId;
             }
 
             // set event token
@@ -1535,11 +1534,7 @@ function apbct_visible_fields_set_cookie( visibleFieldsCollection, formId ) {
             ctSetCookie('apbct_visible_fields_' + collectionIndex, JSON.stringify( collection[i] ) );
         }
     } else {
-        if (ctPublic.data__cookies_type === 'none') {
-            ctSetCookie('apbct_visible_fields', JSON.stringify( collection[0] ) );
-        } else {
-            ctSetCookie('apbct_visible_fields', JSON.stringify( collection ) );
-        }
+        ctSetCookie('apbct_visible_fields', JSON.stringify( collection ) );
     }
 }
 
@@ -1620,7 +1615,7 @@ function ctNoCookieConstructHiddenField(type) {
 
 /**
  * Retrieves the clentalk "cookie" data from starages.
- * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration}.
+ * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity}.
  * @return {string}
  */
 function getCleanTalkStorageDataArray() {
@@ -1632,15 +1627,14 @@ function getCleanTalkStorageDataArray() {
         noCookieDataTypo = {typo: document.ctTypoData.data};
     }
 
-    let noCookieDataFromDecoration = {form_decoration_mouse_data: []};
-    if (document.ctFormDecorationMouseData) {
-        let formDecorationMouseData = JSON.parse(JSON.stringify(document.ctFormDecorationMouseData));
-        if (formDecorationMouseData.mouseMovements) {
-            delete formDecorationMouseData.mouseMovements;
-        }
-        noCookieDataFromDecoration = {form_decoration_mouse_data: formDecorationMouseData};
+    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
+
+    if (document.ctCollectingUserActivityData) {
+        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
+        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
     }
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration};
+
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
 }
 
 /**
