@@ -42,33 +42,27 @@ class Woocommerce extends IntegrationByClassBase
      */
     public function doPublicWork()
     {
-        global $_cleantalk_hooked_actions, $apbct;
-
-        // checkout
-        add_action('wp_ajax_nopriv_woocommerce_checkout', 'ct_ajax_hook', 1);
-        add_action('wp_ajax_woocommerce_checkout', 'ct_ajax_hook', 1);
-        $_cleantalk_hooked_actions[] = 'woocommerce_checkout';
-        $_cleantalk_hooked_actions[] = 'wcfm_ajax_controller';
+        global $apbct;
 
         // honeypot
         add_filter('woocommerce_checkout_fields', [$this, 'addHoneypotField']);
+
+        // add to cart
+        if ( ! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart'] ) {
+            add_filter('woocommerce_add_to_cart_validation', [$this, 'addToCartUnloggedUser'], 10, 6);
+            add_filter('woocommerce_store_api_add_to_cart_data', [$this, 'storeApiAddToCartData'], 10, 2);
+        }
+
+        // checkout
+        if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
+            $this->addActions();
+        }
 
         // registration
         if ( !$apbct->settings['forms__wc_register_from_order'] && (Request::get('wc-ajax') === 'checkout' || Request::get('wc-ajax') === 'complete_order') ) {
             remove_filter('woocommerce_registration_errors', 'ct_registration_errors', 1);
         } else {
             add_filter('woocommerce_registration_errors', 'ct_registration_errors', 1, 3);
-        }
-        if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
-            add_action('woocommerce_after_checkout_validation', [$this, 'checkoutCheck'], 1, 2);
-            add_action('woocommerce_store_api_checkout_order_processed', [$this, 'checkoutCheckFromRest'], 1, 1);
-            add_action('woocommerce_checkout_update_order_meta', [$this, 'addRequestIdToOrderMeta']);
-            add_action('woocommerce_store_api_checkout_update_customer_from_request', [$this, 'storeApiCheckoutUpdateCustomerFromRequest'], 10, 2);
-        }
-
-        if ( ! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart'] ) {
-            add_filter('woocommerce_add_to_cart_validation', [$this, 'addToCartUnloggedUser'], 10, 6);
-            add_filter('woocommerce_store_api_add_to_cart_data', [$this, 'storeApiAddToCartData'], 10, 2);
         }
 
         // collect data for spam orders
@@ -81,6 +75,13 @@ class Woocommerce extends IntegrationByClassBase
 
     public function doAjaxWork()
     {
+        global $apbct;
+
+        // checkout
+        if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
+            $this->addActions();
+        }
+
         // Restore Spam Order
         add_action('wp_ajax_apbct_restore_spam_order', array(WcSpamOrdersFunctions::class, 'restoreOrderAction'));
     }
@@ -108,6 +109,20 @@ class Woocommerce extends IntegrationByClassBase
                 }
             );
         });
+    }
+
+    public function addActions()
+    {
+        global $_cleantalk_hooked_actions;
+
+        add_action('wp_ajax_nopriv_woocommerce_checkout', 'ct_ajax_hook', 1);
+        add_action('wp_ajax_woocommerce_checkout', 'ct_ajax_hook', 1);
+        $_cleantalk_hooked_actions[] = 'woocommerce_checkout';
+        $_cleantalk_hooked_actions[] = 'wcfm_ajax_controller';
+        add_action('woocommerce_after_checkout_validation', [$this, 'checkoutCheck'], 1, 2);
+        add_action('woocommerce_store_api_checkout_order_processed', [$this, 'checkoutCheckFromRest'], 1, 1);
+        add_action('woocommerce_checkout_update_order_meta', [$this, 'addRequestIdToOrderMeta']);
+        add_action('woocommerce_store_api_checkout_update_customer_from_request', [$this, 'storeApiCheckoutUpdateCustomerFromRequest'], 10, 2);
     }
 
     public function addHoneypotField($fields)
@@ -298,14 +313,54 @@ class Woocommerce extends IntegrationByClassBase
         global $wpdb;
 
         $query = 'INSERT INTO ' . APBCT_TBL_WC_SPAM_ORDERS . ' (order_details, customer_details) 
-                VALUES (%s, %s) 
-                ON DUPLICATE KEY UPDATE order_details = %s, customer_details = %s';
+            VALUES (%s, %s) 
+            ON DUPLICATE KEY UPDATE order_details = %s, customer_details = %s';
+
+        // store blocked order from ajax checkout
+        if (!empty($_POST)) {
+            $prepared_query = $wpdb->prepare($query, [
+                json_encode(wc()->session->cart),
+                json_encode($_POST),
+                json_encode(wc()->session->cart),
+                json_encode($_POST),
+            ]);
+
+            $wpdb->query($prepared_query);
+
+            return;
+        }
+
+        // store blocked order from rest checkout
+        $customer_data = [];
+        if (isset(wc()->customer)) {
+            $customer = wc()->customer;
+            $customer_data['billing_first_name'] = $customer->get_billing_first_name();
+            $customer_data['billing_last_name'] = $customer->get_billing_last_name();
+            $customer_data['billing_company'] = $customer->get_billing_company();
+            $customer_data['billing_address_1'] = $customer->get_billing_address_1();
+            $customer_data['billing_address_2'] = $customer->get_billing_address_2();
+            $customer_data['billing_city'] = $customer->get_billing_city();
+            $customer_data['billing_state'] = $customer->get_billing_state();
+            $customer_data['billing_postcode'] = $customer->get_billing_postcode();
+            $customer_data['billing_country'] = $customer->get_billing_country();
+            $customer_data['billing_email'] = $customer->get_billing_email();
+            $customer_data['billing_phone'] = $customer->get_billing_phone();
+            $customer_data['shipping_first_name'] = $customer->get_shipping_first_name();
+            $customer_data['shipping_last_name'] = $customer->get_shipping_last_name();
+            $customer_data['shipping_company'] = $customer->get_shipping_company();
+            $customer_data['shipping_address_1'] = $customer->get_shipping_address_1();
+            $customer_data['shipping_address_2'] = $customer->get_shipping_address_2();
+            $customer_data['shipping_city'] = $customer->get_shipping_city();
+            $customer_data['shipping_state'] = $customer->get_shipping_state();
+            $customer_data['shipping_postcode'] = $customer->get_shipping_postcode();
+            $customer_data['shipping_country'] = $customer->get_shipping_country();
+        }
 
         $prepared_query = $wpdb->prepare($query, [
             json_encode(wc()->session->cart),
-            json_encode($_POST),
+            json_encode($customer_data),
             json_encode(wc()->session->cart),
-            json_encode($_POST),
+            json_encode($customer_data),
         ]);
 
         $wpdb->query($prepared_query);

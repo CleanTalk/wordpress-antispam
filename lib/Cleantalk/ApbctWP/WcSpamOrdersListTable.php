@@ -213,11 +213,11 @@ class WcSpamOrdersListTable extends CleantalkListTable
         $customer_details = json_decode($customer_details, true);
         $result           = '';
 
-        $result .= "<b>" . $customer_details["billing_first_name"] . "</b>";
+        $result .= "<b>" . (isset($customer_details["billing_first_name"]) ? $customer_details["billing_first_name"] : '') . "</b>";
         $result .= "<br>";
-        $result .= "<b>" . $customer_details["billing_last_name"] . "</b>";
+        $result .= "<b>" . (isset($customer_details["billing_last_name"]) ? $customer_details["billing_last_name"] : '') . "</b>";
         $result .= "<br>";
-        $result .= "<b>" . $customer_details["billing_email"] . "</b>";
+        $result .= "<b>" . (isset($customer_details["billing_email"]) ? $customer_details["billing_email"] : '') . "</b>";
 
         return $result;
     }
