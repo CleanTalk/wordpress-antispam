@@ -547,7 +547,14 @@ function apbct_get_sender_info()
     $site_referer = RequestParameters::get('apbct_site_referer', true);
     $site_referer = !empty($site_referer) ? TT::toString($site_referer) : null;
 
-    $page_hits = RequestParameters::get('apbct_page_hits', true);
+    /**
+     * Important! Do not use just HTTP only flag here. Page hits are handled on JS side
+     * and could be provided via NoCookie hidden field.
+     * Also, forms with forced alt cookies does not provide it via hidden field and in the same time other forms do,
+     * so we need a flag to know the source.
+     * A.G.
+     */
+    $page_hits = RequestParameters::get('apbct_page_hits', Cookie::$force_alt_cookies_global);
     $page_hits = !empty($page_hits) ? TT::toString($page_hits) : null;
 
     //Let's keep $data_array for debugging

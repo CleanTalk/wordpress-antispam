@@ -324,14 +324,18 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
             add_action('template_redirect', 'apbct_cookie', 2);
         }
         add_action('template_redirect', 'apbct_store__urls', 2);
+        add_action('template_redirect', 'apbct_store__page_hits', 2);
     }
     if (
         empty($_POST) &&
-        ( (isset($_GET['q']) && $_GET['q'] !== '') || empty($_GET) ) &&
         $apbct->data['key_is_ok']
     ) {
+        if ( (isset($_GET['q']) && $_GET['q'] !== '') || empty($_GET) ) {
             apbct_cookie();
-            apbct_store__urls();
+        }
+        //store url and hits ignoring GET containment
+        apbct_store__page_hits();
+        apbct_store__urls();
     }
 }
 
@@ -810,6 +814,7 @@ if ( is_admin() || is_network_admin() ) {
     if ( ! Post::get('wp-submit') ) {
         add_action('login_form_register', 'apbct_cookie');
         add_action('login_form_register', 'apbct_store__urls');
+        add_action('login_form_register', 'apbct_store__page_hits');
     }
     add_action('login_enqueue_scripts', 'apbct_login__scripts');
     add_action('register_form', 'ct_register_form');
@@ -2541,8 +2546,8 @@ function apbct_store__urls()
             $site_url &&
             (
                 ! $site_referer ||
-                parse_url($new_site_referer, PHP_URL_HOST) !== Server::get('HTTP_HOST')
-            ) && $apbct->data['cookies_type'] === 'native'
+                parse_url($new_site_referer, PHP_URL_HOST) !== Server::getString('HTTP_HOST')
+            )
         ) {
             RequestParameters::set('apbct_site_referer', $new_site_referer, true);
         }
@@ -2611,19 +2616,6 @@ function apbct_cookie()
             $cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
             $cookie_test_value['check_value']     .= $http_referrer;
         }
-
-        // Page hits
-        // Get
-        $page_hits = TT::toInt(RequestParameters::get('apbct_page_hits', true));
-
-        // Set / Increase
-        // todo if cookies disabled there is no way to keep this data without DB:( always will be 1
-        $page_hits = $page_hits ? $page_hits + 1 : 1;
-
-        RequestParameters::set('apbct_page_hits', TT::toString($page_hits), true);
-
-        $cookie_test_value['cookies_names'][] = 'apbct_page_hits';
-        $cookie_test_value['check_value']     .= $page_hits;
     }
 
     // Cookies test
@@ -2635,6 +2627,33 @@ function apbct_cookie()
     $apbct->flags__cookies_setuped = true;
 
     return $apbct->flags__cookies_setuped;
+}
+
+/**
+ * Store page hits. Only for native cookies mode.
+ * @return void
+ */
+function apbct_store__page_hits()
+{
+    global $apbct;
+    if (
+        ! empty($apbct->headers_sent)              // Headers sent
+    ) {
+        return;
+    }
+    if ( $apbct->data['cookies_type'] === 'native' && empty($apbct->page_hits_set) ) {
+        // Page hits
+        // Get
+        $page_hits = TT::toInt(RequestParameters::get('apbct_page_hits', true));
+
+        // Set / Increase
+        // todo if cookies disabled there is no way to keep this data without DB:( always will be 1
+        $page_hits = $page_hits ? $page_hits + 1 : 1;
+
+        RequestParameters::set('apbct_page_hits', TT::toString($page_hits), true);
+
+        $apbct->page_hits_set = true;
+    }
 }
 
 /**
