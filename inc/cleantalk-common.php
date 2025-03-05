@@ -547,7 +547,11 @@ function apbct_get_sender_info()
     $site_referer = RequestParameters::get('apbct_site_referer', true);
     $site_referer = !empty($site_referer) ? TT::toString($site_referer) : null;
 
-    $page_hits = RequestParameters::get('apbct_page_hits', true);
+    /**
+     * Important! Do not use HTTP only flag here. Page hits are handled on JS side
+     * and could be provided via NoCookie hidden field.
+     */
+    $page_hits = RequestParameters::get('apbct_page_hits');
     $page_hits = !empty($page_hits) ? TT::toString($page_hits) : null;
 
     //Let's keep $data_array for debugging
