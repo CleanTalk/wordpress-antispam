@@ -136,33 +136,17 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
 
     public static function getLocalizationText()
     {
-        global $apbct;
-
         /**
          * Filter for the text of the decoding process
          *
          * @param string $decoding_text
          *
          * @return string
+         * @apbct_filter
          */
         $decoding_text = apply_filters(
             'apbct__ee_wait_for_decoding_text',
             __('The magic is on the way, please wait for a few seconds!', 'cleantalk-spam-protect')
-        );
-
-        /**
-         * Filter for the text of the decoding process
-         *
-         * @param string $decoding_text_2
-         *
-         * @return string
-         */
-        $decoding_text_2 = apply_filters(
-            'apbct__ee_wait_for_decoding_2_text',
-            sprintf(
-                esc_html__('Please wait while %s is decoding the email addresses.', 'cleantalk-spam-protect'),
-                $apbct->data['wl_brandname']
-            )
         );
 
         /**
@@ -171,6 +155,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
          * @param string $original_contact_text
          *
          * @return string
+         * @apbct_filter
          */
         $original_contact_text = apply_filters(
             'apbct__ee_original_email_text',
@@ -183,6 +168,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
          * @param string $decoding_process_text
          *
          * @return string
+         * @apbct_filter
          */
         $decoding_process_text = apply_filters(
             'apbct__ee_decoding_process_text',
@@ -198,7 +184,6 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             'text__ee_cannot_decode'               => __('Can not decode email. Unknown reason', 'cleantalk-spam-protect'),
             'text__ee_email_decoder'               => __('CleanTalk email decoder', 'cleantalk-spam-protect'),
             'text__ee_wait_for_decoding'           => $decoding_text,
-            'text__ee_wait_for_decoding_2'         => $decoding_text_2,
             'text__ee_decoding_process'            => $decoding_process_text,
         );
     }
