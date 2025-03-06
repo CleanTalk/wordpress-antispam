@@ -636,9 +636,8 @@ register_uninstall_hook(__FILE__, 'apbct_uninstall');
 function apbct_uninstall($network_wide)
 {
     global $apbct;
-    $apbct->settings['misc__complete_deactivation'] = 1;
     $apbct->saveSettings();
-    Deactivator::deactivation($network_wide);
+    Deactivator::deactivation($network_wide, true);
 }
 
 // Hook for newly added blog
