@@ -2532,24 +2532,18 @@ function apbct_store__urls()
         // Saving
         RequestParameters::setCommonStorage('apbct_urls', json_encode($urls, JSON_UNESCAPED_SLASHES));
 
+        // SITE-REFERER
+        // Get current site-referer
+        $new_site_referer = Server::getString('HTTP_REFERER');
 
-        // REFERER
-        // Get current referer
-        $new_site_referer = TT::toString(Server::get('HTTP_REFERER'));
-        $new_site_referer = $new_site_referer !== '' ? $new_site_referer : 'UNKNOWN';
-
-        // Get already stored referer
-        $site_referer = TT::toString(RequestParameters::get('apbct_site_referer', true));
-
-        // Save if empty
-        if (
-            $site_url &&
-            (
-                ! $site_referer ||
-                parse_url($new_site_referer, PHP_URL_HOST) !== Server::getString('HTTP_HOST')
-            )
-        ) {
-            RequestParameters::set('apbct_site_referer', $new_site_referer, true);
+        if (empty($new_site_referer)) {
+            RequestParameters::set('apbct_site_referer', 'UNKNOWN', true);
+        } else {
+            $is_valid_new_url  = parse_url($new_site_referer, PHP_URL_HOST) !== null;
+            $is_not_like_host = $is_valid_new_url && parse_url($new_site_referer, PHP_URL_HOST) !== Server::getString('HTTP_HOST');
+            if ($is_not_like_host) {
+                RequestParameters::set('apbct_site_referer', $new_site_referer, true);
+            }
         }
 
         $apbct->flags__url_stored = true;
