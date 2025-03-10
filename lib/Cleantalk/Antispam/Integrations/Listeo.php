@@ -16,7 +16,7 @@ class Listeo extends IntegrationBase
 
     public function doBlock($message)
     {
-        die( 
+        die(
             json_encode(
                 array(
                     'registered' => false,
