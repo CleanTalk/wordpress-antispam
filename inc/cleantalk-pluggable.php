@@ -1475,6 +1475,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'tevolution email exitence';
         }
+
+        // skip listeo ajax registeration
+        if (
+            apbct_is_plugin_active('listeo-core/listeo-core.php') &&
+            Post::get('action') === 'listeoajaxregister'
+        ) {
+            return 'listeo ajax register';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
