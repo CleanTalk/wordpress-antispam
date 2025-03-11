@@ -1291,34 +1291,6 @@ function apbct__change_type_website_field($fields)
 }
 
 /**
- * Woocommerce honeypot
- */
-add_filter('woocommerce_checkout_fields', 'apbct__wc_add_honeypot_field');
-function apbct__wc_add_honeypot_field($fields)
-{
-    if (apbct_exclusions_check__url()) {
-        return $fields;
-    }
-
-    global $apbct;
-
-    if ( $apbct->settings['data__honeypot_field'] ) {
-        $fields['billing']['wc_apbct_email_id'] = array(
-            'id'            => 'wc_apbct_email_id',
-            'type'          => 'text',
-            'label'         => '',
-            'placeholder'   => '',
-            'required'      => false,
-            'class'         => array('form-row-wide', 'wc_apbct_email_id'),
-            'clear'         => true,
-            'autocomplete'  => 'off'
-        );
-    }
-
-    return $fields;
-}
-
-/**
  * The function determines whether it is necessary
  * to conduct a general check of the post request
  *

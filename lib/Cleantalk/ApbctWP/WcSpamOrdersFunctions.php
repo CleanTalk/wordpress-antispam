@@ -63,7 +63,7 @@ class WcSpamOrdersFunctions
         $billing_address = array(
             'first_name' => $customer_details->billing_first_name,
             'last_name'  => $customer_details->billing_last_name,
-            'company'    => $customer_details->billing_company,
+            'company'    => isset($customer_details->billing_company) ? $customer_details->billing_company : '',
             'email'      => $customer_details->billing_email,
             'phone'      => $customer_details->billing_phone,
             'address_1'  => $customer_details->billing_address_1,
@@ -79,7 +79,7 @@ class WcSpamOrdersFunctions
         $shipping_address = array(
             'first_name' => $customer_details->shipping_first_name,
             'last_name'  => $customer_details->shipping_last_name,
-            'company'    => $customer_details->shipping_company,
+            'company'    => isset($customer_details->shipping_company) ? $customer_details->shipping_company : '',
             'address_1'  => $customer_details->shipping_address_1,
             'address_2'  => $customer_details->shipping_address_2,
             'city'       => $customer_details->shipping_city,
