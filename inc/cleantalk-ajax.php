@@ -236,180 +236,7 @@ function ct_ajax_hook($message_obj = null)
     // Get current_user and set it globally
     apbct_wp_set_current_user($current_user instanceof WP_User ? $current_user : apbct_wp_get_current_user());
 
-    // $_REQUEST['action'] to skip. Go out because of not spam data
-    $skip_post = array(
-        'apbct_js_keys__get',
-        // Our service code
-        'gmaps_display_info_window',
-        // Geo My WP pop-up windows.
-        'gmw_ps_display_info_window',
-        // Geo My WP pop-up windows.
-        'the_champ_user_auth',
-        // Super Socializer
-        'simbatfa-init-otp',
-        //Two-Factor Auth
-        'wppb_msf_check_required_fields',
-        //ProfileBuilder skip step checking
-        'boss_we_login',
-        //Login form
-        'sidebar_login_process',
-        // Login CF7
-        'cp_update_style_settings',
-        // Convert Pro. Saving settings
-        'updraft_savesettings',
-        // UpdraftPlus
-        'wpdUpdateAutomatically',
-        //Comments update
-        'upload-attachment',
-        // Skip ulpload attachments
-        'iwj_update_profile',
-        //Skip profile page checker
-        'st_partner_create_service',
-        //Skip add hotel via admin
-        'vp_ajax_vpt_option_save',
-        // https://themeforest.net/item/motor-vehicles-parts-equipments-accessories-wordpress-woocommerce-theme/16829946
-        'mailster_send_test',
-        //Mailster send test admin
-        'acf/validate_save_post',
-        //ACF validate post admin
-        'admin:saveThemeOptions',
-        //Ait-theme admin checking
-        'save_tourmaster_option',
-        //Tourmaster admin save
-        'validate_register_email',
-        //Elementor Pro
-        'phone-orders-for-woocommerce',
-        //Phone orders for woocommerce backend
-        'ihc_check_reg_field_ajax',
-        //Ajax check required fields
-        'OSTC_lostPassword',
-        //Lost password ajax form
-        'check_retina_image_availability',
-        //There are too many ajax requests from mobile
-        'uap_check_reg_field_ajax',
-        // Ultimate Affiliate Pro. Form validation.
-        'edit-comment',
-        // Edit comments by admin ??? that shouldn't happen
-        'formcraft3_save_form_progress',
-        // FormCraft – Contact Form Builder for WordPress. Save progress.
-        'wpdmpp_save_settings',
-        // PayPal save settings.
-        'iwj_login',
-        // Fix for unknown plugin for user #133315
-        'custom_user_login',
-        // Fix for unknown plugin for user #466875
-        'wordfence_ls_authenticate',
-        //Fix for wordfence auth
-        'frm_strp_amount',
-        //Admin stripe form
-        'wouCheckOnlineUsers',
-        //Skip updraft admin checking users
-        'et_fb_get_shortcode_from_fb_object',
-        //Skip generate shortcode
-        'pp_lf_process_login',
-        //Skip login form
-        'check_email',
-        //Ajax email checking
-        'dflg_do_sign_in_user',
-        // Unknown plugin
-        'cartflows_save_cart_abandonment_data',
-        // WooCommerce cartflow
-        'rcp_process_register_form',
-        // WordPress Membership Plugin – Restrict Content
-        'apus_ajax_login',
-        // ???? plugin authorization
-        'bookly_save_customer',
-        //bookly
-        'postmark_test',
-        //Avocet
-        'postmark_save',
-        //Avocet
-        'ck_get_subscriber',
-        //ConvertKit checking the subscriber
-        'metorik_send_cart',
-        //Metorik skip
-        'ppom_ajax_validation',
-        // PPOM add to cart validation
-        'wpforms_form_abandonment',
-        // WPForms. Quiting without submitting
-        'post_woo_ml_email_cookie',
-        //Woocommerce system
-        'ig_es_draft_broadcast',
-        //Icegram broadcast ajax
-        'simplefilelistpro_edit_job',
-        //Simple File List editing current job
-        'wfu_ajax_action_ask_server',
-        //WFU skip ask server
-        'wfu_ajax_action',
-        //WFU skip ask server
-        'wcap_save_guest_data',
-        //WooCommerce skip
-        'ajaxlogin',
-        //Skip ajax login redirect
-        'heartbeat',
-        //Gravity multipage
-        'erforms_field_change_command',
-        //ERForms internal request
-        'wl_out_of_stock_notify',
-        // Sumo Waitlist
-        'rac_preadd_guest',
-        //Rac internal request
-        'apbct_email_check_before_post',
-        //Interal request
-        'edd_process_checkout',
-        // Easy Digital Downloads ajax skip
-        //Unknown plugin Ticket #25047
-        'alhbrmeu',
-        // Ninja Forms
-        'nf_preview_update',
-        'nf_save_form',
-        // WPUserMeta registration plugin exclusion
-        'pf_ajax_request',
-        //profilegrid addon
-        'pm_check_user_exist',
-        //Cartbounty plugin (saves every action on the page to keep abandoned carts)
-        'cartbounty_pro_save', 'cartbounty_save',
-        'wpmtst_form2', //has direct integration StrongTestimonials
-        /* !! Do not add actions here. Use apbct_is_skip_request() function below !! */
-    );
-
-    global $apbct;
-    // Skip test if
-    if ( ( ! $apbct->settings['forms__general_contact_forms_test'] && ! $apbct->settings['forms__check_external'] ) || // Test disabled
-         ! apbct_is_user_enable($apbct->user) || // User is admin, editor, author
-         // (function_exists('get_current_user_id') && get_current_user_id() != 0) || // Check with default wp_* function if it's admin
-         ( ! $apbct->settings['data__protect_logged_in'] && ($apbct->user instanceof WP_User) && $apbct->user->ID !== 0) || // Logged in user
-         apbct_exclusions_check__url() || // url exclusions
-
-         (Post::get('action') && in_array(Post::get('action'), $skip_post)) || // Special params
-         (Get::get('action') && in_array(Get::get('action'), $skip_post)) ||  // Special params
-         Post::get('quform_submit') || //QForms multi-paged form skip
-         // QAEngine Theme fix
-         ((string)current_filter() !== 'et_pre_insert_answer' &&
-          (
-              (isset($message_obj['author']) && (int)$message_obj['author'] === 0) ||
-              (isset($message_obj['post_author']) && (int)$message_obj['post_author'] === 0)
-          )
-         ) ||
-         (Post::get('action') === 'arm_shortcode_form_ajax_action' && Post::get('arm_action') === 'please-login') || //arm forms skip login
-         (Post::get('action') === 'erf_login_user' && in_array('easy-registration-forms/erforms.php', apply_filters('active_plugins', get_option('active_plugins')))) || //Easy Registration Forms login form skip
-         (Post::get('action') === 'mailpoet' && Post::get('endpoint') === 'ImportExport' && Post::get('method') === 'processImport') || //Mailpoet import
-         (Post::get('action') === 'latepoint_route_call') || //LatePoint service calls
-         (Post::get('action') === 'uael_login_form_submit') || // skip Ultimate Addons for Elementor login
-         (Post::get('action') === 'my_custom_login_validate') || // skip Ultimate Addons for Elementor login validate
-         (Post::get('action') === 'wpforms_restricted_email') || // skip WPForm validate
-         (Post::get('action') === 'fluentcrm_unsubscribe_ajax') || // skip fluentcrm unsubscribe
-         (Post::get('action') === 'forminator_submit_form_custom-forms') || // skip forminator has direct integration
-         (Post::get('action') === 'wcf_woocommerce_login') || // skip WooCommerce CartFlows login
-         (Post::get('action') === 'nasa_process_login') || // skip Nasa login
-         (Post::get('action') === 'leaky_paywall_validate_registration') // skip Leaky Paywall validation request
-    ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
-        return false;
-    }
-
-    if ( apbct_is_skip_request(true) ) {
+    if ( apbct_is_skip_request(true, $message_obj) ) {
         do_action(
             'apbct_skipped_request',
             __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__ . '(' . apbct_is_skip_request(true) . ')',
@@ -439,6 +266,25 @@ function ct_ajax_hook($message_obj = null)
                 $ct_post_temp['email']   = $curr_user->data->user_email;
                 $ct_post_temp['name']    = $curr_user->data->user_login;
             }
+        }
+    }
+
+    // SiteReviews integration
+    if ( Post::getString('action', 'glsr_public_action') &&
+        apbct_is_plugin_active('site-reviews/site-reviews.php')
+    ) {
+        $post_info['comment_type'] = 'site_reviews_integration';
+        if (isset($_POST['site-reviews']['title'])) {
+            $ct_post_temp['title'] = $_POST['site-reviews']['title'];
+        }
+        if (isset($_POST['site-reviews']['name'])) {
+            $ct_post_temp['nickname'] = $_POST['site-reviews']['name'];
+        }
+        if (isset($_POST['site-reviews']['email'])) {
+            $ct_post_temp['email'] = $_POST['site-reviews']['email'];
+        }
+        if (isset($_POST['site-reviews']['content'])) {
+            $ct_post_temp['comment'] = $_POST['site-reviews']['content'];
         }
     }
 
@@ -713,6 +559,19 @@ function ct_ajax_hook($message_obj = null)
     if ( $ct_result->allow == 0 ) {
         if ( Post::get('action') === 'wpuf_submit_register' ) {
             $result = array('success' => false, 'error' => $ct_result->comment);
+            @header('Content-Type: application/json; charset=' . get_option('blog_charset'));
+            print json_encode($result);
+            die();
+        }
+
+        if ( Post::getString('action', 'glsr_public_action') ) {
+            $result = array(
+                'success' => false,
+                'data' => array(
+                    'errors' => array(),
+                    'message' => $ct_result->comment,
+                ),
+            );
             @header('Content-Type: application/json; charset=' . get_option('blog_charset'));
             print json_encode($result);
             die();
@@ -1115,7 +974,25 @@ function ct_ajax_hook($message_obj = null)
             echo json_encode(
                 array(
                     'loggedin' => false,
-                    'message'     => $ct_result->comment,
+                    'message'  => $ct_result->comment,
+                )
+            );
+            die();
+        }
+
+        // ACF forms
+        if ( Post::get('action') === 'acf/validate_save_post' ) {
+            echo json_encode(
+                array(
+                    'success' => true,
+                    'data'    => array(
+                        'valid'  => 0,
+                        'errors' => array(
+                            array(
+                                'message' => $ct_result->comment,
+                            )
+                        )
+                    )
                 )
             );
             die();
