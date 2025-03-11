@@ -425,6 +425,12 @@ class Woocommerce extends IntegrationByClassBase
         return true;
     }
 
+    /**
+     * @param $add_to_cart_data
+     * @param $request
+     * @return bool
+     * @psalm-suppress PossiblyUnusedReturnValue, UndefinedClass
+     */
     public function storeApiAddToCartData($add_to_cart_data, $request)
     {
         global $apbct;
