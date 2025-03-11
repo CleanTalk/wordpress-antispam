@@ -39,7 +39,7 @@ class Schema
             '__createkey' => 'INT unsigned primary KEY FIRST'
         ),
         'sfw_logs' => array(
-            'id' => 'VARCHAR(40) NOT NULL',
+            'id' => 'CHAR(32) NOT NULL',
             'ip' => 'VARCHAR(15) NOT NULL',
             'status' => 'ENUM(\'PASS_SFW\',\'DENY_SFW\',\'PASS_SFW__BY_WHITELIST\',\'PASS_SFW__BY_COOKIE\',\'DENY_ANTICRAWLER\',\'PASS_ANTICRAWLER\',\'DENY_ANTICRAWLER_UA\',\'PASS_ANTICRAWLER_UA\',\'DENY_ANTIFLOOD\',\'PASS_ANTIFLOOD\',\'DENY_ANTIFLOOD_UA\',\'PASS_ANTIFLOOD_UA\') NULL DEFAULT NULL',
             'all_entries' => 'INT NOT NULL',
@@ -52,24 +52,24 @@ class Schema
             'first_url' => 'VARCHAR(100) NULL DEFAULT NULL',
             'last_url' => 'VARCHAR(100) NULL DEFAULT NULL',
             '__indexes' => 'PRIMARY KEY (`id`)',
-            '__createkey' => 'VARCHAR(40) NOT NULL primary KEY FIRST'
+            '__createkey' => 'CHAR(32) NOT NULL primary KEY FIRST'
         ),
         'ac_log' => array(
-            'id' => 'VARCHAR(40) NOT NULL',
+            'id' => 'CHAR(32) NOT NULL',
             'ip' => 'VARCHAR(40) NOT NULL',
             'ua' => 'VARCHAR(40) NOT NULL',
             'entries' => 'INT DEFAULT 0',
             'interval_start' => 'INT NOT NULL',
             '__indexes' => 'PRIMARY KEY (`id`)',
-            '__createkey' => 'VARCHAR(40) NOT NULL primary KEY FIRST'
+            '__createkey' => 'CHAR(32) NOT NULL primary KEY FIRST'
         ),
         'sessions' => array(
-            'id' => 'VARCHAR(64) NOT NULL',
+            'id' => 'CHAR(64) NOT NULL',
             'name' => 'VARCHAR(40) NOT NULL',
             'value' => 'TEXT NULL DEFAULT NULL',
             'last_update' => 'DATETIME NULL DEFAULT NULL',
             '__indexes' => 'PRIMARY KEY (`name`(40), `id`(64))',
-            '__createkey' => 'VARCHAR(64) NOT NULL primary KEY FIRST'
+            '__createkey' => 'CHAR(64) NOT NULL primary KEY FIRST'
         ),
         'spamscan_logs' => array(
             'id' => 'INT NOT NULL AUTO_INCREMENT',
