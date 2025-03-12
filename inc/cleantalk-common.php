@@ -575,9 +575,9 @@ function apbct_get_sender_info()
         'cookies_enabled'           => $cookie_is_ok,
         'data__set_cookies'         => $apbct->settings['data__set_cookies'],
         'data__cookies_type'        => $apbct->data['cookies_type'],
-        'REFFERRER'                 => Cookie::$force_alt_cookies_global ? $site_referer : Server::get('HTTP_REFERER'),
-        'REFFERRER_PREVIOUS'        => Cookie::get('apbct_prev_referer') && $cookie_is_ok
-            ? Cookie::get('apbct_prev_referer')
+        'REFFERRER'                 => Server::getString('HTTP_REFERER'),
+        'REFFERRER_PREVIOUS'        => !empty(Cookie::getString('apbct_prev_referer')) && $cookie_is_ok
+            ? Cookie::getString('apbct_prev_referer')
             : null,
         'site_landing_ts'           => $site_landing_ts,
         'page_hits'                 => $page_hits,
