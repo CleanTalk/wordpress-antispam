@@ -556,7 +556,6 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
 
         if (defined( 'APBCT_ANCTICRAWLER_EXLC_FEED' ) && Server::get('REQUEST_URI')) {
             if (preg_match_all('/feed/', Server::get('REQUEST_URI'))) {
-                error_log('CTDEBUG: [' . __FUNCTION__ . '] [APBCT_SKIP_AC]: SKIP)');
                 return true;
             }
         }
