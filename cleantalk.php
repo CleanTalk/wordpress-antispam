@@ -4,8 +4,8 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.48.3-dev
-  Author: СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
+  Version: 6.52.99-dev
+  Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
   Domain Path: /i18n
@@ -14,6 +14,7 @@
 use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
+use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\ApbctWP\Antispam\ForceProtection;
 use Cleantalk\ApbctWP\API;
@@ -28,7 +29,6 @@ use Cleantalk\ApbctWP\Firewall\AntiCrawler;
 use Cleantalk\ApbctWP\Firewall\AntiFlood;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
-use Cleantalk\ApbctWP\FormDecorator\FormDecorator;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
@@ -206,11 +206,6 @@ if ( $apbct->settings['comments__the_real_person'] ) {
     new CleantalkRealPerson();
 }
 
-if ( $apbct->settings['comments__form_decoration'] && $apbct->settings['comments__form_decoration_selector']) {
-    $decorator = new FormDecorator();
-    $decorator->setDecorationSet($apbct->settings['comments__form_decoration_selector']);
-}
-
 add_action('rest_api_init', 'apbct_register_my_rest_routes');
 function apbct_register_my_rest_routes()
 {
@@ -219,33 +214,40 @@ function apbct_register_my_rest_routes()
 }
 
 // Alt cookies via WP ajax handler
-add_action('wp_ajax_nopriv_apbct_alt_session__save__AJAX', 'apbct_alt_session__save__WP_AJAX');
-add_action('wp_ajax_apbct_alt_session__save__AJAX', 'apbct_alt_session__save__WP_AJAX');
-function apbct_alt_session__save__WP_AJAX()
-{
-    Cleantalk\ApbctWP\Variables\AltSessions::setFromRemote();
-}
-
+$apbct->ajax_service->addPublicAction(
+    'apbct_alt_session__save__AJAX',
+    array(
+        Cleantalk\ApbctWP\Variables\AltSessions::class,
+        'setFromRemote'
+    )
+);
 // Get JS via WP ajax handler
-add_action('wp_ajax_nopriv_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
-add_action('wp_ajax_apbct_js_keys__get', 'apbct_js_keys__get__ajax');
-
+$apbct->ajax_service->addPublicAction('apbct_js_keys__get', array($apbct->ajax_service, 'getJSKeys'));
 // Get Pixel URL via WP ajax handler
-add_action('wp_ajax_nopriv_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
-add_action('wp_ajax_apbct_get_pixel_url', 'apbct_get_pixel_url__ajax');
-
+$apbct->ajax_service->addPublicAction('apbct_get_pixel_url', 'apbct_get_pixel_url');
 // Checking email before POST
-add_action('wp_ajax_nopriv_apbct_email_check_before_post', 'apbct_email_check_before_post');
-
+$apbct->ajax_service->addPublicAction(
+    'apbct_email_check_before_post',
+    'apbct_email_check_before_post',
+    'no_priv'
+);
 // Checking email exist POST
-add_action('wp_ajax_nopriv_apbct_email_check_exist_post', 'apbct_email_check_exist_post');
-
+$apbct->ajax_service->addPublicAction(
+    'apbct_email_check_exist_post',
+    'apbct_email_check_exist_post',
+    'no_priv'
+);
 // Force Protection check bot
-add_action('wp_ajax_nopriv_apbct_force_protection_check_bot', 'apbct_force_protection_check_bot');
-
+$apbct->ajax_service->addPublicAction(
+    'apbct_force_protection_check_bot',
+    'apbct_force_protection_check_bot',
+    'no_priv'
+);
 // Force ajax set important parameters (apbct_timestamp etc)
-add_action('wp_ajax_nopriv_apbct_set_important_parameters', 'apbct_cookie');
-add_action('wp_ajax_apbct_set_important_parameters', 'apbct_cookie');
+$apbct->ajax_service->addPublicAction(
+    'apbct_set_important_parameters',
+    'apbct_cookie'
+);
 
 // Database prefix
 global $wpdb, $wp_version;
@@ -506,6 +508,15 @@ if (!empty($_POST) &&
     apbct_seedConfirmPro_request_test();
 }
 
+// LeakyPaywall
+if (!empty($_POST) &&
+    apbct_is_plugin_active('leaky-paywall/leaky-paywall.php') &&
+    apbct_is_in_uri('registration-form') &&
+    Post::get('level_id')
+) {
+    apbct_leakyPaywall_request_test();
+}
+
 add_action('wp_ajax_nopriv_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
 add_action('wp_ajax_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
 add_action('wp_ajax_nopriv_nf_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
@@ -669,9 +680,9 @@ add_action('init', 'apbct_plugin_loaded');
 
 if ( ! empty($apbct->settings['data__use_ajax']) &&
      ! apbct_is_in_uri('.xml') &&
-     ! apbct_is_in_uri('.xsl') ) {
-    add_action('wp_ajax_nopriv_ct_get_cookie', 'ct_get_cookie', 1);
-    add_action('wp_ajax_ct_get_cookie', 'ct_get_cookie', 1);
+     ! apbct_is_in_uri('.xsl')
+) {
+    $apbct->ajax_service->addPublicAction('ct_get_cookie', 'ct_get_cookie');
 }
 
 // Admin panel actions
@@ -679,7 +690,6 @@ if ( is_admin() || is_network_admin() ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-find-spam.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-admin.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php');
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-wc-spam-orders.php');
 
     add_action('admin_init', 'apbct_admin__init', 1);
 
@@ -2745,7 +2755,7 @@ function ct_account_status_check($api_key = null, $process_errors = true)
             $apbct->data['wl_support_email'] = isset($result['wl_support_email'])
                 ? Sanitize::cleanEmail($result['wl_support_email'])
                 : $apbct->default_data['wl_support_email'];
-            $plugin_data_wl = get_file_data('cleantalk-spam-protect/cleantalk.php', array('Description' => 'Description'));
+            $plugin_data_wl = get_file_data(__FILE__, array('Description' => 'Description'));
             $plugin_data_wl = is_array($plugin_data_wl) && isset($plugin_data_wl['Description'])
                 ? $plugin_data_wl['Description']
                 : 'No description provided';

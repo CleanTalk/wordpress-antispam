@@ -133,4 +133,58 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
     {
         return __('Use this option only if no encoding occurs when the "Encode contact data" option is enabled.', 'cleantalk-spam-protect');
     }
+
+    public static function getLocalizationText()
+    {
+        /**
+         * Filter for the text of the decoding process
+         *
+         * @param string $decoding_text
+         *
+         * @return string
+         * @apbct_filter
+         */
+        $decoding_text = apply_filters(
+            'apbct__ee_wait_for_decoding_text',
+            __('The magic is on the way, please wait for a few seconds!', 'cleantalk-spam-protect')
+        );
+
+        /**
+         * Filter for the text of the original email
+         *
+         * @param string $original_contact_text
+         *
+         * @return string
+         * @apbct_filter
+         */
+        $original_contact_text = apply_filters(
+            'apbct__ee_original_email_text',
+            __('The original one is', 'cleantalk-spam-protect')
+        );
+
+        /**
+         * Filter for the text of the decoding process
+         *
+         * @param string $decoding_process_text
+         *
+         * @return string
+         * @apbct_filter
+         */
+        $decoding_process_text = apply_filters(
+            'apbct__ee_decoding_process_text',
+            __('Decoding the contact data, let us a few seconds to finish.', 'cleantalk-spam-protect')
+        );
+
+        return array(
+            'text__ee_click_to_select'             => __('Click to select the whole data', 'cleantalk-spam-protect'),
+            'text__ee_original_email'              => $original_contact_text,
+            'text__ee_got_it'                      => __('Got it', 'cleantalk-spam-protect'),
+            'text__ee_blocked'                     => __('Blocked', 'cleantalk-spam-protect'),
+            'text__ee_cannot_connect'              => __('Cannot connect', 'cleantalk-spam-protect'),
+            'text__ee_cannot_decode'               => __('Can not decode email. Unknown reason', 'cleantalk-spam-protect'),
+            'text__ee_email_decoder'               => __('CleanTalk email decoder', 'cleantalk-spam-protect'),
+            'text__ee_wait_for_decoding'           => $decoding_text,
+            'text__ee_decoding_process'            => $decoding_process_text,
+        );
+    }
 }

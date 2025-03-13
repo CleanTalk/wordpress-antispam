@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Antispam;
 
+use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
@@ -49,6 +50,10 @@ class EmailEncoder
         array('scc-form-field-item'),
         // Exclusion of maps from leaflet
         array('leaflet'),
+        // prevent broking elementor swiper gallery
+        array('class', 'elementor-swiper', 'elementor-testimonial', 'swiper-pagination'),
+        // ics-calendar
+        array('ics_calendar'),
     );
 
     /**
@@ -154,7 +159,7 @@ class EmailEncoder
         }
 
         // Search data to buffer
-        if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post()) {
+        if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post() && !is_admin()) {
             add_action('wp', 'apbct_buffer__start');
             add_action('shutdown', 'apbct_buffer__end', 0);
             add_action('shutdown', array($this, 'bufferOutput'), 2);
@@ -249,7 +254,7 @@ class EmailEncoder
      */
     private static function dropAttributesContainEmail($content, $tags)
     {
-        $attribute_content_chunk = '[\s]{0,}=[\s]{0,}[\"\']\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}[\"\']';
+        $attribute_content_chunk = '[\s]{0,}=[\s]{0,}[\"\']\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\..*\b[\"\']';
         foreach ($tags as $tag => $attribute) {
             // Regular expression to match the attribute without the tag
             $regexp_chunk_without_tag = "/{$attribute}{$attribute_content_chunk}/";
@@ -273,7 +278,7 @@ class EmailEncoder
      */
     public function modifyEmails($content)
     {
-        $pattern = '/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}))/';
+        $pattern = '/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b))/';
         $replacing_result = '';
 
         if ( version_compare(phpversion(), '7.4.0', '>=') ) {
@@ -284,6 +289,11 @@ class EmailEncoder
 
                 //chek if email is placed in excluded attributes and return unchanged if so
                 if ( isset($matches[0][0]) && $this->hasAttributeExclusions($matches[0][0]) ) {
+                    return $matches[0][0];
+                }
+
+                // skip encoding if the content in script tag
+                if ( isset($matches[0][0]) && $this->isInsideScriptTag($matches[0][0], $content) ) {
                     return $matches[0][0];
                 }
 
@@ -357,7 +367,7 @@ class EmailEncoder
     public function ajaxDecodeEmailHandler()
     {
         if (! defined('REST_REQUEST') && !apbct_is_user_logged_in()) {
-            check_ajax_referer('ct_secret_stuff');
+            AJAXService::checkPublicNonce();
         }
 
         // use non ssl mode for logged in user on settings page
@@ -445,6 +455,37 @@ class EmailEncoder
             $encoded_email = htmlspecialchars(base64_encode(str_rot13($plain_string)));
         }
         return $encoded_email;
+    }
+
+    /**
+     * Check if the given email is inside a script tag
+     * @param string $email The email to check
+     * @param string $content The full content
+     * @return bool
+     */
+    private function isInsideScriptTag($email, $content)
+    {
+        // Find position of the email in content
+        $pos = strpos($content, $email);
+        if ($pos === false) {
+            return false;
+        }
+
+
+        // Find the last script opening tag before the email
+        $last_script_start = strrpos(substr($content, 0, $pos), '<script');
+        if ($last_script_start === false) {
+            return false;
+        }
+
+        // Find the first script closing tag after the last opening tag
+        $script_end = strpos($content, '</script>', $last_script_start);
+        if ($script_end === false) {
+            return false;
+        }
+
+        // The email is inside a script tag if its position is between the opening and closing tags
+        return ($pos > $last_script_start && $pos < $script_end);
     }
 
     /**
@@ -845,7 +886,14 @@ class EmailEncoder
     {
         foreach ( $this->attribute_exclusions_signs as $tag => $array_of_attributes ) {
             foreach ( $array_of_attributes as $attribute ) {
-                $pattern = '/<' . $tag . '.*' . $attribute . '=".*' . $email_match . '.*"/';
+                //do not remove IDE highlighted unnecessary escape!
+                $pattern = '/<'
+                           . $tag
+                           . '+\s+[^>]*\b'
+                           . $attribute
+                           . '=((\\\')|")?[^"]*\b'
+                           . $email_match
+                           . '\b[^"]*((\\\')|")?"[^>]*>/';
                 preg_match($pattern, $this->temp_content, $attr_match);
                 if ( !empty($attr_match) ) {
                     return true;

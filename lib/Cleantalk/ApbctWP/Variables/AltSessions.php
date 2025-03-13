@@ -62,6 +62,12 @@ class AltSessions
         );
     }
 
+    /**
+     * @param $request
+     *
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public static function setFromRemote($request = null)
     {
         if ( !$request || !empty(Post::getString('cookies'))) {

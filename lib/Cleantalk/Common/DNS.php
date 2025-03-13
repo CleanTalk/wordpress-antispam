@@ -91,7 +91,7 @@ class DNS
             $response = $tmp;
         }
 
-        return $response ?: null;
+        return isset($response) ? $response : null;
     }
 
     /**
@@ -151,6 +151,6 @@ class DNS
     {
         $server = static::getRecord($host, true);
 
-        return $server['ttl'];
+        return isset($server['ttl']) ? $server['ttl'] : false;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\FindSpam;
 
+use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\TT;
 
@@ -9,6 +10,7 @@ class CommentsChecker extends Checker
 {
     public function __construct()
     {
+        global $apbct;
         parent::__construct();
 
         $this->page_title       = esc_html__('Check comments for spam', 'cleantalk-spam-protect');
@@ -36,7 +38,7 @@ class CommentsChecker extends Checker
             APBCT_VERSION
         );
         wp_localize_script('ct_comments_checkspam', 'ctCommentsCheck', array(
-            'ct_ajax_nonce'            => wp_create_nonce('ct_secret_nonce'),
+            'ct_ajax_nonce'            => $apbct->ajax_service->getAdminNonce(),
             'ct_prev_accurate'         => ! empty($prev_check['accurate']) ? true : false,
             'ct_prev_from'             => ! empty($prev_check_from) ? $prev_check_from : false,
             'ct_prev_till'             => ! empty($prev_check_till) ? $prev_check_till : false,
@@ -255,7 +257,7 @@ class CommentsChecker extends Checker
 
     public static function ctAjaxCheckComments()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         $commentScanParameters = new CommentsScanParameters($_POST);
 
@@ -274,7 +276,7 @@ class CommentsChecker extends Checker
         global $wpdb, $apbct;
 
         if ( ! $direct_call ) {
-            apbct__check_admin_ajax_request();
+            AJAXService::checkNonceRestrictingNonAdmins('security');
         }
 
         $cnt_checked = TT::toInt($apbct->data['count_checked_comments']);
@@ -374,7 +376,7 @@ class CommentsChecker extends Checker
     {
         global $wpdb ,$apbct;
 
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         $apbct->data['count_checked_comments'] = 0;
         $apbct->saveData();
@@ -414,7 +416,7 @@ class CommentsChecker extends Checker
 
     public static function ctAjaxTrashAll()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         $args_spam = array(
             'number'     => 100,
@@ -456,7 +458,7 @@ class CommentsChecker extends Checker
 
     public static function ctAjaxSpamAll()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         $args_spam = array(
             'number'     => 100,

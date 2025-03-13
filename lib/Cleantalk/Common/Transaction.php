@@ -41,9 +41,9 @@ abstract class Transaction
             'name'        => 'common',
         ), $params);
 
-        $this->action_time            = $params['action_time'];
-        $this->tid_option_name        = 'cleantalk_transaction__' . $params['name'] . '_id';
-        $this->start_time_option_name = 'cleantalk_transaction__' . $params['name'] . '_start_time';
+        $this->action_time            = TT::getArrayValueAsInt($params, 'action_time');
+        $this->tid_option_name        = 'cleantalk_transaction__' . TT::getArrayValueAsString($params, 'name') . '_id';
+        $this->start_time_option_name = 'cleantalk_transaction__' . TT::getArrayValueAsString($params, 'name') . '_start_time';
     }
 
     /**
@@ -66,6 +66,8 @@ abstract class Transaction
      *      <p>- Integer transaction ID on success.</p>
      *      <p>- false for duplicated request.</p>
      *      <p>- null on error.</p>
+     *
+     * @psalm-suppress ArgumentTypeCoercion
      */
     public function perform()
     {
@@ -117,7 +119,7 @@ abstract class Transaction
      */
     private function isTransactionInProcess()
     {
-        return time() - $this->getOption($this->start_time_option_name, 0) < $this->action_time;
+        return time() - (int) $this->getOption($this->start_time_option_name, 0) < $this->action_time;
     }
 
     /**

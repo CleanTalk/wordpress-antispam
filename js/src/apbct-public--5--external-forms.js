@@ -17,21 +17,26 @@ function ctProtectExternal() {
             if ( isIntegratedForm(currentForm) ) {
                 apbctProcessExternalForm(currentForm, i, document);
 
-            // Ajax checking for the integrated forms - will be changed only submit button to make protection
+                // Ajax checking for the integrated forms - will be changed only submit button to make protection
             } else if (
                 // MooForm 3rd party service
                 currentForm.dataset.mailingListId !== undefined ||
                 (typeof(currentForm.action) == 'string' &&
-                (currentForm.action.indexOf('webto.salesforce.com') !== -1)) ||
+                    (currentForm.action.indexOf('webto.salesforce.com') !== -1)) ||
                 (typeof(currentForm.action) == 'string' &&
-                currentForm.querySelector('[href*="activecampaign"]'))
+                currentForm.querySelector('[href*="activecampaign"]')) ||
+                (
+                    typeof(currentForm.action) == 'string' &&
+                    currentForm.action.indexOf('hsforms.com') !== -1 &&
+                    currentForm.getAttribute('data-hs-cf-bound')
+                )
             ) {
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
-            // Common flow - modify form's action
+                // Common flow - modify form's action
             } else if (
                 typeof(currentForm.action) == 'string' &&
                 ( currentForm.action.indexOf('http://') !== -1 ||
-                currentForm.action.indexOf('https://') !== -1 )
+                    currentForm.action.indexOf('https://') !== -1 )
             ) {
                 let tmp = currentForm.action.split('//');
                 tmp = tmp[1].split('/');
@@ -129,7 +134,11 @@ function formIsExclusion(currentForm) {
             }
             const formClass = foundClass;
             if ( formClass !== null && typeof formClass !== 'undefined' && formClass.indexOf(exclusionClass) !== -1 ) {
-                result = true;
+                if (currentForm.getAttribute('data-hs-cf-bound')) {
+                    result = false;
+                } else {
+                    result = true;
+                }
             }
         });
 
@@ -334,7 +343,8 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
 
     if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1 ||
         isFormHasDiviRedirect(formSource) ||
-        formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1
+        formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1 ||
+        formSource.outerHTML.indexOf('action="https://api.kit.com') !== -1
     ) {
         inputsSource.forEach((elemSource) => {
             inputsTarget.forEach((elemTarget) => {
@@ -628,10 +638,11 @@ function isIntegratedForm(formObj) {
     if (
         (
             formAction.indexOf('app.convertkit.com') !== -1 || // ConvertKit form
-            formAction.indexOf('app.kit.com') !== -1 // ConvertKit new form
+            formAction.indexOf('app.kit.com') !== -1 || // ConvertKit new form
+            formAction.indexOf('api.kit.com') !== -1 // ConvertKit new form
         ) ||
         ( formObj.firstChild.classList !== undefined &&
-        formObj.firstChild.classList.contains('cb-form-group') ) || // Convertbox form
+            formObj.firstChild.classList.contains('cb-form-group') ) || // Convertbox form
         formAction.indexOf('mailerlite.com') !== -1 || // Mailerlite integration
         formAction.indexOf('colcolmail.co.uk') !== -1 || // colcolmail.co.uk integration
         formAction.indexOf('paypal.com') !== -1 ||
@@ -658,8 +669,10 @@ function isIntegratedForm(formObj) {
         isFormHasDiviRedirect(formObj) || // Divi contact form
         formAction.indexOf('eocampaign1.com') !== -1 || // EmailOctopus Campaign form
         formAction.indexOf('wufoo.com') !== -1 || // Wufoo form
+        formAction.indexOf('publisher.copernica.com') !== -1 || // publisher.copernica
         ( formObj.classList !== undefined &&
-            formObj.classList.contains('sp-element-container') ) // Sendpulse form
+            formObj.classList.contains('sp-element-container') ) || // Sendpulse form
+        apbctIsFormInDiv(formObj, 'b24-form') // Bitrix24 CRM external forms
     ) {
         return true;
     }
@@ -720,6 +733,11 @@ function sendAjaxCheckingFormData(form) {
             callback: function( result, data, params, obj ) {
                 // MooSend spinner deactivate
                 apbctMoosendSpinnerToggle(form);
+                // hubspot flag
+                const isHubSpotEmbedForm = (
+                    form.hasAttribute('action') &&
+                    form.getAttribute('action').indexOf('hsforms') !== -1
+                );
                 if ( result.apbct === undefined || ! +result.apbct.blocked ) {
                     // Clear service fields
                     for (const el of form.querySelectorAll('input[name="apbct_visible_fields"]')) {
@@ -771,8 +789,13 @@ function sendAjaxCheckingFormData(form) {
                         return;
                     }
 
-                    // Active Campaign integration
-                    if (form.querySelector('[href*="activecampaign"]')) {
+
+                    if (
+                        // Active Campaign integration
+                        form.querySelector('[href*="activecampaign"]') ||
+                        // Hubspot bounded integration
+                        isHubSpotEmbedForm
+                    ) {
                         let submitButton = form.querySelector('[type="submit"]');
                         submitButton.remove();
                         const parent = form.apbctParent;
@@ -792,7 +815,10 @@ function sendAjaxCheckingFormData(form) {
                     apbctReplaceInputsValuesFromOtherForm(formNew, formOriginal);
 
                     // mautic forms integration
-                    if (formOriginal.id.indexOf('mautic') !== -1) {
+                    if (formOriginal &&
+                        typeof formOriginal.id === 'string' &&
+                        formOriginal.id.indexOf('mautic') !== -1
+                    ) {
                         mauticIntegration = true;
                     }
 
@@ -831,6 +857,11 @@ function sendAjaxCheckingFormData(form) {
                         submButton[0].click();
                         return;
                     }
+                    submButton = formOriginal.querySelectorAll('button#ck_subscribe_button');
+                    if ( submButton.length !== 0 ) {
+                        submButton[0].click();
+                        return;
+                    }
 
                     // Paypal integration
                     submButton = formOriginal.querySelectorAll('input[type="image"][name="submit"]');
@@ -840,6 +871,12 @@ function sendAjaxCheckingFormData(form) {
                 }
                 if (result.apbct !== undefined && +result.apbct.blocked) {
                     ctParseBlockMessage(result);
+                    // hubspot embed form needs to reload page to prevent forms mishandling
+                    if (isHubSpotEmbedForm) {
+                        setTimeout(function() {
+                            document.location.reload();
+                        }, 3000);
+                    }
                 }
             },
         });
@@ -885,7 +922,7 @@ function catchDynamicRenderedFormHandler(forms, documentObject = document) {
             neededFormIds.push(formIdAttr);
         }
         if (formIdAttr && formIdAttr.indexOf('createuser') !== -1 &&
-        (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
+            (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
         ) {
             neededFormIds.push(formIdAttr);
         }
@@ -988,4 +1025,22 @@ function apbctVal(el) {
     } else {
         return el.value;
     }
+}
+
+/**
+ * Checks if a form object is inside a div with a specified class name.
+ *
+ * @param {HTMLElement} formObj - The form element to check.
+ * @param {string} divClassName - The class name of the div to look for.
+ * @return {boolean} - Returns true if the form is inside a div with the specified class name, false otherwise.
+ */
+function apbctIsFormInDiv(formObj, divClassName) {
+    let parent = formObj.parentElement;
+    while (parent) {
+        if (parent.classList.contains(divClassName)) {
+            return true;
+        }
+        parent = parent.parentElement;
+    }
+    return false;
 }

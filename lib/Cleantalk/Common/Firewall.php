@@ -160,9 +160,10 @@ class Firewall
 
         // Do finish action - die or set cookies
         foreach ($this->module_names as $module_name) {
-            if (strpos($result['status'], $module_name)) {
+            $status = TT::getArrayValueAsString($result, 'status');
+            if (strpos($status, $module_name)) {
                 // Blocked
-                if (strpos($result['status'], 'DENY') !== false) {
+                if (strpos($status, 'DENY') !== false) {
                     $this->fw_modules[$module_name]->actionsForDenied($result);
                     $this->fw_modules[$module_name]->diePage($result);
                 // Allowed
@@ -197,17 +198,21 @@ class Firewall
                                     (isset($fw_result['is_personal']) && $fw_result['is_personal'] ? count($this->statuses_priority) : 0);
                         if ($priority >= $current_fw_result_priority) {
                             $current_fw_result_priority = $priority;
-                            $result['status']           = $fw_result['status'];
-                            $result['passed_ip']        = isset($fw_result['ip']) ? $fw_result['ip'] : $fw_result['passed_ip'];
-                            $result['blocked_ip']       = isset($fw_result['ip']) ? $fw_result['ip'] : $fw_result['blocked_ip'];
-                            $result['pattern']          = isset($fw_result['pattern']) ? $fw_result['pattern'] : array();
+                            $result['status']           = TT::getArrayValueAsString($fw_result, 'status');
+                            $result['passed_ip']        = isset($fw_result['ip'])
+                                ? TT::getArrayValueAsString($fw_result, 'ip')
+                                : TT::getArrayValueAsString($fw_result, 'passed_ip');
+                            $result['blocked_ip']       = isset($fw_result['ip'])
+                                ? TT::getArrayValueAsString($fw_result, 'ip')
+                                : TT::getArrayValueAsString($fw_result, 'blocked_ip');
+                            $result['pattern']          = TT::getArrayValueAsString($fw_result, 'pattern');
                         }
                     }
                 }
             }
         }
 
-        $result['ip']     = strpos($result['status'], 'PASS') !== false ? $result['passed_ip'] : $result['blocked_ip'];
+        $result['ip']     = strpos($result['status'], 'PASS') !== false ? $result['passed_ip'] : TT::getArrayValueAsString($result, 'blocked_ip');
         $result['passed'] = strpos($result['status'], 'PASS') !== false;
 
         return $result;

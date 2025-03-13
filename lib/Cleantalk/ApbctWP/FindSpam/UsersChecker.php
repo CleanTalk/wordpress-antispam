@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\FindSpam;
 
+use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\FindSpam\ListTable\BadUsers;
 use Cleantalk\ApbctWP\FindSpam\ListTable\UsersLogs;
 use Cleantalk\ApbctWP\FindSpam\ListTable\UsersScan;
@@ -13,6 +14,7 @@ class UsersChecker extends Checker
 {
     public function __construct()
     {
+        global $apbct;
         parent::__construct();
 
         $this->page_title       = esc_html__('Check users for spam', 'cleantalk-spam-protect');
@@ -42,7 +44,7 @@ class UsersChecker extends Checker
             APBCT_VERSION
         );
         wp_localize_script('ct_users_checkspam', 'ctUsersCheck', array(
-            'ct_ajax_nonce'            => wp_create_nonce('ct_secret_nonce'),
+            'ct_ajax_nonce'            => $apbct->ajax_service->getAdminNonce(),
             'ct_prev_accurate'         => ! empty($prev_check['accurate']) ? true : false,
             'ct_prev_from'             => ! empty($prev_check_from) ? $prev_check_from : false,
             'ct_prev_till'             => ! empty($prev_check_till) ? $prev_check_till : false,
@@ -103,20 +105,9 @@ class UsersChecker extends Checker
             $between_dates_sql = "WHERE $wpdb->users.user_registered >= '$date_from' AND $wpdb->users.user_registered <= '$date_till'";
         }
 
-        // Woocommerce
-        $wc_active = false;
         $wc_orders = '';
-        if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')), true)) {
-            $wc_active = true;
-        }
-        if ($wc_active && $userScanParameters->getAccurateCheck()) {
-            $wc_orders = " AND NOT EXISTS (SELECT posts.* FROM {$wpdb->posts} AS posts"
-                . " INNER JOIN {$wpdb->postmeta} AS postmeta"
-                . " WHERE posts.post_type = 'shop_order'"
-                . " AND posts.post_status = 'wc-completed'"
-                . " AND posts.ID = postmeta.post_id"
-                . " AND postmeta.meta_key = '_customer_user'"
-                . " AND postmeta.meta_value = {$wpdb->users}.ID)";
+        if ($userScanParameters->getAccurateCheck()) {
+            $wc_orders = \Cleantalk\Antispam\IntegrationsByClass\Woocommerce::getCompletedOrders();
         }
 
         $query = "SELECT {$wpdb->users}.ID, {$wpdb->users}.user_email, {$wpdb->users}.user_registered
@@ -371,7 +362,7 @@ class UsersChecker extends Checker
 
     public static function ctAjaxCheckUsers()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         $userScanParameters = new UsersScanParameters($_POST);
 
@@ -392,7 +383,7 @@ class UsersChecker extends Checker
      */
     public static function ctAjaxClearUsers()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         global $wpdb, $apbct;
 
@@ -408,7 +399,7 @@ class UsersChecker extends Checker
     public static function ctAjaxInfo($direct_call = false)
     {
         if ( ! $direct_call ) {
-            apbct__check_admin_ajax_request();
+            AJAXService::checkNonceRestrictingNonAdmins('security');
         }
 
         global $wpdb, $apbct;
@@ -507,7 +498,7 @@ class UsersChecker extends Checker
      */
     public static function ctGetCsvFile()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         $text = 'login,email,ip' . PHP_EOL;
 
@@ -524,17 +515,18 @@ class UsersChecker extends Checker
 
         $u = get_users($params);
         foreach ( $u as $iValue ) {
-            $user_meta = get_user_meta($iValue->ID, 'session_tokens', true);
-            $user_meta_array = reset($user_meta);
-            $user_meta_array = !empty($user_meta_array) ? $user_meta_array : false;
-            // skip empty or invalid data users
-            if (!$user_meta_array || !is_array($user_meta_array)) {
-                continue;
+            // gain IP from meta session_tokens
+            $ip_of_user_meta = 'N/A';
+            $user_meta_session_tokens = get_user_meta($iValue->ID, 'session_tokens', true);
+            if (!empty($user_meta_session_tokens) && is_array($user_meta_session_tokens)) {
+                $user_meta_array = reset($user_meta_session_tokens);
+                $user_meta_array = !empty($user_meta_array) && is_array($user_meta_array) ? $user_meta_array : false;
+                $ip_of_user_meta = $user_meta_array ? TT::getArrayValueAsString($user_meta_array, 'ip') : $ip_of_user_meta;
             }
-            $ip_of_user_meta = TT::getArrayValueAsString($user_meta_array, 'ip');
+
             $text .= $iValue->user_login . ',';
             $text .= $iValue->data->user_email . ',';
-            $text .= ! empty($ip_of_user_meta) ? trim($ip_of_user_meta) : '';
+            $text .= $ip_of_user_meta;
             $text .= PHP_EOL;
         }
 
@@ -551,7 +543,7 @@ class UsersChecker extends Checker
 
     public static function ctAjaxInsertUsers()
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         global $wpdb;
 
@@ -622,7 +614,7 @@ class UsersChecker extends Checker
 
     public static function ctAjaxDeleteAllUsers($count_all = 0)
     {
-        apbct__check_admin_ajax_request();
+        AJAXService::checkNonceRestrictingNonAdmins('security');
 
         global $wpdb;
 

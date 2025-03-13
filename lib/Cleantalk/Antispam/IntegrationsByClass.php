@@ -22,6 +22,8 @@ class IntegrationsByClass
         $this->integrations = $integrations;
         $this->active_plugins = get_option('active_plugins', array());
         $this->active_plugins_wpms = get_site_option('active_sitewide_plugins', array());
+        $this->active_plugins = is_array($this->active_plugins) ? $this->active_plugins : array();
+        $this->active_plugins_wpms = is_array($this->active_plugins_wpms) ? $this->active_plugins_wpms : array();
 
         foreach ($this->integrations as $integration_name => $integration_info) {
             // pre-check to skip integration by plugin path

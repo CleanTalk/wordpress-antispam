@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 6.48.2
+Stable tag: 6.52
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -441,6 +441,79 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.52 13.03.2025 =
+* New. Integration. Integration with plugin/theme Listeo.
+* Mod. Pixel. Disabling a pixel if its mode is 'auto' and the bot detector is enabled
+* Mod. Decoration. Changing cursor data collection, renaming functionality
+* Mod. Decoration. Removing decorations and changing the logic of data collection from the frontend
+* Ref. Integrations. Woocommerce gather to one class.
+* Fix. Email encoder. Texts modified by hooks.
+* Fix. Email Encoder. Using buffer fixed.
+* Fix. CollectingUserActivity. Rename script, changing the selection definition
+* Fix. GetKeyAuto. Removed localization
+* Fix. External forms. Bitrix24 forms protection implemented.
+
+= 6.51 03.03.2025 =
+* New. Integration Awesome Support. Checking registration and creating new tickets.
+* New. Integrations. Added Site reviews handler.
+* New. Integration. Paid Member Subscription plugin.
+* Upd. EmailEncoder. Made JS message translate-ready.
+* Upd. ProtectByShortcode. Expanded the array of options.
+* Upd. EmailEncoder. Unified localization.
+* Mod. GetKeyAuto. Checking the query result code.
+* Mod. EmailEncoder. Unification of Email Encoder functionality.
+* Fix. Code. JS error during external forms protection fixed.
+* Fix. Integrations. False detecting request type registration fixed.
+* Fix. Honeypot. Honeypot layout simplified.
+* Fix. Get fields any. Collecting message fixed.
+* Fix. Common. POST clearance updated.
+* Fix. Code. SFW class. PHP 8.2+ compatibility.
+* Fix. TRP. Editing the rendering of badges in the admin area.
+* Fix. Search form. Skip hero booking forms.
+* Fix. Admin page. Admin bar. Spam counters reset fixed.
+
+= 6.50.1 21.02.2025 =
+* Fix. Integrations. Registration flag condition updated.
+
+= 6.50 12.02.2025 =
+* New. AJAX Wrapper.
+* New. Integration. Hubspot embed forms (non-iframe).
+* New. Integration. Added LeakyPaywall register handler.
+* Fix. Code. Psalm lvl3 completed.
+* Fix. Code. Contact Form 7. Run gathering NoCookie Data before apbct_js_test() run.
+* Fix. Real Person. Editing the badge output for existing users.
+* Fix. Global variables. Cookies getting logic fixed.
+* Fix. Settings. Fixed wpms work mode select.
+* Fix. Email Encoder. Attribute drop sign upgraded.
+* Fix. Email Encoder. Regexp for exclusions updated.
+* Fix. EmailEncoder. Exclude ICS calendar.
+* Fix. JS. Removed AJAX call "apbct_set_important_parameters".
+* Fix. Integration. External forms for publisher.copernica.com custom code.
+* Fix. Honeypot field. CSS selector for labels fixed.
+
+= 6.49 30.01.2025 =
+* Fix. Email Existence check. The icon and popup now adaptive on window resizing.
+* Fix. EmailEncoder. Improved flow to skip encoding inside inline js.
+* Fix. Force Protection. Correcting the error of using the class before initialization, adding an option check.
+* Fix. Force Protection. Preventing notice occurs from js.
+* Fix. Integrations. Added nasa login exclusion.
+* Fix. Integrations. Improved ConvertKit forms integrations.
+* Fix. Integrations. Improved flow to prevent error occurs.
+* Fix. Integrations. Improved nasa registration params.
+* Fix. Integrations. Prevent broking elementor swiper gallery.
+* Fix. SFW. Fixed update flow, to prevent warning occur on download stage.
+* Fix. Settings. Improved refresh nonce flow.
+* Fix. Users checker. Selecting users for the checking was fixed.
+* New. Bot detector frontend data log. Save logs to alt sessions only if records has new event types.
+* New. FormDecoration. The plugin's signature has been added to all the decorations. Added click counting for signatures.
+* New. JS-Bundles. Branching the js bundle into external and internal and depending on their options.
+* New. UsersChecker. Sorting users implemented.
+* Upd. Dashboard widget. Countries flags convert to the svg sprite.
+* Upd. DeactivationPopup. Deleted the plugin deactivation pop-up.
+* Upd. Integrations. Skip Leaky Paywall validation request.
+* Upd. JS-Bundles. Changes to the assembly of bundles and their use.
+* Upd. ProtectByShortcode. Renaming the hook.
 
 = 6.48.2 23.01.2025 =
 * Fix. SFW. Fixed update flow, to prevent warning occur on download stage.

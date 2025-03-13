@@ -196,6 +196,10 @@ function apbct_base_call($params = array(), $reg_flag = false)
         'submit_time' => apbct_get_submit_time(),
     );
 
+    if (!isset($params['post_info']['post_url'])) {
+        $params['post_info']['post_url'] = Server::get('HTTP_REFERER');
+    }
+
     // Event Token
     $params['event_token'] = apbct_get_event_token($params);
 
@@ -203,8 +207,8 @@ function apbct_base_call($params = array(), $reg_flag = false)
         $default_params['sender_info']['typo'] = Cookie::get('typo');
     }
 
-    if (Cookie::get('form_decoration_mouse_data')) {
-        $default_params['sender_info']['form_decoration_mouse_data'] = Cookie::get('form_decoration_mouse_data');
+    if (RequestParameters::get('collecting_user_activity_data')) {
+        $default_params['sender_info']['collecting_user_activity_data'] = RequestParameters::get('collecting_user_activity_data');
     }
 
     /**
@@ -650,15 +654,7 @@ function apbct_sender_info___get_page_url()
     return  $protocol . TT::toString(Server::get('SERVER_NAME')) . TT::toString(Server::get('REQUEST_URI'));
 }
 
-/*
- * Outputs JS key for AJAX-use only. Stops script.
- */
-function apbct_js_keys__get__ajax()
-{
-    die(json_encode(array('js_key' => ct_get_checkjs_value())));
-}
-
-function apbct_get_pixel_url__ajax($direct_call = false)
+function apbct_get_pixel_url($direct_call = false)
 {
     global $apbct;
 
@@ -750,8 +746,6 @@ function apbct_force_protection_check_bot()
 /**
  * Get ct_get_checkjs_value
  *
- * @param bool $random_key
- *
  * @return int|string|null
  */
 function ct_get_checkjs_value()
@@ -821,8 +815,6 @@ function ct_get_checkjs_value()
 
 function apbct_is_cache_plugins_exists($return_names = false)
 {
-    global $apbct;
-
     $out = array();
 
     $constants_of_cache_plugins = array(
@@ -1303,34 +1295,6 @@ function apbct__change_type_website_field($fields)
 }
 
 /**
- * Woocommerce honeypot
- */
-add_filter('woocommerce_checkout_fields', 'apbct__wc_add_honeypot_field');
-function apbct__wc_add_honeypot_field($fields)
-{
-    if (apbct_exclusions_check__url()) {
-        return $fields;
-    }
-
-    global $apbct;
-
-    if ( $apbct->settings['data__honeypot_field'] ) {
-        $fields['billing']['wc_apbct_email_id'] = array(
-            'id'            => 'wc_apbct_email_id',
-            'type'          => 'text',
-            'label'         => '',
-            'placeholder'   => '',
-            'required'      => false,
-            'class'         => array('form-row-wide', 'wc_apbct_email_id'),
-            'clear'         => true,
-            'autocomplete'  => 'off'
-        );
-    }
-
-    return $fields;
-}
-
-/**
  * The function determines whether it is necessary
  * to conduct a general check of the post request
  *
@@ -1647,34 +1611,72 @@ function apbct_rc__service_template_set($template_id, array $options_template_da
 }
 
 /**
- * Remove CleanTalk service data from super global variables
+ * Remove CleanTalk service data from super global variables.
+ * Attention! This function should be called after(!) CleanTalk request processing.
  * @param array $superglobal $_POST | $_REQUEST
  * @param string $type post|request
- * @return array cleared array of superglobal
+ * @return array cleared array of super global
  */
 function apbct_clear_superglobal_service_data($superglobal, $type)
 {
+    $fields_to_clear = array(
+        'apbct_visible_fields',
+    );
+
+    $cleared_superglobal = $superglobal;
+
     switch ($type) {
         case 'post':
-            // It is a service field. Need to be deleted before the processing.
-            if ( isset($superglobal['apbct_visible_fields']) ) {
-                unset($superglobal['apbct_visible_fields']);
+            //Magnesium Quiz special $_request clearance
+            if (
+                (
+                apbct_is_plugin_active('magnesium-quiz/magnesium-quiz.php')
+                )
+            ) {
+                $fields_to_clear[] = 'ct_bot_detector_event_token';
+                $fields_to_clear[] = 'ct_no_cookie_hidden_field';
+                $fields_to_clear[] = 'apbct_event_id';
+                $fields_to_clear[] = 'apbct__email_id';
             }
-            // no break when fall-through is intentional
+            // It is a service field. Need to be deleted before the processing.
+            break;
         case 'request':
             //Optima Express special $_request clearance
             if (
-                apbct_is_plugin_active('optima-express/iHomefinder.php') &&
                 (
-                    isset($superglobal['ct_no_cookie_hidden_field']) ||
-                    isset($superglobal['apbct_visible_fields'])
+                    apbct_is_plugin_active('optima-express/iHomefinder.php')
                 )
             ) {
-                unset($superglobal['ct_no_cookie_hidden_field']);
-                unset($superglobal['apbct_visible_fields']);
+                $fields_to_clear[] = 'ct_no_cookie_hidden_field';
             }
+            break;
     }
-    return $superglobal;
+    $cleared_superglobal = apbct_clear_array_fields_recursive($cleared_superglobal, $fields_to_clear);
+    return $cleared_superglobal;
+}
+
+/**
+ * Clear array from fields by preset
+ * @param array $array
+ * @param string[] $preset_of_fields_to_clear - array of fields to clear, look for strpos in the key of array
+ *
+ * @return array
+ */
+function apbct_clear_array_fields_recursive($array, $preset_of_fields_to_clear = array())
+{
+    $cleared = is_array($array) ? $array : array();
+    foreach ($array as $key => $value) {
+        if (is_array($value)) {
+            $cleared[$key] = apbct_clear_array_fields_recursive($value, $preset_of_fields_to_clear);
+        } else if (is_string($key) ) {
+            foreach ($preset_of_fields_to_clear as $field) {
+                if (strpos($key, $field) !== false) {
+                    unset($cleared[$key]);
+                }
+            }
+        }
+    }
+    return $cleared;
 }
 
 /**
@@ -1799,6 +1801,12 @@ function apbct__bot_detector_get_fd_log()
         'frontend_data_log' => ''
     );
     // Initialize result array with default values
+
+    if (defined('APBCT_DO_NOT_COLLECT_FRONTEND_DATA_LOGS')) {
+        $result['plugin_status'] = 'OK';
+        $result['error_msg'] = 'bot detector logs collection is disabled via constant definition';
+        return json_encode($result);
+    }
 
     try {
         if ( TT::toString($apbct->settings['data__bot_detector_enabled']) === '0') {

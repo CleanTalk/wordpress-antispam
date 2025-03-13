@@ -2,8 +2,6 @@
 
 namespace Cleantalk\ApbctWP\PluginSettingsPage;
 
-use Cleantalk\ApbctWP\FormDecorator\FormDecoratorSettings;
-
 class SettingsField
 {
     /**
@@ -286,19 +284,15 @@ class SettingsField
      */
     private function getInputSelect()
     {
-        if (isset($this->params['name']) && $this->params['name'] === 'comments__form_decoration_selector') {
-            $this->params = FormDecoratorSettings::filterSelectorParams($this->params, $this->disabled_string, $this->description_popup);
-        }
-
         $data = [
             'name' => isset($this->params['name']) ? $this->params['name'] : '',
             'type' => isset($this->params['type']) ? $this->params['type'] : '',
             'title' => isset($this->params['title']) ? $this->params['title'] : '',
             'popup_description' => isset($this->description_popup) ? $this->description_popup : '',
             'description' => isset($this->params['description']) ? $this->params['description'] : '',
-            'multiple' => isset($this->params['multiple']) ? '[]' : '',
+            'multiple' => isset($this->params['multiple']) && $this->params['multiple'] ? '[]' : '',
             'multiple_bool' => isset($this->params['multiple']) ? 'multiple="multiple"' : '',
-            'size' => isset($this->params['multiple'], $this->params['options']) ? ' size="' . count($this->params['options']) . '"' : '',
+            'size' => isset($this->params['multiple'], $this->params['options']) && $this->params['multiple'] ? ' size="' . count($this->params['options']) . '"' : '',
             'childrens' => isset($this->params['childrens']) ? ' onchange="apbctSettingsDependencies(\'' . $this->children_string . '\', jQuery(this).find(\'option:selected\').data(\'children_enable\'))"' : '',
             'disabled' => $this->disabled_string,
             'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
@@ -338,7 +332,6 @@ class SettingsField
                 ];
 
                 if (isset($this->params['multiple']) &&
-                    $this->params['multiple'] &&
                     ! empty($this->value) &&
                     is_array($this->value) &&
                     in_array($option['val'], $this->value)

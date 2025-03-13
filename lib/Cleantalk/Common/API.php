@@ -812,15 +812,18 @@ class API
 
         $http = new Request();
 
-        return $http->setUrl($url)
+        $request = $http->setUrl($url)
                     ->setData($data)
                     ->setPresets(['retry_with_socket'])
-                    ->setOptions(['timeout' => $timeout])
-                    ->addCallback(
-                        __CLASS__ . '::checkResponse',
-                        [$data['method_name']]
-                    )
-                    ->request();
+                    ->setOptions(['timeout' => $timeout]);
+        if ( isset($data['method_name']) ) {
+            $request->addCallback(
+                __CLASS__ . '::checkResponse',
+                [$data['method_name']]
+            );
+        }
+
+        return $request->request();
     }
 
     /**
@@ -837,11 +840,15 @@ class API
         // Errors handling
         // Bad connection
         if (is_array($result)) {
-            $last = error_get_last();
+            if ( isset($result['error']) && ! empty($result['error']) ) {
+                $error_string = 'CONNECTION_ERROR : "' . $result['error'] . '"';
+            } else {
+                $last = error_get_last();
+                $error = $last ? $last['message'] : 'Unhandled Error.';
+                $error_string = 'CONNECTION_ERROR : "Unknown Error. Last error: ' . $error . '"';
+            }
 
-            return (isset($result['error']) && ! empty($result['error']))
-                ? array('error' => 'CONNECTION_ERROR : "' . $result['error'] . '"')
-                : array('error' => 'CONNECTION_ERROR : "Unknown Error. Last error: ' . $last['message']);
+            return ['error' => $error_string];
         }
 
         // JSON decode errors
@@ -901,7 +908,7 @@ class API
 
             case 'services_templates_add':
             case 'services_templates_update':
-                return isset($result['data']) && is_array($result['data']) && count($result['data']) === 1
+                return isset($result['data'][0]) && is_array($result['data']) && count($result['data']) === 1
                     ? $result['data'][0]
                     : array('error' => 'NO_DATA');
 
