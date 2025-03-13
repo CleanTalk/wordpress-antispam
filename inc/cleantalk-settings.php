@@ -5,7 +5,6 @@ use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentSettings;
 use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\ApbctWP\Escape;
-use Cleantalk\ApbctWP\FormDecorator\DecorationRegistry;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\LinkConstructor;
 use Cleantalk\ApbctWP\Validate;
@@ -436,44 +435,6 @@ function apbct_settings__set_fields()
                     ),
                     'display'     => ! $apbct->white_label,
                 ),
-                'comments__form_decoration' => array(
-                    'title'       => __('Holiday form decoration', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        'This option allows to change common design of the comment form to the celebrating one.',
-                        'cleantalk-spam-protect'
-                    ),
-                    'childrens' => array(
-                        'comments__form_decoration_text',
-                        'comments__form_decoration_color',
-                        'comments__form_decoration_selector'
-                    )
-                ),
-                'comments__form_decoration_selector' => array(
-                    'type'        => 'select',
-                    'class'       => 'apbct_settings-field_wrapper--sub',
-                    'options_callback' => array(
-                        DecorationRegistry::getInstance(),
-                        'getDecorationLocalizedNames'
-                    ),
-                    'title'       => __('Select a theme for comments form decoration', 'cleantalk-spam-protect'),
-                    'description' => __('The selected theme will be applied to every standard WordPress comment form.', 'cleantalk-spam-protect'),
-                    'parent'          => 'comments__form_decoration',
-                ),
-                'comments__form_decoration_text' => array(
-                    'type'        => 'text',
-                    'class'       => 'apbct_settings-field_wrapper--sub',
-                    'placeholder' => __('Happy Holidays! ', 'cleantalk-spam-protect'),
-                    'title'       => __('Enter a decoration title for the selected theme header', 'cleantalk-spam-protect'),
-                    'description' => __('This text will be placed in the decoration header, right above the respond form. Not available on the default theme.', 'cleantalk-spam-protect'),
-                    'parent'          => 'comments__form_decoration',
-                ),
-                'comments__form_decoration_color' => array(
-                    'type'        => 'color',
-                    'class'       => 'apbct_settings-field_wrapper--sub',
-                    'title'       => __('Pick a decoration color for the selected theme header', 'cleantalk-spam-protect'),
-                    'description' => __('Applies the color for the respond form header. Not available on the default theme.', 'cleantalk-spam-protect'),
-                    'parent'          => 'comments__form_decoration',
-                )
             ),
         ),
 
@@ -639,6 +600,11 @@ function apbct_settings__set_fields()
                         . '<br>'
                         . __(
                             '"Auto" use JavaScript option if cache solutions are found.',
+                            'cleantalk-spam-protect'
+                        )
+                        . '<br>'
+                        . __(
+                            'If the "Auto" mode is enabled and the "Anti-Spam by CleanTalk JavaScript library" is enabled, the pixel setting will be disabled.',
                             'cleantalk-spam-protect'
                         ),
                     'long_description' => true,
@@ -1592,9 +1558,6 @@ function apbct_settings__error__output($return = false)
             'settings_validate' => 'Validate Settings',
             'exclusions_urls'   => 'URL Exclusions',
             'exclusions_fields' => 'Field Exclusions',
-
-            //Form decorator
-            \Cleantalk\ApbctWP\FormDecorator\FormDecorator::$error_type => 'Form decoration',
 
             // Unknown
             'unknown'           => __('Unknown error type: ', 'cleantalk-spam-protect'),
@@ -2745,7 +2708,7 @@ function apbct_settings__get_key_auto($direct_call = false)
         $out = array(
             'success' => true,
             'reload'  => false,
-            'error' => __('Our service is not available in your region.', 'cleantalk-spam-protect'),
+            'error' => isset($result['error_message']) ? esc_html($result['error_message']) : esc_html('Our service is not available in your region.'),
         );
     } elseif ( ! isset($result['auth_key']) ) {
         //HANDLE LINK

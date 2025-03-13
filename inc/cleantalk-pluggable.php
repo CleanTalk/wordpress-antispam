@@ -1476,6 +1476,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'tevolution email exitence';
         }
 
+        // skip listeo ajax registeration
+        if (
+            apbct_is_plugin_active('listeo-core/listeo-core.php') &&
+            Post::get('action') === 'listeoajaxregister'
+        ) {
+            return 'listeo ajax register';
+        }
+
         // Exclusion of hooks from the Avada theme for the forms of the fusion form builder
         if (
             (apbct_is_theme_active('Avada') || apbct_is_theme_active('Avada Child')) &&
