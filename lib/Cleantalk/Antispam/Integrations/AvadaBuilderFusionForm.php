@@ -12,6 +12,10 @@ class AvadaBuilderFusionForm extends IntegrationBase
             parse_str($_POST['formData'], $data);
             $input_array = apply_filters('apbct__filter_post', $data);
 
+            if ( ! $apbct->stats['no_cookie_data_taken'] ) {
+                apbct_form__get_no_cookie_data($data, false);
+            }
+
             $username = isset($input_array['name']) ? $input_array['name'] : '';
             $email = isset($input_array['email']) ? $input_array['email'] : '';
             $data_to_spam_check = ct_gfa_dto($input_array, $email, $username)->getArray();
