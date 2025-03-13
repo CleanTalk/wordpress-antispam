@@ -2716,13 +2716,13 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $notice_banners = API::getNoticeBanners($api_key);
 
         if (isset($notice_banners['operation_status'], $notice_banners['banners']) && $notice_banners['operation_status'] === 'SUCCESS') {
-            if (isset($notice_banners['banners']['TRIAL'], $notice_banners['banners']['TRIAL']['level'])) {
+            if (isset($notice_banners['banners']['TRIAL']['level'])) {
                 $apbct->data['notice_trial_level'] = strtolower($notice_banners['banners']['TRIAL']['level']);
             }
-            if (isset($notice_banners['banners']['RENEW'], $notice_banners['banners']['RENEW']['level'])) {
+            if (isset($notice_banners['banners']['RENEW']['level'])) {
                 $apbct->data['notice_renew_level'] = strtolower($notice_banners['banners']['RENEW']['level']);
             }
-            if (isset($notice_banners['banners']['REVIEW'], $notice_banners['banners']['REVIEW']['level'])) {
+            if (isset($notice_banners['banners']['REVIEW']['level'])) {
                 $apbct->data['notice_review_level'] = strtolower($notice_banners['banners']['REVIEW']['level']);
             }
         }
