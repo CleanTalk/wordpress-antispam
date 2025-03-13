@@ -1827,8 +1827,8 @@ function apbct_form__ninjaForms__collect_fields_old()
     $input_array = apply_filters('apbct__filter_post', $_POST);
 
     // Choosing between sanitized GET and POST
-    $input_data = Get::get('ninja_forms_ajax_submit') || Get::get('nf_ajax_submit') 
-        ? array_map(function($value) {
+    $input_data = Get::get('ninja_forms_ajax_submit') || Get::get('nf_ajax_submit')
+        ? array_map(function ($value) {
             return is_string($value) ? htmlspecialchars($value) : $value;
         }, $_GET)
         : $input_array;
@@ -3397,7 +3397,8 @@ function apbct_advanced_classifieds_directory_pro__check_register($response, $_f
         Post::get('username') &&
         Post::get('email')
     ) {
-        $data = ct_get_fields_any($_POST, Sanitize::cleanEmail(Post::get('email')));
+        $data = ct_gfa_dto(apply_filters('apbct__filter_post', $_POST), Sanitize::cleanEmail(Post::get('email')));
+        $data = $data->getArray();
 
         $base_call_result = apbct_base_call(
             array(
