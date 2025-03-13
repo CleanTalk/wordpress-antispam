@@ -9,6 +9,7 @@ use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
+use AllowDynamicProperties;
 
 #[AllowDynamicProperties]
 class SFW extends \Cleantalk\Common\Firewall\FirewallModule

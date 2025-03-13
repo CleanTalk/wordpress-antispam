@@ -159,7 +159,7 @@ class EmailEncoder
         }
 
         // Search data to buffer
-        if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post()) {
+        if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post() && !is_admin()) {
             add_action('wp', 'apbct_buffer__start');
             add_action('shutdown', 'apbct_buffer__end', 0);
             add_action('shutdown', array($this, 'bufferOutput'), 2);
@@ -886,7 +886,14 @@ class EmailEncoder
     {
         foreach ( $this->attribute_exclusions_signs as $tag => $array_of_attributes ) {
             foreach ( $array_of_attributes as $attribute ) {
-                $pattern = '/<' . $tag . '+\s+[^>]*\b' . $attribute . '=["|\'][^"]*\b' . $email_match . '\b[^"]*"[^>]*>/m';
+                //do not remove IDE highlighted unnecessary escape!
+                $pattern = '/<'
+                           . $tag
+                           . '+\s+[^>]*\b'
+                           . $attribute
+                           . '=((\\\')|")?[^"]*\b'
+                           . $email_match
+                           . '\b[^"]*((\\\')|")?"[^>]*>/';
                 preg_match($pattern, $this->temp_content, $attr_match);
                 if ( !empty($attr_match) ) {
                     return true;

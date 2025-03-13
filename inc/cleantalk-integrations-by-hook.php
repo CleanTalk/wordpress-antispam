@@ -320,6 +320,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
+    'PaidMemberSubscription' => array(
+        'hook'    => 'pms_register_form_validation',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
     // Mail chimp integration works with ajax and POST via the same hook
     'MailChimp' => array(
         'hook'    => 'mc4wp_form_errors',
@@ -376,6 +381,11 @@ $apbct_active_integrations = array(
         'hook'    => 'wpas_open_ticket_before_assigned',
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
+    ),
+    'Listeo' => array(
+        'hook'    => 'listeoajaxregister',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => true
     ),
 );
 

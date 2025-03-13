@@ -65,7 +65,7 @@ function ctFillDecodedEmailHandler(event = false) {
         if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_wait_for_decoding) {
             popupTextWaiting.innerText = ctPublicFunctions.text__ee_wait_for_decoding;
         } else {
-            popupTextWaiting.innerText = 'The magic is on the way, please wait for a few seconds!';
+            popupTextWaiting.innerText = ctAdminCommon.text__ee_wait_for_decoding;
         }
         popupTextWaiting.setAttribute('class', 'apbct-email-encoder-elements_center');
 
@@ -76,7 +76,7 @@ function ctFillDecodedEmailHandler(event = false) {
         if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_decoding_process) {
             popupTextDecoding.innerText = ctPublicFunctions.text__ee_decoding_process;
         } else {
-            popupTextDecoding.innerText = 'Decoding process to the original data.';
+            popupTextDecoding.innerText = ctAdminCommon.text__ee_decoding_process;
         }
 
         // appending
@@ -88,11 +88,10 @@ function ctFillDecodedEmailHandler(event = false) {
         document.body.append(waitingPopup);
     } else {
         encoderPopup.setAttribute('style', 'display: inherit');
-        if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_wait_for_decoding_2) {
-            document.getElementById('apbct_popup_text').innerHTML = ctPublicFunctions.text__ee_wait_for_decoding_2;
+        if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_wait_for_decoding) {
+            document.getElementById('apbct_popup_text').innerHTML = ctPublicFunctions.text__ee_wait_for_decoding;
         } else {
-            document.getElementById('apbct_popup_text').innerHTML =
-            'Please wait while ' + ctPublic.wl_brandname + ' is decoding the email addresses.';
+            document.getElementById('apbct_popup_text').innerHTML = ctAdminCommon.text__ee_wait_for_decoding;
         }
     }
 
@@ -187,7 +186,7 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
         // Adding a tooltip
         let apbctTooltip = document.createElement('div');
         apbctTooltip.setAttribute('class', 'apbct-tooltip');
-        jQuery(encodedEmailNodes).append(apbctTooltip);
+        encodedEmailNodes.appendChild(apbctTooltip);
 
         apbct_admin_sendAJAX(
             {
@@ -238,17 +237,16 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
                 if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_click_to_select) {
                     selectableEmail.title = ctPublicFunctions.text__ee_click_to_select;
                 } else {
-                    selectableEmail.title = 'Click to select the whole data';
+                    selectableEmail.title = ctAdminCommon.text__ee_click_to_select;
                 }
                 // add email to the first node
                 if (firstNode) {
                     if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_original_email) {
-                        firstNode.innerHTML =
-                        ctPublicFunctions.text__ee_original_email +
-                        '&nbsp;' +
-                        selectableEmail.outerHTML;
+                        firstNode.innerHTML = ctPublicFunctions.text__ee_original_email +
+                            '&nbsp;' + selectableEmail.outerHTML;
                     } else {
-                        firstNode.innerHTML = 'The original one is&nbsp;' + selectableEmail.outerHTML;
+                        firstNode.innerHTML = ctAdminCommon.text__ee_original_email +
+                            '&nbsp;' + selectableEmail.outerHTML;
                     }
 
                     firstNode.setAttribute('style', 'flex-direction: row;');
@@ -271,7 +269,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
                     if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_got_it) {
                         button.innerText = ctPublicFunctions.text__ee_got_it;
                     } else {
-                        button.innerText = 'Got it';
+                        button.innerText = ctAdminCommon.text__ee_got_it;
                     }
                     button.classList = 'apbct-email-encoder-got-it-button';
                     button.addEventListener('click', function() {
@@ -295,14 +293,14 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
                 if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_blocked) {
                     ctShowDecodeComment(ctPublicFunctions.text__ee_blocked + ': ' + result.data[0].comment);
                 } else {
-                    ctShowDecodeComment('Blocked: ' + result.data[0].comment);
+                    ctShowDecodeComment(ctAdminCommon.text__ee_blocked + ': ' + result.data[0].comment);
                 }
             } else {
                 resetEncodedNodes();
                 if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_cannot_connect) {
                     ctShowDecodeComment(ctPublicFunctions.text__ee_cannot_connect + ': ' + result.apbct.comment);
                 } else {
-                    ctShowDecodeComment('Cannot connect with CleanTalk server: ' + result.data[0].comment);
+                    ctShowDecodeComment(ctAdminCommon.text__ee_cannot_connect + ': ' + result.data[0].comment);
                 }
             }
         } else {
@@ -331,7 +329,7 @@ function ctShowDecodeComment(comment) {
         if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_cannot_decode) {
             comment = ctPublicFunctions.text__ee_cannot_decode;
         } else {
-            comment = 'Can not decode email. Unknown reason';
+            comment = ctAdminCommon.text__ee_cannot_decode;
         }
     }
 
@@ -342,7 +340,7 @@ function ctShowDecodeComment(comment) {
         if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_email_decoder) {
             popupText.innerText = ctPublicFunctions.text__ee_email_decoder + ': ' + comment;
         } else {
-            popupText.innerText = 'CleanTalk email decoder: ' + comment;
+            popupText.innerText = ctAdminCommon.text__ee_email_decoder + ': ' + comment;
         }
         setTimeout(function() {
             popup.setAttribute('style', 'display:none');
@@ -427,11 +425,7 @@ function ctProcessDecodedDataResult(response, targetElement) {
  * @param {string} email
  */
 function ctFillDecodedEmail(target, email) {
-    jQuery(target).html(
-        jQuery(target)
-            .html()
-            .replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1'),
-    );
+    target.innerHTML = target.innerHTML.replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1');
 }
 
 /**
@@ -1610,214 +1604,118 @@ if (!Object.prototype.hasOwn) {
 }
 
 /**
- * Form skin class
+ * Class collecting user activity data
  *
  */
 // eslint-disable-next-line no-unused-vars, require-jsdoc
-class ApbctFormDecorator {
-    elements = [];
-
+class ApbctCollectingUserActivity {
+    elementBody = document.querySelector('body');
+    collectionForms = document.forms;
     /**
      * Constructor
      */
     constructor() {
-        this.getElements();
         this.setListeners();
-    }
-
-    /**
-     * Get elements
-     */
-    getElements() {
-        const elements = document.querySelectorAll('*');
-        const regexId = /^apbct-trusted-text--label/;
-        const regexClass = /apbct_form_decoration--/;
-
-        this.setDecorationBackground();
-
-        // Collect elements with id or class that contains apbct-trusted-text--label or apbct_form_decoration--
-        // id
-        let matchingElements = Array.from(elements).filter((element) => {
-            return regexId.test(element.id);
-        });
-        matchingElements.forEach((element) => {
-            this.elements.push(element);
-        });
-
-        // class
-        matchingElements = Array.from(elements).filter((element) => {
-            return regexClass.test(element.className);
-        });
-
-        matchingElements.forEach((element) => {
-            this.elements.push(element);
-        });
-
-        const flagWrap = document.querySelector('.apbct_form_decoration');
-        if (flagWrap) {
-            const flagLeft = window.getComputedStyle(flagWrap, '::before');
-            const flagRight = window.getComputedStyle(flagWrap, '::after');
-            if (flagLeft && flagRight) {
-                this.elements.push(flagWrap);
-            }
-        }
-    }
-
-    /**
-     * Set decoration background
-     */
-    setDecorationBackground() {
-        let blockForms = document.querySelectorAll('#respond');
-
-        if (document.querySelector('[class*="apbct_form_decoration"]')) {
-            let classHeaderWrapper = document.querySelector('[class*="apbct_form_decoration"]').getAttribute('class');
-            let endPosition = classHeaderWrapper.indexOf('_header__wrapper');
-            let classTemplate = classHeaderWrapper.substring(0, endPosition);
-
-            blockForms.forEach((blockForm) => {
-                blockForm.className += ' ' + classTemplate;
-            });
-        }
     }
 
     /**
      * Set listeners
      */
     setListeners() {
-        this.elements.forEach((element) => {
-            if (!element) {
-                return;
-            }
-
-            element.addEventListener('click', (event) => {
-                if (element.className.indexOf('apbct_form_decoration') !== -1) {
-                    if (element.className.indexOf('header__wrapper') !== -1) {
-                        this.addClicks();
-                        return;
-                    }
-
-                    const clickX = event.offsetX;
-                    const clickY = event.offsetY;
-                    const flagLeftWidth = parseFloat(window.getComputedStyle(element, '::before').width) / 2;
-                    const flagLeftHeight = parseFloat(window.getComputedStyle(element, '::before').height) / 2;
-                    const flagRightWidth = parseFloat(window.getComputedStyle(element, '::after').width) / 2;
-                    const flagRightHeight = parseFloat(window.getComputedStyle(element, '::after').height) / 2;
-
-                    if (element.className.indexOf('christmas') !== -1) {
-                        if (
-                            clickY < flagLeftHeight / 3 && clickX < flagLeftWidth ||
-                            clickY < flagRightHeight / 3 && clickX > flagRightWidth
-                        ) {
-                            this.addClicks();
-                            return;
-                        }
-                    }
-
-                    if (
-                        (element.className.indexOf('new-year') !== -1) ||
-                        (element.className.indexOf('fourth-july') !== -1)
-                    ) {
-                        if (
-                            clickY > flagLeftHeight && clickX < flagLeftWidth ||
-                            clickY > flagRightHeight && clickX > flagRightWidth
-                        ) {
-                            this.addClicks();
-                        }
-                    }
-
-                    if (element.className.indexOf('signature')) {
-                        this.addClicks();
-                    }
-
-                    return;
-                }
-
-                this.addClicks();
-            });
-
-            element.addEventListener('mouseup', (event) => {
-                setTimeout(() => {
-                    const selectedText = window.getSelection().toString();
-                    if (selectedText) {
-                        this.addSelected();
-                    }
-                }, 100);
-            });
-
-            element.addEventListener('mousemove', (event) => {
-                if (element.className.indexOf('apbct_form_decoration') !== -1) {
-                    const mouseX = event.offsetX;
-                    const mouseY = event.offsetY;
-                    const flagLeftWidth = parseFloat(window.getComputedStyle(element, '::before').width) / 2;
-                    const flagLeftHeight = parseFloat(window.getComputedStyle(element, '::before').height) / 2;
-                    const flagRightWidth = parseFloat(window.getComputedStyle(element, '::after').width) / 2;
-                    const flagRightHeight = parseFloat(window.getComputedStyle(element, '::after').height) / 2;
-
-                    if (mouseY > flagLeftHeight && mouseX < flagLeftWidth ||
-                    mouseY > flagRightHeight && mouseX > flagRightWidth
-                    ) {
-                        this.trackMouseMovement();
-                    }
-                    return;
-                }
-
-                this.trackMouseMovement();
-            });
+        this.elementBody.addEventListener('click', (event) => {
+            this.checkElementInForms(event, 'addClicks');
         });
+
+        this.elementBody.addEventListener('mouseup', (event) => {
+            const selectedType = document.getSelection().type.toString();
+            if (selectedType == 'Range') {
+                this.addSelected();
+            }
+        });
+
+        this.elementBody.addEventListener('mousemove', (event) => {
+            this.checkElementInForms(event, 'trackMouseMovement');
+        });
+    }
+
+    /**
+     * Checking if there is an element in the form
+     * @param {object} event
+     * @param {string} addTarget
+     */
+    checkElementInForms(event, addTarget) {
+        let resultCheck;
+        for (let i = 0; i < this.collectionForms.length; i++) {
+            if (
+                event.target.outerHTML.length > 0 &&
+                this.collectionForms[i].innerHTML.length > 0
+            ) {
+                resultCheck = this.collectionForms[i].innerHTML.indexOf(event.target.outerHTML);
+            } else {
+                resultCheck = -1;
+            }
+        }
+
+        switch (addTarget) {
+        case 'addClicks':
+            if (resultCheck < 0) {
+                this.addClicks();
+            }
+            break;
+        case 'trackMouseMovement':
+            if (resultCheck > -1) {
+                this.trackMouseMovement();
+            }
+            break;
+        default:
+            break;
+        }
     }
 
     /**
      * Add clicks
      */
     addClicks() {
-        if (document.ctFormDecorationMouseData) {
-            if (document.ctFormDecorationMouseData.clicks) {
-                document.ctFormDecorationMouseData.clicks++;
+        if (document.ctCollectingUserActivityData) {
+            if (document.ctCollectingUserActivityData.clicks) {
+                document.ctCollectingUserActivityData.clicks++;
             } else {
-                document.ctFormDecorationMouseData.clicks = 1;
+                document.ctCollectingUserActivityData.clicks = 1;
             }
             return;
         }
 
-        document.ctFormDecorationMouseData = {clicks: 1};
+        document.ctCollectingUserActivityData = {clicks: 1};
     }
 
     /**
      * Add selected
      */
     addSelected() {
-        if (document.ctFormDecorationMouseData) {
-            if (document.ctFormDecorationMouseData.selected) {
-                document.ctFormDecorationMouseData.selected++;
+        if (document.ctCollectingUserActivityData) {
+            if (document.ctCollectingUserActivityData.selected) {
+                document.ctCollectingUserActivityData.selected++;
             } else {
-                document.ctFormDecorationMouseData.selected = 1;
+                document.ctCollectingUserActivityData.selected = 1;
             }
             return;
         }
 
-        document.ctFormDecorationMouseData = {selected: 1};
+        document.ctCollectingUserActivityData = {selected: 1};
     }
 
     /**
      * Track mouse movement
      */
     trackMouseMovement() {
-        if (!document.ctFormDecorationMouseData) {
-            document.ctFormDecorationMouseData = {};
+        if (!document.ctCollectingUserActivityData) {
+            document.ctCollectingUserActivityData = {};
         }
-        if (!document.ctFormDecorationMouseData.mouseMovements) {
-            document.ctFormDecorationMouseData.mouseMovements = [];
+        if (!document.ctCollectingUserActivityData.mouseMovementsInsideForm) {
+            document.ctCollectingUserActivityData.mouseMovementsInsideForm = false;
         }
 
-        document.ctFormDecorationMouseData.mouseMovements.push({timestamp: Date.now()});
-
-        if (document.ctFormDecorationMouseData.mouseMovements.length > 1) {
-            const index = document.ctFormDecorationMouseData.mouseMovements.length - 1;
-            const lastMovement = document.ctFormDecorationMouseData.mouseMovements[index];
-            const firstMovement = document.ctFormDecorationMouseData.mouseMovements[0];
-            const timeDiff = lastMovement.timestamp - firstMovement.timestamp;
-            document.ctFormDecorationMouseData.hovering = timeDiff;
-        }
+        document.ctCollectingUserActivityData.mouseMovementsInsideForm = true;
     }
 }
 
@@ -2926,6 +2824,10 @@ function ctEmailExistSetElementsPositions() {
  * @return {bool}
  */
 function ctIsDrawPixel() {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
+
     return +ctPublic.pixel__enabled ||
         (ctPublic.data__cookies_type === 'none' && document.querySelectorAll('img#apbct_pixel').length === 0) ||
         (ctPublic.data__cookies_type === 'alternative' && document.querySelectorAll('img#apbct_pixel').length === 0);
@@ -2933,8 +2835,12 @@ function ctIsDrawPixel() {
 
 /**
  * @param {string} pixelUrl
+ * @return {bool}
  */
 function ctSetPixelImg(pixelUrl) {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
     ctSetCookie('apbct_pixel_url', pixelUrl);
     if ( ctIsDrawPixel() ) {
         if ( ! document.getElementById('apbct_pixel') ) {
@@ -2951,8 +2857,12 @@ function ctSetPixelImg(pixelUrl) {
 
 /**
  * @param {string} pixelUrl
+ * @return {bool}
  */
 function ctSetPixelImgFromLocalstorage(pixelUrl) {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
     if ( ctIsDrawPixel() ) {
         if ( ! document.getElementById('apbct_pixel') ) {
             let insertedImg = document.createElement('img');
@@ -2968,8 +2878,13 @@ function ctSetPixelImgFromLocalstorage(pixelUrl) {
 
 /**
  * ctGetPixelUrl
+ * @return {bool}
  */
 function ctGetPixelUrl() {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
+
     // Check if pixel is already in localstorage and is not outdated
     let localStoragePixelUrl = apbctLocalStorage.get('apbct_pixel_url');
     if ( localStoragePixelUrl !== false ) {
@@ -3351,7 +3266,10 @@ function apbct_ready() {
         }
     }
 
-    if ( +ctPublic.pixel__setting ) {
+    if (
+        +ctPublic.pixel__setting &&
+        !(+ctPublic.pixel__setting == 3 && ctPublic.settings__data__bot_detector_enabled == 1)
+    ) {
         if ( ctIsDrawPixel() ) {
             ctGetPixelUrl();
         } else {
@@ -3446,9 +3364,7 @@ function apbct_ready() {
             form.ctFormIndex = i;
             form.onsubmit = function(event) {
                 if ( ctPublic.data__cookies_type !== 'native' && typeof event.target.ctFormIndex !== 'undefined' ) {
-                    const visibleFields = {};
-                    visibleFields[0] = apbct_collect_visible_fields(this);
-                    apbct_visible_fields_set_cookie( visibleFields, event.target.ctFormIndex );
+                    apbct_visible_fields_set_cookie( apbct_collect_visible_fields(this), event.target.ctFormIndex );
                 }
 
                 if (ctPublic.data__cookies_type === 'none' && isFormThatNeedCatchXhr(event.target)) {
@@ -3497,6 +3413,13 @@ function apbct_ready() {
                 continue;
             }
 
+            if (
+                _form.getAttribute('id') === 'hero-search-form' ||
+                _form.getAttribute('class') === 'hb-booking-search-form'
+            ) {
+                continue;
+            }
+
             // this handles search forms onsubmit process
             _form.apbctSearchPrevOnsubmit = _form.onsubmit;
             _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
@@ -3506,10 +3429,8 @@ function apbct_ready() {
     // Check any XMLHttpRequest connections
     apbctCatchXmlHttpRequest();
 
-    // Init form skin
-    if (ctPublic.settings__comments__form_decoration) {
-        new ApbctFormDecorator();
-    }
+    // Initializing the collection of user activity
+    new ApbctCollectingUserActivity();
 
     // Set important paramaters via ajax if problematic cache solutions found
     // todo These AJAX calls removed untill we find a better solution, reason is a lot of requests to the server.
@@ -3555,11 +3476,13 @@ function ctAddWCMiddlewares() {
             options.data.requests[0].path === '/wc/store/v1/cart/add-item'
         ) {
             options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+            options.data.requests[0].data.event_token = localStorage.getItem('bot_detector_event_token');
         }
 
         // checkout
         if (options.path === '/wc/store/v1/checkout') {
             options.data.ct_no_cookie_hidden_field = getNoCookieData();
+            options.data.event_token = localStorage.getItem('bot_detector_event_token');
         }
 
         return next(options);
@@ -3734,16 +3657,13 @@ if (ctPublic.data__key_is_ok) {
 function ctSearchFormOnSubmitHandler(e, targetForm) {
     try {
         // get honeypot field and it's value
-        const honeyPotField = targetForm.querySelector('[id*="apbct__email_id__"]');
+        const honeyPotField = targetForm.querySelector('[name*="apbct_email_id__"]');
         let hpValue = null;
-        let hpEventId = null;
         if (
             honeyPotField !== null &&
-            honeyPotField.value !== null &&
-            honeyPotField.getAttribute('apbct_event_id') !== null
+            honeyPotField.value !== null
         ) {
             hpValue = honeyPotField.value;
-            hpEventId = honeyPotField.getAttribute('apbct_event_id');
         }
 
         // get cookie data from storages
@@ -3769,9 +3689,8 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
             let cookiesArray = cleantalkStorageDataArray;
 
             // if honeypot data provided add the fields to the parsed data
-            if ( hpValue !== null && hpEventId !== null ) {
+            if ( hpValue !== null ) {
                 cookiesArray.apbct_search_form__honeypot_value = hpValue;
-                cookiesArray.apbct_search_form__honeypot_id = hpEventId;
             }
 
             // set event token
@@ -4011,11 +3930,7 @@ function apbct_visible_fields_set_cookie( visibleFieldsCollection, formId ) {
             ctSetCookie('apbct_visible_fields_' + collectionIndex, JSON.stringify( collection[i] ) );
         }
     } else {
-        if (ctPublic.data__cookies_type === 'none') {
-            ctSetCookie('apbct_visible_fields', JSON.stringify( collection[0] ) );
-        } else {
-            ctSetCookie('apbct_visible_fields', JSON.stringify( collection ) );
-        }
+        ctSetCookie('apbct_visible_fields', JSON.stringify( collection ) );
     }
 }
 
@@ -4096,7 +4011,7 @@ function ctNoCookieConstructHiddenField(type) {
 
 /**
  * Retrieves the clentalk "cookie" data from starages.
- * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration}.
+ * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity}.
  * @return {string}
  */
 function getCleanTalkStorageDataArray() {
@@ -4108,15 +4023,14 @@ function getCleanTalkStorageDataArray() {
         noCookieDataTypo = {typo: document.ctTypoData.data};
     }
 
-    let noCookieDataFromDecoration = {form_decoration_mouse_data: []};
-    if (document.ctFormDecorationMouseData) {
-        let formDecorationMouseData = JSON.parse(JSON.stringify(document.ctFormDecorationMouseData));
-        if (formDecorationMouseData.mouseMovements) {
-            delete formDecorationMouseData.mouseMovements;
-        }
-        noCookieDataFromDecoration = {form_decoration_mouse_data: formDecorationMouseData};
+    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
+
+    if (document.ctCollectingUserActivityData) {
+        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
+        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
     }
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration};
+
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
 }
 
 /**
@@ -4767,22 +4681,26 @@ function ctProtectExternal() {
             if ( isIntegratedForm(currentForm) ) {
                 apbctProcessExternalForm(currentForm, i, document);
 
-            // Ajax checking for the integrated forms - will be changed only submit button to make protection
+                // Ajax checking for the integrated forms - will be changed only submit button to make protection
             } else if (
                 // MooForm 3rd party service
                 currentForm.dataset.mailingListId !== undefined ||
                 (typeof(currentForm.action) == 'string' &&
-                (currentForm.action.indexOf('webto.salesforce.com') !== -1)) ||
+                    (currentForm.action.indexOf('webto.salesforce.com') !== -1)) ||
                 (typeof(currentForm.action) == 'string' &&
                 currentForm.querySelector('[href*="activecampaign"]')) ||
-                (currentForm.action.indexOf('hsforms.com') !== -1 && currentForm.getAttribute('data-hs-cf-bound'))
+                (
+                    typeof(currentForm.action) == 'string' &&
+                    currentForm.action.indexOf('hsforms.com') !== -1 &&
+                    currentForm.getAttribute('data-hs-cf-bound')
+                )
             ) {
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
-            // Common flow - modify form's action
+                // Common flow - modify form's action
             } else if (
                 typeof(currentForm.action) == 'string' &&
                 ( currentForm.action.indexOf('http://') !== -1 ||
-                currentForm.action.indexOf('https://') !== -1 )
+                    currentForm.action.indexOf('https://') !== -1 )
             ) {
                 let tmp = currentForm.action.split('//');
                 tmp = tmp[1].split('/');
@@ -5388,7 +5306,7 @@ function isIntegratedForm(formObj) {
             formAction.indexOf('api.kit.com') !== -1 // ConvertKit new form
         ) ||
         ( formObj.firstChild.classList !== undefined &&
-        formObj.firstChild.classList.contains('cb-form-group') ) || // Convertbox form
+            formObj.firstChild.classList.contains('cb-form-group') ) || // Convertbox form
         formAction.indexOf('mailerlite.com') !== -1 || // Mailerlite integration
         formAction.indexOf('colcolmail.co.uk') !== -1 || // colcolmail.co.uk integration
         formAction.indexOf('paypal.com') !== -1 ||
@@ -5417,7 +5335,8 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('wufoo.com') !== -1 || // Wufoo form
         formAction.indexOf('publisher.copernica.com') !== -1 || // publisher.copernica
         ( formObj.classList !== undefined &&
-            formObj.classList.contains('sp-element-container') ) // Sendpulse form
+            formObj.classList.contains('sp-element-container') ) || // Sendpulse form
+        apbctIsFormInDiv(formObj, 'b24-form') // Bitrix24 CRM external forms
     ) {
         return true;
     }
@@ -5667,7 +5586,7 @@ function catchDynamicRenderedFormHandler(forms, documentObject = document) {
             neededFormIds.push(formIdAttr);
         }
         if (formIdAttr && formIdAttr.indexOf('createuser') !== -1 &&
-        (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
+            (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
         ) {
             neededFormIds.push(formIdAttr);
         }
@@ -5770,6 +5689,24 @@ function apbctVal(el) {
     } else {
         return el.value;
     }
+}
+
+/**
+ * Checks if a form object is inside a div with a specified class name.
+ *
+ * @param {HTMLElement} formObj - The form element to check.
+ * @param {string} divClassName - The class name of the div to look for.
+ * @return {boolean} - Returns true if the form is inside a div with the specified class name, false otherwise.
+ */
+function apbctIsFormInDiv(formObj, divClassName) {
+    let parent = formObj.parentElement;
+    while (parent) {
+        if (parent.classList.contains(divClassName)) {
+            return true;
+        }
+        parent = parent.parentElement;
+    }
+    return false;
 }
 
 /**

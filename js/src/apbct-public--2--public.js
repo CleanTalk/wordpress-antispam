@@ -450,6 +450,10 @@ function ctEmailExistSetElementsPositions() {
  * @return {bool}
  */
 function ctIsDrawPixel() {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
+
     return +ctPublic.pixel__enabled ||
         (ctPublic.data__cookies_type === 'none' && document.querySelectorAll('img#apbct_pixel').length === 0) ||
         (ctPublic.data__cookies_type === 'alternative' && document.querySelectorAll('img#apbct_pixel').length === 0);
@@ -457,8 +461,12 @@ function ctIsDrawPixel() {
 
 /**
  * @param {string} pixelUrl
+ * @return {bool}
  */
 function ctSetPixelImg(pixelUrl) {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
     ctSetCookie('apbct_pixel_url', pixelUrl);
     if ( ctIsDrawPixel() ) {
         if ( ! document.getElementById('apbct_pixel') ) {
@@ -475,8 +483,12 @@ function ctSetPixelImg(pixelUrl) {
 
 /**
  * @param {string} pixelUrl
+ * @return {bool}
  */
 function ctSetPixelImgFromLocalstorage(pixelUrl) {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
     if ( ctIsDrawPixel() ) {
         if ( ! document.getElementById('apbct_pixel') ) {
             let insertedImg = document.createElement('img');
@@ -492,8 +504,13 @@ function ctSetPixelImgFromLocalstorage(pixelUrl) {
 
 /**
  * ctGetPixelUrl
+ * @return {bool}
  */
 function ctGetPixelUrl() {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
+
     // Check if pixel is already in localstorage and is not outdated
     let localStoragePixelUrl = apbctLocalStorage.get('apbct_pixel_url');
     if ( localStoragePixelUrl !== false ) {
@@ -875,7 +892,10 @@ function apbct_ready() {
         }
     }
 
-    if ( +ctPublic.pixel__setting ) {
+    if (
+        +ctPublic.pixel__setting &&
+        !(+ctPublic.pixel__setting == 3 && ctPublic.settings__data__bot_detector_enabled == 1)
+    ) {
         if ( ctIsDrawPixel() ) {
             ctGetPixelUrl();
         } else {
@@ -970,9 +990,7 @@ function apbct_ready() {
             form.ctFormIndex = i;
             form.onsubmit = function(event) {
                 if ( ctPublic.data__cookies_type !== 'native' && typeof event.target.ctFormIndex !== 'undefined' ) {
-                    const visibleFields = {};
-                    visibleFields[0] = apbct_collect_visible_fields(this);
-                    apbct_visible_fields_set_cookie( visibleFields, event.target.ctFormIndex );
+                    apbct_visible_fields_set_cookie( apbct_collect_visible_fields(this), event.target.ctFormIndex );
                 }
 
                 if (ctPublic.data__cookies_type === 'none' && isFormThatNeedCatchXhr(event.target)) {
@@ -1021,6 +1039,13 @@ function apbct_ready() {
                 continue;
             }
 
+            if (
+                _form.getAttribute('id') === 'hero-search-form' ||
+                _form.getAttribute('class') === 'hb-booking-search-form'
+            ) {
+                continue;
+            }
+
             // this handles search forms onsubmit process
             _form.apbctSearchPrevOnsubmit = _form.onsubmit;
             _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
@@ -1030,10 +1055,8 @@ function apbct_ready() {
     // Check any XMLHttpRequest connections
     apbctCatchXmlHttpRequest();
 
-    // Init form skin
-    if (ctPublic.settings__comments__form_decoration) {
-        new ApbctFormDecorator();
-    }
+    // Initializing the collection of user activity
+    new ApbctCollectingUserActivity();
 
     // Set important paramaters via ajax if problematic cache solutions found
     // todo These AJAX calls removed untill we find a better solution, reason is a lot of requests to the server.
@@ -1079,11 +1102,13 @@ function ctAddWCMiddlewares() {
             options.data.requests[0].path === '/wc/store/v1/cart/add-item'
         ) {
             options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+            options.data.requests[0].data.event_token = localStorage.getItem('bot_detector_event_token');
         }
 
         // checkout
         if (options.path === '/wc/store/v1/checkout') {
             options.data.ct_no_cookie_hidden_field = getNoCookieData();
+            options.data.event_token = localStorage.getItem('bot_detector_event_token');
         }
 
         return next(options);
@@ -1258,16 +1283,13 @@ if (ctPublic.data__key_is_ok) {
 function ctSearchFormOnSubmitHandler(e, targetForm) {
     try {
         // get honeypot field and it's value
-        const honeyPotField = targetForm.querySelector('[id*="apbct__email_id__"]');
+        const honeyPotField = targetForm.querySelector('[name*="apbct_email_id__"]');
         let hpValue = null;
-        let hpEventId = null;
         if (
             honeyPotField !== null &&
-            honeyPotField.value !== null &&
-            honeyPotField.getAttribute('apbct_event_id') !== null
+            honeyPotField.value !== null
         ) {
             hpValue = honeyPotField.value;
-            hpEventId = honeyPotField.getAttribute('apbct_event_id');
         }
 
         // get cookie data from storages
@@ -1293,9 +1315,8 @@ function ctSearchFormOnSubmitHandler(e, targetForm) {
             let cookiesArray = cleantalkStorageDataArray;
 
             // if honeypot data provided add the fields to the parsed data
-            if ( hpValue !== null && hpEventId !== null ) {
+            if ( hpValue !== null ) {
                 cookiesArray.apbct_search_form__honeypot_value = hpValue;
-                cookiesArray.apbct_search_form__honeypot_id = hpEventId;
             }
 
             // set event token
@@ -1535,11 +1556,7 @@ function apbct_visible_fields_set_cookie( visibleFieldsCollection, formId ) {
             ctSetCookie('apbct_visible_fields_' + collectionIndex, JSON.stringify( collection[i] ) );
         }
     } else {
-        if (ctPublic.data__cookies_type === 'none') {
-            ctSetCookie('apbct_visible_fields', JSON.stringify( collection[0] ) );
-        } else {
-            ctSetCookie('apbct_visible_fields', JSON.stringify( collection ) );
-        }
+        ctSetCookie('apbct_visible_fields', JSON.stringify( collection ) );
     }
 }
 
@@ -1620,7 +1637,7 @@ function ctNoCookieConstructHiddenField(type) {
 
 /**
  * Retrieves the clentalk "cookie" data from starages.
- * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration}.
+ * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity}.
  * @return {string}
  */
 function getCleanTalkStorageDataArray() {
@@ -1632,15 +1649,14 @@ function getCleanTalkStorageDataArray() {
         noCookieDataTypo = {typo: document.ctTypoData.data};
     }
 
-    let noCookieDataFromDecoration = {form_decoration_mouse_data: []};
-    if (document.ctFormDecorationMouseData) {
-        let formDecorationMouseData = JSON.parse(JSON.stringify(document.ctFormDecorationMouseData));
-        if (formDecorationMouseData.mouseMovements) {
-            delete formDecorationMouseData.mouseMovements;
-        }
-        noCookieDataFromDecoration = {form_decoration_mouse_data: formDecorationMouseData};
+    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
+
+    if (document.ctCollectingUserActivityData) {
+        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
+        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
     }
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration};
+
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
 }
 
 /**
