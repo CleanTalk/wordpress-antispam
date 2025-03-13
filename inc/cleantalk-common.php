@@ -196,6 +196,10 @@ function apbct_base_call($params = array(), $reg_flag = false)
         'submit_time' => apbct_get_submit_time(),
     );
 
+    if (!isset($params['post_info']['post_url'])) {
+        $params['post_info']['post_url'] = Server::get('HTTP_REFERER');
+    }
+
     // Event Token
     $params['event_token'] = apbct_get_event_token($params);
 
