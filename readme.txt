@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 6.51
+Stable tag: 6.52
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -441,6 +441,18 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.52 13.03.2025 =
+* New. Integration. Integration with plugin/theme Listeo.
+* Mod. Pixel. Disabling a pixel if its mode is 'auto' and the bot detector is enabled
+* Mod. Decoration. Changing cursor data collection, renaming functionality
+* Mod. Decoration. Removing decorations and changing the logic of data collection from the frontend
+* Ref. Integrations. Woocommerce gather to one class.
+* Fix. Email encoder. Texts modified by hooks.
+* Fix. Email Encoder. Using buffer fixed.
+* Fix. CollectingUserActivity. Rename script, changing the selection definition
+* Fix. GetKeyAuto. Removed localization
+* Fix. External forms. Bitrix24 forms protection implemented.
 
 = 6.51 03.03.2025 =
 * New. Integration Awesome Support. Checking registration and creating new tickets.
