@@ -450,6 +450,10 @@ function ctEmailExistSetElementsPositions() {
  * @return {bool}
  */
 function ctIsDrawPixel() {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
+
     return +ctPublic.pixel__enabled ||
         (ctPublic.data__cookies_type === 'none' && document.querySelectorAll('img#apbct_pixel').length === 0) ||
         (ctPublic.data__cookies_type === 'alternative' && document.querySelectorAll('img#apbct_pixel').length === 0);
@@ -457,8 +461,12 @@ function ctIsDrawPixel() {
 
 /**
  * @param {string} pixelUrl
+ * @return {bool}
  */
 function ctSetPixelImg(pixelUrl) {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
     ctSetCookie('apbct_pixel_url', pixelUrl);
     if ( ctIsDrawPixel() ) {
         if ( ! document.getElementById('apbct_pixel') ) {
@@ -475,8 +483,12 @@ function ctSetPixelImg(pixelUrl) {
 
 /**
  * @param {string} pixelUrl
+ * @return {bool}
  */
 function ctSetPixelImgFromLocalstorage(pixelUrl) {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
     if ( ctIsDrawPixel() ) {
         if ( ! document.getElementById('apbct_pixel') ) {
             let insertedImg = document.createElement('img');
@@ -492,8 +504,13 @@ function ctSetPixelImgFromLocalstorage(pixelUrl) {
 
 /**
  * ctGetPixelUrl
+ * @return {bool}
  */
 function ctGetPixelUrl() {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
+
     // Check if pixel is already in localstorage and is not outdated
     let localStoragePixelUrl = apbctLocalStorage.get('apbct_pixel_url');
     if ( localStoragePixelUrl !== false ) {
@@ -875,7 +892,10 @@ function apbct_ready() {
         }
     }
 
-    if ( +ctPublic.pixel__setting ) {
+    if (
+        +ctPublic.pixel__setting &&
+        !(+ctPublic.pixel__setting == 3 && ctPublic.settings__data__bot_detector_enabled == 1)
+    ) {
         if ( ctIsDrawPixel() ) {
             ctGetPixelUrl();
         } else {
@@ -1035,10 +1055,8 @@ function apbct_ready() {
     // Check any XMLHttpRequest connections
     apbctCatchXmlHttpRequest();
 
-    // Init form skin
-    if (ctPublic.settings__comments__form_decoration) {
-        new ApbctFormDecorator();
-    }
+    // Initializing the collection of user activity
+    new ApbctCollectingUserActivity();
 
     // Set important paramaters via ajax if problematic cache solutions found
     // todo These AJAX calls removed untill we find a better solution, reason is a lot of requests to the server.
@@ -1084,11 +1102,13 @@ function ctAddWCMiddlewares() {
             options.data.requests[0].path === '/wc/store/v1/cart/add-item'
         ) {
             options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+            options.data.requests[0].data.event_token = localStorage.getItem('bot_detector_event_token');
         }
 
         // checkout
         if (options.path === '/wc/store/v1/checkout') {
             options.data.ct_no_cookie_hidden_field = getNoCookieData();
+            options.data.event_token = localStorage.getItem('bot_detector_event_token');
         }
 
         return next(options);
@@ -1617,7 +1637,7 @@ function ctNoCookieConstructHiddenField(type) {
 
 /**
  * Retrieves the clentalk "cookie" data from starages.
- * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration}.
+ * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity}.
  * @return {string}
  */
 function getCleanTalkStorageDataArray() {
@@ -1629,15 +1649,14 @@ function getCleanTalkStorageDataArray() {
         noCookieDataTypo = {typo: document.ctTypoData.data};
     }
 
-    let noCookieDataFromDecoration = {form_decoration_mouse_data: []};
-    if (document.ctFormDecorationMouseData) {
-        let formDecorationMouseData = JSON.parse(JSON.stringify(document.ctFormDecorationMouseData));
-        if (formDecorationMouseData.mouseMovements) {
-            delete formDecorationMouseData.mouseMovements;
-        }
-        noCookieDataFromDecoration = {form_decoration_mouse_data: formDecorationMouseData};
+    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
+
+    if (document.ctCollectingUserActivityData) {
+        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
+        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
     }
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromDecoration};
+
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
 }
 
 /**

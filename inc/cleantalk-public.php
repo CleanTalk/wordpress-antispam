@@ -6,9 +6,7 @@ use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
-use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
-use Cleantalk\Common\TT;
 use Cleantalk\ApbctWP\LinkConstructor;
 
 /**
@@ -23,7 +21,14 @@ function apbct_init()
     global $ct_jp_comments, $apbct;
 
     // Pixel
-    if ( $apbct->settings['data__pixel'] && empty($apbct->pixel_url) ) {
+    if (
+        $apbct->settings['data__pixel'] &&
+        empty($apbct->pixel_url) &&
+        !(
+            $apbct->settings['data__bot_detector_enabled'] === '1' &&
+            $apbct->settings['data__pixel'] === '3'
+        )
+    ) {
         $apbct->pixel_url = apbct_get_pixel_url(true);
     }
 
@@ -153,32 +158,10 @@ function apbct_init()
         add_filter('si_contact_form_validate', 'ct_si_contact_form_validate');
     }
 
-    // WooCommerce registration
-    if ( class_exists('WooCommerce') ) {
-        if ( !$apbct->settings['forms__wc_register_from_order'] && (Request::get('wc-ajax') === 'checkout' || Request::get('wc-ajax') === 'complete_order') ) {
-            remove_filter('woocommerce_registration_errors', 'ct_registration_errors', 1);
-        } else {
-            add_filter('woocommerce_registration_errors', 'ct_registration_errors', 1, 3);
-        }
-        if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
-            add_action('woocommerce_after_checkout_validation', 'ct_woocommerce_checkout_check', 1, 2);
-            add_action('woocommerce_store_api_checkout_order_processed', 'ct_woocommerce_checkout_check_from_rest', 1, 1);
-            add_action('woocommerce_checkout_update_order_meta', 'apbct_woocommerce__add_request_id_to_order_meta');
-            add_action('woocommerce_store_api_checkout_update_customer_from_request', 'apbct_wc_store_api_checkout_update_customer_from_request', 10, 2);
-        }
-
-        if ( ! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart'] ) {
-            //Woocommerce add_to_cart action
-            add_filter('woocommerce_add_to_cart_validation', 'apbct_wc__add_to_cart_unlogged_user', 10, 6);
-            add_filter('woocommerce_store_api_add_to_cart_data', 'apbct_wc_store_api_add_to_cart_data', 10, 2);
-        }
-    }
-
     // WooCommerce whishlist
     if ( class_exists('WC_Wishlists_Wishlist') ) {
         add_filter('wc_wishlists_create_list_args', 'ct_woocommerce_wishlist_check', 1, 1);
     }
-
 
     // JetPack Contact form
     if ( defined('JETPACK__VERSION') ) {
@@ -541,7 +524,11 @@ function apbct_hook__wp_footer()
     // Pixel
     if (
         $apbct->settings['data__pixel'] === '1' ||
-        ($apbct->settings['data__pixel'] === '3' && ! apbct_is_cache_plugins_exists())
+        (
+            $apbct->settings['data__pixel'] === '3' &&
+            ! apbct_is_cache_plugins_exists() &&
+            $apbct->settings['data__bot_detector_enabled'] !== '1'
+        )
     ) {
         echo '<img alt="Cleantalk Pixel" title="Cleantalk Pixel" id="apbct_pixel" style="display: none;" src="' . Escape::escUrl($apbct->pixel_url) . '">';
     }
