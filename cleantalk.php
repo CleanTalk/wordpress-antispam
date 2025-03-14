@@ -2537,8 +2537,11 @@ function apbct_store__urls()
         $new_site_referer = Server::getString('HTTP_REFERER');
 
         if (empty($new_site_referer)) {
-            //we should keep existing param anyway to make sure the site referer is not lost
-            RequestParameters::set('apbct_site_referer', '0', true);
+            //do not overwrite existing param - this case is when the new url is entered via address bar
+            if (empty(RequestParameters::get('apbct_site_referer', true))) {
+                //we should keep existing param anyway to make sure the site referer is not lost
+                RequestParameters::set('apbct_site_referer', '0', true);
+            }
         } else {
             $is_valid_new_url  = parse_url($new_site_referer, PHP_URL_HOST) !== null;
             $is_not_like_host = $is_valid_new_url && parse_url($new_site_referer, PHP_URL_HOST) !== Server::getString('HTTP_HOST');
