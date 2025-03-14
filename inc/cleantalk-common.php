@@ -545,7 +545,7 @@ function apbct_get_sender_info()
     $site_landing_ts = !empty($site_landing_ts) ? TT::toString($site_landing_ts) : null;
 
     $site_referer = RequestParameters::get('apbct_site_referer', true);
-    $site_referer = !empty($site_referer) ? TT::toString($site_referer) : null;
+    $site_referer = !empty($site_referer) ? TT::toString($site_referer) : 'UNKNOWN';
 
     /**
      * Important! Do not use just HTTP only flag here. Page hits are handled on JS side
