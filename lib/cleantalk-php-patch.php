@@ -97,7 +97,7 @@ if (! function_exists("array_column")) {
 
 /**
  * array_key_first() polyfill for PHP 7.3-
- * 
+ *
  * @template TKey of array-key
  * @template TArray as array<TKey, mixed>
  * @param TArray $arr

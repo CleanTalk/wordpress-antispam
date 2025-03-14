@@ -527,13 +527,13 @@ class Helper
                 return $ip;
             }
             $ip = $result;
-            
+
             $result = preg_replace('/:{2,}/', '::', $ip);
             if ($result === null || $result === false) {
                 return $ip;
             }
             $ip = $result;
-            
+
             if (strpos($ip, '0') === 0) {
                 $substr_result = substr($ip, 1);
                 if ($substr_result !== false) {
