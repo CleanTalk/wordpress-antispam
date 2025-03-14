@@ -2503,7 +2503,6 @@ function apbct_store__urls()
         $current_url = TT::toString(Server::get('HTTP_HOST'))
             . TT::toString(Server::get('REQUEST_URI'));
         $current_url = $current_url ? substr($current_url, 0, 128) : 'UNKNOWN';
-        $site_url    = parse_url(TT::toString(get_option('home')), PHP_URL_HOST);
 
         // Get already stored URLs
         $urls_json = TT::toString(RequestParameters::getCommonStorage('apbct_urls'));
