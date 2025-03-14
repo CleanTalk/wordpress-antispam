@@ -1826,10 +1826,15 @@ function apbct_form__ninjaForms__collect_fields_old()
      */
     $input_array = apply_filters('apbct__filter_post', $_POST);
 
-    // Choosing between POST and GET
-    return ct_gfa_dto(
-        Get::get('ninja_forms_ajax_submit') || Get::get('nf_ajax_submit') ? $_GET : $input_array
-    );
+    // Choosing between sanitized GET and POST
+    $input_data = Get::get('ninja_forms_ajax_submit') || Get::get('nf_ajax_submit')
+        ? array_map(function ($value) {
+            return is_string($value) ? htmlspecialchars($value) : $value;
+        }, $_GET)
+        : $input_array;
+
+    // Return the collected fields data
+    return ct_gfa_dto($input_data);
 }
 
 /**
@@ -2537,16 +2542,16 @@ function ct_check_wplp()
 
         $sender_email = '';
         foreach ( $_POST as $v ) {
-            $sanitized_value = TT::toString($v);
-            if ( preg_match("/^\S+@\S+\.\S+$/", $sanitized_value) ) {
+            $sanitized_value = filter_var($v, FILTER_SANITIZE_EMAIL);
+            if ( filter_var($sanitized_value, FILTER_VALIDATE_EMAIL) ) {
                 $sender_email = $sanitized_value;
                 break;
             }
         }
 
         $message = '';
-        if ( array_key_exists('form_input_values', $_POST) ) {
-            $form_input_values = json_decode(stripslashes(TT::getArrayValueAsString($_POST, 'form_input_values')), true);
+        if ( array_key_exists('form_input_values', $_POST) && is_string($_POST['form_input_values']) ) {
+            $form_input_values = json_decode(stripslashes($_POST['form_input_values']), true);
             if ( is_array($form_input_values) && array_key_exists('null', $form_input_values) ) {
                 $message = Sanitize::cleanTextareaField($form_input_values['null']);
             }
@@ -3392,7 +3397,8 @@ function apbct_advanced_classifieds_directory_pro__check_register($response, $_f
         Post::get('username') &&
         Post::get('email')
     ) {
-        $data = ct_get_fields_any($_POST, Sanitize::cleanEmail(Post::get('email')));
+        $data = ct_gfa_dto(apply_filters('apbct__filter_post', $_POST), Sanitize::cleanEmail(Post::get('email')));
+        $data = $data->getArray();
 
         $base_call_result = apbct_base_call(
             array(
