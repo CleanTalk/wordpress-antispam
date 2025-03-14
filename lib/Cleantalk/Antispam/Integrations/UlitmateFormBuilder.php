@@ -10,7 +10,7 @@ class UlitmateFormBuilder extends IntegrationBase
     {
         global $apbct;
 
-        $ct_post_temp = $_POST;
+        $ct_post_temp = apply_filters('apbct__filter_post', $_POST);
 
         $direct_no_cookie_data = null;
         $event_token = '';

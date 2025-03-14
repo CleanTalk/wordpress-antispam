@@ -10,8 +10,8 @@ class BackInStockNotifier extends IntegrationBase
     {
         Cookie::$force_alt_cookies_global = true;
 
-        $email = isset($_POST['user_email']) ? $_POST['user_email'] : '';
-        $nickname = isset($_POST['subscriber_name']) ? $_POST['subscriber_name'] : '';
+        $email = isset($_POST['user_email']) && is_string($_POST['user_email']) ? sanitize_email($_POST['user_email']) : '';
+        $nickname = isset($_POST['subscriber_name']) && is_string($_POST['subscriber_name']) ? sanitize_text_field($_POST['subscriber_name']) : '';
         $data = array();
         if ( empty($email) || empty($nickname) ) {
             $input_array = apply_filters('apbct__filter_post', $_POST);

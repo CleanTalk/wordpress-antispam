@@ -8,7 +8,7 @@ class UserRegistrationPro extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        $ct_post_temp = $_POST;
+        $ct_post_temp = apply_filters('apbct__filter_post', $_POST);
         if (isset($ct_post_temp['form_data']) && is_string($ct_post_temp['form_data'])) {
             $decoded = json_decode($ct_post_temp['form_data'], true);
             $ct_post_temp['form_data'] = $decoded !== null ? $decoded : $ct_post_temp['form_data'];

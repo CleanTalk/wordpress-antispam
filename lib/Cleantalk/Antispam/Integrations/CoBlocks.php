@@ -26,7 +26,7 @@ class CoBlocks extends IntegrationBase
             ? sanitize_text_field(TT::getArrayValueAsString(Post::get($name_field_id), 'value'))
             : '';
 
-        $data = ct_gfa($_POST, $email_field_value, $name_field_value);
+        $data = ct_gfa(apply_filters('apbct__filter_post', $_POST), $email_field_value, $name_field_value);
 
         return $data;
     }

@@ -21,7 +21,8 @@ class WpGeoDirectory extends IntegrationBase
         ) {
             apbct_form__get_no_cookie_data($_POST);
             $email = TT::toString(Post::get('email'));
-            $gfa_checked_data = ct_gfa($_POST, $email);
+            $input_array = apply_filters('apbct__filter_post', $_POST);
+            $gfa_checked_data = ct_gfa($input_array, $email);
             if ( Post::get('ct_bot_detector_event_token') ) {
                 $gfa_checked_data['event_token'] = Post::get('ct_bot_detector_event_token');
             }
