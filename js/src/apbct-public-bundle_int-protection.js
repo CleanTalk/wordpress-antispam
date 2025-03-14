@@ -88,11 +88,10 @@ function ctFillDecodedEmailHandler(event = false) {
         document.body.append(waitingPopup);
     } else {
         encoderPopup.setAttribute('style', 'display: inherit');
-        if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_wait_for_decoding_2) {
-            document.getElementById('apbct_popup_text').innerHTML = ctPublicFunctions.text__ee_wait_for_decoding_2;
+        if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_wait_for_decoding) {
+            document.getElementById('apbct_popup_text').innerHTML = ctPublicFunctions.text__ee_wait_for_decoding;
         } else {
-            document.getElementById('apbct_popup_text').innerHTML =
-            ctPublicFunctions.text__ee_wait_for_decoding_2;
+            document.getElementById('apbct_popup_text').innerHTML = ctAdminCommon.text__ee_wait_for_decoding;
         }
     }
 
@@ -3473,11 +3472,13 @@ function ctAddWCMiddlewares() {
             options.data.requests[0].path === '/wc/store/v1/cart/add-item'
         ) {
             options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+            options.data.requests[0].data.event_token = localStorage.getItem('bot_detector_event_token');
         }
 
         // checkout
         if (options.path === '/wc/store/v1/checkout') {
             options.data.ct_no_cookie_hidden_field = getNoCookieData();
+            options.data.event_token = localStorage.getItem('bot_detector_event_token');
         }
 
         return next(options);

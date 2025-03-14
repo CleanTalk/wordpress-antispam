@@ -196,6 +196,10 @@ function apbct_base_call($params = array(), $reg_flag = false)
         'submit_time' => apbct_get_submit_time(),
     );
 
+    if (!isset($params['post_info']['post_url'])) {
+        $params['post_info']['post_url'] = Server::get('HTTP_REFERER');
+    }
+
     // Event Token
     $params['event_token'] = apbct_get_event_token($params);
 
@@ -1292,34 +1296,6 @@ function apbct__change_type_website_field($fields)
         if ( isset($theme->template) && $theme->template === 'dt-the7' ) {
             $fields['url'] = '<input id="honeypot-field-url" autocomplete="off" name="url" type="text" value="" size="30" maxlength="200" /></div>';
         }
-    }
-
-    return $fields;
-}
-
-/**
- * Woocommerce honeypot
- */
-add_filter('woocommerce_checkout_fields', 'apbct__wc_add_honeypot_field');
-function apbct__wc_add_honeypot_field($fields)
-{
-    if (apbct_exclusions_check__url()) {
-        return $fields;
-    }
-
-    global $apbct;
-
-    if ( $apbct->settings['data__honeypot_field'] ) {
-        $fields['billing']['wc_apbct_email_id'] = array(
-            'id'            => 'wc_apbct_email_id',
-            'type'          => 'text',
-            'label'         => '',
-            'placeholder'   => '',
-            'required'      => false,
-            'class'         => array('form-row-wide', 'wc_apbct_email_id'),
-            'clear'         => true,
-            'autocomplete'  => 'off'
-        );
     }
 
     return $fields;

@@ -382,6 +382,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
+    'Listeo' => array(
+        'hook'    => 'listeoajaxregister',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => true
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_active_integrations) {
