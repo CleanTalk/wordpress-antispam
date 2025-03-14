@@ -554,6 +554,12 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             }
         }
 
+        if (defined( 'APBCT_ANCTICRAWLER_EXLC_FEED' ) && Server::get('REQUEST_URI')) {
+            if (preg_match_all('/feed/', Server::get('REQUEST_URI'))) {
+                return true;
+            }
+        }
+
         //skip check if SFW test is running
         if (
             Get::get('sfw_test_ip') &&
