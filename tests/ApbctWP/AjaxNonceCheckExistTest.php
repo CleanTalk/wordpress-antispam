@@ -36,7 +36,7 @@ class AjaxNonceCheckExistTest extends TestCase
      */
     private $files_with_add_action_func;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->files_dir                      = $this->getFilesDir();
         $this->files_with_add_action_func     = $this->getFilesWithPreg($this->files_dir, 'add_action(\'wp_ajax');
