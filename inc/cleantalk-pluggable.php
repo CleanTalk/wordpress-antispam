@@ -1483,6 +1483,16 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'listeo ajax register';
         }
+
+        // Exclusion of hooks from the Avada theme for the forms of the fusion form builder
+        if (
+            (apbct_is_theme_active('Avada') || apbct_is_theme_active('Avada Child')) &&
+            Post::get('action') === 'fusion_form_submit_form_to_database_email' ||
+            Post::get('action') === 'fusion_form_submit_form_to_email' ||
+            Post::get('action') === 'fusion_form_submit_ajax'
+        ) {
+            return 'fusion_form/avada_theme skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
