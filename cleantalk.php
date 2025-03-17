@@ -2713,17 +2713,19 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $apbct->data['notice_trial']        = TT::getArrayValueAsInt($result, 'trial', 0);
         $apbct->data['notice_review']       = TT::getArrayValueAsInt($result, 'show_review', 0);
 
-        $notice_banners = API::getNoticeBanners($api_key);
+        if ($apbct->data['notice_show']) {
+            $notice_banners = API::getNoticeBanners($api_key);
 
-        if (isset($notice_banners['operation_status'], $notice_banners['banners']) && $notice_banners['operation_status'] === 'SUCCESS') {
-            if (isset($notice_banners['banners']['TRIAL']['level'])) {
-                $apbct->data['notice_trial_level'] = strtolower($notice_banners['banners']['TRIAL']['level']);
-            }
-            if (isset($notice_banners['banners']['RENEW']['level'])) {
-                $apbct->data['notice_renew_level'] = strtolower($notice_banners['banners']['RENEW']['level']);
-            }
-            if (isset($notice_banners['banners']['REVIEW']['level'])) {
-                $apbct->data['notice_review_level'] = strtolower($notice_banners['banners']['REVIEW']['level']);
+            if (isset($notice_banners['operation_status'], $notice_banners['banners']) && $notice_banners['operation_status'] === 'SUCCESS') {
+                if (isset($notice_banners['banners']['TRIAL']['level'])) {
+                    $apbct->data['notice_trial_level'] = strtolower($notice_banners['banners']['TRIAL']['level']);
+                }
+                if (isset($notice_banners['banners']['RENEW']['level'])) {
+                    $apbct->data['notice_renew_level'] = strtolower($notice_banners['banners']['RENEW']['level']);
+                }
+                if (isset($notice_banners['banners']['REVIEW']['level'])) {
+                    $apbct->data['notice_review_level'] = strtolower($notice_banners['banners']['REVIEW']['level']);
+                }
             }
         }
 
