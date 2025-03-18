@@ -3561,8 +3561,11 @@ function apbct_jetformbuilder_request_test()
         $sender_info['sender_emails_array'] = $params['emails_array'];
     }
 
+    $message = isset($params['message']) ? $params['message'] : [];
+
     $base_call_result = apbct_base_call(
         array(
+            'message'         => $message,
             'sender_email'    => isset($params['email']) ? $params['email'] : '',
             'sender_nickname' => isset($params['nickname']) ? $params['nickname'] : '',
             'post_info'       => array('comment_type' => 'jetformbuilder_signup_form'),
