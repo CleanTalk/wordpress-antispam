@@ -1493,6 +1493,15 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'fusion_form/avada_theme skip';
         }
+
+        // Event Manager - there is the direct integration
+        if (
+            apbct_is_plugin_active('events-manager/events-manager.php') &&
+            Post::get('action') === 'booking_add' &&
+            wp_verify_nonce(TT::toString(Post::get('_wpnonce')), 'booking_add')
+        ) {
+            return 'Event Manager skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
