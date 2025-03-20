@@ -2946,9 +2946,10 @@ function apbct_ready() {
 
                 // Call previous submit action
                 if (event.target.onsubmit_prev instanceof Function && !ctOnsubmitPrevCallExclude(event.target)) {
+                    event.preventDefault();
                     setTimeout(function() {
                         event.target.onsubmit_prev.call(event.target, event);
-                    }, 500);
+                    }, 0);
                 }
             };
         }
