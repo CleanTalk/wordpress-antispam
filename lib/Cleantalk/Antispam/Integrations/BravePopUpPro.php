@@ -11,11 +11,9 @@ class BravePopUpPro extends IntegrationBase
      */
     public function getDataForChecking($argument)
     {
-        if( isset($_POST['formData']) ){
-            $formData = json_decode(stripslashes(Post::getString('formData')), true);
-            if ($formData) {
-                return ct_gfa_dto(apply_filters('apbct__filter_post', $formData))->getArray();
-            }
+        $formData = json_decode(stripslashes(Post::getString('formData')), true);
+        if ($formData) {
+            return ct_gfa_dto(apply_filters('apbct__filter_post', $formData))->getArray();
         }
         return false;
     }

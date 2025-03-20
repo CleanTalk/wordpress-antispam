@@ -1492,7 +1492,6 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'BravePopUp Pro';
         }
-
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
