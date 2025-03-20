@@ -1018,7 +1018,8 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             apbct_is_plugin_active('smartquizbuilder/smartquizbuilder.php') &&
             (
                 TT::toString(Post::get('action')) === 'sqb_lead_save' ||
-                TT::toString(Post::get('action')) === 'SQBSendNotificationAjax'
+                TT::toString(Post::get('action')) === 'SQBSendNotificationAjax' ||
+                TT::toString(Post::get('action')) === 'SQBSubmitQuizAjax'
             )
         ) {
             return 'Smart Quiz Builder - skip some requests';
