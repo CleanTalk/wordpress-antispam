@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\FindSpam;
 
 use Cleantalk\ApbctWP\AJAXService;
+use Cleantalk\ApbctWP\ApbctEnqueue;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\TT;
 
@@ -31,12 +32,7 @@ class CommentsChecker extends Checker
             }
         }
 
-        wp_enqueue_script(
-            'ct_comments_checkspam',
-            APBCT_JS_ASSETS_PATH . '/cleantalk-comments-checkspam.min.js',
-            array('jquery', 'jquery-ui-datepicker'),
-            APBCT_VERSION
-        );
+        ApbctEnqueue::getInstance()->js('cleantalk-comments-checkspam.js', array('jquery', 'jquery-ui-datepicker'));
         wp_localize_script('ct_comments_checkspam', 'ctCommentsCheck', array(
             'ct_ajax_nonce'            => $apbct->ajax_service->getAdminNonce(),
             'ct_prev_accurate'         => ! empty($prev_check['accurate']) ? true : false,

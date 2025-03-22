@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Antispam;
 
+use Cleantalk\ApbctWP\ApbctEnqueue;
 use Cleantalk\Templates\Singleton;
 
 /**
@@ -202,13 +203,7 @@ class DisableComments
     public function filterGutenbergBlocks($_hook)
     {
         if ( $this->isCurrentTypeToDisable() ) {
-            wp_enqueue_script(
-                'cleantalk-disable-comments-gutenberg',
-                APBCT_JS_ASSETS_PATH . '/apbct-disable-comments.min.js',
-                array(),
-                APBCT_VERSION,
-                true
-            );
+            ApbctEnqueue::getInstance()->js('apbct-disable-comments.js');
             wp_localize_script(
                 'cleantalk-disable-comments-gutenberg',
                 'apbctDisableComments',

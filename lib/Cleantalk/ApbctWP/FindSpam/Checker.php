@@ -4,6 +4,7 @@ namespace Cleantalk\ApbctWP\FindSpam;
 
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\TT;
+use Cleantalk\ApbctWP\ApbctEnqueue;
 
 abstract class Checker
 {
@@ -24,20 +25,18 @@ abstract class Checker
 
         // jQueryUI
         wp_enqueue_script('jquery-ui-datepicker');
-        wp_enqueue_style(
+
+        ApbctEnqueue::getInstance()->custom(
             'jqueryui_css',
             APBCT_CSS_ASSETS_PATH . '/jquery-ui.min.css',
             array(),
-            '1.21.1'
+            '1.21.1',
+            null,
+            'all'
         );
 
         // Common CSS
-        wp_enqueue_style(
-            'cleantalk_admin_css_settings_page',
-            APBCT_CSS_ASSETS_PATH . '/cleantalk-spam-check.min.css',
-            array(),
-            APBCT_VERSION
-        );
+        ApbctEnqueue::getInstance()->css('cleantalk-spam-check.css');
     }
 
     /**
