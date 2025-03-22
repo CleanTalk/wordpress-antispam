@@ -525,7 +525,7 @@ function apbct_admin__enqueue_scripts($hook)
         'apbctNoticeForceProtectionOn'       => esc_html__('This option affects the reflection of the page by checking the user and adds a cookie "apbct_force_protection_check", which serves as an indicator of successful or unsuccessful verification. If the check is successful, it will no longer run.', 'cleantalk-spam-protect'),
     );
     $data = array_merge($data, EmailEncoder::getLocalizationText());
-    wp_localize_script('ct_admin_common', 'ctAdminCommon', $data);
+    wp_localize_script('cleantalk-admin-js', 'ctAdminCommon', $data);
 
     // DASHBOARD page JavaScript and CSS
     if ( $hook == 'index.php' && apbct_is_user_role_in(array('administrator')) ) {
@@ -559,7 +559,7 @@ function apbct_admin__enqueue_scripts($hook)
             array_shift($to_chart);
         }
 
-        wp_localize_script('ct_admin_js_widget_dashboard', 'apbctDashboardWidget', array(
+        wp_localize_script('cleantalk-admin-js-widget-dashboard-js', 'apbctDashboardWidget', array(
             'data' => $to_chart,
         ));
     }
@@ -571,7 +571,7 @@ function apbct_admin__enqueue_scripts($hook)
         ApbctEnqueue::getInstance()->js('cleantalk-admin-settings-page.js');
         ApbctEnqueue::getInstance()->css('cleantalk-admin-settings-page.css');
 
-        wp_localize_script('cleantalk_admin_js_settings_page', 'ctSettingsPage', array(
+        wp_localize_script('cleantalk-admin-settings-page-js', 'ctSettingsPage', array(
             'ct_subtitle' => $apbct->ip_license ? __('Hosting Anti-Spam', 'cleantalk-spam-protect') : '',
             'ip_license'  => $apbct->ip_license ? true : false,
             'key_changed' => ! empty($apbct->data['key_changed']),
