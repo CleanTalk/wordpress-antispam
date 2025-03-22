@@ -39,7 +39,7 @@ class UsersChecker extends Checker
         }
 
         ApbctEnqueue::getInstance()->js('cleantalk-users-checkspam.js', array('jquery', 'jquery-ui-core'));
-        wp_localize_script('ct_users_checkspam', 'ctUsersCheck', array(
+        wp_localize_script('cleantalk-users-checkspam-js', 'ctUsersCheck', array(
             'ct_ajax_nonce'            => $apbct->ajax_service->getAdminNonce(),
             'ct_prev_accurate'         => ! empty($prev_check['accurate']) ? true : false,
             'ct_prev_from'             => ! empty($prev_check_from) ? $prev_check_from : false,

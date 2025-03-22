@@ -205,7 +205,7 @@ class DisableComments
         if ( $this->isCurrentTypeToDisable() ) {
             ApbctEnqueue::getInstance()->js('apbct-disable-comments.js');
             wp_localize_script(
-                'cleantalk-disable-comments-gutenberg',
+                'apbct-disable-comments-js',
                 'apbctDisableComments',
                 array(
                     'disabled_blocks' => array('core/latest-comments'),

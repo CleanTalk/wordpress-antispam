@@ -586,7 +586,7 @@ function apbct_admin__enqueue_scripts($hook)
         ApbctEnqueue::getInstance()->css('cleantalk-trp.css');
         ApbctEnqueue::getInstance()->js('apbct-public--7--trp.js');
         wp_localize_script(
-            'ct_trp_admin',
+            'apbct-public--7--trp-js',
             'ctTrpAdminLocalize',
             \Cleantalk\ApbctWP\CleantalkRealPerson::getLocalizingData()
         );
@@ -599,7 +599,7 @@ function apbct_admin__enqueue_scripts($hook)
                 'cp_mode' => 'antispam'
             )
         );
-        wp_localize_script('ct_comments_editscreen', 'ctCommentsScreen', array(
+        wp_localize_script('cleantalk-comments-editscreen-js', 'ctCommentsScreen', array(
             'ct_ajax_nonce'               => $apbct->ajax_service->getAdminNonce(),
             'spambutton_text'             => __("Find spam comments", 'cleantalk-spam-protect'),
             'ct_feedback_msg_whitelisted' => __("The sender has been whitelisted.", 'cleantalk-spam-protect'),
@@ -619,7 +619,7 @@ function apbct_admin__enqueue_scripts($hook)
     if ( $hook == 'users.php' ) {
         ApbctEnqueue::getInstance()->css('cleantalk-icons.css');
         ApbctEnqueue::getInstance()->js('cleantalk-users-editscreen.js');
-        wp_localize_script('ct_users_editscreen', 'ctUsersScreen', array(
+        wp_localize_script('cleantalk-users-editscreen-js', 'ctUsersScreen', array(
             'spambutton_text'     => __("Find spam-users", 'cleantalk-spam-protect'),
             'ct_show_check_links' => (bool)$apbct->settings['comments__show_check_links'],
             'ct_img_src_new_tab'  => plugin_dir_url(__FILE__) . "images/new_window.gif"

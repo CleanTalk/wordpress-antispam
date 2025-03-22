@@ -1198,7 +1198,7 @@ function ct_enqueue_scripts_public($_hook)
             $ajax_nonce = $apbct->ajax_service->getAdminNonce();
             ApbctEnqueue::getInstance()->js('cleantalk-public-admin.js', array('jquery'), false);
 
-            wp_localize_script('ct_public_admin_js', 'ctPublicAdmin', array(
+            wp_localize_script('cleantalk-public-admin-js', 'ctPublicAdmin', array(
                 'ct_ajax_nonce'       => $ajax_nonce,
                 'ajaxurl'             => admin_url('admin-ajax.php', 'relative'),
                 'ct_feedback_error'   => __('Error occurred while sending feedback.', 'cleantalk-spam-protect'),
