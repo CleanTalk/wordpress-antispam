@@ -615,34 +615,20 @@ class EmailEncoder
     }
 
     /**
-     * Obfuscate an email to the s****@**.com view
-     *
-     * @param $email string
+     * @param $email_str
      *
      * @return string
      */
-    private function obfuscateEmail($email)
+    private function addMagicBlurEmail($email_str)
     {
-        /** @psalm-suppress PossiblyFalseOperand, PossiblyFalseArgument */
-        $first_part = strpos($email, '@') > 2
-            ? substr($email, 0, 2) . str_pad('', strpos($email, '@') - 2, '*')
-            : str_pad('', strpos($email, '@'), '*');
-        /** @psalm-suppress PossiblyFalseOperand, PossiblyFalseArgument */
-        $second_part = substr($email, strpos($email, '@') + 1, 2)
-                    . str_pad('', strpos($email, '.', strpos($email, '@')) - 3 - strpos($email, '@'), '*');
-        /** @psalm-suppress PossiblyFalseOperand, PossiblyFalseArgument */
-        $last_part = substr($email, (int) strrpos($email, '.', -1) - strlen($email));
+        $obfuscator = new Obfuscator();
+        $chunks = $obfuscator->getEmailData($email_str);
+        $chunks_data = $obfuscator->obfuscate_success ? $chunks : false;
 
-        return $first_part . '@' . $second_part . $last_part;
-    }
-
-    private function obfuscateString($string)
-    {
-        $length = strlen($string);
-        $first_part = substr($string, 0, 2);
-        $last_part = substr($string, $length - 2, 2);
-        $middle_part = str_pad('', $length - 4, '*');
-        return $first_part . $middle_part . $last_part;
+        return false !== $chunks_data
+            ? $this->addMagicBlurViaChunksData($chunks_data)
+            : $this->addMagicBlurToString($email_str)
+        ;
     }
 
     /**
@@ -654,34 +640,58 @@ class EmailEncoder
      */
     private function encodePlainEmail($email_str)
     {
-        $obfuscated = $this->obfuscateEmail($email_str);
-
         $encoded = $this->encodeString($email_str);
+        $blur_up_string = $this->addMagicBlurEmail($email_str);
 
         return '<span 
                 data-original-string="' . $encoded . '"
                 class="apbct-email-encoder"
-                title="' . esc_attr($this->getTooltip()) . '">' . $this->addMagicBlur($obfuscated) . '</span>';
+                title="' . esc_attr($this->getTooltip()) . '">' . $blur_up_string . '</span>';
     }
 
     private function encodeAny($string)
     {
-        $obfuscated = $this->obfuscateString($string);
+        $obfuscator = new Obfuscator();
+        $obfuscated_string = $obfuscator->processString($string);
 
-        $encoded = $this->encodeString($string);
+        $encoded_string = $this->encodeString($string);
 
         return "<span 
-                data-original-string='" . $encoded . "'
+                data-original-string='" . $encoded_string . "'
                 class='apbct-email-encoder'
-                title='" . esc_attr($this->getTooltip()) . "'>" . $this->addMagicBlur($obfuscated) . "</span>";
+                title='" . esc_attr($this->getTooltip()) . "'>" . $this->addMagicBlurToString($obfuscated_string) . "</span>";
     }
 
-    private function addMagicBlur($obfuscated)
+    /**
+     * @param ObfuscatorEmailData $email_chunks
+     *
+     * @return string
+     */
+    private function addMagicBlurViaChunksData($email_chunks)
     {
-        $first_two = substr($obfuscated, 0, 2);
-        $last_two = substr($obfuscated, -2);
+        return $email_chunks->chunk_raw_left
+               . '<span class="apbct-blur">' . $email_chunks->chunk_obfuscated_left . '</span>'
+               . $email_chunks->chunk_raw_center
+               . '<span class="apbct-blur">' . $email_chunks->chunk_obfuscated_right . '</span>'
+               . $email_chunks->chunk_raw_right;
+    }
+
+    /**
+     * @param string $obfuscated_string
+     *
+     * @return string
+     */
+    private function addMagicBlurToString($obfuscated_string)
+    {
+        //preparing data to blur
+
+        //this way we know how many characters to show with no BLUR
+        $left_padding = Obfuscator::STRING_CHARS_TO_SHOW;
+        $right_padding = Obfuscator::STRING_CHARS_TO_SHOW * -1;
+        $first_two = substr($obfuscated_string, 0, Obfuscator::STRING_CHARS_TO_SHOW);
+        $last_two = substr($obfuscated_string, Obfuscator::STRING_CHARS_TO_SHOW * -1);
         return $first_two .
-               '<span class="apbct-blur">' . substr($obfuscated, 2, -2) . '</span>' .
+               '<span class="apbct-blur">' . substr($obfuscated_string, $left_padding, $right_padding) . '</span>' .
                $last_two;
     }
 
@@ -758,7 +768,7 @@ class EmailEncoder
         if ( isset($matches[1]) ) {
             $mailto_inner_text = preg_replace_callback('/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/', function ($matches) {
                 if (isset($matches[0])) {
-                    return $this->obfuscateEmail($matches[0]);
+                    return $this->addMagicBlurEmail($matches[0]);
                 }
             }, $matches[1]);
         }
@@ -788,7 +798,7 @@ class EmailEncoder
         if ( isset($matches[1]) ) {
             $mailto_inner_text = preg_replace_callback('/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/', function ($matches) {
                 if ( isset($matches[0]) ) {
-                    return $this->obfuscateEmail($matches[0]);
+                    return $this->addMagicBlurEmail($matches[0]);
                 }
 
                 return '';
