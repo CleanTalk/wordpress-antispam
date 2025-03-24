@@ -103,9 +103,10 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'EventsManager' => array(
-        'hook'    => 'em_booking_validate_after',
+        'hook'    => array('em_booking_validate_after', 'em_booking_add', 'booking_add'),
         'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
+        'ajax'    => false,
+        'ajax_and_post' => true
     ),
     'PlansoFormBuilder' => array(
         'hook'    => 'psfb_validate_form_request',
