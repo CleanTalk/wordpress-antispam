@@ -1808,6 +1808,7 @@ function ctDetectForcedAltCookiesForms() {
     let bloomPopup = document.querySelectorAll('div[class^="et_bloom_form_container"]').length > 0;
     let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
     let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
+    let smartQuizBuilder = document.querySelectorAll('form .sqbform, .fields_reorder_enabled').length > 0;
     ctPublic.force_alt_cookies = smartFormsSign ||
         ninjaFormsSign ||
         jetpackCommentsForm ||
@@ -1818,7 +1819,8 @@ function ctDetectForcedAltCookiesForms() {
         fluentBookingApp ||
         pafeFormsFormElementor ||
         bloomPopup ||
-        otterForm;
+        otterForm ||
+        smartQuizBuilder;
 
     setTimeout(function() {
         if (!ctPublic.force_alt_cookies) {

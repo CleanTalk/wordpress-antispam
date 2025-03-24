@@ -387,6 +387,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => true
     ),
+    'SmartQuizBuilder' => array(
+        'hook'    => 'SQBSubmitQuizAjax',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_active_integrations) {
