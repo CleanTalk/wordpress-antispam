@@ -554,6 +554,13 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             }
         }
 
+        // skip for RSS Feed requests
+        if (defined('APBCT_ANTICRAWLER_EXLC_FEED') && Server::getString('REQUEST_URI')) {
+            if (preg_match_all('/feed/', Server::getString('REQUEST_URI'))) {
+                return true;
+            }
+        }
+
         //skip check if SFW test is running
         if (
             Get::get('sfw_test_ip') &&
