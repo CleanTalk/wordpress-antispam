@@ -2,6 +2,9 @@
 
 namespace Cleantalk\Common\Enqueue;
 
+/**
+ * @psalm-suppress InvalidClass
+ */
 class EnqueueDataDTO extends \Cleantalk\Templates\DTO
 {
     /**

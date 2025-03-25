@@ -1269,7 +1269,7 @@ function apbct_enqueue_and_localize_public_scripts()
 
     // Different JS params
     if (!$apbct->settings['forms__check_external'] && !$apbct->settings['forms__check_internal']) {
-        ApbctEnqueue::getInstance()->js('apbct-public-bundle.js', array(),  $in_footer);
+        ApbctEnqueue::getInstance()->js('apbct-public-bundle.js', array(), $in_footer);
     }
 
     if ($apbct->settings['forms__check_external'] && !$apbct->settings['forms__check_internal']) {
@@ -1289,8 +1289,7 @@ function apbct_enqueue_and_localize_public_scripts()
         ApbctEnqueue::getInstance()->js('https://moderate.cleantalk.org/ct-bot-detector-wrapper.js', array(), array(
                 'in_footer' => $in_footer,
                 'strategy' => 'defer'
-                )
-        );
+        ));
     }
 
     ApbctEnqueue::getInstance()->css('cleantalk-public.css');
