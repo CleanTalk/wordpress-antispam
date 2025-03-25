@@ -615,6 +615,18 @@ class EmailEncoder
     }
 
     /**
+     * @param string $email_str
+     *
+     * @return string
+     */
+    private function getObfuscatedEmailString($email_str)
+    {
+        $obfuscator = new Obfuscator();
+        $chunks = $obfuscator->getEmailData($email_str);
+        return $obfuscator->obfuscate_success ? $chunks->getFinalString() : $email_str;
+    }
+
+    /**
      * @param $email_str
      *
      * @return string
@@ -633,20 +645,38 @@ class EmailEncoder
 
     /**
      * Method to process plain email
-     *
+     *blur
      * @param $email_str string
      *
      * @return string
      */
     private function encodePlainEmail($email_str)
     {
+        global $apbct;
+
+        $mode = $apbct->settings['data__email_decoder_obfuscation_mode'];
+
+        switch ($mode) {
+            case 'blur':
+                $handled_string = $this->addMagicBlurEmail($email_str);
+                break;
+            case 'obfuscate':
+                $handled_string = $this->getObfuscatedEmailString($email_str);
+                break;
+            case 'replace':
+                $custom_text = $apbct->settings['data__email_decoder_obfuscation_custom_text'];
+                $handled_string = !empty($custom_text) ? $custom_text : static::getDefaultReplacingText();
+                break;
+            default:
+                return $email_str;
+        }
+
         $encoded = $this->encodeString($email_str);
-        $blur_up_string = $this->addMagicBlurEmail($email_str);
 
         return '<span 
                 data-original-string="' . $encoded . '"
                 class="apbct-email-encoder"
-                title="' . esc_attr($this->getTooltip()) . '">' . $blur_up_string . '</span>';
+                title="' . esc_attr($this->getTooltip()) . '">' . $handled_string . '</span>';
     }
 
     private function encodeAny($string)
@@ -673,7 +703,8 @@ class EmailEncoder
                . '<span class="apbct-blur">' . $email_chunks->chunk_obfuscated_left . '</span>'
                . $email_chunks->chunk_raw_center
                . '<span class="apbct-blur">' . $email_chunks->chunk_obfuscated_right . '</span>'
-               . $email_chunks->chunk_raw_right;
+               . $email_chunks->chunk_raw_right
+               . $email_chunks->domain;
     }
 
     /**
@@ -768,7 +799,7 @@ class EmailEncoder
         if ( isset($matches[1]) ) {
             $mailto_inner_text = preg_replace_callback('/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/', function ($matches) {
                 if (isset($matches[0])) {
-                    return $this->addMagicBlurEmail($matches[0]);
+                    return $this->getObfuscatedEmailString($matches[0]);
                 }
             }, $matches[1]);
         }
@@ -798,7 +829,7 @@ class EmailEncoder
         if ( isset($matches[1]) ) {
             $mailto_inner_text = preg_replace_callback('/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/', function ($matches) {
                 if ( isset($matches[0]) ) {
-                    return $this->addMagicBlurEmail($matches[0]);
+                    return $this->getObfuscatedEmailString($matches[0]);
                 }
 
                 return '';
@@ -1019,5 +1050,10 @@ class EmailEncoder
     {
         add_filter('apbct_encode_data', [$this, 'modifyAny']);
         add_filter('apbct_encode_email_data', [$this, 'modifyContent']);
+    }
+
+    protected static function getDefaultReplacingText()
+    {
+        return 'Click to show email (static)';
     }
 }
