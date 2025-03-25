@@ -387,6 +387,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => true
     ),
+    'BravePopUpPro' => array(
+        'hook'    => 'bravepop_form_submission',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_active_integrations) {
