@@ -534,6 +534,15 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         return 'Admin side request.';
     }
 
+    // Events Manager - there is the direct integration
+    if (
+        apbct_is_plugin_active('events-manager/events-manager.php') &&
+        (Post::getString('action') === 'booking_add' || Post::getString('action') === 'em_booking_add') &&
+        wp_verify_nonce(Post::getString('_wpnonce'), 'booking_add')
+    ) {
+        return 'Event Manager skip';
+    }
+
     if ( $ajax ) {
         /*****************************************/
         /*    Here is ajax requests skipping     */
@@ -1017,8 +1026,9 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         if (
             apbct_is_plugin_active('smartquizbuilder/smartquizbuilder.php') &&
             (
-                TT::toString(Post::get('action')) === 'sqb_lead_save' ||
-                TT::toString(Post::get('action')) === 'SQBSendNotificationAjax'
+                Post::getString('action') === 'sqb_lead_save' ||
+                Post::getString('action') === 'SQBSendNotificationAjax' ||
+                Post::getString('action') === 'SQBSubmitQuizAjax'
             )
         ) {
             return 'Smart Quiz Builder - skip some requests';
@@ -1492,6 +1502,15 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'BravePopUp Pro';
         }
+        // Exclusion of hooks from the Avada theme for the forms of the fusion form builder
+        if (
+            (apbct_is_theme_active('Avada') || apbct_is_theme_active('Avada Child')) &&
+            Post::get('action') === 'fusion_form_submit_form_to_database_email' ||
+            Post::get('action') === 'fusion_form_submit_form_to_email' ||
+            Post::get('action') === 'fusion_form_submit_ajax'
+        ) {
+            return 'fusion_form/avada_theme skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1744,15 +1763,6 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         (Post::get('wpforms') || Post::get('actions') === 'wpforms_submit')
     ) {
         return 'wp_forms';
-    }
-
-    // Event Manager - there is the direct integration
-    if (
-        apbct_is_plugin_active('events-manager/events-manager.php') &&
-        Post::get('action') === 'booking_add' &&
-        wp_verify_nonce(TT::toString(Post::get('_wpnonce')), 'booking_add')
-    ) {
-        return 'Event Manager skip';
     }
 
     //Plugin Name: Kali Forms
