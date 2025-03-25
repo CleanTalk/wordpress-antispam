@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.51.99-dev
+  Version: 6.52.99-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -324,14 +324,18 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
             add_action('template_redirect', 'apbct_cookie', 2);
         }
         add_action('template_redirect', 'apbct_store__urls', 2);
+        add_action('template_redirect', 'apbct_store__page_hits', 2);
     }
     if (
         empty($_POST) &&
-        ( (isset($_GET['q']) && $_GET['q'] !== '') || empty($_GET) ) &&
         $apbct->data['key_is_ok']
     ) {
+        if ( (isset($_GET['q']) && $_GET['q'] !== '') || empty($_GET) ) {
             apbct_cookie();
-            apbct_store__urls();
+        }
+        //store url and hits ignoring GET containment
+        apbct_store__page_hits();
+        apbct_store__urls();
     }
 }
 
@@ -690,7 +694,6 @@ if ( is_admin() || is_network_admin() ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-find-spam.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-admin.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php');
-    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-wc-spam-orders.php');
 
     add_action('admin_init', 'apbct_admin__init', 1);
 
@@ -810,6 +813,7 @@ if ( is_admin() || is_network_admin() ) {
     if ( ! Post::get('wp-submit') ) {
         add_action('login_form_register', 'apbct_cookie');
         add_action('login_form_register', 'apbct_store__urls');
+        add_action('login_form_register', 'apbct_store__page_hits');
     }
     add_action('login_enqueue_scripts', 'apbct_login__scripts');
     add_action('register_form', 'ct_register_form');
@@ -2499,7 +2503,6 @@ function apbct_store__urls()
         $current_url = TT::toString(Server::get('HTTP_HOST'))
             . TT::toString(Server::get('REQUEST_URI'));
         $current_url = $current_url ? substr($current_url, 0, 128) : 'UNKNOWN';
-        $site_url    = parse_url(TT::toString(get_option('home')), PHP_URL_HOST);
 
         // Get already stored URLs
         $urls_json = TT::toString(RequestParameters::getCommonStorage('apbct_urls'));
@@ -2527,24 +2530,22 @@ function apbct_store__urls()
         // Saving
         RequestParameters::setCommonStorage('apbct_urls', json_encode($urls, JSON_UNESCAPED_SLASHES));
 
+        // SITE-REFERER
+        // Get current site-referer
+        $new_site_referer = Server::getString('HTTP_REFERER');
 
-        // REFERER
-        // Get current referer
-        $new_site_referer = TT::toString(Server::get('HTTP_REFERER'));
-        $new_site_referer = $new_site_referer !== '' ? $new_site_referer : 'UNKNOWN';
-
-        // Get already stored referer
-        $site_referer = TT::toString(RequestParameters::get('apbct_site_referer', true));
-
-        // Save if empty
-        if (
-            $site_url &&
-            (
-                ! $site_referer ||
-                parse_url($new_site_referer, PHP_URL_HOST) !== Server::get('HTTP_HOST')
-            ) && $apbct->data['cookies_type'] === 'native'
-        ) {
-            RequestParameters::set('apbct_site_referer', $new_site_referer, true);
+        if (empty($new_site_referer)) {
+            //do not overwrite existing param - this case is when the new url is entered via address bar
+            if (empty(RequestParameters::get('apbct_site_referer', true))) {
+                //we should keep existing param anyway to make sure the site referer is not lost
+                RequestParameters::set('apbct_site_referer', '0', true);
+            }
+        } else {
+            $is_valid_new_url  = parse_url($new_site_referer, PHP_URL_HOST) !== null;
+            $is_not_like_host = $is_valid_new_url && parse_url($new_site_referer, PHP_URL_HOST) !== Server::getString('HTTP_HOST');
+            if ($is_not_like_host) {
+                RequestParameters::set('apbct_site_referer', $new_site_referer, true);
+            }
         }
 
         $apbct->flags__url_stored = true;
@@ -2611,19 +2612,6 @@ function apbct_cookie()
             $cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
             $cookie_test_value['check_value']     .= $http_referrer;
         }
-
-        // Page hits
-        // Get
-        $page_hits = TT::toInt(RequestParameters::get('apbct_page_hits', true));
-
-        // Set / Increase
-        // todo if cookies disabled there is no way to keep this data without DB:( always will be 1
-        $page_hits = $page_hits ? $page_hits + 1 : 1;
-
-        RequestParameters::set('apbct_page_hits', TT::toString($page_hits), true);
-
-        $cookie_test_value['cookies_names'][] = 'apbct_page_hits';
-        $cookie_test_value['check_value']     .= $page_hits;
     }
 
     // Cookies test
@@ -2635,6 +2623,33 @@ function apbct_cookie()
     $apbct->flags__cookies_setuped = true;
 
     return $apbct->flags__cookies_setuped;
+}
+
+/**
+ * Store page hits. Only for native cookies mode.
+ * @return void
+ */
+function apbct_store__page_hits()
+{
+    global $apbct;
+    if (
+        ! empty($apbct->headers_sent)              // Headers sent
+    ) {
+        return;
+    }
+    if ( $apbct->data['cookies_type'] === 'native' && empty($apbct->page_hits_set) ) {
+        // Page hits
+        // Get
+        $page_hits = TT::toInt(RequestParameters::get('apbct_page_hits', true));
+
+        // Set / Increase
+        // todo if cookies disabled there is no way to keep this data without DB:( always will be 1
+        $page_hits = $page_hits ? $page_hits + 1 : 1;
+
+        RequestParameters::set('apbct_page_hits', TT::toString($page_hits), true);
+
+        $apbct->page_hits_set = true;
+    }
 }
 
 /**

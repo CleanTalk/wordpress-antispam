@@ -1,6 +1,8 @@
 <?php
 
 // Adding menu items for USERS and COMMENTS spam checking pages
+use Cleantalk\ApbctWP\FindSpam\ListTable\Users;
+
 add_action('admin_menu', 'ct_add_find_spam_pages');
 function ct_add_find_spam_pages()
 {
@@ -18,13 +20,6 @@ function ct_add_find_spam_pages()
         'activate_plugins',
         'ct_check_users_logs',
         [\Cleantalk\ApbctWP\FindSpam\Page::class, 'showFindSpamPage']
-    );
-    $ct_bad_users        = add_users_page(
-        __("Non-checkable users", 'cleantalk-spam-protect'),
-        '',
-        'activate_plugins',
-        'ct_check_users_bad',
-        array('\Cleantalk\ApbctWP\FindSpam\Page', 'showFindSpamPage')
     );
 
     // Check comments pages
@@ -45,7 +40,6 @@ function ct_add_find_spam_pages()
 
     // Remove some pages from main menu
     remove_submenu_page('users.php', 'ct_check_users_logs');
-    remove_submenu_page('users.php', 'ct_check_users_bad');
     remove_submenu_page('edit-comments.php', 'ct_check_spam_logs');
     /**
      * PHP 8.1 fix. The title is null by defaults if page is removed from menu list. So this will call deprecated notice on strip_tags
@@ -62,7 +56,19 @@ function ct_add_find_spam_pages()
     add_action("load-$ct_check_users_logs", array('\Cleantalk\ApbctWP\FindSpam\Page', 'setScreenOption'));
     add_action("load-$ct_check_spam", array('\Cleantalk\ApbctWP\FindSpam\Page', 'setScreenOption'));
     add_action("load-$ct_check_spam_logs", array('\Cleantalk\ApbctWP\FindSpam\Page', 'setScreenOption'));
-    add_action("load-$ct_bad_users", array('\Cleantalk\ApbctWP\FindSpam\Page', 'setScreenOption'));
+
+    // Without IP and EMAIL
+    if ( Users::getBadUsersCount() > 0 ) {
+        $ct_bad_users        = add_users_page(
+            __("Non-checkable users", 'cleantalk-spam-protect'),
+            '',
+            'activate_plugins',
+            'ct_check_users_bad',
+            array('\Cleantalk\ApbctWP\FindSpam\Page', 'showFindSpamPage')
+        );
+        remove_submenu_page('users.php', 'ct_check_users_bad');
+        add_action("load-$ct_bad_users", array('\Cleantalk\ApbctWP\FindSpam\Page', 'setScreenOption'));
+    }
 }
 
 // Set AJAX actions

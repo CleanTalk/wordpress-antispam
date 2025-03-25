@@ -1846,10 +1846,6 @@ function ctSetAlternativeCookie(cookies, params) {
         return;
     }
 
-    if (!cookies.apbct_site_referer) {
-        cookies.apbct_site_referer = location.href;
-    }
-
     const callback = params && params.callback || null;
     const onErrorCallback = params && params.onErrorCallback || null;
 
@@ -3380,9 +3376,10 @@ function apbct_ready() {
 
                 // Call previous submit action
                 if (event.target.onsubmit_prev instanceof Function && !ctOnsubmitPrevCallExclude(event.target)) {
+                    event.preventDefault();
                     setTimeout(function() {
                         event.target.onsubmit_prev.call(event.target, event);
-                    }, 500);
+                    }, 0);
                 }
             };
         }
@@ -3476,11 +3473,13 @@ function ctAddWCMiddlewares() {
             options.data.requests[0].path === '/wc/store/v1/cart/add-item'
         ) {
             options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+            options.data.requests[0].data.event_token = localStorage.getItem('bot_detector_event_token');
         }
 
         // checkout
         if (options.path === '/wc/store/v1/checkout') {
             options.data.ct_no_cookie_hidden_field = getNoCookieData();
+            options.data.event_token = localStorage.getItem('bot_detector_event_token');
         }
 
         return next(options);

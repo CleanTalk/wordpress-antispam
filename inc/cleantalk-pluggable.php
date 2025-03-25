@@ -1475,6 +1475,23 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'tevolution email exitence';
         }
+
+        // skip listeo ajax registeration
+        if (
+            apbct_is_plugin_active('listeo-core/listeo-core.php') &&
+            Post::get('action') === 'listeoajaxregister'
+        ) {
+            return 'listeo ajax register';
+        }
+
+        // skip BravePopUp Pro - have direct integration
+        if (
+            apbct_is_plugin_active('bravepopup-pro/index.php') &&
+            Post::get('action') === 'bravepop_form_submission' &&
+            check_ajax_referer('brave-ajax-form-nonce', 'security')
+        ) {
+            return 'BravePopUp Pro';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

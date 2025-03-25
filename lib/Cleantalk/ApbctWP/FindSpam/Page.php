@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP\FindSpam;
 
+use Cleantalk\ApbctWP\FindSpam\ListTable\Users;
+
 class Page
 {
     private $spam_checker;
@@ -129,7 +131,7 @@ class Page
         <div id="ct_check_tabs">
             <ul>
                 <li <?php echo (1 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>"><?php esc_html_e('Scan and new results', 'cleantalk-spam-protect') ?></a></li>
-                <?php if ($this->spam_checker->getPageSlug() === 'users') {
+                <?php if ($this->spam_checker->getPageSlug() === 'users' && Users::getBadUsersCount() > 0) {
                     ?><li <?php echo (2 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_bad"><?php esc_html_e('Non-checkable users', 'cleantalk-spam-protect') ?></a></li><?php
                 }?>
                 <li <?php echo (3 == $this->current_tab) ? 'class="active"' : ''; ?>><a href="<?php echo $this->spam_checker->getPageScriptName(); ?>?page=ct_check_<?php echo $this->spam_checker->getPageSlug(); ?>_logs"><?php esc_html_e('Scan logs', 'cleantalk-spam-protect') ?></a></li>

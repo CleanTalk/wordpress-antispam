@@ -196,6 +196,10 @@ function apbct_base_call($params = array(), $reg_flag = false)
         'submit_time' => apbct_get_submit_time(),
     );
 
+    if (!isset($params['post_info']['post_url'])) {
+        $params['post_info']['post_url'] = Server::get('HTTP_REFERER');
+    }
+
     // Event Token
     $params['event_token'] = apbct_get_event_token($params);
 
@@ -545,9 +549,16 @@ function apbct_get_sender_info()
     $site_landing_ts = !empty($site_landing_ts) ? TT::toString($site_landing_ts) : null;
 
     $site_referer = RequestParameters::get('apbct_site_referer', true);
-    $site_referer = !empty($site_referer) ? TT::toString($site_referer) : null;
+    $site_referer = !empty($site_referer) ? TT::toString($site_referer) : 'UNKNOWN';
 
-    $page_hits = RequestParameters::get('apbct_page_hits', true);
+    /**
+     * Important! Do not use just HTTP only flag here. Page hits are handled on JS side
+     * and could be provided via NoCookie hidden field.
+     * Also, forms with forced alt cookies does not provide it via hidden field and in the same time other forms do,
+     * so we need a flag to know the source.
+     * A.G.
+     */
+    $page_hits = RequestParameters::get('apbct_page_hits', Cookie::$force_alt_cookies_global);
     $page_hits = !empty($page_hits) ? TT::toString($page_hits) : null;
 
     //Let's keep $data_array for debugging
@@ -568,9 +579,9 @@ function apbct_get_sender_info()
         'cookies_enabled'           => $cookie_is_ok,
         'data__set_cookies'         => $apbct->settings['data__set_cookies'],
         'data__cookies_type'        => $apbct->data['cookies_type'],
-        'REFFERRER'                 => Cookie::$force_alt_cookies_global ? $site_referer : Server::get('HTTP_REFERER'),
-        'REFFERRER_PREVIOUS'        => Cookie::get('apbct_prev_referer') && $cookie_is_ok
-            ? Cookie::get('apbct_prev_referer')
+        'REFFERRER'                 => Server::getString('HTTP_REFERER'),
+        'REFFERRER_PREVIOUS'        => !empty(Cookie::getString('apbct_prev_referer')) && $cookie_is_ok
+            ? Cookie::getString('apbct_prev_referer')
             : null,
         'site_landing_ts'           => $site_landing_ts,
         'page_hits'                 => $page_hits,
@@ -1285,34 +1296,6 @@ function apbct__change_type_website_field($fields)
         if ( isset($theme->template) && $theme->template === 'dt-the7' ) {
             $fields['url'] = '<input id="honeypot-field-url" autocomplete="off" name="url" type="text" value="" size="30" maxlength="200" /></div>';
         }
-    }
-
-    return $fields;
-}
-
-/**
- * Woocommerce honeypot
- */
-add_filter('woocommerce_checkout_fields', 'apbct__wc_add_honeypot_field');
-function apbct__wc_add_honeypot_field($fields)
-{
-    if (apbct_exclusions_check__url()) {
-        return $fields;
-    }
-
-    global $apbct;
-
-    if ( $apbct->settings['data__honeypot_field'] ) {
-        $fields['billing']['wc_apbct_email_id'] = array(
-            'id'            => 'wc_apbct_email_id',
-            'type'          => 'text',
-            'label'         => '',
-            'placeholder'   => '',
-            'required'      => false,
-            'class'         => array('form-row-wide', 'wc_apbct_email_id'),
-            'clear'         => true,
-            'autocomplete'  => 'off'
-        );
     }
 
     return $fields;

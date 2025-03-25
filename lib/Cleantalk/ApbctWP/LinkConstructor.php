@@ -204,7 +204,7 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
     {
         return 'https://p.cleantalk.org/?product_id=1&featured=&user_token='
             . $user_token
-            . '&utm_id=&utm_term=&utm_source=admin_panel&utm_medium=banner&utm_content='
+            . '&utm_id=&utm_term=payment&utm_source=admin_panel&utm_medium=wordpress&utm_content='
             . $utm_content
             . '&utm_campaign=apbct_links';
     }

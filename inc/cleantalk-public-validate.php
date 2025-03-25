@@ -131,8 +131,8 @@ function ct_contact_form_validate()
      */
     if ( isset($_POST['action']) && $_POST['action'] === 'forminator_submit_form_custom-forms' ) {
         foreach ( $_POST as $key => $value ) {
-            if ( is_string($key) && strpos($key, 'email') !== false ) {
-                $_POST[$key] = sanitize_email(TT::toString($value));
+            if ( is_string($key) && strpos($key, 'email') !== false && is_string($value) ) {
+                $_POST[$key] = sanitize_email($value);
             }
         }
     }
