@@ -554,8 +554,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             }
         }
 
-        if (defined( 'APBCT_ANTICRAWLER_EXLC_FEED' ) && Server::get('REQUEST_URI')) {
-            if (preg_match_all('/feed/', Server::get('REQUEST_URI'))) {
+        if (defined('APBCT_ANTICRAWLER_EXLC_FEED') && Server::getString('REQUEST_URI')) {
+            if (preg_match_all('/feed/', Server::getString('REQUEST_URI'))) {
                 return true;
             }
         }
