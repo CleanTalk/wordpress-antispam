@@ -737,6 +737,10 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'ARM forms skip login';
         }
 
+        if (apbct_is_plugin_active('ws-form/ws-form.php') && Post::getString('action') === 'the_ajax_hook') {
+            return 'WS Form submit service request';
+        }
+
         // Paid Memberships Pro - Login Form
         if (
             apbct_is_plugin_active('paid-memberships-pro/paid-memberships-pro.php') &&
