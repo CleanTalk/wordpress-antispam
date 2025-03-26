@@ -619,7 +619,7 @@ class EmailEncoder
      *
      * @return string
      */
-    private function getObfuscatedEmailString($email_str)
+    public function getObfuscatedEmailString($email_str)
     {
         $obfuscator = new Obfuscator();
         $chunks = $obfuscator->getEmailData($email_str);
@@ -650,7 +650,7 @@ class EmailEncoder
      *
      * @return string
      */
-    private function encodePlainEmail($email_str)
+    public function encodePlainEmail($email_str)
     {
         global $apbct;
 
