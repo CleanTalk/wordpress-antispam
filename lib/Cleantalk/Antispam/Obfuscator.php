@@ -130,7 +130,7 @@ class Obfuscator
             )
         );
         $this->email_data->right_part_is_too_short =
-            $right_part_length  < static::EMAIL_CHARS_TO_SHOW;
+            $right_part_length  <= static::EMAIL_CHARS_TO_SHOW;
     }
 
     /**
