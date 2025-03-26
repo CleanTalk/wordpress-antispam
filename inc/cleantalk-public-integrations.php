@@ -1877,7 +1877,8 @@ function apbct_form__ninjaForms__collect_fields_new()
 
     $nf_form_fields = $form_data['fields'];
     $nickname = '';
-    $email = '';
+    $nf_prior_email = '';
+    $nf_emails_array = array();
     $fields = [];
     foreach ($nf_form_fields as $field) {
         if ( isset($nf_form_fields_info_array[$field['id']]) ) {
@@ -1890,13 +1891,21 @@ function apbct_form__ninjaForms__collect_fields_new()
                     $nickname .= ' ' . $field['value'];
                 }
                 if ( stripos($field_key, 'email') !== false && $field_type === 'email' ) {
-                    $email = $field['value'];
+                    /**
+                     * On the plugin side we can not decide which of presented emails have to be used for check as sender_email,
+                     * so we do collect any of them and provide to GFA as $emails_array param.
+                     */
+                    if (empty($nf_prior_email)) {
+                        $nf_prior_email = $field['value'];
+                    } else {
+                        $nf_emails_array[] = $field['value'];
+                    }
                 }
             }
         }
     }
 
-    return ct_gfa_dto($fields, $email, $nickname);
+    return ct_gfa_dto($fields, $nf_prior_email, $nickname, $nf_emails_array);
 }
 
 /**
