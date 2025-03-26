@@ -645,7 +645,7 @@ class EmailEncoder
 
     /**
      * Method to process plain email
-     *blur
+     *
      * @param $email_str string
      *
      * @return string
