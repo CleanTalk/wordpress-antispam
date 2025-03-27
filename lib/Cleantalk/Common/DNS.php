@@ -57,6 +57,7 @@ class DNS
             }
         }
 
+        /** @psalm-suppress FalsableReturnStatement */
         return $return_first
             ? reset($servers)
             : $servers;
@@ -78,6 +79,7 @@ class DNS
                 $ping = static::$max_server_timeout;
             } else {
                 $ping = static::getResponseTime($server['ip']);
+                /** @psalm-suppress InvalidOperand */
                 $ping *= 1000;
             }
 
@@ -97,30 +99,33 @@ class DNS
     /**
      * Function to check response time
      *
-     * @param string URL
+     * @param string $ip URL
      *
      * @return int|float Response time
      */
-    public static function getResponseTime($host)
+    public static function getResponseTime($ip)
     {
+        $file = false;
         // Skip localhost ping cause it raise error at fsockopen.
         // And return minimum value
-        if ($host === 'localhost') {
+        if ($ip === 'localhost') {
             return 0.001;
         }
 
         $starttime = microtime(true);
         if ( function_exists('fsockopen') ) {
-            $file = @fsockopen($host, 443, $errno, $errstr, static::$max_server_timeout / 1000);
+            $file = @fsockopen($ip, 443, $errno, $errstr, static::$max_server_timeout / 1000);
         } else {
-            $http = new Request();
-            $host = 'https://' . gethostbyaddr($host);
-            $file = $http->setUrl($host)
-                ->setOptions(['timeout' => static::$max_server_timeout / 1000])
-                ->setPresets('get_code get')
-                ->request();
-            if ( !empty($file['error']) || $file !== '200' ) {
-                $file = false;
+            if ($host = gethostbyaddr($ip)) {
+                $http = new Request();
+                $host = 'https://' . $host;
+                $file = $http->setUrl($host)
+                    ->setOptions(['timeout' => static::$max_server_timeout / 1000])
+                    ->setPresets('get_code get')
+                    ->request();
+                if ( !empty($file['error']) || $file !== '200' ) {
+                    $file = false;
+                }
             }
         }
         $stoptime = microtime(true);
