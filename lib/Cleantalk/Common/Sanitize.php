@@ -46,9 +46,12 @@ class Sanitize
     {
         $variable_filtered = preg_replace('#[\'"].*?>.*?<#i', '', $variable);
 
-        return $variable === $variable_filtered
-            ? htmlspecialchars($variable_filtered)
-            : static::sanitize($variable_filtered, 'xss');
+        if ( is_string($variable_filtered) ) {
+            return $variable === $variable_filtered
+                ? htmlspecialchars($variable_filtered)
+                : static::sanitize($variable_filtered, 'xss');
+        }
+        return htmlspecialchars($variable);
     }
 
     /**
