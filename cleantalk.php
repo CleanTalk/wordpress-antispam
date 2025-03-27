@@ -2848,6 +2848,7 @@ function apbct_cron_clear_old_session_data()
  *
  * @return void
  * @psalm-suppress UnusedParam
+ * @psalm-suppress UnusedVariable
  */
 function apbct_sfw__delete_tables($blog_id)
 {
