@@ -130,7 +130,7 @@ class BadUsers extends Users
      */
     public function getBadUsers()
     {
-        return $this->getBad();
+        return self::getBad();
     }
 
     /**

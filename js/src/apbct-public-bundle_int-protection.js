@@ -1808,6 +1808,7 @@ function ctDetectForcedAltCookiesForms() {
     let bloomPopup = document.querySelectorAll('div[class^="et_bloom_form_container"]').length > 0;
     let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
     let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
+    let smartQuizBuilder = document.querySelectorAll('form .sqbform, .fields_reorder_enabled').length > 0;
     ctPublic.force_alt_cookies = smartFormsSign ||
         ninjaFormsSign ||
         jetpackCommentsForm ||
@@ -1818,7 +1819,8 @@ function ctDetectForcedAltCookiesForms() {
         fluentBookingApp ||
         pafeFormsFormElementor ||
         bloomPopup ||
-        otterForm;
+        otterForm ||
+        smartQuizBuilder;
 
     setTimeout(function() {
         if (!ctPublic.force_alt_cookies) {
@@ -1844,10 +1846,6 @@ function ctSetAlternativeCookie(cookies, params) {
     } catch (e) {
         console.log('APBCT ERROR: JSON parse error:' + e);
         return;
-    }
-
-    if (!cookies.apbct_site_referer) {
-        cookies.apbct_site_referer = location.href;
     }
 
     const callback = params && params.callback || null;
@@ -3380,9 +3378,10 @@ function apbct_ready() {
 
                 // Call previous submit action
                 if (event.target.onsubmit_prev instanceof Function && !ctOnsubmitPrevCallExclude(event.target)) {
+                    event.preventDefault();
                     setTimeout(function() {
                         event.target.onsubmit_prev.call(event.target, event);
-                    }, 500);
+                    }, 0);
                 }
             };
         }

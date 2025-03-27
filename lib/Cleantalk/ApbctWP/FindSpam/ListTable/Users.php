@@ -484,7 +484,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
     /**
      * @return \WP_User_Query
      */
-    public function getBad()
+    public static function getBad()
     {
         // Without IP and EMAIL
         $params_bad = array(
@@ -494,6 +494,18 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         );
 
         return new \WP_User_Query($params_bad);
+    }
+
+    /**
+     * Get the count of bad users.
+     *
+     * This method retrieves the total number of users marked as 'bad' by querying the user meta data.
+     *
+     * @return int The total number of bad users.
+     */
+    public static function getBadUsersCount()
+    {
+        return self::getBad()->get_total();
     }
 
     /**

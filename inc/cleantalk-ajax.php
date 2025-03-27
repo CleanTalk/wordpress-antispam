@@ -228,7 +228,7 @@ function ct_user_register_ajaxlogin($user_id)
  */
 function ct_ajax_hook($message_obj = null)
 {
-    global $current_user;
+    global $apbct, $current_user;
     $reg_flag = false;
 
     $message_obj = (array)$message_obj;

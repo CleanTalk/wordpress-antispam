@@ -294,7 +294,7 @@ class UsersChecker extends Checker
         $this->list_table = new BadUsers();
 
         echo '<h3>' . esc_html__(
-            "These users can't be checked because they haven't IP or e-mail",
+            "These users can't be checked because they haven't IP and e-mail",
             'cleantalk-spam-protect'
         ) . '</h3>';
         echo '<form action="" method="POST">';
