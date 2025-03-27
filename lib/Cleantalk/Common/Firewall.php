@@ -161,7 +161,7 @@ class Firewall
         // Do finish action - die or set cookies
         foreach ($this->module_names as $module_name) {
             $status = TT::getArrayValueAsString($result, 'status');
-            if (strpos($status, $module_name)) {
+            if (strpos($status, TT::toString($module_name))) {
                 // Blocked
                 if (strpos($status, 'DENY') !== false) {
                     $this->fw_modules[$module_name]->actionsForDenied($result);
