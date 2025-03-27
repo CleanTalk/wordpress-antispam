@@ -486,6 +486,8 @@ class Helper
      * @param string $ip
      *
      * @return string IPv6
+     * @psalm-suppress PossiblyFalseOperand
+     * @psalm-suppress PossiblyFalseArgument
      */
     public static function ipV6Normalize($ip)
     {
@@ -501,8 +503,10 @@ class Helper
             $ip = strpos(strrev($ip), ':') === 0 ? $ip . '0' : $ip;
         }
         // Simplifyng hextets
-        if (preg_match('/:0(?=[a-z0-9]+)/', $ip)) {
-            $ip = preg_replace('/:0(?=[a-z0-9]+)/', ':', strtolower($ip));
+        if (
+            preg_match('/:0(?=[a-z0-9]+)/', $ip) &&
+            $ip = preg_replace('/:0(?=[a-z0-9]+)/', ':', strtolower($ip))
+        ) {
             $ip = self::ipV6Normalize($ip);
         }
 
@@ -791,9 +795,10 @@ class Helper
                 }
 
                 if ($encoding) {
+                    $php_version = phpversion();
                     if ( function_exists('mb_convert_encoding') ) {
                         $obj = mb_convert_encoding($obj, 'UTF-8', $encoding);
-                    } elseif (version_compare(phpversion(), '8.3', '<')) {
+                    } elseif ($php_version && version_compare($php_version, '8.3', '<')) {
                         $obj = @utf8_encode($obj);
                     }
                 }
@@ -822,9 +827,10 @@ class Helper
             //String
         } else {
             if ($data_codepage !== null && preg_match('//u', $obj)) {
+                $php_version = phpversion();
                 if ( function_exists('mb_convert_encoding') ) {
                     $obj = mb_convert_encoding($obj, $data_codepage, 'UTF-8');
-                } elseif (version_compare(phpversion(), '8.3', '<')) {
+                } elseif ($php_version && version_compare($php_version, '8.3', '<')) {
                     $obj = @utf8_decode($obj);
                 }
             }
@@ -854,7 +860,7 @@ class Helper
      */
     public static function timeGetIntervalStart($interval = 300)
     {
-        return time() - ((time() - strtotime(date('d F Y'))) % $interval);
+        return time() - ((time() - (int) strtotime(date('d F Y'))) % $interval);
     }
 
     /**
@@ -876,11 +882,13 @@ class Helper
             }
         } elseif (function_exists('finfo_open')) {
             $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $detected_type = finfo_buffer($finfo, $data);
-            if ($detected_type !== false) {
-                $type = $detected_type;
+            if ( $finfo ) {
+                $detected_type = finfo_buffer($finfo, $data);
+                if ($detected_type !== false) {
+                    $type = $detected_type;
+                }
+                finfo_close($finfo);
             }
-            finfo_close($finfo);
         }
 
         // @ToDo the method must return comparison result: return $type ===  mime_content_type($data)
@@ -918,66 +926,12 @@ class Helper
     }
 
     /**
-     * Pops line from buffer without formatting
-     *
-     * @param string $csv
-     *
-     * @return string
-     */
-    public static function bufferCsvPopLine(&$csv)
-    {
-        $pos  = (int) strpos($csv, "\n");
-        $line = substr($csv, 0, $pos);
-        $csv  = substr_replace($csv, '', 0, $pos + 1);
-
-        return $line;
-    }
-
-    /**
-     * Pops line from the csv buffer and format it by map to array
-     *
-     * @param string $csv
-     *
-     * @return array
-     * @psalm-suppress PossiblyUnusedMethod
-     */
-    public static function bufferCsvGetMap(&$csv)
-    {
-        $line = static::bufferCsvPopLine($csv);
-
-        return explode(',', $line);
-    }
-
-    /**
-     * Pops line from the csv buffer and format it by map to array
-     *
-     * @param $csv
-     * @param array $map
-     *
-     * @return array
-     * @psalm-suppress PossiblyUnusedMethod
-     */
-    public static function bufferCsvPopLineToArray(&$csv, $map = array())
-    {
-        $line = trim(static::bufferCsvPopLine($csv));
-        $line = strpos($line, '\'') === 0
-            ? str_getcsv($line, ',', '\'')
-            : explode(',', $line);
-        if ($map) {
-            $line = array_combine($map, $line);
-        }
-
-        return $line;
-    }
-
-    /**
      * Escapes MySQL params
      *
      * @param string|int|array $param
      * @param string $quotes
      *
      * @return int|string|array
-     * @psalm-suppress PossiblyUnusedMethod
      */
     public static function dbPrepareParam($param, $quotes = '\'')
     {
@@ -1021,23 +975,22 @@ class Helper
         foreach ($_SERVER as $key => $val) {
             if (0 === stripos($key, 'http_')) {
                 $server_key = preg_replace('/^http_/i', '', $key);
-                $key_parts  = explode('_', $server_key);
-                if (strlen($server_key) > 2) {
-                    foreach ($key_parts as $part_index => $part) {
-                        if ($part === '') {
-                            continue;
+                if ( is_string($server_key) ) {
+                    if ( strlen($server_key) > 2 ) {
+                        $key_parts  = explode('_', $server_key);
+                        foreach ($key_parts as $part_index => $part) {
+                            if ($part === '') {
+                                continue;
+                            }
+                            $key_parts[$part_index] = function_exists('mb_strtolower')
+                                ? mb_strtolower($part)
+                                : strtolower($part);
+                            $key_parts[$part_index][0] = strtoupper($key_parts[$part_index][0]);
                         }
-
-                        $key_parts[$part_index] = function_exists('mb_strtolower') ? mb_strtolower(
-                            $part
-                        ) : strtolower(
-                            $part
-                        );
-                        $key_parts[$part_index][0] = strtoupper($key_parts[$part_index][0]);
+                        $server_key = implode('-', $key_parts);
                     }
-                    $server_key = implode('-', $key_parts);
+                    $headers[$server_key] = $val;
                 }
-                $headers[$server_key] = $val;
             }
         }
 
