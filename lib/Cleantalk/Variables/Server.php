@@ -21,7 +21,6 @@ class Server extends ServerVariables
      *
      * @return mixed|string
      */
-    #[\Override]
     protected function getVariable($name)
     {
         // Return from memory. From $this->server
@@ -146,7 +145,6 @@ class Server extends ServerVariables
                self::get('SERVER_PORT') == '443';
     }
 
-    #[\Override]
     protected function sanitizeDefault($value)
     {
         return sanitize_textarea_field($value);

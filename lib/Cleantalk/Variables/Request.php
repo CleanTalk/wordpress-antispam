@@ -20,7 +20,6 @@ class Request extends ServerVariables
      * @return mixed|string
      * @throws \ReflectionException
      */
-    #[\Override]
     protected function getVariable($name)
     {
         // Return from memory. From $this->variables
@@ -49,7 +48,6 @@ class Request extends ServerVariables
         return $value;
     }
 
-    #[\Override]
     protected function sanitizeDefault($value)
     {
         return sanitize_textarea_field($value);
