@@ -30,6 +30,7 @@
 
     <issueHandlers>
         <MissingPropertyType errorLevel="suppress"/>
+        <InvalidAttribute errorLevel="suppress"/>
         <UndefinedMagicPropertyFetch errorLevel="suppress" /><!-- @ToDo remove this exception and solve the issues -->
         <UndefinedMagicPropertyAssignment errorLevel="suppress" /><!-- @ToDo remove this exception and solve the issues -->
         <UndefinedThisPropertyFetch errorLevel="suppress" /><!-- @ToDo remove this exception and solve the issues -->
