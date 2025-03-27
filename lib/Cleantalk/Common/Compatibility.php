@@ -73,15 +73,16 @@ class Compatibility
             file_exists(WP_CONTENT_DIR . DIRECTORY_SEPARATOR . 'w3tc-config/master.php')
         ) {
             $w3_config = file_get_contents(WP_CONTENT_DIR . DIRECTORY_SEPARATOR . 'w3tc-config/master.php');
-            $w3_config = str_replace('<?php exit; ?>', '', $w3_config);
-            $w3_config = json_decode($w3_config, true);
+            if ( $w3_config !== false ) {
+                $w3_config = str_replace('<?php exit; ?>', '', $w3_config);
+                $w3_config = json_decode($w3_config, true);
 
-            if (
-                (isset($w3_config['pgcache.cache.ssl']) && ! $w3_config['pgcache.cache.ssl']) ||
-                (isset($w3_config['pgcache.late_init']) && $w3_config['pgcache.late_init'])) {
-                return false;
+                if (
+                    (isset($w3_config['pgcache.cache.ssl']) && ! $w3_config['pgcache.cache.ssl']) ||
+                    (isset($w3_config['pgcache.late_init']) && $w3_config['pgcache.late_init'])) {
+                    return false;
+                }
             }
-
             return true;
         }
 
