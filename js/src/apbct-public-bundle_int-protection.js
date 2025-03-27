@@ -2225,6 +2225,7 @@ class ApbctForceProtection {
 
         if (typeof result === 'object' && result.allow && result.allow === 1) {
             this.decodeForms();
+            document.dispatchEvent(new Event('apbctForceProtectionAllowed'));
         } else {
             this.showMessageForBot(result.message);
         }
@@ -4698,41 +4699,53 @@ function ctCheckInternal(currForm) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    let ctCurrAction = '';
-    let ctCurrForm = '';
-
     if ( ! +ctPublic.settings__forms__check_internal ) {
         return;
     }
 
     setTimeout(() => {
-        for ( let i = 0; i < document.forms.length; i++ ) {
-            if ( typeof(document.forms[i].action) == 'string' ) {
-                ctCurrForm = document.forms[i];
-                ctCurrAction = ctCurrForm.action;
-                if (
-                    ctCurrAction.indexOf('https?://') !== null && // The protocol is obligatory
-                    ctCurrAction.match(ctPublic.blog_home + '.*?\.php') !== null && // Main check
-                    ! ctCheckInternalIsExcludedForm(ctCurrAction) // Exclude WordPress native scripts from processing
-                ) {
-                    const formClone = ctCurrForm.cloneNode(true);
-                    ctCurrForm.parentNode.replaceChild(formClone, ctCurrForm);
+        ctProtectInternalForms();
+    }, 500);
 
-                    formClone.origSubmit = ctCurrForm.submit;
-                    formClone.submit = null;
+    document.addEventListener('apbctForceProtectionAllowed', function() {
+        ctProtectInternalForms();
+    });
+});
 
-                    formClone.addEventListener('submit', function(event) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        event.stopImmediatePropagation();
-                        ctCheckInternal(event.target);
-                        return false;
-                    });
-                }
+/**
+ * Protect internal forms
+ * @return {void}
+ */
+function ctProtectInternalForms() {
+    let ctCurrAction = '';
+    let ctCurrForm = '';
+
+    for ( let i = 0; i < document.forms.length; i++ ) {
+        if ( typeof(document.forms[i].action) == 'string' ) {
+            ctCurrForm = document.forms[i];
+            ctCurrAction = ctCurrForm.action;
+            if (
+                ctCurrAction.indexOf('https?://') !== null && // The protocol is obligatory
+                ctCurrAction.match(ctPublic.blog_home + '.*?\.php') !== null && // Main check
+                ! ctCheckInternalIsExcludedForm(ctCurrAction) // Exclude WordPress native scripts from processing
+            ) {
+                const formClone = ctCurrForm.cloneNode(true);
+                ctCurrForm.parentNode.replaceChild(formClone, ctCurrForm);
+
+                formClone.origSubmit = ctCurrForm.submit;
+                formClone.submit = null;
+
+                formClone.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+                    ctCheckInternal(event.target);
+                    return false;
+                });
             }
         }
-    }, 500);
-});
+    }
+}
 
 /**
  * Check by action to exclude the form checking
