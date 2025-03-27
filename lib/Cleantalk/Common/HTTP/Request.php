@@ -213,6 +213,10 @@ class Request
         // Make a request
         $ch = curl_init();
 
+        if ( $ch === false ) {
+            return new Response('', 'CURL channel not be established.');
+        }
+
         curl_setopt_array($ch, $this->options);
 
         $request_result = curl_exec($ch);    // Gather request result
@@ -255,10 +259,13 @@ class Request
 
         for ( $i = 0; $i < $urls_count; $i++ ) {
             $this->options[CURLOPT_URL] = $this->url[$i];
-            $curl_arr[$i]               = curl_init($this->url[$i]);
+            $curl_arr[$i] = curl_init($this->url[$i]);
 
-            curl_setopt_array($curl_arr[$i], $this->options);
-            curl_multi_add_handle($mh, $curl_arr[$i]);
+            if ( $curl_arr[$i] !== false ) {
+                curl_setopt_array($curl_arr[$i], $this->options);
+                curl_multi_add_handle($mh, $curl_arr[$i]);
+            }
+
         }
 
         do {
@@ -267,6 +274,11 @@ class Request
         } while ( $running > 0 );
 
         for ( $i = 0; $i < $urls_count; $i++ ) {
+            if ( $curl_arr[$i] === false ) {
+                $this->response[$this->url[$i]] = new Response('', 'CURL channel not be established.');
+                continue;
+            }
+
             $curl_info     = curl_getinfo($curl_arr[$i]); // Gather HTTP response information
             $received_data = curl_multi_getcontent($curl_arr[$i]);
 
@@ -309,6 +321,7 @@ class Request
             ]
         );
 
+        /** @psalm-suppress InvalidArgument */
         $response_content = @file_get_contents($this->url, false, $context)
             ?: ['error' => 'FAILED_TO_USE_FILE_GET_CONTENTS'];
 
@@ -518,7 +531,7 @@ class Request
                 case 'ssl':
                     $this->options[CURLOPT_SSL_VERIFYPEER] = true;
                     $this->options[CURLOPT_SSL_VERIFYHOST] = 2;
-                    if ( defined('APBCT_CASERT_PATH') && APBCT_CASERT_PATH ) {
+                    if ( defined('APBCT_CASERT_PATH') ) {
                         $this->options[CURLOPT_CAINFO] = APBCT_CASERT_PATH;
                     }
                     break;
