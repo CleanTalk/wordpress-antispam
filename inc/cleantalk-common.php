@@ -1124,14 +1124,15 @@ function ct_get_fields_any($arr, $email = '', $nickname = '')
  * @param array $input_array maybe raw POST array or other preprocessed POST data.
  * @param string $email email, rewriting result of process $input_array data
  * @param string $nickname nickname, rewriting result of process $input_array data
+ * @param array $emails_array additional emails array, rewriting result of process $input_array data
  * @deprecated since 6.48, use ct_gfa_dto() instead
  * @return array
  */
-function ct_gfa($input_array, $email = '', $nickname = '')
+function ct_gfa($input_array, $email = '', $nickname = '', $emails_array = array())
 {
     $gfa = new GetFieldsAny($input_array);
 
-    return $gfa->getFields($email, $nickname);
+    return $gfa->getFields($email, $nickname, $emails_array);
 }
 
 /**
@@ -1141,14 +1142,15 @@ function ct_gfa($input_array, $email = '', $nickname = '')
  * @param array $input_array maybe raw POST array or other preprocessed POST data.
  * @param string $email email, rewriting result of process $input_array data
  * @param string $nickname nickname, rewriting result of process $input_array data
+ * @param array $emails_array array of additional emails, rewriting result of process $input_array data
  *
  * @return GetFieldsAnyDTO
  */
-function ct_gfa_dto($input_array, $email = '', $nickname = '')
+function ct_gfa_dto($input_array, $email = '', $nickname = '', $emails_array = array())
 {
     $gfa = new GetFieldsAny($input_array);
 
-    return $gfa->getFieldsDTO($email, $nickname);
+    return $gfa->getFieldsDTO($email, $nickname, $emails_array);
 }
 
 /**
