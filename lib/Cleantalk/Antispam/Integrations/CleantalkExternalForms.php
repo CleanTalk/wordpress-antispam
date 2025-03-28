@@ -93,6 +93,9 @@ class CleantalkExternalForms extends IntegrationBase
         }
 
         foreach ( $arr as $key => $value ) {
+            if ($key === 'submit') {
+                continue;
+            }
             if ( ! is_array($value) ) {
                 $return_form .= '<textarea
 				name="' . esc_attr($recursive_key === '' ? $key : $recursive_key . '[' . $key . ']') . '"
