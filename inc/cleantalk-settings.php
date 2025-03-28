@@ -640,6 +640,7 @@ function apbct_settings__set_fields()
                 'data__email_decoder_obfuscation_custom_text'             => array(
                     'type'        => 'textarea',
                     'title'       => __('Custom text to replace email', 'cleantalk-spam-protect'),
+                    'value' => EmailEncoder::getDefaultReplacingText(),
                     'description'       => __('If appropriate mode selected, this text will be shown instead of an email.', 'cleantalk-spam-protect'),
                     'parent' => 'data__email_decoder_obfuscation_mode',
                     'class' => 'apbct_settings-field_wrapper--sub',
@@ -2545,6 +2546,9 @@ function apbct_settings__validate($settings)
             $settings['data__email_decoder_obfuscation_custom_text'] = sanitize_textarea_field($settings['data__email_decoder_obfuscation_custom_text']);
             $apbct->errorDelete('email_encoder', true, 'settings_validate');
         }
+    } else {
+        $apbct->errorDelete('email_encoder', true, 'settings_validate');
+        $settings['data__email_decoder_obfuscation_custom_text'] = EmailEncoder::getDefaultReplacingText();
     }
 
     /**
@@ -3087,7 +3091,6 @@ function apbct_settings__get__long_description()
         ),
         'data__email_decoder_obfuscation_mode' => array(
             'title' => __('Email Encoder obfuscation modes', 'cleantalk-spam-protect'),
-            //HANDLE LINK
             'desc'  => EmailEncoder::getObfuscationModesLongDescription(),
         ),
     );
