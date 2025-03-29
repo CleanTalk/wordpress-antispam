@@ -4,7 +4,7 @@ use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
-use Cleantalk\Common\TT;
+use Cleantalk\ApbctWP\UpdatePlugin\DbTablesCreator;
 
 /**
  * Main function to compare versions and run necessary update functions.
@@ -1300,4 +1300,13 @@ function apbct_update_to_6_46_1()
     }
 
     $apbct->deleteOption('debug', true);
+}
+
+function apbct_update_to_6_54_0()
+{
+    global $wpdb;
+
+    $wpdb->query('DROP TABLE IF EXISTS `' . $wpdb->prefix . 'cleantalk_sessions`;');
+    $db_tables_creator = new DbTablesCreator();
+    $db_tables_creator->createTable($wpdb->prefix . 'cleantalk_sessions');
 }
