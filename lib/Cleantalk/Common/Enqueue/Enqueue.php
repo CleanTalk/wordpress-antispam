@@ -49,13 +49,13 @@ class Enqueue
     public function init()
     {
         if (empty($this->plugin_version)) {
-            throw new \Exception(__('Plugin version is not set.', 'security-malware-firewall'));
+            throw new \Exception(__('Plugin version is not set.', 'cleantalk-spam-protect'));
         }
         if (empty($this->assets_path)) {
-            throw new \Exception(__('Assets path is not set.', 'security-malware-firewall'));
+            throw new \Exception(__('Assets path is not set.', 'cleantalk-spam-protect'));
         }
         if (empty($this->plugin_path)) {
-            throw new \Exception(__('Plugin path is not set.', 'security-malware-firewall'));
+            throw new \Exception(__('Plugin path is not set.', 'cleantalk-spam-protect'));
         }
         $this->errors = array();
         add_action('admin_footer', array($this, 'isAllHandlesQueued'), PHP_INT_MAX);
@@ -71,7 +71,7 @@ class Enqueue
         // Enqueue script logic
         try {
             if (is_null($data)) {
-                throw new \Exception(__('Data DTO is invalid', 'security-malware-firewall'));
+                throw new \Exception(__('Data DTO is invalid', 'cleantalk-spam-protect'));
             }
             $this->handles_to_register = array_merge($this->handles_to_register, array($data->handle));
             // any must have a type
@@ -80,14 +80,14 @@ class Enqueue
             } elseif ($this->type === 'js') {
                 wp_enqueue_script($data->handle, $data->web_path, $data->deps, $data->version, $data->args);
             } else {
-                throw new \Exception(__('Unknown type of asset.', 'security-malware-firewall'));
+                throw new \Exception(__('Unknown type of asset.', 'cleantalk-spam-protect'));
             }
         } catch (\Exception $e) {
             $this->errorLog($e->getMessage());
         }
         // output errors to error_log
         if ($this->hasErrors()) {
-            error_log(__CLASS__ . __(' errors:', 'security-malware-firewall'));
+            error_log(__CLASS__ . __(' errors:', 'cleantalk-spam-protect'));
             error_log(implode("\n", $this->errors));
         }
     }
@@ -134,10 +134,10 @@ class Enqueue
     {
         try {
             if ($args === null && $media === null) {
-                throw new \Exception(__('Both $args and $media cannot be null.', 'security-malware-firewall'));
+                throw new \Exception(__('Both $args and $media cannot be null.', 'cleantalk-spam-protect'));
             }
             if ($args !== null && $media !== null) {
-                throw new \Exception(__('Both $args and $media cannot be not null.', 'security-malware-firewall'));
+                throw new \Exception(__('Both $args and $media cannot be not null.', 'cleantalk-spam-protect'));
             }
             if ($args === null && $media !== null) {
                 $this->type = 'css';
@@ -271,12 +271,12 @@ class Enqueue
     private function validateWebPath($path)
     {
         if (! preg_match('/^http?:\/\//', $path)) {
-            $this->errorLog(__('Web path for script is invalid: ' . $path, 'security-malware-firewall'));
+            $this->errorLog(__('Web path for script is invalid: ' . $path, 'cleantalk-spam-protect'));
             return $path;
         }
         $abs_path = str_replace($this->assets_path, $this->plugin_path, $path);
         if (!@file_exists($abs_path)) {
-            $this->errorLog(__('Script file is not accessible:' . $path, 'security-malware-firewall'));
+            $this->errorLog(__('Script file is not accessible:' . $path, 'cleantalk-spam-protect'));
             return $path;
         }
         return $path;
@@ -300,7 +300,7 @@ class Enqueue
     {
         foreach ($this->handles_to_register as $handle) {
             if (!wp_script_is($handle, 'queue') && !wp_style_is($handle, 'queue')) {
-                $this->errorLog(__('Script is not queued: ' . $handle, 'security-malware-firewall'));
+                $this->errorLog(__('Script is not queued: ' . $handle, 'cleantalk-spam-protect'));
                 return false;
             }
         }
