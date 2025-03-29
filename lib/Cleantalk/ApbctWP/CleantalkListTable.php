@@ -167,7 +167,6 @@ class CleantalkListTable {
         $this->_args = $args;
 
         if ( $args['ajax'] ) {
-            // wp_enqueue_script( 'list-table' );
             add_action( 'admin_footer', array( $this, '_js_vars' ) );
         }
 

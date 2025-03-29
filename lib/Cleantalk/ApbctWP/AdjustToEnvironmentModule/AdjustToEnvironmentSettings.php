@@ -92,7 +92,7 @@ class AdjustToEnvironmentSettings
         }
 
         $replaces = [
-            '{TITLE}' => __("Reverse adjust for $title", 'security-malware-firewall'),
+            '{TITLE}' => __("Reverse adjust for $title", 'cleantalk-spam-protect'),
             '{DESCRIPTION}' => $description,
             '{KEY}' => 'reverse-' . $key,
             '{ADJUST}' => $key,
