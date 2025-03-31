@@ -267,6 +267,8 @@ function skip_for_ct_contact_form_validate()
         ),
         // OptimizePress
         '97' => (apbct_is_plugin_active('op-dashboard/op-dashboard.php') && apbct_is_in_uri('/trackFacebookCAPIEvents')),
+        // WS Form has a direct integration
+        '98' => (apbct_is_plugin_active('ws-form/ws-form.php') && apbct_is_in_uri('/ws-form/v1/submit')),
     );
 
     foreach ( $exclusions as $exclusion_key => $state ) {

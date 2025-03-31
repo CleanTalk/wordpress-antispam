@@ -1795,6 +1795,7 @@ class ApbctForceProtection {
 
         if (typeof result === 'object' && result.allow && result.allow === 1) {
             this.decodeForms();
+            document.dispatchEvent(new Event('apbctForceProtectionAllowed'));
         } else {
             this.showMessageForBot(result.message);
         }

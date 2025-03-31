@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 6.52
+Stable tag: 6.53
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -441,6 +441,22 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.53 27.03.2025 =
+* New. Integration. Event Manager - booking form
+* New. Integration. Smart Quiz Builder integration
+* New. Integration. Brave PopUp Pro integration implemented.
+* Code. Psalm. Fixed all taint issues.
+* Fix. Cookies. Page hits and site referrer pararms gain fixed.
+* Fix. Cookies. Count in forced alt cookies state on page_hits gain.
+* Fix. Cookies. Site referer fixed.
+* Fix. Code. UTM marks for payment link fixed.
+* Fix. User checker. Non-checkable tab fixed.
+* Fix. Integrations. WSForm update flow to handle request in direct function.
+* Fix. AjaxHook. Initializing a global variable
+* Fix. AvadaIntegration. Skipping hooks, username definition, GFA edit, removed no_cookie_data excision
+* Fix. AvadaIntegration. Removed post filtering
+* Fix. Integration. Added the definition of 'message' for integration with Jet Form Builder
 
 = 6.52 13.03.2025 =
 * New. Integration. Integration with plugin/theme Listeo.
