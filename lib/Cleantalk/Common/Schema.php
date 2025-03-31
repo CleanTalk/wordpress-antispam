@@ -65,7 +65,7 @@ class Schema
         ),
         'sessions' => array(
             'id' => 'VARCHAR(64) NOT NULL',
-            'name' => 'ENUM(\'apbct_force_protection_check\',\'apbct_urls\',\'apbct_site_referer\',\'apbct_timestamp\',\'apbct_site_landing_ts\',\'apbct_page_hits\', \'apbct_anticrawler_passed\', \'apbct_bot_detector_exist\', \'apbct_email_encoder_passed\', \'apbct_antiflood_passed\', \'ct_sfw_passed\', \'ct_sfw_pass_key\', \'wordpress_apbct_antibot\', \'apbct_bot_detector_event_token\', \'apbct_visible_fields\', \'ct_no_cookie_hidden_field\') NOT NULL',
+            'name' => 'ENUM(\'apbct_force_protection_check\',\'apbct_urls\',\'apbct_site_referer\',\'apbct_timestamp\',\'apbct_site_landing_ts\',\'apbct_page_hits\', \'apbct_anticrawler_passed\', \'apbct_bot_detector_exist\', \'apbct_email_encoder_passed\', \'apbct_antiflood_passed\', \'ct_sfw_passed\', \'ct_sfw_pass_key\', \'wordpress_apbct_antibot\', \'apbct_bot_detector_event_token\', \'apbct_visible_fields\', \'ct_no_cookie_hidden_field\', \'ct_bot_detector_frontend_data_log\') NOT NULL',
             'value' => 'TEXT NULL DEFAULT NULL',
             'last_update' => 'DATETIME NULL DEFAULT NULL',
             '__indexes' => 'PRIMARY KEY (`id`, `name`)',
