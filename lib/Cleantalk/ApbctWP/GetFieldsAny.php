@@ -127,6 +127,11 @@ class GetFieldsAny
     private $preprocessed_nickname;
 
     /**
+     * @var array
+     */
+    private $preprocessed_emails_array;
+
+    /**
      * @var string
      */
     private $prev_name = '';
@@ -166,31 +171,52 @@ class GetFieldsAny
     }
 
     /**
+     * Public interface to process fields in DTO format
+     * @param string $email
+     * @param string $nickname
+     * @param array $emails_array
      * @return GetFieldsAnyDTO
      */
-    public function getFieldsDTO($email = '', $nickname = '')
+    public function getFieldsDTO($email = '', $nickname = '', $emails_array = array())
     {
-        $this->prepareFields($email, $nickname);
+        $this->prepareFields($email, $nickname, $emails_array);
         return $this->dto;
     }
 
     /**
-     * Public interface to process fields
+     * Public interface to process fields. Collects DTO then return array of DTO attributes as array.
      *
      * @param string $email
      * @param string $nickname
-     * @return array
+     * @param array $emails_array
+     * @return array of attributes of GetFieldsAnyDTO
+     * @see GetFieldsAnyDTO
      */
-    public function getFields($email = '', $nickname = '')
+    public function getFields($email = '', $nickname = '', $emails_array = array())
     {
-        $this->prepareFields($email, $nickname);
+        $this->prepareFields($email, $nickname, $emails_array);
         return $this->dto->getArray();
     }
 
-    public function prepareFields($email, $nickname)
+    /**
+     * @param string $email incoming email from outer source
+     * @param string $nickname incoming nickname from outer source
+     * @param array $emails_array incoming emails_array  from outer source
+     *
+     * @return void
+     */
+    public function prepareFields($email, $nickname, $emails_array)
     {
         $this->preprocessed_email    = $email;
         $this->preprocessed_nickname = is_string($nickname) ? $nickname : '';
+
+        if (!empty($emails_array) && is_array($emails_array)) {
+            $filtered_emails_array = array_map(function ($value) {
+                $value = TT::toString($value);
+                return Validate::isEmail($value) ? $value : 'invalid_preprocessed_email';
+            }, $emails_array);
+            $this->preprocessed_emails_array = $filtered_emails_array;
+        }
 
         // main gathering logic, recursive
         if (count($this->input_array)) {
@@ -214,6 +240,10 @@ class GetFieldsAny
 
         if ($this->preprocessed_nickname) {
             $this->dto->nickname = $this->preprocessed_nickname;
+        }
+
+        if (!empty($this->preprocessed_emails_array)) {
+            $this->dto->emails_array = $this->preprocessed_emails_array;
         }
 
         if (empty($this->dto->nickname)) {
