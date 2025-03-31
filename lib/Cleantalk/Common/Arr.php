@@ -230,21 +230,6 @@ class Arr
     }
 
     /**
-     * @param array $arr1
-     * @param array $arr2
-     *
-     * @psalm-suppress PossiblyUnusedMethod
-     */
-    public function compare($arr1, $arr2)
-    {
-        foreach ($arr1 as $_value) {
-            if (($arr1 === $arr2) && is_array($arr1) && is_array($arr2)) {
-                $this->compare($arr1, $arr2);
-            }
-        }
-    }
-
-    /**
      * Recursive
      * Delete elements from array with found keys ( $this->found )
      * If $searched param is differ from 'arr_special_param'
