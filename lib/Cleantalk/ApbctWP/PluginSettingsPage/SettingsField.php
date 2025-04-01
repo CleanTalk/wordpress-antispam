@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP\PluginSettingsPage;
 
+use Cleantalk\Common\TT;
+
 class SettingsField
 {
     /**
@@ -452,7 +454,7 @@ class SettingsField
             'disabled' => $this->disabled_string,
             'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
             'childrens' => isset($this->params['childrens']) ? 'onchange="apbctSettingsDependencies(\'' . $this->children_string . '\')" ' : '',
-            'value' => $this->value,
+            'value' => empty($this->value) ? TT::getArrayValueAsString($this->params, 'value') : $this->value,
         ];
 
         $layout = '';
