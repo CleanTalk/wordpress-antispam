@@ -5556,7 +5556,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
                     button.addEventListener('click', function() {
                         document.body.classList.remove('apbct-popup-fade');
                         popup.setAttribute('style', 'display:none');
-                        fillDecodedEmails(encodedEmailNodes, result);
+                        fillDecodedNodes(encodedEmailNodes, result);
                         // click on mailto if so
                         if (typeof ctPublic !== 'undefined' && ctPublic.encodedEmailNodesIsMixed && clickSource) {
                             clickSource.click();
@@ -5631,16 +5631,16 @@ function ctShowDecodeComment(comment) {
 
 /**
  * Run filling for every node with decoding result.
- * @param {mixed} encodedEmailNodes
+ * @param {mixed} encodedNodes
  * @param {mixed} decodingResult
  */
-function fillDecodedEmails(encodedEmailNodes, decodingResult) {
-    if (encodedEmailNodes.length > 0) {
-        for (let i = 0; i < encodedEmailNodes.length; i++) {
+function fillDecodedNodes(encodedNodes, decodingResult) {
+    if (encodedNodes.length > 0) {
+        for (let i = 0; i < encodedNodes.length; i++) {
             // chek what is what
             let currentResultData;
             decodingResult.data.forEach((row) => {
-                if (row.encoded_email === encodedEmailNodes[i].dataset.originalString) {
+                if (row.encoded_email === encodedNodes[i].dataset.originalString) {
                     currentResultData = row;
                 }
             });
@@ -5650,18 +5650,29 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
             }
             // handler for mailto
             if (
-                typeof encodedEmailNodes[i].href !== 'undefined' &&
-                encodedEmailNodes[i].href.indexOf('mailto:') === 0
+                typeof encodedNodes[i].href !== 'undefined' &&
+                (
+                    encodedNodes[i].href.indexOf('mailto:') === 0 ||
+                    encodedNodes[i].href.indexOf('tel:') === 0
+                )
             ) {
-                let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
-                let baseElementContent = encodedEmailNodes[i].innerHTML;
-                encodedEmailNodes[i].innerHTML = baseElementContent.replace(
+                let linkTypePrefix;
+                if (encodedNodes[i].href.indexOf('mailto:') === 0) {
+                    linkTypePrefix = 'mailto:';
+                } else if (encodedNodes[i].href.indexOf('tel:') === 0) {
+                    linkTypePrefix = 'tel:';
+                } else {
+                    continue;
+                }
+                let encodedEmail = encodedNodes[i].href.replace(linkTypePrefix, '');
+                let baseElementContent = encodedNodes[i].innerHTML;
+                encodedNodes[i].innerHTML = baseElementContent.replace(
                     encodedEmail,
                     currentResultData.decoded_email,
                 );
-                encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
+                encodedNodes[i].href = linkTypePrefix + currentResultData.decoded_email;
 
-                encodedEmailNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((el) => {
+                encodedNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((el) => {
                     let encodedEmailTextInsideMailto = '';
                     decodingResult.data.forEach((row) => {
                         if (row.encoded_email === el.dataset.originalString) {
@@ -5671,23 +5682,23 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
                     el.innerHTML = encodedEmailTextInsideMailto;
                 });
             } else {
-                encodedEmailNodes[i].classList.add('no-blur');
+                encodedNodes[i].classList.add('no-blur');
                 // fill the nodes
                 setTimeout(() => {
-                    ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
+                    ctProcessDecodedDataResult(currentResultData, encodedNodes[i]);
                 }, 2000);
             }
             // remove listeners
-            encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
+            encodedNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
         }
     } else {
         let currentResultData = decodingResult.data[0];
-        encodedEmailNodes.classList.add('no-blur');
+        encodedNodes.classList.add('no-blur');
         // fill the nodes
         setTimeout(() => {
-            ctProcessDecodedDataResult(currentResultData, encodedEmailNodes);
+            ctProcessDecodedDataResult(currentResultData, encodedNodes);
         }, 2000);
-        encodedEmailNodes.removeEventListener('click', ctFillDecodedEmailHandler);
+        encodedNodes.removeEventListener('click', ctFillDecodedEmailHandler);
     }
 }
 

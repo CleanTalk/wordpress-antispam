@@ -626,7 +626,12 @@ function apbct_settings__set_fields()
                 'data__email_decoder'        => array(
                     'title' => __('Encode contact data', 'cleantalk-spam-protect'),
                     'description' => EmailEncoder::getEncoderOptionDescription(),
-                    'childrens' => array('data__email_decoder_buffer', 'data__email_decoder_obfuscation_mode', 'data__email_decoder_obfuscation_custom_text')
+                    'childrens' => array(
+                        'data__email_decoder_buffer',
+                        'data__email_decoder_obfuscation_mode',
+                        'data__email_decoder_obfuscation_custom_text',
+                        'data__email_decoder_encoding_phone_numbers'
+                    )
                 ),
                 'data__email_decoder_obfuscation_mode'        => array(
                     'title'             => __('Encoder obfuscation mode', 'cleantalk-spam-protect'),
@@ -644,6 +649,13 @@ function apbct_settings__set_fields()
                     'description'       => __('If appropriate mode selected, this text will be shown instead of an email.', 'cleantalk-spam-protect'),
                     'parent' => 'data__email_decoder_obfuscation_mode',
                     'class' => 'apbct_settings-field_wrapper--sub',
+                ),
+                'data__email_decoder_encode_phone_numbers'        => array(
+                    'title' => __('Encode phone numbers', 'cleantalk-spam-protect'),
+                    'description' => EmailEncoder::getPhonesEncodingDescription(),
+                    'class'           => 'apbct_settings-field_wrapper--sub',
+                    'parent'            => 'data__email_decoder',
+                    'long_description' => true,
                 ),
                 'data__email_decoder_buffer'        => array(
                     'title'       => __('Use the output buffer', 'cleantalk-spam-protect'),
@@ -3092,6 +3104,10 @@ function apbct_settings__get__long_description()
         'data__email_decoder_obfuscation_mode' => array(
             'title' => __('Email Encoder obfuscation modes', 'cleantalk-spam-protect'),
             'desc'  => EmailEncoder::getObfuscationModesLongDescription(),
+        ),
+        'data__email_decoder_encode_phone_numbers' => array(
+            'title' => __('Email Encoder obfuscation modes', 'cleantalk-spam-protect'),
+            'desc'  => EmailEncoder::getPhonesEncodingLongDescription(),
         ),
     );
 
