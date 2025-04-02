@@ -623,6 +623,14 @@ function apbct_settings__set_fields()
                     'title'       => __('Show email existence alert when filling in the field', 'cleantalk-spam-protect'),
                     'description' => __('Check email address exist before sending form data', 'cleantalk-spam-protect'),
                 ),
+            ),
+        ),
+
+        // Data Processing
+        'contact_data_encoding'       => array(
+            'title'  => __('Contact Data Encoding', 'cleantalk-spam-protect'),
+            'section' => 'hidden_section',
+            'fields' => array(
                 'data__email_decoder'        => array(
                     'title' => __('Encode contact data', 'cleantalk-spam-protect'),
                     'description' => EmailEncoder::getEncoderOptionDescription(),
@@ -630,8 +638,23 @@ function apbct_settings__set_fields()
                         'data__email_decoder_buffer',
                         'data__email_decoder_obfuscation_mode',
                         'data__email_decoder_obfuscation_custom_text',
-                        'data__email_decoder_encoding_phone_numbers'
+                        'data__email_decoder_encode_phone_numbers',
+                        'data__email_decoder_encode_email_addresses'
                     )
+                ),
+                'data__email_decoder_encode_email_addresses'        => array(
+                    'title' => __('Encode email addresses', 'cleantalk-spam-protect'),
+                    'description' => EmailEncoder::getEmailsEncodingDescription(),
+                    'class'           => 'apbct_settings-field_wrapper--sub',
+                    'parent'            => 'data__email_decoder',
+                    'long_description' => true,
+                ),
+                'data__email_decoder_encode_phone_numbers'        => array(
+                    'title' => __('Encode phone numbers', 'cleantalk-spam-protect'),
+                    'description' => EmailEncoder::getPhonesEncodingDescription(),
+                    'class'           => 'apbct_settings-field_wrapper--sub',
+                    'parent'            => 'data__email_decoder',
+                    'long_description' => true,
                 ),
                 'data__email_decoder_obfuscation_mode'        => array(
                     'title'             => __('Encoder obfuscation mode', 'cleantalk-spam-protect'),
@@ -650,13 +673,6 @@ function apbct_settings__set_fields()
                     'parent' => 'data__email_decoder_obfuscation_mode',
                     'class' => 'apbct_settings-field_wrapper--sub',
                 ),
-                'data__email_decoder_encode_phone_numbers'        => array(
-                    'title' => __('Encode phone numbers', 'cleantalk-spam-protect'),
-                    'description' => EmailEncoder::getPhonesEncodingDescription(),
-                    'class'           => 'apbct_settings-field_wrapper--sub',
-                    'parent'            => 'data__email_decoder',
-                    'long_description' => true,
-                ),
                 'data__email_decoder_buffer'        => array(
                     'title'       => __('Use the output buffer', 'cleantalk-spam-protect'),
                     'description' => EmailEncoder::getBufferUsageOptionDescription(),
@@ -664,7 +680,7 @@ function apbct_settings__set_fields()
                     'class'           => 'apbct_settings-field_wrapper--sub',
                     'reverse_trigger' => true,
                 ),
-            ),
+            )
         ),
 
         // Exclusions

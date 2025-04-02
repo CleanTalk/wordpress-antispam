@@ -1301,3 +1301,13 @@ function apbct_update_to_6_46_1()
 
     $apbct->deleteOption('debug', true);
 }
+
+function apbct_update_to_6_53_1()
+{
+    global $apbct;
+
+    if ($apbct->settings['data__email_decoder']) {
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+    }
+}

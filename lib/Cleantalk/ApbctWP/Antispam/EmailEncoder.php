@@ -108,7 +108,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
     public static function getEncoderOptionDescription($example_email = '')
     {
         $common_description = __(
-            'Option encodes emails on public pages of the site. This prevents robots from collecting and including your emails in lists to spam.',
+            'Option encodes emails/phones on public pages of the site. This prevents robots from collecting and including your emails/phones in lists to spam.',
             'cleantalk-spam-protect'
         );
         $example_encoded = '';
@@ -160,6 +160,11 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
     public static function getPhonesEncodingDescription()
     {
         return __('Encode phone numbers', 'cleantalk-spam-protect');
+    }
+
+    public static function getEmailsEncodingDescription()
+    {
+        return __('Encode email addresses', 'cleantalk-spam-protect');
     }
 
     public static function getPhonesEncodingLongDescription()

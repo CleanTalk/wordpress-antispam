@@ -193,6 +193,12 @@ class EmailEncoder
 
         $this->global_obfuscation_mode = $apbct->settings['data__email_decoder_obfuscation_mode'];
         $this->global_replacing_text   = $apbct->settings['data__email_decoder_obfuscation_custom_text'];
+        $do_encode_emails   = (bool)$apbct->settings['data__email_decoder_encode_email_addresses'];
+        $do_encode_phones  = (bool)$apbct->settings['data__email_decoder_encode_phone_numbers'];
+
+        if (!$do_encode_emails && !$do_encode_phones ) {
+            return $content;
+        }
 
         if ( apbct_is_user_logged_in() && !apbct_is_in_uri('options-general.php?page=cleantalk') ) {
             return $content;
@@ -232,10 +238,9 @@ class EmailEncoder
 
         $content = self::dropAttributesContainEmail($content, self::$attributes_to_drop);
 
-        $content = $this->modifyGlobalEmails($content);
-        if ($apbct->settings['data__email_decoder_encode_phone_numbers']) {
-            $content = $this->modifyGlobalPhoneNumbers($content);
-        }
+        $do_encode_emails && $content = $this->modifyGlobalEmails($content);
+
+        $do_encode_phones && $content = $this->modifyGlobalPhoneNumbers($content);
 
         // Restore shortcodes
         foreach ($shortcode_replacements as $placeholder => $original) {
