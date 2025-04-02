@@ -628,6 +628,7 @@ function ct_bbp_new_pre_content($comment)
  *
  * @param string $comment Comment string
  * @param int $comment_id Comment ID
+ * @psalm-suppress UnusedParam
  */
 function ct_bbp_edit_pre_content($comment, $comment_id)
 {
