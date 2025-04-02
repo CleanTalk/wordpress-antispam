@@ -218,6 +218,7 @@ function apbct_init()
         add_filter('bbp_new_reply_pre_content', 'ct_bbp_new_pre_content', 1);
         add_action('bbp_theme_before_topic_form_content', 'ct_comment_form');
         add_action('bbp_theme_before_reply_form_content', 'ct_comment_form');
+        add_action('bbp_edit_reply_pre_content', 'ct_bbp_edit_pre_content', 1, 2);
     }
 
     //Custom Contact Forms
