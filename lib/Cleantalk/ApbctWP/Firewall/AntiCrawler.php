@@ -555,8 +555,13 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         }
 
         // skip for RSS Feed requests
-        if (defined('APBCT_ANTICRAWLER_EXLC_FEED') && Server::getString('REQUEST_URI')) {
-            if (preg_match_all('/feed/i', Server::getString('REQUEST_URI'))) {
+        if (defined('APBCT_ANTICRAWLER_EXLC_FEED')) {
+            if (Server::getString('REQUEST_URI') &&
+                preg_match_all('/feed/i', Server::getString('REQUEST_URI'))
+            ) {
+                return true;
+            }
+            if (is_feed()) {
                 return true;
             }
         }
