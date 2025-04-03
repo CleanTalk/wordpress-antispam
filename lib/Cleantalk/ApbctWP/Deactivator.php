@@ -6,31 +6,58 @@ use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 
 class Deactivator
 {
-    public static function deactivation($network_wide)
+    /**
+     * @param bool $network_wide - is network wide command
+     * @param bool $is_delete_action - is called from delete action
+     *
+     * @return void
+     */
+    public static function deactivation($network_wide, $is_delete_action = false)
     {
         global $apbct, $wpdb;
         if ( ! is_multisite() ) {
-            // Deactivation on standalone blog
+            /**
+             * Deactivation for standalone site (non-wpms).
+             */
 
             self::deleteTables($wpdb->prefix);
             delete_option('cleantalk_cron'); // Deleting cron entries
 
+            //this option is read from the CURRENT blog option in this case
             if ( $apbct->settings['misc__complete_deactivation'] ) {
                 self::deleteAllOptions();
                 self::deleteMeta();
                 self::deleteSFWUpdateFolder();
             }
-        } elseif ( $network_wide ) {
-            // Deactivation for network
+        } elseif ( $network_wide || $is_delete_action) {
+            /**
+             * Deactivation for network.
+             * Uses misc__complete_deactivation from MAIN site settings to set if all the options should be deleted.
+             */
+
+            /**
+             * A note: if the plugin is activated on the main site BEFORE the plugin was NETWORK ACTIVATED,
+             * the NETWORK DEACTIVATION will never deactivate the plugin on main site till it is deactivated in non-network-wide mode.
+             * This is WP logic we should not fight with.
+             */
 
             $initial_blog = get_current_blog_id();
             $blogs        = array_keys($wpdb->get_results('SELECT blog_id FROM ' . $wpdb->blogs, OBJECT_K));
             foreach ( $blogs as $blog ) {
                 switch_to_blog($blog);
+
                 self::deleteTables($wpdb->get_blog_prefix($blog));
                 delete_option('cleantalk_cron'); // Deleting cron entries
 
-                if ( $apbct->settings['misc__complete_deactivation'] ) {
+                //misc__complete_deactivation option read from the main blog only, other subsites settings ignored in this case
+                $complete_deactivation_is_enabled_on_main_site = $apbct->settings['misc__complete_deactivation'];
+
+                if (
+                    //if there is a delete action, we should delete all options ignoring all other conditions
+                    $is_delete_action ||
+                    //also if complete deactivation setting is enabled, we should delete all options too
+                    $complete_deactivation_is_enabled_on_main_site
+                ) {
                     self::deleteAllOptions();
                     self::deleteMeta();
                     self::deleteAllOptionsInNetwork();
@@ -39,11 +66,14 @@ class Deactivator
             }
             switch_to_blog($initial_blog);
         } else {
-            // Deactivation for blog
-
+            /**
+             * Deactivation for the blog in network.
+             * Uses the CURRENT blog prefix and settings.
+             */
             self::deleteTables($wpdb->prefix);
             delete_option('cleantalk_cron'); // Deleting cron entries
 
+            //this option is read from the CURRENT blog option in this case
             if ( $apbct->settings['misc__complete_deactivation'] ) {
                 self::deleteAllOptions();
                 self::deleteMeta();
