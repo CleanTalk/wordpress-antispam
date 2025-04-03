@@ -3335,6 +3335,9 @@ function apbct_ready() {
             if (ctCheckHiddenFieldsExclusions(document.forms[i], 'visible_fields')) {
                 continue;
             }
+            if (form.querySelector('input[name="wspsc_add_cart_submit"]')) {
+                continue;
+            }
 
             // The Form has hidden field like apbct_visible_fields
             if (
@@ -3380,8 +3383,10 @@ function apbct_ready() {
                 // Call previous submit action
                 if (event.target.onsubmit_prev instanceof Function && !ctOnsubmitPrevCallExclude(event.target)) {
                     event.preventDefault();
+                    const originalEvent = event;
+                    const originalForm = event.target;
                     setTimeout(function() {
-                        event.target.onsubmit_prev.call(event.target, event);
+                        originalForm.onsubmit_prev.call(originalForm, originalEvent);
                     }, 0);
                 }
             };
