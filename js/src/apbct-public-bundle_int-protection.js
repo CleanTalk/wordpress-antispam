@@ -3383,10 +3383,8 @@ function apbct_ready() {
                 // Call previous submit action
                 if (event.target.onsubmit_prev instanceof Function && !ctOnsubmitPrevCallExclude(event.target)) {
                     event.preventDefault();
-                    const originalEvent = event;
-                    const originalForm = event.target;
                     setTimeout(function() {
-                        originalForm.onsubmit_prev.call(originalForm, originalEvent);
+                        event.target.onsubmit_prev.call(event.target, event);
                     }, 0);
                 }
             };
