@@ -69,8 +69,6 @@ i.animate-spin {
 }
 .apbct_input_text{min-width: 255px; width: 400px;}
 
-.apbct_settings-field--api_key{font-size: 14pt;}
-
 .apbct_settings-long_description---show:hover{
     color: #aaaaaa;
     cursor: pointer;
@@ -436,3 +434,41 @@ button[value="save_changes"]:disabled {
     gap: 10px;
     margin: 15px 0;
 }
+
+.apbct_settings__key_line {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: row;
+}
+
+.apbct_settings__key_line__elements {
+    margin-right: 10px;
+}
+
+.apbct_setting__key_line__buttons {
+    margin: 0;
+}
+
+.apbct_setting__key_line__get_key_manual_chunk {
+    margin: 10px 0 10px 0;
+    border: 1px solid lightgray;
+    border-radius: 3px;
+    padding: 10px;
+    background: #FFF;
+}
+
+.apbct_settings__key_line__service_block{
+    margin-left: 10px;
+}
+
+#apbct_settings__public_offer {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+}
+
+#cleantalk_apikey_wrapper {
+    max-width: 65%;
+}
+
