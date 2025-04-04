@@ -3335,7 +3335,10 @@ function apbct_ready() {
             if (ctCheckHiddenFieldsExclusions(document.forms[i], 'visible_fields')) {
                 continue;
             }
-            if (form.querySelector('input[name="wspsc_add_cart_submit"]')) {
+            if (form.querySelector('input[name="wspsc_add_cart_submit"]') ||
+                form.querySelector('input[name="option"][value="com_vikrentcar"]') ||
+                form.querySelector('input[name="option"][value="com_vikbooking"]')
+            ) {
                 continue;
             }
 
