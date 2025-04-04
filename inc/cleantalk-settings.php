@@ -1830,7 +1830,7 @@ function apbct_settings__field__apikey()
 
     if ( ! (apbct_api_key__is_correct($apbct->api_key) && isset($apbct->data["key_changed"]) && $apbct->data["key_changed"]) ) {
         echo '<label class="apbct_settings__label" for="cleantalk_apkey">' . __(
-            'Access key',
+            'Access key is',
             'cleantalk-spam-protect'
         ) . '</label>';
     }
