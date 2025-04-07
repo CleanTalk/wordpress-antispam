@@ -344,6 +344,18 @@ button[value="save_changes"]:disabled {
     display: none;
 }
 
+.apbct_settings__footer {
+    background: #c2c2c2;
+    position: absolute;
+    left: 0;
+    /* right: 0; */
+    /* bottom: 0; */
+    padding-bottom: 30px;
+    padding-left: 21px;
+    /* height: 501px; */
+    z-index: -1;
+}
+
 @media (max-width: 768px) {
     .apbct_settings_top_info__btn {
         display: inline-grid;
