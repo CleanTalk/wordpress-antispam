@@ -65,6 +65,7 @@ class Enqueue
      * Run WP enqueue style/script in accordance with $this->type.
      *
      * @param EnqueueDataDTO|null $data
+     * @psalm-suppress PossiblyInvalidArgument
      */
     private function load($data)
     {
