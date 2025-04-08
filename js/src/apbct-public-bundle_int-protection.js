@@ -3967,23 +3967,34 @@ function apbctGetScreenInfo() {
 
 // eslint-disable-next-line require-jsdoc
 function ctParseBlockMessage(response) {
+    let msg = '';
     if (typeof response.apbct !== 'undefined') {
         response = response.apbct;
         if (response.blocked) {
-            document.dispatchEvent(
-                new CustomEvent( 'apbctAjaxBockAlert', {
-                    bubbles: true,
-                    detail: {message: response.comment},
-                } ),
-            );
+            msg = response.comment;
+        }
+    }
+    if (typeof response.data !== 'undefined') {
+        response = response.data;
+        if (response.message !== undefined) {
+            msg = response.message;
+        }
+    }
 
-            // Show the result by modal
-            cleantalkModal.loaded = response.comment;
-            cleantalkModal.open();
+    if (msg) {
+        document.dispatchEvent(
+            new CustomEvent( 'apbctAjaxBockAlert', {
+                bubbles: true,
+                detail: {message: msg},
+            } ),
+        );
 
-            if (+response.stop_script === 1) {
-                window.stop();
-            }
+        // Show the result by modal
+        cleantalkModal.loaded = msg;
+        cleantalkModal.open();
+
+        if (+response.stop_script === 1) {
+            window.stop();
         }
     }
 }
