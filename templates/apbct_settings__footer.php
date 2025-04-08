@@ -105,11 +105,11 @@ function apbct_settings__footer()
         }
         .apbct_footer {
             display: flex;
-            gap: 75px;
             margin-bottom: 20px;
         }
         .apbct_footer_column {
             margin: 0 0 20px 0px;
+            width: 100%;
         }
         .apbct_footer_column h3 {
             cursor: pointer;
@@ -121,10 +121,10 @@ function apbct_settings__footer()
             padding: 0;
             margin: 0;
             column-count: 2;
-            column-gap: 75px;
+            column-gap: 10px;
         }
         .apbct_footer_links li {
-            margin-bottom: 5px;
+            margin-bottom: 10px;
         }
         .apbct_footer_links a {
             text-decoration: none;
