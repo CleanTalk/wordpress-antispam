@@ -10,31 +10,31 @@ add_action('admin_footer', 'apbct_settings__footer');
 function apbct_settings__footer()
 {
     $block1_links = [
-        ['text' => 'CleanTalk Security for Websites', 'url' => LinkConstructor::buildCleanTalkLink(
+        ['text' => __('CleanTalk Security for Websites', 'cleantalk-spam-protect'), 'url' => LinkConstructor::buildCleanTalkLink(
             'settings_footer__spbct_link',
             'my',
             array(
                 'cp_mode' => 'security',
             )
         )],
-        ['text' => 'WordPress Malware Removal Service', 'url' => LinkConstructor::buildCleanTalkLink(
+        ['text' => __('WordPress Malware Removal Service', 'cleantalk-spam-protect'), 'url' => LinkConstructor::buildCleanTalkLink(
             'settings_footer__malware_removal_link',
             'wordpress-website-malware-removal',
             array(),
             'https://l.cleantalk.org'
         )],
-        ['text' => 'Uptime Monitoring', 'url' => LinkConstructor::buildCleanTalkLink(
+        ['text' => __('Uptime Monitoring', 'cleantalk-spam-protect'), 'url' => LinkConstructor::buildCleanTalkLink(
             'settings_footer__uptime_monitoring_link',
             'my',
             array(
                 'cp_mode' => 'uptime_monitoring',
             )
         )],
-        ['text' => 'SSL Certificates', 'url' => LinkConstructor::buildCleanTalkLink(
+        ['text' => __('SSL Certificates', 'cleantalk-spam-protect'), 'url' => LinkConstructor::buildCleanTalkLink(
             'settings_footer__ssl_cert_link',
             'ssl-certificates/cheap-positivessl-certificate'
         )],
-        ['text' => 'doBoard - online project management', 'url' => LinkConstructor::buildCleanTalkLink(
+        ['text' => __('doBoard - online project management', 'cleantalk-spam-protect'), 'url' => LinkConstructor::buildCleanTalkLink(
             'settings_footer__doboard_link',
             '',
             array(),
@@ -42,7 +42,7 @@ function apbct_settings__footer()
         )],
     ];
     $block2_links = [
-        ['text' => 'Top rated contact form by Everest', 'url' => 'https://wordpress.org/plugins/everest-forms/#description'],
+        ['text' => __('Top rated contact form by Everest', 'cleantalk-spam-protect'), 'url' => 'https://wordpress.org/plugins/everest-forms/#description'],
     ];
 
     ?>
