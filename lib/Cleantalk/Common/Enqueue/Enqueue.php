@@ -271,7 +271,7 @@ class Enqueue
      */
     private function validateWebPath($path)
     {
-        if (! preg_match('/^http?:\/\//', $path)) {
+        if (! preg_match('/^https?:\/\//', $path)) {
             $this->errorLog(__('Web path for script is invalid: ' . $path, 'cleantalk-spam-protect'));
             return $path;
         }
