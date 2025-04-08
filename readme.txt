@@ -2,9 +2,9 @@
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 6.53
+Stable tag: 6.54
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -441,6 +441,20 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.54 10.04.2025 =
+* New. Code. Enqueue scripts via specialized handler.
+* New. Settings. Email Encoder. Now the obfuscation way can be selected (blur/obf/replace).
+* Fix. ExternalForms. Excluding the creation of a textarea with the value of the submit attribute.
+* Fix. Integrations. Fixed gravity form flow.
+* Fix. Integrations. Fixed vikrentcar and vikbooking.
+* Fix. Integrations. Fixed wspsc add cart.
+* Fix. Integrations. Fixed zoho form flow.
+* Fix. Integrations. Rollback preventDefault action.
+* Fix. UsersScan. Added check for ct_role existence in user data before processing.
+* Ref. Email Encoder. Obfuscation refactored.
+* Upd. Integrations. Added spam check for buddyboss edit.
+* Upd. Integrations. Ninja forms. Now integration can provide additional email addresses array via GetFieldsAnyDto.
 
 = 6.53 27.03.2025 =
 * New. Integration. Event Manager - booking form
