@@ -1949,7 +1949,10 @@ function apbct_form__ninjaForms__collect_fields_new()
                 if ( stripos($field_key, 'name') !== false && stripos($field_type, 'name') !== false ) {
                     $nickname .= ' ' . $field['value'];
                 }
-                if ( stripos($field_key, 'email') !== false && $field_type === 'email' ) {
+                if (
+                    (stripos($field_key, 'email') !== false && $field_type === 'email') ||
+                    (function_exists('is_email') && is_email($field['value']))
+                ) {
                     /**
                      * On the plugin side we can not decide which of presented emails have to be used for check as sender_email,
                      * so we do collect any of them and provide to GFA as $emails_array param.
