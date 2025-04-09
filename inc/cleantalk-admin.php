@@ -528,15 +528,13 @@ function apbct_admin__enqueue_scripts($hook)
     wp_localize_script('cleantalk-admin-js', 'ctAdminCommon', $data);
 
     // DASHBOARD page JavaScript and CSS
-    if ( $hook == 'index.php' && apbct_is_user_role_in(array('administrator')) ) {
-        ApbctEnqueue::getInstance()->css('cleantalk-dashboard-widget.css');
-
+    if (
+        $hook == 'index.php' &&
+        apbct_is_user_role_in(array('administrator')) &&
+        $apbct->settings['wp__dashboard_widget__show'] &&
+        ! $apbct->moderate_ip
+    ) {
         // Enqueue widget scripts if the dashboard widget enabled and not IP license
-        if ( $apbct->settings['wp__dashboard_widget__show'] && ! $apbct->moderate_ip ) {
-            ApbctEnqueue::getInstance()->js('cleantalk-dashboard-widget--chartjs.js', array('jquery'));
-            ApbctEnqueue::getInstance()->js('cleantalk-dashboard-widget.js', array('cleantalk-dashboard-widget--chartjs'));
-        }
-
         // Preparing widget data
         // Parsing brief data 'spam_stat' {"yyyy-mm-dd": spam_count, "yyyy-mm-dd": spam_count} to [["yyyy-mm-dd", "spam_count"], ["yyyy-mm-dd", "spam_count"]]
         $to_chart = array();
@@ -559,7 +557,10 @@ function apbct_admin__enqueue_scripts($hook)
             array_shift($to_chart);
         }
 
-        wp_localize_script('cleantalk-admin-js-widget-dashboard-js', 'apbctDashboardWidget', array(
+        ApbctEnqueue::getInstance()->css('cleantalk-dashboard-widget.css');
+        $widget_chart_handler = ApbctEnqueue::getInstance()->js('cleantalk-dashboard-widget--chartjs.js', array('jquery'));
+        $widget_handler = ApbctEnqueue::getInstance()->js('cleantalk-dashboard-widget.js', array($widget_chart_handler));
+        wp_localize_script($widget_handler, 'apbctDashboardWidget', array(
             'data' => $to_chart,
         ));
     }
