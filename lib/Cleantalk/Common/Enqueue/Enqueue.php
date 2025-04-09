@@ -276,7 +276,7 @@ class Enqueue
             return $path;
         }
         $abs_path = str_replace($this->assets_path, $this->plugin_path, $path);
-        if (!@file_exists($abs_path)) {
+        if (!@file_exists($abs_path) && !@file_get_contents($abs_path)) {
             $this->errorLog(__('Script file is not accessible:' . $path, 'cleantalk-spam-protect'));
             return $path;
         }

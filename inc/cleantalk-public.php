@@ -1287,10 +1287,14 @@ function apbct_enqueue_and_localize_public_scripts()
 
     // Bot detector
     if ( $apbct->settings['data__bot_detector_enabled'] && ! apbct_bot_detector_scripts_exclusion()) {
-        ApbctEnqueue::getInstance()->js('https://moderate.cleantalk.org/ct-bot-detector-wrapper.js', array(), array(
-                'in_footer' => $in_footer,
-                'strategy' => 'defer'
-        ));
+        ApbctEnqueue::getInstance()->custom(
+            'ct-bot-detector-wrapper',
+            'https://moderate.cleantalk.org/ct-bot-detector-wrapper.js',
+            array(),
+            null,
+            array(),
+            null
+        );
     }
 
     ApbctEnqueue::getInstance()->css('cleantalk-public.css');
