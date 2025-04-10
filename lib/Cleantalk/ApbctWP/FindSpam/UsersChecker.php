@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\FindSpam;
 
 use Cleantalk\ApbctWP\AJAXService;
+use Cleantalk\ApbctWP\ApbctEnqueue;
 use Cleantalk\ApbctWP\FindSpam\ListTable\BadUsers;
 use Cleantalk\ApbctWP\FindSpam\ListTable\UsersLogs;
 use Cleantalk\ApbctWP\FindSpam\ListTable\UsersScan;
@@ -37,13 +38,8 @@ class UsersChecker extends Checker
             }
         }
 
-        wp_enqueue_script(
-            'ct_users_checkspam',
-            APBCT_JS_ASSETS_PATH . '/cleantalk-users-checkspam.min.js',
-            array('jquery', 'jquery-ui-core'),
-            APBCT_VERSION
-        );
-        wp_localize_script('ct_users_checkspam', 'ctUsersCheck', array(
+        ApbctEnqueue::getInstance()->js('cleantalk-users-checkspam.js', array('jquery', 'jquery-ui-core'));
+        wp_localize_script('cleantalk-users-checkspam-js', 'ctUsersCheck', array(
             'ct_ajax_nonce'            => $apbct->ajax_service->getAdminNonce(),
             'ct_prev_accurate'         => ! empty($prev_check['accurate']) ? true : false,
             'ct_prev_from'             => ! empty($prev_check_from) ? $prev_check_from : false,
@@ -74,13 +70,7 @@ class UsersChecker extends Checker
             'ct_select_date_range' => esc_html__('Please, select a date range.', 'cleantalk-spam-protect'),
         ));
 
-        wp_enqueue_style(
-            'cleantalk_admin_css_settings_page',
-            APBCT_JS_ASSETS_PATH . '/cleantalk-spam-check.min.css',
-            array(),
-            APBCT_VERSION,
-            'all'
-        );
+        ApbctEnqueue::getInstance()->css('cleantalk-spam-check.css');
     }
 
     /**

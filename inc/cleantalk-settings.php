@@ -626,7 +626,24 @@ function apbct_settings__set_fields()
                 'data__email_decoder'        => array(
                     'title' => __('Encode contact data', 'cleantalk-spam-protect'),
                     'description' => EmailEncoder::getEncoderOptionDescription(),
-                    'childrens' => array('data__email_decoder_buffer')
+                    'childrens' => array('data__email_decoder_buffer', 'data__email_decoder_obfuscation_mode', 'data__email_decoder_obfuscation_custom_text')
+                ),
+                'data__email_decoder_obfuscation_mode'        => array(
+                    'title'             => __('Encoder obfuscation mode', 'cleantalk-spam-protect'),
+                    'description'       => EmailEncoder::getObfuscationModesDescription(),
+                    'parent'            => 'data__email_decoder',
+                    'class'             => 'apbct_settings-field_wrapper--sub',
+                    'options'  => EmailEncoder::getObfuscationModesOptionsArray(),
+                    'childrens' => array('data__email_decoder_obfuscation_custom_text'),
+                    'long_description' => true,
+                ),
+                'data__email_decoder_obfuscation_custom_text'             => array(
+                    'type'        => 'textarea',
+                    'title'       => __('Custom text to replace email', 'cleantalk-spam-protect'),
+                    'value' => EmailEncoder::getDefaultReplacingText(),
+                    'description'       => __('If appropriate mode selected, this text will be shown instead of an email.', 'cleantalk-spam-protect'),
+                    'parent' => 'data__email_decoder_obfuscation_mode',
+                    'class' => 'apbct_settings-field_wrapper--sub',
                 ),
                 'data__email_decoder_buffer'        => array(
                     'title'       => __('Use the output buffer', 'cleantalk-spam-protect'),
@@ -2512,6 +2529,28 @@ function apbct_settings__validate($settings)
         \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
     }
 
+    //email encoder obfuscation custom text validation
+    if (
+            isset($settings['data__email_decoder_obfuscation_mode'])
+            && $settings['data__email_decoder_obfuscation_mode'] === 'replace'
+    ) {
+        if (empty($settings['data__email_decoder_obfuscation_custom_text'])) {
+            $apbct->errorDelete('email_encoder', true, 'settings_validate');
+            $settings['data__email_decoder_obfuscation_custom_text'] = EmailEncoder::getDefaultReplacingText();
+            $apbct->errorAdd(
+                'email_encoder',
+                'custom text can not be empty, default value applied.',
+                'settings_validate'
+            );
+        } else {
+            $settings['data__email_decoder_obfuscation_custom_text'] = sanitize_textarea_field($settings['data__email_decoder_obfuscation_custom_text']);
+            $apbct->errorDelete('email_encoder', true, 'settings_validate');
+        }
+    } else {
+        $apbct->errorDelete('email_encoder', true, 'settings_validate');
+        $settings['data__email_decoder_obfuscation_custom_text'] = EmailEncoder::getDefaultReplacingText();
+    }
+
     /**
      * Triggered before returning the settings
      */
@@ -3049,6 +3088,10 @@ function apbct_settings__get__long_description()
             <p><code>' . htmlspecialchars('<div id="my-parent-div"><form id="my-form" method="get"></form></div>') . '</code></p>
             you can exclude the same form using attribute name
             <p><code>^my-parent-div$</code></p>',
+        ),
+        'data__email_decoder_obfuscation_mode' => array(
+            'title' => __('Email Encoder obfuscation modes', 'cleantalk-spam-protect'),
+            'desc'  => EmailEncoder::getObfuscationModesLongDescription(),
         ),
     );
 

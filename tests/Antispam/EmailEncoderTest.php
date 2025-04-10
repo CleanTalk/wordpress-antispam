@@ -16,6 +16,9 @@ use PHPUnit\Framework\TestCase;
 class EmailEncoderTest extends TestCase
 {
 
+    /**
+     * @var EmailEncoder
+     */
     private $email_encoder;
 
     private $plain_text = 'This is a plain text';
@@ -55,6 +58,57 @@ class EmailEncoderTest extends TestCase
         global $apbct;
         $this->assertFalse($apbct->isHaveErrors());
         $this->assertEquals($decoded_entity, $this->plain_text);
+    }
+
+    public function testEmailObfuscation()
+    {
+        $test_array = array(
+            ['alex@comon.com', 'al**@***on.com'],
+            ['meya.com', 'meya.com'],
+            ['meya.com@', 'meya.com@'],
+            ['alexander@ya.com', 'al*******@**.com'],
+            ['me@ya.com', '**@**.com'],
+            ['danger.not.of.mine@yandexooobfuscaaated.com', 'da****************@******************ed.com'],
+            ['@@@', '@@@'],
+            ['@.@.@', '@.@.@'],
+        );
+        foreach ($test_array as $item) {
+            $result = $this->email_encoder->getObfuscatedEmailString($item[0]);
+            $this->assertEquals($item[1],$result);
+        }
+    }
+
+    public function testEmailObfuscationModes()
+    {
+        global $apbct;
+        $test_email = 'alex@comon.com';
+        $test_email_obf = 'al\*\*\@\*\*\*on\.com';
+        $test_email_replace = 'REPLACEBYME';
+        $regexp_for_blur = '/.+data-original-string=[\s\S]+apbct-email-encoder[\s\S]+browser\.\">[\s\S]+apbct-blur[\s\S]+\*?apbct-blur[\s\S]+\*+<\/span>[\s\S]+<\/span>/';
+        $regexp_for_obfuscation = '/.+data-original-string=[\s\S]+apbct-email-encoder[\s\S]+browser\.\">+' . $test_email_obf . '/';
+        $regexp_for_replace = '/.+data-original-string=[\s\S]+apbct-email-encoder[\s\S]+browser\.\">+' . $test_email_replace . '/';
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = 'blur';
+        $apbct->saveSettings();
+        $result = $this->email_encoder->modifyEmails($test_email);
+        $this->assertNotRegExp($regexp_for_obfuscation, $result);
+        $this->assertNotRegExp($regexp_for_replace, $result);
+        $this->assertRegExp($regexp_for_blur, $result);
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = 'obfuscate';
+        $apbct->saveSettings();
+        $result = $this->email_encoder->modifyEmails($test_email);
+        $this->assertNotRegExp($regexp_for_replace, $result);
+        $this->assertNotRegExp($regexp_for_blur, $result);
+        $this->assertRegExp($regexp_for_obfuscation, $result);
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = 'replace';
+        $apbct->settings['data__email_decoder_obfuscation_custom_text'] = $test_email_replace;
+        $apbct->saveSettings();
+        $result = $this->email_encoder->modifyEmails($test_email);
+        $this->assertNotRegExp($regexp_for_blur, $result);
+        $this->assertNotRegExp($regexp_for_obfuscation, $result);
+        $this->assertRegExp($regexp_for_replace, $result);
     }
 
 }
