@@ -112,7 +112,6 @@ function apbct_settings__footer()
             width: 100%;
         }
         .apbct_footer_column h3 {
-            cursor: pointer;
             margin-bottom: 10px;
             color: #3c434a;
         }
@@ -172,6 +171,9 @@ function apbct_settings__footer()
             }
             .apbct_footer_column {
                 justify-items: normal;
+            }
+            .apbct_footer_column h3 {
+                cursor: pointer;
             }
         }
     </style>
