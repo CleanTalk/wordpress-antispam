@@ -624,6 +624,65 @@ function ct_bbp_new_pre_content($comment)
 }
 
 /**
+ * Public filter 'bbp_*' - Checks edit replies by cleantalk
+ *
+ * @param string $comment Comment string
+ * @param int $comment_id Comment ID
+ * @psalm-suppress UnusedParam
+ */
+function ct_bbp_edit_pre_content($comment, $comment_id)
+{
+    global $apbct, $current_user;
+
+    if ( ! $apbct->settings['forms__comments_test'] ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+
+        return $comment;
+    }
+
+    // Skip processing for logged in users and admin.
+    if ( ! $apbct->settings['data__protect_logged_in'] && (is_user_logged_in() || apbct_exclusions_check()) ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+
+        return $comment;
+    }
+
+    $post_info = array();
+    $post_info['comment_type'] = 'bbpress_edit_comment';
+    /** @psalm-suppress UndefinedFunction */
+    $post_info['post_url']     = bbp_get_topic_permalink();
+
+    if ( is_user_logged_in() ) {
+        $sender_email    = $current_user->user_email;
+        $sender_nickname = $current_user->display_name;
+    } else {
+        $sender_email    = Sanitize::cleanEmail(Post::get('bbp_anonymous_email'));
+        $sender_nickname = Sanitize::cleanUser(Post::get('bbp_anonymous_name'));
+    }
+
+    $base_call_result = apbct_base_call(
+        array(
+            'message'         => $comment,
+            'sender_email'    => $sender_email,
+            'sender_nickname' => $sender_nickname,
+            'post_info'       => $post_info,
+            'sender_info'     => array('sender_url' => Sanitize::cleanUrl(Post::get('bbp_anonymous_website'))),
+        )
+    );
+
+    if ( isset($base_call_result['ct_result']) ) {
+        $ct_result = $base_call_result['ct_result'];
+
+        if ( $ct_result->allow == 0 ) {
+            /** @psalm-suppress UndefinedFunction */
+            bbp_add_error('bbp_reply_content', $ct_result->comment);
+        }
+    }
+
+    return $comment;
+}
+
+/**
  * Insert a hidden field to registration form
  * @return null|bool
  */
@@ -1877,7 +1936,8 @@ function apbct_form__ninjaForms__collect_fields_new()
 
     $nf_form_fields = $form_data['fields'];
     $nickname = '';
-    $email = '';
+    $nf_prior_email = '';
+    $nf_emails_array = array();
     $fields = [];
     foreach ($nf_form_fields as $field) {
         if ( isset($nf_form_fields_info_array[$field['id']]) ) {
@@ -1889,14 +1949,25 @@ function apbct_form__ninjaForms__collect_fields_new()
                 if ( stripos($field_key, 'name') !== false && stripos($field_type, 'name') !== false ) {
                     $nickname .= ' ' . $field['value'];
                 }
-                if ( stripos($field_key, 'email') !== false && $field_type === 'email' ) {
-                    $email = $field['value'];
+                if (
+                    (stripos($field_key, 'email') !== false && $field_type === 'email') ||
+                    (function_exists('is_email') && is_email($field['value']))
+                ) {
+                    /**
+                     * On the plugin side we can not decide which of presented emails have to be used for check as sender_email,
+                     * so we do collect any of them and provide to GFA as $emails_array param.
+                     */
+                    if (empty($nf_prior_email)) {
+                        $nf_prior_email = $field['value'];
+                    } else {
+                        $nf_emails_array[] = $field['value'];
+                    }
                 }
             }
         }
     }
 
-    return ct_gfa_dto($fields, $email, $nickname);
+    return ct_gfa_dto($fields, $nf_prior_email, $nickname, $nf_emails_array);
 }
 
 /**

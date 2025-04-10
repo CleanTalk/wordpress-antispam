@@ -125,4 +125,75 @@ class TestGetFieldsAny extends TestCase {
         $this->assertInstanceOf(GetFieldsAnyDTO::class, $result);
         $this->assertFalse($result->contact);
     }
+
+    public function testEmptyPreprocessedEmailsArray()
+    {
+        $result = ct_gfa_dto(array(),'', '');
+        $this->assertIsObject( $result );
+        $this->assertInstanceOf(GetFieldsAnyDTO::class, $result);
+        $this->assertEmpty($result->emails_array);
+    }
+
+    public function testValidPreprocessedEmailsArray()
+    {
+        $emails_array = array(
+            's@cleantalk.org',
+            's2@cleantalk.org',
+            's3@cleantalk.org',
+        );
+        $result = ct_gfa_dto(array(),'', '', $emails_array);
+        $this->assertIsObject( $result );
+        $this->assertInstanceOf(GetFieldsAnyDTO::class, $result);
+        $this->assertNotEmpty($result->emails_array);
+        $this->assertEquals($emails_array, $result->emails_array);
+    }
+
+    public function testNotArrayPreprocessedEmailsArray()
+    {
+        $emails_array = 'string';
+        $result = ct_gfa_dto(array(),'', '', $emails_array);
+        $this->assertIsObject( $result );
+        $this->assertInstanceOf(GetFieldsAnyDTO::class, $result);
+        $this->assertEmpty($result->emails_array);
+    }
+
+    public function testPartiallyInvalidPreprocessedEmailsArray()
+    {
+        $emails_array = array(
+            's@cleantalk.org',
+            's2@cleantalk.org',
+            array(),
+            new StdClass(),
+            ''
+        );
+        $expected = array(
+            's@cleantalk.org',
+            's2@cleantalk.org',
+            'invalid_preprocessed_email',
+            'invalid_preprocessed_email',
+            'invalid_preprocessed_email',
+        );
+        $result = ct_gfa_dto(array(),'', '', $emails_array);
+        $this->assertIsObject( $result );
+        $this->assertInstanceOf(GetFieldsAnyDTO::class, $result);
+        $this->assertNotEmpty($result->emails_array);
+        $this->assertEquals($expected, $result->emails_array);
+    }
+
+    public function testTotalInvalidPreprocessedEmailsArray()
+    {
+        $emails_array = array(
+            array(),
+            new StdClass(),
+        );
+        $expected = array(
+            'invalid_preprocessed_email',
+            'invalid_preprocessed_email',
+        );
+        $result = ct_gfa_dto(array(),'', '', $emails_array);
+        $this->assertIsObject( $result );
+        $this->assertInstanceOf(GetFieldsAnyDTO::class, $result);
+        $this->assertNotEmpty($result->emails_array);
+        $this->assertEquals($expected, $result->emails_array);
+    }
 }

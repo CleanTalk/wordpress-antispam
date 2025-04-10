@@ -427,7 +427,40 @@ jQuery(document).ready(function() {
         document.querySelector('#apbct_hidden_section_nav ul').style.display = 'none';
         document.querySelector('.apbct_hidden_section_nav_mob_btn').style.display = 'block';
     });
+
+    // Hide/show EmailEncoder replacing text textarea
+    apbctManageEmailEncoderCustomTextField();
 });
+
+/**
+ * Hide/show EmailEncoder replacing text textarea
+ */
+function apbctManageEmailEncoderCustomTextField() {
+    const replacingText = document
+        .querySelector('#apbct_setting_data__email_decoder_obfuscation_custom_text');
+    let replacingTextWrapperSub;
+    if (replacingText !== null) {
+        replacingTextWrapperSub = typeof replacingText.parentElement !== 'undefined' ?
+            replacingText.parentElement :
+            null;
+    }
+    document.querySelectorAll('.apbct_setting---data__email_decoder_obfuscation_mode').forEach((elem) => {
+        // visibility set on saved settings
+        if (replacingTextWrapperSub && elem.checked && elem.value !== 'replace') {
+            replacingTextWrapperSub.classList.add('hidden');
+        }
+        // visibility set on change
+        elem.addEventListener('click', (event) => {
+            if (typeof replacingTextWrapperSub !== 'undefined') {
+                if (event.target.value === 'replace') {
+                    replacingTextWrapperSub.classList.remove('hidden');
+                } else {
+                    replacingTextWrapperSub.classList.add('hidden');
+                }
+            }
+        });
+    });
+}
 
 /**
  * Checking current account status for renew notice
