@@ -64,23 +64,29 @@ class NoCookie
      */
     public static function setDataFromHiddenField($data)
     {
-        if ( !empty($data) && is_string($data)) {
+        if (!empty($data)) {
             // remove noise if exists
             $delimiters = ['_ct_no_cookie_data_', '%', '&'];
             foreach ($delimiters as $delimiter) {
-                $noise_start_on = strpos($data, $delimiter);
-                if ($noise_start_on !== false) {
-                    $data = substr($data, $noise_start_on);
+                if ($data !== false) {
+                    $noise_start_on = strpos($data, $delimiter);
+                    if ($noise_start_on !== false) {
+                        $data = substr($data, $noise_start_on);
+                    }
                 }
             }
             //delete sign of no cookie raw data
-            $data = str_replace('_ct_no_cookie_data_', '', $data);
+            if ($data !== false) {
+                $data = str_replace('_ct_no_cookie_data_', '', $data);
+            }
             //decode raw data
-            $data = base64_decode($data);
-            if ( $data ) {
+            if ($data !== false) {
+                $data = base64_decode($data);
+            }
+            if ($data !== false) {
                 //decode json
                 $data = json_decode($data, true);
-                if ( !empty($data) && is_array($data) ) {
+                if (!empty($data) && is_array($data)) {
                     self::$no_cookies_data = array_merge(self::$no_cookies_data, $data);
                     return true;
                 }

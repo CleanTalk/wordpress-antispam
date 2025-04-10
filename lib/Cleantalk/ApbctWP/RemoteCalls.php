@@ -92,7 +92,11 @@ class RemoteCalls
                 $apbct->save('remote_calls');
 
                 if ( ! self::isRcAllowed() ) {
-                    die('FAIL ' . json_encode(array('error' => 'FORBIDDEN')));
+                    $json = json_encode(array('error' => 'FORBIDDEN'));
+                    if ($json === false) {
+                        die('FAIL');
+                    }
+                    die('FAIL ' . $json);
                 }
 
                 // Check Access key
@@ -123,16 +127,32 @@ class RemoteCalls
                         }
                         $out = self::$action();
                     } else {
-                        $out = 'FAIL ' . json_encode(array('error' => 'UNKNOWN_ACTION_METHOD'));
+                        $json = json_encode(array('error' => 'UNKNOWN_ACTION_METHOD'));
+                        if ($json === false) {
+                            die('FAIL');
+                        }
+                        die('FAIL ' . $json);
                     }
                 } else {
-                    $out = 'FAIL ' . json_encode(array('error' => 'WRONG_TOKEN'));
+                    $json = json_encode(array('error' => 'WRONG_TOKEN'));
+                    if ($json === false) {
+                        die('FAIL');
+                    }
+                    die('FAIL ' . $json);
                 }
             } else {
-                $out = 'FAIL ' . json_encode(array('error' => 'TOO_MANY_ATTEMPTS'));
+                $json = json_encode(array('error' => 'TOO_MANY_ATTEMPTS'));
+                if ($json === false) {
+                    die('FAIL');
+                }
+                die('FAIL ' . $json);
             }
         } else {
-            $out = 'FAIL ' . json_encode(array('error' => 'UNKNOWN_ACTION'));
+            $json = json_encode(array('error' => 'UNKNOWN_ACTION'));
+            if ($json === false) {
+                die('FAIL');
+            }
+            die('FAIL ' . $json);
         }
 
         if ( $out ) {
@@ -161,7 +181,7 @@ class RemoteCalls
     /**
      * SFW update
      *
-     * @return void
+     * @return never
      *
      * @psalm-suppress UnusedVariable
      */
@@ -170,13 +190,23 @@ class RemoteCalls
         global $apbct;
         $result = apbct_sfw_update__init();
         $apbct->errorToggle(! empty($result['error']), 'sfw_update', $result);
-        die(empty($result['error']) ? 'OK' : 'FAIL ' . json_encode(array('error' => $result['error'])));
+        if ( ! empty($result['error']) && isset($result['error']) ) {
+            SFWUpdateHelper::cleanData();
+
+            $json = json_encode(array('error' => $result['error']));
+            if ($json === false) {
+                die('FAIL');
+            }
+            die('FAIL ' . $json);
+        }
+
+        die('OK');
     }
 
     /**
      * SFW update
      *
-     * @return string
+     * @return never
      *
      * @psalm-suppress UnusedVariable
      */
@@ -187,7 +217,11 @@ class RemoteCalls
         if ( ! empty($result['error']) ) {
             SFWUpdateHelper::cleanData();
 
-            die('FAIL ' . json_encode(array('error' => $result['error'])));
+            $json = json_encode(array('error' => $result['error']));
+            if ($json === false) {
+                die('FAIL');
+            }
+            die('FAIL ' . $json);
         }
 
         die('OK');
@@ -319,7 +353,7 @@ class RemoteCalls
             $out['alt_sessions_auto_state_reason'] = $apbct->isAltSessionsRequired(true);
         }
 
-        if ( APBCT_WPMS ) {
+        if ( defined('APBCT_WPMS') && constant('APBCT_WPMS') !== false ) {
             $out['network_settings'] = $apbct->network_settings;
             $out['network_data']     = $apbct->network_data;
         }
@@ -334,7 +368,11 @@ class RemoteCalls
         }
 
         if ( Request::equal('out', 'json') ) {
-            die(json_encode($out));
+            $json = json_encode($out);
+            if ($json === false) {
+                die('FAIL');
+            }
+            die($json);
         }
         array_walk($out, function (&$val, $_key) {
             $val = (array)$val;
@@ -351,6 +389,9 @@ class RemoteCalls
         $out = str_replace("\n", "<br>", $out);
         $out = preg_replace("/[^\S]{4}/", "&nbsp;&nbsp;&nbsp;&nbsp;", $out);
 
+        if ($out === null) {
+            die('FAIL');
+        }
         die($out);
     }
 
@@ -389,7 +430,11 @@ class RemoteCalls
 
         $key = trim(Request::getString('api_key'));
         if ( ! apbct_api_key__is_correct($key) ) {
-            die(json_encode(['FAIL' => ['error' => 'Api key is incorrect']]));
+            $json = json_encode(['FAIL' => ['error' => 'Api key is incorrect']]);
+            if ($json === false) {
+                die('FAIL');
+            }
+            die($json);
         }
 
         require_once APBCT_DIR_PATH . 'inc/cleantalk-settings.php';
@@ -424,7 +469,11 @@ class RemoteCalls
 
         \apbct_settings__sync(true);
 
-        die(json_encode(['OK' => ['template_id' => $template_id]]));
+        $json = json_encode(['OK' => ['template_id' => $template_id]]);
+        if ($json === false) {
+            die('FAIL');
+        }
+        die($json);
     }
 
     public static function action__rest_check() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
@@ -539,7 +588,7 @@ class RemoteCalls
 
     /**
      * Returns the fresh WP nonce depending on the AJAX type (rest/admin_ajax).
-     * @return string
+     * @return string|bool
      */
     public static function action__get_fresh_wpnonce() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
@@ -588,7 +637,7 @@ class RemoteCalls
             $value_for_token &&
             (
                 $token === strtolower(md5($value_for_token)) ||
-                $token === strtolower(hash('sha256', $value_for_token))
+                ($hash = hash('sha256', $value_for_token)) !== false && $token === strtolower($hash)
             );
     }
 }

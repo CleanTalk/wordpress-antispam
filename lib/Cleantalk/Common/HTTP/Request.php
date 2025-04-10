@@ -265,7 +265,6 @@ class Request
                 curl_setopt_array($curl_arr[$i], $this->options);
                 curl_multi_add_handle($mh, $curl_arr[$i]);
             }
-
         }
 
         do {

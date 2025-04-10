@@ -17,8 +17,8 @@ use Cleantalk\ApbctWP\Firewall\SFWUpdateSentinel;
  * @license GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  *
  * @psalm-suppress PossiblyUnusedProperty
+ * @psalm-suppress InvalidAttribute
  */
-
  #[AllowDynamicProperties]
 class State extends \Cleantalk\Common\State
 {

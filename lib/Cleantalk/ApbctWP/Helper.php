@@ -189,7 +189,7 @@ class Helper extends \Cleantalk\Common\Helper
                            ' RESPONSE: ' .
                            '"' .
                            htmlspecialchars(
-                               substr(
+                               (string)substr(
                                    ! is_string($result) ? print_r($result, true) : $result,
                                    0,
                                    400
@@ -277,7 +277,9 @@ class Helper extends \Cleantalk\Common\Helper
             return array();
         }
 
-        return array_map('static::arrayObjectToArray', (array)$object);
+        return array_map(function ($item) {
+            return self::arrayObjectToArray($item);
+        }, (array)$object);
     }
 
     /**

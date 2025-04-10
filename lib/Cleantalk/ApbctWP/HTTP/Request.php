@@ -139,7 +139,8 @@ class Request extends \Cleantalk\Common\HTTP\Request
 
         foreach ( $responses_raw as $response ) {
             if ( $response instanceof \Exception ) {
-                $responses[$this->url] = new Response(['error' => $response->getMessage()], []);
+                $url = is_array($this->url) ? reset($this->url) : $this->url;
+                $responses[$url] = new Response(['error' => $response->getMessage()], []);
                 continue;
             }
             if ( $response instanceof $response_class ) {
@@ -195,7 +196,7 @@ class Request extends \Cleantalk\Common\HTTP\Request
 
                     case 'ssl':
                         $this->options['verifyname'] = true;
-                        if ( defined('APBCT_CASERT_PATH') && APBCT_CASERT_PATH ) {
+                        if ( defined('APBCT_CASERT_PATH') ) {
                             $this->options['verify'] = APBCT_CASERT_PATH;
                         }
                         break;
@@ -245,14 +246,18 @@ class Request extends \Cleantalk\Common\HTTP\Request
                     if ($found_delimiter !== false) {
                         $sub1 = substr($header, 0, $found_delimiter);
                         $sub2 = substr($header, $found_delimiter + 2);
-                        $mod_header = $sub1 . $separator . $sub2;
+                        if ($sub1 !== false && $sub2 !== false) {
+                            $mod_header = $sub1 . $separator . $sub2;
+                        }
                     } else {
                         //Check if header has a delimiter ":" without space  - very first
                         $found_delimiter = stripos($header, ':');
                         if ($found_delimiter !== false) {
                             $sub1 = substr($header, 0, $found_delimiter);
                             $sub2 = substr($header, $found_delimiter + 1);
-                            $mod_header = $sub1 . $separator . $sub2;
+                            if ($sub1 !== false && $sub2 !== false) {
+                                $mod_header = $sub1 . $separator . $sub2;
+                            }
                         }
                     }
                     //if any found - add to the headers

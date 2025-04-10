@@ -278,11 +278,11 @@ class GetFieldsAny
 
                 // Try parse URL from the string, only single line is applicable
                 if (strpos($value, "\n") === false && strpos($value, "\r") === false) {
-                    parse_str(urldecode($tmp), $decoded_url_value);
+                    parse_str($tmp !== null ? urldecode($tmp) : '', $decoded_url_value);
                 }
 
                 // Try parse JSON from the string
-                $decoded_json_value = json_decode($tmp, true);
+                $decoded_json_value = $tmp !== null ? json_decode($tmp, true) : null;
 
                 if ($decoded_json_value !== null) {
                     // If there is "JSON data" set is it as a value

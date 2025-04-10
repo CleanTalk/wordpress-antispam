@@ -187,7 +187,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
     /********************************************************/
 
     /**
-     * @param $order_details
+     * @param string $order_details
      *
      * @return string
      *
@@ -195,14 +195,29 @@ class WcSpamOrdersListTable extends CleantalkListTable
      */
     private function renderOrderDetailsColumn($order_details)
     {
-        $order_details = array_values(json_decode($order_details, true));
-        $result        = '';
+        $decoded_order_details = json_decode($order_details, true);
+        if (!is_array($decoded_order_details)) {
+            return '';
+        }
 
-        foreach ( $order_details as $order_detail ) {
-            $result .= "<b>" . wc_get_product($order_detail['product_id'])->get_title() . "</b>";
-            $result .= " - ";
-            $result .= $order_detail['quantity'];
-            $result .= "<br>";
+        $order_details = array_values($decoded_order_details);
+        $result = '';
+
+        foreach ($order_details as $order_detail) {
+            if (
+                is_array($order_detail)
+                && isset($order_detail['product_id'])
+                && isset($order_detail['quantity'])
+                && is_numeric($order_detail['product_id'])
+            ) {
+                $product = wc_get_product((int)$order_detail['product_id']);
+                if ($product) {
+                    $result .= "<b>" . $product->get_title() . "</b>";
+                    $result .= " - ";
+                    $result .= (string)$order_detail['quantity'];
+                    $result .= "<br>";
+                }
+            }
         }
 
         return $result;

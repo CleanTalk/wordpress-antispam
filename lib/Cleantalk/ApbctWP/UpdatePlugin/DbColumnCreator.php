@@ -51,7 +51,8 @@ class DbColumnCreator
         $errors = array();
         $wpdb->show_errors = true;
         $schema_table_structure = Schema::getStructureSchemas();
-        $table_key = explode(Schema::getSchemaTablePrefix(), $this->dbTableName)[1];
+        $exploded = explode(Schema::getSchemaTablePrefix(), $this->dbTableName);
+        $table_key = isset($exploded[1]) ? $exploded[1] : '';
         $db_column_names = array();
 
         // Create array of column names from DB structure
@@ -85,8 +86,9 @@ class DbColumnCreator
                 $sql .= " ADD COLUMN $schema_column_name";
                 $sql .= " $schema_column_params";
                 if ($counter !== 0) {
-                    $schema_prev_column_name = array_keys($schema_table_structure[$table_key])[$counter - 1];
-                    $sql .= " AFTER $schema_prev_column_name";
+                    $keys = array_keys($schema_table_structure[$table_key]);
+                    $schema_prev_column_name = $keys[$counter - 1];
+                    $sql .= " AFTER " . $schema_prev_column_name;
                 }
 
                 $result = $wpdb->query($sql);

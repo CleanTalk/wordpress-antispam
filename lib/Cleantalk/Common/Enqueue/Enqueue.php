@@ -217,7 +217,8 @@ class Enqueue
             return $file_name;
         }
 
-        return preg_replace($replace, $replace_to, $file_name);
+        $result = preg_replace($replace, $replace_to, $file_name);
+        return $result === null ? $file_name : $result;
     }
 
     /**
@@ -257,8 +258,9 @@ class Enqueue
     private function getFreshVersion($work_script_name)
     {
         $abs_path = $this->getPath($work_script_name, false);
-        if (@file_exists($abs_path) && @filemtime($abs_path)) {
-            return $this->plugin_version . '_' . @filemtime($abs_path);
+        $filemtime = @file_exists($abs_path) ? @filemtime($abs_path) : false;
+        if ($filemtime !== false) {
+            return $this->plugin_version . '_' . $filemtime;
         }
 
         return $this->plugin_version;

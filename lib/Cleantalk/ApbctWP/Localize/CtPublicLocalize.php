@@ -49,9 +49,10 @@ class CtPublicLocalize
 
     public static function getCode()
     {
+        $json_data = json_encode(self::getData());
         return '
             <script data-no-defer="1" data-ezscrex="false" data-cfasync="false" data-pagespeed-no-defer data-cookieconsent="ignore">
-                var ' . self::NAME . ' = ' . json_encode(self::getData()) . '
+                var ' . self::NAME . ' = ' . ($json_data !== false ? $json_data : '{}') . '
             </script>
         ';
     }

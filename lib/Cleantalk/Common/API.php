@@ -286,7 +286,9 @@ class API
             'timestamp'   => time()
         );
 
-        $request['data'] = str_replace('"EMPTY_ASSOCIATIVE_ARRAY"', '{}', $request['data']);
+        if ($request['data'] !== false) {
+            $request['data'] = str_replace('"EMPTY_ASSOCIATIVE_ARRAY"', '{}', $request['data']);
+        }
 
         return static::sendRequest($request);
     }
@@ -795,8 +797,6 @@ class API
      * @param array $data to send
      * @param string $_url
      * @param integer $timeout timeout in seconds
-     * @param boolean $ssl use ssl on not
-     * @param string $ssl_path
      *
      * @return array|bool
      */
@@ -860,7 +860,7 @@ class API
         }
 
         // Server errors
-        if ($result && (isset($result['error_no'], $result['error_message']))) {
+        if (is_array($result) && isset($result['error_no'], $result['error_message'])) {
             if ($result['error_no'] != 12) {
                 return array(
                     'error'         => "SERVER_ERROR NO: {$result['error_no']} MSG: {$result['error_message']}",

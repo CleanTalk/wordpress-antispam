@@ -935,7 +935,9 @@ class EmailEncoder
                            . '=((\\\')|")?[^"]*\b'
                            . $email_match
                            . '\b[^"]*((\\\')|")?"[^>]*>/';
-                preg_match($pattern, $this->temp_content, $attr_match);
+                if ( is_string($this->temp_content) ) {
+                    preg_match($pattern, $this->temp_content, $attr_match);
+                }
                 if ( !empty($attr_match) ) {
                     return true;
                 }

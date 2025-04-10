@@ -41,18 +41,20 @@ class DbTablesCreator
 
             $sql = 'CREATE TABLE IF NOT EXISTS `%s' . $schema_prefix . $table_key . '` (';
             $sql = sprintf($sql, $wpdb_prefix);
-            foreach ($table_schema as $column_name => $column_params) {
-                if ($column_name !== '__indexes' && $column_name !== '__createkey') {
-                    $sql .= '`' . $column_name . '` ' . $column_params . ', ';
-                } elseif ($column_name === '__indexes') {
-                    $sql .= $table_schema['__indexes'];
+            if ($sql !== false) {
+                foreach ($table_schema as $column_name => $column_params) {
+                    if ($column_name !== '__indexes' && $column_name !== '__createkey') {
+                        $sql .= '`' . $column_name . '` ' . $column_params . ', ';
+                    } elseif ($column_name === '__indexes') {
+                        $sql .= $table_schema['__indexes'];
+                    }
                 }
-            }
-            $sql .= ');';
+                $sql .= ');';
 
-            $result = $wpdb->query($sql);
-            if ($result === false) {
-                $errors[] = "Failed.\nQuery: $wpdb->last_query\nError: $wpdb->last_error";
+                $result = $wpdb->query($sql);
+                if ($result === false) {
+                    $errors[] = "Failed.\nQuery: $wpdb->last_query\nError: $wpdb->last_error";
+                }
             }
         }
 
@@ -72,7 +74,8 @@ class DbTablesCreator
         $wpdb->show_errors = true;
         $db_schema = Schema::getStructureSchemas();
         $schema_prefix = Schema::getSchemaTablePrefix();
-        $table_key = explode($schema_prefix, $table_name)[1];
+        $exploded = explode($schema_prefix, $table_name);
+        $table_key = isset($exploded[1]) ? $exploded[1] : '';
 
         $sql = 'CREATE TABLE IF NOT EXISTS `' . $table_name . '` (';
         foreach ($db_schema[$table_key] as $column_name => $column_params) {

@@ -99,7 +99,7 @@ class RemoteCallsCounter
     /**
      * What happens when the number of calls is exceeded
      *
-     * @return void
+     * @return never
      */
     private function actionExceedingLimit()
     {

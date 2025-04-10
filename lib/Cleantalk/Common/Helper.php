@@ -786,7 +786,7 @@ class Helper
             unset($val);
             //String
         } else {
-            if ( ! preg_match('//u', $obj) ) {
+            if ( is_string($obj) && ! preg_match('//u', $obj) ) {
                 if ( function_exists('mb_detect_encoding') ) {
                     $encoding = mb_detect_encoding($obj);
                     $encoding = $encoding ?: $data_codepage;

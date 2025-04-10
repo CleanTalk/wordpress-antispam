@@ -12,6 +12,7 @@ class JsErrorsReport
      * @param bool $is_cron_task Set if this is a cron task
      * @return bool
      * @psalm-suppress PossiblyUnusedMethod
+     * @psalm-suppress PossiblyUnusedParam
      */
     public function sendEmail($is_cron_task = false)
     {
