@@ -429,6 +429,14 @@ if (
     apbct_form__learnpress__testSpam();
 }
 
+// Appointment Booking Calendar
+if (
+    apbct_is_plugin_active('appointment-booking-calendar/cpabc_appointments.php') &&
+    Post::getString('cpabc_appointments_post')
+) {
+    apbct_form__appointment_booking_calendar__testSpam();
+}
+
 // OptimizePress
 if (
     apbct_is_plugin_active('op-dashboard/op-dashboard.php') &&

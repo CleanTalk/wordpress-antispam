@@ -1697,6 +1697,41 @@ function apbct_form__learnpress__testSpam()
 }
 
 /**
+ * Test Appointment Booking Calendar form for spam
+ *
+ * @return void
+ */
+function apbct_form__appointment_booking_calendar__testSpam()
+{
+    $params = ct_gfa(apply_filters('apbct__filter_post', $_POST));
+
+    $sender_info = [];
+
+    if ( ! empty($params['emails_array']) ) {
+        $sender_info['sender_emails_array'] = $params['emails_array'];
+    }
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => isset($params['email']) ? $params['email'] : Post::get('email'),
+            'sender_nickname' => isset($params['nickname']) ? $params['nickname'] : Post::get('first_name'),
+            'post_info'       => array('comment_type' => 'signup_form_wordpress_learnpress'),
+            'sender_info'     => $sender_info,
+        )
+    );
+
+    if ( isset($base_call_result['ct_result']) ) {
+        $ct_result = $base_call_result['ct_result'];
+        if ( $ct_result->allow == 0 ) {
+            global $ct_comment;
+            $ct_comment = $ct_result->comment;
+            ct_die(null, null);
+            exit;
+        }
+    }
+}
+
+/**
  * Test OptimizePress form for spam
  *
  * @return void
