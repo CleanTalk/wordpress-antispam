@@ -242,7 +242,13 @@ jQuery(document).ready(function() {
     });
 
     apbctSaveButtonPosition();
-    window.addEventListener('scroll', apbctSaveButtonPosition);
+    let debounceTimer;
+    window.addEventListener('scroll', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function() {
+            apbctSaveButtonPosition();
+        }, 50);
+    });
     jQuery('#ct_adv_showhide a').on('click', apbctSaveButtonPosition);
 
 
@@ -718,18 +724,38 @@ function apbctSaveButtonPosition() {
     let navBlockOffset = navBlock.getBoundingClientRect().top;
     let navBlockHeight = navBlock.getBoundingClientRect().height;
 
-    // Set Save button position
-    if ( getComputedStyle(advSettingsBlock).display !== 'none' ) {
-        jQuery('#apbct_settings__main_save_button').hide();
-        if ( docInnerHeight < navBlockOffset + navBlockHeight + buttonHeight ) {
+    const mainSaveButton = document.getElementById('apbct_settings__main_save_button');
+    const regularSaveButton = document.querySelector('button.cleantalk_link[value="save_changes"]');
+    const scrollPosition = window.scrollY;
+    const documentHeight = document.documentElement.scrollHeight;
+    const windowHeight = window.innerHeight;
+    const scrollThreshold = documentHeight - windowHeight - 600;
+    const bufferZone = 10; // Буферная зона в 50px
+
+    // Проверяем позицию прокрутки с буферной зоной
+    if (scrollPosition >= scrollThreshold - bufferZone) {
+        if (mainSaveButton) mainSaveButton.style.display = 'block';
+        if (regularSaveButton) regularSaveButton.style.display = 'none';
+    } else if (scrollPosition <= scrollThreshold - bufferZone * 2) {
+        // Если не прокручено до конца, проверяем состояние продвинутых настроек
+        if (getComputedStyle(advSettingsBlock).display === 'none') {
+            if (mainSaveButton) mainSaveButton.style.display = 'block';
+            if (regularSaveButton) regularSaveButton.style.display = 'none';
+        } else {
+            if (mainSaveButton) mainSaveButton.style.display = 'none';
+            if (regularSaveButton) regularSaveButton.style.display = 'block';
+        }
+    }
+
+    // Позиционирование кнопки
+    if (getComputedStyle(advSettingsBlock).display !== 'none') {
+        if (docInnerHeight < navBlockOffset + navBlockHeight + buttonHeight) {
             buttonBlock.style.bottom = '';
             buttonBlock.style.top = navBlockOffset + navBlockHeight + 20 + 'px';
         } else {
             buttonBlock.style.bottom = 0;
             buttonBlock.style.top = '';
         }
-    } else {
-        jQuery('#apbct_settings__main_save_button').show();
     }
 
     if (window.innerWidth <= 768 && advSettingsOffset < 0) {
@@ -740,8 +766,8 @@ function apbctSaveButtonPosition() {
     }
 
     // Set nav position
-    if ( advSettingsOffset <= 0 ) {
-        navBlock.style.top = - advSettingsOffset + 30 + 'px';
+    if (advSettingsOffset <= 0) {
+        navBlock.style.top = -advSettingsOffset + 30 + 'px';
     } else {
         navBlock.style.top = 0;
     }
