@@ -1703,6 +1703,8 @@ function apbct_form__learnpress__testSpam()
  */
 function apbct_form__appointment_booking_calendar__testSpam()
 {
+    global $ct_comment;
+
     $params = ct_gfa(apply_filters('apbct__filter_post', $_POST));
 
     $sender_info = [];
@@ -1723,7 +1725,6 @@ function apbct_form__appointment_booking_calendar__testSpam()
     if ( isset($base_call_result['ct_result']) ) {
         $ct_result = $base_call_result['ct_result'];
         if ( $ct_result->allow == 0 ) {
-            global $ct_comment;
             $ct_comment = $ct_result->comment;
             ct_die(null, null);
             exit;
