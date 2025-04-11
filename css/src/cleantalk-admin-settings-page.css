@@ -342,6 +342,51 @@ button[value="save_changes"]:disabled {
     display: none;
 }
 
+
+.apbct_settings_top_info__sub_btn {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.apbct_settings__key_line {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: row;
+}
+
+.apbct_settings__key_line__elements {
+    margin-right: 10px;
+}
+
+.apbct_setting__key_line__buttons {
+    margin: 0;
+}
+
+.apbct_setting__key_line__get_key_manual_chunk {
+    margin: 10px 0 10px 0;
+    border: 1px solid lightgray;
+    border-radius: 3px;
+    padding: 10px;
+    background: #FFF;
+}
+
+.apbct_settings__key_line__service_block{
+    margin-left: 10px;
+}
+
+#apbct_settings__public_offer {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+}
+
+#cleantalk_apikey_wrapper {
+    max-width: 65%;
+}
+
 @media (max-width: 768px) {
     .apbct_settings_top_info__btn {
         display: inline-grid;
@@ -426,49 +471,24 @@ button[value="save_changes"]:disabled {
     .apbct_long_desc__angle {
         display: none;
     }
-}
 
-.apbct_settings_top_info__sub_btn {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 15px 0;
-}
+    .apbct_settings__key_line {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+        width: 100%;
+    }
 
-.apbct_settings__key_line {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    flex-direction: row;
-}
+    .apbct_settings__key_line__elements {
+        margin: 5px 0 5px 0;
+    }
 
-.apbct_settings__key_line__elements {
-    margin-right: 10px;
-}
+    .apbct_setting__key_line__buttons, #apbct_setting_apikey, .apbct_settings__key_line__elements {
+        width: 100%;
+    }
 
-.apbct_setting__key_line__buttons {
-    margin: 0;
-}
-
-.apbct_setting__key_line__get_key_manual_chunk {
-    margin: 10px 0 10px 0;
-    border: 1px solid lightgray;
-    border-radius: 3px;
-    padding: 10px;
-    background: #FFF;
-}
-
-.apbct_settings__key_line__service_block{
-    margin-left: 10px;
-}
-
-#apbct_settings__public_offer {
-    margin-top: 10px;
-    display: flex;
-    align-items: center;
-}
-
-#cleantalk_apikey_wrapper {
-    max-width: 65%;
+    #cleantalk_apikey_wrapper {
+        max-width: 100%;
+    }
 }
 
