@@ -730,14 +730,12 @@ function apbctSaveButtonPosition() {
     const documentHeight = document.documentElement.scrollHeight;
     const windowHeight = window.innerHeight;
     const scrollThreshold = documentHeight - windowHeight - 600;
-    const bufferZone = 10; // Буферная зона в 50px
+    const bufferZone = 10;
 
-    // Проверяем позицию прокрутки с буферной зоной
     if (scrollPosition >= scrollThreshold - bufferZone) {
         if (mainSaveButton) mainSaveButton.style.display = 'block';
         if (regularSaveButton) regularSaveButton.style.display = 'none';
     } else if (scrollPosition <= scrollThreshold - bufferZone * 2) {
-        // Если не прокручено до конца, проверяем состояние продвинутых настроек
         if (getComputedStyle(advSettingsBlock).display === 'none') {
             if (mainSaveButton) mainSaveButton.style.display = 'block';
             if (regularSaveButton) regularSaveButton.style.display = 'none';
@@ -747,7 +745,6 @@ function apbctSaveButtonPosition() {
         }
     }
 
-    // Позиционирование кнопки
     if (getComputedStyle(advSettingsBlock).display !== 'none') {
         if (docInnerHeight < navBlockOffset + navBlockHeight + buttonHeight) {
             buttonBlock.style.bottom = '';
@@ -765,7 +762,6 @@ function apbctSaveButtonPosition() {
         document.querySelector('#apbct_hidden_section_nav').style.display = 'none';
     }
 
-    // Set nav position
     if (advSettingsOffset <= 0) {
         navBlock.style.top = -advSettingsOffset + 30 + 'px';
     } else {

@@ -17,22 +17,12 @@ function apbct_settings__footer()
                 'cp_mode' => 'security',
             )
         )],
-        ['text' => __('WordPress Malware Removal Service', 'cleantalk-spam-protect'), 'url' => LinkConstructor::buildCleanTalkLink(
-            'settings_footer__malware_removal_link',
-            'wordpress-website-malware-removal',
-            array(),
-            'https://l.cleantalk.org'
-        )],
         ['text' => __('Uptime Monitoring', 'cleantalk-spam-protect'), 'url' => LinkConstructor::buildCleanTalkLink(
             'settings_footer__uptime_monitoring_link',
             'my',
             array(
                 'cp_mode' => 'uptime_monitoring',
             )
-        )],
-        ['text' => __('SSL Certificates', 'cleantalk-spam-protect'), 'url' => LinkConstructor::buildCleanTalkLink(
-            'settings_footer__ssl_cert_link',
-            'ssl-certificates/cheap-positivessl-certificate'
         )],
         ['text' => __('doBoard - online project management', 'cleantalk-spam-protect'), 'url' => LinkConstructor::buildCleanTalkLink(
             'settings_footer__doboard_link',
@@ -101,7 +91,9 @@ function apbct_settings__footer()
         #wpfooter {
             display: block;
             background-color: #cccccc;
-            bottom: auto;
+        }
+        .ct_rate_block{
+            margin-bottom: 150px;
         }
         .apbct_footer {
             display: flex;
@@ -126,7 +118,6 @@ function apbct_settings__footer()
             margin-bottom: 10px;
         }
         .apbct_footer_links a {
-            text-decoration: none;
             color: #3c434a;
         }
         .apbct_footer_links a:hover {

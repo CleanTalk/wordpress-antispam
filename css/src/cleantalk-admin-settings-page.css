@@ -163,6 +163,7 @@ a.ct_support_link{
     text-align: center;
     border: 1px dashed #666;
 }
+
 #ct_translate_plugin .apbct_button_rate{margin-bottom: 10px;}
 
 .apbct_long_desc{
@@ -439,6 +440,10 @@ button[value="save_changes"]:disabled {
     }
     .apbct_long_desc__angle {
         display: none;
+    }
+    .ct_rate_block{
+        max-width: 240px;
+        margin-right: 20px;
     }
 }
 
