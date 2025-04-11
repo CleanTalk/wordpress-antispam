@@ -345,6 +345,7 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
         isFormHasDiviRedirect(formSource) ||
         formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1 ||
         formSource.outerHTML.indexOf('action="https://api.kit.com') !== -1 ||
+        formSource.outerHTML.indexOf('activehosted.com') !== -1 ||
         formSource.outerHTML.indexOf('action="https://crm.zoho.com') !== -1
     ) {
         inputsSource.forEach((elemSource) => {
@@ -670,6 +671,7 @@ function isIntegratedForm(formObj) {
         isFormHasDiviRedirect(formObj) || // Divi contact form
         formAction.indexOf('eocampaign1.com') !== -1 || // EmailOctopus Campaign form
         formAction.indexOf('wufoo.com') !== -1 || // Wufoo form
+        formAction.indexOf('activehosted.com') !== -1 || // Activehosted form
         formAction.indexOf('publisher.copernica.com') !== -1 || // publisher.copernica
         ( formObj.classList !== undefined &&
             formObj.classList.contains('sp-element-container') ) || // Sendpulse form
@@ -792,13 +794,8 @@ function sendAjaxCheckingFormData(form) {
                         return;
                     }
 
-
-                    if (
-                        // Active Campaign integration
-                        form.querySelector('[href*="activecampaign"]') ||
-                        // Hubspot bounded integration
-                        isHubSpotEmbedForm
-                    ) {
+                    // Hubspot bounded integration
+                    if (isHubSpotEmbedForm) {
                         let submitButton = form.querySelector('[type="submit"]');
                         submitButton.remove();
                         const parent = form.apbctParent;
