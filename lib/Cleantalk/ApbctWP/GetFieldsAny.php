@@ -210,6 +210,7 @@ class GetFieldsAny
         $this->preprocessed_email    = $email;
         $this->preprocessed_nickname = is_string($nickname) ? $nickname : '';
 
+        /** @psalm-suppress RedundantCondition */
         if (!empty($emails_array) && is_array($emails_array)) {
             $filtered_emails_array = array_map(function ($value) {
                 $value = TT::toString($value);

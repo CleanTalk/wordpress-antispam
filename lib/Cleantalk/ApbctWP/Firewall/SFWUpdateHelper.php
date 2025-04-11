@@ -82,6 +82,9 @@ class SFWUpdateHelper
         $file_content = file_get_contents($file_path);
 
         if ( function_exists('gzdecode') ) {
+            if ($file_content === false) {
+                return array('error' => 'Can not read datafile');
+            }
             $unzipped_content = gzdecode($file_content);
 
             if ( $unzipped_content !== false ) {
@@ -476,7 +479,7 @@ class SFWUpdateHelper
             $create_temp_tables_result = apbct_sfw_update__create_temp_tables(true);
             $direct_update_log['apbct_sfw_update__create_temp_tables'] = $create_temp_tables_result;
             if (!empty($create_temp_tables_result['error'])) {
-                $error = is_string($create_temp_tables_result['error']) ? $create_temp_tables_result['error'] : 'unknown apbct_sfw_update__create_temp_tables error';
+                $error = isset($create_temp_tables_result['error']) ? implode(', ', $create_temp_tables_result['error']) : 'unknown apbct_sfw_update__create_temp_tables error';
                 throw new \Exception($error);
             }
 
@@ -516,7 +519,7 @@ class SFWUpdateHelper
             $updating_stats_result = apbct_sfw_update__end_of_update__updating_stats(true);
             $direct_update_log['apbct_sfw_update__end_of_update__updating_stats'] = $updating_stats_result;
             if (!empty($updating_stats_result['error'])) {
-                $error = is_string($updating_stats_result['error']) ? $updating_stats_result['error'] : 'unknown apbct_sfw_update__end_of_update__updating_stats error';
+                $error = isset($updating_stats_result['error']) ? implode(', ', $updating_stats_result['error']) : 'unknown apbct_sfw_update__end_of_update__updating_stats error';
                 throw new \Exception($error);
             }
 

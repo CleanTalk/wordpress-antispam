@@ -118,8 +118,8 @@ class SFWUpdateSentinel
         $counter = 0;
 
         foreach ( $ids_list as $_id => $data ) {
-            $date = date('m-d-y H:i:s', TT::getArrayValueAsInt($data, 'started'));
-            $date = is_string($date) ? $date : 'Unknown date';
+            $started = TT::getArrayValueAsInt($data, 'started');
+            $date = is_numeric($started) ? date('m-d-y H:i:s', $started) : 'Unknown date';
             $message .= '<tr>'
                 . '<td>' . (++$counter) . '.</td>'
                 . '<td>' . $_id . '</td>'

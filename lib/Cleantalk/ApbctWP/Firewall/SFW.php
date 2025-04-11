@@ -770,11 +770,18 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                             }
 
                             // Cast result to int
-                            $ip     = preg_replace('/[^\d]*/', '', $entry[0]);
-                            $mask   = preg_replace('/[^\d]*/', '', $entry[1]);
-                            $status = isset($entry[2]) ? $entry[2] : 0;
+                            $ip     = is_string($entry[0]) ? preg_replace('/[^\d]*/', '', $entry[0]) : '';
+                            $mask   = is_string($entry[1]) ? preg_replace('/[^\d]*/', '', $entry[1]) : '';
+                            $status = isset($entry[2]) && is_string($entry[2]) ? $entry[2] : '0';
 
-                            $values[] = "($ip, $mask, $status)";
+                            if ($ip !== '' && $mask !== '') {
+                                $values[] = sprintf(
+                                    '(%s, %s, %s)',
+                                    is_scalar($ip) ? strval($ip) : '',
+                                    is_scalar($mask) ? strval($mask) : '',
+                                    is_scalar($status) ? strval($status) : ''
+                                );
+                            }
                         }
 
                         if ( ! empty($values)) {
@@ -812,32 +819,42 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         //Exclusion for servers IP (SERVER_ADDR)
         if (Server::get('HTTP_HOST')) {
             // Do not add exceptions for local hosts
-            if (defined('APBCT_IS_LOCALHOST') && !APBCT_IS_LOCALHOST) {
+            if (defined('APBCT_IS_LOCALHOST') && APBCT_IS_LOCALHOST === false) {
                 if ( $current_host_ip = Helper::dnsResolve(Server::get('HTTP_HOST')) ) {
                     $exclusions[] = $current_host_ip;
                 }
                 $exclusions[] = '127.0.0.1';
                 // And delete all 127.0.0.1 entries for local hosts
             } else {
-                $wpdb->query('DELETE FROM ' . $db__table__data . ' WHERE network = ' . ip2long('127.0.0.1') . ';');
-                if ($wpdb->rows_affected > 0) {
-                    $apbct->fw_stats['expected_networks_count'] -= $wpdb->rows_affected;
-                    $apbct->save('fw_stats');
+                $ip_long = ip2long('127.0.0.1');
+                if ($ip_long !== false) {
+                    $wpdb->query('DELETE FROM ' . $db__table__data . ' WHERE network = ' . $ip_long . ';');
+                    if ($wpdb->rows_affected > 0) {
+                        $apbct->fw_stats['expected_networks_count'] -= $wpdb->rows_affected;
+                        $apbct->save('fw_stats');
+                    }
                 }
             }
         }
 
-        foreach ($exclusions as $exclusion) {
-            if (Helper::ipValidate($exclusion) && sprintf('%u', ip2long($exclusion))) {
-                $query .= '(' . sprintf('%u', ip2long($exclusion)) . ', ' . sprintf(
-                    '%u',
-                    bindec(str_repeat('1', 32))
-                ) . ', 1),';
+        $has_exclusions = !empty($exclusions);
+        if ($has_exclusions) {
+            foreach ($exclusions as $exclusion) {
+                $ip_long = ip2long($exclusion);
+                if (Helper::ipValidate($exclusion) && $ip_long !== false) {
+                    $query .= '(' . sprintf('%u', $ip_long) . ', ' . sprintf(
+                        '%u',
+                        bindec(str_repeat('1', 32))
+                    ) . ', 1),';
+                }
             }
-        }
 
-        if ($exclusions) {
-            $sql_result = $db->execute(substr($query, 0, -1) . ';');
+            $query = substr($query, 0, -1);
+            if ($query !== false) {
+                $sql_result = $db->execute($query . ';');
+            } else {
+                $sql_result = false;
+            }
 
             return $sql_result === false
                 ? array('error' => 'COULD_NOT_WRITE_TO_DB 4: ' . $db->getLastError())
@@ -1052,7 +1069,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         $out['sfw_common_table_name'] = APBCT_TBL_FIREWALL_DATA;
 
 
-        if ( APBCT_WPMS && !is_main_site() ) {
+        if ( defined('APBCT_WPMS') && !is_main_site() ) {
             $main_blog_options = get_blog_option(get_main_site_id(), 'cleantalk_data');
             if ( !isset($main_blog_options['sfw_common_table_name']) || !is_string($main_blog_options['sfw_common_table_name'])) {
                 return false;
@@ -1062,7 +1079,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         }
 
         //if mutual key use the main personal table
-        if ( APBCT_WPMS && $apbct->network_settings['multisite__work_mode'] === 2 ) {
+        if (
+            defined('APBCT_WPMS') &&
+            isset($apbct->network_settings['multisite__work_mode']) &&
+            is_numeric($apbct->network_settings['multisite__work_mode']) &&
+            (int)$apbct->network_settings['multisite__work_mode'] === 2
+        ) {
             if (!isset($main_blog_options['sfw_personal_table_name']) || !is_string($main_blog_options['sfw_personal_table_name'])) {
                 return false;
             } else {
