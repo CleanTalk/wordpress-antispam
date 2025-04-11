@@ -162,7 +162,8 @@ class Escape extends \Cleantalk\Common\Escape
                 'a' => array(
                     'target' => true,
                     'href' => true,
-                    'class' => true
+                    'class' => true,
+                    'id' => true
                 ),
                 'p' => array(),
                 'h3' => array(),

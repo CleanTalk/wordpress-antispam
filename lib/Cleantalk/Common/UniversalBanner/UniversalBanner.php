@@ -4,7 +4,7 @@ namespace Cleantalk\Common\UniversalBanner;
 
 class UniversalBanner
 {
-    private $banner_body = '';
+    protected $banner_body = '';
 
     private $replaces = [];
 
@@ -106,6 +106,7 @@ class UniversalBanner
     {
         try {
             $this->doReplacements($this->replaces);
+            $this->setBannerButtonVisibility($this->showBannerButton());
             $this->validateBodyReplacementResult();
         } catch ( \Exception $error) {
             $this->banner_body = $error->getMessage();
@@ -159,6 +160,20 @@ class UniversalBanner
     }
 
     /**
+     * Hide the banner button on the state.
+     * @param bool $state
+     *
+     * @return void
+     */
+    private function setBannerButtonVisibility($state = true)
+    {
+        if (!$state) {
+            $regex = '/<a.*href.*id="apbct_button_.*a>/';
+            $this->banner_body = preg_replace($regex, '', $this->banner_body);
+        }
+    }
+
+    /**
      * Validate the body for unfilled replacements
      * @return void
      * @throws \Exception
@@ -171,5 +186,14 @@ class UniversalBanner
         ) {
             throw new \Exception('Template still has unfilled replacements!');
         }
+    }
+
+    /**
+     * Set banner button visibility. If this method returns false, the button wil be hidden.
+     * @return bool
+     */
+    protected function showBannerButton()
+    {
+        return true;
     }
 }

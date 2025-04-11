@@ -17,10 +17,11 @@ jQuery(document).ready(function() {
     }
 
     // Show/Hide access key
-    jQuery('#apbct_showApiKey').on('click', function() {
-        jQuery('.apbct_setting---apikey').val(jQuery('.apbct_setting---apikey').attr('key'));
-        jQuery('.apbct_setting---apikey+div').show();
-        jQuery(this).fadeOut(300);
+    jQuery('#apbct_showApiKey').on('click', function(e) {
+        e.preventDefault();
+        jQuery(this).hide();
+        jQuery('.apbct_settings-field--api_key').val(jQuery('.apbct_settings-field--api_key').attr('key'));
+        jQuery('.apbct_settings-field--api_key+div').css('display', 'inline');
     });
 
     let d = new Date();
@@ -29,6 +30,11 @@ jQuery(document).ready(function() {
 
     // Key KEY automatically
     jQuery('#apbct_button__get_key_auto').on('click', function() {
+        if (!jQuery('#apbct_license_agreed').is(':checked')) {
+            jQuery('#apbct_settings__no_agreement_notice').show();
+            apbctHighlightElement('apbct_license_agreed', 3);
+            return;
+        }
         apbct_admin_sendAJAX(
             {action: 'apbct_get_key_auto', ct_admin_timezone: timezone},
             {
@@ -303,21 +309,29 @@ jQuery(document).ready(function() {
      */
     jQuery('#apbct_setting_apikey').on('input', function() {
         let enteredValue = jQuery(this).val();
-        jQuery('button.cleantalk_link[value="save_changes"]').off('click');
-        if (enteredValue !== '' && enteredValue.match(/^[a-z\d]{3,30}\s*$/) === null) {
+        jQuery('#apbct_settings__key_line__save_settings').off('click');
+        let keyBad = enteredValue !== '' && enteredValue.match(/^[a-z\d]{8,30}\s*$/) === null;
+        jQuery('#apbct_settings__key_is_bad').hide();
+        jQuery('#apbct_showApiKey').hide();
+        jQuery('#apbct_settings__account_name_ob').hide();
+        jQuery('#apbct_settings__no_agreement_notice').hide();
+        if (enteredValue === '') {
+            jQuery('#apbct_button__key_line__save_changes_wrapper').hide();
             jQuery('#apbct_button__get_key_auto__wrapper').show();
-            jQuery('button.cleantalk_link[value="save_changes"]').on('click',
-                function(e) {
-                    e.preventDefault();
-                    if (!jQuery('#apbct_bad_key_notice').length) {
-                        jQuery( '<div class=\'apbct_notice_inner error\'><h4 id=\'apbct_bad_key_notice\'>' +
-                            'Please, insert a correct access key before saving changes!' +
-                            '</h4></div>' ).insertAfter( jQuery('#apbct_setting_apikey') );
-                    }
-                    apbctHighlightElement('apbct_setting_apikey', 3);
-                },
-            );
-            return;
+            jQuery('#apbct_button__get_key_manual_chunk').show();
+        } else {
+            jQuery('#apbct_button__key_line__save_changes_wrapper').show();
+            jQuery('#apbct_button__get_key_auto__wrapper').hide();
+            jQuery('#apbct_button__get_key_manual_chunk').hide();
+            if (keyBad) {
+                jQuery('#apbct_settings__key_line__save_settings').on('click',
+                    function(e) {
+                        e.preventDefault();
+                        jQuery('#apbct_settings__key_is_bad').show();
+                        apbctHighlightElement('apbct_setting_apikey', 3);
+                    },
+                );
+            }
         }
     });
 
@@ -709,6 +723,12 @@ function apbctSaveButtonPosition() {
     ) {
         return;
     }
+
+    if (!ctSettingsPage.key_is_ok) {
+        jQuery('#apbct_settings__main_save_button').hide();
+        return;
+    }
+
     let docInnerHeight = window.innerHeight;
     let advSettingsBlock = document.getElementById('apbct_settings__advanced_settings');
     let advSettingsOffset = advSettingsBlock.getBoundingClientRect().top;
