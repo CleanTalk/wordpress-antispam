@@ -92,16 +92,16 @@ function apbct_settings__footer()
             display: block;
             background-color: #cccccc;
         }
-        .ct_rate_block{
-            margin-bottom: 150px;
+        #wpcontent {
+            padding-bottom: 190px;
         }
         .apbct_footer {
             display: flex;
             margin-bottom: 20px;
+            gap: 150px;
         }
         .apbct_footer_column {
             margin: 0 0 20px 0px;
-            width: 100%;
         }
         .apbct_footer_column h3 {
             margin-bottom: 10px;
@@ -111,8 +111,6 @@ function apbct_settings__footer()
             list-style: none;
             padding: 0;
             margin: 0;
-            column-count: 2;
-            column-gap: 10px;
         }
         .apbct_footer_links li {
             margin-bottom: 10px;
