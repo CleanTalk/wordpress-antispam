@@ -219,6 +219,7 @@ function apbct_init()
         add_filter('bbp_new_reply_pre_content', 'ct_bbp_new_pre_content', 1);
         add_action('bbp_theme_before_topic_form_content', 'ct_comment_form');
         add_action('bbp_theme_before_reply_form_content', 'ct_comment_form');
+        add_action('bbp_edit_reply_pre_content', 'ct_bbp_edit_pre_content', 1, 2);
     }
 
     //Custom Contact Forms
@@ -1286,10 +1287,14 @@ function apbct_enqueue_and_localize_public_scripts()
 
     // Bot detector
     if ( $apbct->settings['data__bot_detector_enabled'] && ! apbct_bot_detector_scripts_exclusion()) {
-        ApbctEnqueue::getInstance()->js('https://moderate.cleantalk.org/ct-bot-detector-wrapper.js', array(), array(
-                'in_footer' => $in_footer,
-                'strategy' => 'defer'
-        ));
+        ApbctEnqueue::getInstance()->custom(
+            'ct-bot-detector-wrapper',
+            'https://moderate.cleantalk.org/ct-bot-detector-wrapper.js',
+            array(),
+            null,
+            array(),
+            null
+        );
     }
 
     ApbctEnqueue::getInstance()->css('cleantalk-public.css');

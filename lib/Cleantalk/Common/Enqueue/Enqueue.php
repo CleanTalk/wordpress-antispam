@@ -65,6 +65,7 @@ class Enqueue
      * Run WP enqueue style/script in accordance with $this->type.
      *
      * @param EnqueueDataDTO|null $data
+     * @psalm-suppress PossiblyInvalidArgument
      */
     private function load($data)
     {
@@ -95,40 +96,52 @@ class Enqueue
     /**
      * Enqueues a CSS file from plugin assets path.
      * Specify only unminified original script name, other data is collected automatically.
+     *
      * @param string $asset_file_name The name of the CSS file to enqueue.
      * @param array $deps An array of dependencies.
      * @param string $media The media for which this stylesheet has been defined.
+     * @return string $handle The name of the script handle.
+     * @psalm-suppress PossiblyUnusedReturnValue
      */
     public function css($asset_file_name, $deps = array(), $media = 'all')
     {
         $this->type = 'css';
         $data = $this->prepareData($asset_file_name, $deps, null, $media);
         $this->load($data);
+        return is_null($data) ? '' : $data->handle;
     }
 
     /**
      * Enqueues a JavaScript file plugin from assets path.
      * Specify only unminified original script name, other data is collected automatically.
+     *
      * @param string $asset_file_name The name of the JavaScript file to enqueue.
      * @param array $deps An array of dependencies.
      * @param bool|array $args Whether to enqueue the script in the footer or other instructions via array.
+     *
+     * @return string $handle The name of the script handle.
+     * @psalm-suppress PossiblyUnusedReturnValue
      */
     public function js($asset_file_name, $deps = array(), $args = false)
     {
         $this->type = 'js';
         $data = $this->prepareData($asset_file_name, $deps, $args, null);
         $this->load($data);
+        return is_null($data) ? '' : $data->handle;
     }
 
     /**
      * Run custom script loading.
+     *
      * @param $handle - handling name
      * @param $asset_file_name - path to the file
      * @param $deps - dependencies
      * @param $version - version
      * @param $args - if isset - JS will be handled, if null, then $media must be not null
      * @param $media - if isset - CSS will be handled, if null, then $args must be not null
-     * @return void
+     *
+     * @return string $handle The name of the script handle.
+     * @psalm-suppress PossiblyUnusedReturnValue
      */
     public function custom($handle, $asset_file_name, $deps, $version, $args, $media)
     {
@@ -159,6 +172,7 @@ class Enqueue
             $data = null;
         }
         $this->load($data);
+        return is_null($data) ? '' : $data->handle;
     }
 
     /**
@@ -270,12 +284,12 @@ class Enqueue
      */
     private function validateWebPath($path)
     {
-        if (! preg_match('/^http?:\/\//', $path)) {
+        if (! preg_match('/^https?:\/\//', $path)) {
             $this->errorLog(__('Web path for script is invalid: ' . $path, 'cleantalk-spam-protect'));
             return $path;
         }
         $abs_path = str_replace($this->assets_path, $this->plugin_path, $path);
-        if (!@file_exists($abs_path)) {
+        if (!@file_exists($abs_path) && !@file_get_contents($abs_path)) {
             $this->errorLog(__('Script file is not accessible:' . $path, 'cleantalk-spam-protect'));
             return $path;
         }

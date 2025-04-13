@@ -23,7 +23,7 @@ class BravePopUpPro extends IntegrationBase
      */
     public function doBlock($message)
     {
-        print_r(wp_json_encode(array('sent' => false, 'message' => $message)));
+        print_r(wp_json_encode(array('sent' => false, 'error' => $message)));
         wp_die();
     }
 }

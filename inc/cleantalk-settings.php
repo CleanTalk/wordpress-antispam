@@ -1423,10 +1423,12 @@ function apbct_settings__display()
      */
     echo '</div>';
 
+    echo '<div id="apbct_settings__block_main_save_button">';
     echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" onclick="apbctShowRequiredGroups(event,\'apbct_settings__main_save_button\')">'
          . __('Save Changes')
          . '</button>';
     echo '<br>';
+    echo '</div>';
 
     echo "</form>";
 
@@ -1822,118 +1824,104 @@ function apbct_settings__field__state()
 function apbct_settings__field__apikey()
 {
     global $apbct;
+    $template = @file_get_contents(CLEANTALK_PLUGIN_DIR . 'templates/settings/settings_key_wrapper.html');
 
-    echo '<div id="cleantalk_apikey_wrapper" class="apbct_settings-field_wrapper">';
+    $define_key_is_provided_by_admin = APBCT_WPMS && ! is_main_site() && ( ! $apbct->allow_custom_key || defined('CLEANTALK_ACCESS_KEY'));
+    $define_show_key_field = ! (apbct_api_key__is_correct($apbct->api_key) && isset($apbct->data["key_changed"]) && $apbct->data["key_changed"]);
+    $define_show_deobfuscating_href = apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok && (!isset($apbct->data["key_changed"]) || !$apbct->data["key_changed"]);
 
+    $replaces = [
+        'wpms_admin_provided' => '',
+        'key_label_display' => 'style="display:none"',
+        'key_label_text' => __('Access key is', 'cleantalk-spam-protect'),
+        'key_input_type' => 'hidden',
+        'key_input_value' => '',
+        'key_input_key' => '',
+        'key_input_placeholder' => __('Enter an Access key', 'cleantalk-spam-protect'),
+        'key_input_hint' => __('Get an Access key by clicking the blue button or copy/paste your key from https://cleantalk.org/my.', 'cleantalk-spam-protect'),
+        'account_name_ob' => '',
+        'deobfuscating_href_display' => 'style="display:none"',
+        'deobfuscating_href_text' => __('Show the Access key', 'cleantalk-spam-protect'),
+        'get_key_auto_wrapper_display' => 'style="display:none"',
+        'get_key_auto_button_display' => 'style="display:none"',
+        'get_key_auto_button_text' => __('GET ACCESS KEY', 'cleantalk-spam-protect'),
+        'get_key_auto_preloader_src' => Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif'),
+        'get_key_auto_success_icon_src' => Escape::escUrl(APBCT_URL_PATH . '/inc/images/yes.png'),
+        'get_key_manual_chunk' => '',
+        'get_key_manual_chunk_display' => empty($apbct->settings['apikey']) ? '' : 'style="display:none"',
+        'save_changes_button_text' => __('Save the Access key', 'cleantalk-spam-protect'),
+        'trying_to_set_bad_key_notice' => __('Please, insert a correct access key before saving changes! Key should contain at least 8 symbols.', 'cleantalk-spam-protect'),
+        'public_offer_display' => 'style="display:none"',
+        'public_offer_link' => '',
+        'need_accept_agreement_notice' => __('You should accept the License Agreement', 'cleantalk-spam-protect'),
+    ];
+
+    //WPMS KEY CASE
     // Using the Access key from Main site, or from CLEANTALK_ACCESS_KEY constant
-    if ( APBCT_WPMS && ! is_main_site() && ( ! $apbct->allow_custom_key || defined('CLEANTALK_ACCESS_KEY')) ) {
-        _e('<h3>Access key is provided by network administrator</h3>', 'cleantalk-spam-protect');
-
+    if ( $define_key_is_provided_by_admin ) {
+        $replaces['wpms_admin_provided'] = '<h3>' . __('Access key is provided by network administrator', 'cleantalk-spam-protect') . '</h3>';
+        foreach ($replaces as $key => $value) {
+            $template = str_replace('%' . strtoupper($key) . '%', TT::toString($value), $template);
+        }
+        echo $template;
         return;
     }
 
-    if ( ! (apbct_api_key__is_correct($apbct->api_key) && isset($apbct->data["key_changed"]) && $apbct->data["key_changed"]) ) {
-        echo '<label class="apbct_settings__label" for="cleantalk_apkey">' . __(
-            'Access key',
-            'cleantalk-spam-protect'
-        ) . '</label>';
-    }
+    //LABEL AND FIELD
+    $replaces['key_label_display'] = $define_show_key_field ? '' : 'style="display:none"';
+    $replaces['key_input_type'] = $define_show_key_field ? 'text' : 'hidden';
+    $replaces['key_input_value'] = $apbct->key_is_ok ? str_repeat('*', strlen($apbct->api_key)) : Escape::escHtml($apbct->api_key);
+    $replaces['key_input_key'] = $apbct->api_key;
+    $replaces['deobfuscating_href_display'] = $define_show_deobfuscating_href ? '' : 'style="display:none"';
 
-    echo '<input
-        id="apbct_setting_apikey"
-        class="apbct_setting_text apbct_setting---apikey"
-        type="'
-        . ( ! (apbct_api_key__is_correct($apbct->api_key) && isset($apbct->data["key_changed"]) && $apbct->data["key_changed"]) ? 'text' : 'hidden')
-        . '"
-        name="cleantalk_settings[apikey]"
-        value="'
-        . ($apbct->key_is_ok
-            ? str_repeat('*', strlen($apbct->api_key))
-            : Escape::escHtml($apbct->api_key)
-        )
-        . '"
-        key="' . $apbct->api_key . '"
-        size="20"
-        placeholder="' . __('Enter the Access key', 'cleantalk-spam-protect') . '"'
-        . ' />';
+    //ACCOUNT NAME
+    $replaces['account_name_ob'] = sprintf(
+        __('Account at cleantalk.org is %s.', 'cleantalk-spam-protect'),
+        '<b>' . Escape::escHtml($apbct->data['account_name_ob']) . '</b>'
+    );
+    //GET KEY AUTO
+    $replaces['get_key_auto_wrapper_display'] = $define_show_key_field && empty($apbct->api_key)
+        ? ''
+        : 'style="display:none"';
+    $replaces['get_key_auto_button_display'] = !$apbct->ip_license ? '' : 'style="display:none"';
 
-    // Show account name associated with the Access key
-    if ( ! empty($apbct->data['account_name_ob']) ) {
-        echo '<div class="apbct_display--none">'
-             . sprintf(
-                 __('Account at cleantalk.org is %s.', 'cleantalk-spam-protect'),
-                 '<b>' . Escape::escHtml($apbct->data['account_name_ob']) . '</b>'
-             )
-             . '</div>';
-    };
-
-    // Show Access key button
-    if ( apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok &&
-        (!isset($apbct->data["key_changed"]) || !$apbct->data["key_changed"])
-    ) {
-        echo '<a id="apbct_showApiKey" class="ct_support_link" style="display: block" href="#">'
-             . __('Show the Access key', 'cleantalk-spam-protect')
-             . '</a>';
-    }
-
-    if ( ! (apbct_api_key__is_correct($apbct->api_key) && isset($apbct->data["key_changed"]) && $apbct->data["key_changed"]) ) {
-        // "Auto Get Key" buttons. License agreement
-        echo '<div id="apbct_button__get_key_auto__wrapper">';
-
-        echo '<br /><br />';
-
-        // Auto get key
-        if ( ! $apbct->ip_license ) {
-            echo '<button class="cleantalk_link cleantalk_link-manual apbct_setting---get_key_auto" id="apbct_button__get_key_auto" name="submit" type="button"  value="get_key_auto">'
-                . __('Get the Access key', 'cleantalk-spam-protect')
-                . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif') . '" />'
-                . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/yes.png') . '" />'
-                . '</button>';
-            echo '<input type="hidden" id="ct_admin_timezone" name="ct_admin_timezone" value="null" />';
-            echo '<br />';
-            echo '<br />';
-        }
-
-        $register_link = LinkConstructor::buildCleanTalkLink('get_access_key_link', 'wordpress-anti-spam-plugin');
-        // Warnings
-        printf(
-            __(
-                'Admin e-mail %s %s will be used for registration оr click here to %sGet Access Key Manually%s.',
-                'cleantalk-spam-protect'
-            ),
-            '<span id="apbct-account-email">'
-            . ct_get_admin_email() .
-            '</span>',
-            apbct_settings__btn_change_account_email_html(),
-            '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="'
+    //GET KEY MANUAL CHUNK
+    $register_link = LinkConstructor::buildCleanTalkLink('get_access_key_link', 'wordpress-anti-spam-plugin');
+    $link_template = __(
+        'The admin email %s %s will be used to obtain a key and as the email for signing up at CleanTalk.org.',
+        'cleantalk-spam-protect'
+    );
+    $link_template .= '<br>';
+    $link_template .= __('As a backup, use the %sCleanTalk Dashboard%s to copy and paste your key.', 'cleantalk-spam-protect');
+    $href = '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="'
             . sprintf(
                 $register_link . '&platform=wordpress&email=%s&website=%s',
                 urlencode(ct_get_admin_email()),
                 urlencode(get_bloginfo('url'))
             )
-            . '">',
-            '</a>'
-        );
+            . '">';
+    $replaces['get_key_manual_chunk'] = sprintf(
+        $link_template,
+        '<span id="apbct-account-email">' . ct_get_admin_email() . '</span>',
+        apbct_settings__btn_change_account_email_html(),
+        $href,
+        '</a>'
+    );
 
-        // License agreement
-        if ( ! $apbct->ip_license ) {
-            echo '<div>';
-            echo '<input checked type="checkbox" id="license_agreed" onclick="apbctSettingsDependencies(\'apbct_setting---get_key_auto\');"/>';
-            echo '<label for="spbc_license_agreed">';
-            //HANDLE LINK
-            printf(
-                __('I accept %sLicense Agreement%s.', 'cleantalk-spam-protect'),
-                '<a class = "apbct_color--gray" href="https://cleantalk.org/publicoffer" target="_blank">',
-                '</a>'
-            );
-            echo "</label>";
-            echo '</div>';
-        }
+    //PUBLIC OFFER
+    $replaces['public_offer_display'] = !$apbct->ip_license ? '' : 'style="display:none"';
+    $replaces['public_offer_link'] = sprintf(
+        '<label for="apbct_license_agreed">' .
+        __('I accept %sLicense Agreement%s.', 'cleantalk-spam-protect'),
+        '<a id="apbct_license_agreed_href" class = "apbct_color--gray" href="https://cleantalk.org/publicoffer" target="_blank">',
+        '</a></label>'
+    );
 
-        echo '</div>';
+    //DO REPLACE
+    foreach ($replaces as $key => $value) {
+        $template = str_replace('%' . strtoupper($key) . '%', TT::toString($value), $template);
     }
-
-    echo '</div>';
+    echo $template;
 }
 
 function apbct_field_service_utilization()
@@ -3176,6 +3164,7 @@ function apbct_settings__btn_change_account_email_html()
     return '(<button type="button"
                 id="apbct-change-account-email"
                 class="apbct-btn-as-link"
+                style="background: #fff"
                 data-default-text="'
                     . __('change email', 'cleantalk-spam-protect') .
                     '"
