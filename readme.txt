@@ -65,8 +65,9 @@ CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam se
 = AntiSpam protection for comments =
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
 
-= Contact Form by WPForms spam filter =
-Plugin extends Contact Form by WPForms to provide spam protection. It filters spam submissions for each type of forms - simple contact form, marketing form, request a quote and etc.
+= Contact Form 7 spam filter =
+Plugin extends spam protection for Contact Form 7 (CF7). It can be used with any other third-party spam filters.
+<a href="https://blog.cleantalk.org/how-to-protect-your-contactform7-contact-form-using-cleantalk-anti-spam-plugin/">How to protect your Contact Form 7 using CleanTalk Anti-Spam plugin</a>
 
 = Elementor Website Builder filter =
 Plugin extends spam protection for Elementor Website Builder. It filters spam submisssions and tested for contact form type.
@@ -77,9 +78,14 @@ Plugin extends spam protection for Gravity forms. It filters spam submisssions f
 = Formidable Form Builder spam filter =
 Plugin extends spam protection for Formidable Form Builder. It filters spam submisssions for any type of forms - Contact Form, Survey & Quiz Forms.
 
-= Contact Form 7 spam filter =
-Plugin extends spam protection for Contact Form 7 (CF7). It can be used with any other third-party spam filters.
-<a href="https://blog.cleantalk.org/how-to-protect-your-contactform7-contact-form-using-cleantalk-anti-spam-plugin/">How to protect your Contact Form 7 using CleanTalk Anti-Spam plugin</a>
+= Leaky Paywall subscription protection =
+Plugin protects Leaky Paywall plugin (by ZEEN01) against spam subscriptions. It can be used with any other third-party spam filters.
+
+= HubSpot protection for embedded forms =
+Plugin protects HubSpot embedded forms against any spam submissions. Guide to start using embedded forms https://knowledge.hubspot.com/forms/how-can-i-share-a-hubspot-form-if-im-using-an-external-site
+
+= Contact Form by WPForms spam filter =
+Plugin extends Contact Form by WPForms to provide spam protection. It filters spam submissions for each type of forms - simple contact form, marketing form, request a quote and etc.
 
 = WooCommerce spam filter =
 Anti-spam by CleanTalk filters spam registrations and spam reviews for WooCommerce. The plugin is fully compatible with WooCommerce 2.1 and higher.
