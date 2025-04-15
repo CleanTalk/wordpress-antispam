@@ -1987,7 +1987,7 @@ function apbct_form__ninjaForms__collect_fields_new()
                 }
                 if (
                     (stripos($field_key, 'email') !== false && $field_type === 'email') ||
-                    (function_exists('is_email') && is_email($field['value']))
+                    (function_exists('is_email') && is_string($field['value']) && is_email($field['value']))
                 ) {
                     /**
                      * On the plugin side we can not decide which of presented emails have to be used for check as sender_email,
