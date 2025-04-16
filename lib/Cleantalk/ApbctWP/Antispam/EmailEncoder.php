@@ -105,28 +105,26 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
         return $result;
     }
 
-    public static function getEncoderOptionDescription($example_email = '')
+    public static function getEncoderOptionDescription()
     {
         $common_description = __(
             'Option encodes emails/phones on public pages of the site. This prevents robots from collecting and including your emails/phones in lists to spam.',
             'cleantalk-spam-protect'
         );
+        return $common_description;
+    }
+
+    public static function getExampleOfEncodedEmail($example_email)
+    {
         $example_encoded = '';
         if ( !empty($example_email) && is_string($example_email)) {
             $example_encoded = sprintf(
-                '%s: %s',
-                __('Here is a sample of encoded email', 'cleantalk-spam-protect'),
+                '%s: <span style="margin-left: 5px">%s</span>',
+                __('Here is a sample of encoded email, click the email to decode it and see the effect', 'cleantalk-spam-protect'),
                 TT::toString($example_email)
             );
         }
-
-        $template = '%s&nbsp;%s';
-
-        return sprintf(
-            $template,
-            $common_description,
-            empty($example_encoded) ? '&nbsp;' : '<span class="apbct-email-encoder--settings_example_encoded">' . $example_encoded . '</span>'
-        );
+        return $example_encoded;
     }
 
     /**
@@ -197,6 +195,33 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             esc_html('+12 34 5678901'),
             __('Complied numbers in the "a" tag with "tel" property will be also encoded', 'cleantalk-spam-protect'),
             esc_html('<a href="tel:+11234567890">Call  +1 (123) 456-7890</a>')
+        );
+        return $tmp;
+    }
+
+    public static function getEmailEncoderCommonLongDescription()
+    {
+        $tmp = '
+        <p>%s</p>
+        <p>%s</p>
+        <p>%s</p>
+        <p>%s</p>
+            <p class="apbct-icon-mail-alt" style="padding-left: 10px">%s</p>
+            <p class="apbct-icon-mobile" style="padding-left: 10px">%s</p>
+        <p>%s</p>
+        <p><a href="#apbct_setting_group__contact_data_encoding" onclick="handleAnchorDetection(\'apbct_setting_group__contact_data_encoding\')">%s</a> %s</p>
+        ';
+        $tmp = sprintf(
+            $tmp,
+            __('This option encodes email addresses and phone numbers on your website to make them unreadable to spambots that scan public pages for contact information.', 'cleantalk-spam-protect'),
+            __('By hiding emails and phone numbers, it prevents your data from being harvested and added to spam mailing lists or used for unwanted calls.', 'cleantalk-spam-protect'),
+            __('Visitors will still be able to see and use your contact details, but bots will see only encoded or partially hidden versions.', 'cleantalk-spam-protect'),
+            __('Examples:', 'cleantalk-spam-protect'),
+            __('contact@example.com → co*****@********.com', 'cleantalk-spam-protect'),
+            __('+1 (234) 567-8901 → +1 (***) ***-****', 'cleantalk-spam-protect'),
+            __('You can also customize how emails are displayed before they are decoded by users — blurred, replaced with stars, or shown as a custom message. ', 'cleantalk-spam-protect'),
+            __('Click', 'cleantalk-spam-protect'),
+            __('to proceed to encoder settings', 'cleantalk-spam-protect')
         );
         return $tmp;
     }
@@ -299,6 +324,79 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             'text__ee_email_decoder'               => __('CleanTalk email decoder', 'cleantalk-spam-protect'),
             'text__ee_wait_for_decoding'           => $decoding_text,
             'text__ee_decoding_process'            => $decoding_process_text,
+        );
+    }
+
+
+
+    public static function getEncoderStatusForSettingsHat($data)
+    {
+        $template = '
+            <div id="apbct_encoder_status__title_wrapper" class="apbct_setting-field_title--checkbox">
+                <span class="apbct-icon-eye-off"></span>
+                <span style="margin: 0 3px">%s</span>
+                <i setting="%s" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>
+            </div>
+            <div id="apbct_encoder_status__common_wrapper">
+                <div id="apbct_encoder_status__description_wrapper" class="apbct_encoder_status__rows">
+                    <div>%s</div>
+                </div>
+                <div id="apbct_encoder_status__example_wrapper" class="apbct_encoder_status__rows">
+                    <span class="apbct-email-encoder--settings_example_encoded">%s</span>
+                </div>
+                <label for="apbct_encoder_status__inline_wrapper" id="apbct_encoder_status__current_status_label">
+                    <span>%s</span>
+                </label>
+                    <div id="apbct_encoder_status__inline_wrapper" class="apbct_encoder_status__inline_wrapper apbct_encoder_status__rows">
+                        <div id="apbct_encoder_status__emails_wrapper" class="apbct_encoder_status__inline_element">
+                            <span class="apbct_encoder_status__inline_element__option">%s:</span><span><b>%s</b></span>
+                        </div>
+                        <div id="apbct_encoder_status__phones_wrapper" class="apbct_encoder_status__inline_element">
+                            <span class="apbct_encoder_status__inline_element__option">%s:</span><span><b>%s</b></span>
+                        </div>
+                        <div id="apbct_encoder_status__obfuscation_mode_wrapper" class="apbct_encoder_status__inline_element">
+                            <span class="apbct_encoder_status__inline_element__option">%s:</span><span><b>%s</b></span>
+                        </div>
+                    </div>
+                    <div id="apbct_encoder_status__manage_settings_link_wrapper" class="apbct_encoder_status__rows apbct-trusted-text--center">
+                        <span>%s <a href="#apbct_setting_group__contact_data_encoding" onclick="handleAnchorDetection(\'apbct_setting_group__contact_data_encoding\')">%s</a></span>
+                    </div>
+            </div>
+        ';
+        $ancor_to_section = 'advanced settings';
+
+        $description = __(
+            'This feature prevents robots from collecting and including your emails/phones in lists to spam.',
+            'cleantalk-spam-protect'
+        );
+
+        if ($data['phones_on']) {
+            $phone_status = __('On', 'cleantalk_spam_protect');
+        } else {
+            $phone_status = __('Off', 'cleantalk_spam_protect');
+        }
+
+        if ($data['emails_on']) {
+            $email_status = __('On', 'cleantalk_spam_protect');
+        } else {
+            $email_status = __('Off', 'cleantalk_spam_protect');
+        }
+
+        return sprintf(
+            $template,
+            __('Encoding contact data', 'cleantalk_spam_protect'),
+            'data__email_decoder',
+            $description,
+            static::getExampleOfEncodedEmail($data['current_user_email']),
+            __('Current status:', 'cleantalk_spam_protect'),
+            __('Phones encoding', 'cleantalk_spam_protect'),
+            $phone_status,
+            __('Emails encoding', 'cleantalk_spam_protect'),
+            $email_status,
+            __('Current obfuscation mode', 'cleantalk_spam_protect'),
+            $data['obfuscation_mode'],
+            __('You can manage encoder settings in ', 'cleantalk_spam_protect'),
+            $ancor_to_section
         );
     }
 }

@@ -113,11 +113,6 @@ function apbct_settings__set_fields()
         ? '<br>' . __(' - status of SpamFireWall database updating process', 'cleantalk-spam-protect')
         : '';
 
-    $current_user = wp_get_current_user();
-    $current_user_email = $current_user->exists() ? $current_user->user_email : 'example@example.com';
-    $emailEncoder = EmailEncoder::getInstance();
-    $current_user_email = $emailEncoder->ignoreOpenSSLMode()->modifyContent($current_user_email);
-
     $fields = array(
 
         'main' => array(
@@ -170,11 +165,6 @@ function apbct_settings__set_fields()
                     'long_description' => true,
                     'display'     => ! $apbct->white_label,
                 ),
-                'data__email_decoder'        => array(
-                    'type'        => 'checkbox',
-                    'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
-                    'description' => EmailEncoder::getEncoderOptionDescription($current_user_email)
-                ),
                 'comments__the_real_person' => array(
                     'type'        => 'checkbox',
                     'title'       => __('The Real Person Badge!', 'cleantalk-spam-protect'),
@@ -182,6 +172,11 @@ function apbct_settings__set_fields()
                         'Plugin shows special benchmark for author of a comment or review, that the author passed all anti-spam filters and acts as a real person. It improves quality of users generated content on your website by proving that the content is not from spambots.',
                         'cleantalk-spam-protect'
                     ),
+                    'long_description' => true,
+                ),
+                'data__email_decoder__status'        => array(
+                    'type'        => 'custom_html',
+                    'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
                     'long_description' => true,
                 ),
             ),
@@ -640,14 +635,14 @@ function apbct_settings__set_fields()
                         'data__email_decoder_obfuscation_custom_text',
                         'data__email_decoder_encode_phone_numbers',
                         'data__email_decoder_encode_email_addresses'
-                    )
+                    ),
+                    'long_description' => true,
                 ),
                 'data__email_decoder_encode_email_addresses'        => array(
                     'title' => __('Encode email addresses', 'cleantalk-spam-protect'),
                     'description' => EmailEncoder::getEmailsEncodingDescription(),
                     'class'           => 'apbct_settings-field_wrapper--sub',
                     'parent'            => 'data__email_decoder',
-                    'long_description' => true,
                 ),
                 'data__email_decoder_encode_phone_numbers'        => array(
                     'title' => __('Encode phone numbers', 'cleantalk-spam-protect'),
@@ -2491,8 +2486,18 @@ function apbct_settings__validate($settings)
 
     // Banner notice_email_decoder_changed
     if (
-        isset($apbct->settings['data__email_decoder'], $settings['data__email_decoder']) &&
-        ((int)$apbct->settings['data__email_decoder'] !== (int)$settings['data__email_decoder'])
+        (
+            isset($apbct->settings['data__email_decoder'], $settings['data__email_decoder']) &&
+            ((int)$apbct->settings['data__email_decoder'] !== (int)$settings['data__email_decoder'])
+        ) ||
+        (
+            isset($apbct->settings['data__email_decoder_encode_phone_numbers'], $settings['data__email_decoder_encode_phone_numbers']) &&
+            ((int)$apbct->settings['data__email_decoder_encode_phone_numbers'] !== (int)$settings['data__email_decoder_encode_phone_numbers'])
+        ) ||
+        (
+            isset($apbct->settings['data__email_decoder_encode_email_addresses'], $settings['data__email_decoder_encode_email_addresses']) &&
+            ((int)$apbct->settings['data__email_decoder_encode_email_addresses'] !== (int)$settings['data__email_decoder_encode_email_addresses'])
+        )
     ) {
         $apbct->data['notice_email_decoder_changed'] = 1;
     }
@@ -3104,12 +3109,16 @@ function apbct_settings__get__long_description()
             <p><code>^my-parent-div$</code></p>',
         ),
         'data__email_decoder_obfuscation_mode' => array(
-            'title' => __('Email Encoder obfuscation modes', 'cleantalk-spam-protect'),
+            'title' => __('Contact data encoding feature description', 'cleantalk-spam-protect'),
             'desc'  => EmailEncoder::getObfuscationModesLongDescription(),
         ),
         'data__email_decoder_encode_phone_numbers' => array(
             'title' => __('Email Encoder obfuscation modes', 'cleantalk-spam-protect'),
             'desc'  => EmailEncoder::getPhonesEncodingLongDescription(),
+        ),
+        'data__email_decoder' => array(
+            'title' => __('Contact data encoder', 'cleantalk-spam-protect'),
+            'desc'  => EmailEncoder::getEmailEncoderCommonLongDescription(),
         ),
     );
 

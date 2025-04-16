@@ -154,7 +154,7 @@ class TestEmailEncoder extends TestCase
         global $apbct;
 
         $test_tel_origin = 'Lorem ipsum bla bla +17776663322';
-        $test_tel_obfuscated = '\+1\*\*\*\*\*\*\*\*22';
+        $test_tel_obfuscated = '\+1777\*\*\*\*\*22';
         $regexp_for_obfuscation = '/.+data-original-string=[\s\S]+apbct-email-encoder[\s\S]+browser\.[\"\']>+' . $test_tel_obfuscated . '/';
 
         $apbct->settings['data__email_decoder_obfuscation_mode'] = 'obfuscate';

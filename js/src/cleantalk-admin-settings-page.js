@@ -444,7 +444,37 @@ jQuery(document).ready(function() {
 
     // Hide/show EmailEncoder replacing text textarea
     apbctManageEmailEncoderCustomTextField();
+
+    if (window.location.hash) {
+        const anchor = window.location.hash.substring(1);
+        handleAnchorDetection(anchor);
+    }
 });
+
+/**
+ * Detect ancors and open advanced settings before scroll
+ * @param {string} anchor
+ */
+function handleAnchorDetection(anchor) {
+    let advSettings = document.querySelector('#apbct_settings__advanced_settings');
+    if ( 'none' === advSettings.style.display ) {
+        apbctExceptedShowHide('apbct_settings__advanced_settings');
+    }
+    scrollToAnchor('#' + anchor);
+}
+
+/**
+ * Scroll to the target element ID
+ * @param {string} anchorId Anchor target element ID
+ */
+function scrollToAnchor(anchorId) {
+    const targetElement = document.querySelector(anchorId);
+    if (targetElement) {
+        targetElement.scrollIntoView({
+            block: 'end',
+        });
+    }
+}
 
 /**
  * Hide/show EmailEncoder replacing text textarea

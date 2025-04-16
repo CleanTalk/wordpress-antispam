@@ -372,7 +372,7 @@ class EmailEncoder
         if ( version_compare(phpversion(), '7.4.0', '>=') ) {
             $replacing_result = preg_replace_callback($pattern, function ($matches) use ($content) {
 
-                if ( isset($matches[0][0]) ) {
+                if ( isset($matches[0][0]) && is_array($matches[0])) {
                     if ($this->isTelTag($matches[0][0])) {
                         return $this->encodeTelLinkV2($matches[0], $content);
                     }
@@ -391,7 +391,12 @@ class EmailEncoder
                 $this->handlePrivacyPolicyHook();
 
                 if ( isset($matches[0][0]) ) {
-                    return $this->encodeAny($matches[0][0], $this->global_obfuscation_mode, $this->global_replacing_text);
+                    return $this->encodeAny(
+                        $matches[0][0],
+                        $this->global_obfuscation_mode,
+                        $this->global_replacing_text,
+                        true
+                    );
                 }
 
                 return '';
@@ -418,7 +423,12 @@ class EmailEncoder
                 $this->handlePrivacyPolicyHook();
 
                 if ( isset($matches[0]) ) {
-                    return $this->encodeAny($matches[0], $this->global_obfuscation_mode, $this->global_replacing_text);
+                    return $this->encodeAny(
+                        $matches[0],
+                        $this->global_obfuscation_mode,
+                        $this->global_replacing_text,
+                        true
+                    );
                 }
 
                 return '';
@@ -617,13 +627,15 @@ class EmailEncoder
      *
      * @return string
      */
-    private function encodeAny($string, $mode = 'blur', $replacing_text = null)
+    private function encodeAny($string, $mode = 'blur', $replacing_text = null, $is_phone_number = false)
     {
         $obfuscated_string = $string;
 
         if ($mode !== 'replace') {
             $obfuscator = new Obfuscator();
-            $obfuscated_string = $obfuscator->processString($string);
+            $obfuscated_string = $is_phone_number
+                ? $obfuscator->processPhone($string)
+                : $obfuscator->processString($string);
         }
 
         $string_with_effect = $this->applyEffectsOnMode(
@@ -692,22 +704,23 @@ class EmailEncoder
     }
 
     /**
-     * @param string $obfuscated_string
+     * @param string $obfuscated_string with ** symbols
      *
      * @return string
      */
     private function addMagicBlurToString($obfuscated_string)
     {
         //preparing data to blur
-
-        //this way we know how many characters to show with no BLUR
-        $left_padding = Obfuscator::STRING_CHARS_TO_SHOW;
-        $right_padding = Obfuscator::STRING_CHARS_TO_SHOW * -1;
-        $first_two = substr($obfuscated_string, 0, Obfuscator::STRING_CHARS_TO_SHOW);
-        $last_two = substr($obfuscated_string, Obfuscator::STRING_CHARS_TO_SHOW * -1);
-        return $first_two .
-               '<span class="apbct-blur">' . substr($obfuscated_string, $left_padding, $right_padding) . '</span>' .
-               $last_two;
+        $regex = '/^([^*]+)(\*+)([^*]+)$/';
+        preg_match_all($regex, $obfuscated_string, $matches);
+        if (isset($matches[1][0], $matches[2][0], $matches[3][0])) {
+            $first = $matches[1][0];
+            $middle = $matches[2][0];
+            $end = $matches[3][0];
+        } else {
+            return $obfuscated_string;
+        }
+        return $first . '<span class="apbct-blur">' . $middle . '</span>' . $end;
     }
 
     /**
@@ -843,7 +856,7 @@ class EmailEncoder
     /**
      * Method to process tel: links. For PHP < 7.4
      *
-     * @param $tel_link_str string
+     * @param string $tel_link_str
      *
      * @return string
      */
@@ -852,10 +865,10 @@ class EmailEncoder
         // Get inner tag text and place it in $matches[1]
         preg_match('/tel:(\+\d{8,12})/', $tel_link_str, $matches);
         if ( isset($matches[1]) ) {
-            $mailto_inner_text = preg_replace_callback('/\b\+\d{8,12}/', function ($matches) {
+            $mailto_inner_text = preg_replace_callback('/\+\d{8,12}/', function ($matches) {
                 if (isset($matches[0])) {
                     $obfuscator = new Obfuscator();
-                    return $obfuscator->processString($matches[0]);
+                    return $obfuscator->processPhone($matches[0]);
                 }
             }, $matches[1]);
         }
@@ -870,23 +883,26 @@ class EmailEncoder
     /**
      * Method to process tel: links. Use this only for PHP 7.4+
      *
-     * @param $match array
-     * @param $content string
+     * @param array $match
+     * @param string $content
      *
      * @return string
      */
     private function encodeTelLinkV2($match, $content)
     {
-        $position = $match[1];
+        $position = !empty($match[1]) ? (int)$match[1] : null;
+        if (null === $position) {
+            return $content;
+        }
         $q_position = $position + strcspn($content, '\'"', $position);
         $tel_link_string = substr($content, $position, $q_position - $position);
         // Get inner tag text and place it in $matches[1]
         preg_match('/tel:(\+\d{8,12})/', $tel_link_string, $matches);
         if ( isset($matches[1]) ) {
-            $tel_inner_text = preg_replace_callback('/\b\+\d{8,12}/', function ($matches) {
+            $tel_inner_text = preg_replace_callback('/\+\d{8,12}/', function ($matches) {
                 if ( isset($matches[0]) ) {
                     $obfuscator = new Obfuscator();
-                    return $obfuscator->processString($matches[0]);
+                    return $obfuscator->processPhone($matches[0]);
                 }
                 return '';
             }, $matches[1]);

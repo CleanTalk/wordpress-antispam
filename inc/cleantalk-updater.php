@@ -1308,6 +1308,7 @@ function apbct_update_to_6_53_1()
 
     if ($apbct->settings['data__email_decoder']) {
         $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 0;
         $apbct->saveSettings();
     }
 }

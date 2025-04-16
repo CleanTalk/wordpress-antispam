@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\PluginSettingsPage;
 
+use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\Common\TT;
 
 class SettingsField
@@ -164,6 +165,9 @@ class SettingsField
                 // Color type
                 case 'color':
                     $this->field_layout .= $this->getInputColor();
+                    break;
+                case 'custom_html':
+                    $this->field_layout .= $this->getCustomHTML();
                     break;
             }
         }
@@ -506,5 +510,30 @@ class SettingsField
         }
 
         return $out;
+    }
+
+    private function getCustomHTML()
+    {
+        global $apbct;
+        $data = [
+            'name' => isset($this->params['name']) ? $this->params['name'] : '',
+            'type' => isset($this->params['type']) ? $this->params['type'] : '',
+            'title' => isset($this->params['title']) ? $this->params['title'] : '',
+            'popup_description' => isset($this->description_popup) ? $this->description_popup : '',
+            'description' => isset($this->params['description']) ? $this->params['description'] : '',
+        ];
+
+        switch ($data['name']) {
+            case 'data__email_decoder__status':
+                $data['phones_on'] = $apbct->settings['data__email_decoder_encode_phone_numbers'];
+                $data['emails_on'] = $apbct->settings['data__email_decoder_encode_email_addresses'];
+                $data['obfuscation_mode'] = $apbct->settings['data__email_decoder_obfuscation_mode'];
+                $current_user = wp_get_current_user();
+                $current_user_email = $current_user->exists() ? $current_user->user_email : 'example@example.com';
+                $emailEncoder = EmailEncoder::getInstance();
+                $data['current_user_email'] = $emailEncoder->ignoreOpenSSLMode()->modifyContent($current_user_email);
+                return EmailEncoder::getEncoderStatusForSettingsHat($data);
+        }
+        return '';
     }
 }
