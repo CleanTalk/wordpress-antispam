@@ -3346,6 +3346,12 @@ function apbct_ready() {
             if (ctCheckHiddenFieldsExclusions(document.forms[i], 'visible_fields')) {
                 continue;
             }
+            if (form.querySelector('input[name="wspsc_add_cart_submit"]') ||
+                form.querySelector('input[name="option"][value="com_vikrentcar"]') ||
+                form.querySelector('input[name="option"][value="com_vikbooking"]')
+            ) {
+                continue;
+            }
 
             // The Form has hidden field like apbct_visible_fields
             if (
@@ -3390,7 +3396,9 @@ function apbct_ready() {
 
                 // Call previous submit action
                 if (event.target.onsubmit_prev instanceof Function && !ctOnsubmitPrevCallExclude(event.target)) {
-                    event.preventDefault();
+                    if (event.target.classList !== undefined && event.target.classList.contains('brave_form_form')) {
+                        event.preventDefault();
+                    }
                     setTimeout(function() {
                         event.target.onsubmit_prev.call(event.target, event);
                     }, 0);
