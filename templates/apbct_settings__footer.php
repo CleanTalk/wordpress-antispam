@@ -93,7 +93,7 @@ function apbct_settings__footer()
             background-color: #cccccc;
         }
         #wpcontent {
-            padding-bottom: 190px;
+            padding-bottom: 250px;
         }
         .apbct_footer {
             display: flex;

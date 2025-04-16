@@ -723,15 +723,22 @@ function apbctSettingsShowDescription(label, settingId) {
  */
 function apbctNavigationMenuPosition() {
     const navBlock = document.querySelector('#apbct_hidden_section_nav ul');
-    if (!navBlock) {
+    const rightBtnSave = document.querySelector('#apbct_settings__button_section');
+    if (!navBlock || !rightBtnSave) {
         return;
     }
-    const scrollPosition = window.scrollY; // Текущая позиция прокрутки
-
+    const scrollPosition = window.scrollY;
+    const windowWidth = window.innerWidth;
     if (scrollPosition > 1000) {
         navBlock.style.position = 'fixed';
+        rightBtnSave.style.position = 'fixed';
     } else {
-        navBlock.style.position = 'static'; // Возвращаем стандартное положение
+        navBlock.style.position = 'static';
+        rightBtnSave.style.position = 'static';
+    }
+
+    if (windowWidth < 768) {
+        rightBtnSave.style.position = 'fixed';
     }
 }
 

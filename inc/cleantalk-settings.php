@@ -1444,7 +1444,7 @@ function apbct_settings__display()
         }
     }
 
-    if ( $apbct->key_is_ok ) {
+    if ( $apbct->key_is_ok && !empty($apbct->api_key) ) {
         require_once(CLEANTALK_PLUGIN_DIR . 'templates/apbct_settings__footer.php');
     }
 }
