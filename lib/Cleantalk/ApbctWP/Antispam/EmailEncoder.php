@@ -370,31 +370,41 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             'cleantalk-spam-protect'
         );
 
-        if ($data['phones_on']) {
+        if ($data['phones_on'] && $data['encoder_enabled_global']) {
             $phone_status = __('On', 'cleantalk_spam_protect');
         } else {
             $phone_status = __('Off', 'cleantalk_spam_protect');
         }
 
-        if ($data['emails_on']) {
+        if ($data['emails_on'] && $data['encoder_enabled_global']) {
             $email_status = __('On', 'cleantalk_spam_protect');
         } else {
             $email_status = __('Off', 'cleantalk_spam_protect');
         }
+
+        if (!empty($data['obfuscation_mode']) && !empty($data['encoder_enabled_global'])) {
+            $obfuscation_mode = $data['obfuscation_mode'];
+        } else {
+            $obfuscation_mode = __('Disabled', 'cleantalk_spam_protect');
+        }
+
+        $email = isset($data['current_user_email']) && is_string($data['current_user_email'])
+            ? $data['current_user_email']
+            : 'example@mail.com';
 
         return sprintf(
             $template,
             __('Encoding contact data', 'cleantalk_spam_protect'),
             'data__email_decoder',
             $description,
-            static::getExampleOfEncodedEmail($data['current_user_email']),
+            static::getExampleOfEncodedEmail($email),
             __('Current status:', 'cleantalk_spam_protect'),
             __('Phones encoding', 'cleantalk_spam_protect'),
             $phone_status,
             __('Emails encoding', 'cleantalk_spam_protect'),
             $email_status,
             __('Current obfuscation mode', 'cleantalk_spam_protect'),
-            $data['obfuscation_mode'],
+            $obfuscation_mode,
             __('You can manage encoder settings in ', 'cleantalk_spam_protect'),
             $ancor_to_section
         );

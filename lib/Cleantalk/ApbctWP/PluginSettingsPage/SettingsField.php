@@ -528,6 +528,7 @@ class SettingsField
                 $data['phones_on'] = $apbct->settings['data__email_decoder_encode_phone_numbers'];
                 $data['emails_on'] = $apbct->settings['data__email_decoder_encode_email_addresses'];
                 $data['obfuscation_mode'] = $apbct->settings['data__email_decoder_obfuscation_mode'];
+                $data['encoder_enabled_global'] = $apbct->settings['data__email_decoder'];
                 $current_user = wp_get_current_user();
                 $current_user_email = $current_user->exists() ? $current_user->user_email : 'example@example.com';
                 $emailEncoder = EmailEncoder::getInstance();
