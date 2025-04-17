@@ -1464,6 +1464,8 @@ function apbct_settings__display()
             echo Escape::escKsesPreset($out, 'apbct_settings__display__banner_template');
         }
     }
+
+    require_once(CLEANTALK_PLUGIN_DIR . 'templates/apbct_settings__footer.php');
 }
 
 /**
