@@ -1446,10 +1446,12 @@ function apbct_settings__display()
      */
     echo '</div>';
 
+    echo '<div id="apbct_settings__block_main_save_button">';
     echo '<button id="apbct_settings__main_save_button" name="submit" class="cleantalk_link cleantalk_link-manual" value="save_changes" onclick="apbctShowRequiredGroups(event,\'apbct_settings__main_save_button\')">'
          . __('Save Changes')
          . '</button>';
     echo '<br>';
+    echo '</div>';
 
     echo "</form>";
 
@@ -1465,7 +1467,9 @@ function apbct_settings__display()
         }
     }
 
-    require_once(CLEANTALK_PLUGIN_DIR . 'templates/apbct_settings__footer.php');
+    if ( $apbct->key_is_ok && !empty($apbct->api_key) ) {
+        require_once(CLEANTALK_PLUGIN_DIR . 'templates/apbct_settings__footer.php');
+    }
 }
 
 /**

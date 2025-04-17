@@ -254,6 +254,7 @@ jQuery(document).ready(function() {
         debounceTimer = setTimeout(function() {
             apbctSaveButtonPosition();
         }, 50);
+        apbctNavigationMenuPosition();
     });
     jQuery('#ct_adv_showhide a').on('click', apbctSaveButtonPosition);
 
@@ -747,7 +748,33 @@ function apbctSettingsShowDescription(label, settingId) {
 }
 
 /**
- * save button, navigation menu, navigation button position
+ * Set position for navigation menu
+ * @return {void}
+ */
+function apbctNavigationMenuPosition() {
+    const navBlock = document.querySelector('#apbct_hidden_section_nav ul');
+    const rightBtnSave = document.querySelector('#apbct_settings__button_section');
+    if (!navBlock || !rightBtnSave) {
+        return;
+    }
+    const scrollPosition = window.scrollY;
+    const windowWidth = window.innerWidth;
+    if (scrollPosition > 1000) {
+        navBlock.style.position = 'fixed';
+        rightBtnSave.style.position = 'fixed';
+    } else {
+        navBlock.style.position = 'static';
+        rightBtnSave.style.position = 'static';
+    }
+
+    if (windowWidth < 768) {
+        rightBtnSave.style.position = 'fixed';
+    }
+}
+
+/**
+ * Set position for save button, hide it if scrolled to the bottom
+ * @return {void}
  */
 function apbctSaveButtonPosition() {
     if (
@@ -765,61 +792,32 @@ function apbctSaveButtonPosition() {
         return;
     }
 
-    let docInnerHeight = window.innerHeight;
-    let advSettingsBlock = document.getElementById('apbct_settings__advanced_settings');
-    let advSettingsOffset = advSettingsBlock.getBoundingClientRect().top;
-    let buttonBlock = document.getElementById('apbct_settings__button_section');
-    let buttonHeight = buttonBlock.getBoundingClientRect().height;
-    let navBlock = document.getElementById('apbct_hidden_section_nav');
-    let navBlockOffset = navBlock.getBoundingClientRect().top;
-    let navBlockHeight = navBlock.getBoundingClientRect().height;
+    const additionalSaveButton =
+        document.querySelector('#apbct_settings__button_section, cleantalk_link[value="save_changes"]');
+    if (!additionalSaveButton) {
+        return;
+    }
 
-    const mainSaveButton = document.getElementById('apbct_settings__main_save_button');
-    const regularSaveButton = document.querySelector('button.cleantalk_link[value="save_changes"]');
     const scrollPosition = window.scrollY;
     const documentHeight = document.documentElement.scrollHeight;
     const windowHeight = window.innerHeight;
-    const scrollThreshold = documentHeight - windowHeight - 600;
-    const bufferZone = 10; // Буферная зона в 50px
-
-    // Проверяем позицию прокрутки с буферной зоной
-    if (scrollPosition >= scrollThreshold - bufferZone) {
-        if (mainSaveButton) mainSaveButton.style.display = 'block';
-        if (regularSaveButton) regularSaveButton.style.display = 'none';
-    } else if (scrollPosition <= scrollThreshold - bufferZone * 2) {
-        // Если не прокручено до конца, проверяем состояние продвинутых настроек
-        if (getComputedStyle(advSettingsBlock).display === 'none') {
-            if (mainSaveButton) mainSaveButton.style.display = 'block';
-            if (regularSaveButton) regularSaveButton.style.display = 'none';
-        } else {
-            if (mainSaveButton) mainSaveButton.style.display = 'none';
-            if (regularSaveButton) regularSaveButton.style.display = 'block';
-        }
-    }
-
-    // Позиционирование кнопки
-    if (getComputedStyle(advSettingsBlock).display !== 'none') {
-        if (docInnerHeight < navBlockOffset + navBlockHeight + buttonHeight) {
-            buttonBlock.style.bottom = '';
-            buttonBlock.style.top = navBlockOffset + navBlockHeight + 20 + 'px';
-        } else {
-            buttonBlock.style.bottom = 0;
-            buttonBlock.style.top = '';
-        }
-    }
-
-    if (window.innerWidth <= 768 && advSettingsOffset < 0) {
-        document.querySelector('#apbct_hidden_section_nav').style.display = 'grid';
-        document.querySelector('#apbct_hidden_section_nav').style.top = docInnerHeight + 'px';
-    } else if (window.innerWidth <= 768) {
-        document.querySelector('#apbct_hidden_section_nav').style.display = 'none';
-    }
-
-    // Set nav position
-    if (advSettingsOffset <= 0) {
-        navBlock.style.top = -advSettingsOffset + 30 + 'px';
+    const threshold = 800;
+    if (scrollPosition + windowHeight >= documentHeight - threshold) {
+        additionalSaveButton.style.display = 'none';
     } else {
-        navBlock.style.top = 0;
+        additionalSaveButton.style.display = 'block';
+    }
+
+    const advSettingsBlock = document.getElementById('apbct_settings__advanced_settings');
+    const mainSaveButton = document.getElementById('apbct_settings__block_main_save_button');
+    if (!advSettingsBlock || !mainSaveButton) {
+        return;
+    }
+
+    if (advSettingsBlock.style.display == 'none') {
+        mainSaveButton.classList.remove('apbct_settings__position_main_save_button');
+    } else {
+        mainSaveButton.classList.add('apbct_settings__position_main_save_button');
     }
 }
 

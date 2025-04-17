@@ -161,6 +161,7 @@ a.ct_support_link{
     text-align: center;
     border: 1px dashed #666;
 }
+
 #ct_translate_plugin .apbct_button_rate{margin-bottom: 10px;}
 
 .apbct_long_desc{
@@ -283,17 +284,29 @@ button[value="save_changes"]:disabled {
 #apbct_hidden_section_nav {
     position: absolute;
     top: 0;
-    right: 20px;
+    /*right: 20px;*/
+    right: 0;
+    width: 200px;
+}
+#apbct_hidden_section_nav ul {
+    /*position: fixed; !!!*/
+    z-index: 9999;
+    width: 100%;
+    top: 40px;
+}
+.apbct_settings__position_main_save_button {
+    text-align: right;
+    margin-right: 40px;
 }
 #apbct_settings__after_advanced_settings{
     margin-bottom: 20px;
     width: 70%;
 }
 #apbct_settings__button_section {
-    position: fixed;
+    position: static;
     z-index: 9999;
-    width: 100%;
     padding-bottom: 40px;
+    bottom: 0;
 }
 
 .apbct_highlighted{
@@ -472,6 +485,8 @@ button[value="save_changes"]:disabled {
         margin: 0;
         padding: 10px;
         border-radius: 3px;
+        right: 0;
+        width: auto;
     }
 
     #apbct_hidden_section_nav {
@@ -501,8 +516,9 @@ button[value="save_changes"]:disabled {
         display: block;
         width: 32px;
         height: 28px;
-        right: -120px;
-        position: relative;
+        right: 20px;
+        top: 20px;
+        position: fixed;
     }
 
     .apbct_hidden_section_nav_mob_btn-close {
@@ -528,24 +544,27 @@ button[value="save_changes"]:disabled {
     .apbct_long_desc__angle {
         display: none;
     }
-
+    .ct_rate_block{
+        max-width: 240px;
+        margin-right: 20px;
+    }
     .apbct_settings__key_line {
         display: flex;
         align-items: flex-start;
         flex-direction: column;
         width: 100%;
     }
-
     .apbct_settings__key_line__elements {
         margin: 5px 0 5px 0;
     }
-
     .apbct_setting__key_line__buttons, #apbct_setting_apikey, .apbct_settings__key_line__elements {
         width: 100%;
     }
-
     #cleantalk_apikey_wrapper {
         max-width: 100%;
     }
+    #apbct_settings__button_section {
+        position: fixed;
+        right: 20px;
+    }
 }
-
