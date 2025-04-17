@@ -78,7 +78,7 @@ class TestEmailEncoder extends TestCase
         $test_email_replace = 'REPLACEBYME';
         $regexp_for_blur = '/.+data-original-string=[\s\S]+apbct-email-encoder[\s\S]+browser\.[\"\']>[\s\S]+apbct-blur[\s\S]+\*?apbct-blur[\s\S]+\*+<\/span>[\s\S]+<\/span>/';
         $regexp_for_obfuscation = '/.+data-original-string=[\s\S]+apbct-email-encoder[\s\S]+browser\.[\"\']>+' . $test_email_obf . '/';
-        $regexp_for_replace = '/.+data-original-string=[\s\S]+apbct-email-encoder[\s\S]+browser\.[\"\']>+' . $test_email_replace . '/';
+        $regexp_for_replace = '/.+data-original-string=[\s\S]+apbct-email-encoder[\s\S]+browser\.[\"\']>.+' . $test_email_replace . '/';
 
         $apbct->settings['data__email_decoder_obfuscation_mode'] = 'blur';
         $apbct->saveSettings();

@@ -673,6 +673,7 @@ class EmailEncoder
                 break;
             case 'replace':
                 $handled_string = !empty($replacing_text) ? $replacing_text : static::getDefaultReplacingText();
+                $handled_string = '<span style="text-decoration: underline">' .  $handled_string . '</span>';
                 break;
             default:
                 return $obfuscated_string;
@@ -1127,6 +1128,6 @@ class EmailEncoder
 
     protected static function getDefaultReplacingText()
     {
-        return 'Click to show email (static)';
+        return 'Click to show email!';
     }
 }
