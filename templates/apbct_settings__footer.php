@@ -78,7 +78,7 @@ function apbct_settings__footer()
             }
 
             footer.appendChild(createFooterColumn('More solutions for your site', footerLinks.block1));
-            footer.appendChild(createFooterColumn('Recommended plugins', footerLinks.block2));
+            //footer.appendChild(createFooterColumn('Recommended plugins', footerLinks.block2)); @todo: uncomment when needed to show the block Recommended plugins
 
             const wpMainFooter = document.getElementById('wpfooter');
             const footerLeft = document.getElementById('footer-left');
@@ -90,35 +90,44 @@ function apbct_settings__footer()
     <style>
         #wpfooter {
             display: block;
-            background-color: #cccccc;
+            background-color: #e6e5e5;
         }
         #wpcontent {
             padding-bottom: 250px;
         }
         .apbct_footer {
             display: flex;
-            margin-bottom: 20px;
+            justify-content: center;
             gap: 150px;
+            margin-bottom: 20px;
+        }
+        .apbct_footer_header{
+                justify-content: center;
         }
         .apbct_footer_column {
-            margin: 0 0 20px 0px;
+            margin-bottom: 13px;
         }
         .apbct_footer_column h3 {
-            margin-bottom: 10px;
+            margin-bottom: 1em;
+            text-align: center;
             color: #3c434a;
         }
         .apbct_footer_links {
-            list-style: none;
+            display: flex;
+            width: 100%;
+            gap: 60px;
             padding: 0;
             margin: 0;
+            list-style: none;
         }
         .apbct_footer_links li {
-            margin-bottom: 10px;
-        }
+                margin-bottom: 0px;
+            }
         .apbct_footer_links a {
             color: #3c434a;
         }
         .apbct_footer_links a:hover {
+            color: #2271b1;
             text-decoration: underline;
         }
         @media (max-width: 768px) {
@@ -129,9 +138,6 @@ function apbct_settings__footer()
                 flex-direction: column;
                 gap: 0px;
             }
-            .apbct_footer_column {
-                margin-bottom: 20px;
-            }
             .apbct_footer_links {
                 display: none;
                 column-count: 1;
@@ -140,6 +146,9 @@ function apbct_settings__footer()
             .apbct_footer_links.active {
                 display: block;
                 column-count: 1;
+            }
+            .apbct_footer_links li {
+                margin-bottom: 10px;
             }
             .apbct_footer_header{
                 display: flex;
