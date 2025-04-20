@@ -673,7 +673,6 @@ function apbct_settings__set_fields()
                     'description' => EmailEncoder::getBufferUsageOptionDescription(),
                     'parent'          => 'data__email_decoder',
                     'class'           => 'apbct_settings-field_wrapper--sub',
-                    'reverse_trigger' => true,
                 ),
             )
         ),
@@ -2276,6 +2275,9 @@ function apbct_settings__validate($settings)
         if ( ! isset($settings[$setting]) ) {
             $settings[$setting] = null;
             settype($settings[$setting], gettype($value));
+            if ($setting === 'data__email_decoder_obfuscation_mode') {
+                $settings[$setting] = $value;
+            }
         }
     }
     unset($setting, $value);
@@ -3115,15 +3117,15 @@ function apbct_settings__get__long_description()
             <p><code>^my-parent-div$</code></p>',
         ),
         'data__email_decoder_obfuscation_mode' => array(
-            'title' => __('Contact data encoding feature description', 'cleantalk-spam-protect'),
+            'title' => __('Contact data encoding: obfuscation modes', 'cleantalk-spam-protect'),
             'desc'  => EmailEncoder::getObfuscationModesLongDescription(),
         ),
         'data__email_decoder_encode_phone_numbers' => array(
-            'title' => __('Email Encoder obfuscation modes', 'cleantalk-spam-protect'),
+            'title' => __('Contact data encoding: phone numbers', 'cleantalk-spam-protect'),
             'desc'  => EmailEncoder::getPhonesEncodingLongDescription(),
         ),
         'data__email_decoder' => array(
-            'title' => __('Contact data encoder', 'cleantalk-spam-protect'),
+            'title' => __('Contact data encoding', 'cleantalk-spam-protect'),
             'desc'  => EmailEncoder::getEmailEncoderCommonLongDescription(),
         ),
     );

@@ -233,12 +233,13 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
     {
         $tmp = '
         <p>%s</p>
-        <p>%s yourmail@yourmaildomain.com</p>
+        <p>%s yourmail@yourmaildomain.com, %s +1 234 5678910</p>
             <span>1. %s</span>
                 <div style="margin: 0 0 20px 10px">
                     <p>
                         %s
                         <p class="apbct-icon-eye"><span class="apbct-email-encoder">yo<span class="apbct-blur">******</span>@<span class="apbct-blur">************</span>in.com</span></p>
+                        <p class="apbct-icon-eye"><span class="apbct-email-encoder">+1 23<span class="apbct-blur">********</span>10</span></p>
                     </p>
                 </div>
             <span>2. %s</span>
@@ -246,24 +247,25 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
                     <p>
                         %s
                         <p class="apbct-icon-eye">yo******@************in.com</p>
+                        <p class="apbct-icon-eye">+1 23*******01</p>
                     </p>
                 </div>
-            
             <span>3. %s</span>
                 <div style="margin: 0 0 20px 10px">
                 <p>%s</p>
-            </div>
+                </div>
         ';
         $tmp = sprintf(
             $tmp,
-            __('This option sets up how the hidden email is visible on the site before decoding.', 'cleantalk-spam-protect'),
+            __('This option sets up how the hidden email/phone is visible on the site before decoding.', 'cleantalk-spam-protect'),
             __('Example original email is', 'cleantalk-spam-protect'),
+            __('phone is', 'cleantalk-spam-protect'),
             __('Blur effect', 'cleantalk-spam-protect'),
-            __('The email will be partially replaced with blur effect:', 'cleantalk-spam-protect'),
+            __('The contact will be partially replaced with blur effect:', 'cleantalk-spam-protect'),
             __('Replace with "*"', 'cleantalk-spam-protect'),
-            __('The email will be partially replaced with * symbols:', 'cleantalk-spam-protect'),
+            __('The contact will be partially replaced with * symbols:', 'cleantalk-spam-protect'),
             __('Replace with the custom text', 'cleantalk-spam-protect'),
-            __('The email will be totally replaced with the custom text from the appropriate setting field.', 'cleantalk-spam-protect')
+            __('The contact will be totally replaced with the custom text from the appropriate setting field.', 'cleantalk-spam-protect')
         );
         return $tmp;
     }

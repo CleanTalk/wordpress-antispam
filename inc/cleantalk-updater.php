@@ -1302,13 +1302,17 @@ function apbct_update_to_6_46_1()
     $apbct->deleteOption('debug', true);
 }
 
-function apbct_update_to_6_53_1()
+function apbct_update_to_6_54_1()
 {
     global $apbct;
 
+    $apbct->settings['data__email_decoder_encode_phone_numbers'] = 0;
+
     if ($apbct->settings['data__email_decoder']) {
         $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
-        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 0;
-        $apbct->saveSettings();
+    } else {
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 0;
     }
+
+    $apbct->saveSettings();
 }

@@ -56,11 +56,16 @@ class SettingsField
     {
         global $apbct;
 
-        // name
-        if (isset($this->params['network'], $this->params['name']) && $this->params['network']) {
-            $this->value = $apbct->network_settings[$this->params['name']];
-        } elseif (isset($this->params['name'])) {
-            $this->value = $apbct->settings[$this->params['name']];
+        // value
+        if (isset($this->params['type']) && $this->params['type'] === 'custom_html') {
+            // ignore value on custom html
+            $this->value = '';
+        } else {
+            if (isset($this->params['network'], $this->params['name']) && $this->params['network']) {
+                $this->value = $apbct->network_settings[$this->params['name']];
+            } elseif (isset($this->params['name'])) {
+                $this->value = $apbct->settings[$this->params['name']];
+            }
         }
 
         // parent
