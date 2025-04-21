@@ -9,12 +9,15 @@ add_action('admin_footer', 'apbct_settings__footer');
  */
 function apbct_settings__footer()
 {
+    global $apbct;
+
     $block1_links = [
         ['text' => __('CleanTalk Security for Websites', 'cleantalk-spam-protect'), 'url' => LinkConstructor::buildCleanTalkLink(
             'settings_footer__spbct_link',
             'my',
             array(
                 'cp_mode' => 'security',
+                'user_token' => $apbct->user_token
             )
         )],
         ['text' => __('Uptime Monitoring', 'cleantalk-spam-protect'), 'url' => LinkConstructor::buildCleanTalkLink(
@@ -22,6 +25,7 @@ function apbct_settings__footer()
             'my',
             array(
                 'cp_mode' => 'uptime_monitoring',
+                'user_token' => $apbct->user_token
             )
         )],
         ['text' => __('doBoard - online project management', 'cleantalk-spam-protect'), 'url' => LinkConstructor::buildCleanTalkLink(
