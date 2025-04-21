@@ -107,7 +107,7 @@
 }
 
 .apbct-email-encoder--settings_example_encoded {
-    position: absolute;
+    position: relative;
 }
 
 @media screen and (max-width: 782px) {

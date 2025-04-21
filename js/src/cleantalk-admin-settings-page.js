@@ -248,7 +248,14 @@ jQuery(document).ready(function() {
     });
 
     apbctSaveButtonPosition();
-    window.addEventListener('scroll', apbctSaveButtonPosition);
+    let debounceTimer;
+    window.addEventListener('scroll', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function() {
+            apbctSaveButtonPosition();
+        }, 50);
+        apbctNavigationMenuPosition();
+    });
     jQuery('#ct_adv_showhide a').on('click', apbctSaveButtonPosition);
 
 
@@ -444,7 +451,37 @@ jQuery(document).ready(function() {
 
     // Hide/show EmailEncoder replacing text textarea
     apbctManageEmailEncoderCustomTextField();
+
+    if (window.location.hash) {
+        const anchor = window.location.hash.substring(1);
+        handleAnchorDetection(anchor);
+    }
 });
+
+/**
+ * Detect ancors and open advanced settings before scroll
+ * @param {string} anchor
+ */
+function handleAnchorDetection(anchor) {
+    let advSettings = document.querySelector('#apbct_settings__advanced_settings');
+    if ( 'none' === advSettings.style.display ) {
+        apbctExceptedShowHide('apbct_settings__advanced_settings');
+    }
+    scrollToAnchor('#' + anchor);
+}
+
+/**
+ * Scroll to the target element ID
+ * @param {string} anchorId Anchor target element ID
+ */
+function scrollToAnchor(anchorId) {
+    const targetElement = document.querySelector(anchorId);
+    if (targetElement) {
+        targetElement.scrollIntoView({
+            block: 'end',
+        });
+    }
+}
 
 /**
  * Hide/show EmailEncoder replacing text textarea
@@ -711,7 +748,33 @@ function apbctSettingsShowDescription(label, settingId) {
 }
 
 /**
- * save button, navigation menu, navigation button position
+ * Set position for navigation menu
+ * @return {void}
+ */
+function apbctNavigationMenuPosition() {
+    const navBlock = document.querySelector('#apbct_hidden_section_nav ul');
+    const rightBtnSave = document.querySelector('#apbct_settings__button_section');
+    if (!navBlock || !rightBtnSave) {
+        return;
+    }
+    const scrollPosition = window.scrollY;
+    const windowWidth = window.innerWidth;
+    if (scrollPosition > 1000) {
+        navBlock.style.position = 'fixed';
+        rightBtnSave.style.position = 'fixed';
+    } else {
+        navBlock.style.position = 'static';
+        rightBtnSave.style.position = 'static';
+    }
+
+    if (windowWidth < 768) {
+        rightBtnSave.style.position = 'fixed';
+    }
+}
+
+/**
+ * Set position for save button, hide it if scrolled to the bottom
+ * @return {void}
  */
 function apbctSaveButtonPosition() {
     if (
@@ -729,41 +792,32 @@ function apbctSaveButtonPosition() {
         return;
     }
 
-    let docInnerHeight = window.innerHeight;
-    let advSettingsBlock = document.getElementById('apbct_settings__advanced_settings');
-    let advSettingsOffset = advSettingsBlock.getBoundingClientRect().top;
-    let buttonBlock = document.getElementById('apbct_settings__button_section');
-    let buttonHeight = buttonBlock.getBoundingClientRect().height;
-    let navBlock = document.getElementById('apbct_hidden_section_nav');
-    let navBlockOffset = navBlock.getBoundingClientRect().top;
-    let navBlockHeight = navBlock.getBoundingClientRect().height;
-
-    // Set Save button position
-    if ( getComputedStyle(advSettingsBlock).display !== 'none' ) {
-        jQuery('#apbct_settings__main_save_button').hide();
-        if ( docInnerHeight < navBlockOffset + navBlockHeight + buttonHeight ) {
-            buttonBlock.style.bottom = '';
-            buttonBlock.style.top = navBlockOffset + navBlockHeight + 20 + 'px';
-        } else {
-            buttonBlock.style.bottom = 0;
-            buttonBlock.style.top = '';
-        }
-    } else {
-        jQuery('#apbct_settings__main_save_button').show();
+    const additionalSaveButton =
+        document.querySelector('#apbct_settings__button_section, cleantalk_link[value="save_changes"]');
+    if (!additionalSaveButton) {
+        return;
     }
 
-    if (window.innerWidth <= 768 && advSettingsOffset < 0) {
-        document.querySelector('#apbct_hidden_section_nav').style.display = 'grid';
-        document.querySelector('#apbct_hidden_section_nav').style.top = docInnerHeight + 'px';
-    } else if (window.innerWidth <= 768) {
-        document.querySelector('#apbct_hidden_section_nav').style.display = 'none';
+    const scrollPosition = window.scrollY;
+    const documentHeight = document.documentElement.scrollHeight;
+    const windowHeight = window.innerHeight;
+    const threshold = 800;
+    if (scrollPosition + windowHeight >= documentHeight - threshold) {
+        additionalSaveButton.style.display = 'none';
+    } else {
+        additionalSaveButton.style.display = 'block';
     }
 
-    // Set nav position
-    if ( advSettingsOffset <= 0 ) {
-        navBlock.style.top = - advSettingsOffset + 30 + 'px';
+    const advSettingsBlock = document.getElementById('apbct_settings__advanced_settings');
+    const mainSaveButton = document.getElementById('apbct_settings__block_main_save_button');
+    if (!advSettingsBlock || !mainSaveButton) {
+        return;
+    }
+
+    if (advSettingsBlock.style.display == 'none') {
+        mainSaveButton.classList.remove('apbct_settings__position_main_save_button');
     } else {
-        navBlock.style.top = 0;
+        mainSaveButton.classList.add('apbct_settings__position_main_save_button');
     }
 }
 
