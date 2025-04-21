@@ -2825,7 +2825,11 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
             $is_spam           = true;
             $ct_gform_is_spam  = true;
             $ct_gform_response = $ct_result->comment;
-            add_action('gform_entry_created', 'apbct_form__gravityForms__add_entry_note');
+            if ( isset($apbct->settings['forms__gravityforms_save_spam']) && $apbct->settings['forms__gravityforms_save_spam'] == 1 ) {
+                add_action('gform_entry_created', 'apbct_form__gravityForms__add_entry_note');
+            } elseif ( class_exists('GFFormsModel') && method_exists('GFFormsModel', 'delete_lead') ) {
+                GFFormsModel::delete_lead($entry['id']);
+            }
         }
     }
 

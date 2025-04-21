@@ -1301,3 +1301,13 @@ function apbct_update_to_6_46_1()
 
     $apbct->deleteOption('debug', true);
 }
+
+function apbct_update_to_6_55()
+{
+    global $apbct;
+
+    if ( ! isset($apbct->settings['forms__gravityforms_save_spam']) ) {
+        $apbct->settings['forms__gravityforms_save_spam'] = $apbct->default_settings['forms__gravityforms_save_spam'];
+        $apbct->saveSettings();
+    }
+}

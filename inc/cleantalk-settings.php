@@ -236,6 +236,16 @@ function apbct_settings__set_fields()
                     'parent'      => 'forms__contact_forms_test',
                     'display'     => apbct_is_plugin_active('contact-form-7/wp-contact-form-7.php') && apbct_is_plugin_active('flamingo/flamingo.php'),
                 ),
+                'forms__gravityforms_save_spam'             => array(
+                    'title'       => __('Save Gravity Forms spam entries', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'Spam Gravity Forms entries will be saved into Gravity Forms spam entries if the option is enabled',
+                        'cleantalk-spam-protect'
+                    ),
+                    'class'       => 'apbct_settings-field_wrapper--sub',
+                    'parent'      => 'forms__contact_forms_test',
+                    'display'     => apbct_is_plugin_active('gravityforms/gravityforms.php'),
+                ),
                 'forms__general_contact_forms_test'     => array(
                     'title'       => __('Custom contact forms', 'cleantalk-spam-protect'),
                     'description' => __(
