@@ -495,22 +495,22 @@ function apbct_settings__set_fields()
                     'title'       => __("Set cookies", 'cleantalk-spam-protect'),
                     'description' =>
                         __(
-                            'The "On" option means ordinary cookies in the visitor\'s browser. If you use cache plugins, some user parameters will be transmitted inaccurately and this may lead to incorrect filtering.',
+                            'The "On" mode means usual cookies in visitor`s browsers. If you use cache plugins, some visitor parameters may be transmitted from the cache and this will lead to inaccurate spam filtering.',
                             'cleantalk-spam-protect'
                         )
                         . '<br>'
                         . __(
-                            'Alternative mechanism will store data in database and will not set cookies in browser, so the cache solutions will work just fine.',
+                            'The "Alternative mechanism" mode means that visitor data will be stored entirely in the site database. Database resource usage may vary depending on site traffic.',
                             'cleantalk-spam-protect'
                         )
                         . '<br>'
                         . __(
-                            'The "Auto" option is designed to automatically detect the presence of caching plugins on the site, but now it does not always work, so we advise you not to use this option. The option is reserved for long-time customers who are fine with filtering.',
+                            'The "Auto" mode (default setting) uses the "Off" mode and switches to the "Alternative mechanism" in case of server cache detection (e.g. Varnish, Siteground).',
                             'cleantalk-spam-protect'
                         )
                         . '<br>'
                         . __(
-                            'The "Off" option uses local storage instead of cookies. Caching plugins have no negative effect. We recommend using this option.',
+                            'The "Off" mode combines partial data storage in the site database, partial data storage in a browser`s localstorage.',
                             'cleantalk-spam-protect'
                         ),
                     'long_description' => true,
