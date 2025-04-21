@@ -543,6 +543,17 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         return 'Event Manager skip';
     }
 
+    // FluentForm multistep skip and direct POST request scip (run without JS) - this will be caught by the direct integration
+    if (
+        (apbct_is_plugin_active('fluentformpro/fluentformpro.php') ||  apbct_is_plugin_active('fluentform/fluentform.php')) &&
+        (
+            Post::getString('action') === 'active_step' ||
+            Post::getString('__fluent_form_embded_post_id')
+        )
+    ) {
+        return 'fluentform_skip';
+    }
+
     if ( $ajax ) {
         /*****************************************/
         /*    Here is ajax requests skipping     */
@@ -893,13 +904,6 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             TT::toString(Post::get('action')) === 'wpforms_restricted_email'
         ) {
             return 'wpforms_check_restricted_email';
-        }
-        // FluentForm multistep skip
-        if (
-            (apbct_is_plugin_active('fluentformpro/fluentformpro.php') ||  apbct_is_plugin_active('fluentform/fluentform.php')) &&
-            TT::toString(Post::get('action')) === 'active_step'
-        ) {
-            return 'fluentform_skip';
         }
 
         // W2DC - https://codecanyon.net/item/web-20-directory-plugin-for-wordpress/6463373
