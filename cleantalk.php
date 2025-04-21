@@ -616,9 +616,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
          ! Server::inUri('/favicon.ico') &&
          ! apbct_is_cli()
     ) {
-        wp_suspend_cache_addition(true);
-        apbct_sfw__check();
-        wp_suspend_cache_addition(false);
+        add_action('init', 'apbct_sfw__init_wrapper', 1);
     }
 }
 
@@ -838,6 +836,17 @@ if ( is_admin() || is_network_admin() ) {
         ct_contact_form_validate();
         $_POST['redirect_to'] = $tmp;
     }
+}
+
+/**
+ * Wrapper for SpamFireWall check to make if fire on 'init' hook
+ * @return void
+ */
+function apbct_sfw__init_wrapper()
+{
+    wp_suspend_cache_addition(true);
+    apbct_sfw__check();
+    wp_suspend_cache_addition(false);
 }
 
 /**
