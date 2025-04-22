@@ -1315,7 +1315,10 @@ function apbct_update_to_6_54_1()
     }
 
     if ( ! isset($apbct->settings['forms__gravityforms_save_spam']) ) {
-        $apbct->settings['forms__gravityforms_save_spam'] = $apbct->default_settings['forms__gravityforms_save_spam'];
+        $apbct->settings['forms__gravityforms_save_spam'] =
+            isset($apbct->default_settings['forms__gravityforms_save_spam'])
+                ? $apbct->default_settings['forms__gravityforms_save_spam']
+                : 1;
         $apbct->saveSettings();
     }
 
