@@ -462,6 +462,7 @@ Yes, it is. Please read this article,
 * Fix. Integrations. Improved email validation in Ninja Forms
 * Fix. Integrations. Enhanced Zoho spam check flow
 * Fix. Integrations. Added 'activehosted.com' support in form handling
+* Fix. Code. Enqueue. External bot detector script turned back to standard WP enqueuing way.
 * Upd. Anti-Crawler. Excluded feed requests.
 
 = 6.54 10.04.2025 =
