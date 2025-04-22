@@ -3,6 +3,7 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Request;
 
 class Newsletter extends IntegrationBase
 {
@@ -11,6 +12,11 @@ class Newsletter extends IntegrationBase
      */
     public function getDataForChecking($argument)
     {
+        if ( Request::getString('nhr') ) {
+            // Prevent double redundant requests - this is the `success redirect` request
+            return null;
+        }
+
         if (
             $argument === 's' ||
             $argument === 'subscribe' ||
@@ -34,6 +40,7 @@ class Newsletter extends IntegrationBase
             }
             return $data;
         }
+        return null;
     }
 
     /**
