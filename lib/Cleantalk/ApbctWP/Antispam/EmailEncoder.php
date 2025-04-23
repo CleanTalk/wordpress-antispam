@@ -361,7 +361,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
                         </div>
                     </div>
                     <div id="apbct_encoder_status__manage_settings_link_wrapper" class="apbct_encoder_status__rows apbct-trusted-text--center">
-                        <span>%s <a href="#apbct_setting_group__contact_data_encoding" onclick="handleAnchorDetection(\'apbct_setting_group__contact_data_encoding\')">%s</a></span>
+                        <span>%s <a class="apbct_color--gray" href="#apbct_setting_group__contact_data_encoding" onclick="handleAnchorDetection(\'apbct_setting_group__contact_data_encoding\')">%s</a></span>
                     </div>
             </div>
         ';
