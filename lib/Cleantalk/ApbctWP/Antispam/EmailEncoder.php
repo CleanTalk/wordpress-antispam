@@ -330,7 +330,11 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
     }
 
 
-
+    /**
+     * Return status table for settings hat.
+     * @param array $data array of required data to construct
+     * @return string
+     */
     public static function getEncoderStatusForSettingsHat($data)
     {
         $template = '
