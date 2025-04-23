@@ -376,13 +376,13 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             'cleantalk-spam-protect'
         );
 
-        if ($data['phones_on'] && $data['encoder_enabled_global']) {
+        if (!empty($data['phones_on']) && !empty($data['encoder_enabled_global'])) {
             $phone_status = __('On', 'cleantalk_spam_protect');
         } else {
             $phone_status = __('Off', 'cleantalk_spam_protect');
         }
 
-        if ($data['emails_on'] && $data['encoder_enabled_global']) {
+        if (!empty($data['emails_on']) && !empty($data['encoder_enabled_global'])) {
             $email_status = __('On', 'cleantalk_spam_protect');
         } else {
             $email_status = __('Off', 'cleantalk_spam_protect');
