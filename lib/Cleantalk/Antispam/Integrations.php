@@ -31,6 +31,11 @@ class Integrations
                 }
             }
 
+            if (!empty($integration_info['filter'])) {
+                add_filter($integration_info['hook'], array($this, 'checkSpam'), 999);
+                continue(1);
+            }
+
             if ( $integration_info['ajax'] ) {
                 if ( is_array($integration_info['hook']) ) {
                     foreach ( $integration_info['hook'] as $hook ) {

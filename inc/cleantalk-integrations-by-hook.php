@@ -398,6 +398,12 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'WPSearchForm' => array(
+        'hook'    => 'get_search_form',
+        'setting' => 'forms__search_test',
+        'ajax'    => false,
+        'filter' => true
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_active_integrations) {
