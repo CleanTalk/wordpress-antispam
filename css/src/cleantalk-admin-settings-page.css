@@ -412,49 +412,10 @@ button[value="save_changes"]:disabled {
     max-width: 65%;
 }
 
-#apbct_encoder_status__common_wrapper {
-    border: 1px solid lightgray;
-    padding: 0 5px 10px 5px;
-    width: fit-content;
-    min-width: 45%;
-    border-radius: 3px;
-    margin: 5px 0;
-}
-
-.apbct_encoder_status__inline_wrapper {
-    display: flex;
+.apcbt_contact_data_encoder__line {
+    max-width: 70%;display: flex;
+    flex-wrap: wrap;
     flex-direction: row;
-    border: 1px solid #d3d3d3;
-    padding: 10px 5px;
-    justify-content:  space-evenly;
-    border-radius: 3px;
-}
-
-.apbct_encoder_status__inline_element {
-    margin-right: 15px;
-}
-
-.apbct_encoder_status__inline_element__option {
-    margin-right: 5px;
-}
-
-#apbct_encoder_status__current_status_label{
-    position: relative;
-    top: 12px;
-    border: 1px solid rgb(211, 211, 211);
-    left: 18px;
-    font-size: smaller;
-    border-radius: 3px;
-    padding: 0 3px 0 3px;
-    background-color: rgb(240, 240, 241);
-}
-
-.apbct_encoder_status__rows {
-    margin: 10px;
-}
-
-#apbct_encoder_status__manage_settings_link_wrapper{
-    text-align: center;
 }
 
 @media (max-width: 768px) {
