@@ -17,10 +17,11 @@ jQuery(document).ready(function() {
     }
 
     // Show/Hide access key
-    jQuery('#apbct_showApiKey').on('click', function() {
-        jQuery('.apbct_setting---apikey').val(jQuery('.apbct_setting---apikey').attr('key'));
-        jQuery('.apbct_setting---apikey+div').show();
-        jQuery(this).fadeOut(300);
+    jQuery('#apbct_showApiKey').on('click', function(e) {
+        e.preventDefault();
+        jQuery(this).hide();
+        jQuery('.apbct_settings-field--api_key').val(jQuery('.apbct_settings-field--api_key').attr('key'));
+        jQuery('.apbct_settings-field--api_key+div').css('display', 'inline');
     });
 
     let d = new Date();
@@ -29,6 +30,11 @@ jQuery(document).ready(function() {
 
     // Key KEY automatically
     jQuery('#apbct_button__get_key_auto').on('click', function() {
+        if (!jQuery('#apbct_license_agreed').is(':checked')) {
+            jQuery('#apbct_settings__no_agreement_notice').show();
+            apbctHighlightElement('apbct_license_agreed', 3);
+            return;
+        }
         apbct_admin_sendAJAX(
             {action: 'apbct_get_key_auto', ct_admin_timezone: timezone},
             {
@@ -242,7 +248,14 @@ jQuery(document).ready(function() {
     });
 
     apbctSaveButtonPosition();
-    window.addEventListener('scroll', apbctSaveButtonPosition);
+    let debounceTimer;
+    window.addEventListener('scroll', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function() {
+            apbctSaveButtonPosition();
+        }, 50);
+        apbctNavigationMenuPosition();
+    });
     jQuery('#ct_adv_showhide a').on('click', apbctSaveButtonPosition);
 
 
@@ -303,21 +316,29 @@ jQuery(document).ready(function() {
      */
     jQuery('#apbct_setting_apikey').on('input', function() {
         let enteredValue = jQuery(this).val();
-        jQuery('button.cleantalk_link[value="save_changes"]').off('click');
-        if (enteredValue !== '' && enteredValue.match(/^[a-z\d]{3,30}\s*$/) === null) {
+        jQuery('#apbct_settings__key_line__save_settings').off('click');
+        let keyBad = enteredValue !== '' && enteredValue.match(/^[a-z\d]{8,30}\s*$/) === null;
+        jQuery('#apbct_settings__key_is_bad').hide();
+        jQuery('#apbct_showApiKey').hide();
+        jQuery('#apbct_settings__account_name_ob').hide();
+        jQuery('#apbct_settings__no_agreement_notice').hide();
+        if (enteredValue === '') {
+            jQuery('#apbct_button__key_line__save_changes_wrapper').hide();
             jQuery('#apbct_button__get_key_auto__wrapper').show();
-            jQuery('button.cleantalk_link[value="save_changes"]').on('click',
-                function(e) {
-                    e.preventDefault();
-                    if (!jQuery('#apbct_bad_key_notice').length) {
-                        jQuery( '<div class=\'apbct_notice_inner error\'><h4 id=\'apbct_bad_key_notice\'>' +
-                            'Please, insert a correct access key before saving changes!' +
-                            '</h4></div>' ).insertAfter( jQuery('#apbct_setting_apikey') );
-                    }
-                    apbctHighlightElement('apbct_setting_apikey', 3);
-                },
-            );
-            return;
+            jQuery('#apbct_button__get_key_manual_chunk').show();
+        } else {
+            jQuery('#apbct_button__key_line__save_changes_wrapper').show();
+            jQuery('#apbct_button__get_key_auto__wrapper').hide();
+            jQuery('#apbct_button__get_key_manual_chunk').hide();
+            if (keyBad) {
+                jQuery('#apbct_settings__key_line__save_settings').on('click',
+                    function(e) {
+                        e.preventDefault();
+                        jQuery('#apbct_settings__key_is_bad').show();
+                        apbctHighlightElement('apbct_setting_apikey', 3);
+                    },
+                );
+            }
         }
     });
 
@@ -430,7 +451,37 @@ jQuery(document).ready(function() {
 
     // Hide/show EmailEncoder replacing text textarea
     apbctManageEmailEncoderCustomTextField();
+
+    if (window.location.hash) {
+        const anchor = window.location.hash.substring(1);
+        handleAnchorDetection(anchor);
+    }
 });
+
+/**
+ * Detect ancors and open advanced settings before scroll
+ * @param {string} anchor
+ */
+function handleAnchorDetection(anchor) {
+    let advSettings = document.querySelector('#apbct_settings__advanced_settings');
+    if ( 'none' === advSettings.style.display ) {
+        apbctExceptedShowHide('apbct_settings__advanced_settings');
+    }
+    scrollToAnchor('#' + anchor);
+}
+
+/**
+ * Scroll to the target element ID
+ * @param {string} anchorId Anchor target element ID
+ */
+function scrollToAnchor(anchorId) {
+    const targetElement = document.querySelector(anchorId);
+    if (targetElement) {
+        targetElement.scrollIntoView({
+            block: 'end',
+        });
+    }
+}
 
 /**
  * Hide/show EmailEncoder replacing text textarea
@@ -697,7 +748,33 @@ function apbctSettingsShowDescription(label, settingId) {
 }
 
 /**
- * save button, navigation menu, navigation button position
+ * Set position for navigation menu
+ * @return {void}
+ */
+function apbctNavigationMenuPosition() {
+    const navBlock = document.querySelector('#apbct_hidden_section_nav ul');
+    const rightBtnSave = document.querySelector('#apbct_settings__button_section');
+    if (!navBlock || !rightBtnSave) {
+        return;
+    }
+    const scrollPosition = window.scrollY;
+    const windowWidth = window.innerWidth;
+    if (scrollPosition > 1000) {
+        navBlock.style.position = 'fixed';
+        rightBtnSave.style.position = 'fixed';
+    } else {
+        navBlock.style.position = 'static';
+        rightBtnSave.style.position = 'static';
+    }
+
+    if (windowWidth < 768) {
+        rightBtnSave.style.position = 'fixed';
+    }
+}
+
+/**
+ * Set position for save button, hide it if scrolled to the bottom
+ * @return {void}
  */
 function apbctSaveButtonPosition() {
     if (
@@ -709,41 +786,38 @@ function apbctSaveButtonPosition() {
     ) {
         return;
     }
-    let docInnerHeight = window.innerHeight;
-    let advSettingsBlock = document.getElementById('apbct_settings__advanced_settings');
-    let advSettingsOffset = advSettingsBlock.getBoundingClientRect().top;
-    let buttonBlock = document.getElementById('apbct_settings__button_section');
-    let buttonHeight = buttonBlock.getBoundingClientRect().height;
-    let navBlock = document.getElementById('apbct_hidden_section_nav');
-    let navBlockOffset = navBlock.getBoundingClientRect().top;
-    let navBlockHeight = navBlock.getBoundingClientRect().height;
 
-    // Set Save button position
-    if ( getComputedStyle(advSettingsBlock).display !== 'none' ) {
+    if (!ctSettingsPage.key_is_ok) {
         jQuery('#apbct_settings__main_save_button').hide();
-        if ( docInnerHeight < navBlockOffset + navBlockHeight + buttonHeight ) {
-            buttonBlock.style.bottom = '';
-            buttonBlock.style.top = navBlockOffset + navBlockHeight + 20 + 'px';
-        } else {
-            buttonBlock.style.bottom = 0;
-            buttonBlock.style.top = '';
-        }
-    } else {
-        jQuery('#apbct_settings__main_save_button').show();
+        return;
     }
 
-    if (window.innerWidth <= 768 && advSettingsOffset < 0) {
-        document.querySelector('#apbct_hidden_section_nav').style.display = 'grid';
-        document.querySelector('#apbct_hidden_section_nav').style.top = docInnerHeight + 'px';
-    } else if (window.innerWidth <= 768) {
-        document.querySelector('#apbct_hidden_section_nav').style.display = 'none';
+    const additionalSaveButton =
+        document.querySelector('#apbct_settings__button_section, cleantalk_link[value="save_changes"]');
+    if (!additionalSaveButton) {
+        return;
     }
 
-    // Set nav position
-    if ( advSettingsOffset <= 0 ) {
-        navBlock.style.top = - advSettingsOffset + 30 + 'px';
+    const scrollPosition = window.scrollY;
+    const documentHeight = document.documentElement.scrollHeight;
+    const windowHeight = window.innerHeight;
+    const threshold = 800;
+    if (scrollPosition + windowHeight >= documentHeight - threshold) {
+        additionalSaveButton.style.display = 'none';
     } else {
-        navBlock.style.top = 0;
+        additionalSaveButton.style.display = 'block';
+    }
+
+    const advSettingsBlock = document.getElementById('apbct_settings__advanced_settings');
+    const mainSaveButton = document.getElementById('apbct_settings__block_main_save_button');
+    if (!advSettingsBlock || !mainSaveButton) {
+        return;
+    }
+
+    if (advSettingsBlock.style.display == 'none') {
+        mainSaveButton.classList.remove('apbct_settings__position_main_save_button');
+    } else {
+        mainSaveButton.classList.add('apbct_settings__position_main_save_button');
     }
 }
 

@@ -339,9 +339,10 @@ $apbct_active_integrations = array(
     ),
     // Integration Contact Form Clean and Simple
     'CSCF' => array(
-        'hook'    => 'cscf-submitform',
+        'hook'    => array('cscf-submitform', 'cscf_spamfilter'),
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true,
+        'ajax_and_post' => true
     ),
     'ThriveLeads' => array(
         'hook'    => 'tve_leads_ajax_conversion',

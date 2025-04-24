@@ -275,7 +275,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
                     button.addEventListener('click', function() {
                         document.body.classList.remove('apbct-popup-fade');
                         popup.setAttribute('style', 'display:none');
-                        fillDecodedEmails(encodedEmailNodes, result);
+                        fillDecodedNodes(encodedEmailNodes, result);
                         // click on mailto if so
                         if (typeof ctPublic !== 'undefined' && ctPublic.encodedEmailNodesIsMixed && clickSource) {
                             clickSource.click();
@@ -350,16 +350,16 @@ function ctShowDecodeComment(comment) {
 
 /**
  * Run filling for every node with decoding result.
- * @param {mixed} encodedEmailNodes
+ * @param {mixed} encodedNodes
  * @param {mixed} decodingResult
  */
-function fillDecodedEmails(encodedEmailNodes, decodingResult) {
-    if (encodedEmailNodes.length > 0) {
-        for (let i = 0; i < encodedEmailNodes.length; i++) {
+function fillDecodedNodes(encodedNodes, decodingResult) {
+    if (encodedNodes.length > 0) {
+        for (let i = 0; i < encodedNodes.length; i++) {
             // chek what is what
             let currentResultData;
             decodingResult.data.forEach((row) => {
-                if (row.encoded_email === encodedEmailNodes[i].dataset.originalString) {
+                if (row.encoded_email === encodedNodes[i].dataset.originalString) {
                     currentResultData = row;
                 }
             });
@@ -369,18 +369,29 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
             }
             // handler for mailto
             if (
-                typeof encodedEmailNodes[i].href !== 'undefined' &&
-                encodedEmailNodes[i].href.indexOf('mailto:') === 0
+                typeof encodedNodes[i].href !== 'undefined' &&
+                (
+                    encodedNodes[i].href.indexOf('mailto:') === 0 ||
+                    encodedNodes[i].href.indexOf('tel:') === 0
+                )
             ) {
-                let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
-                let baseElementContent = encodedEmailNodes[i].innerHTML;
-                encodedEmailNodes[i].innerHTML = baseElementContent.replace(
+                let linkTypePrefix;
+                if (encodedNodes[i].href.indexOf('mailto:') === 0) {
+                    linkTypePrefix = 'mailto:';
+                } else if (encodedNodes[i].href.indexOf('tel:') === 0) {
+                    linkTypePrefix = 'tel:';
+                } else {
+                    continue;
+                }
+                let encodedEmail = encodedNodes[i].href.replace(linkTypePrefix, '');
+                let baseElementContent = encodedNodes[i].innerHTML;
+                encodedNodes[i].innerHTML = baseElementContent.replace(
                     encodedEmail,
                     currentResultData.decoded_email,
                 );
-                encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
+                encodedNodes[i].href = linkTypePrefix + currentResultData.decoded_email;
 
-                encodedEmailNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((el) => {
+                encodedNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((el) => {
                     let encodedEmailTextInsideMailto = '';
                     decodingResult.data.forEach((row) => {
                         if (row.encoded_email === el.dataset.originalString) {
@@ -390,23 +401,23 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
                     el.innerHTML = encodedEmailTextInsideMailto;
                 });
             } else {
-                encodedEmailNodes[i].classList.add('no-blur');
+                encodedNodes[i].classList.add('no-blur');
                 // fill the nodes
                 setTimeout(() => {
-                    ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
+                    ctProcessDecodedDataResult(currentResultData, encodedNodes[i]);
                 }, 2000);
             }
             // remove listeners
-            encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
+            encodedNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
         }
     } else {
         let currentResultData = decodingResult.data[0];
-        encodedEmailNodes.classList.add('no-blur');
+        encodedNodes.classList.add('no-blur');
         // fill the nodes
         setTimeout(() => {
-            ctProcessDecodedDataResult(currentResultData, encodedEmailNodes);
+            ctProcessDecodedDataResult(currentResultData, encodedNodes);
         }, 2000);
-        encodedEmailNodes.removeEventListener('click', ctFillDecodedEmailHandler);
+        encodedNodes.removeEventListener('click', ctFillDecodedEmailHandler);
     }
 }
 
@@ -3970,23 +3981,34 @@ function apbctGetScreenInfo() {
 
 // eslint-disable-next-line require-jsdoc
 function ctParseBlockMessage(response) {
+    let msg = '';
     if (typeof response.apbct !== 'undefined') {
         response = response.apbct;
         if (response.blocked) {
-            document.dispatchEvent(
-                new CustomEvent( 'apbctAjaxBockAlert', {
-                    bubbles: true,
-                    detail: {message: response.comment},
-                } ),
-            );
+            msg = response.comment;
+        }
+    }
+    if (typeof response.data !== 'undefined') {
+        response = response.data;
+        if (response.message !== undefined) {
+            msg = response.message;
+        }
+    }
 
-            // Show the result by modal
-            cleantalkModal.loaded = response.comment;
-            cleantalkModal.open();
+    if (msg) {
+        document.dispatchEvent(
+            new CustomEvent( 'apbctAjaxBockAlert', {
+                bubbles: true,
+                detail: {message: msg},
+            } ),
+        );
 
-            if (+response.stop_script === 1) {
-                window.stop();
-            }
+        // Show the result by modal
+        cleantalkModal.loaded = msg;
+        cleantalkModal.open();
+
+        if (+response.stop_script === 1) {
+            window.stop();
         }
     }
 }
@@ -5016,7 +5038,9 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1 ||
         isFormHasDiviRedirect(formSource) ||
         formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1 ||
-        formSource.outerHTML.indexOf('action="https://api.kit.com') !== -1
+        formSource.outerHTML.indexOf('action="https://api.kit.com') !== -1 ||
+        formSource.outerHTML.indexOf('activehosted.com') !== -1 ||
+        formSource.outerHTML.indexOf('action="https://crm.zoho.com') !== -1
     ) {
         inputsSource.forEach((elemSource) => {
             inputsTarget.forEach((elemTarget) => {
@@ -5341,6 +5365,7 @@ function isIntegratedForm(formObj) {
         isFormHasDiviRedirect(formObj) || // Divi contact form
         formAction.indexOf('eocampaign1.com') !== -1 || // EmailOctopus Campaign form
         formAction.indexOf('wufoo.com') !== -1 || // Wufoo form
+        formAction.indexOf('activehosted.com') !== -1 || // Activehosted form
         formAction.indexOf('publisher.copernica.com') !== -1 || // publisher.copernica
         ( formObj.classList !== undefined &&
             formObj.classList.contains('sp-element-container') ) || // Sendpulse form
@@ -5410,7 +5435,9 @@ function sendAjaxCheckingFormData(form) {
                     form.hasAttribute('action') &&
                     form.getAttribute('action').indexOf('hsforms') !== -1
                 );
-                if ( result.apbct === undefined || ! +result.apbct.blocked ) {
+                if ((result.apbct === undefined && result.data === undefined) ||
+                    (result.apbct !== undefined && ! +result.apbct.blocked)
+                ) {
                     // Clear service fields
                     for (const el of form.querySelectorAll('input[name="apbct_visible_fields"]')) {
                         el.remove();
@@ -5461,13 +5488,8 @@ function sendAjaxCheckingFormData(form) {
                         return;
                     }
 
-
-                    if (
-                        // Active Campaign integration
-                        form.querySelector('[href*="activecampaign"]') ||
-                        // Hubspot bounded integration
-                        isHubSpotEmbedForm
-                    ) {
+                    // Hubspot bounded integration
+                    if (isHubSpotEmbedForm) {
                         let submitButton = form.querySelector('[type="submit"]');
                         submitButton.remove();
                         const parent = form.apbctParent;
@@ -5541,7 +5563,9 @@ function sendAjaxCheckingFormData(form) {
                         submButton[0].click();
                     }
                 }
-                if (result.apbct !== undefined && +result.apbct.blocked) {
+                if ((result.apbct !== undefined && +result.apbct.blocked) ||
+                    (result.data !== undefined && result.data.message !== undefined)
+                ) {
                     ctParseBlockMessage(result);
                     // hubspot embed form needs to reload page to prevent forms mishandling
                     if (isHubSpotEmbedForm) {

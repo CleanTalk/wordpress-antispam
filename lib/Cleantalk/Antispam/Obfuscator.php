@@ -11,6 +11,8 @@ class Obfuscator
 {
     const EMAIL_CHARS_TO_SHOW = 2; // Number of characters to show in the email address
     const STRING_CHARS_TO_SHOW = 2; // Number of characters to show in a string
+    const PHONE_CHARS_TO_SHOW_LEFT = 5; // Number of characters to show in a string
+    const PHONE_CHARS_TO_SHOW_RIGHT = 2; // Number of characters to show in a string
 
     /**
      * Data contains email parts and service information
@@ -70,6 +72,24 @@ class Obfuscator
         $first_part = substr($string, 0, static::STRING_CHARS_TO_SHOW);
         $last_part = substr($string, $length - static::STRING_CHARS_TO_SHOW, static::STRING_CHARS_TO_SHOW);
         $middle_part = str_pad('', $length - static::STRING_CHARS_TO_SHOW * 2, '*');
+        return $first_part . $middle_part . $last_part;
+    }
+
+    /**
+     * Obfuscates a phone number
+     * @param $string
+     *
+     * @return string
+     */
+    public function processPhone($string)
+    {
+        if (strlen($string) < 9) {
+            return self::processString($string);
+        }
+        $length = strlen($string);
+        $first_part = substr($string, 0, static::PHONE_CHARS_TO_SHOW_LEFT);
+        $last_part = substr($string, $length - static::PHONE_CHARS_TO_SHOW_RIGHT, static::PHONE_CHARS_TO_SHOW_RIGHT);
+        $middle_part = str_pad('', $length - static::PHONE_CHARS_TO_SHOW_RIGHT - static::PHONE_CHARS_TO_SHOW_LEFT, '*');
         return $first_part . $middle_part . $last_part;
     }
 

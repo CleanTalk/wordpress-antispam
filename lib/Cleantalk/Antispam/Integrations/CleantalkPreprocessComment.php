@@ -44,6 +44,17 @@ class CleantalkPreprocessComment extends IntegrationBase
             return false;
         }
 
+        if (
+            apbct_is_plugin_active('clean-and-simple-contact-form-by-meg-nicholas/clean-and-simple-contact-form-by-meg-nicholas.php') &&
+            Post::getString('cscf_nonce') &&
+            Post::getString('post-id') &&
+            $argument
+        ) {
+            // if JS disabled the CSCF plugin run the preprocess_comment hook
+            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '(): is CSCF contact form - has own integration' . __LINE__, $_POST);
+            return false;
+        }
+
         $this->wp_comment = $argument;
         $this->apbct = $apbct;
         $this->ct_jp_comments = $ct_jp_comments && Post::getBool('jetpack_comments_nonce');

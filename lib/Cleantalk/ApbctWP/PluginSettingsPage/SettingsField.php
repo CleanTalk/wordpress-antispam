@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\PluginSettingsPage;
 
+use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\Common\TT;
 
 class SettingsField
@@ -55,11 +56,16 @@ class SettingsField
     {
         global $apbct;
 
-        // name
-        if (isset($this->params['network'], $this->params['name']) && $this->params['network']) {
-            $this->value = $apbct->network_settings[$this->params['name']];
-        } elseif (isset($this->params['name'])) {
-            $this->value = $apbct->settings[$this->params['name']];
+        // value
+        if (isset($this->params['type']) && $this->params['type'] === 'custom_html') {
+            // ignore value on custom html
+            $this->value = '';
+        } else {
+            if (isset($this->params['network'], $this->params['name']) && $this->params['network']) {
+                $this->value = $apbct->network_settings[$this->params['name']];
+            } elseif (isset($this->params['name'])) {
+                $this->value = $apbct->settings[$this->params['name']];
+            }
         }
 
         // parent
@@ -164,6 +170,9 @@ class SettingsField
                 // Color type
                 case 'color':
                     $this->field_layout .= $this->getInputColor();
+                    break;
+                case 'custom_html':
+                    $this->field_layout .= $this->getCustomHTML();
                     break;
             }
         }
@@ -506,5 +515,31 @@ class SettingsField
         }
 
         return $out;
+    }
+
+    /**
+     * Returns string of custom HTML for element.
+     * @return string
+     */
+    private function getCustomHTML()
+    {
+        global $apbct;
+        $data = [
+            'name' => isset($this->params['name']) ? $this->params['name'] : '',
+        ];
+
+        switch ($data['name']) {
+            case 'data__email_decoder__status':
+                $data['phones_on'] = $apbct->settings['data__email_decoder_encode_phone_numbers'];
+                $data['emails_on'] = $apbct->settings['data__email_decoder_encode_email_addresses'];
+                $data['obfuscation_mode'] = $apbct->settings['data__email_decoder_obfuscation_mode'];
+                $data['encoder_enabled_global'] = $apbct->settings['data__email_decoder'];
+                $current_user = wp_get_current_user();
+                $current_user_email = $current_user->exists() ? $current_user->user_email : 'example@example.com';
+                $emailEncoder = EmailEncoder::getInstance();
+                $data['current_user_email'] = $emailEncoder->ignoreOpenSSLMode()->modifyContent($current_user_email);
+                return EmailEncoder::getEncoderStatusForSettingsHat($data);
+        }
+        return '';
     }
 }
