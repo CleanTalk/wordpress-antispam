@@ -413,7 +413,8 @@ button[value="save_changes"]:disabled {
 }
 
 .apcbt_contact_data_encoder__line {
-    max-width: 70%;display: flex;
+    max-width: 70%;
+    display: flex;
     flex-wrap: wrap;
     flex-direction: row;
 }
@@ -527,5 +528,10 @@ button[value="save_changes"]:disabled {
     #apbct_settings__button_section {
         position: fixed;
         right: 20px;
+    }
+
+    .apcbt_contact_data_encoder__line {
+        max-width: 100%;
+        margin-top: 5px;
     }
 }
