@@ -576,7 +576,7 @@ function apbct_admin__enqueue_scripts($hook)
             'ct_subtitle' => $apbct->ip_license ? __('Hosting Anti-Spam', 'cleantalk-spam-protect') : '',
             'ip_license'  => $apbct->ip_license ? true : false,
             'key_changed' => ! empty($apbct->data['key_changed']),
-            'key_is_ok'   => ! empty($apbct->key_is_ok)
+            'key_is_ok'   => ! empty($apbct->key_is_ok) && !empty($apbct->settings['apikey'])
         ));
 
         ApbctEnqueue::getInstance()->js('apbct-public--3--cleantalk-modal.js');

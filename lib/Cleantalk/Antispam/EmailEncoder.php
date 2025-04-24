@@ -14,26 +14,6 @@ class EmailEncoder
     use Singleton;
 
     /**
-     * @var string
-     */
-    private $secret_key;
-    /**
-     * Sign to split encoded data via encoded chunk and initializing vector chunk
-     * @var string
-     */
-    private $encrypted_string_splitter;
-    /**
-     * Cipher global algorithm
-     * @var string
-     */
-    private $cipher_algo = "AES-128-CBC";
-
-    /**
-     * @var bool Show if the encryption functions are avaliable in current surroundings
-     */
-    private $encryption_is_available;
-
-    /**
      * Keep arrays of exclusion signs in the array
      * @var array
      */
@@ -93,14 +73,35 @@ class EmailEncoder
      * @var string
      */
     private $temp_content;
-    protected $has_connection_error;
-    protected $privacy_policy_hook_handled = false;
-    protected $aria_regex = '/aria-label.?=.?[\'"].+?[\'"]/';
-    protected $aria_matches = array();
     /**
      * @var bool
      */
-    private $use_ssl = true;
+    protected $has_connection_error;
+    /**
+     * @var bool
+     */
+    protected $privacy_policy_hook_handled = false;
+    /**
+     * @var string
+     */
+    protected $aria_regex = '/aria-label.?=.?[\'"].+?[\'"]/';
+    /**
+     * @var array
+     */
+    protected $aria_matches = array();
+    /**
+     * @var string
+     */
+    private $global_obfuscation_mode;
+    /**
+     * @var string
+     */
+    private $global_replacing_text;
+
+    /**
+     * @var Encoder
+     */
+    public $encoder;
 
     /**
      * @inheritDoc
@@ -108,6 +109,8 @@ class EmailEncoder
     protected function init()
     {
         global $apbct;
+
+        $this->encoder = new Encoder(md5($apbct->api_key));
 
         if ( ! apbct_api_key__is_correct() || ! $apbct->key_is_ok ) {
             return;
@@ -120,15 +123,6 @@ class EmailEncoder
         if ( ! $apbct->settings['data__email_decoder'] ) {
             return;
         }
-
-        $this->secret_key = md5($apbct->api_key);
-        $this->encrypted_string_splitter = substr($this->secret_key, 0, 3);
-
-        $this->encryption_is_available = function_exists('openssl_encrypt') &&
-            function_exists('openssl_decrypt') &&
-            function_exists('openssl_cipher_iv_length') &&
-            function_exists('openssl_random_pseudo_bytes') &&
-            !empty($this->encrypted_string_splitter) && strlen($this->encrypted_string_splitter) === 3;
 
         // Excluded request
         if ($this->isExcludedRequest()) {
@@ -195,6 +189,17 @@ class EmailEncoder
      */
     public function modifyContent($content)
     {
+        global $apbct;
+
+        $this->global_obfuscation_mode = $apbct->settings['data__email_decoder_obfuscation_mode'];
+        $this->global_replacing_text   = $apbct->settings['data__email_decoder_obfuscation_custom_text'];
+        $do_encode_emails   = (bool)$apbct->settings['data__email_decoder_encode_email_addresses'];
+        $do_encode_phones  = (bool)$apbct->settings['data__email_decoder_encode_phone_numbers'];
+
+        if (!$do_encode_emails && !$do_encode_phones ) {
+            return $content;
+        }
+
         if ( apbct_is_user_logged_in() && !apbct_is_in_uri('options-general.php?page=cleantalk') ) {
             return $content;
         }
@@ -233,7 +238,9 @@ class EmailEncoder
 
         $content = self::dropAttributesContainEmail($content, self::$attributes_to_drop);
 
-        $content = $this->modifyEmails($content);
+        $do_encode_emails && $content = $this->modifyGlobalEmails($content);
+
+        $do_encode_phones && $content = $this->modifyGlobalPhoneNumbers($content);
 
         // Restore shortcodes
         foreach ($shortcode_replacements as $placeholder => $original) {
@@ -276,7 +283,7 @@ class EmailEncoder
      * @psalm-suppress PossiblyUnusedReturnValue
      * @phpcs:disable PHPCompatibility.FunctionUse.NewFunctionParameters.preg_replace_callback_flagsFound
      */
-    public function modifyEmails($content)
+    public function modifyGlobalEmails($content)
     {
         $pattern = '/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b))/';
         $replacing_result = '';
@@ -351,6 +358,90 @@ class EmailEncoder
         return $replacing_result;
     }
 
+    /**
+     * @param string $content
+     * @return string
+     * @psalm-suppress PossiblyUnusedReturnValue
+     * @phpcs:disable PHPCompatibility.FunctionUse.NewFunctionParameters.preg_replace_callback_flagsFound
+     */
+    public function modifyGlobalPhoneNumbers($content)
+    {
+        $pattern = '/(tel:\+\d{8,12})|([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)/';
+        $replacing_result = '';
+
+        if ( version_compare(phpversion(), '7.4.0', '>=') ) {
+            $replacing_result = preg_replace_callback($pattern, function ($matches) use ($content) {
+
+                if ( isset($matches[0][0]) && is_array($matches[0])) {
+                    if ($this->isTelTag($matches[0][0])) {
+                        return $this->encodeTelLinkV2($matches[0], $content);
+                    }
+                    $item_length = strlen(str_replace([' ', '(', ')', '-', '+'], '', $matches[0][0]));
+                    if ($item_length > 12 || $item_length < 8) {
+                        return $matches[0][0];
+                    }
+                    if ($this->hasAttributeExclusions($matches[0][0])) {
+                        return $matches[0][0];
+                    }
+                    if ($this->isInsideScriptTag($matches[0][0], $content)) {
+                        return $matches[0][0];
+                    }
+                }
+
+                $this->handlePrivacyPolicyHook();
+
+                if ( isset($matches[0][0]) ) {
+                    return $this->encodeAny(
+                        $matches[0][0],
+                        $this->global_obfuscation_mode,
+                        $this->global_replacing_text,
+                        true
+                    );
+                }
+
+                return '';
+            }, $content, -1, $count, PREG_OFFSET_CAPTURE);
+        }
+
+        if ( version_compare(phpversion(), '7.4.0', '<') ) {
+            $replacing_result = preg_replace_callback($pattern, function ($matches) {
+                if ( isset($matches[0]) ) {
+                    if ($this->isTelTag($matches[0]) ) {
+                        return $this->encodeTelLink($matches[0]);
+                    }
+
+                    $item_length = strlen(str_replace([' ', '(', ')', '-', '+'], '', $matches[0]));
+                    if ($item_length > 12 || $item_length < 8) {
+                        return $matches[0];
+                    }
+
+                    if ($this->hasAttributeExclusions($matches[0][0])) {
+                        return $matches[0];
+                    }
+                }
+
+                $this->handlePrivacyPolicyHook();
+
+                if ( isset($matches[0]) ) {
+                    return $this->encodeAny(
+                        $matches[0],
+                        $this->global_obfuscation_mode,
+                        $this->global_replacing_text,
+                        true
+                    );
+                }
+
+                return '';
+            }, $content);
+        }
+
+        // modify content to turn back aria-label
+        $replacing_result = $this->modifyAriaLabelContent($replacing_result, true);
+
+        //please keep this var (do not simplify the code) for further debug
+        return $replacing_result;
+    }
+
     public function modifyAny($string)
     {
         $encoded_string = $this->encodeAny($string);
@@ -409,7 +500,7 @@ class EmailEncoder
         }
 
         foreach ( $this->encoded_emails_array as $_key => $encoded_email) {
-            $this->decoded_emails_array[$encoded_email] = $this->decodeString($encoded_email);
+            $this->decoded_emails_array[$encoded_email] = $this->encoder->decodeString($encoded_email);
         }
 
         return $this->decoded_emails_array;
@@ -441,23 +532,6 @@ class EmailEncoder
     }
 
     /**
-     * Encoding any string
-     *
-     * @param $plain_string string
-     *
-     * @return string
-     */
-    public function encodeString($plain_string)
-    {
-        if ( $this->use_ssl && $this->encryption_is_available ) {
-            $encoded_email = htmlspecialchars($this->openSSLEncrypt($plain_string));
-        } else {
-            $encoded_email = htmlspecialchars(base64_encode(str_rot13($plain_string)));
-        }
-        return $encoded_email;
-    }
-
-    /**
      * Check if the given email is inside a script tag
      * @param string $email The email to check
      * @param string $content The full content
@@ -470,7 +544,6 @@ class EmailEncoder
         if ($pos === false) {
             return false;
         }
-
 
         // Find the last script opening tag before the email
         $last_script_start = strrpos(substr($content, 0, $pos), '<script');
@@ -486,132 +559,6 @@ class EmailEncoder
 
         // The email is inside a script tag if its position is between the opening and closing tags
         return ($pos > $last_script_start && $pos < $script_end);
-    }
-
-    /**
-     * Encrypts a given plain string using the AES-128-CBC cipher algorithm and returns the encoded string.
-     *
-     * @param string $plain_string The plain text string that needs to be encrypted.
-     * @return string The encrypted string, which is a combination of the base64-encoded initialization vector (IV) and the encrypted data, separated by a predefined splitter.
-     */
-    private function openSSLEncrypt($plain_string)
-    {
-        global $apbct;
-        try {
-            if (!is_string($plain_string) || empty($plain_string)) {
-                throw new \Exception('Invalid or empty plain string');
-            }
-            // Determine the length of the IV required for the AES-128-CBC cipher algorithm
-            $iv_length = openssl_cipher_iv_length($this->cipher_algo);
-            if ($iv_length === false) {
-                throw new \Exception('Can\'t generate initializing vector length');
-            }
-            // Generate a random IV of the required length
-            $iv = openssl_random_pseudo_bytes($iv_length);
-            if (empty($iv)) {
-                throw new \Exception('Can\'t generate initializing vector body');
-            }
-            // Encrypt the plain string using the specified cipher algorithm, secret key, and IV
-            $encoded_string = @openssl_encrypt($plain_string, $this->cipher_algo, $this->secret_key, 0, $iv);
-            if (empty($encoded_string)) {
-                throw new \Exception('Can\'t encode plain string');
-            }
-            if (!function_exists('base64_encode')) {
-                throw new \Exception('Can\'t run base64_encode');
-            }
-            // Base64-encode the IV and concatenate it with the encrypted string, separated by a predefined splitter
-            $encoded_string = base64_encode($iv) . $this->encrypted_string_splitter . $encoded_string;
-
-            // Return the combined string
-            return $encoded_string;
-        } catch (\Exception $e) {
-            //todo catch errors on higher level
-            $get_last_error = error_get_last();
-            $get_last_error = isset($get_last_error['message']) ? $get_last_error['message'] : 'no PHP error';
-            $apbct->errorAdd('email_encoder', esc_html($e->getMessage()) . ', backtrace: ' . $get_last_error);
-            return $plain_string;
-        }
-    }
-
-    /**
-     * Decoding previously encoded string
-     *
-     * @param $encoded_string string
-     *
-     * @return string
-     */
-    public function decodeString($encoded_string)
-    {
-        if ( $this->use_ssl && $this->encryption_is_available ) {
-            $decoded_string = htmlspecialchars_decode($this->openSSLDecrypt($encoded_string));
-        } else {
-            $decoded_string = htmlspecialchars_decode(base64_decode($encoded_string));
-            $decoded_string = str_rot13($decoded_string);
-        }
-        return $decoded_string;
-    }
-
-    /**
-     * Decrypts a given encoded string using the AES-128-CBC cipher algorithm and returns the decoded string.
-     *
-     * @param string $encoded_string The encoded string that needs to be decrypted.
-     * @return string The decrypted string.
-     */
-    private function openSSLDecrypt($encoded_string)
-    {
-        global $apbct;
-        try {
-            if (!is_string($encoded_string) || empty($encoded_string)) {
-                throw new \Exception('Invalid or empty encoded string');
-            }
-            // Find the position of the splitter in the encoded string
-            $splitter_position = strpos($encoded_string, $this->encrypted_string_splitter);
-
-            if (empty($splitter_position)) {
-                throw new \Exception('Can\'t split string');
-            }
-
-            // Extract the IV chunk from the encoded string
-            $iv_chunk = substr($encoded_string, 0, $splitter_position);
-
-            if (empty($iv_chunk)) {
-                throw new \Exception('Can\'t get initializing vector string');
-            }
-
-            // Extract the encoded data chunk from the encoded string
-            $encoded_data_chunk = substr($encoded_string, $splitter_position + strlen($this->encrypted_string_splitter));
-
-            if (empty($encoded_data_chunk)) {
-                throw new \Exception('Can\'t get encoded data');
-            }
-
-            if (!function_exists('base64_decode')) {
-                throw new \Exception('Can\'t run base64_decode');
-            }
-
-            // Decode the IV chunk from base64
-            $iv_chunk_decoded = base64_decode($iv_chunk);
-
-            if (empty($iv_chunk_decoded)) {
-                throw new \Exception('Can\'t decode initializing vector string');
-            }
-
-            // Decrypt the encoded data chunk using the specified cipher algorithm, secret key, and IV
-            $decoded_string = @openssl_decrypt($encoded_data_chunk, $this->cipher_algo, $this->secret_key, 0, $iv_chunk_decoded);
-
-            if (empty($decoded_string)) {
-                throw new \Exception('Can\'t finish SSL decryption');
-            }
-
-            // Return the decrypted string
-            return $decoded_string;
-        } catch (\Exception $e) {
-            //todo catch errors on higher level
-            $get_last_error = error_get_last();
-            $get_last_error = isset($get_last_error['message']) ? $get_last_error['message'] : 'no PHP error';
-            $apbct->errorAdd('email_encoder', esc_html($e->getMessage()) . ', backtrace: ' . $get_last_error);
-            return '';
-        }
     }
 
     /**
@@ -652,44 +599,94 @@ class EmailEncoder
      */
     public function encodePlainEmail($email_str)
     {
-        global $apbct;
+        $obfuscated_string = $email_str;
+        $chunks_data = false;
 
-        $mode = $apbct->settings['data__email_decoder_obfuscation_mode'];
-
-        switch ($mode) {
-            case 'blur':
-                $handled_string = $this->addMagicBlurEmail($email_str);
-                break;
-            case 'obfuscate':
-                $handled_string = $this->getObfuscatedEmailString($email_str);
-                break;
-            case 'replace':
-                $custom_text = $apbct->settings['data__email_decoder_obfuscation_custom_text'];
-                $handled_string = !empty($custom_text) ? $custom_text : static::getDefaultReplacingText();
-                break;
-            default:
-                return $email_str;
+        if ( $this->global_obfuscation_mode !== 'replace') {
+            $obfuscator = new Obfuscator();
+            $chunks = $obfuscator->getEmailData($email_str);
+            $chunks_data = $obfuscator->obfuscate_success ? $chunks : false;
         }
 
-        $encoded = $this->encodeString($email_str);
+        $handled_string = $this->applyEffectsOnMode(
+            true,
+            $obfuscated_string,
+            $this->global_obfuscation_mode,
+            $this->global_replacing_text,
+            $chunks_data
+        );
+        $encoded_string = $this->encoder->encodeString($email_str);
 
-        return '<span 
-                data-original-string="' . $encoded . '"
-                class="apbct-email-encoder"
-                title="' . esc_attr($this->getTooltip()) . '">' . $handled_string . '</span>';
+        return $this->constructEncodedSpan($encoded_string, $handled_string);
     }
 
-    private function encodeAny($string)
+    /**
+     * @param string $string of any data
+     * @param string $mode
+     * @param string $replacing_text
+     *
+     * @return string
+     */
+    private function encodeAny($string, $mode = 'blur', $replacing_text = null, $is_phone_number = false)
     {
-        $obfuscator = new Obfuscator();
-        $obfuscated_string = $obfuscator->processString($string);
+        $obfuscated_string = $string;
 
-        $encoded_string = $this->encodeString($string);
+        if ($mode !== 'replace') {
+            $obfuscator = new Obfuscator();
+            $obfuscated_string = $is_phone_number
+                ? $obfuscator->processPhone($string)
+                : $obfuscator->processString($string);
+        }
 
+        $string_with_effect = $this->applyEffectsOnMode(
+            false,
+            $obfuscated_string,
+            $mode,
+            $replacing_text
+        );
+        $encoded_string = $this->encoder->encodeString($string);
+
+        return $this->constructEncodedSpan($encoded_string, $string_with_effect);
+    }
+
+    /**
+     * @param bool $is_email
+     * @param string $obfuscated_string
+     * @param string $mode
+     * @param string $replacing_text
+     * @param ObfuscatorEmailData|false $email_chunks_data
+     *
+     * @return string
+     */
+    private function applyEffectsOnMode($is_email, $obfuscated_string, $mode, $replacing_text = null, $email_chunks_data = null)
+    {
+        switch ($mode) {
+            case 'blur':
+                $handled_string = $is_email && $email_chunks_data
+                    ? $this->addMagicBlurEmail($obfuscated_string)
+                    : $this->addMagicBlurToString($obfuscated_string);
+                break;
+            case 'obfuscate':
+                $handled_string = $is_email
+                    ? $this->getObfuscatedEmailString($obfuscated_string)
+                    : $obfuscated_string;
+                break;
+            case 'replace':
+                $handled_string = !empty($replacing_text) ? $replacing_text : static::getDefaultReplacingText();
+                $handled_string = '<span style="text-decoration: underline">' .  $handled_string . '</span>';
+                break;
+            default:
+                return $obfuscated_string;
+        }
+        return $handled_string;
+    }
+
+    private function constructEncodedSpan($encoded_string, $obfuscated_string)
+    {
         return "<span 
                 data-original-string='" . $encoded_string . "'
                 class='apbct-email-encoder'
-                title='" . esc_attr($this->getTooltip()) . "'>" . $this->addMagicBlurToString($obfuscated_string) . "</span>";
+                title='" . esc_attr($this->getTooltip()) . "'>" . $obfuscated_string . "</span>";
     }
 
     /**
@@ -708,22 +705,23 @@ class EmailEncoder
     }
 
     /**
-     * @param string $obfuscated_string
+     * @param string $obfuscated_string with ** symbols
      *
      * @return string
      */
     private function addMagicBlurToString($obfuscated_string)
     {
         //preparing data to blur
-
-        //this way we know how many characters to show with no BLUR
-        $left_padding = Obfuscator::STRING_CHARS_TO_SHOW;
-        $right_padding = Obfuscator::STRING_CHARS_TO_SHOW * -1;
-        $first_two = substr($obfuscated_string, 0, Obfuscator::STRING_CHARS_TO_SHOW);
-        $last_two = substr($obfuscated_string, Obfuscator::STRING_CHARS_TO_SHOW * -1);
-        return $first_two .
-               '<span class="apbct-blur">' . substr($obfuscated_string, $left_padding, $right_padding) . '</span>' .
-               $last_two;
+        $regex = '/^([^*]+)(\*+)([^*]+)$/';
+        preg_match_all($regex, $obfuscated_string, $matches);
+        if (isset($matches[1][0], $matches[2][0], $matches[3][0])) {
+            $first = $matches[1][0];
+            $middle = $matches[2][0];
+            $end = $matches[3][0];
+        } else {
+            return $obfuscated_string;
+        }
+        return $first . '<span class="apbct-blur">' . $middle . '</span>' . $end;
     }
 
     /**
@@ -736,6 +734,18 @@ class EmailEncoder
     private function isMailto($string)
     {
         return strpos($string, 'mailto:') !== false;
+    }
+
+    /**
+     * Checking if the string contains tel: link
+     *
+     * @param $string string
+     *
+     * @return bool
+     */
+    private function isTelTag($string)
+    {
+        return strpos($string, 'tel:') !== false;
     }
 
     /**
@@ -786,7 +796,7 @@ class EmailEncoder
     }
 
     /**
-     * Method to process mailto: links
+     * Method to process mailto: links. For PHP < 7.4
      *
      * @param $mailto_link_str string
      *
@@ -804,7 +814,7 @@ class EmailEncoder
             }, $matches[1]);
         }
         $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
-        $encoded = $this->encodeString($mailto_link_str);
+        $encoded = $this->encoder->encodeString($mailto_link_str);
 
         $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
 
@@ -812,7 +822,7 @@ class EmailEncoder
     }
 
     /**
-     * Method to process mailto: links
+     * Method to process mailto: links. Use this only for PHP 7.4+
      *
      * @param $match array
      * @param $content string
@@ -837,11 +847,74 @@ class EmailEncoder
         }
 
         $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
-        $encoded = $this->encodeString($mailto_link_str);
+        $encoded = $this->encoder->encodeString($mailto_link_str);
 
         $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
 
         return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
+    }
+
+    /**
+     * Method to process tel: links. For PHP < 7.4
+     *
+     * @param string $tel_link_str
+     *
+     * @return string
+     */
+    private function encodeTelLink($tel_link_str)
+    {
+        // Get inner tag text and place it in $matches[1]
+        preg_match('/tel:(\+\d{8,12})/', $tel_link_str, $matches);
+        if ( isset($matches[1]) ) {
+            $mailto_inner_text = preg_replace_callback('/\+\d{8,12}/', function ($matches) {
+                if (isset($matches[0])) {
+                    $obfuscator = new Obfuscator();
+                    return $obfuscator->processPhone($matches[0]);
+                }
+            }, $matches[1]);
+        }
+        $tel_link_str = str_replace('tel:', '', $tel_link_str);
+        $encoded      = $this->encoder->encodeString($tel_link_str);
+
+        $text = isset($mailto_inner_text) ? $mailto_inner_text : $tel_link_str;
+
+        return 'tel:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
+    }
+
+    /**
+     * Method to process tel: links. Use this only for PHP 7.4+
+     *
+     * @param array $match
+     * @param string $content
+     *
+     * @return string
+     */
+    private function encodeTelLinkV2($match, $content)
+    {
+        $position = !empty($match[1]) ? (int)$match[1] : null;
+        if (null === $position) {
+            return $content;
+        }
+        $q_position = $position + strcspn($content, '\'"', $position);
+        $tel_link_string = substr($content, $position, $q_position - $position);
+        // Get inner tag text and place it in $matches[1]
+        preg_match('/tel:(\+\d{8,12})/', $tel_link_string, $matches);
+        if ( isset($matches[1]) ) {
+            $tel_inner_text = preg_replace_callback('/\+\d{8,12}/', function ($matches) {
+                if ( isset($matches[0]) ) {
+                    $obfuscator = new Obfuscator();
+                    return $obfuscator->processPhone($matches[0]);
+                }
+                return '';
+            }, $matches[1]);
+        }
+
+        $tel_link_string = str_replace('tel:', '', $tel_link_string);
+        $encoded = $this->encoder->encodeString($tel_link_string);
+
+        $text = isset($tel_inner_text) ? $tel_inner_text : $tel_link_string;
+
+        return 'tel:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
     }
 
     /**
@@ -925,6 +998,7 @@ class EmailEncoder
      */
     private function hasAttributeExclusions($email_match)
     {
+        $email_match = preg_quote($email_match);
         foreach ( $this->attribute_exclusions_signs as $tag => $array_of_attributes ) {
             foreach ( $array_of_attributes as $attribute ) {
                 //do not remove IDE highlighted unnecessary escape!
@@ -1018,7 +1092,7 @@ class EmailEncoder
      */
     public function ignoreOpenSSLMode()
     {
-        $this->use_ssl = false;
+        $this->encoder->useSSL(false);
         return $this;
     }
 
@@ -1054,6 +1128,6 @@ class EmailEncoder
 
     protected static function getDefaultReplacingText()
     {
-        return 'Click to show email (static)';
+        return 'Click to show email!';
     }
 }

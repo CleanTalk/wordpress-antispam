@@ -1,0 +1,57 @@
+<div id="cleantalk_apikey_wrapper" class="cleantalk_apikey_wrapper">
+        %WPMS_ADMIN_PROVIDED%
+        <div id="apbct_settings__key_line" class="apbct_settings__key_line">
+            <label id="apbct_settings__key_label" class="apbct_settings__label apbct_settings__key_line__elements" for="apbct_setting_apikey" %KEY_LABEL_DISPLAY%>%KEY_LABEL_TEXT%</label>
+            <input
+                id="apbct_setting_apikey"
+                class="apbct_setting_text apbct_settings-field--api_key apbct_settings__key_line__elements"
+                type="%KEY_INPUT_TYPE%"
+                name="cleantalk_settings[apikey]"
+                value="%KEY_INPUT_VALUE%"
+                key="%KEY_INPUT_KEY%"
+                title="%KEY_INPUT_HINT%"
+                size="20"
+                placeholder="%KEY_INPUT_PLACEHOLDER%"/>
+            <div id="apbct_settings__account_name_ob" class="apbct_settings__key_line__elements apbct_display--none">%ACCOUNT_NAME_OB%</div>
+            <a id="apbct_showApiKey" class="ct_support_link apbct_settings__key_line__elements" href="#" %DEOBFUSCATING_HREF_DISPLAY%>%DEOBFUSCATING_HREF_TEXT%</a>
+            <div id="apbct_button__get_key_auto__wrapper" class="apbct_settings__key_line__elements" %GET_KEY_AUTO_WRAPPER_DISPLAY%>
+                <button
+                    class="cleantalk_link cleantalk_link-manual apbct_setting__key_line__buttons "
+                    id="apbct_button__get_key_auto"
+                    name="submit" type="button"
+                    value="get_key_auto"
+                    %GET_KEY_AUTO_BUTTON_DISPLAY%
+                >
+                    %GET_KEY_AUTO_BUTTON_TEXT%
+                    <img style="margin-left: 10px;" class="apbct_preloader_button" src="%GET_KEY_AUTO_PRELOADER_SRC%" />
+                    <img style="margin-left: 10px;" class="apbct_success --hide" src="%GET_KEY_AUTO_SUCCESS_ICON_SRC%" />
+                </button>
+            </div>
+            <div id="apbct_button__key_line__save_changes_wrapper" class="apbct_settings__key_line__elements" style="display: none">
+                <button id="apbct_settings__key_line__save_settings"
+                        name="submit"
+                        class="cleantalk_link cleantalk_link-manual apbct_setting__key_line__buttons apbct_settings__key_line__elements"
+                        value="save_changes"
+                >
+                    %SAVE_CHANGES_BUTTON_TEXT%
+                </button>
+            </div>
+        </div>
+        <div id="apbct_settings__key_is_bad" class='apbct_notice_inner error' style="margin-left: 0; display: none; max-width: 380px">
+            <h4 id='apbct_bad_key_notice'>
+            %TRYING_TO_SET_BAD_KEY_NOTICE%
+            </h4>
+        </div>
+        <div id="apbct_settings__no_agreement_notice" class='apbct_notice_inner error' style="margin-left: 0; display: none; max-width: 380px">
+            <h4 id='apbct_no_agreement_notice'>
+                %NEED_ACCEPT_AGREEMENT_NOTICE%
+            </h4>
+        </div>
+        <div id="apbct_button__get_key_manual_chunk" class="apbct_setting__key_line__get_key_manual_chunk" %GET_KEY_MANUAL_CHUNK_DISPLAY%>
+            %GET_KEY_MANUAL_CHUNK%
+            <div id="apbct_settings__public_offer" class="apbct_settings__public_offer" %PUBLIC_OFFER_DISPLAY%>
+                <input checked type="checkbox" id="apbct_license_agreed"/>
+                %PUBLIC_OFFER_LINK%
+            </div>
+        </div>
+</div>

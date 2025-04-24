@@ -188,6 +188,30 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_content' => '',
             'utm_campaign' => 'ABPCT_Settings',
         ),
+        'settings_footer__spbct_link' => array(
+            'utm_id' => '',
+            'utm_term' => 'cleantalk security for websites',
+            'utm_source' => 'admin_panel',
+            'utm_medium' => 'wordpress',
+            'utm_content' => 'footer',
+            'utm_campaign' => 'antispam',
+        ),
+        'settings_footer__uptime_monitoring_link' => array(
+            'utm_id' => '',
+             'utm_term' => 'uptime monitoring',
+            'utm_source' => 'admin_panel',
+            'utm_medium' => 'wordpress',
+            'utm_content' => 'footer',
+            'utm_campaign' => 'antispam',
+        ),
+        'settings_footer__doboard_link' => array(
+            'utm_id' => '',
+             'utm_term' => 'doboard - online project management',
+            'utm_source' => 'admin_panel',
+            'utm_medium' => 'wordpress',
+            'utm_content' => 'footer',
+            'utm_campaign' => 'antispam',
+        ),
     );
 
     public static function buildCleanTalkLink($utm_preset, $uri = '', $get_params = array(), $domain = 'https://cleantalk.org')
