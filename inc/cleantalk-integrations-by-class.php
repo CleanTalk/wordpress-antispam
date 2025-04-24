@@ -9,6 +9,11 @@ $apbct_integrations_by_class = array(
         'plugin_path' => 'woocommerce/woocommerce.php',
         'plugin_class' => 'WooCommerce',
     ),
+    'WPSearchForm' => array(
+        'plugin_path' => '',
+        'plugin_class' => '',
+        'wp_includes' => true,
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_integrations_by_class) {
