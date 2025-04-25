@@ -269,7 +269,7 @@ add_action('init', function () {
     global $apbct;
 
     // Self cron
-    $ct_cron = new Cron();
+    $ct_cron = Cron::getInstance();
     $tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
     if (
         $tasks_to_run && // There are tasks to run
