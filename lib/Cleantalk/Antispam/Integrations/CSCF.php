@@ -8,13 +8,24 @@ class CSCF extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        if (!Post::hasString('action', 'cscf-submitform')) {
-            return null;
-        }
-
         $data = apply_filters('apbct__filter_post', $_POST);
 
-        $gfa_checked_data = ct_get_fields_any($data);
+        if (defined('DOING_AJAX') && DOING_AJAX) {
+            if (!Post::hasString('action', 'cscf-submitform')) {
+                return null;
+            }
+            $gfa_checked_data = ct_get_fields_any($data);
+        } else {
+            if (is_object($argument) ) {
+                $email_non_ajax = property_exists($argument, 'Email') ? $argument->Email : '';
+                $name_non_ajax = property_exists($argument, 'Name') ? $argument->Name : '';
+                $data = array();
+                $data['message'] = property_exists($argument, 'Message') ? $argument->Message : '';
+                $gfa_checked_data = ct_get_fields_any($data, $email_non_ajax, $name_non_ajax);
+            } else {
+                $gfa_checked_data = ct_get_fields_any($data);
+            }
+        }
 
         if (isset($data['ct_bot_detector_event_token'])) {
             $gfa_checked_data['event_token'] = $data['ct_bot_detector_event_token'];
@@ -40,15 +51,20 @@ class CSCF extends IntegrationBase
 
     public function doBlock($message)
     {
-        echo json_encode(
-            array(
-                'apbct' => array(
-                    'blocked'     => true,
-                    'comment'     => $message,
-                    'stop_script' => apbct__stop_script_after_ajax_checking()
+        //for ajax calls
+        if (defined('DOING_AJAX') && DOING_AJAX) {
+            echo json_encode(
+                array(
+                    'apbct' => array(
+                        'blocked'     => true,
+                        'comment'     => $message,
+                        'stop_script' => apbct__stop_script_after_ajax_checking()
+                    )
                 )
-            )
-        );
-        die();
+            );
+            die();
+        }
+        // other
+        ct_die_extended($message);
     }
 }

@@ -517,15 +517,15 @@ class SettingsField
         return $out;
     }
 
+    /**
+     * Returns string of custom HTML for element.
+     * @return string
+     */
     private function getCustomHTML()
     {
         global $apbct;
         $data = [
             'name' => isset($this->params['name']) ? $this->params['name'] : '',
-            'type' => isset($this->params['type']) ? $this->params['type'] : '',
-            'title' => isset($this->params['title']) ? $this->params['title'] : '',
-            'popup_description' => isset($this->description_popup) ? $this->description_popup : '',
-            'description' => isset($this->params['description']) ? $this->params['description'] : '',
         ];
 
         switch ($data['name']) {

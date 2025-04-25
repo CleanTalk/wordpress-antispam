@@ -36,7 +36,13 @@ function apbct_wp_get_current_user()
         }
     }
 
-    return $user ? $user : $current_user;
+    if (!is_null($current_user) && $current_user instanceof WP_User) {
+        $current_user_defined = $current_user->ID === 0 ? null : $current_user;
+    } else {
+        $current_user_defined = null;
+    }
+
+    return $user ? $user : $current_user_defined;
 }
 
 function apbct_wp_set_current_user($user = null)

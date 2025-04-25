@@ -288,6 +288,9 @@ class Enqueue
             $this->errorLog(__('Web path for script is invalid: ' . $path, 'cleantalk-spam-protect'));
             return $path;
         }
+        if (!ini_get('allow_url_fopen')) {
+            return $path;
+        }
         $abs_path = str_replace($this->assets_path, $this->plugin_path, $path);
         if (!@file_exists($abs_path) && !@file_get_contents($abs_path)) {
             $this->errorLog(__('Script file is not accessible:' . $path, 'cleantalk-spam-protect'));
