@@ -196,6 +196,10 @@ function apbct_base_call($params = array(), $reg_flag = false)
         'submit_time' => apbct_get_submit_time(),
     );
 
+    if (!isset($params['post_info']['post_url'])) {
+        $params['post_info']['post_url'] = Server::get('HTTP_REFERER');
+    }
+
     // Event Token
     $params['event_token'] = apbct_get_event_token($params);
 
@@ -545,9 +549,16 @@ function apbct_get_sender_info()
     $site_landing_ts = !empty($site_landing_ts) ? TT::toString($site_landing_ts) : null;
 
     $site_referer = RequestParameters::get('apbct_site_referer', true);
-    $site_referer = !empty($site_referer) ? TT::toString($site_referer) : null;
+    $site_referer = !empty($site_referer) ? TT::toString($site_referer) : 'UNKNOWN';
 
-    $page_hits = RequestParameters::get('apbct_page_hits', true);
+    /**
+     * Important! Do not use just HTTP only flag here. Page hits are handled on JS side
+     * and could be provided via NoCookie hidden field.
+     * Also, forms with forced alt cookies does not provide it via hidden field and in the same time other forms do,
+     * so we need a flag to know the source.
+     * A.G.
+     */
+    $page_hits = RequestParameters::get('apbct_page_hits', Cookie::$force_alt_cookies_global);
     $page_hits = !empty($page_hits) ? TT::toString($page_hits) : null;
 
     //Let's keep $data_array for debugging
@@ -568,9 +579,9 @@ function apbct_get_sender_info()
         'cookies_enabled'           => $cookie_is_ok,
         'data__set_cookies'         => $apbct->settings['data__set_cookies'],
         'data__cookies_type'        => $apbct->data['cookies_type'],
-        'REFFERRER'                 => Cookie::$force_alt_cookies_global ? $site_referer : Server::get('HTTP_REFERER'),
-        'REFFERRER_PREVIOUS'        => Cookie::get('apbct_prev_referer') && $cookie_is_ok
-            ? Cookie::get('apbct_prev_referer')
+        'REFFERRER'                 => Server::getString('HTTP_REFERER'),
+        'REFFERRER_PREVIOUS'        => !empty(Cookie::getString('apbct_prev_referer')) && $cookie_is_ok
+            ? Cookie::getString('apbct_prev_referer')
             : null,
         'site_landing_ts'           => $site_landing_ts,
         'page_hits'                 => $page_hits,
@@ -1113,14 +1124,15 @@ function ct_get_fields_any($arr, $email = '', $nickname = '')
  * @param array $input_array maybe raw POST array or other preprocessed POST data.
  * @param string $email email, rewriting result of process $input_array data
  * @param string $nickname nickname, rewriting result of process $input_array data
+ * @param array $emails_array additional emails array, rewriting result of process $input_array data
  * @deprecated since 6.48, use ct_gfa_dto() instead
  * @return array
  */
-function ct_gfa($input_array, $email = '', $nickname = '')
+function ct_gfa($input_array, $email = '', $nickname = '', $emails_array = array())
 {
     $gfa = new GetFieldsAny($input_array);
 
-    return $gfa->getFields($email, $nickname);
+    return $gfa->getFields($email, $nickname, $emails_array);
 }
 
 /**
@@ -1130,14 +1142,15 @@ function ct_gfa($input_array, $email = '', $nickname = '')
  * @param array $input_array maybe raw POST array or other preprocessed POST data.
  * @param string $email email, rewriting result of process $input_array data
  * @param string $nickname nickname, rewriting result of process $input_array data
+ * @param array $emails_array array of additional emails, rewriting result of process $input_array data
  *
  * @return GetFieldsAnyDTO
  */
-function ct_gfa_dto($input_array, $email = '', $nickname = '')
+function ct_gfa_dto($input_array, $email = '', $nickname = '', $emails_array = array())
 {
     $gfa = new GetFieldsAny($input_array);
 
-    return $gfa->getFieldsDTO($email, $nickname);
+    return $gfa->getFieldsDTO($email, $nickname, $emails_array);
 }
 
 /**

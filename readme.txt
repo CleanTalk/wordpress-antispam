@@ -2,9 +2,9 @@
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 6.51
+Stable tag: 6.54
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -65,8 +65,9 @@ CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam se
 = AntiSpam protection for comments =
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
 
-= Contact Form by WPForms spam filter =
-Plugin extends Contact Form by WPForms to provide spam protection. It filters spam submissions for each type of forms - simple contact form, marketing form, request a quote and etc.
+= Contact Form 7 spam filter =
+Plugin extends spam protection for Contact Form 7 (CF7). It can be used with any other third-party spam filters.
+<a href="https://blog.cleantalk.org/how-to-protect-your-contactform7-contact-form-using-cleantalk-anti-spam-plugin/">How to protect your Contact Form 7 using CleanTalk Anti-Spam plugin</a>
 
 = Elementor Website Builder filter =
 Plugin extends spam protection for Elementor Website Builder. It filters spam submisssions and tested for contact form type.
@@ -77,9 +78,14 @@ Plugin extends spam protection for Gravity forms. It filters spam submisssions f
 = Formidable Form Builder spam filter =
 Plugin extends spam protection for Formidable Form Builder. It filters spam submisssions for any type of forms - Contact Form, Survey & Quiz Forms.
 
-= Contact Form 7 spam filter =
-Plugin extends spam protection for Contact Form 7 (CF7). It can be used with any other third-party spam filters.
-<a href="https://blog.cleantalk.org/how-to-protect-your-contactform7-contact-form-using-cleantalk-anti-spam-plugin/">How to protect your Contact Form 7 using CleanTalk Anti-Spam plugin</a>
+= Leaky Paywall subscription protection =
+Plugin protects Leaky Paywall plugin (by ZEEN01) against spam subscriptions. It can be used with any other third-party spam filters.
+
+= HubSpot protection for embedded forms =
+Plugin protects HubSpot embedded forms against any spam submissions. Guide to start using embedded forms https://knowledge.hubspot.com/forms/how-can-i-share-a-hubspot-form-if-im-using-an-external-site
+
+= Contact Form by WPForms spam filter =
+Plugin extends Contact Form by WPForms to provide spam protection. It filters spam submissions for each type of forms - simple contact form, marketing form, request a quote and etc.
 
 = WooCommerce spam filter =
 Anti-spam by CleanTalk filters spam registrations and spam reviews for WooCommerce. The plugin is fully compatible with WooCommerce 2.1 and higher.
@@ -441,6 +447,48 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.54 10.04.2025 =
+* New. Code. Enqueue scripts via specialized handler.
+* New. Settings. Email Encoder. Now the obfuscation way can be selected (blur/obf/replace).
+* Fix. ExternalForms. Excluding the creation of a textarea with the value of the submit attribute.
+* Fix. Integrations. Fixed gravity form flow.
+* Fix. Integrations. Fixed vikrentcar and vikbooking.
+* Fix. Integrations. Fixed wspsc add cart.
+* Fix. Integrations. Fixed zoho form flow.
+* Fix. Integrations. Rollback preventDefault action.
+* Fix. UsersScan. Added check for ct_role existence in user data before processing.
+* Ref. Email Encoder. Obfuscation refactored.
+* Upd. Integrations. Added spam check for buddyboss edit.
+* Upd. Integrations. Ninja forms. Now integration can provide additional email addresses array via GetFieldsAnyDto.
+
+= 6.53 27.03.2025 =
+* New. Integration. Event Manager - booking form
+* New. Integration. Smart Quiz Builder integration
+* New. Integration. Brave PopUp Pro integration implemented.
+* Code. Psalm. Fixed all taint issues.
+* Fix. Cookies. Page hits and site referrer pararms gain fixed.
+* Fix. Cookies. Count in forced alt cookies state on page_hits gain.
+* Fix. Cookies. Site referer fixed.
+* Fix. Code. UTM marks for payment link fixed.
+* Fix. User checker. Non-checkable tab fixed.
+* Fix. Integrations. WSForm update flow to handle request in direct function.
+* Fix. AjaxHook. Initializing a global variable
+* Fix. AvadaIntegration. Skipping hooks, username definition, GFA edit, removed no_cookie_data excision
+* Fix. AvadaIntegration. Removed post filtering
+* Fix. Integration. Added the definition of 'message' for integration with Jet Form Builder
+
+= 6.52 13.03.2025 =
+* New. Integration. Integration with plugin/theme Listeo.
+* Mod. Pixel. Disabling a pixel if its mode is 'auto' and the bot detector is enabled
+* Mod. Decoration. Changing cursor data collection, renaming functionality
+* Mod. Decoration. Removing decorations and changing the logic of data collection from the frontend
+* Ref. Integrations. Woocommerce gather to one class.
+* Fix. Email encoder. Texts modified by hooks.
+* Fix. Email Encoder. Using buffer fixed.
+* Fix. CollectingUserActivity. Rename script, changing the selection definition
+* Fix. GetKeyAuto. Removed localization
+* Fix. External forms. Bitrix24 forms protection implemented.
 
 = 6.51 03.03.2025 =
 * New. Integration Awesome Support. Checking registration and creating new tickets.

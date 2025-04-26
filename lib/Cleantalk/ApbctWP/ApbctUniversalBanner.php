@@ -10,4 +10,12 @@ class ApbctUniversalBanner extends UniversalBanner
     {
         return Escape::escKsesPreset($body, 'apbct_settings__display__banner_template');
     }
+
+    protected function showBannerButton()
+    {
+        if (apbct_is_in_uri('options-general.php?page=cleantalk')) {
+            return false;
+        }
+        return true;
+    }
 }

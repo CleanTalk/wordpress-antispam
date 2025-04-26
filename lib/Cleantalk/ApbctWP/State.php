@@ -88,6 +88,10 @@ class State extends \Cleantalk\Common\State
         'data__honeypot_field'                     => 1,
         'data__email_decoder'                      => 1,
         'data__email_decoder_buffer'               => 0,
+        'data__email_decoder_obfuscation_mode'     => 'blur',
+        'data__email_decoder_obfuscation_custom_text' => '',
+        'data__email_decoder_encode_phone_numbers' => 1,
+        'data__email_decoder_encode_email_addresses' => 1,
         'data__wc_store_blocked_orders'            => 0,
 
         // Exclusions

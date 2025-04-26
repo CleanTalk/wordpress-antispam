@@ -33,7 +33,7 @@ class UsersScan extends Users
 
         foreach ( $scanned_users as $user_data ) {
             $user_obj = get_userdata($user_data->user_id);
-            if ( ! $user_obj ) {
+            if ( ! $user_obj  || !isset($user_data->ct_role) ) {
                 continue;
             }
             $roles_prepare = implode(', ', array_keys(maybe_unserialize($user_data->ct_role)));

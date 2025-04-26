@@ -2,8 +2,6 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\Common\TT;
-
 class Supsystic extends IntegrationBase
 {
     public function getDataForChecking($argument)
@@ -17,16 +15,16 @@ class Supsystic extends IntegrationBase
         $input_array = apply_filters('apbct__filter_post', $_POST);
 
         $nickname = '';
-        if ( isset($_POST['fields']['name']) ) {
-            $nickname .= sanitize_text_field(TT::toString($_POST['fields']['name']));
+        if ( isset($_POST['fields']['name']) && is_string($_POST['fields']['name']) ) {
+            $nickname .= sanitize_text_field($_POST['fields']['name']);
         }
-        if ( isset($_POST['fields']['first_name']) ) {
+        if ( isset($_POST['fields']['first_name']) && is_string($_POST['fields']['first_name']) ) {
             $nickname .= ! empty($nickname) ? ' ' : '';
-            $nickname .= sanitize_text_field(TT::toString($_POST['fields']['first_name']));
+            $nickname .= sanitize_text_field($_POST['fields']['first_name']);
         }
-        if ( isset($_POST['fields']['last_name']) ) {
+        if ( isset($_POST['fields']['last_name']) && is_string($_POST['fields']['last_name']) ) {
             $nickname .= ! empty($nickname) ? ' ' : '';
-            $nickname .= sanitize_text_field(TT::toString($_POST['fields']['last_name']));
+            $nickname .= sanitize_text_field($_POST['fields']['last_name']);
         }
 
         return ct_gfa($input_array, '', $nickname);

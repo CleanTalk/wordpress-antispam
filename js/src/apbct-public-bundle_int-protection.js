@@ -275,7 +275,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
                     button.addEventListener('click', function() {
                         document.body.classList.remove('apbct-popup-fade');
                         popup.setAttribute('style', 'display:none');
-                        fillDecodedEmails(encodedEmailNodes, result);
+                        fillDecodedNodes(encodedEmailNodes, result);
                         // click on mailto if so
                         if (typeof ctPublic !== 'undefined' && ctPublic.encodedEmailNodesIsMixed && clickSource) {
                             clickSource.click();
@@ -350,16 +350,16 @@ function ctShowDecodeComment(comment) {
 
 /**
  * Run filling for every node with decoding result.
- * @param {mixed} encodedEmailNodes
+ * @param {mixed} encodedNodes
  * @param {mixed} decodingResult
  */
-function fillDecodedEmails(encodedEmailNodes, decodingResult) {
-    if (encodedEmailNodes.length > 0) {
-        for (let i = 0; i < encodedEmailNodes.length; i++) {
+function fillDecodedNodes(encodedNodes, decodingResult) {
+    if (encodedNodes.length > 0) {
+        for (let i = 0; i < encodedNodes.length; i++) {
             // chek what is what
             let currentResultData;
             decodingResult.data.forEach((row) => {
-                if (row.encoded_email === encodedEmailNodes[i].dataset.originalString) {
+                if (row.encoded_email === encodedNodes[i].dataset.originalString) {
                     currentResultData = row;
                 }
             });
@@ -369,18 +369,29 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
             }
             // handler for mailto
             if (
-                typeof encodedEmailNodes[i].href !== 'undefined' &&
-                encodedEmailNodes[i].href.indexOf('mailto:') === 0
+                typeof encodedNodes[i].href !== 'undefined' &&
+                (
+                    encodedNodes[i].href.indexOf('mailto:') === 0 ||
+                    encodedNodes[i].href.indexOf('tel:') === 0
+                )
             ) {
-                let encodedEmail = encodedEmailNodes[i].href.replace('mailto:', '');
-                let baseElementContent = encodedEmailNodes[i].innerHTML;
-                encodedEmailNodes[i].innerHTML = baseElementContent.replace(
+                let linkTypePrefix;
+                if (encodedNodes[i].href.indexOf('mailto:') === 0) {
+                    linkTypePrefix = 'mailto:';
+                } else if (encodedNodes[i].href.indexOf('tel:') === 0) {
+                    linkTypePrefix = 'tel:';
+                } else {
+                    continue;
+                }
+                let encodedEmail = encodedNodes[i].href.replace(linkTypePrefix, '');
+                let baseElementContent = encodedNodes[i].innerHTML;
+                encodedNodes[i].innerHTML = baseElementContent.replace(
                     encodedEmail,
                     currentResultData.decoded_email,
                 );
-                encodedEmailNodes[i].href = 'mailto:' + currentResultData.decoded_email;
+                encodedNodes[i].href = linkTypePrefix + currentResultData.decoded_email;
 
-                encodedEmailNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((el) => {
+                encodedNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((el) => {
                     let encodedEmailTextInsideMailto = '';
                     decodingResult.data.forEach((row) => {
                         if (row.encoded_email === el.dataset.originalString) {
@@ -390,23 +401,23 @@ function fillDecodedEmails(encodedEmailNodes, decodingResult) {
                     el.innerHTML = encodedEmailTextInsideMailto;
                 });
             } else {
-                encodedEmailNodes[i].classList.add('no-blur');
+                encodedNodes[i].classList.add('no-blur');
                 // fill the nodes
                 setTimeout(() => {
-                    ctProcessDecodedDataResult(currentResultData, encodedEmailNodes[i]);
+                    ctProcessDecodedDataResult(currentResultData, encodedNodes[i]);
                 }, 2000);
             }
             // remove listeners
-            encodedEmailNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
+            encodedNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
         }
     } else {
         let currentResultData = decodingResult.data[0];
-        encodedEmailNodes.classList.add('no-blur');
+        encodedNodes.classList.add('no-blur');
         // fill the nodes
         setTimeout(() => {
-            ctProcessDecodedDataResult(currentResultData, encodedEmailNodes);
+            ctProcessDecodedDataResult(currentResultData, encodedNodes);
         }, 2000);
-        encodedEmailNodes.removeEventListener('click', ctFillDecodedEmailHandler);
+        encodedNodes.removeEventListener('click', ctFillDecodedEmailHandler);
     }
 }
 
@@ -1808,6 +1819,7 @@ function ctDetectForcedAltCookiesForms() {
     let bloomPopup = document.querySelectorAll('div[class^="et_bloom_form_container"]').length > 0;
     let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
     let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
+    let smartQuizBuilder = document.querySelectorAll('form .sqbform, .fields_reorder_enabled').length > 0;
     ctPublic.force_alt_cookies = smartFormsSign ||
         ninjaFormsSign ||
         jetpackCommentsForm ||
@@ -1818,7 +1830,8 @@ function ctDetectForcedAltCookiesForms() {
         fluentBookingApp ||
         pafeFormsFormElementor ||
         bloomPopup ||
-        otterForm;
+        otterForm ||
+        smartQuizBuilder;
 
     setTimeout(function() {
         if (!ctPublic.force_alt_cookies) {
@@ -1844,10 +1857,6 @@ function ctSetAlternativeCookie(cookies, params) {
     } catch (e) {
         console.log('APBCT ERROR: JSON parse error:' + e);
         return;
-    }
-
-    if (!cookies.apbct_site_referer) {
-        cookies.apbct_site_referer = location.href;
     }
 
     const callback = params && params.callback || null;
@@ -2227,6 +2236,7 @@ class ApbctForceProtection {
 
         if (typeof result === 'object' && result.allow && result.allow === 1) {
             this.decodeForms();
+            document.dispatchEvent(new Event('apbctForceProtectionAllowed'));
         } else {
             this.showMessageForBot(result.message);
         }
@@ -3336,6 +3346,12 @@ function apbct_ready() {
             if (ctCheckHiddenFieldsExclusions(document.forms[i], 'visible_fields')) {
                 continue;
             }
+            if (form.querySelector('input[name="wspsc_add_cart_submit"]') ||
+                form.querySelector('input[name="option"][value="com_vikrentcar"]') ||
+                form.querySelector('input[name="option"][value="com_vikbooking"]')
+            ) {
+                continue;
+            }
 
             // The Form has hidden field like apbct_visible_fields
             if (
@@ -3380,9 +3396,12 @@ function apbct_ready() {
 
                 // Call previous submit action
                 if (event.target.onsubmit_prev instanceof Function && !ctOnsubmitPrevCallExclude(event.target)) {
+                    if (event.target.classList !== undefined && event.target.classList.contains('brave_form_form')) {
+                        event.preventDefault();
+                    }
                     setTimeout(function() {
                         event.target.onsubmit_prev.call(event.target, event);
-                    }, 500);
+                    }, 0);
                 }
             };
         }
@@ -4699,41 +4718,53 @@ function ctCheckInternal(currForm) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    let ctCurrAction = '';
-    let ctCurrForm = '';
-
     if ( ! +ctPublic.settings__forms__check_internal ) {
         return;
     }
 
     setTimeout(() => {
-        for ( let i = 0; i < document.forms.length; i++ ) {
-            if ( typeof(document.forms[i].action) == 'string' ) {
-                ctCurrForm = document.forms[i];
-                ctCurrAction = ctCurrForm.action;
-                if (
-                    ctCurrAction.indexOf('https?://') !== null && // The protocol is obligatory
-                    ctCurrAction.match(ctPublic.blog_home + '.*?\.php') !== null && // Main check
-                    ! ctCheckInternalIsExcludedForm(ctCurrAction) // Exclude WordPress native scripts from processing
-                ) {
-                    const formClone = ctCurrForm.cloneNode(true);
-                    ctCurrForm.parentNode.replaceChild(formClone, ctCurrForm);
+        ctProtectInternalForms();
+    }, 500);
 
-                    formClone.origSubmit = ctCurrForm.submit;
-                    formClone.submit = null;
+    document.addEventListener('apbctForceProtectionAllowed', function() {
+        ctProtectInternalForms();
+    });
+});
 
-                    formClone.addEventListener('submit', function(event) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        event.stopImmediatePropagation();
-                        ctCheckInternal(event.target);
-                        return false;
-                    });
-                }
+/**
+ * Protect internal forms
+ * @return {void}
+ */
+function ctProtectInternalForms() {
+    let ctCurrAction = '';
+    let ctCurrForm = '';
+
+    for ( let i = 0; i < document.forms.length; i++ ) {
+        if ( typeof(document.forms[i].action) == 'string' ) {
+            ctCurrForm = document.forms[i];
+            ctCurrAction = ctCurrForm.action;
+            if (
+                ctCurrAction.indexOf('https?://') !== null && // The protocol is obligatory
+                ctCurrAction.match(ctPublic.blog_home + '.*?\.php') !== null && // Main check
+                ! ctCheckInternalIsExcludedForm(ctCurrAction) // Exclude WordPress native scripts from processing
+            ) {
+                const formClone = ctCurrForm.cloneNode(true);
+                ctCurrForm.parentNode.replaceChild(formClone, ctCurrForm);
+
+                formClone.origSubmit = ctCurrForm.submit;
+                formClone.submit = null;
+
+                formClone.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+                    ctCheckInternal(event.target);
+                    return false;
+                });
             }
         }
-    }, 500);
-});
+    }
+}
 
 /**
  * Check by action to exclude the form checking

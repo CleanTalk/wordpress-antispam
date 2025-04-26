@@ -484,6 +484,8 @@ class RemoteCalls
             'data__email_check_exist_post' => 'Check email before POST request',
             'data__honeypot_field' => 'Add a honeypot field',
             'data__email_decoder' => 'Encode contact data',
+            'data__email_decoder_encode_phone_numbers' => 'Encode phones',
+            'data__email_decoder_encode_email_addresses' => 'Encode emails',
             'data__email_decoder_buffer' => 'Use the output buffer',
             'exclusions__log_excluded_requests' => 'Log excluded requests',
             'exclusions__urls' => 'URL exclusions',
