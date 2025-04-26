@@ -330,64 +330,63 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
     }
 
 
-
+    /**
+     * Return status table for settings hat.
+     * @param array $data array of required data to construct
+     * @return string
+     */
     public static function getEncoderStatusForSettingsHat($data)
     {
         $template = '
-            <div id="apbct_encoder_status__title_wrapper" class="apbct_setting-field_title--checkbox">
+            <div id="apbct_encoder_status__title_wrapper">
                 <span class="apbct-icon-eye-off"></span>
                 <span style="margin: 0 3px">%s</span>
                 <i setting="%s" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>
             </div>
-            <div id="apbct_encoder_status__common_wrapper">
-                <div id="apbct_encoder_status__description_wrapper" class="apbct_encoder_status__rows">
-                    <div>%s</div>
-                </div>
-                <div id="apbct_encoder_status__example_wrapper" class="apbct_encoder_status__rows">
-                    <span class="apbct-email-encoder--settings_example_encoded">%s</span>
-                </div>
-                <label for="apbct_encoder_status__inline_wrapper" id="apbct_encoder_status__current_status_label">
-                    <span>%s</span>
-                </label>
-                    <div id="apbct_encoder_status__inline_wrapper" class="apbct_encoder_status__inline_wrapper apbct_encoder_status__rows">
-                        <div id="apbct_encoder_status__emails_wrapper" class="apbct_encoder_status__inline_element">
-                            <span class="apbct_encoder_status__inline_element__option">%s:</span><span><b>%s</b></span>
-                        </div>
-                        <div id="apbct_encoder_status__phones_wrapper" class="apbct_encoder_status__inline_element">
-                            <span class="apbct_encoder_status__inline_element__option">%s:</span><span><b>%s</b></span>
-                        </div>
-                        <div id="apbct_encoder_status__obfuscation_mode_wrapper" class="apbct_encoder_status__inline_element">
-                            <span class="apbct_encoder_status__inline_element__option">%s:</span><span><b>%s</b></span>
-                        </div>
-                    </div>
-                    <div id="apbct_encoder_status__manage_settings_link_wrapper" class="apbct_encoder_status__rows apbct-trusted-text--center">
-                        <span>%s <a href="#apbct_setting_group__contact_data_encoding" onclick="handleAnchorDetection(\'apbct_setting_group__contact_data_encoding\')">%s</a></span>
-                    </div>
+            <div class="apcbt_contact_data_encoder__line">
+                <span>%s&nbsp</span>
+                <span>%s</span>
+            </div>
+            <div class="apcbt_contact_data_encoder__line">
+                <span>%s&nbsp</span>
+                <span>%s&nbsp</span><span><b>%s,&nbsp</b></span>
+                <span>%s&nbsp</span><span><b>%s,&nbsp</b></span>
+                <span>%s&nbsp</span><span><b>%s.&nbsp</b></span>
+                <span>%s&nbsp<a class="apbct_color--gray" href="#apbct_setting_group__contact_data_encoding" onclick="handleAnchorDetection(\'apbct_setting_group__contact_data_encoding\')">%s </a>%s</span>
             </div>
         ';
-        $ancor_to_section = 'advanced settings';
+        $ancor_to_section = 'Advanced settings';
 
         $description = __(
             'This feature prevents robots from collecting and including your emails/phones in lists to spam.',
             'cleantalk-spam-protect'
         );
 
-        if ($data['phones_on'] && $data['encoder_enabled_global']) {
-            $phone_status = __('On', 'cleantalk_spam_protect');
+        if (!empty($data['phones_on']) && !empty($data['encoder_enabled_global'])) {
+            $phone_status = __('"On"', 'cleantalk_spam_protect');
         } else {
-            $phone_status = __('Off', 'cleantalk_spam_protect');
+            $phone_status = __('"Off"', 'cleantalk_spam_protect');
         }
 
-        if ($data['emails_on'] && $data['encoder_enabled_global']) {
-            $email_status = __('On', 'cleantalk_spam_protect');
+        if (!empty($data['emails_on']) && !empty($data['encoder_enabled_global'])) {
+            $email_status = __('"On"', 'cleantalk_spam_protect');
         } else {
-            $email_status = __('Off', 'cleantalk_spam_protect');
+            $email_status = __('"Off"', 'cleantalk_spam_protect');
         }
 
         if (!empty($data['obfuscation_mode']) && !empty($data['encoder_enabled_global'])) {
-            $obfuscation_mode = $data['obfuscation_mode'];
+            if ($data['obfuscation_mode'] === 'blur') {
+                $obfuscation_mode = __('Blur', 'cleantalk_spam_protect');
+            }
+            if ($data['obfuscation_mode'] === 'obfuscate') {
+                $obfuscation_mode = __('Replace with * ', 'cleantalk_spam_protect');
+            }
+            if ($data['obfuscation_mode'] === 'replace') {
+                $obfuscation_mode = __('Replace with text', 'cleantalk_spam_protect');
+            }
+            $obfuscation_mode = empty($obfuscation_mode) ? 'n/a' : '"' . $obfuscation_mode . '"';
         } else {
-            $obfuscation_mode = __('Disabled', 'cleantalk_spam_protect');
+            $obfuscation_mode = __('"Disabled"', 'cleantalk_spam_protect');
         }
 
         $email = isset($data['current_user_email']) && is_string($data['current_user_email'])
@@ -400,15 +399,16 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             'data__email_decoder',
             $description,
             static::getExampleOfEncodedEmail($email),
-            __('Current status:', 'cleantalk_spam_protect'),
-            __('Phones encoding', 'cleantalk_spam_protect'),
+            __('By now,', 'cleantalk_spam_protect'),
+            __('Phones encoding are', 'cleantalk_spam_protect'),
             $phone_status,
-            __('Emails encoding', 'cleantalk_spam_protect'),
+            __('Emails encoding are', 'cleantalk_spam_protect'),
             $email_status,
-            __('Current obfuscation mode', 'cleantalk_spam_protect'),
+            __('Current obfuscation mode are', 'cleantalk_spam_protect'),
             $obfuscation_mode,
-            __('You can manage encoder settings in ', 'cleantalk_spam_protect'),
-            $ancor_to_section
+            __('Use', 'cleantalk_spam_protect'),
+            $ancor_to_section,
+            __('to tune the encoding', 'cleantalk_spam_protect')
         );
     }
 }
