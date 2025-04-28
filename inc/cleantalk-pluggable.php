@@ -1522,12 +1522,20 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'fusion_form/avada_theme skip';
         }
 
-        // skip Newsletter - have direct integration
+        // skip Newsletter - has direct integration
         if (
             apbct_is_plugin_active('newsletter/plugin.php') &&
             Request::getString('action') === 'tnp'
         ) {
             return 'Newsletter';
+        }
+
+        // skip ChatyContactForm - has direct integration
+        if (
+            apbct_is_plugin_active('chaty/cht-icons.php') &&
+            Request::getString('action') === 'chaty_front_form_save_data'
+        ) {
+            return 'ChatyContactForm';
         }
     } else {
         /*****************************************/
