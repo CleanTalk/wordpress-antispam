@@ -1521,6 +1521,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'fusion_form/avada_theme skip';
         }
+
+        // skip Newsletter - have direct integration
+        if (
+            apbct_is_plugin_active('newsletter/plugin.php') &&
+            Request::getString('action') === 'tnp'
+        ) {
+            return 'Newsletter';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

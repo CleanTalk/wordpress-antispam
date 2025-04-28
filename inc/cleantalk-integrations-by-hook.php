@@ -399,6 +399,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'Newsletter' => array(
+        'hook'    => 'newsletter_action',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_active_integrations) {
