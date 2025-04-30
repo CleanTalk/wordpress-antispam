@@ -35,6 +35,11 @@ class WPSearchForm extends IntegrationByClassBase
         if ( $apbct->settings['forms__search_test'] ) {
             add_filter('get_search_form', array($this, 'apbctFormSearchAddFields'), 999);
         }
+        if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
+            // Default search
+            add_filter('get_search_query', array($this, 'testSpam'));
+            add_action('wp_head', array($this, 'addNoindex'), 1);
+        }
     }
 
     /**
@@ -90,5 +95,71 @@ class WPSearchForm extends IntegrationByClassBase
         }
 
         return $form_html;
+    }
+
+    /**
+     * Test default search string for spam
+     *
+     * @param string $search
+     *
+     * @return string
+     */
+    public function testSpam($search)
+    {
+        global $apbct, $cleantalk_executed;
+
+        if (
+            empty($search) ||
+            $cleantalk_executed ||
+            $apbct->settings['forms__search_test'] == 0 ||
+            ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
+        ) {
+            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+            return $search;
+        }
+
+        $user = apbct_is_user_logged_in() ? wp_get_current_user() : null;
+
+        $data = array(
+            'message'         => $search,
+            'sender_email'    => $user !== null ? $user->user_email : null,
+            'sender_nickname' => $user !== null ? $user->user_login : null,
+            'post_info'       => array('comment_type' => 'site_search_wordpress'),
+            'exception_action' => 0,
+        );
+
+        $base_call_result = apbct_base_call($data);
+
+        if ( isset($base_call_result['ct_result']) ) {
+            $ct_result = $base_call_result['ct_result'];
+
+            $cleantalk_executed = true;
+
+            if ( $ct_result->allow == 0 ) {
+                die($ct_result->comment);
+            }
+        }
+
+        return $search;
+    }
+
+    /**
+     * Add no-index meta to the page of search results
+     * @return void
+     */
+    public function addNoindex()
+    {
+        global $apbct;
+
+        if (
+            ! is_search() || // If it is search results
+            $apbct->settings['forms__search_test'] == 0 ||
+            ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
+        ) {
+            return;
+        }
+
+        echo '<!-- meta by CleanTalk Anti-Spam Protection plugin -->' . "\n";
+        echo '<meta name="robots" content="noindex,nofollow" />' . "\n";
     }
 }

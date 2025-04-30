@@ -592,10 +592,6 @@ add_action('mec_booking_end_form_step_2', function () {
 
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
-    // Default search
-    add_filter('get_search_query', 'apbct_forms__search__testSpam');
-    add_action('wp_head', 'apbct_search_add_noindex', 1);
-
     if (apbct_is_plugin_active('fluentformpro/fluentformpro.php') && apbct_is_in_uri('ff_landing=')) {
         add_action('wp_head', function () {
             echo '<script data-pagespeed-no-defer="" src="'

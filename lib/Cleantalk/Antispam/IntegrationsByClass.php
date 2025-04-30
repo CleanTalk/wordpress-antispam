@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Antispam;
 
+use Cleantalk\Antispam\IntegrationsByClass\IntegrationByClassBase;
+
 class IntegrationsByClass
 {
     /**
@@ -43,6 +45,9 @@ class IntegrationsByClass
                 continue;
             }
 
+            /**
+             * @var IntegrationByClassBase $integration
+             */
             $integration = new $class();
 
             // Ajax work
