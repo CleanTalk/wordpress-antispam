@@ -3540,23 +3540,34 @@ function apbctGetScreenInfo() {
 
 // eslint-disable-next-line require-jsdoc
 function ctParseBlockMessage(response) {
+    let msg = '';
     if (typeof response.apbct !== 'undefined') {
         response = response.apbct;
         if (response.blocked) {
-            document.dispatchEvent(
-                new CustomEvent( 'apbctAjaxBockAlert', {
-                    bubbles: true,
-                    detail: {message: response.comment},
-                } ),
-            );
+            msg = response.comment;
+        }
+    }
+    if (typeof response.data !== 'undefined') {
+        response = response.data;
+        if (response.message !== undefined) {
+            msg = response.message;
+        }
+    }
 
-            // Show the result by modal
-            cleantalkModal.loaded = response.comment;
-            cleantalkModal.open();
+    if (msg) {
+        document.dispatchEvent(
+            new CustomEvent( 'apbctAjaxBockAlert', {
+                bubbles: true,
+                detail: {message: msg},
+            } ),
+        );
 
-            if (+response.stop_script === 1) {
-                window.stop();
-            }
+        // Show the result by modal
+        cleantalkModal.loaded = msg;
+        cleantalkModal.open();
+
+        if (+response.stop_script === 1) {
+            window.stop();
         }
     }
 }
@@ -4586,7 +4597,9 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1 ||
         isFormHasDiviRedirect(formSource) ||
         formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1 ||
-        formSource.outerHTML.indexOf('action="https://api.kit.com') !== -1
+        formSource.outerHTML.indexOf('action="https://api.kit.com') !== -1 ||
+        formSource.outerHTML.indexOf('activehosted.com') !== -1 ||
+        formSource.outerHTML.indexOf('action="https://crm.zoho.com') !== -1
     ) {
         inputsSource.forEach((elemSource) => {
             inputsTarget.forEach((elemTarget) => {
@@ -4911,6 +4924,7 @@ function isIntegratedForm(formObj) {
         isFormHasDiviRedirect(formObj) || // Divi contact form
         formAction.indexOf('eocampaign1.com') !== -1 || // EmailOctopus Campaign form
         formAction.indexOf('wufoo.com') !== -1 || // Wufoo form
+        formAction.indexOf('activehosted.com') !== -1 || // Activehosted form
         formAction.indexOf('publisher.copernica.com') !== -1 || // publisher.copernica
         ( formObj.classList !== undefined &&
             formObj.classList.contains('sp-element-container') ) || // Sendpulse form
@@ -4980,7 +4994,9 @@ function sendAjaxCheckingFormData(form) {
                     form.hasAttribute('action') &&
                     form.getAttribute('action').indexOf('hsforms') !== -1
                 );
-                if ( result.apbct === undefined || ! +result.apbct.blocked ) {
+                if ((result.apbct === undefined && result.data === undefined) ||
+                    (result.apbct !== undefined && ! +result.apbct.blocked)
+                ) {
                     // Clear service fields
                     for (const el of form.querySelectorAll('input[name="apbct_visible_fields"]')) {
                         el.remove();
@@ -5031,13 +5047,8 @@ function sendAjaxCheckingFormData(form) {
                         return;
                     }
 
-
-                    if (
-                        // Active Campaign integration
-                        form.querySelector('[href*="activecampaign"]') ||
-                        // Hubspot bounded integration
-                        isHubSpotEmbedForm
-                    ) {
+                    // Hubspot bounded integration
+                    if (isHubSpotEmbedForm) {
                         let submitButton = form.querySelector('[type="submit"]');
                         submitButton.remove();
                         const parent = form.apbctParent;
@@ -5111,7 +5122,9 @@ function sendAjaxCheckingFormData(form) {
                         submButton[0].click();
                     }
                 }
-                if (result.apbct !== undefined && +result.apbct.blocked) {
+                if ((result.apbct !== undefined && +result.apbct.blocked) ||
+                    (result.data !== undefined && result.data.message !== undefined)
+                ) {
                     ctParseBlockMessage(result);
                     // hubspot embed form needs to reload page to prevent forms mishandling
                     if (isHubSpotEmbedForm) {

@@ -1633,6 +1633,42 @@ function apbct_form__learnpress__testSpam()
 }
 
 /**
+ * Test Appointment Booking Calendar form for spam
+ *
+ * @return void
+ */
+function apbct_form__appointment_booking_calendar__testSpam()
+{
+    global $ct_comment;
+
+    $params = ct_gfa(apply_filters('apbct__filter_post', $_POST));
+
+    $sender_info = [];
+
+    if ( ! empty($params['emails_array']) ) {
+        $sender_info['sender_emails_array'] = $params['emails_array'];
+    }
+
+    $base_call_result = apbct_base_call(
+        array(
+            'sender_email'    => isset($params['email']) ? $params['email'] : Post::get('email'),
+            'sender_nickname' => isset($params['nickname']) ? $params['nickname'] : Post::get('first_name'),
+            'post_info'       => array('comment_type' => 'signup_form_wordpress_learnpress'),
+            'sender_info'     => $sender_info,
+        )
+    );
+
+    if ( isset($base_call_result['ct_result']) ) {
+        $ct_result = $base_call_result['ct_result'];
+        if ( $ct_result->allow == 0 ) {
+            $ct_comment = $ct_result->comment;
+            ct_die(null, null);
+            exit;
+        }
+    }
+}
+
+/**
  * Test OptimizePress form for spam
  *
  * @return void
@@ -1887,7 +1923,7 @@ function apbct_form__ninjaForms__collect_fields_new()
                 }
                 if (
                     (stripos($field_key, 'email') !== false && $field_type === 'email') ||
-                    (function_exists('is_email') && is_email($field['value']))
+                    (function_exists('is_email') && is_string($field['value']) && is_email($field['value']))
                 ) {
                     /**
                      * On the plugin side we can not decide which of presented emails have to be used for check as sender_email,
@@ -2629,6 +2665,7 @@ function apbct_form__gravityForms__addField($form_string, $form)
  * Gravity forms anti-spam test.
  * @return boolean
  * @psalm-suppress UnusedVariable
+ * @psalm-suppress ArgumentTypeCoercion
  */
 function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
 {
@@ -2761,7 +2798,12 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
             $is_spam           = true;
             $ct_gform_is_spam  = true;
             $ct_gform_response = $ct_result->comment;
-            add_action('gform_entry_created', 'apbct_form__gravityForms__add_entry_note');
+            if ( isset($apbct->settings['forms__gravityforms_save_spam']) && $apbct->settings['forms__gravityforms_save_spam'] == 1 ) {
+                add_action('gform_entry_created', 'apbct_form__gravityForms__add_entry_note');
+            } elseif ( class_exists('GFFormsModel') && method_exists('GFFormsModel', 'delete_lead') ) {
+                /** @psalm-suppress UndefinedClass */
+                GFFormsModel::delete_lead($entry['id']);
+            }
         }
     }
 
