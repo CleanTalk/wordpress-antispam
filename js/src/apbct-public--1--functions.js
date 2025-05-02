@@ -142,6 +142,7 @@ function ctSetAlternativeCookie(cookies, params) {
         ) {
             cookies.apbct_pixel_url = decodeURIComponent(cookies.apbct_pixel_url);
         }
+        document.dispatchEvent(new CustomEvent('ctBotDetectorStart'));
         apbct_public_sendREST(
             'alt_sessions',
             {
@@ -151,7 +152,7 @@ function ctSetAlternativeCookie(cookies, params) {
                 onErrorCallback: onErrorCallback,
             },
         );
-
+        document.dispatchEvent(new CustomEvent('ctBotDetectorResult'));
         // Using AJAX request and handler
     } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
         apbct_public_sendAJAX(

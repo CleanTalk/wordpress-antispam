@@ -26,6 +26,7 @@ function compress_all_js() {
             '!js/src/apbct-common-functions.js',
             'js/src/apbct-public--3--cleantalk-modal.js',
             'js/src/apbct-public--7--trp.js',
+            'js/src/apbct-public--8--browser-check.js',
         ])
         .pipe(sourcemaps.init())
         .pipe(uglify())
@@ -58,6 +59,7 @@ function bundle_src_js() {
         'js/src/apbct-public--2*.js',
         'js/src/apbct-public--3*.js',
         'js/src/apbct-public--7*.js',
+        'js/src/apbct-public--8*.js',
         'js/src/apbct-common-functions.js',
     ])
         // Unminified bundle
@@ -73,6 +75,7 @@ function bundle_src_js_external_protection() {
             'js/src/apbct-public--2*.js',
             'js/src/apbct-public--3*.js',
             'js/src/apbct-public--7*.js',
+            'js/src/apbct-public--8*.js',
             'js/src/apbct-public--5--external-forms.js',
             'js/src/apbct-common-functions.js',
         ])
@@ -90,6 +93,7 @@ function bundle_src_js_internal_protection() {
             'js/src/apbct-public--2*.js',
             'js/src/apbct-public--3*.js',
             'js/src/apbct-public--7*.js',
+            'js/src/apbct-public--8*.js',
             'js/src/apbct-public--6--internal-forms.js',
             'js/src/apbct-common-functions.js',
         ])
@@ -110,6 +114,7 @@ function bundle_src_js_ext_int_protection() {
             'js/src/apbct-public--5--external-forms.js',
             'js/src/apbct-public--6--internal-forms.js',
             'js/src/apbct-common-functions.js',
+            'js/src/apbct-public--8*.js',
         ])
         // Unminified bundle
         .pipe(concat('apbct-public-bundle_full-protection.js'))
