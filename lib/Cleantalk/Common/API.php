@@ -169,6 +169,24 @@ class API
     }
 
     /**
+     * Wrapper for notice_banners API method.
+     * Gets notice banners.
+     *
+     * @param string $api_key
+     *
+     * @return array|bool|mixed
+     */
+    public static function getNoticeBanners($api_key)
+    {
+        $request = array(
+            'method_name' => 'notice_banners',
+            'auth_key'    => $api_key,
+        );
+
+        return static::sendRequest($request);
+    }
+
+    /**
      * Wrapper for ip_info API method.
      * Gets IP country.
      *
