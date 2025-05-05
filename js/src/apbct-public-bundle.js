@@ -4325,7 +4325,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     console.log('DOMContentLoaded');
-    
+
     // Create and add styles
     const style = document.createElement('style');
     style.textContent = `
@@ -4401,7 +4401,7 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     title.textContent = 'botDetector';
     loaderContainer.appendChild(title);
-    
+
     // Create loader element
     const loader = document.createElement('div');
     loader.className = 'ct-browser-check-loader';
@@ -4422,9 +4422,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /**
  * Hide browser check
- * 
+ * eslint-disable-next-line no-unused-vars
  */
-// eslint-disable-next-line no-unused-vars
 function ctBrowserCheckHide() {
     document.querySelector('.ct-browser-check-title').textContent = 'TRP';
     loaderContainer.style.right = '-70px';
