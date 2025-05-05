@@ -4863,9 +4863,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /**
  * Hide browser check
- * eslint-disable-next-line no-unused-vars
  */
-function ctBrowserCheckHide() {
+function ctBrowserCheckHide() { // eslint-disable-line no-unused-vars
     document.querySelector('.ct-browser-check-title').textContent = 'TRP';
     loaderContainer.style.right = '-70px';
     loaderContainer.style.alignItems = 'left';
