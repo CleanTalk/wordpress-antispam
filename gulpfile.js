@@ -2,7 +2,7 @@
  
 var gulp       = require('gulp'),
     sourcemaps = require('gulp-sourcemaps'),
-    uglify     = require('gulp-uglify'),
+    // uglify     = require('gulp-uglify'),
     rename     = require('gulp-rename'),
     cssmin     = require('gulp-cssmin'),
     concat     = require('gulp-concat'),
@@ -26,9 +26,10 @@ function compress_all_js() {
             '!js/src/apbct-common-functions.js',
             'js/src/apbct-public--3--cleantalk-modal.js',
             'js/src/apbct-public--7--trp.js',
+            'js/src/apbct-public--8--browser-check.js',
         ])
         .pipe(sourcemaps.init())
-        .pipe(uglify())
+        // .pipe(uglify())
         .pipe(rename({suffix: '.min'}))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('js'));
@@ -41,7 +42,7 @@ function bundle_admin_and_common_js() {
     ])
     .pipe(sourcemaps.init())
     .pipe(concat('cleantalk-admin.js'))
-    .pipe(uglify())
+    // .pipe(uglify())
     .pipe(rename({suffix: '.min'}))
     .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest('js'));
@@ -58,6 +59,7 @@ function bundle_src_js() {
         'js/src/apbct-public--2*.js',
         'js/src/apbct-public--3*.js',
         'js/src/apbct-public--7*.js',
+        'js/src/apbct-public--8*.js',
         'js/src/apbct-common-functions.js',
     ])
         // Unminified bundle
@@ -73,6 +75,7 @@ function bundle_src_js_external_protection() {
             'js/src/apbct-public--2*.js',
             'js/src/apbct-public--3*.js',
             'js/src/apbct-public--7*.js',
+            'js/src/apbct-public--8*.js',
             'js/src/apbct-public--5--external-forms.js',
             'js/src/apbct-common-functions.js',
         ])
@@ -90,6 +93,7 @@ function bundle_src_js_internal_protection() {
             'js/src/apbct-public--2*.js',
             'js/src/apbct-public--3*.js',
             'js/src/apbct-public--7*.js',
+            'js/src/apbct-public--8*.js',
             'js/src/apbct-public--6--internal-forms.js',
             'js/src/apbct-common-functions.js',
         ])
@@ -110,6 +114,7 @@ function bundle_src_js_ext_int_protection() {
             'js/src/apbct-public--5--external-forms.js',
             'js/src/apbct-public--6--internal-forms.js',
             'js/src/apbct-common-functions.js',
+            'js/src/apbct-public--8*.js',
         ])
         // Unminified bundle
         .pipe(concat('apbct-public-bundle_full-protection.js'))
@@ -122,7 +127,7 @@ function bundle_js() {
             presets: [["@babel/preset-env", { targets: { ie: "11" } }]],
             plugins: ["@babel/plugin-transform-class-properties"]
         }))
-        .pipe(uglify())
+        // .pipe(uglify())
         .pipe(rename({suffix: '.min'}))
         .pipe(gulp.dest('js'));
 }
