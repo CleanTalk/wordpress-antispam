@@ -2,7 +2,7 @@
  
 var gulp       = require('gulp'),
     sourcemaps = require('gulp-sourcemaps'),
-    uglify     = require('gulp-uglify'),
+    // uglify     = require('gulp-uglify'),
     rename     = require('gulp-rename'),
     cssmin     = require('gulp-cssmin'),
     concat     = require('gulp-concat'),
@@ -29,7 +29,7 @@ function compress_all_js() {
             'js/src/apbct-public--8--browser-check.js',
         ])
         .pipe(sourcemaps.init())
-        .pipe(uglify())
+        // .pipe(uglify())
         .pipe(rename({suffix: '.min'}))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('js'));
@@ -42,7 +42,7 @@ function bundle_admin_and_common_js() {
     ])
     .pipe(sourcemaps.init())
     .pipe(concat('cleantalk-admin.js'))
-    .pipe(uglify())
+    // .pipe(uglify())
     .pipe(rename({suffix: '.min'}))
     .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest('js'));
@@ -127,7 +127,7 @@ function bundle_js() {
             presets: [["@babel/preset-env", { targets: { ie: "11" } }]],
             plugins: ["@babel/plugin-transform-class-properties"]
         }))
-        .pipe(uglify())
+        // .pipe(uglify())
         .pipe(rename({suffix: '.min'}))
         .pipe(gulp.dest('js'));
 }
