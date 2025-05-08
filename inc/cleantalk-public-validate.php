@@ -398,7 +398,7 @@ function ct_contact_form_validate()
                             ),
                         )
                     );
-                } elseif(
+                } else if (
                     // BuddyBoss App - request from mobile app usually
                     apbct_is_plugin_active('buddyboss-app/buddyboss-app.php') &&
                     Server::getString('REQUEST_URI') === '/wp-json/buddyboss-app/v1/signup'
@@ -413,7 +413,6 @@ function ct_contact_form_validate()
                         ],
                     ];
                     wp_send_json($data);
-
                 } else {
                     ct_die(null, null);
                 }
