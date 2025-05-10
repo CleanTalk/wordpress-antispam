@@ -117,7 +117,11 @@ class Honeypot
 
         // AltSessions way to collect search forms honeypot
         if ( $apbct->settings['forms__search_test'] ) {
-            $honeypot_potential_values['apbct__email_id__search_form'] = AltSessions::get("apbct_search_form__honeypot_value");
+            $alt_session_data = AltSessions::get("apbct_search_form__honeypot_value");
+            if (!empty($alt_session_data)) {
+                $honeypot_potential_values['apbct__email_id__search_form'] = $alt_session_data;
+                $hp_exists = true;
+            }
         }
 
         // if source is filled then pass them to params as additional fields
