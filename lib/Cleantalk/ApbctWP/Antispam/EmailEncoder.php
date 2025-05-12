@@ -393,8 +393,6 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             ? $data['current_user_email']
             : 'example@mail.com';
 
-        // By now,  Phones encoding are "Off",  Emails encoding are "On",  Current obfuscation mode are "Blur".  Use Advanced settings to tune the encoding
-        // By now, Phones encoding are Off, Emails encoding are On, current Obfuscation mode are Blur. Use Advanced settings to tune the encoding.
         return sprintf(
             $template,
             __('Encoding contact data', 'cleantalk_spam_protect'),
