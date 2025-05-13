@@ -5,6 +5,7 @@ namespace Cleantalk\ApbctWP;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\Common\UniversalBanner\BannerDataDto;
+use Cleantalk\ApbctWP\ServerChecker\ServerChecker;
 use Cleantalk\Common\TT;
 
 class AdminNotices
@@ -34,6 +35,7 @@ class AdminNotices
         'notice_incompatibility',
         'notice_review',
         'notice_email_decoder_changed',
+        'notice_server_requirements',
     );
 
     /**
@@ -100,7 +102,7 @@ class AdminNotices
      *
      * @return AdminNotices
      */
-    private static function getInstance()
+    public static function getInstance()
     {
         if ( is_null(self::$instance) ) {
             self::$instance = new static();
@@ -357,6 +359,42 @@ class AdminNotices
 
             $banner_data->level = 'info';
             $banner_data->is_show_button = false;
+
+            $banner = new ApbctUniversalBanner($banner_data);
+            $banner->echoBannerBody();
+        }
+    }
+
+    /**
+     * Show a banner if server requirements are not met
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function notice_server_requirements() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        if ( ! $this->is_cleantalk_page ) {
+            return;
+        }
+
+        $uid = get_current_user_id();
+        $notice_uid = 'notice_server_requirements_' . $uid;
+        if ($this->isDismissedNotice($notice_uid)) {
+            return;
+        }
+
+        $server_checker = new ServerChecker();
+        $warnings       = $server_checker->checkRequirements();
+        if (!empty($warnings)) {
+            $body = __('Some server settings are incompatible', 'cleantalk-spam-protect') . ': ';
+            foreach ($warnings as $msg) {
+                $body .= esc_html($msg) . '; ';
+            }
+
+            $banner_data = new BannerDataDto();
+            $banner_data->type  = 'server_requirements';
+            $banner_data->level = 'error';
+            $banner_data->text = __('CleanTalk Anti-Spam: Compatibility Issue Detected', 'cleantalk-spam-protect');
+            $banner_data->additional_text  = $body;
+            $banner_data->is_dismissible = true;
 
             $banner = new ApbctUniversalBanner($banner_data);
             $banner->echoBannerBody();

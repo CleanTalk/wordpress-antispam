@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
+use Cleantalk\ApbctWP\ServerChecker\ServerChecker;
 use Cleantalk\ApbctWP\UpdatePlugin\DbTablesCreator;
 
 class Activator
@@ -87,6 +88,10 @@ class Activator
         // Try to adjust to environment
         $adjust = new AdjustToEnvironmentHandler();
         $adjust->handle();
+
+        // Check server requirements
+        $server_checker = new ServerChecker();
+        $server_checker->checkRequirements();
     }
 
     /**
