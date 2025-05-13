@@ -371,7 +371,6 @@ class AdminNotices
      */
     public function notice_server_requirements() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        
         if ( ! $this->is_cleantalk_page ) {
             return;
         }
