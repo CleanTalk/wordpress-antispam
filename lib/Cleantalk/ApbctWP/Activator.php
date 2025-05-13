@@ -88,10 +88,6 @@ class Activator
         // Try to adjust to environment
         $adjust = new AdjustToEnvironmentHandler();
         $adjust->handle();
-
-        // Check server requirements
-        $server_checker = new ServerChecker();
-        $server_checker->checkRequirements();
     }
 
     /**

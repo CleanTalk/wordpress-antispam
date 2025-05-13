@@ -102,7 +102,7 @@ class AdminNotices
      *
      * @return AdminNotices
      */
-    public static function getInstance()
+    private static function getInstance()
     {
         if ( is_null(self::$instance) ) {
             self::$instance = new static();
@@ -371,6 +371,7 @@ class AdminNotices
      */
     public function notice_server_requirements() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        
         if ( ! $this->is_cleantalk_page ) {
             return;
         }
