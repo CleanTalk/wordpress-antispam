@@ -8,7 +8,7 @@ class ServerChecker
         'php_version' => '5.6',
         'curl_support' => true,
         'allow_url_fopen' => true,
-        'wp_memory_limit' => '128M',
+        'memory_limit' => '128M',
         'max_execution_time' => 30,
     ];
 
@@ -34,11 +34,13 @@ class ServerChecker
             $this->warnings[] = __('allow_url_fopen must be enabled', 'cleantalk-spam-protect');
         }
 
-        // Check WP_MEMORY_LIMIT
-        if (intval(ini_get('memory_limit')) < intval($this->requirements['wp_memory_limit'])) {
+        // Check memory_limit
+        $current_limit = $this->normalizeMemoryLimit(ini_get('memory_limit'));
+        $required_limit = $this->normalizeMemoryLimit($this->requirements['memory_limit']);
+        if ($current_limit < $required_limit) {
             $this->warnings[] = sprintf(
-                __('WP_MEMORY_LIMIT must be at least %s', 'cleantalk-spam-protect'),
-                $this->requirements['wp_memory_limit']
+                __('PHP memory_limit must be at least %s', 'cleantalk-spam-protect'),
+                $this->requirements['memory_limit']
             );
         }
 
@@ -55,5 +57,24 @@ class ServerChecker
         }
 
         return $this->warnings;
+    }
+
+    private function normalizeMemoryLimit($val)
+    {
+        $val = trim($val);
+        $last = strtolower($val[strlen($val) - 1]);
+        $val = (int)$val;
+        switch ($last) {
+            case 'g':
+                $val *= 1024 * 1024 * 1024;
+                break;
+            case 'm':
+                $val *= 1024 * 1024;
+                break;
+            case 'k':
+                $val *= 1024;
+                break;
+        }
+        return $val;
     }
 }
