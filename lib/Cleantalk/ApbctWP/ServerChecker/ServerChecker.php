@@ -5,10 +5,10 @@ namespace Cleantalk\ApbctWP\ServerChecker;
 class ServerChecker
 {
     private $requirements = [
-        'php_version' => '7.4',
+        'php_version' => '5.6',
         'curl_support' => true,
         'allow_url_fopen' => true,
-        'wp_memory_limit' => '256M',
+        'wp_memory_limit' => '128M',
         'max_execution_time' => 30,
     ];
 

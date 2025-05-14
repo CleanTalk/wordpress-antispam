@@ -7,6 +7,7 @@ use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\Common\UniversalBanner\BannerDataDto;
 use Cleantalk\ApbctWP\ServerChecker\ServerChecker;
 use Cleantalk\Common\TT;
+use Cleantalk\ApbctWP\LinkConstructor;
 
 class AdminNotices
 {
@@ -368,6 +369,7 @@ class AdminNotices
     /**
      * Show a banner if server requirements are not met
      * @psalm-suppress PossiblyUnusedMethod
+     * @return void
      */
     public function notice_server_requirements() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
@@ -384,10 +386,22 @@ class AdminNotices
         $server_checker = new ServerChecker();
         $warnings       = $server_checker->checkRequirements();
         if (!empty($warnings)) {
+            $link = LinkConstructor::buildCleanTalkLink(
+                'notice_server_requirements',
+                'help',
+            );
+
             $body = __('Some server settings are incompatible', 'cleantalk-spam-protect') . ': ';
+            $body .= '<ul style="margin-left:20px;list-style:disc inside;">';
             foreach ($warnings as $msg) {
-                $body .= esc_html($msg) . '; ';
+                $body .= '<li style="margin-bottom:8px;">' . esc_html($msg) . '</li>';
             }
+            $body .= '</ul>';
+            $body .= sprintf(
+                '<a href="%s">%s</a>',
+                $link,
+                __('Instructions for solving the compatibility issue', 'cleantalk-spam-protect')
+            );
 
             $banner_data = new BannerDataDto();
             $banner_data->type  = 'server_requirements';
