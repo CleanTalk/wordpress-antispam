@@ -2283,7 +2283,7 @@ class ApbctForceProtection {
  * Force protection
  */
 function apbctForceProtect() {
-    if (ctPublic.settings__forms__force_protection && typeof ApbctForceProtection !== 'undefined') {
+    if (+ctPublic.settings__forms__force_protection && typeof ApbctForceProtection !== 'undefined') {
         new ApbctForceProtection();
     }
 }
