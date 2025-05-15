@@ -9,15 +9,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: send telegram message on release
-        uses: appleboy/telegram-action@master
+      - name: Send Matrix message on release
+        uses: Glomberg/matrix-messenger-action@master
         with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
+          server: ${{ secrets.MATRIX_SERVER }}
+          to: ${{ secrets.MATRIX_NEWS_ROOM }}
+          token: ${{ secrets.MATRIX_USER_TOKEN }}
           message: |
             ${{ github.event.repository.description }} <strong>v${{github.event.release.name}}</strong> released
             ${{github.event.release.html_url}}
             
             ${{ github.event.release.body }}
-          format: html
-          disable_web_page_preview: true
