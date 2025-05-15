@@ -280,7 +280,7 @@ class ForceProtection
      */
     private function generateWrapper($form)
     {
-        $encoded_form = base64_encode($form);
+        $encoded_form = urlencode(base64_encode($form));
         $wrapper = '<div class="ct-encoded-form-wrapper">'
             . '<div class="ct-encoded-form-loader"></div>'
             . '<div class="ct-encoded-form" data-encoded-form="' . $encoded_form . '"></div>'

@@ -1813,7 +1813,8 @@ class ApbctForceProtection {
 
             try {
                 if (form && typeof(form) == 'string') {
-                    wrapper.outerHTML = atob(form);
+                    const urlDecoded = decodeURIComponent(form);
+                    wrapper.outerHTML = atob(urlDecoded);
                 }
             } catch (error) {
                 console.log(error);
