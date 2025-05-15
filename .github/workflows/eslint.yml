@@ -35,7 +35,7 @@ jobs: # list of things to do
       - name: Code Linting
         run: npm run eslint
 
-      - name: Telegram notify
+      - name: Matrix notify
         if: failure()
         uses: Glomberg/matrix-messenger-action@master
         with:
