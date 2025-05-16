@@ -190,7 +190,7 @@ class Enqueue
         if (!@file_exists($this->getPath($work_script_name, false))) {
             $work_script_name = $asset_file_name;
             if (!@file_exists($this->getPath($work_script_name, false))) {
-                $work_script_name = 'src' . DIRECTORY_SEPARATOR . $asset_file_name;
+                $work_script_name = 'src/' . $asset_file_name;
             }
         }
         $fresh_version = $this->getFreshVersion($work_script_name);

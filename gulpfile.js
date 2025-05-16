@@ -1,5 +1,5 @@
 'use strict';
- 
+
 var gulp       = require('gulp'),
     sourcemaps = require('gulp-sourcemaps'),
     uglify     = require('gulp-uglify'),
@@ -58,6 +58,8 @@ function bundle_src_js() {
         'js/src/apbct-public--2*.js',
         'js/src/apbct-public--3*.js',
         'js/src/apbct-public--7*.js',
+        'js/src/apbct-public--7*.js',
+        'apbct-bot-detector-browser-check*.js',
         'js/src/apbct-common-functions.js',
     ])
         // Unminified bundle
@@ -81,7 +83,7 @@ function bundle_src_js_external_protection() {
         .pipe(gulp.dest('js/src/'));
 }
 
-// Bundle with internal js and without external js 
+// Bundle with internal js and without external js
 function bundle_src_js_internal_protection() {
     return gulp.src([
             'js/src/apbct-common-functions.js',

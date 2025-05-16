@@ -1298,6 +1298,7 @@ function apbct_enqueue_and_localize_public_scripts()
                 'strategy' => 'defer'
             )
         );
+        ApbctEnqueue::getInstance()->js('apbct-bot-detector-browser-check.js', array(), false);
     }
 
     ApbctEnqueue::getInstance()->css('cleantalk-public.css');
