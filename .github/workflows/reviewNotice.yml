@@ -1,4 +1,4 @@
-name: Notice about review approved via Telegram
+name: Notice about review approved via Matrix
 
 on:
   pull_request_review:

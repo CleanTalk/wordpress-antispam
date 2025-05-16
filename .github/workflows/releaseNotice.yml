@@ -1,4 +1,4 @@
-name: Notice about releases via Telegram
+name: Notice about releases via Matrix
 
 on:
   release:
