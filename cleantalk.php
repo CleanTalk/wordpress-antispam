@@ -166,6 +166,24 @@ $apbct->settings_link = is_network_admin() ? 'settings.php?page=cleantalk' : 'op
 $apbct->setConnectionReports();
 // SFW update sentinel
 $apbct->setSFWUpdateSentinel();
+// User IP Keeper - used for checkers
+$apbct->setLoginIPKeeper();
+
+add_action('wp_login', 'apbct_wp_login_actions', 10, 2);
+
+/**
+ * Actions for hook 'wp-login'.
+ * @param $user_login
+ * @param $wp_user
+ *
+ * @return void
+ */
+function apbct_wp_login_actions($_user_login, $wp_user)
+{
+    global $apbct;
+    $apbct->login_ip_keeper->hookSaveLoggedInUserData($wp_user);
+    apbct_add_admin_ip_to_swf_whitelist($wp_user);
+}
 
 // Disabling comments
 if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['comments__disable_comments__posts'] || $apbct->settings['comments__disable_comments__pages'] || $apbct->settings['comments__disable_comments__media'] ) {

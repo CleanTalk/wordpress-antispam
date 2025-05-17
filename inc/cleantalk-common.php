@@ -76,9 +76,6 @@ $ct_admin_notoice_period = 21600;
 // It uses for BuddyPress registrations to avoid double checks
 $ct_negative_comment = null;
 
-
-add_action('wp_login', 'apbct_add_admin_ip_to_swf_whitelist', 10, 2);
-
 /**
  * Public action 'plugins_loaded' - Loads locale, see http://codex.wordpress.org/Function_Reference/load_plugin_textdomain
  */
