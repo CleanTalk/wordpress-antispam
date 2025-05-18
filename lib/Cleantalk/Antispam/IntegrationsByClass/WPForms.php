@@ -1,0 +1,227 @@
+<?php
+
+namespace Cleantalk\Antispam\IntegrationsByClass;
+
+use Cleantalk\ApbctWP\Honeypot;
+use Cleantalk\ApbctWP\Escape;
+use Cleantalk\ApbctWP\Sanitize;
+use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\State;
+use Cleantalk\ApbctWP\Helper;
+
+/**
+ * @psalm-suppress UnusedClass
+ */
+class WPForms extends IntegrationByClassBase
+{
+    /**
+     * @return void
+     * @global State $apbct
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function doPublicWork()
+    {
+        add_action('wpforms_frontend_output', [$this, 'addField'], 1000, 5);
+    }
+
+    public function doAjaxWork()
+    {
+        if (!$this->isSkipIntegration()) {
+            add_filter('wpforms_process_initial_errors', [$this, 'showResponse'], 100, 2);
+        }
+    }
+
+    /**
+     * Inserts anti-spam hidden to WPForms
+     *
+     * @return void
+     * @global State $apbct
+     */
+    public function addField($_form_data, $_some, $_title, $_description, $_errors)
+    {
+        global $apbct;
+
+        ct_add_hidden_fields('ct_checkjs_wpforms');
+        echo Honeypot::generateHoneypotField('wp_wpforms');
+        if ( $apbct->settings['trusted_and_affiliate__under_forms'] === '1' ) {
+            echo Escape::escKsesPreset(
+                apbct_generate_trusted_text_html('label_left'),
+                'apbct_public__trusted_text'
+            );
+        }
+    }
+
+    /**
+     * Adding error to form entry if message is spam
+     * Call spam test from here
+     *
+     * @param array $errors
+     * @param array $form_data
+     *
+     * @return array
+     */
+    public function showResponse($errors, $form_data)
+    {
+        if (!empty($errors)) {
+            return $errors;
+        }
+
+        $spam_comment = $this->testSpam();
+
+        error_log('showResponse');
+        error_log(print_r($spam_comment, true));
+
+        if (!$spam_comment ) {
+            return $errors;
+        }
+
+        $field_id = 0;
+        if ( $form_data && ! empty($form_data['fields']) && is_array($form_data['fields']) ) {
+            foreach ( $form_data['fields'] as $key => $field ) {
+                if ( array_search('email', $field) === 'type' ) {
+                    $field_id = $key;
+                    break;
+                }
+            }
+        }
+
+        $field_id = ! $field_id && $form_data && ! empty($form_data['fields']) && is_array($form_data['fields'])
+            ? key($form_data['fields'])
+            : $field_id;
+
+        if ( isset($form_data['id']) ) {
+            $errors[$form_data['id']][$field_id] = $spam_comment;
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Test WPForms message for spam
+     * Doesn't hooked anywhere.
+     * Called directly from apbct_form__WPForms__showResponse()
+     *
+     * @return string|void
+     * @global State $apbct
+     */
+    public function testSpam()
+    {
+        global $apbct;
+
+        $checkjs = apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs_wpforms')));
+        $input_array = apply_filters('apbct__filter_post', $_POST);
+        $params = ct_gfa_dto($input_array)->getArray();
+
+        if (isset($input_array['wpforms']['fields']) && is_array($input_array['wpforms']['fields']) &&
+            (isset($params['nickname']) && $params['nickname'] === '')
+        ) {
+            $params['nickname'] = '';
+            foreach ($input_array['wpforms']['fields'] as $type => $value) {
+                if (is_array($value)) {
+                    foreach ($value as $subtype => $subvalue) {
+                        if (is_string($subvalue) && $subtype === 'first') {
+                            $params['nickname'] .= $subvalue;
+                        }
+                        if (is_string($subvalue) && $subtype === 'last') {
+                            $params['nickname'] .= ' ' . $subvalue;
+                        }
+                    }
+                }
+            }
+        }
+
+        $sender_email    = isset($params['email']) ? $params['email'] : '';
+        $sender_nickname = isset($params['nickname']) ? $params['nickname'] : '';
+        $subject         = isset($params['subject']) ? $params['subject'] : '';
+        $message         = isset($params['message']) ? $params['message'] : array();
+        if ( $subject !== '' ) {
+            $message = array_merge(array('subject' => $subject), $message);
+        }
+
+        $sender_info = [];
+        if ( ! empty($params['emails_array']) ) {
+            $sender_info['sender_emails_array'] = $params['emails_array'];
+        }
+
+        $base_call_result = apbct_base_call(
+            array(
+                'message'         => $message,
+                'sender_email'    => $sender_email,
+                'sender_nickname' => $sender_nickname,
+                'post_info'       => array('comment_type' => 'contact_form_wordpress_wp_forms'),
+                'js_on'           => $checkjs,
+                'sender_info'     => $sender_info,
+            )
+        );
+
+        if ( isset($base_call_result['ct_result']) ) {
+            $ct_result = $base_call_result['ct_result'];
+
+            // Change mail notification if license is out of date
+            if ( $apbct->data['moderate'] == 0 &&
+                ($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
+            ) {
+                $apbct->sender_email = $sender_email;
+                $apbct->sender_ip    = Helper::ipGet('real');
+                add_filter('wpforms_email_message', [$this, 'changeMailNotification'], 100, 2);
+            }
+
+            if ( $ct_result->allow == 0 ) {
+                return $ct_result->comment;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Changes email notification for succes subscription for WPForms
+     *
+     * @param string $message Body of email notification
+     * @param object $wpforms_email WPForms email class object
+     *
+     * @return string Body for email notification
+     */
+    public function changeMailNotification($message, $_wpforms_email)
+    {
+        global $apbct;
+
+        $message = str_replace(array('</html>', '</body>'), '', $message);
+        $message .=
+            wpautop(
+                PHP_EOL
+                . '---'
+                . PHP_EOL
+                . __('CleanTalk Anti-Spam: This message could be spam.', 'cleantalk-spam-protect')
+                . PHP_EOL . __('CleanTalk\'s Anti-Spam database:', 'cleantalk-spam-protect')
+                //HANDLE LINK
+                . PHP_EOL . 'IP: ' . '<a href="https://cleantalk.org/blacklists/' . $apbct->sender_ip . '?utm_source=newsletter&utm_medium=email&utm_campaign=wpforms_spam_passed" target="_blank">' . $apbct->sender_ip . '</a>'
+                //HANDLE LINK
+                . PHP_EOL . 'Email: ' . '<a href="https://cleantalk.org/blacklists/' . $apbct->sender_email . '?utm_source=newsletter&utm_medium=email&utm_campaign=wpforms_spam_passed" target="_blank">' . $apbct->sender_email . '</a>'
+                . PHP_EOL
+                //HANDLE LINK
+                . sprintf(
+                    __('If you want to be sure activate protection in your %sAnti-Spam Dashboard%s.', 'clentalk'),
+                    '<a href="https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=wpforms_activate_antispam" target="_blank">',
+                    '</a>'
+                )
+            )
+            . '</body></html>';
+
+        return $message;
+    }
+
+    public function isSkipIntegration()
+    {
+        global $apbct;
+
+        if ($apbct->settings['forms__contact_forms_test'] == 0 ||
+            ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in())
+        ) {
+            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+            return true;
+        }
+
+        return false;
+    }
+}
