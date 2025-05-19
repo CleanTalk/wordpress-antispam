@@ -116,7 +116,7 @@ class WPForms extends IntegrationByClassBase
             (isset($params['nickname']) && $params['nickname'] === '')
         ) {
             $params['nickname'] = '';
-            foreach ($input_array['wpforms']['fields'] as $type => $value) {
+            foreach ($input_array['wpforms']['fields'] as $value) {
                 if (is_array($value)) {
                     foreach ($value as $subtype => $subvalue) {
                         if (is_string($subvalue) && $subtype === 'first') {
