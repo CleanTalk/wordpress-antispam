@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
+use Cleantalk\ApbctWP\ServerRequirementsChecker\ServerRequirementsChecker;
 use Cleantalk\ApbctWP\UpdatePlugin\DbTablesCreator;
 
 class Activator
