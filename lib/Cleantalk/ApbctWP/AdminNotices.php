@@ -5,7 +5,7 @@ namespace Cleantalk\ApbctWP;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\Common\UniversalBanner\BannerDataDto;
-use Cleantalk\ApbctWP\ServerChecker\ServerChecker;
+use Cleantalk\ApbctWP\ServerRequirementsChecker\ServerRequirementsChecker;
 use Cleantalk\Common\TT;
 use Cleantalk\ApbctWP\LinkConstructor;
 
@@ -383,7 +383,7 @@ class AdminNotices
             return;
         }
 
-        $server_checker = new ServerChecker();
+        $server_checker = new ServerRequirementsChecker();
         $warnings       = $server_checker->checkRequirements();
         if (!empty($warnings)) {
             $link = LinkConstructor::buildCleanTalkLink(

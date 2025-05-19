@@ -1,8 +1,8 @@
 <?php
 
-namespace Cleantalk\ApbctWP\ServerChecker;
+namespace Cleantalk\ApbctWP\ServerRequirementsChecker;
 
-class ServerChecker
+class ServerRequirementsChecker
 {
     private $requirements = [
         'php_version' => '5.6',
