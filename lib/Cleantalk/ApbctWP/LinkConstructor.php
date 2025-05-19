@@ -212,6 +212,13 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_content' => 'footer',
             'utm_campaign' => 'antispam',
         ),
+        'notice_server_requirements' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'admin_panel',
+            'utm_medium' => 'settings',
+            'utm_content' => 'antispam',
+        ),
     );
 
     public static function buildCleanTalkLink($utm_preset, $uri = '', $get_params = array(), $domain = 'https://cleantalk.org')
