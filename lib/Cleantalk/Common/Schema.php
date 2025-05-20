@@ -64,12 +64,10 @@ class Schema
             '__createkey' => 'VARCHAR(40) NOT NULL primary KEY FIRST'
         ),
         'sessions' => array(
-            'id' => 'VARCHAR(64) NOT NULL',
-            'name' => 'VARCHAR(40) NOT NULL',
+            'id' => 'VARCHAR(16) NOT NULL',
             'value' => 'TEXT NULL DEFAULT NULL',
-            'last_update' => 'DATETIME NULL DEFAULT NULL',
-            '__indexes' => 'PRIMARY KEY (`name`(40), `id`(64))',
-            '__createkey' => 'VARCHAR(64) NOT NULL primary KEY FIRST'
+            '__indexes' => 'PRIMARY KEY (`id`(16))',
+            '__createkey' => 'VARCHAR(16) NOT NULL primary KEY FIRST'
         ),
         'spamscan_logs' => array(
             'id' => 'INT NOT NULL AUTO_INCREMENT',
