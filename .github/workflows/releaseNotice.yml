@@ -17,6 +17,6 @@ jobs:
           token: ${{ secrets.MATRIX_USER_TOKEN }}
           message: |
             ${{ github.event.repository.description }} <strong>v${{github.event.release.name}}</strong> released
-            ${{github.event.release.html_url}}
-            
-            ${{ github.event.release.body }}
+            <br>${{github.event.release.html_url}}
+            <br>
+            <br><pre>${{ github.event.release.body }}</pre>
