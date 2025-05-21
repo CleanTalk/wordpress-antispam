@@ -14,6 +14,8 @@ use Cleantalk\ApbctWP\Helper;
  */
 class WPForms extends IntegrationByClassBase
 {
+    private $form_data = [];
+
     /**
      * @return void
      * @global State $apbct
@@ -28,7 +30,72 @@ class WPForms extends IntegrationByClassBase
     {
         if (!$this->isSkipIntegration()) {
             add_filter('wpforms_process_initial_errors', [$this, 'showResponse'], 100, 2);
+            add_filter('wpforms_process_before_filter', [$this, 'gatherData'], 100, 2);
         }
+    }
+
+    public function gatherData($entry, $form)
+    {
+        $input_array = apply_filters('apbct__filter_post', isset($entry['fields']) ? $entry['fields'] : array());
+
+        $entry_fields_data = $input_array ?: array();
+        $form_fields_info  = $form['fields'] ?: array();
+
+        $handled_result = array();
+
+        foreach ($form_fields_info as $form_field) {
+            if (!isset($form_field['id']) || !isset($form_field['type']) || !isset($entry_fields_data[$form_field['id']])) {
+                continue;
+            }
+
+            $field_id = $form_field['id'];
+            $field_type = $form_field['type'];
+            $field_label = array_key_exists('label', $form_field) ? $form_field['label'] : '';
+            $entry_field_value = $entry_fields_data[$field_id];
+
+            // email field
+            if ($field_type === 'email' && (!isset($handled_result['email']) || empty($handled_result['email']))) {
+                $handled_result['email'] = $entry_field_value;
+                continue;
+            }
+
+            // name field
+            if ($field_type === 'name') {
+                if ( is_array($entry_field_value) ) {
+                    $handled_result['name'][] = implode(' ', array_slice($entry_field_value, 0, 3));
+                } else {
+                    $handled_result['name'][] = $entry_field_value;
+                }
+                continue;
+            }
+
+            // message field
+            if ($field_type === 'textarea') {
+                if (is_array($entry_field_value)) {
+                    $handled_result["wpforms[fields][$field_id]"][] = implode(' ', array_slice($entry_field_value, 0, 3));
+                } else {
+                    $handled_result["wpforms[fields][$field_id]"] = $entry_field_value;
+                }
+                continue;
+            }
+
+            // add unique key if key exist
+            if ($field_label) {
+                $field_label = mb_strtolower(trim($field_label));
+                $field_label = str_replace(' ', '_', $field_label);
+                $field_label = preg_replace('/\W/u', '', $field_label);
+
+                if (!isset($handled_result[$field_label]) || empty($handled_result[$field_label])) {
+                    $handled_result[$field_label] = $entry_field_value;
+                } else {
+                    $handled_result[$field_label . rand(0, 100)] = $entry_field_value;
+                }
+            }
+        }
+
+        $this->form_data = $handled_result;
+
+        return $entry;
     }
 
     /**
@@ -110,24 +177,26 @@ class WPForms extends IntegrationByClassBase
 
         $checkjs = apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs_wpforms')));
         $input_array = apply_filters('apbct__filter_post', $_POST);
-        $params = ct_gfa_dto($input_array)->getArray();
 
-        if (isset($input_array['wpforms']['fields']) && is_array($input_array['wpforms']['fields']) &&
-            (isset($params['nickname']) && $params['nickname'] === '')
-        ) {
-            $params['nickname'] = '';
-            foreach ($input_array['wpforms']['fields'] as $value) {
-                if (is_array($value)) {
-                    foreach ($value as $subtype => $subvalue) {
-                        if (is_string($subvalue) && $subtype === 'first') {
-                            $params['nickname'] .= $subvalue;
-                        }
-                        if (is_string($subvalue) && $subtype === 'last') {
-                            $params['nickname'] .= ' ' . $subvalue;
-                        }
-                    }
-                }
-            }
+        $email = $this->form_data['email'] ? $this->form_data['email'] : null;
+
+        // Fixed if the 'Enable email address confirmation' option is enabled
+        if (is_array($email)) {
+            $email = reset($email);
+        }
+
+        $nickname = null;
+        $form_data = $this->form_data instanceof ArrayObject ? (array)$this->form_data : $this->form_data;
+        if (array_key_exists('name', $form_data)) {
+            $nickname = isset($form_data['name']) && is_array($form_data['name']) ? array_shift(
+                $form_data['name']
+            ) : null;
+        }
+
+        $params = ct_gfa_dto($input_array, is_null($email) ? '' : $email, is_null($nickname) ? '' : $nickname)->getArray();
+
+        if ( isset($params['nickname']) && is_array($params['nickname']) ) {
+            $params['nickname'] = implode(' ', $params['nickname']);
         }
 
         $sender_email    = isset($params['email']) ? $params['email'] : '';
