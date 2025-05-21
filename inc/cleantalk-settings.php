@@ -1522,7 +1522,7 @@ function apbct_settings__get_top_info()
     );
     $get_premium_request_badge = apbct_admin__badge__get_premium('top_info');
 
-    if ($apbct->white_label) {
+    if ($apbct->data['wl_mode_enabled'] || $apbct->white_label) {
         $support_brand = $apbct->data['wl_brandname_short'];
         $support_url_text = $apbct->data['wl_support_url'];
         $trademark = '';
