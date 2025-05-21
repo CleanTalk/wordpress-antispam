@@ -1538,6 +1538,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'ChatyContactForm';
         }
+
+        // skip Login/Signup Popup - has direct integration
+        if (
+            apbct_is_plugin_active('easy-login-woocommerce/xoo-el-main.php') &&
+            Request::getString('action') === 'xoo_el_form_action'
+        ) {
+            return 'Login/Signup Popup';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
