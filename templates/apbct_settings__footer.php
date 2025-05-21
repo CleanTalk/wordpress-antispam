@@ -36,7 +36,7 @@ function apbct_settings__footer()
         )],
     ];
     $block2_links = [
-        ['text' => __('Top rated contact form by Everest', 'cleantalk-spam-protect'), 'url' => 'https://wordpress.org/plugins/everest-forms/#description'],
+        ['text' => __('Everest Forms', 'cleantalk-spam-protect'), 'url' => 'https://tinyurl.com/apbct-everest-forms'],
     ];
 
     ?>
@@ -69,9 +69,13 @@ function apbct_settings__footer()
                 links.forEach(link => {
                     const listItem = document.createElement('li');
                     const anchor = document.createElement('a');
+                    const linkExternalIco = document.createElement('i')
+                    linkExternalIco.className = 'apbct-icon-link-ext';
+                    linkExternalIco.html = '&nbsp;';
                     anchor.href = link.url;
                     anchor.textContent = link.text;
                     anchor.target = '_blank';
+                    anchor.append(linkExternalIco);
                     listItem.appendChild(anchor);
                     linksList.appendChild(listItem);
                 });
@@ -82,7 +86,7 @@ function apbct_settings__footer()
             }
 
             footer.appendChild(createFooterColumn('More solutions for your site', footerLinks.block1));
-            //footer.appendChild(createFooterColumn('Recommended plugins', footerLinks.block2)); @todo: uncomment when needed to show the block Recommended plugins
+            footer.appendChild(createFooterColumn('Recommended plugins', footerLinks.block2));
 
             const wpMainFooter = document.getElementById('wpfooter');
             const footerLeft = document.getElementById('footer-left');
@@ -133,6 +137,9 @@ function apbct_settings__footer()
         .apbct_footer_links a:hover {
             color: #2271b1;
             text-decoration: underline;
+        }
+        .apbct_footer_links a i {
+            margin-left: 5px
         }
         @media (max-width: 768px) {
             #wpfooter {
