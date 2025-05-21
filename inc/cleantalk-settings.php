@@ -216,7 +216,7 @@ function apbct_settings__set_fields()
                 'forms__contact_forms_test'             => array(
                     'title'       => __('Contact forms', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'Contact Form 7, Formidable forms, JetPack, Fast Secure Contact Form, WordPress Landing Pages, Gravity Forms.',
+                        'Contact Form 7, Formidable forms, JetPack, Fast Secure Contact Form, WordPress Landing Pages, Gravity Forms and Everest forms.',
                         'cleantalk-spam-protect'
                     ),
                     'childrens'   => array('forms__flamingo_save_spam')
