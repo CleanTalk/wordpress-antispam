@@ -42,7 +42,9 @@ class EmailEncoder
      */
     private $attribute_exclusions_signs = array(
         'input' => array('placeholder', 'value'),
+        'sc-customer-email' => array('placeholder', 'value'),
         'img' => array('alt', 'title'),
+        'div' => array('data-et-multi-view'),
     );
 
     /**
@@ -148,15 +150,16 @@ class EmailEncoder
             'widget_block_content',
             'render_block',
         );
-        foreach ( $hooks_to_encode as $hook ) {
-            add_filter($hook, array($this, 'modifyContent'));
-        }
 
         // Search data to buffer
         if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post() && !is_admin()) {
             add_action('wp', 'apbct_buffer__start');
             add_action('shutdown', 'apbct_buffer__end', 0);
             add_action('shutdown', array($this, 'bufferOutput'), 2);
+        } else {
+            foreach ( $hooks_to_encode as $hook ) {
+                add_filter($hook, array($this, 'modifyContent'));
+            }
         }
 
         // integration with Business Directory Plugin
@@ -261,7 +264,7 @@ class EmailEncoder
      */
     private static function dropAttributesContainEmail($content, $tags)
     {
-        $attribute_content_chunk = '[\s]{0,}=[\s]{0,}[\"\']\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\..*\b[\"\']';
+        $attribute_content_chunk = '[\s]{0,}=[\s]{0,}[\"\']\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.*\b[\"\']';
         foreach ($tags as $tag => $attribute) {
             // Regular expression to match the attribute without the tag
             $regexp_chunk_without_tag = "/{$attribute}{$attribute_content_chunk}/";

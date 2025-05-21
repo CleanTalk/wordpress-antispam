@@ -20,11 +20,15 @@ class ForceProtection
      */
     public function __construct()
     {
-        $hooks_to_encode = array(
-            'the_content',
-        );
-        foreach ( $hooks_to_encode as $hook ) {
-            add_filter($hook, array($this, 'modifyContent'));
+        global $apbct;
+
+        if ( $apbct->settings['forms__force_protection'] ) {
+            $hooks_to_encode = array(
+                'the_content',
+            );
+            foreach ( $hooks_to_encode as $hook ) {
+                add_filter($hook, array($this, 'modifyContent'));
+            }
         }
     }
 
@@ -280,7 +284,7 @@ class ForceProtection
      */
     private function generateWrapper($form)
     {
-        $encoded_form = base64_encode($form);
+        $encoded_form = urlencode(base64_encode($form));
         $wrapper = '<div class="ct-encoded-form-wrapper">'
             . '<div class="ct-encoded-form-loader"></div>'
             . '<div class="ct-encoded-form" data-encoded-form="' . $encoded_form . '"></div>'

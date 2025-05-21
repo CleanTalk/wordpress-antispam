@@ -682,7 +682,8 @@ function isIntegratedForm(formObj) {
             formObj.classList !== undefined &&
             formObj.classList.contains('sp-element-container')
         ) || // Sendpulse form
-        apbctIsFormInDiv(formObj, 'b24-form') // Bitrix24 CRM external forms
+        apbctIsFormInDiv(formObj, 'b24-form') || // Bitrix24 CRM external forms
+        formAction.indexOf('list-manage.com') !== -1 // MailChimp
     ) {
         return true;
     }
