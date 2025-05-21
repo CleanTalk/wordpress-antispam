@@ -44,14 +44,22 @@ class WPForms extends IntegrationByClassBase
         $handled_result = array();
 
         foreach ($form_fields_info as $form_field) {
-            if (!isset($form_field['id']) || !isset($form_field['type']) || !isset($entry_fields_data[$form_field['id']])) {
+            if (!isset($form_field['id'])) {
                 continue;
             }
-
             $field_id = $form_field['id'];
+
+            if (!isset($form_field['type'])) {
+                continue;
+            }
             $field_type = $form_field['type'];
-            $field_label = array_key_exists('label', $form_field) ? $form_field['label'] : '';
+
+            if (!isset($entry_fields_data[$field_id])) {
+                continue;
+            }
             $entry_field_value = $entry_fields_data[$field_id];
+
+            $field_label = isset($form_field['label']) ? $form_field['label'] : '';
 
             // email field
             if ($field_type === 'email' && (!isset($handled_result['email']) || empty($handled_result['email']))) {
@@ -186,7 +194,7 @@ class WPForms extends IntegrationByClassBase
         }
 
         $nickname = null;
-        $form_data = $this->form_data instanceof ArrayObject ? (array)$this->form_data : $this->form_data;
+        $form_data = $this->form_data instanceof \ArrayObject ? (array)$this->form_data : $this->form_data;
         if (array_key_exists('name', $form_data)) {
             $nickname = isset($form_data['name']) && is_array($form_data['name']) ? array_shift(
                 $form_data['name']
