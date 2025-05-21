@@ -477,6 +477,8 @@ Yes, it is. Please read this article,
 * Fix. Force protection. Checking option into constructor implemented.
 * Upd. Sessions. Update storage.
 * Upd. Settings. Using level for banners from cloud.
+* Fix. AdminSettings. Removing unnecessary js code
+* Fix. Settings. Editing the display of the About block in Whitelabel mode
 
 = 6.55 24.04.2025 =
 * New. Contact data encoder. New encoder state form in settings.
