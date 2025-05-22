@@ -12,7 +12,7 @@ class AltSessions
               . Server::getString('HTTP_USER_AGENT')
               . Server::getString('HTTP_ACCEPT_LANGUAGE');
 
-        return hash('sha256', $id);
+        return substr(hash('sha256', $id), -16);
     }
 
     /**
@@ -35,31 +35,63 @@ class AltSessions
         //fix if value is strictly false
         $value = $value === false ? 0 : $value;
 
-        global $wpdb;
-
-        $session_id = self::getID();
-
         if ( is_array($value) ) {
             $value = json_encode($value);
             $value = $value === false ? null : $value;
         }
 
-        return (bool) $wpdb->query(
+        $session_value = self::getValues();
+
+        $session_value[$name] = $value;
+
+        return self::setValues($session_value);
+    }
+
+    public static function setValues($cookies_array)
+    {
+        global $wpdb;
+
+        $data = array(
+            'id' => self::getID(),
+            'value' => serialize($cookies_array),
+        );
+
+        return $wpdb->query($wpdb->prepare(
+            "INSERT INTO " . APBCT_TBL_SESSIONS . " (id, value) 
+            VALUES (%s, %s) 
+            ON DUPLICATE KEY UPDATE value = VALUES(value)",
+            $data['id'],
+            $data['value']
+        ));
+    }
+
+    public static function getValues()
+    {
+        global $wpdb;
+
+        $session_value = $wpdb->get_var(
             $wpdb->prepare(
-                'INSERT INTO ' . APBCT_TBL_SESSIONS . '
-				(id, name, value, last_update)
-				VALUES (%s, %s, %s, %s)
-			ON DUPLICATE KEY UPDATE
-				value = %s,
-				last_update = %s',
-                $session_id,
-                $name,
-                $value,
-                date('Y-m-d H:i:s'),
-                $value,
-                date('Y-m-d H:i:s')
+                'SELECT value FROM ' . APBCT_TBL_SESSIONS . ' WHERE id = %s',
+                self::getID()
             )
         );
+
+        if ( $session_value ) {
+            try {
+                $session_value = @unserialize($session_value);
+                if ($session_value === false) {
+                    $session_value = array();
+                }
+            } catch (\Exception $e) {
+                $session_value = array();
+            }
+        }
+
+        if ( ! is_array($session_value) ) {
+            $session_value = array();
+        }
+
+        return $session_value;
     }
 
     /**
@@ -102,35 +134,24 @@ class AltSessions
             Cookie::$force_alt_cookies_global = true;
         }
 
-        foreach ( $cookies_array as $cookie_to_set => $value ) {
-            Cookie::set($cookie_to_set, $value);
-        }
+        $old_value = self::getValues();
+
+        $cookies_array = array_merge($old_value, $cookies_array);
+
+        self::setValues($cookies_array);
 
         wp_send_json(array('success' => true));
     }
 
     public static function get($name)
     {
-        // Bad incoming data
         if ( ! $name) {
             return false;
         }
 
-        global $wpdb;
+        $session_value = self::getValues();
 
-        $session_id = self::getID();
-        $result     = $wpdb->get_row(
-            $wpdb->prepare(
-                'SELECT value 
-				FROM `' . APBCT_TBL_SESSIONS . '`
-				WHERE id = %s AND name = %s;',
-                $session_id,
-                $name
-            ),
-            ARRAY_A
-        );
-
-        return isset($result['value']) ? $result['value'] : '';
+        return isset($session_value[$name]) ? $session_value[$name] : '';
     }
 
     /**

@@ -119,7 +119,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
         $example_encoded = '';
         if ( !empty($example_email) && is_string($example_email)) {
             $example_encoded = sprintf(
-                '%s: <span style="margin-left: 5px">%s</span>',
+                '%s <span style="margin-left: 5px">%s.</span>',
                 __('Here is a sample of encoded email, click the email to decode it and see the effect', 'cleantalk-spam-protect'),
                 TT::toString($example_email)
             );
@@ -363,15 +363,15 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
         );
 
         if (!empty($data['phones_on']) && !empty($data['encoder_enabled_global'])) {
-            $phone_status = __('"On"', 'cleantalk_spam_protect');
+            $phone_status = __('On', 'cleantalk_spam_protect');
         } else {
-            $phone_status = __('"Off"', 'cleantalk_spam_protect');
+            $phone_status = __('Off', 'cleantalk_spam_protect');
         }
 
         if (!empty($data['emails_on']) && !empty($data['encoder_enabled_global'])) {
-            $email_status = __('"On"', 'cleantalk_spam_protect');
+            $email_status = __('On', 'cleantalk_spam_protect');
         } else {
-            $email_status = __('"Off"', 'cleantalk_spam_protect');
+            $email_status = __('Off', 'cleantalk_spam_protect');
         }
 
         if (!empty($data['obfuscation_mode']) && !empty($data['encoder_enabled_global'])) {
@@ -384,9 +384,9 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             if ($data['obfuscation_mode'] === 'replace') {
                 $obfuscation_mode = __('Replace with text', 'cleantalk_spam_protect');
             }
-            $obfuscation_mode = empty($obfuscation_mode) ? 'n/a' : '"' . $obfuscation_mode . '"';
+            $obfuscation_mode = empty($obfuscation_mode) ? 'n/a' : '' . $obfuscation_mode . '';
         } else {
-            $obfuscation_mode = __('"Disabled"', 'cleantalk_spam_protect');
+            $obfuscation_mode = __('Disabled', 'cleantalk_spam_protect');
         }
 
         $email = isset($data['current_user_email']) && is_string($data['current_user_email'])
@@ -404,11 +404,11 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             $phone_status,
             __('Emails encoding are', 'cleantalk_spam_protect'),
             $email_status,
-            __('Current obfuscation mode are', 'cleantalk_spam_protect'),
+            __('Current Obfuscation mode are', 'cleantalk_spam_protect'),
             $obfuscation_mode,
             __('Use', 'cleantalk_spam_protect'),
             $ancor_to_section,
-            __('to tune the encoding', 'cleantalk_spam_protect')
+            __('to tune the encoding.', 'cleantalk_spam_protect')
         );
     }
 }

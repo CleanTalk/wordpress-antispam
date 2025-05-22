@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Antispam;
 
+use Cleantalk\Antispam\IntegrationsByClass\IntegrationByClassBase;
+
 class IntegrationsByClass
 {
     /**
@@ -27,13 +29,15 @@ class IntegrationsByClass
 
         foreach ($this->integrations as $integration_name => $integration_info) {
             // pre-check to skip integration by plugin path
-            if ( isset($integration_info['plugin_path']) && !$this->isPluginActive($integration_info['plugin_path']) ) {
-                continue;
-            }
+            if (!isset($integration_info['wp_includes'])) {
+                if ( isset($integration_info['plugin_path']) && !$this->isPluginActive($integration_info['plugin_path']) ) {
+                    continue;
+                }
 
-            // pre-check to skip integration by plugin class
-            if ( isset($integration_info['plugin_class']) && !class_exists($integration_info['plugin_class']) ) {
-                continue;
+                // pre-check to skip integration by plugin class
+                if ( isset($integration_info['plugin_class']) && !class_exists($integration_info['plugin_class']) ) {
+                    continue;
+                }
             }
 
             $class = '\\Cleantalk\\Antispam\\IntegrationsByClass\\' . $integration_name;
@@ -41,6 +45,9 @@ class IntegrationsByClass
                 continue;
             }
 
+            /**
+             * @var IntegrationByClassBase $integration
+             */
             $integration = new $class();
 
             // Ajax work

@@ -91,7 +91,8 @@ class ApbctForceProtection {
 
             try {
                 if (form && typeof(form) == 'string') {
-                    wrapper.outerHTML = atob(form);
+                    const urlDecoded = decodeURIComponent(form);
+                    wrapper.outerHTML = atob(urlDecoded);
                 }
             } catch (error) {
                 console.log(error);
@@ -120,7 +121,7 @@ class ApbctForceProtection {
  * Force protection
  */
 function apbctForceProtect() {
-    if (ctPublic.settings__forms__force_protection && typeof ApbctForceProtection !== 'undefined') {
+    if (+ctPublic.settings__forms__force_protection && typeof ApbctForceProtection !== 'undefined') {
         new ApbctForceProtection();
     }
 }

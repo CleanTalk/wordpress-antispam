@@ -64,7 +64,7 @@ class TestBotDetectorLogGathering extends TestCase
         $result = apbct__bot_detector_get_fd_log();
         $expected = json_encode([
                                     'plugin_status' => 'ERROR',
-                                    'error_msg' => 'can not decode data from alt sessions',
+                                    'error_msg' => 'no log found in alt sessions',
                                     'frontend_data_log' => ''
                                 ]);
 

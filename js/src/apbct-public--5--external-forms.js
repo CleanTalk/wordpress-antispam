@@ -636,6 +636,7 @@ function ctCheckAjax(elem) {
 function isIntegratedForm(formObj) {
     const formAction = typeof(formObj.action) == 'string' ? formObj.action : '';
     const formId = formObj.getAttribute('id') !== null ? formObj.getAttribute('id') : '';
+    const formClassName = typeof(formObj.className) == 'string' ? formObj.className : '';
 
     if (
         (
@@ -673,9 +674,16 @@ function isIntegratedForm(formObj) {
         formAction.indexOf('wufoo.com') !== -1 || // Wufoo form
         formAction.indexOf('activehosted.com') !== -1 || // Activehosted form
         formAction.indexOf('publisher.copernica.com') !== -1 || // publisher.copernica
-        ( formObj.classList !== undefined &&
-            formObj.classList.contains('sp-element-container') ) || // Sendpulse form
-        apbctIsFormInDiv(formObj, 'b24-form') // Bitrix24 CRM external forms
+        (
+            formAction.indexOf('whatsapp.com') !== -1 &&
+            formClassName.indexOf('chaty') !== -1
+        ) || // chaty plugin whatsapp form
+        (
+            formObj.classList !== undefined &&
+            formObj.classList.contains('sp-element-container')
+        ) || // Sendpulse form
+        apbctIsFormInDiv(formObj, 'b24-form') || // Bitrix24 CRM external forms
+        formAction.indexOf('list-manage.com') !== -1 // MailChimp
     ) {
         return true;
     }

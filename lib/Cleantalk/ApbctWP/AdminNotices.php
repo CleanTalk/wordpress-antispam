@@ -5,7 +5,9 @@ namespace Cleantalk\ApbctWP;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\Common\UniversalBanner\BannerDataDto;
+use Cleantalk\ApbctWP\ServerRequirementsChecker\ServerRequirementsChecker;
 use Cleantalk\Common\TT;
+use Cleantalk\ApbctWP\LinkConstructor;
 
 class AdminNotices
 {
@@ -34,6 +36,7 @@ class AdminNotices
         'notice_incompatibility',
         'notice_review',
         'notice_email_decoder_changed',
+        'notice_server_requirements',
     );
 
     /**
@@ -210,7 +213,7 @@ class AdminNotices
                 $this->apbct->data['wl_brandname']
             );
 
-            $banner_data->level = 'error';
+            $banner_data->level = isset($this->apbct->data['notice_trial_level']) ? $this->apbct->data['notice_trial_level'] : 'error';
             $banner_data->is_dismissible = ! $this->is_cleantalk_page;
 
             $banner = new ApbctUniversalBanner($banner_data);
@@ -245,7 +248,7 @@ class AdminNotices
                 $this->apbct->data['wl_brandname']
             );
 
-            $banner_data->level = 'error';
+            $banner_data->level = isset($this->apbct->data['notice_renew_level']) ? $this->apbct->data['notice_renew_level'] : 'error';
             $banner_data->is_dismissible = ! $this->is_cleantalk_page;
 
             $banner = new ApbctUniversalBanner($banner_data);
@@ -285,7 +288,7 @@ class AdminNotices
                             . '</a>';
             $banner_data->additional_text = $support_link . '&nbsp;&nbsp;' . $close_link;
 
-            $banner_data->level = 'success';
+            $banner_data->level = isset($this->apbct->data['notice_review_level']) ? $this->apbct->data['notice_review_level'] : 'success';
 
             $banner = new ApbctUniversalBanner($banner_data);
             $banner->echoBannerBody();
@@ -357,6 +360,55 @@ class AdminNotices
 
             $banner_data->level = 'info';
             $banner_data->is_show_button = false;
+
+            $banner = new ApbctUniversalBanner($banner_data);
+            $banner->echoBannerBody();
+        }
+    }
+
+    /**
+     * Show a banner if server requirements are not met
+     * @psalm-suppress PossiblyUnusedMethod
+     * @return void
+     */
+    public function notice_server_requirements() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        if ( ! $this->is_cleantalk_page ) {
+            return;
+        }
+
+        $uid = get_current_user_id();
+        $notice_uid = 'notice_server_requirements_' . $uid;
+        if ($this->isDismissedNotice($notice_uid)) {
+            return;
+        }
+
+        $server_checker = new ServerRequirementsChecker();
+        $warnings       = $server_checker->checkRequirements();
+        if (!empty($warnings)) {
+            $link = LinkConstructor::buildCleanTalkLink(
+                'notice_server_requirements',
+                'help'
+            );
+
+            $body = __('Some server settings are incompatible', 'cleantalk-spam-protect') . ': ';
+            $body .= '<ul style="margin-left:20px;list-style:disc inside;">';
+            foreach ($warnings as $msg) {
+                $body .= '<li style="margin-bottom:8px;">' . esc_html($msg) . '</li>';
+            }
+            $body .= '</ul>';
+            $body .= sprintf(
+                '<a href="%s">%s</a>',
+                $link,
+                __('Instructions for solving the compatibility issue', 'cleantalk-spam-protect')
+            );
+
+            $banner_data = new BannerDataDto();
+            $banner_data->type  = 'server_requirements';
+            $banner_data->level = 'error';
+            $banner_data->text = __('CleanTalk Anti-Spam: Compatibility Issue Detected', 'cleantalk-spam-protect');
+            $banner_data->additional_text  = $body;
+            $banner_data->is_dismissible = true;
 
             $banner = new ApbctUniversalBanner($banner_data);
             $banner->echoBannerBody();

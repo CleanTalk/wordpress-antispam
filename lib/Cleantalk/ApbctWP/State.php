@@ -51,6 +51,7 @@ class State extends \Cleantalk\Common\State
         'forms__comments_test'                     => 1,
         'forms__contact_forms_test'                => 1,
         'forms__flamingo_save_spam'                => 1,
+        'forms__gravityforms_save_spam'            => 1,
         'forms__general_contact_forms_test'        => 1, // Anti-Spam test for unsupported and untested contact forms
         'forms__wc_checkout_test'                  => 1, // WooCommerce checkout default test
         'forms__wc_register_from_order'            => 1, // Woocommerce registration during checkout

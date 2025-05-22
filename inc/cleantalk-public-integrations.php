@@ -206,70 +206,6 @@ function ct_woocommerce_wishlist_check($args)
     return $args;
 }
 
-
-/**
- * Test default search string for spam
- *
- * @param $search string
- *
- * @return string
- */
-function apbct_forms__search__testSpam($search)
-{
-    global $apbct, $cleantalk_executed;
-
-    if (
-        empty($search) ||
-        $cleantalk_executed ||
-        $apbct->settings['forms__search_test'] == 0 ||
-        ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
-    ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
-        return $search;
-    }
-
-    $user = apbct_is_user_logged_in() ? wp_get_current_user() : null;
-
-    $base_call_result = apbct_base_call(
-        array(
-            'message'         => $search,
-            'sender_email'    => $user !== null ? $user->user_email : null,
-            'sender_nickname' => $user !== null ? $user->user_login : null,
-            'post_info'       => array('comment_type' => 'site_search_wordpress'),
-            'exception_action' => 0,
-        )
-    );
-
-    if ( isset($base_call_result['ct_result']) ) {
-        $ct_result = $base_call_result['ct_result'];
-
-        $cleantalk_executed = true;
-
-        if ( $ct_result->allow == 0 ) {
-            die($ct_result->comment);
-        }
-    }
-
-    return $search;
-}
-
-function apbct_search_add_noindex()
-{
-    global $apbct;
-
-    if (
-        ! is_search() || // If it is search results
-        $apbct->settings['forms__search_test'] == 0 ||
-        ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
-    ) {
-        return;
-    }
-
-    echo '<!-- meta by CleanTalk Anti-Spam Protection plugin -->' . "\n";
-    echo '<meta name="robots" content="noindex,nofollow" />' . "\n";
-}
-
 /**
  * Public function - Tests for Pirate contact forms
  * return NULL
@@ -2729,6 +2665,7 @@ function apbct_form__gravityForms__addField($form_string, $form)
  * Gravity forms anti-spam test.
  * @return boolean
  * @psalm-suppress UnusedVariable
+ * @psalm-suppress ArgumentTypeCoercion
  */
 function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
 {
@@ -2861,7 +2798,12 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
             $is_spam           = true;
             $ct_gform_is_spam  = true;
             $ct_gform_response = $ct_result->comment;
-            add_action('gform_entry_created', 'apbct_form__gravityForms__add_entry_note');
+            if ( isset($apbct->settings['forms__gravityforms_save_spam']) && $apbct->settings['forms__gravityforms_save_spam'] == 1 ) {
+                add_action('gform_entry_created', 'apbct_form__gravityForms__add_entry_note');
+            } elseif ( class_exists('GFFormsModel') && method_exists('GFFormsModel', 'delete_lead') ) {
+                /** @psalm-suppress UndefinedClass */
+                GFFormsModel::delete_lead($entry['id']);
+            }
         }
     }
 
@@ -3438,53 +3380,6 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
     }
 
     return $is_valid;
-}
-
-/**
- * Prepare data to add honeypot to the WordPress default search form.
- * Fires ct_add_honeypot_field() on hook get_search_form when:
- * - method of the form is post
- * - spam test of search form is enabled
- *
- * @param string $form_html
- * @return string
- */
-function apbct_form_search__add_fields($form_html)
-{
-    global $apbct;
-
-    if ( !empty($form_html) && is_string($form_html) && $apbct->settings['forms__search_test'] == 1 ) {
-        // extract method of the form with DOMDocument
-        if ( class_exists('DOMDocument') ) {
-            libxml_use_internal_errors(true);
-            $dom = new DOMDocument();
-            if ( @$dom->loadHTML($form_html) ) {
-                $search_form_dom = $dom->getElementById('searchform');
-                if ( !empty($search_form_dom) ) {
-                    $method = empty($search_form_dom->getAttribute('method'))
-                        //default method is get for any form if no method specified
-                        ? 'get'
-                        : $search_form_dom->getAttribute('method');
-                }
-            }
-            libxml_clear_errors();
-            unset($dom);
-        }
-
-        // retry extract method of the form with regex
-        if ( empty($method) ) {
-            preg_match('/form.*method="(.*?)"/', $form_html, $matches);
-            $method = empty($matches[1])
-                ? 'get'
-                : trim($matches[1]);
-        }
-
-        $form_method = strtolower($method);
-
-        return str_replace('</form>', Honeypot::generateHoneypotField('search_form', $form_method) . '</form>', $form_html);
-    }
-
-    return $form_html;
 }
 
 /**
