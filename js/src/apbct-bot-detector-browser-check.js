@@ -123,6 +123,9 @@ class CtBotDetectorWidget {
         // Create and append full widget
         this.fullContent = this.createFullContent();
         this.container.appendChild(this.fullContent);
+        this.container.addEventListener('click', (e) => {
+            this.toggleWidget(e);
+        });
     }
 
     /**
@@ -131,7 +134,7 @@ class CtBotDetectorWidget {
      */
     createSpinner() {
         const spinner = document.createElement('div');
-        spinner.className = 'ct-browser-check-spinner loader';
+        spinner.className = 'ct-browser-check-spinner ct-widget-spinner-loader';
         return spinner;
     }
 
@@ -191,7 +194,9 @@ class CtBotDetectorWidget {
      */
     createCloseButton() {
         const button = document.createElement('button');
-        button.className = 'ct-widget-close-button';
+        button.classList.add('ct-widget-close-button');
+        button.classList.add('ct-widget-hidden-element');
+
         button.innerHTML = `
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M1 1L11 11M1 11L11 1" stroke="#777777" stroke-width="2" stroke-linecap="round"/>
@@ -244,6 +249,7 @@ class CtBotDetectorWidget {
         privacyLink.href = this.privacyLink;
         privacyLink.target = '_blank';
         privacyLink.textContent = 'Privacy';
+        privacyLink.className = 'widget_links';
 
         const separator = document.createElement('span');
         separator.textContent = '·';
@@ -252,6 +258,8 @@ class CtBotDetectorWidget {
         termsLink.href = this.termsLink;
         termsLink.target = '_blank';
         termsLink.textContent = 'Terms';
+        termsLink.className = 'widget_links';
+
 
         // Add links to container
         linksContainer.appendChild(privacyLink);
@@ -284,6 +292,19 @@ class CtBotDetectorWidget {
     }
 
     /**
+     * @param {Event} e
+     * Toggle widget view
+     */
+    toggleWidget(e) {
+        e.stopPropagation();
+        if (this.collapsedContent.classList.contains('ct-widget-hidden-element')) {
+            this.collapseWidget();
+        } else {
+            this.openWidget();
+        }
+    }
+
+    /**
      * Collapse widget by timeout
      * @param {int} timeout
      */
@@ -301,6 +322,17 @@ class CtBotDetectorWidget {
         this.fullContent.classList = 'ct-widget-hidden-element';
         this.container.style.width = '80px';
         this.collapsedContent.classList = 'ct-widget-collapsed-wrapper';
+        this.closeButton.classList.remove('ct-widget-hidden-element');
+    }
+
+    /**
+     * Open widget
+     */
+    openWidget() {
+        this.fullContent.classList = 'ct-widget-full-wrapper';
+        this.container.style.width = '320px';
+        this.collapsedContent.classList = 'ct-widget-hidden-element';
+        this.closeButton.classList.add('ct-widget-hidden-element');
     }
 
     /**
@@ -330,6 +362,12 @@ class CtBotDetectorWidget {
      */
     getStylesText() {
         return `
+        
+        .widget_links{
+            font-size: 12px;
+            font-weight: normal;
+            margin: 0.1em;
+        }
         /* Loader styles */
         .ct-browser-check-loader { 
             width: 20px; 
@@ -424,7 +462,7 @@ class CtBotDetectorWidget {
             display: none;
         }
         
-        .loader { 
+        .ct-widget-spinner-loader { 
                 width: 40px; 
                 aspect-ratio: 1; 
                 border: 10px solid #F3F6F9; 
@@ -432,7 +470,7 @@ class CtBotDetectorWidget {
                 position: relative; 
                 transform: rotate(45deg); 
             } 
-        .loader::before { 
+        .ct-widget-spinner-loader::before { 
             content: ""; 
             position: absolute; 
             inset: -10px; 
