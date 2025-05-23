@@ -181,7 +181,7 @@ add_action('wp_login', 'apbct_wp_login_actions', 10, 2);
 function apbct_wp_login_actions($_user_login, $wp_user)
 {
     global $apbct;
-    $apbct->login_ip_keeper->hookSaveLoggedInUserData($wp_user);
+    $apbct->login_ip_keeper->addUserIP($wp_user);
     apbct_add_admin_ip_to_swf_whitelist($wp_user);
 }
 

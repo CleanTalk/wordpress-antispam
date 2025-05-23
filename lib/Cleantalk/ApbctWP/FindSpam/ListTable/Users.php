@@ -121,7 +121,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         $column_content .= '<br/>';
 
         // IP
-        $ip_from_keeper = $apbct->login_ip_keeper->getMetaRecordValue($user_obj->ID);
+        $ip_from_keeper = $apbct->login_ip_keeper->getIP($user_obj->ID);
         $ip_from_keeper = null !== $ip_from_keeper
             ? $ip_from_keeper
             : null;

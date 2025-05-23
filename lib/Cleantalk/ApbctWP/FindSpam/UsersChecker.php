@@ -170,7 +170,7 @@ class UsersChecker extends Checker
                 continue;
             }
 
-            $ip_from_keeper = $apbct->login_ip_keeper->getMetaRecordValue($user->ID);
+            $ip_from_keeper = $apbct->login_ip_keeper->getIP($user->ID);
             $ip_from_keeper = null !== $ip_from_keeper
                 ? $ip_from_keeper
                 : false;
@@ -510,7 +510,7 @@ class UsersChecker extends Checker
         $u = get_users($params);
         foreach ( $u as $iValue ) {
             // gain IP from keeper
-            $ip_from_keeper = $apbct->login_ip_keeper->getMetaRecordValue($iValue->ID);
+            $ip_from_keeper = $apbct->login_ip_keeper->getIP($iValue->ID);
             $ip_from_keeper = null !== $ip_from_keeper
                 ? $ip_from_keeper
                 : 'N/A';
@@ -590,7 +590,7 @@ class UsersChecker extends Checker
                 }
 
                 update_user_meta($curr_user->ID, 'session_tokens', array($rnd => array('ip' => $ips[$i])));
-                $apbct->login_ip_keeper->addRecord($curr_user);
+                $apbct->login_ip_keeper->addUserIP($curr_user);
                 if ( is_int($user_id) ) {
                     $inserted++;
                 }
@@ -624,7 +624,6 @@ class UsersChecker extends Checker
             if ( $users ) {
                 foreach ( $users as $user ) {
                     wp_delete_user($user->ID);
-                    $apbct->login_ip_keeper->deleteUserMetaRecord($user->ID);
                     usleep(5000);
                 }
             }
