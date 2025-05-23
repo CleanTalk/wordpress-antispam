@@ -14,6 +14,10 @@ $apbct_integrations_by_class = array(
         'plugin_class' => '',
         'wp_includes' => true,
     ),
+    'WPForms' => array(
+        'plugin_path' => ['wpforms-lite/wpforms.php', 'wpforms/wpforms.php'],
+        'plugin_class' => 'WPForms',
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_integrations_by_class) {
