@@ -1,6 +1,6 @@
 <?php
 
-namespace Cleantalk\Antispam;
+namespace Cleantalk\Antispam\EmailEncoder;
 
 /**
  * Class Obfuscator
