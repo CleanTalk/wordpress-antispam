@@ -5153,7 +5153,8 @@ function ctProtectOutsideIframe() {
                 iframe.src.indexOf('link.surepathconnect.com') !== -1 ||
                 iframe.src.indexOf('hello.dubsado.com') !== -1 ||
                 iframe.classList.contains('hs-form-iframe') ||
-                ( iframe.src.indexOf('facebook.com') !== -1 && iframe.src.indexOf('plugins/comments.php') !== -1)
+                ( iframe.src.indexOf('facebook.com') !== -1 && iframe.src.indexOf('plugins/comments.php') !== -1) ||
+                iframe.id.indexOf('chatway_widget_app') !== -1
             ) {
                 // pass if is already protected
                 if (false !== apbctLocalStorage.get('apbct_iframes_protected') &&
@@ -5175,6 +5176,15 @@ let ctProtectOutsideIframeCheck;
  * @param {HTMLElement} iframe
  */
 function ctProtectOutsideIframeHandler(iframe) {
+    let originParentPosition = null;
+    let iframeParent = null;
+
+    if (iframe.parentNode !== undefined) {
+        iframeParent = iframe.parentNode;
+    } else {
+        return;
+    }
+
     let cover = document.createElement('div');
     cover.style.width = '100%';
     cover.style.height = '100%';
@@ -5182,16 +5192,25 @@ function ctProtectOutsideIframeHandler(iframe) {
     cover.style.opacity = 0;
     cover.style.position = 'absolute';
     cover.style.top = 0;
+    cover.setAttribute('name', 'apbct_cover');
     cover.onclick = function(e) {
         if (ctProtectOutsideIframeCheck === undefined) {
             let currentDiv = e.currentTarget;
             currentDiv.style.opacity = 0.5;
             let preloader = document.createElement('div');
+            let preloaderSpin = document.createElement('div');
+            let preloaderText = document.createElement('span');
             preloader.className = 'apbct-iframe-preloader';
+            preloaderSpin.className = 'apbct-iframe-preloader-spin';
+            preloaderText.innerText = 'CleanTalk Anti-Spam checking data..';
+            preloaderText.className = 'apbct-iframe-preloader-text';
+            preloader.appendChild(preloaderSpin);
             currentDiv.appendChild(preloader);
-            let botDetectorToken = '';
-            if (document.querySelector('[name*="ct_bot_detector_event_token"]')) {
-                botDetectorToken = document.querySelector('[name*="ct_bot_detector_event_token"]').value;
+            currentDiv.appendChild(preloaderText);
+            let botDetectorToken = null;
+
+            if (!botDetectorToken) {
+                botDetectorToken = apbctLocalStorage.get('bot_detector_event_token');
             }
 
             let data = {
@@ -5206,14 +5225,25 @@ function ctProtectOutsideIframeHandler(iframe) {
                     async: false,
                     callback: function(result) {
                         ctProtectOutsideIframeCheck = true;
-                        if (result.apbct.blocked === false) {
+                        let callbackError = false;
+                        if (
+                            typeof result !== 'object' ||
+                            !result.hasOwnProperty('apbct') ||
+                            !result.apbct.hasOwnProperty('blocked')
+                        ) {
+                            console.warn('APBCT outside iframe check error, skip check.');
+                            callbackError = true;
+                        }
+                        const comment = result.apbct.comment !== undefined ?
+                            result.apbct.comment :
+                            'Blocked by CleanTalk Anti-Spam';
+                        if (result.apbct.blocked === false || callbackError) {
                             document.querySelectorAll('div.apbct-iframe-preloader').forEach(function(el) {
                                 el.parentNode.remove();
                             });
                         } else {
-                            document.querySelectorAll('div.apbct-iframe-preloader').forEach((el) => {
-                                el.parentNode.style.color = 'white';
-                                el.parentNode.innerHTML += result.apbct.comment;
+                            document.querySelectorAll('.apbct-iframe-preloader-text').forEach((el) => {
+                                el.innerText = comment;
                             });
                             document.querySelectorAll('div.apbct-iframe-preloader').forEach((el) => {
                                 el.remove();
@@ -5224,8 +5254,16 @@ function ctProtectOutsideIframeHandler(iframe) {
             );
         }
     };
-    iframe.parentNode.style.position = 'relative';
-    iframe.parentNode.appendChild(cover);
+    if (
+        iframeParent.style !== undefined &&
+        iframeParent.style !== null &&
+        iframeParent.style.position !== undefined
+    ) {
+        iframeParent.style.position = originParentPosition;
+    } else {
+        iframeParent.style.position = 'relative';
+    }
+    iframeParent.appendChild(cover);
     let iframes = apbctLocalStorage.get('apbct_iframes_protected');
     if (false === iframes) {
         iframes = [];
