@@ -4783,13 +4783,25 @@ function ctProtectOutsideIframeHandler(iframe) {
                     async: false,
                     callback: function(result) {
                         ctProtectOutsideIframeCheck = true;
-                        if (result.apbct.blocked === false) {
+                        let callbackError = false;
+                        if (
+                            typeof result !== 'object' ||
+                            !result.hasOwnProperty('apbct') ||
+                            !result.apbct.hasOwnProperty('blocked')
+                        ) {
+                            console.warn('APBCT outside iframe check error, skip check.');
+                            callbackError = true;
+                        }
+                        const comment = result.apbct.comment !== undefined ?
+                            result.apbct.comment :
+                            'Blocked by CleanTalk Anti-Spam';
+                        if (result.apbct.blocked === false || callbackError) {
                             document.querySelectorAll('div.apbct-iframe-preloader').forEach(function(el) {
                                 el.parentNode.remove();
                             });
                         } else {
                             document.querySelectorAll('.apbct-iframe-preloader-text').forEach((el) => {
-                                el.innerText = result.apbct.comment;
+                                el.innerText = comment;
                             });
                             document.querySelectorAll('div.apbct-iframe-preloader').forEach((el) => {
                                 el.remove();
