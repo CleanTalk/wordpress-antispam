@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 6.55
+Stable tag: 6.56
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -447,6 +447,38 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.56 22.05.2026 =
+* Upd. PublicScripts. Update bot detector script enqueueing to use wp_enqueue_script with proper parameters for improved performance and compatibility.
+* Ref. WPSearch. Class integration for WP Search
+* Upd. Cron. Update flow to prevent object cache.
+* New. Options. Gravity Forms spam entries saving option implemented.
+* New. Integration. Newsletter plugin integration implemented.
+* Fix. Encoder. Dropping attributes contains emails fixed.
+* New. Integration. BuddyBoss app REST api protection implemented.
+* Upd. Search forms. Integration by class. Meta and cpam check method moved to the class.
+* New. Integration. Chaty. Contact form.
+* New. Integration. Chaty. Whatsapp form now works via external forms.
+* Fix. External forms. Force protection. AJAX action cleantalk_force_ajax_check added to skip signs to make the integration class work.
+* Fix. Encoder. Encoding via buffer fixed.
+* Upd. Footer. Everest Forms cross-link added.
+* Fix. Integration. Easy Digital Downloads. Skip check on built-in email verification.
+* New. Integration. WPZOOM forms.
+* Fix. Email encoder. Exclude attribute data-et-multi-view from encoding.
+* Fix. Integration. Avada Fusion Builder. Reformated JSON response.
+* Fix. Honeypot. Search form handling fixed.
+* Fix. Encoder. Integration for excluding some service data encoding on SureCart plugin implemented.
+* Fix. Encoder. Setting description fixed.
+* New. ServeChecker. A class for checking server variables and implementing a non-compliance banner during installation
+* Fix. Activator. Deleting an unnecessary call, making code edits
+* Fix. AdminNotices. Deleting an extra paragraph
+* Fix. Force protection. Condition logic fixed.
+* Fix. Force protection. Encoding-decoding stability improved.
+* Fix. Force protection. Checking option into constructor implemented.
+* Upd. Sessions. Update storage.
+* Upd. Settings. Using level for banners from cloud.
+* Fix. AdminSettings. Removing unnecessary js code
+* Fix. Settings. Editing the display of the About block in Whitelabel mode
 
 = 6.55 24.04.2025 =
 * New. Contact data encoder. New encoder state form in settings.

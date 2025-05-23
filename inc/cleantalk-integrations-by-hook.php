@@ -399,6 +399,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'WPZOOMForms' => array(
+        'hook'    => 'admin_post_nopriv_wpzf_submit',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
     'Newsletter' => array(
         'hook'    => 'newsletter_action',
         'setting' => 'forms__contact_forms_test',
