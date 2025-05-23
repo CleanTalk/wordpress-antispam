@@ -216,7 +216,7 @@ function apbct_settings__set_fields()
                 'forms__contact_forms_test'             => array(
                     'title'       => __('Contact forms', 'cleantalk-spam-protect'),
                     'description' => __(
-                        'Contact Form 7, Formidable forms, JetPack, Fast Secure Contact Form, WordPress Landing Pages, Gravity Forms.',
+                        'Contact Form 7, Formidable forms, JetPack, Fast Secure Contact Form, WordPress Landing Pages, Gravity Forms and Everest forms.',
                         'cleantalk-spam-protect'
                     ),
                     'childrens'   => array('forms__flamingo_save_spam')
@@ -1522,7 +1522,7 @@ function apbct_settings__get_top_info()
     );
     $get_premium_request_badge = apbct_admin__badge__get_premium('top_info');
 
-    if ($apbct->white_label) {
+    if ($apbct->data['wl_mode_enabled'] || $apbct->white_label) {
         $support_brand = $apbct->data['wl_brandname_short'];
         $support_url_text = $apbct->data['wl_support_url'];
         $trademark = '';

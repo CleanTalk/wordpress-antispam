@@ -5,6 +5,16 @@ namespace Cleantalk\ApbctWP;
 class Cron extends \Cleantalk\Common\Cron
 {
     /**
+     * Get fresh instance of Cron
+     *
+     * @return Cron
+     */
+    public static function getInstance()
+    {
+        return new self();
+    }
+
+    /**
      * Get timestamp last Cron started.
      *
      * @return int timestamp
@@ -43,8 +53,27 @@ class Cron extends \Cleantalk\Common\Cron
      */
     public function getTasks()
     {
-        $tasks = get_option($this->cron_option_name);
+        global $wpdb;
 
-        return empty($tasks) ? array() : $tasks;
+        $result = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s AND " . rand(1, 100000) . " > 0",
+                $this->cron_option_name
+            )
+        );
+
+        if (!$result) {
+            return array();
+        }
+
+        // First unserialize the outer string
+        $unserialized = unserialize($result);
+
+        // If the unserialized data is still a string, it needs to be unserialized again
+        if (is_string($unserialized)) {
+            $unserialized = unserialize($unserialized);
+        }
+
+        return is_array($unserialized) ? $unserialized : array();
     }
 }

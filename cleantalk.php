@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.55.99-dev
+  Version: 6.56.99-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -269,7 +269,7 @@ add_action('init', function () {
     global $apbct;
 
     // Self cron
-    $ct_cron = new Cron();
+    $ct_cron = Cron::getInstance();
     $tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
     if (
         $tasks_to_run && // There are tasks to run
@@ -2741,6 +2741,22 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $apbct->data['notice_renew']        = TT::getArrayValueAsInt($result, 'renew', 0);
         $apbct->data['notice_trial']        = TT::getArrayValueAsInt($result, 'trial', 0);
         $apbct->data['notice_review']       = TT::getArrayValueAsInt($result, 'show_review', 0);
+
+        if ($apbct->data['notice_show']) {
+            $notice_banners = API::getNoticeBanners($api_key);
+
+            if (isset($notice_banners['operation_status'], $notice_banners['banners']) && $notice_banners['operation_status'] === 'SUCCESS') {
+                if (isset($notice_banners['banners']['TRIAL']['level'])) {
+                    $apbct->data['notice_trial_level'] = strtolower($notice_banners['banners']['TRIAL']['level']);
+                }
+                if (isset($notice_banners['banners']['RENEW']['level'])) {
+                    $apbct->data['notice_renew_level'] = strtolower($notice_banners['banners']['RENEW']['level']);
+                }
+                if (isset($notice_banners['banners']['REVIEW']['level'])) {
+                    $apbct->data['notice_review_level'] = strtolower($notice_banners['banners']['REVIEW']['level']);
+                }
+            }
+        }
 
         // Other
         $apbct->data['service_id']          = TT::getArrayValueAsInt($result, 'service_id', 0);

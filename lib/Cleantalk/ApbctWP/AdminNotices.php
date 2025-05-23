@@ -213,7 +213,7 @@ class AdminNotices
                 $this->apbct->data['wl_brandname']
             );
 
-            $banner_data->level = 'error';
+            $banner_data->level = isset($this->apbct->data['notice_trial_level']) ? $this->apbct->data['notice_trial_level'] : 'error';
             $banner_data->is_dismissible = ! $this->is_cleantalk_page;
 
             $banner = new ApbctUniversalBanner($banner_data);
@@ -248,7 +248,7 @@ class AdminNotices
                 $this->apbct->data['wl_brandname']
             );
 
-            $banner_data->level = 'error';
+            $banner_data->level = isset($this->apbct->data['notice_renew_level']) ? $this->apbct->data['notice_renew_level'] : 'error';
             $banner_data->is_dismissible = ! $this->is_cleantalk_page;
 
             $banner = new ApbctUniversalBanner($banner_data);
@@ -288,7 +288,7 @@ class AdminNotices
                             . '</a>';
             $banner_data->additional_text = $support_link . '&nbsp;&nbsp;' . $close_link;
 
-            $banner_data->level = 'success';
+            $banner_data->level = isset($this->apbct->data['notice_review_level']) ? $this->apbct->data['notice_review_level'] : 'success';
 
             $banner = new ApbctUniversalBanner($banner_data);
             $banner->echoBannerBody();

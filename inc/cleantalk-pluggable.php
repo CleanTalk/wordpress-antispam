@@ -1325,6 +1325,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             ) &&
             Post::get('action') === 'edd_add_to_cart' ||
             Post::get('action') === 'edd_get_shipping_rate' ||
+            Post::get('action') === 'edd_check_email' ||
             Post::get('action') === 'edd_recalculate_discounts_pro'
         ) {
             return 'Easy Digital Downloads service action';
@@ -1537,6 +1538,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             Request::getString('action') === 'chaty_front_form_save_data'
         ) {
             return 'ChatyContactForm';
+        }
+
+        // skip Login/Signup Popup - has direct integration
+        if (
+            apbct_is_plugin_active('easy-login-woocommerce/xoo-el-main.php') &&
+            Request::getString('action') === 'xoo_el_form_action'
+        ) {
+            return 'Login/Signup Popup';
         }
     } else {
         /*****************************************/
