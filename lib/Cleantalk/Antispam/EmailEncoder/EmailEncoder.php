@@ -131,10 +131,6 @@ class EmailEncoder
             'widget_block_content',
             'render_block',
         );
-        foreach ( $hooks_to_encode as $hook ) {
-            $this->shortcodes->addActionsBeforeModify($hook, 9);
-            add_filter($hook, array($this, 'modifyContent'), 10);
-        }
 
         // Search data to buffer
         if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post() && !is_admin()) {
@@ -142,6 +138,11 @@ class EmailEncoder
             add_action('shutdown', 'apbct_buffer__end', 0);
             add_action('shutdown', array($this, 'bufferOutput'), 2);
             $this->shortcodes->addActionsAfterModify('shutdown', 3);
+        } else {
+            foreach ( $hooks_to_encode as $hook ) {
+                $this->shortcodes->addActionsBeforeModify($hook, 9);
+                add_filter($hook, array($this, 'modifyContent'), 10);
+            }
         }
 
         // integration with Business Directory Plugin
