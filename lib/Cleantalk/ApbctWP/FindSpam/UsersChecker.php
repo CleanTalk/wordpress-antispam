@@ -556,7 +556,7 @@ class UsersChecker extends Checker
         }
 
         // TEST INSERTION
-        $to_insert = 500;
+        $to_insert = 50;
         $query = 'SELECT network FROM `' . APBCT_TBL_FIREWALL_DATA . '` LIMIT ' . $to_insert . ';';
 
         $result    = $wpdb->get_results(
