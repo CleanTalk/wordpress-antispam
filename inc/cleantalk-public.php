@@ -9,6 +9,7 @@ use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\LinkConstructor;
+use Cleantalk\ApbctWP\ApbctJsBundleResolver;
 
 /**
  * Init functions
@@ -1262,23 +1263,9 @@ function apbct_enqueue_and_localize_public_scripts()
     global $apbct;
 
     $in_footer = defined('CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER') && CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER;
-
     // Different JS params
-    if (!$apbct->settings['forms__check_external'] && !$apbct->settings['forms__check_internal']) {
-        ApbctEnqueue::getInstance()->js('apbct-public-bundle.js', array(), $in_footer);
-    }
-
-    if ($apbct->settings['forms__check_external'] && !$apbct->settings['forms__check_internal']) {
-        ApbctEnqueue::getInstance()->js('apbct-public-bundle_ext-protection.js', array(), $in_footer);
-    }
-
-    if ($apbct->settings['forms__check_internal'] && !$apbct->settings['forms__check_external']) {
-        ApbctEnqueue::getInstance()->js('apbct-public-bundle_int-protection.js', array(), $in_footer);
-    }
-
-    if ($apbct->settings['forms__check_external'] && $apbct->settings['forms__check_internal']) {
-        ApbctEnqueue::getInstance()->js('apbct-public-bundle_full-protection.js', array(), $in_footer);
-    }
+    $bundle_name = ApbctJsBundleResolver::getBundleName($apbct->settings);
+    ApbctEnqueue::getInstance()->js($bundle_name, array(), $in_footer);
 
     // Bot detector
     if ( $apbct->settings['data__bot_detector_enabled'] && ! apbct_bot_detector_scripts_exclusion()) {
