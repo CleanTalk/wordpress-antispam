@@ -399,6 +399,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'WPZOOMForms' => array(
+        'hook'    => 'admin_post_nopriv_wpzf_submit',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
     'Newsletter' => array(
         'hook'    => 'newsletter_action',
         'setting' => 'forms__contact_forms_test',
@@ -407,6 +412,11 @@ $apbct_active_integrations = array(
     'ChatyContactForm'         => array(
         'hook'    => 'chaty_front_form_save_data',
         'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
+    'LoginSignupPopup'         => array(
+        'hook'    => 'xoo_el_form_action',
+        'setting' => 'forms__registrations_test',
         'ajax'    => true
     ),
 );

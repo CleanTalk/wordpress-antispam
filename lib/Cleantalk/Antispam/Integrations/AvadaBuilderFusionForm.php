@@ -39,13 +39,10 @@ class AvadaBuilderFusionForm extends IntegrationBase
 
     public function doBlock($message)
     {
-        die(
-            json_encode(
-                array(
-                    'status' => 'error',
-                    'info' => 'form_failed',
-                    'message' => $message,
-                )
+        wp_send_json(
+            array(
+                'status' => 'error',
+                'info'   => array($message),
             )
         );
     }

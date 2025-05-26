@@ -4,6 +4,7 @@ namespace Cleantalk\ApbctWP;
 
 use AllowDynamicProperties;
 use ArrayObject;
+use Cleantalk\ApbctWP\FindSpam\LoginIPKeeper;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateSentinel;
 
 /**
@@ -236,6 +237,9 @@ class State extends \Cleantalk\Common\State
         'wl_support_faq'     => 'https://wordpress.org/plugins/cleantalk-spam-protect/faq/',
         'wl_support_url'     => 'https://wordpress.org/support/plugin/cleantalk-spam-protect',
         'wl_support_email'   => 'support@cleantalk.org',
+
+        //IP keeper data
+        'ip_keeper_data'     => array()
     );
 
     /**
@@ -378,6 +382,11 @@ class State extends \Cleantalk\Common\State
      * @var SFWUpdateSentinel
      */
     public $sfw_update_sentinel;
+
+     /**
+      * @var LoginIPKeeper
+      */
+    public $login_ip_keeper;
 
     private $auto_save_defaults_list = array();
 
@@ -991,6 +1000,11 @@ class State extends \Cleantalk\Common\State
     public function setSFWUpdateSentinel()
     {
         $this->sfw_update_sentinel = new SFWUpdateSentinel();
+    }
+
+    public function setLoginIPKeeper()
+    {
+        $this->login_ip_keeper = new \Cleantalk\ApbctWP\FindSpam\LoginIPKeeper();
     }
 
     /**

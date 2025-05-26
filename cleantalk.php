@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.55.99-dev
+  Version: 6.56.99-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -166,6 +166,24 @@ $apbct->settings_link = is_network_admin() ? 'settings.php?page=cleantalk' : 'op
 $apbct->setConnectionReports();
 // SFW update sentinel
 $apbct->setSFWUpdateSentinel();
+// User IP Keeper - used for checkers
+$apbct->setLoginIPKeeper();
+
+add_action('wp_login', 'apbct_wp_login_actions', 10, 2);
+
+/**
+ * Actions for hook 'wp-login'.
+ * @param $user_login
+ * @param $wp_user
+ *
+ * @return void
+ */
+function apbct_wp_login_actions($_user_login, $wp_user)
+{
+    global $apbct;
+    $apbct->login_ip_keeper->addUserIP($wp_user);
+    apbct_add_admin_ip_to_swf_whitelist($wp_user);
+}
 
 // Disabling comments
 if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['comments__disable_comments__posts'] || $apbct->settings['comments__disable_comments__pages'] || $apbct->settings['comments__disable_comments__media'] ) {
@@ -269,7 +287,7 @@ add_action('init', function () {
     global $apbct;
 
     // Self cron
-    $ct_cron = new Cron();
+    $ct_cron = Cron::getInstance();
     $tasks_to_run = $ct_cron->checkTasks(); // Check for current tasks. Drop tasks inner counters.
     if (
         $tasks_to_run && // There are tasks to run
@@ -576,14 +594,6 @@ add_filter('wpforo_create_profile', 'wpforo_create_profile__check_register', 1, 
 // HappyForms integration
 add_filter('happyforms_validate_submission', 'apbct_form_happyforms_test_spam', 1, 3);
 add_filter('happyforms_use_hash_protection', '__return_false');
-
-// WPForms
-// Adding fields
-add_action('wpforms_frontend_output', 'apbct_form__WPForms__addField', 1000, 5);
-// Gathering data to validate
-add_filter('wpforms_process_before_filter', 'apbct_from__WPForms__gatherData', 100, 2);
-// Do spam check
-add_filter('wpforms_process_initial_errors', 'apbct_form__WPForms__showResponse', 100, 2);
 
 // Formidable
 add_filter('frm_entries_before_create', 'apbct_form__formidable__testSpam', 999999, 2);
@@ -2741,6 +2751,22 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         $apbct->data['notice_renew']        = TT::getArrayValueAsInt($result, 'renew', 0);
         $apbct->data['notice_trial']        = TT::getArrayValueAsInt($result, 'trial', 0);
         $apbct->data['notice_review']       = TT::getArrayValueAsInt($result, 'show_review', 0);
+
+        if ($apbct->data['notice_show']) {
+            $notice_banners = API::getNoticeBanners($api_key);
+
+            if (isset($notice_banners['operation_status'], $notice_banners['banners']) && $notice_banners['operation_status'] === 'SUCCESS') {
+                if (isset($notice_banners['banners']['TRIAL']['level'])) {
+                    $apbct->data['notice_trial_level'] = strtolower($notice_banners['banners']['TRIAL']['level']);
+                }
+                if (isset($notice_banners['banners']['RENEW']['level'])) {
+                    $apbct->data['notice_renew_level'] = strtolower($notice_banners['banners']['RENEW']['level']);
+                }
+                if (isset($notice_banners['banners']['REVIEW']['level'])) {
+                    $apbct->data['notice_review_level'] = strtolower($notice_banners['banners']['REVIEW']['level']);
+                }
+            }
+        }
 
         // Other
         $apbct->data['service_id']          = TT::getArrayValueAsInt($result, 'service_id', 0);

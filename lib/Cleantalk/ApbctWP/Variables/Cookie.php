@@ -114,24 +114,22 @@ class Cookie extends \Cleantalk\Variables\Cookie
     ) {
         global $apbct;
 
-        if ( $apbct->data['key_is_ok'] ) {
-            //select handling way to set cookie data in dependence of cookie type in the settings
-            if ( $apbct->data['cookies_type'] === 'none' ) {
-                if ( static::$force_alt_cookies_global || in_array($name, static::$force_to_use_alternative_cookies, true) ) {
-                    AltSessions::set($name, $value);
-                } else {
-                    return NoCookie::set($name, $value);
-                }
-            } elseif ($apbct->data['cookies_type'] === 'alternative') {
-                AltSessions::set($name, $value);
-            } else {
-                if ( static::$force_alt_cookies_global ) {
-                    AltSessions::set($name, $value);
-                } else {
-                    self::setNativeCookie(apbct__get_cookie_prefix() . $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite);
-                }
-            }
+        if ( ! $apbct->data['key_is_ok'] ) {
+            return true;
         }
+
+        if ($apbct->data['cookies_type'] === 'alternative' ||
+            static::$force_alt_cookies_global ||
+            in_array($name, static::$force_to_use_alternative_cookies, true)
+        ) {
+            return AltSessions::set($name, $value);
+        }
+
+        if ( $apbct->data['cookies_type'] === 'none' ) {
+            return NoCookie::set($name, $value);
+        }
+
+        self::setNativeCookie(apbct__get_cookie_prefix() . $name, $value, $expires, $path, $domain, $secure, $httponly, $samesite);
 
         return true;
     }
