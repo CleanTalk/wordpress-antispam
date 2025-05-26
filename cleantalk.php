@@ -595,14 +595,6 @@ add_filter('wpforo_create_profile', 'wpforo_create_profile__check_register', 1, 
 add_filter('happyforms_validate_submission', 'apbct_form_happyforms_test_spam', 1, 3);
 add_filter('happyforms_use_hash_protection', '__return_false');
 
-// WPForms
-// Adding fields
-add_action('wpforms_frontend_output', 'apbct_form__WPForms__addField', 1000, 5);
-// Gathering data to validate
-add_filter('wpforms_process_before_filter', 'apbct_from__WPForms__gatherData', 100, 2);
-// Do spam check
-add_filter('wpforms_process_initial_errors', 'apbct_form__WPForms__showResponse', 100, 2);
-
 // Formidable
 add_filter('frm_entries_before_create', 'apbct_form__formidable__testSpam', 999999, 2);
 add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts', 20, 2);
