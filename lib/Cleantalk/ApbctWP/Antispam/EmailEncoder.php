@@ -287,7 +287,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
          */
         $decoding_text = apply_filters(
             'apbct__ee_wait_for_decoding_text',
-            __('The magic is on the way, please wait for a few seconds!', 'cleantalk-spam-protect')
+            __('The magic is on the way!', 'cleantalk-spam-protect')
         );
 
         /**
@@ -300,7 +300,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
          */
         $original_contact_text = apply_filters(
             'apbct__ee_original_email_text',
-            __('The original one is', 'cleantalk-spam-protect')
+            __('The complete one is', 'cleantalk-spam-protect')
         );
 
         /**
@@ -313,7 +313,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
          */
         $decoding_process_text = apply_filters(
             'apbct__ee_decoding_process_text',
-            __('Decoding the contact data, let us a few seconds to finish.', 'cleantalk-spam-protect')
+            __('Please wait a few seconds while we decode the contact data.', 'cleantalk-spam-protect')
         );
 
         return array(
