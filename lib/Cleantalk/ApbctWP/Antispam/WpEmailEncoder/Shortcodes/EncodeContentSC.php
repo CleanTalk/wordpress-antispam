@@ -1,8 +1,8 @@
 <?php
 
-namespace Cleantalk\Antispam\EmailEncoder\Shortcodes;
+namespace Cleantalk\ApbctWP\Antispam\WpEmailEncoder\Shortcodes;
 
-use Cleantalk\Antispam\EmailEncoder\EmailEncoder;
+use Cleantalk\ApbctWP\Antispam\WpEmailEncoder\WpEmailEncoder;
 use Cleantalk\ApbctWP\Variables\Cookie;
 
 /**
@@ -44,7 +44,7 @@ class EncodeContentSC extends EmailEncoderShortCode
             return (string)$content;
         }
 
-        return EmailEncoder::getInstance()->modifyAny($content);
+        return WpEmailEncoder::getInstance()->modifyAny($content);
     }
 
     /**

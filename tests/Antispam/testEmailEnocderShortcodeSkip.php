@@ -1,7 +1,7 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use Cleantalk\Antispam\EmailEncoder\Shortcodes\SkipContentFromEncodeSC;
+use Cleantalk\ApbctWP\Antispam\WpEmailEncoder\Shortcodes\SkipContentFromEncodeSC;
 
 class testEmailEnocderShortcodeSkip extends TestCase
 {
@@ -56,7 +56,7 @@ class testEmailEnocderShortcodeSkip extends TestCase
         //emulate hook before
         $content = $this->shortcode->changeContentBeforeEncoderModify($content);
         //do common modifying
-        $content = \Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance()->modifyContent($content);
+        $content = \Cleantalk\ApbctWP\Antispam\WpEmailEncoder\WpEmailEncoder::getInstance()->modifyContent($content);
         //emulate hook after
         $content = $this->shortcode->changeContentAfterEncoderModify($content);
 

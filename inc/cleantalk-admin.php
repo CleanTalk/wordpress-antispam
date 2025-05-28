@@ -4,7 +4,7 @@ use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
 use Cleantalk\ApbctWP\AJAXService;
-use Cleantalk\ApbctWP\Antispam\EmailEncoder;
+use Cleantalk\ApbctWP\Antispam\WpEmailEncoder\WpEmailEncoder;
 use Cleantalk\ApbctWP\ApbctEnqueue;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\Escape;
@@ -524,7 +524,7 @@ function apbct_admin__enqueue_scripts($hook)
         'apbctNoticeDismissSuccess'       => esc_html__('Thank you for the review! We strive to make our Anti-Spam plugin better every day.', 'cleantalk-spam-protect'),
         'apbctNoticeForceProtectionOn'       => esc_html__('This option affects the reflection of the page by checking the user and adds a cookie "apbct_force_protection_check", which serves as an indicator of successful or unsuccessful verification. If the check is successful, it will no longer run.', 'cleantalk-spam-protect'),
     );
-    $data = array_merge($data, EmailEncoder::getLocalizationText());
+    $data = array_merge($data, WpEmailEncoder::getLocalizationText());
     wp_localize_script('cleantalk-admin-js', 'ctAdminCommon', $data);
 
     // DASHBOARD page JavaScript and CSS

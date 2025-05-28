@@ -2,14 +2,14 @@
 
 namespace Antispam;
 
-use Cleantalk\Antispam\EmailEncoder\EmailEncoder;
+use Cleantalk\ApbctWP\Antispam\WpEmailEncoder\WpEmailEncoder;
 use PHPUnit\Framework\TestCase;
 
 class TestEmailEncoder extends TestCase
 {
 
     /**
-     * @var EmailEncoder
+     * @var WpEmailEncoder
      */
     private $email_encoder;
 
@@ -19,7 +19,7 @@ class TestEmailEncoder extends TestCase
     {
         global $apbct;
         $apbct->api_key      = 'testapikey';
-        $this->email_encoder = EmailEncoder::getInstance();
+        $this->email_encoder = WpEmailEncoder::getInstance();
     }
 
     public function testPlainTextEncodeDecodeSSL()

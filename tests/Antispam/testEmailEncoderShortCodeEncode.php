@@ -1,8 +1,8 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use Cleantalk\Antispam\EmailEncoder\Shortcodes\EncodeContentSC;
-use Cleantalk\Antispam\EmailEncoder\EmailEncoder;
+use Cleantalk\ApbctWP\Antispam\WpEmailEncoder\Shortcodes\EncodeContentSC;
+use Cleantalk\Antispam\EmailEncoder\WpEmailEncoder;
 use Cleantalk\ApbctWP\Variables\Cookie;
 
 class testEmailEncoderShortCodeEncode extends TestCase

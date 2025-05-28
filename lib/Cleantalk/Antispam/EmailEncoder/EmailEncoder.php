@@ -19,69 +19,66 @@ class EmailEncoder
      */
     public $encoder;
     /**
-     * @var ExclusionsService
+     * @var string[]
      */
+    protected $decoded_emails_array;
     /**
      * @var string[]
      */
-    public $decoded_emails_array;
-    /**
-     * @var string[]
-     */
-    public $encoded_emails_array;
+    protected $encoded_emails_array;
     /**
      * @var bool
      */
-    public $has_connection_error;
+    protected $has_connection_error;
     /**
      * @var ExclusionsService
      */
-    private $exclusions;
+    public $exclusions;
     /**
      * @var EmailEncoderHelper
      */
-    private $helper;
+    public $helper;
     /**
      * @var ShortCodesService
      */
-    private $shortcodes;
+    public $shortcodes;
     /**
      * @var string
      */
-    private $response;
+    public $response;
     /**
      * Temporary content to use in regexp callback
      * @var string
      */
-    private $temp_content;
+    protected $temp_content;
     /**
      * @var bool
      */
-    private $privacy_policy_hook_handled = false;
+    protected $privacy_policy_hook_handled = false;
     /**
      * @var string
      */
-    private $aria_regex = '/aria-label.?=.?[\'"].+?[\'"]/';
+    protected $aria_regex = '/aria-label.?=.?[\'"].+?[\'"]/';
     /**
      * @var array
      */
-    private $aria_matches = array();
+    protected $aria_matches = array();
     /**
      * Attributes with possible email-like content to drop from the content to avoid unnecessary encoding.
      * Key is a tag we want to find, value is an attribute with email to drop.
      * @var array
      */
-    private static $attributes_to_drop = array(
+    protected static $attributes_to_drop = array(
         'a' => 'title',
     );
     /**
      * @var string
      */
-    private $global_obfuscation_mode;
+    protected $global_obfuscation_mode;
     /**
      * @var string
      */
-    private $global_replacing_text;
+    protected $global_replacing_text;
 
 
     /**
@@ -89,87 +86,42 @@ class EmailEncoder
      */
     protected function init()
     {
-        global $apbct;
 
-        $this->exclusions = new ExclusionsService();
-        $this->shortcodes = new ShortCodesService();
-        $this->helper = new EmailEncoderHelper();
-
-        $this->encoder = new Encoder(md5($apbct->api_key));
+        $this->initServices();
 
         if ( $this->exclusions->doSkipBeforeAnything() ) {
             return;
         }
 
-        $this->shortcodes->registerAll();
-        $this->shortcodes->addActionsAfterModify('the_content', 11);
-        $this->shortcodes->addActionsAfterModify('the_title', 11);
-        add_action('the_title', array($this->shortcodes->exclude, 'clearTitleContentFromShortcodeConstruction'), 12);
-
-        $this->registerHookHandler();
+        $this->runPreHooks();
 
         if ( $this->exclusions->doSkipBeforeModifyingHooksAdded() ) {
             return;
         }
 
-        $hooks_to_encode = array(
-            'the_title',
-            'the_content',
-            'the_excerpt',
-            'get_footer',
-            'get_header',
-            'get_the_excerpt',
-            'comment_text',
-            'comment_excerpt',
-            'comment_url',
-            'get_comment_author_url',
-            'get_comment_author_url_link',
-            'widget_title',
-            'widget_text',
-            'widget_content',
-            'widget_output',
-            'widget_block_content',
-            'render_block',
-        );
+        $this->runContentModifyers();
+    }
 
-        // Search data to buffer
-        if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post() && !is_admin()) {
-            add_action('wp', 'apbct_buffer__start');
-            add_action('shutdown', 'apbct_buffer__end', 0);
-            add_action('shutdown', array($this, 'bufferOutput'), 2);
-            $this->shortcodes->addActionsAfterModify('shutdown', 3);
-        } else {
-            foreach ( $hooks_to_encode as $hook ) {
-                $this->shortcodes->addActionsBeforeModify($hook, 9);
-                add_filter($hook, array($this, 'modifyContent'), 10);
-            }
-        }
+    protected function initServices()
+    {
+        global $apbct;
 
-        // integration with Business Directory Plugin
-        add_filter('wpbdp_form_field_display', array($this, 'modifyFormFieldDisplay'), 10, 4);
+        $this->exclusions = new ExclusionsService();
+        $this->helper = new EmailEncoderHelper();
+        $this->encoder = new Encoder(md5($apbct->api_key));
+    }
+
+    protected function runPreHooks()
+    {
+    }
+
+    protected function runContentModifyers()
+    {
     }
 
     /*
      * =============== MODIFYING ===============
      */
-
-    /**
-     * @param string $html
-     * @param object $field
-     * @param string $display_context
-     * @param int $post_id
-     * @return string
-     * @psalm-suppress PossiblyUnusedParam, PossiblyUnusedReturnValue
-     */
-    public function modifyFormFieldDisplay($html, $field, $display_context, $post_id)
-    {
-        if (mb_strpos($html, 'mailto:') !== false) {
-            $html = html_entity_decode($html);
-            return $this->modifyContent($html);
-        }
-
-        return $html;
-    }
 
     /**
      * @param string $content
@@ -179,13 +131,6 @@ class EmailEncoder
      */
     public function modifyContent($content)
     {
-        global $apbct;
-
-        $this->global_obfuscation_mode = $apbct->settings['data__email_decoder_obfuscation_mode'];
-        $this->global_replacing_text   = $apbct->settings['data__email_decoder_obfuscation_custom_text'];
-        $do_encode_emails   = (bool)$apbct->settings['data__email_decoder_encode_email_addresses'];
-        $do_encode_phones  = (bool)$apbct->settings['data__email_decoder_encode_phone_numbers'];
-
         if ( $this->exclusions->doReturnContentBeforeModify($content) ) {
             return $content;
         }
@@ -200,9 +145,9 @@ class EmailEncoder
 
         // Main logic
 
-        $do_encode_emails && $content = $this->modifyGlobalEmails($content);
+        $this->modifyGlobalEmails($content);
 
-        $do_encode_phones && $content = $this->modifyGlobalPhoneNumbers($content);
+        $this->modifyGlobalPhoneNumbers($content);
 
         return $content;
     }
@@ -817,15 +762,6 @@ class EmailEncoder
     }
 
     /**
-     * @return void
-     */
-    private function registerHookHandler()
-    {
-        add_filter('apbct_encode_data', [$this, 'modifyAny']);
-        add_filter('apbct_encode_email_data', [$this, 'modifyContent']);
-    }
-
-    /**
      * Fluid. Ignore SSL mode for encoding/decoding on the instance.
      * @return $this
      */
@@ -852,7 +788,7 @@ class EmailEncoder
      * @param string $content The content to process.
      * @return string The content with attributes removed.
      */
-    private static function dropAttributesContainEmail($content, $tags)
+    protected static function dropAttributesContainEmail($content, $tags)
     {
         $attribute_content_chunk = '[\s]{0,}=[\s]{0,}[\"\']\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\..*\b[\"\']';
         foreach ($tags as $tag => $attribute) {
@@ -877,7 +813,7 @@ class EmailEncoder
      *
      * @return string
      */
-    private function handleAriaLabelContent($content, $reverse = false)
+    protected function handleAriaLabelContent($content, $reverse = false)
     {
         if ( !$reverse ) {
             $this->aria_matches = array();

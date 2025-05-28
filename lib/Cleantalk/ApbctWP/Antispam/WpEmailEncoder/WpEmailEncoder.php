@@ -1,19 +1,164 @@
 <?php
 
-namespace Cleantalk\ApbctWP\Antispam;
+namespace Cleantalk\ApbctWP\Antispam\WpEmailEncoder;
 
 use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
+use Cleantalk\ApbctWP\Antispam\WpEmailEncoder\Shortcodes\ShortCodesService;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Common\TT;
 use Cleantalk\Variables\Post;
 
-class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
+class WpEmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
 {
     /**
      * @var null|string Comment from API response
      */
     private $comment;
+
+    /**
+     * @inheritDoc
+     */
+    protected function init()
+    {
+
+        $this->initServices();
+
+        if ( $this->exclusions->doSkipBeforeAnything() ) {
+            return;
+        }
+
+        $this->runPreHooks();
+
+        if ( $this->exclusions->doSkipBeforeModifyingHooksAdded() ) {
+            return;
+        }
+
+        $this->runContentModifyers();
+    }
+
+    protected function initServices()
+    {
+        global $apbct;
+
+        $this->exclusions = new ExclusionsService();
+        $this->helper = new \Cleantalk\Antispam\EmailEncoder\EmailEncoderHelper();
+        $this->shortcodes = new ShortCodesService();
+        $this->encoder = new \Cleantalk\Antispam\EmailEncoder\Encoder(md5($apbct->api_key));
+    }
+
+    protected function runPreHooks()
+    {
+        $this->shortcodes->registerAll();
+        $this->shortcodes->addActionsAfterModify('the_content', 11);
+        $this->shortcodes->addActionsAfterModify('the_title', 11);
+        add_action('the_title', array($this->shortcodes->exclude, 'clearTitleContentFromShortcodeConstruction'), 12);
+
+        $this->registerHookHandler();
+    }
+
+    protected function runContentModifyers()
+    {
+        global $apbct;
+        $hooks_to_encode = array(
+            'the_title',
+            'the_content',
+            'the_excerpt',
+            'get_footer',
+            'get_header',
+            'get_the_excerpt',
+            'comment_text',
+            'comment_excerpt',
+            'comment_url',
+            'get_comment_author_url',
+            'get_comment_author_url_link',
+            'widget_title',
+            'widget_text',
+            'widget_content',
+            'widget_output',
+            'widget_block_content',
+            'render_block',
+        );
+
+        // Search data to buffer
+        if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post() && !is_admin()) {
+            add_action('wp', 'apbct_buffer__start');
+            add_action('shutdown', 'apbct_buffer__end', 0);
+            add_action('shutdown', array($this, 'bufferOutput'), 2);
+            $this->shortcodes->addActionsAfterModify('shutdown', 3);
+        } else {
+            foreach ( $hooks_to_encode as $hook ) {
+                $this->shortcodes->addActionsBeforeModify($hook, 9);
+                add_filter($hook, array($this, 'modifyContent'), 10);
+            }
+        }
+
+        // integration with Business Directory Plugin
+        add_filter('wpbdp_form_field_display', array($this, 'modifyFormFieldDisplay'), 10, 4);
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedReturnValue
+     */
+    public function modifyContent($content)
+    {
+        global $apbct;
+
+        $this->global_obfuscation_mode = $apbct->settings['data__email_decoder_obfuscation_mode'];
+        $this->global_replacing_text   = $apbct->settings['data__email_decoder_obfuscation_custom_text'];
+        $do_encode_emails   = (bool)$apbct->settings['data__email_decoder_encode_email_addresses'];
+        $do_encode_phones  = (bool)$apbct->settings['data__email_decoder_encode_phone_numbers'];
+
+        if ( $this->exclusions->doReturnContentBeforeModify($content) ) {
+            return $content;
+        }
+
+        // modify content to prevent aria-label replaces by hiding it
+        $content = $this->handleAriaLabelContent($content);
+
+        // will use this in regexp callback
+        $this->temp_content = $content;
+
+        $content = self::dropAttributesContainEmail($content, self::$attributes_to_drop);
+
+        // Main logic
+
+        $do_encode_emails && $content = $this->modifyGlobalEmails($content);
+
+        $do_encode_phones && $content = $this->modifyGlobalPhoneNumbers($content);
+
+        return $content;
+    }
+
+    /**
+     * @return void
+     */
+    private function registerHookHandler()
+    {
+        add_filter('apbct_encode_data', [$this, 'modifyAny']);
+        add_filter('apbct_encode_email_data', [$this, 'modifyContent']);
+    }
+
+    /**
+     * @param string $html
+     * @param object $field
+     * @param string $display_context
+     * @param int $post_id
+     * @return string
+     * @psalm-suppress PossiblyUnusedParam, PossiblyUnusedReturnValue
+     */
+    private function modifyFormFieldDisplay($html, $field, $display_context, $post_id)
+    {
+        if (mb_strpos($html, 'mailto:') !== false) {
+            $html = html_entity_decode($html);
+            return $this->modifyContent($html);
+        }
+
+        return $html;
+    }
 
     /**
      * Check if the decoding is allowed
