@@ -22,7 +22,7 @@ class testEmailEnocderShortcodeSkip extends TestCase
         $content = 'Test content';
         $result = $this->shortcode->callback([], $content, 'apbct_skip_encoding');
 
-        $this->assertEquals('%%APBCT_SHORT_CODE_EXCLUDE_EE%%Test content%%APBCT_SHORT_CODE_EXCLUDE_EE%%', $result);
+        $this->assertEquals('##SCE_0##', $result);
     }
 
     public function testChangeContentBeforeEncoderModifyExecutesCallback()
@@ -30,31 +30,7 @@ class testEmailEnocderShortcodeSkip extends TestCase
         $content = 'Some content with [apbct_skip_encoding]Test content[/apbct_skip_encoding]';
         $result = $this->shortcode->changeContentBeforeEncoderModify($content);
 
-        $this->assertStringContainsString('%%APBCT_SHORT_CODE_EXCLUDE_EE%%Test content%%APBCT_SHORT_CODE_EXCLUDE_EE%%', $result);
-    }
-
-    public function testChangeContentAfterEncoderModifyRemovesExclusionWrapper()
-    {
-        $content = '%%APBCT_SHORT_CODE_EXCLUDE_EE%%Test content%%APBCT_SHORT_CODE_EXCLUDE_EE%%';
-        $result = $this->shortcode->changeContentAfterEncoderModify($content);
-
-        $this->assertEquals('Test content', $result);
-    }
-
-    public function testIsContentExcludedReturnsTrueForExcludedContent()
-    {
-        $content = '%%APBCT_SHORT_CODE_EXCLUDE_EE%%Test content%%APBCT_SHORT_CODE_EXCLUDE_EE%%';
-        $result = $this->shortcode->isContentExcluded($content);
-
-        $this->assertEquals(1, $result);
-    }
-
-    public function testIsContentExcludedReturnsFalseForNonExcludedContent()
-    {
-        $content = 'Test content';
-        $result = $this->shortcode->isContentExcluded($content);
-
-        $this->assertEquals(0, $result);
+        $this->assertStringContainsString('Some content with ##SCE_0##', $result);
     }
 
     public function testClearTitleContentFromShortcodeConstruction()
@@ -63,5 +39,29 @@ class testEmailEnocderShortcodeSkip extends TestCase
         $result = $this->shortcode->clearTitleContentFromShortcodeConstruction($content);
 
         $this->assertEquals('Some content with Test content', $result);
+    }
+
+    public function testClearTitleContentFromShortcodeConstructionSkippingEmail()
+    {
+        $content = 'Hah, there is email example@exmple.com and some content with [apbct_skip_encoding]Test content[/apbct_skip_encoding]';
+        $result = $this->shortcode->clearTitleContentFromShortcodeConstruction($content);
+
+        $this->assertEquals('Hah, there is email example@exmple.com and some content with Test content', $result);
+    }
+
+    public function testTitleContentWithEmailSkippedAndUnskipped()
+    {
+        $origin_content = 'Hah, there is email example@exmple.com and some content with [apbct_skip_encoding]Test content[/apbct_skip_encoding]';
+        $content = $origin_content;
+        //emulate hook before
+        $content = $this->shortcode->changeContentBeforeEncoderModify($content);
+        //do common modifying
+        $content = \Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance()->modifyContent($content);
+        //emulate hook after
+        $content = $this->shortcode->changeContentAfterEncoderModify($content);
+
+        $this->assertStringNotContainsString( 'example@exmple.com', $content);
+        $this->assertStringNotContainsString( 'apbct_skip_encoding', $content);
+        $this->assertStringContainsString( 'with Test content', $content);
     }
 }

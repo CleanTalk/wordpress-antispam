@@ -18,7 +18,8 @@ class SkipContentFromEncodeSC extends EmailEncoderShortCode
     /**
      * @var string The wrapper used to mark content for exclusion.
      */
-    private $exclusion_wrapper = '%%APBCT_SHORT_CODE_EXCLUDE_EE%%';
+    private $exclusion_wrapper = '##SCE_%d##';
+    private $replaces = array();
 
     /**
      * Callback function for the shortcode.
@@ -32,9 +33,7 @@ class SkipContentFromEncodeSC extends EmailEncoderShortCode
      */
     public function callback($_atts, $content, $_tag)
     {
-        $wrapper = $this->exclusion_wrapper;
-        $content = $wrapper . $content . $wrapper;
-        return $content;
+        return $this->processExclusions($content);
     }
 
     /**
@@ -64,28 +63,47 @@ class SkipContentFromEncodeSC extends EmailEncoderShortCode
      */
     public function changeContentAfterEncoderModify($content)
     {
-        $content = str_replace(
-            $this->exclusion_wrapper,
-            '',
-            $content
-        );
-        return $content;
+        return $this->revertExclusions($content);
     }
 
     /**
-     * Checks if the content is excluded from encoding.
+     * Apply exclusions to replace modified shortcodes with service symbols. Then collect all the performed
+     * replacements to memory storage to being reverted after common modifying.
      *
-     * Uses a regular expression to determine if the content is wrapped
-     * in the exclusion wrapper.
-     *
-     * @param string $content The content to check.
-     * @return false|int Returns 1 if the content is excluded, 0 otherwise.
+     * @param string|null $content The content to check.
+     * @return string Returns content with handled exclusions
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function isContentExcluded($content)
+    public function processExclusions($content)
     {
-        $exclusion_regex = '/' . $this->exclusion_wrapper . '.*' . $this->exclusion_wrapper . '/';
-        return preg_match($exclusion_regex, $content);
+        if (is_null($content)) {
+            return (string)$content;
+        }
+        $index = count($this->replaces);
+        $placeholder = sprintf($this->exclusion_wrapper, $index);
+        $this->replaces[$index] = [
+            'origin' => $content,
+            'replace' => $placeholder
+        ];
+        $wrappedContent = $placeholder;
+
+        return $wrappedContent;
+    }
+
+    /**
+     * Rollback al the replaces with modified shortcodes after common encoding.
+     * @param string $content
+     *
+     * @return string
+     */
+    public function revertExclusions($content)
+    {
+        foreach ($this->replaces as $_item => $data) {
+            if (isset($data['replace'], $data['origin']) && is_string($data['replace']) && is_string($data['origin'])) {
+                $content = str_replace($data['replace'], $data['origin'], $content);
+            }
+        }
+        return $content;
     }
 
     /**

@@ -190,10 +190,6 @@ class EmailEncoder
             return $content;
         }
 
-        if ($this->shortcodes->exclude->isContentExcluded($content)) {
-            return $content;
-        }
-
         // modify content to prevent aria-label replaces by hiding it
         $content = $this->handleAriaLabelContent($content);
 
