@@ -13,6 +13,7 @@ class EmailEncoderHelper
      */
     private $attribute_exclusions_signs = array(
         'input' => array('placeholder', 'value'),
+        'sc-customer-email' => array('placeholder', 'value'),
         'img' => array('alt', 'title'),
         'div' => array('data-et-multi-view'),
     );
