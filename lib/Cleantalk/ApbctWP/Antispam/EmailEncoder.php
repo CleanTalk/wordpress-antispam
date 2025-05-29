@@ -2,13 +2,13 @@
 
 namespace Cleantalk\ApbctWP\Antispam;
 
+use Cleantalk\Antispam\Cleantalk;
+use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Common\TT;
 use Cleantalk\Variables\Post;
-use Cleantalk\Antispam\CleantalkRequest;
-use Cleantalk\Antispam\Cleantalk;
 
-class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
+class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
 {
     /**
      * @var null|string Comment from API response

@@ -2,7 +2,7 @@
 
 namespace Antispam;
 
-use Cleantalk\Antispam\EmailEncoder;
+use Cleantalk\Antispam\EmailEncoder\EmailEncoder;
 use PHPUnit\Framework\TestCase;
 
 class TestEmailEncoder extends TestCase
