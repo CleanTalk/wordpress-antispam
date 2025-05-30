@@ -2746,9 +2746,6 @@ function ct_account_status_check($api_key = null, $process_errors = true)
         ! is_main_site() && $apbct->white_label ? 'anti-spam-hosting' : 'antispam'
     );
 
-    $result['moderate_ip'] = 1;
-    $result['ip_license'] = 843;
-
     if ( empty($result['error']) || ! empty($result['valid']) ) {
         // Notices
         $apbct->data['notice_show']         = TT::getArrayValueAsInt($result, 'show_notice', 0);

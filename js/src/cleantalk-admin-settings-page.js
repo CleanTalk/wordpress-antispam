@@ -340,8 +340,6 @@ jQuery(document).ready(function() {
      * Handle synchronization errors when key is no ok to force user check the key and restart the sync
      */
     if ( !ctSettingsPage.key_is_ok && !ctSettingsPage.ip_license ) {
-        console.log('key_is_ok', ctSettingsPage.key_is_ok);
-        console.log('ip_license', ctSettingsPage.ip_license);
         jQuery('button.cleantalk_link[value="save_changes"]').on('click',
             function(e) {
                 e.preventDefault();
