@@ -250,13 +250,96 @@ function apbct_public_sendREST( route, params ) {
     new ApbctCore().rest(_params);
 }
 
+// eslint-disable-next-line require-jsdoc,camelcase
+function apbct_attach_event_handler(elem, event, callback) {
+    if (typeof window.addEventListener === 'function') elem.addEventListener(event, callback);
+    else elem.attachEvent(event, callback);
+}
+
+// eslint-disable-next-line require-jsdoc,camelcase
+function apbct_remove_event_handler(elem, event, callback) {
+    if (typeof window.removeEventListener === 'function') elem.removeEventListener(event, callback);
+    else elem.detachEvent(event, callback);
+}
+
 /**
- * Generate unique ID
- * @return {string}
+ * Recursively decode JSON-encoded properties
+ *
+ * @param {mixed} object
+ * @return {*}
  */
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctGenerateUniqueID() {
-    return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
+function removeDoubleJsonEncoding(object) {
+    if ( typeof object === 'object') {
+        // eslint-disable-next-line guard-for-in
+        for (let objectKey in object) {
+            // Recursion
+            if ( typeof object[objectKey] === 'object') {
+                object[objectKey] = removeDoubleJsonEncoding(object[objectKey]);
+            }
+
+            // Common case (out)
+            if (
+                typeof object[objectKey] === 'string' &&
+                object[objectKey].match(/^[\[{].*?[\]}]$/) !== null // is like JSON
+            ) {
+                const parsedValue = JSON.parse(object[objectKey]);
+                if ( typeof parsedValue === 'object' ) {
+                    object[objectKey] = parsedValue;
+                }
+            }
+        }
+    }
+
+    return object;
+}
+
+/**
+ * @return {boolean|*}
+ */
+function ctGetPageForms() {
+    let forms = document.forms;
+    if (forms) {
+        return forms;
+    }
+    return false;
+}
+
+// eslint-disable-next-line camelcase,require-jsdoc,no-unused-vars
+function apbct_js_keys__set_input_value(result, data, params, obj) {
+    if ( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
+        let elements = document.querySelectorAll('[name^=ct_checkjs]');
+        for ( let i = 0; i < elements.length; i++ ) {
+            elements[i].value = result.js_key;
+        }
+    }
+}
+
+/**
+ * Run AJAX to set important_parameters on the site backend if problematic cache solutions are defined.
+ * @param {boolean} cacheExist
+ */
+function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) { // eslint-disable-line no-unused-vars
+    // Set important parameters via ajax
+    if ( cacheExist ) {
+        if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
+            apbct_public_sendREST('apbct_set_important_parameters', {});
+        } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
+            apbct_public_sendAJAX({action: 'apbct_set_important_parameters'}, {});
+        }
+    }
+}
+
+/**
+ * Do handle periodical actions.
+ * @param {int} cronStartTimeout Time to go before cron start.
+ */
+function cronFormsHandler(cronStartTimeout = 2000) {
+    setTimeout(function() {
+        setInterval(function() {
+            restartFieldsListening();
+            restartBotDetectorEventTokenAttach();
+        }, 2000);
+    }, cronStartTimeout);
 }
 
 let apbctLocalStorage = {
@@ -360,71 +443,3 @@ let apbctSessionStorage = {
         return data;
     },
 };
-
-/**
- * Handler for -webkit based browser that listen for a custom
- * animation create using the :pseudo-selector in the stylesheet.
- * Works with Chrome, Safari
- *
- * @param {AnimationEvent} event
- */
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctOnAnimationStart(event) {
-    ('onautofillstart' === event.animationName) ?
-        apbctAutocomplete(event.target) : apbctCancelAutocomplete(event.target);
-}
-
-/**
- * Handler for non-webkit based browser that listen for input
- * event to trigger the autocomplete-cancel process.
- * Works with Firefox, Edge, IE11
- *
- * @param {InputEvent} event
- */
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function apbctOnInput(event) {
-    ('insertReplacementText' === event.inputType || !('data' in event)) ?
-        apbctAutocomplete(event.target) : apbctCancelAutocomplete(event.target);
-}
-
-/**
- * Manage an input element when its value is autocompleted
- * by the browser in the following steps:
- * - add [autocompleted] attribute from event.target
- * - create 'onautocomplete' cancelable CustomEvent
- * - dispatch the Event
- *
- * @param {HtmlInputElement} element
- */
-function apbctAutocomplete(element) {
-    if (element.hasAttribute('autocompleted')) return;
-    element.setAttribute('autocompleted', '');
-
-    let event = new window.CustomEvent('onautocomplete', {
-        bubbles: true, cancelable: true, detail: null,
-    });
-
-    // no autofill if preventDefault is called
-    if (!element.dispatchEvent(event)) {
-        element.value = '';
-    }
-}
-
-/**
- * Manage an input element when its autocompleted value is
- * removed by the browser in the following steps:
- * - remove [autocompleted] attribute from event.target
- * - create 'onautocomplete' non-cancelable CustomEvent
- * - dispatch the Event
- *
- * @param {HtmlInputElement} element
- */
-function apbctCancelAutocomplete(element) {
-    if (!element.hasAttribute('autocompleted')) return;
-    element.removeAttribute('autocompleted');
-
-    // dispatch event
-    element.dispatchEvent(new window.CustomEvent('onautocomplete', {
-        bubbles: true, cancelable: false, detail: null,
-    }));
-}

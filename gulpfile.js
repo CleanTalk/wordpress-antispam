@@ -23,7 +23,7 @@ function compress_all_js() {
             '!js/src/apbct-public--*.js',
             '!js/src/apbct-public-bundle.js',
             '!js/src/cleantalk-admin.js',
-            '!js/src/apbct-common-functions.js',
+            '!js/src/apbct-common-decoder.js',
             'js/src/apbct-public--3--cleantalk-modal.js',
             'js/src/apbct-public--7--trp.js',
         ])
@@ -37,7 +37,7 @@ function compress_all_js() {
 function bundle_admin_and_common_js() {
     return gulp.src([
         'js/src/cleantalk-admin.js',
-        'js/src/apbct-common-functions.js'
+        'js/src/apbct-common-decoder.js'
     ])
     .pipe(sourcemaps.init())
     .pipe(concat('cleantalk-admin.js'))
@@ -50,10 +50,10 @@ function bundle_admin_and_common_js() {
 /**
  * Bundle Create
  */
-// Bundle with common-functions, without external and internal js
+// Bundle with common-decoder, without external and internal js
 function bundle_src_js() {
     return gulp.src([
-        'js/src/apbct-common-functions.js',
+        'js/src/apbct-common-decoder.js',
         'js/src/apbct-public--0*.js',
         'js/src/apbct-public--1*.js',
         'js/src/apbct-public--2*.js',
@@ -65,7 +65,7 @@ function bundle_src_js() {
         .pipe(gulp.dest('js/src/'));
 }
 
-// Bundle without common-functions, external and internal js
+// Bundle without common-decoder, external and internal js
 function bundle_src_js_without_cf() {
     return gulp.src([
         'js/src/apbct-public--0*.js',
@@ -79,10 +79,10 @@ function bundle_src_js_without_cf() {
         .pipe(gulp.dest('js/src/'));
 }
 
-// Bundle with common-functions, external js and without internal js
+// Bundle with common-decoder, external js and without internal js
 function bundle_src_js_external_protection() {
     return gulp.src([
-        'js/src/apbct-common-functions.js',
+        'js/src/apbct-common-decoder.js',
         'js/src/apbct-public--0*.js',
         'js/src/apbct-public--1*.js',
         'js/src/apbct-public--2*.js',
@@ -95,7 +95,7 @@ function bundle_src_js_external_protection() {
     .pipe(gulp.dest('js/src/'));
 }
 
-// Bundle with external js and without internal js, common-functions
+// Bundle with external js and without internal js, common-decoder
 function bundle_src_js_external_protection_without_cf() {
     return gulp.src([
         'js/src/apbct-public--0*.js',
@@ -110,10 +110,10 @@ function bundle_src_js_external_protection_without_cf() {
     .pipe(gulp.dest('js/src/'));
 }
 
-// Bundle with common-functions, internal js and without external js 
+// Bundle with common-decoder, internal js and without external js 
 function bundle_src_js_internal_protection() {
     return gulp.src([
-        'js/src/apbct-common-functions.js',
+        'js/src/apbct-common-decoder.js',
         'js/src/apbct-public--0*.js',
         'js/src/apbct-public--1*.js',
         'js/src/apbct-public--2*.js',
@@ -126,7 +126,7 @@ function bundle_src_js_internal_protection() {
     .pipe(gulp.dest('js/src/'));
 }
 
-// Bundle with internal js and without external js, common-functions
+// Bundle with internal js and without external js, common-decoder
 function bundle_src_js_internal_protection_without_cf() {
     return gulp.src([
         'js/src/apbct-public--0*.js',
@@ -141,10 +141,10 @@ function bundle_src_js_internal_protection_without_cf() {
     .pipe(gulp.dest('js/src/'));
 }
 
-// Bundle with common-functions, external and internal js
+// Bundle with common-decoder, external and internal js
 function bundle_src_js_full_protection() {
     return gulp.src([
-        'js/src/apbct-common-functions.js',
+        'js/src/apbct-common-decoder.js',
         'js/src/apbct-public--0*.js',
         'js/src/apbct-public--1*.js',
         'js/src/apbct-public--2*.js',
@@ -158,7 +158,7 @@ function bundle_src_js_full_protection() {
     .pipe(gulp.dest('js/src/'));
 }
 
-// Bundle with external and internal js, without common-functions
+// Bundle with external and internal js, without common-decoder
 function bundle_src_js_full_protection_without_cf() {
     return gulp.src([
         'js/src/apbct-public--0*.js',

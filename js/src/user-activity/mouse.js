@@ -1,5 +1,5 @@
 /**
- * Class collecting user activity data
+ * Class collecting user mouse activity data
  *
  */
 // eslint-disable-next-line no-unused-vars, require-jsdoc
@@ -113,3 +113,7 @@ class ApbctCollectingUserActivity {
         document.ctCollectingUserActivityData.mouseMovementsInsideForm = true;
     }
 }
+
+
+
+
