@@ -172,7 +172,29 @@ abstract class Checker
                         'cleantalk-spam-protect'
                     ); ?></p>
             </div>
-            <br>
+            <br/>
+
+            <div class="ct_check_params_elem ct_check_params_elem_sub">
+                <input id="ct_auto_del_user" type="checkbox"/>
+                <label for="ct_auto_del_user"><strong><?php
+                    _e("Automatic deletion of inactive users", 'cleantalk-spam-protect'); ?></strong></label>
+            </div>
+            <div class="ct_check_params_desc">
+                <input
+                    type="number"
+                    id="ct_auto_del_user_number_of_days"
+                    value="365"
+                    min="1"
+                    disabled
+                />
+                <span style="margin-left: 20px;">
+                    <?php esc_html_e(
+                        'If enabled, users who have never logged in, never left a comment, and never placed an order (WooCommerce) will be automatically deleted if they have been registered for more than the specified number of days.',
+                        'cleantalk-spam-protect'
+                    ); ?>
+                </span>
+            </div>
+            <br/>
             <?php
             echo apbct_admin__badge__get_premium('checkers');
             ?>

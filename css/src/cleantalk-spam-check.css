@@ -28,7 +28,6 @@ div.ct_check_params_wrapper{}
 	.ct_check_params_elem{}
 	.ct_check_params_elem_sub{
 		margin: 15px 0 0 25px;
-		width: 150px;
 		display: inline-block;
 	}
 		.ct_check_params_elem_sub_sub{ margin: 15px 0 0 50px; }

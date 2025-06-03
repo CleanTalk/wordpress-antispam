@@ -740,7 +740,44 @@ class UsersChecker extends Checker
     public static function startCommonChecking(UsersScanParameters $userScanParameters)
     {
         global $apbct;
+        $auto_del_user = (bool) Post::getBool('auto_del_user');
+        $auto_del_user_days = (int) Post::getInt('auto_del_user_days');
         $users = self::getAllUsers($userScanParameters);
+
+        if ($auto_del_user && $auto_del_user_days > 0 && $users) {
+            $now = current_time('timestamp');
+            foreach ($users as $user) {
+                $user_id = $user->ID;
+                $registered = strtotime($user->user_registered);
+
+                // Registered less than $auto_del_user_days days ago
+                if (($now - $registered) < $auto_del_user_days * DAY_IN_SECONDS) {
+                    continue;
+                }
+
+                // never logged in
+                $last_login = get_user_meta($user_id, 'user_last_login', true);
+                if ($last_login) {
+                    continue;
+                }
+
+                // Without posts
+                $comments_count = get_comments(['user_id' => $user_id, 'count' => true]);
+                if ($comments_count > 0) {
+                    continue;
+                }
+
+                // Without orders (only for WooCommerce)
+                if (class_exists('WooCommerce')) {
+                    $orders = wc_get_orders(['customer_id' => $user_id, 'limit' => 1, 'return' => 'ids']);
+                    if (!empty($orders)) {
+                        continue;
+                    }
+                }
+
+                wp_delete_user($user_id);
+            }
+        }
 
         if (!$users) {
             UsersScanResponse::getInstance()->setEnd(1);
