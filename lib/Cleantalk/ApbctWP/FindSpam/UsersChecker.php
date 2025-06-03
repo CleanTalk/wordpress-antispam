@@ -745,10 +745,14 @@ class UsersChecker extends Checker
         $users = self::getAllUsers($userScanParameters);
 
         if ($auto_del_user && $auto_del_user_days > 0 && $users) {
-            $now = current_time('timestamp');
+            $now = (int) current_time('timestamp');
             foreach ($users as $user) {
                 $user_id = $user->ID;
-                $registered = strtotime($user->user_registered);
+                $registered = (int) strtotime($user->user_registered);
+
+                if (!$registered) {
+                    continue;
+                }
 
                 // Registered less than $auto_del_user_days days ago
                 if (($now - $registered) < $auto_del_user_days * DAY_IN_SECONDS) {
@@ -768,8 +772,8 @@ class UsersChecker extends Checker
                 }
 
                 // Without orders (only for WooCommerce)
-                if (class_exists('WooCommerce')) {
-                    $orders = wc_get_orders(['customer_id' => $user_id, 'limit' => 1, 'return' => 'ids']);
+                if (class_exists('WooCommerce') && function_exists('wc_get_orders')) {
+                    $orders = \wc_get_orders(['customer_id' => $user_id, 'limit' => 1, 'return' => 'ids']);
                     if (!empty($orders)) {
                         continue;
                     }
