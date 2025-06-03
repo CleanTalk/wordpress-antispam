@@ -173,7 +173,6 @@ abstract class Checker
                     ); ?></p>
             </div>
             <br/>
-
             <div class="ct_check_params_elem ct_check_params_elem_sub">
                 <input id="ct_auto_del_user" type="checkbox"/>
                 <label for="ct_auto_del_user"><strong><?php
@@ -183,6 +182,7 @@ abstract class Checker
                 <input
                     type="number"
                     id="ct_auto_del_user_number_of_days"
+                    style="width: 70px;"
                     value="365"
                     min="1"
                     disabled
