@@ -375,8 +375,10 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
         });
     });
 }
+
 // clear protected iframes list
-apbctLocalStorage.set('apbct_iframes_protected', []);
+ctProtectOutsideFunctionalClearLocalStorage();
+
 window.addEventListener('load', function() {
     if ( ! +ctPublic.settings__forms__check_external ) {
         return;
@@ -386,11 +388,202 @@ window.addEventListener('load', function() {
         ctProtectExternal();
         catchDynamicRenderedForm();
         catchNextendSocialLoginForm();
-        ctProtectOutsideIframe();
+        ctProtectOutsideFunctionalOnTagsType('div');
+        ctProtectOutsideFunctionalOnTagsType('iframe');
     }, 2000);
 
     ctProtectKlaviyoForm();
 });
+
+let ctProtectOutsideFunctionalCheckPerformed;
+
+/**
+ * Protect outside functional. Tags div and iframe supported.
+ * @param {string} tagType
+ */
+function ctProtectOutsideFunctionalOnTagsType(tagType) {
+    let entityTagsAny = document.querySelectorAll(tagType);
+    if (entityTagsAny.length > 0) {
+        entityTagsAny.forEach(function(entity) {
+            let protectedType = ctProtectOutsideFunctionalIsTagIntegrated(entity);
+            if (false !== protectedType) {
+                let lsStorageName = 'apbct_outside_functional_protected_tags__' + protectedType;
+                let lsUniqueName = entity.id !== '' ? entity.id : false;
+                lsUniqueName = false === lsUniqueName && entity.className !== '' ? entity.className : lsUniqueName;
+                // todo we can not protect any entity that has no id and class :(
+                // pass if is already protected
+                if (
+                    false === lsUniqueName ||
+                    (
+                        false !== apbctLocalStorage.get(lsStorageName) &&
+                        apbctLocalStorage.get(lsStorageName).length > 0 &&
+                        apbctLocalStorage.get(lsStorageName)[0].indexOf(lsUniqueName) !== -1
+                    )
+                ) {
+                    return;
+                }
+                ctProtectOutsideFunctionalHandler(entity, lsStorageName, lsUniqueName);
+            }
+        });
+    }
+}
+
+/**
+ * Check if the entity must be protected
+ *
+ * @param {HTMLElement} entity
+ * @return {string|false}
+ */
+function ctProtectOutsideFunctionalIsTagIntegrated(entity) {
+    if (entity.tagName !== undefined) {
+        if (entity.tagName === 'IFRAME') {
+            if (entity.src.indexOf('form.typeform.com') !== -1 ||
+                entity.src.indexOf('forms.zohopublic.com') !== -1 ||
+                entity.src.indexOf('link.surepathconnect.com') !== -1 ||
+                entity.src.indexOf('hello.dubsado.com') !== -1 ||
+                entity.classList.contains('hs-form-iframe') ||
+                ( entity.src.indexOf('facebook.com') !== -1 && entity.src.indexOf('plugins/comments.php') !== -1) ||
+                entity.id.indexOf('chatway_widget_app') !== -1
+            ) {
+                return entity.tagName;
+            }
+        }
+        if (entity.tagName === 'DIV') {
+            if (
+                entity.className.indexOf('Window__Content-sc') !== -1 || // all in one chat widget
+                entity.className.indexOf('WidgetBackground__Content-sc') !== -1 // all in one contact form widget
+            ) {
+                return entity.tagName;
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * Protect forms placed in iframe with outside src handler
+ *
+ * @param {HTMLElement} entity
+ * @param {string} lsStorageName
+ * @param {string|false} lsUniqueName
+ */
+function ctProtectOutsideFunctionalHandler(entity, lsStorageName, lsUniqueName) {
+    let originParentPosition = null;
+    let entityParent = null;
+
+    if (entity.parentNode !== undefined) {
+        entityParent = entity.parentNode;
+    } else {
+        return;
+    }
+
+    if (
+        entityParent.style !== undefined &&
+        entityParent.style !== null &&
+        entityParent.style.position !== undefined
+    ) {
+        entityParent.style.position = originParentPosition;
+    } else {
+        entityParent.style.position = 'relative';
+    }
+    entityParent.appendChild(ctProtectOutsideFunctionalGenerateCover());
+    let entitiesProtected = apbctLocalStorage.get(lsStorageName);
+    if (false === entitiesProtected) {
+        entitiesProtected = [];
+    }
+    if (lsUniqueName) {
+        entitiesProtected.push(lsUniqueName);
+        apbctLocalStorage.set(lsStorageName, entitiesProtected);
+    }
+}
+
+/**
+ * Clear local storage for OutsideFunctional protection
+ *
+ */
+function ctProtectOutsideFunctionalClearLocalStorage() {
+    apbctLocalStorage.set('apbct_outside_functional_protected_tags__DIV', []);
+    apbctLocalStorage.set('apbct_outside_functional_protected_tags__IFRAME', []);
+}
+
+/**
+ * Generate cover for outside functional protection
+ *
+ * @return {HTMLElement} cover
+ */
+function ctProtectOutsideFunctionalGenerateCover() {
+    let cover = document.createElement('div');
+    cover.style.width = '100%';
+    cover.style.height = '100%';
+    cover.style.background = 'black';
+    cover.style.opacity = 0;
+    cover.style.position = 'absolute';
+    cover.style.top = 0;
+    cover.style.zIndex = 9999;
+    cover.setAttribute('name', 'apbct_cover');
+    cover.onclick = function(e) {
+        if (ctProtectOutsideFunctionalCheckPerformed === undefined) {
+            let currentDiv = e.currentTarget;
+            currentDiv.style.opacity = 0.5;
+            let preloader = document.createElement('div');
+            let preloaderSpin = document.createElement('div');
+            let preloaderText = document.createElement('span');
+            preloader.className = 'apbct-iframe-preloader';
+            preloaderSpin.className = 'apbct-iframe-preloader-spin';
+            preloaderText.innerText = 'CleanTalk Anti-Spam checking data..';
+            preloaderText.className = 'apbct-iframe-preloader-text';
+            preloader.appendChild(preloaderSpin);
+            currentDiv.appendChild(preloader);
+            currentDiv.appendChild(preloaderText);
+            let botDetectorToken = null;
+
+            if (!botDetectorToken) {
+                botDetectorToken = apbctLocalStorage.get('bot_detector_event_token');
+            }
+
+            let data = {
+                'action': 'cleantalk_outside_iframe_ajax_check',
+                'ct_no_cookie_hidden_field': getNoCookieData(),
+                'ct_bot_detector_event_token': botDetectorToken,
+            };
+
+            apbct_public_sendAJAX(
+                data,
+                {
+                    async: false,
+                    callback: function(result) {
+                        ctProtectOutsideFunctionalCheckPerformed = true;
+                        let callbackError = false;
+                        if (
+                            typeof result !== 'object' ||
+                            !result.hasOwnProperty('apbct') ||
+                            !result.apbct.hasOwnProperty('blocked')
+                        ) {
+                            console.warn('APBCT outside functional check error, skip check.');
+                            callbackError = true;
+                        }
+                        const comment = result.apbct.comment !== undefined ?
+                            result.apbct.comment :
+                            'Blocked by CleanTalk Anti-Spam';
+                        if (result.apbct.blocked === false || callbackError) {
+                            document.querySelectorAll('div[name="apbct_cover"]').forEach(function(el) {
+                                el.remove();
+                            });
+                        } else {
+                            document.querySelectorAll('.apbct-iframe-preloader-text').forEach((el) => {
+                                el.innerText = comment;
+                            });
+                            document.querySelectorAll('div.apbct-iframe-preloader').forEach((el) => {
+                                el.remove();
+                            });
+                        }
+                    },
+                },
+            );
+        }
+    };
+    return cover;
+}
 
 /**
  * Protect klaviyo forms
@@ -444,139 +637,6 @@ function apbctProcessExternalFormKlaviyo(form, iterator, documentObject) {
     };
     btn.parentNode.style.position = 'relative';
     btn.parentNode.appendChild(cover);
-}
-
-/**
- * Protect forms placed in iframe with outside src
- */
-function ctProtectOutsideIframe() {
-    let iframes = document.querySelectorAll('iframe');
-    if (iframes.length > 0) {
-        iframes.forEach(function(iframe) {
-            if (iframe.src.indexOf('form.typeform.com') !== -1 ||
-                iframe.src.indexOf('forms.zohopublic.com') !== -1 ||
-                iframe.src.indexOf('link.surepathconnect.com') !== -1 ||
-                iframe.src.indexOf('hello.dubsado.com') !== -1 ||
-                iframe.classList.contains('hs-form-iframe') ||
-                ( iframe.src.indexOf('facebook.com') !== -1 && iframe.src.indexOf('plugins/comments.php') !== -1) ||
-                iframe.id.indexOf('chatway_widget_app') !== -1
-            ) {
-                // pass if is already protected
-                if (false !== apbctLocalStorage.get('apbct_iframes_protected') &&
-                    apbctLocalStorage.get('apbct_iframes_protected').length > 0 &&
-                    typeof iframe.id !== 'undefined' &&
-                    apbctLocalStorage.get('apbct_iframes_protected').indexOf[iframe.id] !== -1
-                ) {
-                    return;
-                }
-                ctProtectOutsideIframeHandler(iframe);
-            }
-        });
-    }
-}
-
-let ctProtectOutsideIframeCheck;
-/**
- * Protect forms placed in iframe with outside src handler
- * @param {HTMLElement} iframe
- */
-function ctProtectOutsideIframeHandler(iframe) {
-    let originParentPosition = null;
-    let iframeParent = null;
-
-    if (iframe.parentNode !== undefined) {
-        iframeParent = iframe.parentNode;
-    } else {
-        return;
-    }
-
-    let cover = document.createElement('div');
-    cover.style.width = '100%';
-    cover.style.height = '100%';
-    cover.style.background = 'black';
-    cover.style.opacity = 0;
-    cover.style.position = 'absolute';
-    cover.style.top = 0;
-    cover.setAttribute('name', 'apbct_cover');
-    cover.onclick = function(e) {
-        if (ctProtectOutsideIframeCheck === undefined) {
-            let currentDiv = e.currentTarget;
-            currentDiv.style.opacity = 0.5;
-            let preloader = document.createElement('div');
-            let preloaderSpin = document.createElement('div');
-            let preloaderText = document.createElement('span');
-            preloader.className = 'apbct-iframe-preloader';
-            preloaderSpin.className = 'apbct-iframe-preloader-spin';
-            preloaderText.innerText = 'CleanTalk Anti-Spam checking data..';
-            preloaderText.className = 'apbct-iframe-preloader-text';
-            preloader.appendChild(preloaderSpin);
-            currentDiv.appendChild(preloader);
-            currentDiv.appendChild(preloaderText);
-            let botDetectorToken = null;
-
-            if (!botDetectorToken) {
-                botDetectorToken = apbctLocalStorage.get('bot_detector_event_token');
-            }
-
-            let data = {
-                'action': 'cleantalk_outside_iframe_ajax_check',
-                'ct_no_cookie_hidden_field': getNoCookieData(),
-                'ct_bot_detector_event_token': botDetectorToken,
-            };
-
-            apbct_public_sendAJAX(
-                data,
-                {
-                    async: false,
-                    callback: function(result) {
-                        ctProtectOutsideIframeCheck = true;
-                        let callbackError = false;
-                        if (
-                            typeof result !== 'object' ||
-                            !result.hasOwnProperty('apbct') ||
-                            !result.apbct.hasOwnProperty('blocked')
-                        ) {
-                            console.warn('APBCT outside iframe check error, skip check.');
-                            callbackError = true;
-                        }
-                        const comment = result.apbct.comment !== undefined ?
-                            result.apbct.comment :
-                            'Blocked by CleanTalk Anti-Spam';
-                        if (result.apbct.blocked === false || callbackError) {
-                            document.querySelectorAll('div.apbct-iframe-preloader').forEach(function(el) {
-                                el.parentNode.remove();
-                            });
-                        } else {
-                            document.querySelectorAll('.apbct-iframe-preloader-text').forEach((el) => {
-                                el.innerText = comment;
-                            });
-                            document.querySelectorAll('div.apbct-iframe-preloader').forEach((el) => {
-                                el.remove();
-                            });
-                        }
-                    },
-                },
-            );
-        }
-    };
-    if (
-        iframeParent.style !== undefined &&
-        iframeParent.style !== null &&
-        iframeParent.style.position !== undefined
-    ) {
-        iframeParent.style.position = originParentPosition;
-    } else {
-        iframeParent.style.position = 'relative';
-    }
-    iframeParent.appendChild(cover);
-    let iframes = apbctLocalStorage.get('apbct_iframes_protected');
-    if (false === iframes) {
-        iframes = [];
-    }
-    if (typeof iframe.id !== 'undefined') {
-        iframes.push(iframe.id);
-        apbctLocalStorage.set('apbct_iframes_protected', iframes);
-    }
 }
 
 /**
