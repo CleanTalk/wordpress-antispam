@@ -1539,6 +1539,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'ChatyContactForm';
         }
+
+        // skip QuickCal - has direct integration
+        if (
+            apbct_is_plugin_active('quickcal/quickcal.php') &&
+            Request::getString('action') === 'booked_add_appt'
+        ) {
+            return 'QuickCal';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
