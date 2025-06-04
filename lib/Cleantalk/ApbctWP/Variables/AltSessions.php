@@ -219,4 +219,20 @@ class AltSessions
             'TRUNCATE TABLE ' . APBCT_TBL_SESSIONS . ';'
         );
     }
+
+    /**
+     * Register hooks for AJAX service.
+     *
+     * @param $ajax_service
+     *
+     * @return void
+     */
+    public static function registerHooks($ajax_service)
+    {
+        // AJAX handler for saving alt cookies
+        $ajax_service->addPublicAction(
+            'apbct_alt_session__save__AJAX',
+            [self::class, 'setFromRemote']
+        );
+    }
 }
