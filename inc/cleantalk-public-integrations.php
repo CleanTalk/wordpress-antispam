@@ -1783,6 +1783,43 @@ function apbct_form__ninjaForms__testSpam()
         $gfa_dto = apbct_form__ninjaForms__collect_fields_old();
     }
 
+    if ( $gfa_dto->nickname === '' || $gfa_dto->email === '' ) {
+        $form_data = json_decode(TT::toString(Post::get('formData')), true);
+        if ( ! $form_data ) {
+            $form_data = json_decode(stripslashes(TT::toString(Post::get('formData'))), true);
+        }
+        if ( function_exists('Ninja_Forms') && isset($form_data['fields']) ) {
+            /** @psalm-suppress UndefinedFunction */
+            $nf_form_fields_info = Ninja_Forms()->form()->get_fields();
+            $nf_form_fields_info_array = [];
+            foreach ($nf_form_fields_info as $field) {
+                $nf_form_fields_info_array[$field->get_id()] = [
+                    'field_key' => $field->get_setting('key'),
+                    'field_type' => $field->get_setting('type'),
+                    'field_label' => $field->get_setting('label'),
+                ];
+            }
+
+            $nf_form_fields = $form_data['fields'];
+            $nickname = '';
+            $email = '';
+            // $fields = [];
+            foreach ($nf_form_fields as $field) {
+                $field_info = $nf_form_fields_info_array[$field['id']];
+                // $fields['nf-field-' . $field['id'] . '-' . $field_info['field_type']] = $field['value'];
+                if ( stripos($field_info['field_key'], 'name') !== false ) {
+                    $nickname = $field['value'];
+                }
+                if ( stripos($field_info['field_key'], 'email') !== false ) {
+                    $email = $field['value'];
+                }
+            }
+
+            $gfa_dto->nickname = $nickname;
+            $gfa_dto->email = $email;
+        }
+    }
+
     $sender_email           = $gfa_dto->email;
     $sender_emails_array    = $gfa_dto->emails_array;
     $sender_nickname        = $gfa_dto->nickname;
