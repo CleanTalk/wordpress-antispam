@@ -554,18 +554,20 @@ function ctProtectOutsideFunctionalGenerateCover() {
                     callback: function(result) {
                         ctProtectOutsideFunctionalCheckPerformed = true;
                         let callbackError = false;
-                        if (
-                            typeof result !== 'object' ||
-                            !result.hasOwnProperty('apbct') ||
-                            !result.apbct.hasOwnProperty('blocked')
-                        ) {
+                        if (typeof result !== 'object') {
                             console.warn('APBCT outside functional check error, skip check.');
                             callbackError = true;
                         }
-                        const comment = result.apbct.comment !== undefined ?
-                            result.apbct.comment :
-                            'Blocked by CleanTalk Anti-Spam';
-                        if (result.apbct.blocked === false || callbackError) {
+
+                        let comment = 'Blocked by CleanTalk Anti-Spam';
+                        if (result !== undefined && result.apbct !== undefined && result.apbct.comment !== undefined) {
+                            comment = result.apbct.comment;
+                        }
+
+                        if ((typeof result === 'object' && result.apbct !== undefined && result.apbct.blocked === false) ||
+                            (typeof result === 'object' && result.success !== undefined && result.success === true) ||
+                            callbackError
+                        ) {
                             document.querySelectorAll('div[name="apbct_cover"]').forEach(function(el) {
                                 el.remove();
                             });
