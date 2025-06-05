@@ -16,7 +16,7 @@ class ApbctJsBundleResolver
             $settings = $settings->getArrayCopy();
         }
 
-        $needCommFuncBundle = !empty($settings['data__email_decoder']) && $settings['data__email_decoder'] === '1';
+        $needCommFuncBundle = true;
         $external = !empty($settings['forms__check_external']) && $settings['forms__check_external'] === '1';
         $internal = !empty($settings['forms__check_internal']) && $settings['forms__check_internal'] === '1';
 
