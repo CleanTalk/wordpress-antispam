@@ -4818,8 +4818,15 @@ function ctProtectOutsideFunctionalGenerateCover() {
                             comment = result.apbct.comment;
                         }
 
-                        if ((typeof result === 'object' && result.apbct !== undefined && result.apbct.blocked === false) ||
-                            (typeof result === 'object' && result.success !== undefined && result.success === true) ||
+                        if (
+                            (
+                                typeof result === 'object' && result.apbct !== undefined &&
+                                result.apbct.blocked === false
+                            ) ||
+                            (
+                                typeof result === 'object' && result.success !== undefined &&
+                                result.success === true
+                            ) ||
                             callbackError
                         ) {
                             document.querySelectorAll('div[name="apbct_cover"]').forEach(function(el) {
