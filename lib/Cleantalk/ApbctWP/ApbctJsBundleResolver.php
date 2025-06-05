@@ -16,26 +16,17 @@ class ApbctJsBundleResolver
             $settings = $settings->getArrayCopy();
         }
 
-        $needCommFuncBundle = true;
         $external = !empty($settings['forms__check_external']) && $settings['forms__check_external'] === '1';
         $internal = !empty($settings['forms__check_internal']) && $settings['forms__check_internal'] === '1';
 
         if ($external && $internal) {
-            return $needCommFuncBundle
-                ? 'apbct-public-bundle_full-protection_comm-func.js'
-                : 'apbct-public-bundle_full-protection.js';
+            return 'apbct-public-bundle_full-protection_comm-func.js';
         } elseif ($external) {
-            return $needCommFuncBundle
-                ? 'apbct-public-bundle_ext-protection_comm-func.js'
-                : 'apbct-public-bundle_ext-protection.js';
+            return 'apbct-public-bundle_ext-protection_comm-func.js';
         } elseif ($internal) {
-            return $needCommFuncBundle
-                ? 'apbct-public-bundle_int-protection_comm-func.js'
-                : 'apbct-public-bundle_int-protection.js';
+            return 'apbct-public-bundle_int-protection_comm-func.js';
         } else {
-            return $needCommFuncBundle
-                ? 'apbct-public-bundle_comm-func.js'
-                : 'apbct-public-bundle.js';
+            return 'apbct-public-bundle_comm-func.js';
         }
     }
 }
