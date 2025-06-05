@@ -8,6 +8,8 @@ namespace Cleantalk\Antispam\EmailEncoder\Shortcodes;
  * This class defines a shortcode that wraps content in a special exclusion wrapper
  * to prevent it from being encoded. It also provides methods to modify content
  * before and after encoding, and to check if content is excluded.
+ *
+ * @psalm-suppress UnusedClass
  */
 class SkipContentFromEncodeSC extends EmailEncoderShortCode
 {
