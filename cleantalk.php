@@ -14,7 +14,6 @@
 use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
-use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\ApbctWP\Antispam\ForceProtection;
 use Cleantalk\ApbctWP\API;
@@ -231,41 +230,8 @@ function apbct_register_my_rest_routes()
     $controller->register_routes();
 }
 
-// Alt cookies via WP ajax handler
-$apbct->ajax_service->addPublicAction(
-    'apbct_alt_session__save__AJAX',
-    array(
-        Cleantalk\ApbctWP\Variables\AltSessions::class,
-        'setFromRemote'
-    )
-);
-// Get JS via WP ajax handler
-$apbct->ajax_service->addPublicAction('apbct_js_keys__get', array($apbct->ajax_service, 'getJSKeys'));
-// Get Pixel URL via WP ajax handler
-$apbct->ajax_service->addPublicAction('apbct_get_pixel_url', 'apbct_get_pixel_url');
-// Checking email before POST
-$apbct->ajax_service->addPublicAction(
-    'apbct_email_check_before_post',
-    'apbct_email_check_before_post',
-    'no_priv'
-);
-// Checking email exist POST
-$apbct->ajax_service->addPublicAction(
-    'apbct_email_check_exist_post',
-    'apbct_email_check_exist_post',
-    'no_priv'
-);
-// Force Protection check bot
-$apbct->ajax_service->addPublicAction(
-    'apbct_force_protection_check_bot',
-    'apbct_force_protection_check_bot',
-    'no_priv'
-);
-// Force ajax set important parameters (apbct_timestamp etc)
-$apbct->ajax_service->addPublicAction(
-    'apbct_set_important_parameters',
-    'apbct_cookie'
-);
+// Register hooks for AJAX requests
+\Cleantalk\ApbctWP\HooksRegistrar::registerAjaxHooks($apbct->ajax_service);
 
 // Database prefix
 global $wpdb, $wp_version;
