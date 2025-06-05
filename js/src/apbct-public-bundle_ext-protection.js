@@ -4629,8 +4629,10 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
         });
     });
 }
+
 // clear protected iframes list
-apbctLocalStorage.set('apbct_iframes_protected', []);
+ctProtectOutsideFunctionalClearLocalStorage();
+
 window.addEventListener('load', function() {
     if ( ! +ctPublic.settings__forms__check_external ) {
         return;
@@ -4640,11 +4642,211 @@ window.addEventListener('load', function() {
         ctProtectExternal();
         catchDynamicRenderedForm();
         catchNextendSocialLoginForm();
-        ctProtectOutsideIframe();
+        ctProtectOutsideFunctionalOnTagsType('div');
+        ctProtectOutsideFunctionalOnTagsType('iframe');
     }, 2000);
 
     ctProtectKlaviyoForm();
 });
+
+let ctProtectOutsideFunctionalCheckPerformed;
+
+/**
+ * Protect outside functional. Tags div and iframe supported.
+ * @param {string} tagType
+ */
+function ctProtectOutsideFunctionalOnTagsType(tagType) {
+    let entityTagsAny = document.querySelectorAll(tagType);
+    if (entityTagsAny.length > 0) {
+        entityTagsAny.forEach(function(entity) {
+            let protectedType = ctProtectOutsideFunctionalIsTagIntegrated(entity);
+            if (false !== protectedType) {
+                let lsStorageName = 'apbct_outside_functional_protected_tags__' + protectedType;
+                let lsUniqueName = entity.id !== '' ? entity.id : false;
+                lsUniqueName = false === lsUniqueName && entity.className !== '' ? entity.className : lsUniqueName;
+                // todo we can not protect any entity that has no id and class :(
+                // pass if is already protected
+                if (
+                    false === lsUniqueName ||
+                    (
+                        false !== apbctLocalStorage.get(lsStorageName) &&
+                        apbctLocalStorage.get(lsStorageName).length > 0 &&
+                        apbctLocalStorage.get(lsStorageName)[0].indexOf(lsUniqueName) !== -1
+                    )
+                ) {
+                    return;
+                }
+                ctProtectOutsideFunctionalHandler(entity, lsStorageName, lsUniqueName);
+            }
+        });
+    }
+}
+
+/**
+ * Check if the entity must be protected
+ *
+ * @param {HTMLElement} entity
+ * @return {string|false}
+ */
+function ctProtectOutsideFunctionalIsTagIntegrated(entity) {
+    if (entity.tagName !== undefined) {
+        if (entity.tagName === 'IFRAME') {
+            if (entity.src.indexOf('form.typeform.com') !== -1 ||
+                entity.src.indexOf('forms.zohopublic.com') !== -1 ||
+                entity.src.indexOf('link.surepathconnect.com') !== -1 ||
+                entity.src.indexOf('hello.dubsado.com') !== -1 ||
+                entity.classList.contains('hs-form-iframe') ||
+                ( entity.src.indexOf('facebook.com') !== -1 && entity.src.indexOf('plugins/comments.php') !== -1) ||
+                entity.id.indexOf('chatway_widget_app') !== -1
+            ) {
+                return entity.tagName;
+            }
+        }
+        if (entity.tagName === 'DIV') {
+            if (
+                entity.className.indexOf('Window__Content-sc') !== -1 || // all in one chat widget
+                entity.className.indexOf('WidgetBackground__Content-sc') !== -1 // all in one contact form widget
+            ) {
+                return entity.tagName;
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * Protect forms placed in iframe with outside src handler
+ *
+ * @param {HTMLElement} entity
+ * @param {string} lsStorageName
+ * @param {string|false} lsUniqueName
+ */
+function ctProtectOutsideFunctionalHandler(entity, lsStorageName, lsUniqueName) {
+    let originParentPosition = null;
+    let entityParent = null;
+
+    if (entity.parentNode !== undefined) {
+        entityParent = entity.parentNode;
+    } else {
+        return;
+    }
+
+    if (
+        entityParent.style !== undefined &&
+        entityParent.style !== null &&
+        entityParent.style.position !== undefined
+    ) {
+        entityParent.style.position = originParentPosition;
+    } else {
+        entityParent.style.position = 'relative';
+    }
+    entityParent.appendChild(ctProtectOutsideFunctionalGenerateCover());
+    let entitiesProtected = apbctLocalStorage.get(lsStorageName);
+    if (false === entitiesProtected) {
+        entitiesProtected = [];
+    }
+    if (lsUniqueName) {
+        entitiesProtected.push(lsUniqueName);
+        apbctLocalStorage.set(lsStorageName, entitiesProtected);
+    }
+}
+
+/**
+ * Clear local storage for OutsideFunctional protection
+ *
+ */
+function ctProtectOutsideFunctionalClearLocalStorage() {
+    apbctLocalStorage.set('apbct_outside_functional_protected_tags__DIV', []);
+    apbctLocalStorage.set('apbct_outside_functional_protected_tags__IFRAME', []);
+}
+
+/**
+ * Generate cover for outside functional protection
+ *
+ * @return {HTMLElement} cover
+ */
+function ctProtectOutsideFunctionalGenerateCover() {
+    let cover = document.createElement('div');
+    cover.style.width = '100%';
+    cover.style.height = '100%';
+    cover.style.background = 'black';
+    cover.style.opacity = 0;
+    cover.style.position = 'absolute';
+    cover.style.top = 0;
+    cover.style.zIndex = 9999;
+    cover.setAttribute('name', 'apbct_cover');
+    cover.onclick = function(e) {
+        if (ctProtectOutsideFunctionalCheckPerformed === undefined) {
+            let currentDiv = e.currentTarget;
+            currentDiv.style.opacity = 0.5;
+            let preloader = document.createElement('div');
+            let preloaderSpin = document.createElement('div');
+            let preloaderText = document.createElement('span');
+            preloader.className = 'apbct-iframe-preloader';
+            preloaderSpin.className = 'apbct-iframe-preloader-spin';
+            preloaderText.innerText = 'CleanTalk Anti-Spam checking data..';
+            preloaderText.className = 'apbct-iframe-preloader-text';
+            preloader.appendChild(preloaderSpin);
+            currentDiv.appendChild(preloader);
+            currentDiv.appendChild(preloaderText);
+            let botDetectorToken = null;
+
+            if (!botDetectorToken) {
+                botDetectorToken = apbctLocalStorage.get('bot_detector_event_token');
+            }
+
+            let data = {
+                'action': 'cleantalk_outside_iframe_ajax_check',
+                'ct_no_cookie_hidden_field': getNoCookieData(),
+                'ct_bot_detector_event_token': botDetectorToken,
+            };
+
+            apbct_public_sendAJAX(
+                data,
+                {
+                    async: false,
+                    callback: function(result) {
+                        ctProtectOutsideFunctionalCheckPerformed = true;
+                        let callbackError = false;
+                        if (typeof result !== 'object') {
+                            console.warn('APBCT outside functional check error, skip check.');
+                            callbackError = true;
+                        }
+
+                        let comment = 'Blocked by CleanTalk Anti-Spam';
+                        if (result !== undefined && result.apbct !== undefined && result.apbct.comment !== undefined) {
+                            comment = result.apbct.comment;
+                        }
+
+                        if (
+                            (
+                                typeof result === 'object' && result.apbct !== undefined &&
+                                result.apbct.blocked === false
+                            ) ||
+                            (
+                                typeof result === 'object' && result.success !== undefined &&
+                                result.success === true
+                            ) ||
+                            callbackError
+                        ) {
+                            document.querySelectorAll('div[name="apbct_cover"]').forEach(function(el) {
+                                el.remove();
+                            });
+                        } else {
+                            document.querySelectorAll('.apbct-iframe-preloader-text').forEach((el) => {
+                                el.innerText = comment;
+                            });
+                            document.querySelectorAll('div.apbct-iframe-preloader').forEach((el) => {
+                                el.remove();
+                            });
+                        }
+                    },
+                },
+            );
+        }
+    };
+    return cover;
+}
 
 /**
  * Protect klaviyo forms
@@ -4698,101 +4900,6 @@ function apbctProcessExternalFormKlaviyo(form, iterator, documentObject) {
     };
     btn.parentNode.style.position = 'relative';
     btn.parentNode.appendChild(cover);
-}
-
-/**
- * Protect forms placed in iframe with outside src
- */
-function ctProtectOutsideIframe() {
-    let iframes = document.querySelectorAll('iframe');
-    if (iframes.length > 0) {
-        iframes.forEach(function(iframe) {
-            if (iframe.src.indexOf('form.typeform.com') !== -1 ||
-                iframe.src.indexOf('forms.zohopublic.com') !== -1 ||
-                iframe.src.indexOf('link.surepathconnect.com') !== -1 ||
-                iframe.src.indexOf('hello.dubsado.com') !== -1 ||
-                iframe.classList.contains('hs-form-iframe') ||
-                ( iframe.src.indexOf('facebook.com') !== -1 && iframe.src.indexOf('plugins/comments.php') !== -1)
-            ) {
-                // pass if is already protected
-                if (false !== apbctLocalStorage.get('apbct_iframes_protected') &&
-                    apbctLocalStorage.get('apbct_iframes_protected').length > 0 &&
-                    typeof iframe.id !== 'undefined' &&
-                    apbctLocalStorage.get('apbct_iframes_protected').indexOf[iframe.id] !== -1
-                ) {
-                    return;
-                }
-                ctProtectOutsideIframeHandler(iframe);
-            }
-        });
-    }
-}
-
-let ctProtectOutsideIframeCheck;
-/**
- * Protect forms placed in iframe with outside src handler
- * @param {HTMLElement} iframe
- */
-function ctProtectOutsideIframeHandler(iframe) {
-    let cover = document.createElement('div');
-    cover.style.width = '100%';
-    cover.style.height = '100%';
-    cover.style.background = 'black';
-    cover.style.opacity = 0;
-    cover.style.position = 'absolute';
-    cover.style.top = 0;
-    cover.onclick = function(e) {
-        if (ctProtectOutsideIframeCheck === undefined) {
-            let currentDiv = e.currentTarget;
-            currentDiv.style.opacity = 0.5;
-            let preloader = document.createElement('div');
-            preloader.className = 'apbct-iframe-preloader';
-            currentDiv.appendChild(preloader);
-            let botDetectorToken = '';
-            if (document.querySelector('[name*="ct_bot_detector_event_token"]')) {
-                botDetectorToken = document.querySelector('[name*="ct_bot_detector_event_token"]').value;
-            }
-
-            let data = {
-                'action': 'cleantalk_outside_iframe_ajax_check',
-                'ct_no_cookie_hidden_field': getNoCookieData(),
-                'ct_bot_detector_event_token': botDetectorToken,
-            };
-
-            apbct_public_sendAJAX(
-                data,
-                {
-                    async: false,
-                    callback: function(result) {
-                        ctProtectOutsideIframeCheck = true;
-                        if (result.apbct.blocked === false) {
-                            document.querySelectorAll('div.apbct-iframe-preloader').forEach(function(el) {
-                                el.parentNode.remove();
-                            });
-                        } else {
-                            document.querySelectorAll('div.apbct-iframe-preloader').forEach((el) => {
-                                el.parentNode.style.color = 'white';
-                                el.parentNode.innerHTML += result.apbct.comment;
-                            });
-                            document.querySelectorAll('div.apbct-iframe-preloader').forEach((el) => {
-                                el.remove();
-                            });
-                        }
-                    },
-                },
-            );
-        }
-    };
-    iframe.parentNode.style.position = 'relative';
-    iframe.parentNode.appendChild(cover);
-    let iframes = apbctLocalStorage.get('apbct_iframes_protected');
-    if (false === iframes) {
-        iframes = [];
-    }
-    if (typeof iframe.id !== 'undefined') {
-        iframes.push(iframe.id);
-        apbctLocalStorage.set('apbct_iframes_protected', iframes);
-    }
 }
 
 /**
@@ -5307,445 +5414,4 @@ function apbctIsFormInDiv(formObj, divClassName) {
         parent = parent.parentElement;
     }
     return false;
-}
-
-/**
- * @return {HTMLElement} event
- */
-function apbctSetEmailDecoderPopupAnimation() {
-    const animationElements = ['apbct_dog_one', 'apbct_dog_two', 'apbct_dog_three'];
-    const animationWrapper = document.createElement('div');
-    animationWrapper.classList = 'apbct-ee-animation-wrapper';
-    for (let i = 0; i < animationElements.length; i++) {
-        const apbctEEAnimationDogOne = document.createElement('span');
-        apbctEEAnimationDogOne.classList = 'apbct_dog ' + animationElements[i];
-        apbctEEAnimationDogOne.innerText = '@';
-        animationWrapper.append(apbctEEAnimationDogOne);
-    }
-    return animationWrapper;
-}
-
-/**
- * @param {mixed} event
- */
-function ctFillDecodedEmailHandler(event = false) {
-    let clickSource = false;
-    let ctWlBrandname = '';
-    let encodedEmail = '';
-    if (typeof ctPublic !== 'undefined') {
-        this.removeEventListener('click', ctFillDecodedEmailHandler);
-        // remember clickSource
-        clickSource = this;
-        // globally remember if emails is mixed with mailto
-        ctPublic.encodedEmailNodesIsMixed = false;
-        ctWlBrandname = ctPublic.wl_brandname;
-        encodedEmail = ctPublic.encodedEmailNodes;
-    } else if (typeof ctAdminCommon !== 'undefined') {
-        ctWlBrandname = ctAdminCommon.plugin_name;
-        encodedEmail = ctAdminCommon.encodedEmailNode;
-    }
-
-    // get fade
-    document.body.classList.add('apbct-popup-fade');
-    // popup show
-    let encoderPopup = document.getElementById('apbct_popup');
-    if (!encoderPopup) {
-        // construct popup
-        let waitingPopup = document.createElement('div');
-        waitingPopup.setAttribute('class', 'apbct-popup apbct-email-encoder-popup');
-        waitingPopup.setAttribute('id', 'apbct_popup');
-
-        // construct text header
-        let popupHeaderWrapper = document.createElement('span');
-        popupHeaderWrapper.classList = 'apbct-email-encoder-elements_center';
-        let popupHeader = document.createElement('p');
-        popupHeader.innerText = ctWlBrandname;
-        popupHeader.setAttribute('class', 'apbct-email-encoder--popup-header');
-        popupHeaderWrapper.append(popupHeader);
-
-        // construct text wrapper
-        let popupTextWrapper = document.createElement('div');
-        popupTextWrapper.setAttribute('id', 'apbct_popup_text');
-        popupTextWrapper.setAttribute('class', 'apbct-email-encoder-elements_center');
-        popupTextWrapper.style.color = 'black';
-
-        // construct text first node
-        // todo make translatable
-        let popupTextWaiting = document.createElement('p');
-        popupTextWaiting.id = 'apbct_email_ecoder__popup_text_node_first';
-        if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_wait_for_decoding) {
-            popupTextWaiting.innerText = ctPublicFunctions.text__ee_wait_for_decoding;
-        } else {
-            popupTextWaiting.innerText = ctAdminCommon.text__ee_wait_for_decoding;
-        }
-        popupTextWaiting.setAttribute('class', 'apbct-email-encoder-elements_center');
-
-        // construct text second node
-        // todo make translatable
-        let popupTextDecoding = document.createElement('p');
-        popupTextDecoding.id = 'apbct_email_ecoder__popup_text_node_second';
-        if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_decoding_process) {
-            popupTextDecoding.innerText = ctPublicFunctions.text__ee_decoding_process;
-        } else {
-            popupTextDecoding.innerText = ctAdminCommon.text__ee_decoding_process;
-        }
-
-        // appending
-        popupTextWrapper.append(popupTextWaiting);
-        popupTextWrapper.append(popupTextDecoding);
-        waitingPopup.append(popupHeaderWrapper);
-        waitingPopup.append(popupTextWrapper);
-        waitingPopup.append(apbctSetEmailDecoderPopupAnimation());
-        document.body.append(waitingPopup);
-    } else {
-        encoderPopup.setAttribute('style', 'display: inherit');
-        if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_wait_for_decoding) {
-            document.getElementById('apbct_popup_text').innerHTML = ctPublicFunctions.text__ee_wait_for_decoding;
-        } else {
-            document.getElementById('apbct_popup_text').innerHTML = ctAdminCommon.text__ee_wait_for_decoding;
-        }
-    }
-
-    apbctAjaxEmailDecodeBulk(event, encodedEmail, clickSource);
-}
-
-/**
- * @param {mixed} event
- * @param {mixed} encodedEmailNodes
- * @param {mixed} clickSource
- */
-function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
-    if (event && clickSource) {
-        // collect data
-        const javascriptClientData = getJavascriptClientData();
-        let data = {
-            event_javascript_data: javascriptClientData,
-            post_url: document.location.href,
-            referrer: document.referrer,
-            encodedEmails: '',
-        };
-        let encodedEmailsCollection = {};
-        for (let i = 0; i < encodedEmailNodes.length; i++) {
-            // disable click for mailto
-            if (
-                typeof encodedEmailNodes[i].href !== 'undefined' &&
-                encodedEmailNodes[i].href.indexOf('mailto:') === 0
-            ) {
-                event.preventDefault();
-                ctPublic.encodedEmailNodesIsMixed = true;
-            }
-
-            // Adding a tooltip
-            let apbctTooltip = document.createElement('div');
-            apbctTooltip.setAttribute('class', 'apbct-tooltip');
-            apbct(encodedEmailNodes[i]).append(apbctTooltip);
-
-            // collect encoded email strings
-            encodedEmailsCollection[i] = encodedEmailNodes[i].dataset.originalString;
-        }
-
-        // JSONify encoded email strings
-        data.encodedEmails = JSON.stringify(encodedEmailsCollection);
-
-        // Using REST API handler
-        if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
-            apbct_public_sendREST(
-                'apbct_decode_email',
-                {
-                    data: data,
-                    method: 'POST',
-                    callback: function(result) {
-                        // set alternative cookie to skip next pages encoding
-                        ctSetCookie('apbct_email_encoder_passed', ctPublic.emailEncoderPassKey, '');
-                        apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource);
-                    },
-                    onErrorCallback: function(res) {
-                        resetEncodedNodes();
-                        ctShowDecodeComment(res);
-                    },
-                },
-            );
-
-            // Using AJAX request and handler
-        } else {
-            data.action = 'apbct_decode_email';
-            apbct_public_sendAJAX(
-                data,
-                {
-                    notJson: false,
-                    callback: function(result) {
-                        console.log('result');
-                        console.log(result);
-
-                        // set alternative cookie to skip next pages encoding
-                        ctSetCookie('apbct_email_encoder_passed', ctPublic.emailEncoderPassKey, '');
-                        apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource);
-                    },
-                    onErrorCallback: function(res) {
-                        resetEncodedNodes();
-                        ctShowDecodeComment(res);
-                    },
-                },
-            );
-        }
-    } else {
-        const encodedEmail = encodedEmailNodes.dataset.originalString;
-        let data = {
-            encodedEmails: JSON.stringify({0: encodedEmail}),
-        };
-
-        // Adding a tooltip
-        let apbctTooltip = document.createElement('div');
-        apbctTooltip.setAttribute('class', 'apbct-tooltip');
-        encodedEmailNodes.appendChild(apbctTooltip);
-
-        apbct_admin_sendAJAX(
-            {
-                'action': 'apbct_decode_email',
-                'encodedEmails': data.encodedEmails,
-            },
-            {
-                'callback': function(result) {
-                    apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, false);
-                },
-                'notJson': true,
-            },
-        );
-    }
-}
-
-/**
- * @param {mixed} result
- * @param {mixed} encodedEmailNodes
- * @param {mixed} clickSource
- */
-function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = false) {
-    if (result.success && result.data[0].is_allowed === true) {
-        // start process of visual decoding
-        setTimeout(function() {
-            // popup remove
-            let popup = document.getElementById('apbct_popup');
-            if (popup !== null) {
-                let email = '';
-                if (clickSource) {
-                    let currentResultData;
-                    result.data.forEach((row) => {
-                        if (row.encoded_email === clickSource.dataset.originalString) {
-                            currentResultData = row;
-                        }
-                    });
-
-                    email = currentResultData.decoded_email.split(/[&?]/)[0];
-                } else {
-                    email = result.data[0].decoded_email;
-                }
-                // handle first node
-                let firstNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_first');
-                // get email selectable by click
-                let selectableEmail = document.createElement('b');
-                selectableEmail.setAttribute('class', 'apbct-email-encoder-select-whole-email');
-                selectableEmail.innerText = email;
-                if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_click_to_select) {
-                    selectableEmail.title = ctPublicFunctions.text__ee_click_to_select;
-                } else {
-                    selectableEmail.title = ctAdminCommon.text__ee_click_to_select;
-                }
-                // add email to the first node
-                if (firstNode) {
-                    if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_original_email) {
-                        firstNode.innerHTML = ctPublicFunctions.text__ee_original_email +
-                            '&nbsp;' + selectableEmail.outerHTML;
-                    } else {
-                        firstNode.innerHTML = ctAdminCommon.text__ee_original_email +
-                            '&nbsp;' + selectableEmail.outerHTML;
-                    }
-
-                    firstNode.setAttribute('style', 'flex-direction: row;');
-                }
-                // remove animation
-                let wrapper = popup.querySelector('.apbct-ee-animation-wrapper');
-                if (wrapper) {
-                    wrapper.remove();
-                }
-                // remove second node
-                let secondNode = popup.querySelector('#apbct_email_ecoder__popup_text_node_second');
-                if (secondNode) {
-                    secondNode.remove();
-                }
-                // add button
-                let buttonWrapper = document.createElement('span');
-                buttonWrapper.classList = 'apbct-email-encoder-elements_center top-margin-long';
-                if (!document.querySelector('.apbct-email-encoder-got-it-button')) {
-                    let button = document.createElement('button');
-                    if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_got_it) {
-                        button.innerText = ctPublicFunctions.text__ee_got_it;
-                    } else {
-                        button.innerText = ctAdminCommon.text__ee_got_it;
-                    }
-                    button.classList = 'apbct-email-encoder-got-it-button';
-                    button.addEventListener('click', function() {
-                        document.body.classList.remove('apbct-popup-fade');
-                        popup.setAttribute('style', 'display:none');
-                        fillDecodedNodes(encodedEmailNodes, result);
-                        // click on mailto if so
-                        if (typeof ctPublic !== 'undefined' && ctPublic.encodedEmailNodesIsMixed && clickSource) {
-                            clickSource.click();
-                        }
-                    });
-                    buttonWrapper.append(button);
-                    popup.append(buttonWrapper);
-                }
-            }
-        }, 3000);
-    } else {
-        if (clickSource) {
-            if (result.success) {
-                resetEncodedNodes();
-                if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_blocked) {
-                    ctShowDecodeComment(ctPublicFunctions.text__ee_blocked + ': ' + result.data[0].comment);
-                } else {
-                    ctShowDecodeComment(ctAdminCommon.text__ee_blocked + ': ' + result.data[0].comment);
-                }
-            } else {
-                resetEncodedNodes();
-                if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_cannot_connect) {
-                    ctShowDecodeComment(ctPublicFunctions.text__ee_cannot_connect + ': ' + result.apbct.comment);
-                } else {
-                    ctShowDecodeComment(ctAdminCommon.text__ee_cannot_connect + ': ' + result.data[0].comment);
-                }
-            }
-        } else {
-            console.log('result', result);
-        }
-    }
-}
-
-/**
- * Reset click event for encoded email
- */
-function resetEncodedNodes() {
-    if (typeof ctPublic.encodedEmailNodes !== 'undefined') {
-        ctPublic.encodedEmailNodes.forEach(function(element) {
-            element.addEventListener('click', ctFillDecodedEmailHandler);
-        });
-    }
-}
-
-/**
- * Show Decode Comment
- * @param {string} comment
- */
-function ctShowDecodeComment(comment) {
-    if ( ! comment ) {
-        if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_cannot_decode) {
-            comment = ctPublicFunctions.text__ee_cannot_decode;
-        } else {
-            comment = ctAdminCommon.text__ee_cannot_decode;
-        }
-    }
-
-    let popup = document.getElementById('apbct_popup');
-    let popupText = document.getElementById('apbct_popup_text');
-    if (popup !== null) {
-        document.body.classList.remove('apbct-popup-fade');
-        if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_email_decoder) {
-            popupText.innerText = ctPublicFunctions.text__ee_email_decoder + ': ' + comment;
-        } else {
-            popupText.innerText = ctAdminCommon.text__ee_email_decoder + ': ' + comment;
-        }
-        setTimeout(function() {
-            popup.setAttribute('style', 'display:none');
-        }, 3000);
-    }
-}
-
-/**
- * Run filling for every node with decoding result.
- * @param {mixed} encodedNodes
- * @param {mixed} decodingResult
- */
-function fillDecodedNodes(encodedNodes, decodingResult) {
-    if (encodedNodes.length > 0) {
-        for (let i = 0; i < encodedNodes.length; i++) {
-            // chek what is what
-            let currentResultData;
-            decodingResult.data.forEach((row) => {
-                if (row.encoded_email === encodedNodes[i].dataset.originalString) {
-                    currentResultData = row;
-                }
-            });
-            // quit case on cloud block
-            if (currentResultData.is_allowed === false) {
-                return;
-            }
-            // handler for mailto
-            if (
-                typeof encodedNodes[i].href !== 'undefined' &&
-                (
-                    encodedNodes[i].href.indexOf('mailto:') === 0 ||
-                    encodedNodes[i].href.indexOf('tel:') === 0
-                )
-            ) {
-                let linkTypePrefix;
-                if (encodedNodes[i].href.indexOf('mailto:') === 0) {
-                    linkTypePrefix = 'mailto:';
-                } else if (encodedNodes[i].href.indexOf('tel:') === 0) {
-                    linkTypePrefix = 'tel:';
-                } else {
-                    continue;
-                }
-                let encodedEmail = encodedNodes[i].href.replace(linkTypePrefix, '');
-                let baseElementContent = encodedNodes[i].innerHTML;
-                encodedNodes[i].innerHTML = baseElementContent.replace(
-                    encodedEmail,
-                    currentResultData.decoded_email,
-                );
-                encodedNodes[i].href = linkTypePrefix + currentResultData.decoded_email;
-
-                encodedNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((el) => {
-                    let encodedEmailTextInsideMailto = '';
-                    decodingResult.data.forEach((row) => {
-                        if (row.encoded_email === el.dataset.originalString) {
-                            encodedEmailTextInsideMailto = row.decoded_email;
-                        }
-                    });
-                    el.innerHTML = encodedEmailTextInsideMailto;
-                });
-            } else {
-                encodedNodes[i].classList.add('no-blur');
-                // fill the nodes
-                setTimeout(() => {
-                    ctProcessDecodedDataResult(currentResultData, encodedNodes[i]);
-                }, 2000);
-            }
-            // remove listeners
-            encodedNodes[i].removeEventListener('click', ctFillDecodedEmailHandler);
-        }
-    } else {
-        let currentResultData = decodingResult.data[0];
-        encodedNodes.classList.add('no-blur');
-        // fill the nodes
-        setTimeout(() => {
-            ctProcessDecodedDataResult(currentResultData, encodedNodes);
-        }, 2000);
-        encodedNodes.removeEventListener('click', ctFillDecodedEmailHandler);
-    }
-}
-
-/**
- * @param {mixed} response
- * @param {mixed} targetElement
- */
-function ctProcessDecodedDataResult(response, targetElement) {
-    targetElement.setAttribute('title', '');
-    targetElement.removeAttribute('style');
-    ctFillDecodedEmail(targetElement, response.decoded_email);
-}
-
-/**
- * @param {mixed} target
- * @param {string} email
- */
-function ctFillDecodedEmail(target, email) {
-    target.innerHTML = target.innerHTML.replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1');
 }

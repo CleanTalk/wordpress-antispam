@@ -92,7 +92,7 @@ class UsersScan extends Users
         if ( defined('APBCT_IS_LOCALHOST') && APBCT_IS_LOCALHOST ) {
             $out .= '<div class="ctlk---red bar" style="padding: 10px">';
             $out .= '<span>These actions available only for test purpose and buttons are visible only in local env:</span>';
-            $out .= '<button type="button" class="button button-small action ct_insert_users" style="margin:0 5px">Insert 500 users</button>';
+            $out .= '<button type="button" class="button button-small action ct_insert_users" style="margin:0 5px">Insert 50 users</button>';
             $out .= '<button type="button" class="button button-small action ct_insert_users__delete" style="margin:0 5px">Delete inserted users</button>';
             $out .= '</div>';
         }

@@ -692,6 +692,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             'wpforms_restricted_email', //WPForm validate
             'fluentcrm_unsubscribe_ajax', //FluentCRM unsubscribe
             'forminator_submit_form_custom', //Forminator has direct integration
+            'forminator_submit_form_custom-forms', //Forminator has direct integration
             'wcf_woocommerce_login', //WooCommerce CartFlows login
             'nasa_process_login', //Nasa login
             'leaky_paywall_validate_registration', //Leaky Paywall validation request
@@ -1538,6 +1539,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             Request::getString('action') === 'chaty_front_form_save_data'
         ) {
             return 'ChatyContactForm';
+        }
+
+        // skip Login/Signup Popup - has direct integration
+        if (
+            apbct_is_plugin_active('easy-login-woocommerce/xoo-el-main.php') &&
+            Request::getString('action') === 'xoo_el_form_action'
+        ) {
+            return 'Login/Signup Popup';
         }
     } else {
         /*****************************************/

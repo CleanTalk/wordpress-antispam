@@ -2,13 +2,13 @@
 
 namespace Cleantalk\ApbctWP\Antispam;
 
+use Cleantalk\Antispam\Cleantalk;
+use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Common\TT;
 use Cleantalk\Variables\Post;
-use Cleantalk\Antispam\CleantalkRequest;
-use Cleantalk\Antispam\Cleantalk;
 
-class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
+class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
 {
     /**
      * @var null|string Comment from API response
@@ -210,6 +210,9 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             <p class="apbct-icon-mobile" style="padding-left: 10px">%s</p>
         <p>%s</p>
         <p><a href="#apbct_setting_group__contact_data_encoding" onclick="handleAnchorDetection(\'apbct_setting_group__contact_data_encoding\')">%s</a> %s</p>
+        <p>%s</p>
+        <p><code>%s</code></p>
+        <p><code>%s</code></p>
         ';
         $tmp = sprintf(
             $tmp,
@@ -221,7 +224,10 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
             __('+1 (234) 567-8901 → +1 (***) ***-****', 'cleantalk-spam-protect'),
             __('You can also customize how emails are displayed before they are decoded by users — blurred, replaced with stars, or shown as a custom message. ', 'cleantalk-spam-protect'),
             __('Click', 'cleantalk-spam-protect'),
-            __('to proceed to encoder settings', 'cleantalk-spam-protect')
+            __('to proceed to encoder settings', 'cleantalk-spam-protect'),
+            __('To skip encoding of a single entity use the shortcode, any text wrapped by shortcode will be shown as origin', 'cleantalk-spam-protect'),
+            __('[apbct_skip_encoding]stop@email.com[/apbct_skip_encoding]', 'cleantalk-spam-protect'),
+            __('[apbct_skip_encoding]+11231234567[/apbct_skip_encoding]', 'cleantalk-spam-protect')
         );
         return $tmp;
     }
@@ -287,7 +293,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
          */
         $decoding_text = apply_filters(
             'apbct__ee_wait_for_decoding_text',
-            __('The magic is on the way, please wait for a few seconds!', 'cleantalk-spam-protect')
+            __('The magic is on the way!', 'cleantalk-spam-protect')
         );
 
         /**
@@ -300,7 +306,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
          */
         $original_contact_text = apply_filters(
             'apbct__ee_original_email_text',
-            __('The original one is', 'cleantalk-spam-protect')
+            __('The complete one is', 'cleantalk-spam-protect')
         );
 
         /**
@@ -313,7 +319,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder
          */
         $decoding_process_text = apply_filters(
             'apbct__ee_decoding_process_text',
-            __('Decoding the contact data, let us a few seconds to finish.', 'cleantalk-spam-protect')
+            __('Please wait a few seconds while we decode the contact data.', 'cleantalk-spam-protect')
         );
 
         return array(
