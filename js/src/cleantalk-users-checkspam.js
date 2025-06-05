@@ -151,6 +151,8 @@ function ct_send_users(){
 	}
 
 	var check_amount = apbct_get_cookie('ct_check_users__amount');
+	var autoDelUser = jQuery('#ct_auto_del_user').is(':checked') ? 1 : 0;
+	var autoDelDays = parseInt(jQuery('#ct_auto_del_user_number_of_days').val(), 10) || 365;
 
 	var data = {
 		action: 'ajax_check_users',
@@ -159,7 +161,9 @@ function ct_send_users(){
 		unchecked: ct_unchecked,
 		amount: check_amount,
 		'no_cache': Math.random(),
-		'offset' : Number(getCookie('apbct_check_users_offset'))
+		'offset' : Number(getCookie('apbct_check_users_offset')),
+		auto_del_user: autoDelUser,
+		auto_del_user_days: autoDelDays
 	};
 
 	if(ct_accurate_check)
@@ -421,6 +425,14 @@ jQuery(document).ready(function(){
 			}
 		}
 	);
+
+	jQuery('#ct_auto_del_user').on('change', function() {
+        if (jQuery(this).is(':checked')) {
+            jQuery('#ct_auto_del_user_number_of_days').prop('disabled', false);
+        } else {
+            jQuery('#ct_auto_del_user_number_of_days').prop('disabled', true);
+        }
+    });
 
 	// Check users
 	jQuery("#ct_check_spam_button").click(function(){
