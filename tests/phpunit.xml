@@ -14,4 +14,16 @@
             <exclude>./bootstrap.php</exclude>
         </testsuite>
     </testsuites>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">../lib/Cleantalk/</directory>
+            <exclude>
+                <directory>../tests/</directory>
+                <directory>../vendor/</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+    <logging>
+        <log type="coverage-text" target="php://stdout" showUncoveredFiles="true"/>
+    </logging>
 </phpunit>
