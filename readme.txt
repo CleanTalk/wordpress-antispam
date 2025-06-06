@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 6.56
+Stable tag: 6.57
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -448,7 +448,20 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
-= 6.56 22.05.2026 =
+= 6.57 05.06.2025 =
+New. Integration. Chatway Live Chat. Protected via iframe coverage.
+New. Integration. Login Signup/Popup registration protection implemented.
+New. Integrations. All-in-one chat.
+New. EmailEncoder. Shortcode to exclude data from encoding. Lot of refactoring.
+New. User/Comment checker. New class LoginIPKeeper implemented to keep spammer IP address even if spammer session is expired.
+New. Code. Added links to support and an article in help.
+Upd. Integrations. Move wpforms integration to separate class.
+Mod. EmailEncoder. Long description updated.
+Fix. Alt sessions. Missed data last_update fixed.
+Fix. External forms. Outside iframe check. Validate result before final actions.
+Fix. Integrations. Fixed forminator nickname gathering.
+
+= 6.56 22.05.2025 =
 * Upd. PublicScripts. Update bot detector script enqueueing to use wp_enqueue_script with proper parameters for improved performance and compatibility.
 * Ref. WPSearch. Class integration for WP Search
 * Upd. Cron. Update flow to prevent object cache.

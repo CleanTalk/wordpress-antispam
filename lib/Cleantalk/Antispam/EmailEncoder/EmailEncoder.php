@@ -104,7 +104,7 @@ class EmailEncoder
         $this->shortcodes->registerAll();
         $this->shortcodes->addActionsAfterModify('the_content', 11);
         $this->shortcodes->addActionsAfterModify('the_title', 11);
-        add_action('the_title', array($this->shortcodes->exclude, 'clearTitleContentFromShortcodeConstruction'), 12);
+        // add_action('the_title', array($this->shortcodes->exclude, 'clearTitleContentFromShortcodeConstruction'), 12);
 
         $this->registerHookHandler();
 
