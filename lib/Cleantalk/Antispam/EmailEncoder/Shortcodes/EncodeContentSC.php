@@ -3,6 +3,7 @@
 namespace Cleantalk\Antispam\EmailEncoder\Shortcodes;
 
 use Cleantalk\Antispam\EmailEncoder\EmailEncoder;
+use Cleantalk\Antispam\EmailEncoder\ExclusionsService;
 use Cleantalk\ApbctWP\Variables\Cookie;
 
 /**
@@ -26,6 +27,20 @@ class EncodeContentSC extends EmailEncoderShortCode
      * @var string The wrapper used to mark content for inclusion during encoding.
      */
     public $exclusion_wrapper = '%%APBCT_SHORT_CODE_INCLUDE_EE_#COUNT#%%';
+
+    /**
+     * @var ExclusionsService
+     */
+    private $exclusions;
+
+    /**
+     * @param string $public_name
+     */
+    public function __construct()
+    {
+        $this->exclusions = new ExclusionsService();
+    }
+
 
     /**
      * Callback function for the shortcode.
@@ -60,6 +75,10 @@ class EncodeContentSC extends EmailEncoderShortCode
      */
     public function changeContentBeforeEncoderModify($content)
     {
+        if ( $this->exclusions->doReturnContentBeforeModify($content) ) {
+            return $content;
+        }
+
         // skip encoding if the content is already encoded with hook
         // Extract shortcode content to protect it from email encoding
         $shortcode_exist_pattern = sprintf('/\[%s\](.*?)\[\/%s\]/s', $this->public_name, $this->public_name);
