@@ -23,7 +23,11 @@ class WPForms extends IntegrationByClassBase
      */
     public function doPublicWork()
     {
-        add_action('wpforms_frontend_output', [$this, 'addField'], 1000, 5);
+        if (!$this->isSkipIntegration()) {
+            add_action('wpforms_frontend_output', [$this, 'addField'], 1000, 5);
+            add_filter('wpforms_process_initial_errors', [$this, 'showResponse'], 100, 2);
+            add_filter('wpforms_process_before_filter', [$this, 'gatherData'], 100, 2);
+        }
     }
 
     public function doAjaxWork()
