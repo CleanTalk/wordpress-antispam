@@ -7,5 +7,6 @@ node_modules
 composer.lock
 package-lock.json
 checkstyle.xml
+coverage.txt
 /fw_files*
 /cleantalk-spam-protect.bat
