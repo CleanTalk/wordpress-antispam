@@ -777,7 +777,7 @@ function apbctSaveButtonPosition() {
         return;
     }
 
-    if (!ctSettingsPage.key_is_ok) {
+    if (!ctSettingsPage.key_is_ok && !ctSettingsPage.ip_license) {
         jQuery('#apbct_settings__main_save_button').hide();
         return;
     }
