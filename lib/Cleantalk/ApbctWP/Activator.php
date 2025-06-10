@@ -5,6 +5,7 @@ namespace Cleantalk\ApbctWP;
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
 use Cleantalk\ApbctWP\ServerRequirementsChecker\ServerRequirementsChecker;
 use Cleantalk\ApbctWP\UpdatePlugin\DbTablesCreator;
+use Cleantalk\Common\TT;
 
 class Activator
 {
@@ -88,6 +89,20 @@ class Activator
         // Try to adjust to environment
         $adjust = new AdjustToEnvironmentHandler();
         $adjust->handle();
+
+        // Check if the user has a hosting license
+        $result  = API::methodNoticePaidTill(
+            'check_hosting_license',
+            preg_replace('/http[s]?:\/\//', '', get_option('home'), 1),
+            ! is_main_site() && $apbct->white_label ? 'anti-spam-hosting' : 'antispam'
+        );
+
+        $apbct->data['moderate_ip'] = isset($result['moderate_ip'], $result['ip_license']) ?
+            TT::getArrayValueAsInt($result, 'moderate_ip', 0)
+            : 0;
+        $apbct->data['ip_license'] = TT::getArrayValueAsInt($result, 'ip_license', 0);
+
+        $apbct->saveData();
     }
 
     /**
