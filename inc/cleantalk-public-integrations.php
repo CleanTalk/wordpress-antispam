@@ -944,7 +944,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
     }
 
     if (current_filter() === 'woocommerce_registration_errors') {
-        if (strpos($sanitized_user_login, '.') !== false) {
+        if (!is_null($sanitized_user_login) && strpos($sanitized_user_login, '.') !== false) {
             $username_parts = explode('.', $sanitized_user_login);
             $sanitized_user_login = implode(' ', $username_parts);
         }
