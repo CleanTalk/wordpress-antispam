@@ -33,9 +33,6 @@
         ],
         "just_phpunit": [
             "vendor/bin/phpunit --configuration tests/phpunit.xml --debug"
-        ],
-        "coverage": [
-            "vendor/bin/phpunit --configuration tests/phpunit.xml --coverage-text"
         ]
     },
     "config": {
