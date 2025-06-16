@@ -1662,6 +1662,13 @@ function apbct_settings__error__output($return = false)
                     continue;
                 }
 
+                if (! empty($type) &&
+                    apbct__is_hosting_license() &&
+                    in_array($type, array('sfw_update', 'sfw_send_logs', 'key_invalid', 'account_check'))
+                ) {
+                    continue;
+                }
+
                 if ( isset($error['error']) && strpos($error['error'], 'SFW_IS_DISABLED') !== false ) {
                     continue;
                 }
@@ -1840,7 +1847,7 @@ function apbct_settings__field__state()
             'cleantalk-spam-protect'
         );
     }
-    if ( $apbct->moderate_ip ) {
+    if ( apbct__is_hosting_license() ) {
         print "<br /><br />The Anti-Spam service is paid by your hosting provider. License #" . $apbct->data['ip_license'] . ".<br />";
         if ( $apbct->api_key ) {
             print esc_html__('The Access key is not required.', 'cleantalk-spam-protect');
@@ -1856,6 +1863,11 @@ function apbct_settings__field__state()
 function apbct_settings__field__apikey()
 {
     global $apbct;
+
+    if (apbct__is_hosting_license()) {
+        return;
+    }
+
     $template = @file_get_contents(CLEANTALK_PLUGIN_DIR . 'templates/settings/settings_key_wrapper.html');
 
     $define_key_is_provided_by_admin = APBCT_WPMS && ! is_main_site() && ( ! $apbct->allow_custom_key || defined('CLEANTALK_ACCESS_KEY'));
@@ -1953,6 +1965,7 @@ function apbct_settings__field__apikey()
     foreach ($replaces as $key => $value) {
         $template = str_replace('%' . strtoupper($key) . '%', TT::toString($value), $template);
     }
+
     echo $template;
 }
 

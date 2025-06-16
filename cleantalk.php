@@ -1912,7 +1912,8 @@ function ct_sfw_send_logs($api_key = '')
     if (
         time() - $apbct->stats['sfw']['sending_logs__timestamp'] < 180 ||
         empty($api_key) ||
-        $apbct->settings['sfw__enabled'] != 1
+        $apbct->settings['sfw__enabled'] != 1 ||
+        apbct__is_hosting_license()
     ) {
         return true;
     }
