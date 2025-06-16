@@ -83,7 +83,10 @@ function skip_for_ct_contact_form_validate()
 
     $exclusions = array(
         '2' => (isset($_POST['signup_username'], $_POST['signup_email'], $_POST['signup_password'])),
-        '3' => (isset($pagenow) && $pagenow === 'wp-login.php'),
+        '3' => (
+            isset($pagenow) && $pagenow === 'wp-login.php'
+            && Post::getString('wp-submit') !== 'Register'
+        ),
         // WordPress log in form
         '4' =>
             (isset($pagenow, $_GET['action']) && $pagenow === 'wp-login.php' && $_GET['action'] === 'lostpassword'),
