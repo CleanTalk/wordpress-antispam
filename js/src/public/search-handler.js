@@ -1,3 +1,27 @@
+function ctSearchFormProcessing() {
+    for (const _form of document.forms) {
+        // fibosearch integration
+        if (_form.querySelector('input.dgwt-wcas-search-input')) {
+            continue;
+        }
+
+        if (_form.getAttribute('id') === 'hero-search-form' ||
+            _form.getAttribute('class') === 'hb-booking-search-form'
+        ) {
+            continue;
+        }
+
+        if (_form.getAttribute('id') === 'searchform' ||
+            (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1) ||
+            (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
+        ) {
+            // this handles search forms onsubmit process
+            _form.apbctSearchPrevOnsubmit = _form.onsubmit;
+            _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
+        }
+    }
+}
+
 /**
  * @param {SubmitEvent} e
  * @param {object} targetForm

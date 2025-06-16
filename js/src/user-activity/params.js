@@ -346,5 +346,172 @@ function apbctWriteReferrersToSessionStorage() {
     apbctSessionStorage.set('apbct_session_current_page', document.location.href, false);
 }
 
+/**
+ * Set session ID
+ * @return {void}
+ */
+function apbctSetSessionId() {
+    if (!apbctSessionStorage.isSet('apbct_session_id')) {
+        const sessionID = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
+        apbctSessionStorage.set('apbct_session_id', sessionID, false);
+        apbctLocalStorage.set('apbct_page_hits', 1);
+        if (document.referrer) {
+            let urlReferer = new URL(document.referrer);
+            if (urlReferer.host !== location.host) {
+                apbctSessionStorage.set('apbct_site_referer', document.referrer, false);
+            }
+        }
+    } else {
+        apbctLocalStorage.set('apbct_page_hits', Number(apbctLocalStorage.get('apbct_page_hits')) + 1);
+    }
+}
 
+/**
+ * Set cookies type. If it's not set or not equal to ctPublic.data__cookies_type, clear ct_mouse_moved and ct_has_scrolled values.
+ * @return {void}
+ */
+function apbctSetCookiesType() {
+    const cookiesType = apbctLocalStorage.get('ct_cookies_type');
+    if ( ! cookiesType || cookiesType !== ctPublic.data__cookies_type ) {
+        apbctLocalStorage.set('ct_cookies_type', ctPublic.data__cookies_type);
+        apbctLocalStorage.delete('ct_mouse_moved');
+        apbctLocalStorage.delete('ct_has_scrolled');
+    }
+}
+
+/**
+ * Start fields listening
+ * @return {void}
+ */
+function apbctStartFieldsListening() {
+    if (ctPublic.data__cookies_type !== 'alternative') {
+        ctStartFieldsListening();
+        // 2nd try to add listeners for delayed appears forms
+        setTimeout(ctStartFieldsListening, 1000);
+    }
+}
+
+/**
+ * Listen autocomplete
+ * @return {void}
+ */
+function apbctListenAutocomplete() {
+    window.addEventListener('animationstart', apbctOnAnimationStart, true);
+    window.addEventListener('input', apbctOnInput, true);
+    document.ctTypoData = new CTTypoData();
+    document.ctTypoData.gatheringFields();
+    document.ctTypoData.setListeners();
+}
+
+/**
+ * Set init cookies
+ * @return {void}
+ */
+function apbctSetInitCookies() {
+    const initCookies = [
+        ['ct_ps_timestamp', Math.floor(new Date().getTime() / 1000)],
+        ['ct_fkp_timestamp', '0'],
+        ['ct_pointer_data', '0'],
+        // eslint-disable-next-line camelcase
+        ['ct_timezone', ctDate.getTimezoneOffset()/60*(-1)],
+        ['ct_screen_info', apbctGetScreenInfo()],
+        ['apbct_headless', navigator.webdriver],
+    ];
+
+    apbctLocalStorage.set('ct_ps_timestamp', Math.floor(new Date().getTime() / 1000));
+    apbctLocalStorage.set('ct_fkp_timestamp', '0');
+    apbctLocalStorage.set('ct_pointer_data', '0');
+    // eslint-disable-next-line camelcase
+    apbctLocalStorage.set('ct_timezone', ctDate.getTimezoneOffset()/60*(-1) );
+    apbctLocalStorage.set('ct_screen_info', apbctGetScreenInfo());
+    apbctLocalStorage.set('apbct_headless', navigator.webdriver);
+
+    if ( ctPublic.data__cookies_type !== 'native' ) {
+        initCookies.push(['apbct_visible_fields', '0']);
+    } else {
+        // Delete all visible fields cookies on load the page
+        let cookiesArray = document.cookie.split(';');
+        if ( cookiesArray.length !== 0 ) {
+            for ( let i = 0; i < cookiesArray.length; i++ ) {
+                let currentCookie = cookiesArray[i].trim();
+                let cookieName = currentCookie.split('=')[0];
+                if ( cookieName.indexOf('apbct_visible_fields_') === 0 ) {
+                    ctDeleteCookie(cookieName);
+                }
+            }
+        }
+    }
+
+    if (
+        +ctPublic.pixel__setting &&
+        !(+ctPublic.pixel__setting == 3 && ctPublic.settings__data__bot_detector_enabled == 1)
+    ) {
+        if ( ctIsDrawPixel() ) {
+            ctGetPixelUrl();
+        } else {
+            initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
+        }
+    }
+
+    if ( +ctPublic.data__email_check_before_post) {
+        initCookies.push(['ct_checked_emails', '0']);
+        apbct('input[type = \'email\'], #email').on('blur', checkEmail);
+    }
+
+    if ( +ctPublic.data__email_check_exist_post) {
+        initCookies.push(['ct_checked_emails_exist', '0']);
+        apbct('comment-form input[name = \'email\'], input#email').on('blur', checkEmailExist);
+    }
+
+    if (apbctLocalStorage.isSet('ct_checkjs')) {
+        initCookies.push(['ct_checkjs', apbctLocalStorage.get('ct_checkjs')]);
+    } else {
+        initCookies.push(['ct_checkjs', 0]);
+    }
+
+    // send bot detector event token to alt cookies on problem forms
+    let tokenForForceAlt = apbctLocalStorage.get('bot_detector_event_token');
+    if (typeof ctPublic.force_alt_cookies !== 'undefined' &&
+        ctPublic.force_alt_cookies &&
+        ctPublic.settings__data__bot_detector_enabled
+    ) {
+        apbctLocalStorage.set('event_token_forced_set', '0');
+        if (tokenForForceAlt) {
+            initCookies.push(['ct_bot_detector_event_token', tokenForForceAlt]);
+            apbctLocalStorage.set('event_token_forced_set', '1');
+        } else {
+            startForcedAltEventTokenChecker();
+        }
+    }
+
+    ctSetCookie(initCookies);
+}
+
+/**
+ * Attach event token to multipage Gravity Forms
+ * @return {void}
+ */
+function apbctAttachEventTokenToMultipageGravityForms() {
+    document.addEventListener('gform_page_loaded', function() {
+        if (
+            typeof ctPublic.force_alt_cookies === 'undefined' ||
+            (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
+        ) {
+            ctNoCookieAttachHiddenFieldsToForms();
+            if (typeof setEventTokenField === 'function' && typeof botDetectorLocalStorage === 'function') {
+                setEventTokenField(botDetectorLocalStorage.get('bot_detector_event_token'));
+            }
+        }
+    });
+}
+
+/**
+ * Attach event token to WooCommerce get request add to cart
+ * @return {void}
+ */
+function apbctAttachEventTokenToWoocommerceGetRequestAddToCart() {
+    if ( ! ctPublic.wc_ajax_add_to_cart ) {
+        apbctCheckAddToCartByGet();
+    }
+}
 
