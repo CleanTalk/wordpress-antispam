@@ -2846,15 +2846,24 @@ function ct_cron_send_js_error_report_email()
  */
 function apbct_cron_clear_old_session_data()
 {
-    global $wpdb;
+    global $wpdb, $apbct;
 
     $query = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like(APBCT_TBL_SESSIONS));
     $session_table_exists = $wpdb->get_var($query);
+
     if (empty($session_table_exists)) {
         return;
     }
 
-    \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
+    $res = \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
+
+    $session_clear_log = get_option('cleantalk_sessions_clear_log', []);
+    $session_clear_log[] = array(
+        'time' => time(),
+        'result' => $res,
+    );
+    $session_clear_log = array_slice((array)$session_clear_log, -4, 4, true);
+    update_option('cleantalk_sessions_clear_log', $session_clear_log);
 
     $ct_cron = new Cron();
     if (\Cleantalk\ApbctWP\Variables\AltSessions::checkHasUndeletedOldSessions()) {
