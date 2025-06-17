@@ -9,7 +9,6 @@ class QuickCal extends IntegrationBase
      */
     public function getDataForChecking($argument)
     {
-        error_log(var_export($_POST, true));
         $processed_post = apply_filters('apbct__filter_post', $_POST);
         $name = esc_attr($processed_post['booked_appt_name']);
         $surname = ( isset($processed_post['booked_appt_surname']) && $processed_post['booked_appt_surname'] ? esc_attr($processed_post['booked_appt_surname']) : false );
