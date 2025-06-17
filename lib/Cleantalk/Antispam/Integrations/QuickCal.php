@@ -13,6 +13,7 @@ class QuickCal extends IntegrationBase
         $name = esc_attr($processed_post['booked_appt_name']);
         $surname = ( isset($processed_post['booked_appt_surname']) && $processed_post['booked_appt_surname'] ? esc_attr($processed_post['booked_appt_surname']) : false );
         $fullname = ( $surname ? $name . ' ' . $surname : $name );
+        /** @psalm-suppress PossiblyUndefinedStringArrayOffset */
         $email = $processed_post['booked_appt_email'];
         $data = ct_gfa_dto($processed_post, $email, $fullname)->getArray();
 
