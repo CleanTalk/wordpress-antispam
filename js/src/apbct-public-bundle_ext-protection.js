@@ -3087,7 +3087,6 @@ function apbctCatchXmlHttpRequest() {
     ) {
         const originalSend = XMLHttpRequest.prototype.send;
         XMLHttpRequest.prototype.send = function(body) {
-            console.log(body);
             // 2) Check the caught request fi it needed to modify
             if (
                 body &&
