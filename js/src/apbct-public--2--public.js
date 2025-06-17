@@ -1138,7 +1138,8 @@ function apbctCatchXmlHttpRequest() {
     // 1) Check the page if it needed to catch XHR
     if (
         document.querySelector('div.wfu_container') !== null ||
-        document.querySelector('#newAppointmentForm') !== null
+        document.querySelector('#newAppointmentForm') !== null ||
+        document.querySelector('.booked-calendar-shortcode-wrap') !== null
     ) {
         const originalSend = XMLHttpRequest.prototype.send;
         XMLHttpRequest.prototype.send = function(body) {
