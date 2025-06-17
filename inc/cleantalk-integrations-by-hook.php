@@ -414,6 +414,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'LoginSignupPopup'         => array(
+        'hook'    => 'xoo_el_form_action',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => true
+    ),
     'QuickCal'         => array(
         'hook'    => 'booked_add_appt',
         'setting' => 'forms__contact_forms_test',

@@ -11,6 +11,12 @@ require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php');
 WP_CLI::add_command('cleantalk', ApbctCli::class, []);
 
 /**
+ * CleanTalk management via WP-CLI.
+ *
+ * More detailed:
+ * - How to use WP-CLI with the Anti-Spam plugin: https://cleantalk.org/help/wp-cli
+ * - Support: https://wordpress.org/support/plugin/cleantalk-spam-protect/
+ *
  * @psalm-suppress UnusedClass
  */
 class ApbctCli extends WP_CLI_Command // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace

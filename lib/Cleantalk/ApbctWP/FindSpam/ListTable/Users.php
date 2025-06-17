@@ -97,6 +97,7 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
      */
     public function column_ct_username($item) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        global $apbct;
         $user_obj       = $item['ct_username'];
         $email          = $user_obj->user_email;
 
@@ -120,20 +121,17 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         $column_content .= '<br/>';
 
         // IP
-        $user_meta = get_user_meta($user_obj->ID, 'session_tokens', true);
-        if ( ! empty($user_meta) && is_array($user_meta) ) {
-            $user_meta = array_values($user_meta);
-            if ( ! empty($user_meta[0]['ip']) ) {
-                $ip             = $user_meta[0]['ip'];
-                $column_content .= "<a href='user-edit.php?user_id=$user_obj->ID'>$ip</a>"
-                                   . (! $this->apbct->white_label
-                        ? "<a href='https://cleantalk.org/blacklists/$ip ' target='_blank'>"
-                          . "&nbsp;<img src='" . APBCT_URL_PATH . "/inc/images/new_window.gif' alt='Ico: open in new window' border='0' style='float:none' />"
-                          . "</a>"
-                        : '');
-            } else {
-                $column_content .= esc_html__('No IP adress', 'cleantalk-spam-protect');
-            }
+        $ip_from_keeper = $apbct->login_ip_keeper->getIP($user_obj->ID);
+        $ip_from_keeper = null !== $ip_from_keeper
+            ? $ip_from_keeper
+            : null;
+        if ( !empty($ip_from_keeper) ) {
+            $column_content .= "<a href='user-edit.php?user_id=$user_obj->ID'>$ip_from_keeper</a>"
+                               . (! $this->apbct->white_label
+                    ? "<a href='https://cleantalk.org/blacklists/$ip_from_keeper ' target='_blank'>"
+                      . "&nbsp;<img src='" . APBCT_URL_PATH . "/inc/images/new_window.gif' alt='Ico: open in new window' border='0' style='float:none' />"
+                      . "</a>"
+                    : '');
         } else {
             $column_content .= esc_html__('No IP adress', 'cleantalk-spam-protect');
         }

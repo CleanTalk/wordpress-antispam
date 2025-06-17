@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.56.99-fix
+  Version: 6.57.99-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -14,7 +14,6 @@
 use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
-use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\ApbctWP\Antispam\ForceProtection;
 use Cleantalk\ApbctWP\API;
@@ -166,6 +165,24 @@ $apbct->settings_link = is_network_admin() ? 'settings.php?page=cleantalk' : 'op
 $apbct->setConnectionReports();
 // SFW update sentinel
 $apbct->setSFWUpdateSentinel();
+// User IP Keeper - used for checkers
+$apbct->setLoginIPKeeper();
+
+add_action('wp_login', 'apbct_wp_login_actions', 10, 2);
+
+/**
+ * Actions for hook 'wp-login'.
+ * @param $user_login
+ * @param $wp_user
+ *
+ * @return void
+ */
+function apbct_wp_login_actions($_user_login, $wp_user)
+{
+    global $apbct;
+    $apbct->login_ip_keeper->addUserIP($wp_user);
+    apbct_add_admin_ip_to_swf_whitelist($wp_user);
+}
 
 // Disabling comments
 if ( $apbct->settings['comments__disable_comments__all'] || $apbct->settings['comments__disable_comments__posts'] || $apbct->settings['comments__disable_comments__pages'] || $apbct->settings['comments__disable_comments__media'] ) {
@@ -213,41 +230,8 @@ function apbct_register_my_rest_routes()
     $controller->register_routes();
 }
 
-// Alt cookies via WP ajax handler
-$apbct->ajax_service->addPublicAction(
-    'apbct_alt_session__save__AJAX',
-    array(
-        Cleantalk\ApbctWP\Variables\AltSessions::class,
-        'setFromRemote'
-    )
-);
-// Get JS via WP ajax handler
-$apbct->ajax_service->addPublicAction('apbct_js_keys__get', array($apbct->ajax_service, 'getJSKeys'));
-// Get Pixel URL via WP ajax handler
-$apbct->ajax_service->addPublicAction('apbct_get_pixel_url', 'apbct_get_pixel_url');
-// Checking email before POST
-$apbct->ajax_service->addPublicAction(
-    'apbct_email_check_before_post',
-    'apbct_email_check_before_post',
-    'no_priv'
-);
-// Checking email exist POST
-$apbct->ajax_service->addPublicAction(
-    'apbct_email_check_exist_post',
-    'apbct_email_check_exist_post',
-    'no_priv'
-);
-// Force Protection check bot
-$apbct->ajax_service->addPublicAction(
-    'apbct_force_protection_check_bot',
-    'apbct_force_protection_check_bot',
-    'no_priv'
-);
-// Force ajax set important parameters (apbct_timestamp etc)
-$apbct->ajax_service->addPublicAction(
-    'apbct_set_important_parameters',
-    'apbct_cookie'
-);
+// Register hooks for AJAX requests
+\Cleantalk\ApbctWP\HooksRegistrar::registerAjaxHooks($apbct->ajax_service);
 
 // Database prefix
 global $wpdb, $wp_version;
@@ -576,14 +560,6 @@ add_filter('wpforo_create_profile', 'wpforo_create_profile__check_register', 1, 
 // HappyForms integration
 add_filter('happyforms_validate_submission', 'apbct_form_happyforms_test_spam', 1, 3);
 add_filter('happyforms_use_hash_protection', '__return_false');
-
-// WPForms
-// Adding fields
-add_action('wpforms_frontend_output', 'apbct_form__WPForms__addField', 1000, 5);
-// Gathering data to validate
-add_filter('wpforms_process_before_filter', 'apbct_from__WPForms__gatherData', 100, 2);
-// Do spam check
-add_filter('wpforms_process_initial_errors', 'apbct_form__WPForms__showResponse', 100, 2);
 
 // Formidable
 add_filter('frm_entries_before_create', 'apbct_form__formidable__testSpam', 999999, 2);
@@ -1936,7 +1912,8 @@ function ct_sfw_send_logs($api_key = '')
     if (
         time() - $apbct->stats['sfw']['sending_logs__timestamp'] < 180 ||
         empty($api_key) ||
-        $apbct->settings['sfw__enabled'] != 1
+        $apbct->settings['sfw__enabled'] != 1 ||
+        apbct__is_hosting_license()
     ) {
         return true;
     }

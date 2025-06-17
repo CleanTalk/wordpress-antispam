@@ -339,7 +339,7 @@ jQuery(document).ready(function() {
     /**
      * Handle synchronization errors when key is no ok to force user check the key and restart the sync
      */
-    if ( !ctSettingsPage.key_is_ok ) {
+    if ( !ctSettingsPage.key_is_ok && !ctSettingsPage.ip_license ) {
         jQuery('button.cleantalk_link[value="save_changes"]').on('click',
             function(e) {
                 e.preventDefault();
@@ -777,7 +777,7 @@ function apbctSaveButtonPosition() {
         return;
     }
 
-    if (!ctSettingsPage.key_is_ok) {
+    if (!ctSettingsPage.key_is_ok && !ctSettingsPage.ip_license) {
         jQuery('#apbct_settings__main_save_button').hide();
         return;
     }
