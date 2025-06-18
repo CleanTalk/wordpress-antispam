@@ -210,9 +210,6 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
             <p class="apbct-icon-mobile" style="padding-left: 10px">%s</p>
         <p>%s</p>
         <p><a href="#apbct_setting_group__contact_data_encoding" onclick="handleAnchorDetection(\'apbct_setting_group__contact_data_encoding\')">%s</a> %s</p>
-        <p>%s</p>
-        <p><code>%s</code></p>
-        <p><code>%s</code></p>
         ';
         $tmp = sprintf(
             $tmp,
