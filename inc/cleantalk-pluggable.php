@@ -904,8 +904,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         }
         // FluentForm multistep skip
         if (
-            (apbct_is_plugin_active('fluentformpro/fluentformpro.php') ||  apbct_is_plugin_active('fluentform/fluentform.php')) &&
-            TT::toString(Post::get('action')) === 'active_step'
+            (
+                apbct_is_plugin_active('fluentformpro/fluentformpro.php')
+                ||  apbct_is_plugin_active('fluentform/fluentform.php'))
+            &&
+            (
+                Post::getString('action') === 'active_step'
+                || Post::getString('action') === 'fluentform_step_form_save_data'
+            )
         ) {
             return 'fluentform_skip';
         }
