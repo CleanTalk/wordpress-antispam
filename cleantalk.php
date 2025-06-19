@@ -10,7 +10,6 @@
   Text Domain: cleantalk-spam-protect
   Domain Path: /i18n
 */
-
 use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
