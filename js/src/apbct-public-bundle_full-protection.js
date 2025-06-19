@@ -4668,7 +4668,8 @@ function ctProtectOutsideFunctionalOnTagsType(tagType) {
                 let lsStorageName = 'apbct_outside_functional_protected_tags__' + protectedType;
                 let lsUniqueName = entity.id !== '' ? entity.id : false;
                 lsUniqueName = false === lsUniqueName && entity.className !== '' ? entity.className : lsUniqueName;
-                // todo we can not protect any entity that has no id and class :(
+                lsUniqueName = false === lsUniqueName && entity.src !== '' ? entity.src.substring(0,50) : lsUniqueName;
+                // todo we can not protect any entity that has no id or class or src :(
                 // pass if is already protected
                 if (
                     false === lsUniqueName ||
@@ -4738,7 +4739,8 @@ function ctProtectOutsideFunctionalHandler(entity, lsStorageName, lsUniqueName) 
     if (
         entityParent.style !== undefined &&
         entityParent.style !== null &&
-        entityParent.style.position !== undefined
+        entityParent.style.position !== undefined &&
+        entityParent.style.position !== ''
     ) {
         entityParent.style.position = originParentPosition;
     } else {
