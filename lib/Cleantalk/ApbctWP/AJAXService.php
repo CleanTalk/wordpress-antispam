@@ -123,7 +123,7 @@ class AJAXService
      * @param string $hook_suffix - suffix after `wp_ajax_` and `wp_ajax_nopriv_`
      * @param string|array $callback - callable function or array with class and method
      * @param bool $is_public - is this action public or not
-     * @param string $mode - 'no_priv', 'priv', 'both'
+     * @param string $mode - 'priv', 'both'
      * @param int $priority - priority
      * @param int $accepted_args - accepted args
      *
@@ -159,7 +159,7 @@ class AJAXService
                 'is_public' => $is_public,
                 'handler_class' => $handler_class
             );
-            add_action($hook, array($this, 'doAction'), $priority, $accepted_args);
+            add_action($hook, array($this, 'handleAjaxRequest'), $priority, $accepted_args);
         }
 
         if ($mode === 'both' || $mode === 'no_priv') {
@@ -169,17 +169,21 @@ class AJAXService
                 'is_public' => $is_public,
                 'handler_class' => $handler_class
             );
-            add_action($hook_no_private, array($this, 'doAction'), $priority, $accepted_args);
+            add_action($hook_no_private, array($this, 'handleAjaxRequest'), $priority, $accepted_args);
         }
     }
 
     /**
-     * Runs AJAX action from collected hooks/handlers data. Every call checked with nonce.
+     * Universal AJAX handler for registered actions.
+     *
+     * Performs a nonce check, determines and calls the required callback (function or method of the class)
+     * only when an AJAX request with the appropriate action is received.
+     *
      * @param mixed $args
      *
      * @return void
      */
-    public function doAction($args)
+    public function handleAjaxRequest($args)
     {
         $current_hook_data = isset($this->hooks_list[current_action()])
             ? $this->hooks_list[current_action()]
