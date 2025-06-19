@@ -66,7 +66,7 @@ function ctProtectExternal() {
     // Trying to process external form into an iframe
     apbctProcessIframes();
     // if form is still not processed by fields listening, do it here
-    ctStartFieldsListening();
+    new ApbctGatheringData().startFieldsListening();
 }
 
 /**
@@ -918,7 +918,7 @@ function sendAjaxCheckingFormData(form) {
                 if ((result.apbct !== undefined && +result.apbct.blocked) ||
                     (result.data !== undefined && result.data.message !== undefined)
                 ) {
-                    ctParseBlockMessage(result);
+                    new ApbctHandler().parseBlockMessage(result);
                     // hubspot embed form needs to reload page to prevent forms mishandling
                     if (isHubSpotEmbedForm) {
                         setTimeout(function() {
@@ -1052,7 +1052,7 @@ function sendAjaxCheckingDynamicFormData(form) {
                 }
 
                 if (result.apbct !== undefined && +result.apbct.blocked) {
-                    ctParseBlockMessage(result);
+                    new ApbctHandler().parseBlockMessage(result);
                 }
             },
         });

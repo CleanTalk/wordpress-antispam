@@ -438,3 +438,14 @@ function ctProcessDecodedDataResult(response, targetElement) {
 function ctFillDecodedEmail(target, email) {
     target.innerHTML = target.innerHTML.replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1');
 }
+
+// Listen clicks on encoded emails
+document.addEventListener('DOMContentLoaded', function() {
+    let encodedEmailNodes = document.querySelectorAll('[data-original-string]');
+    ctPublic.encodedEmailNodes = encodedEmailNodes;
+    if (encodedEmailNodes.length) {
+        for (let i = 0; i < encodedEmailNodes.length; ++i) {
+            encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
+        }
+    }
+});

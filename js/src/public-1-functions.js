@@ -74,41 +74,6 @@ function ctSetCookie( cookies, value, expires ) {
     }
 }
 
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function ctDetectForcedAltCookiesForms() {
-    let ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
-    let elementorUltimateAddonsRegister = document.querySelectorAll('.uael-registration-form-wrapper').length > 0;
-    let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
-    let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
-    let cwginstockForm = document.querySelectorAll('.cwginstock-subscribe-form').length > 0;
-    let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
-    let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
-    let fluentBookingApp = document.querySelectorAll('div[class^="fluent_booking_app"]').length > 0;
-    let bloomPopup = document.querySelectorAll('div[class^="et_bloom_form_container"]').length > 0;
-    let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
-    let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
-    let smartQuizBuilder = document.querySelectorAll('form .sqbform, .fields_reorder_enabled').length > 0;
-    ctPublic.force_alt_cookies = smartFormsSign ||
-        ninjaFormsSign ||
-        jetpackCommentsForm ||
-        elementorUltimateAddonsRegister ||
-        cwginstockForm ||
-        userRegistrationProForm ||
-        etPbDiviSubscriptionForm ||
-        fluentBookingApp ||
-        pafeFormsFormElementor ||
-        bloomPopup ||
-        otterForm ||
-        smartQuizBuilder;
-
-    setTimeout(function() {
-        if (!ctPublic.force_alt_cookies) {
-            let bookingPress = document.querySelectorAll('main[id^="bookingpress_booking_form"]').length > 0;
-            ctPublic.force_alt_cookies = bookingPress;
-        }
-    }, 1000);
-}
-
 // eslint-disable-next-line require-jsdoc
 function ctSetAlternativeCookie(cookies, params) {
     if (typeof (getJavascriptClientData) === 'function' ) {
@@ -327,19 +292,6 @@ function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) { // eslint-dis
             apbct_public_sendAJAX({action: 'apbct_set_important_parameters'}, {});
         }
     }
-}
-
-/**
- * Do handle periodical actions.
- * @param {int} cronStartTimeout Time to go before cron start.
- */
-function cronFormsHandler(cronStartTimeout = 2000) {
-    setTimeout(function() {
-        setInterval(function() {
-            restartFieldsListening();
-            restartBotDetectorEventTokenAttach();
-        }, 2000);
-    }, cronStartTimeout);
 }
 
 let apbctLocalStorage = {
