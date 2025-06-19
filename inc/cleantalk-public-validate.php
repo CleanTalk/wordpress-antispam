@@ -39,7 +39,7 @@ function ct_contact_form_validate()
     }
 
     // Skip own service REST API requests
-    if ( Server::isPost() && Server::inUri('wp-json/cleantalk-antispam/v1/apbct_decode_email') ) {
+    if ( Server::isPost() && Server::inUri('cleantalk-antispam/v1/apbct_decode_email') ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return null;
@@ -401,7 +401,7 @@ function ct_contact_form_validate()
                 } else if (
                     // BuddyBoss App - request from mobile app usually
                     apbct_is_plugin_active('buddyboss-app/buddyboss-app.php') &&
-                    Server::getString('REQUEST_URI') === '/wp-json/buddyboss-app/v1/signup'
+                    Server::getString('REQUEST_URI') === '/buddyboss-app/v1/signup'
                 ) {
                     $data = [
                         'code' => 'bp_rest_register_errors',

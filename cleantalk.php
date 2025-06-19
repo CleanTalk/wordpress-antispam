@@ -442,8 +442,11 @@ if (
 // Metform
 if (
     apbct_is_plugin_active('metform/metform.php') &&
-    apbct_is_in_uri('/wp-json/metform/') &&
-    sizeof($_POST) > 0
+    sizeof($_POST) > 0 &&
+    (
+        apbct_is_in_uri('/wp-json/metform/') ||
+        (apbct_get_rest_url_only_path() !== 'index.php' && apbct_is_in_uri(apbct_get_rest_url_only_path() . 'metform/'))
+    )
 ) {
     apbct_form__metform_subscribe__testSpam();
 }
