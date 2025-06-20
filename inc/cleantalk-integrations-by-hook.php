@@ -69,9 +69,10 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'Forminator'          => array(
-        'hook'    => 'forminator_submit_form_custom-forms',
+        'hook'    => array('forminator_submit_form_custom-forms', 'forminator_spam_protection'),
         'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
+        'ajax'    => true,
+        'ajax_and_post' => true
     ),
     'EaelLoginRegister'   => array(
         'hook'    => array(

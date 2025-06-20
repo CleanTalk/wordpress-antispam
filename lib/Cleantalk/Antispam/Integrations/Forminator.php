@@ -37,6 +37,9 @@ class Forminator extends IntegrationBase
 
     public function doBlock($message)
     {
+        if ( current_filter() === 'forminator_spam_protection' ) {
+            throw new \Exception($message);
+        }
         wp_send_json_error(
             array(
                 'message' => $message,
