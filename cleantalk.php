@@ -2751,11 +2751,13 @@ function ct_account_status_check($api_key = null, $process_errors = true)
 
         //todo:temporary solution for description, until we found the way to transfer this from cloud
         if (defined('APBCT_WHITELABEL_PLUGIN_DESCRIPTION')) {
+            /** @psalm-suppress PossiblyInvalidArrayAssignment */
             $result['wl_antispam_description'] = APBCT_WHITELABEL_PLUGIN_DESCRIPTION;
         }
 
         //todo:temporary solution for FAQ
         if (defined('APBCT_WHITELABEL_FAQ_LINK')) {
+            /** @psalm-suppress PossiblyInvalidArrayAssignment */
             $result['wl_faq_url'] = APBCT_WHITELABEL_FAQ_LINK;
         }
 
