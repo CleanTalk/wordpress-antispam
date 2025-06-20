@@ -40,7 +40,7 @@ class Honeypot
 
         $submit_for_get_forms = '<input
                    id="%s" 
-                   class="%s"
+                   class="apbct_special_field %s"
                    name="%s"
                    aria-label="%s"
                    type="submit"
