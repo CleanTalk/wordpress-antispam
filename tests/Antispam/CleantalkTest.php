@@ -16,7 +16,7 @@ class CleantalkTest extends \PHPUnit\Framework\TestCase
         $apbct = new State( 'cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats') );
 
 		$this->ct = new Cleantalk();
-		$this->ct->server_url = 'https://moderate.cleantalk.org';
+		$this->ct->server_url = APBCT_MODERATE_URL;
 		$this->ct_request = new CleantalkRequest();
 		$this->ct_request->auth_key = getenv("CLEANTALK_TEST_API_KEY");
 	}

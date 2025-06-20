@@ -118,7 +118,15 @@ if ( preg_match('@^(\d+)\.(\d+)\.(\d{1,2})-(dev|fix)$@', $plugin_version__agent,
     $plugin_version__agent = $major_version . '.' . $minor_version . '.' . $branch_sub . $padded;
 }
 define('APBCT_AGENT', 'wordpress-' . $plugin_version__agent); // Prepared agent
-const APBCT_MODERATE_URL = 'https://moderate.cleantalk.org'; // Api URL
+
+if ( defined('CLEANTALK_SERVER') ) {
+    define('APBCT_MODERATE_URL', 'https://moderate.' . CLEANTALK_SERVER);
+    if ( ! defined('CLEANTALK_API_URL') ) {
+        define('CLEANTALK_API_URL', 'https://api.' . CLEANTALK_SERVER);
+    }
+} else {
+    define('APBCT_MODERATE_URL', 'https://moderate.cleantalk.org'); // Api URL
+}
 
 /**
  * Require base classes.
@@ -582,7 +590,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
                 . APBCT_URL_PATH
                 . '/js/apbct-public-bundle.min.js'
                 . '?ver=' . APBCT_VERSION . '" id="ct_public_functions-js"></script>';
-            echo '<script src="https://moderate.cleantalk.org/ct-bot-detector-wrapper.js?ver='
+            echo '<script src="' . APBCT_MODERATE_URL . '/ct-bot-detector-wrapper.js?ver='
                 . APBCT_VERSION . '" id="ct_bot_detector-js"></script>';
         }, 100);
     }

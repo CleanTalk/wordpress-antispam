@@ -1272,7 +1272,7 @@ function apbct_enqueue_and_localize_public_scripts()
         // Attention! Skip old enqueue way for external script.
         wp_enqueue_script(
             'ct_bot_detector',
-            'https://moderate.cleantalk.org/ct-bot-detector-wrapper.js',
+            APBCT_MODERATE_URL . '/ct-bot-detector-wrapper.js',
             [],
             APBCT_VERSION,
             array(
