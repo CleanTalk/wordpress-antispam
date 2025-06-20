@@ -210,9 +210,6 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
             <p class="apbct-icon-mobile" style="padding-left: 10px">%s</p>
         <p>%s</p>
         <p><a href="#apbct_setting_group__contact_data_encoding" onclick="handleAnchorDetection(\'apbct_setting_group__contact_data_encoding\')">%s</a> %s</p>
-        <p>%s</p>
-        <p><code>%s</code></p>
-        <p><code>%s</code></p>
         ';
         $tmp = sprintf(
             $tmp,
@@ -224,10 +221,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
             __('+1 (234) 567-8901 → +1 (***) ***-****', 'cleantalk-spam-protect'),
             __('You can also customize how emails are displayed before they are decoded by users — blurred, replaced with stars, or shown as a custom message. ', 'cleantalk-spam-protect'),
             __('Click', 'cleantalk-spam-protect'),
-            __('to proceed to encoder settings', 'cleantalk-spam-protect'),
-            __('To skip encoding of a single entity use the shortcode, any text wrapped by shortcode will be shown as origin', 'cleantalk-spam-protect'),
-            __('[apbct_skip_encoding]stop@email.com[/apbct_skip_encoding]', 'cleantalk-spam-protect'),
-            __('[apbct_skip_encoding]+11231234567[/apbct_skip_encoding]', 'cleantalk-spam-protect')
+            __('to proceed to encoder settings', 'cleantalk-spam-protect')
         );
         return $tmp;
     }

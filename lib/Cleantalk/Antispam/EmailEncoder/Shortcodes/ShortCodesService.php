@@ -8,7 +8,7 @@ namespace Cleantalk\Antispam\EmailEncoder\Shortcodes;
 class ShortCodesService
 {
     public $encode;
-    // public $exclude;
+
     public $shortcodes_registered = false;
     /**
      * @return void
@@ -17,7 +17,6 @@ class ShortCodesService
     {
         if (!$this->shortcodes_registered) {
             $this->encode->register();
-            // $this->exclude->register();
             $this->shortcodes_registered = true;
         }
     }
@@ -25,18 +24,15 @@ class ShortCodesService
     public function __construct()
     {
         $this->encode = new EncodeContentSC();
-        // $this->exclude = new SkipContentFromEncodeSC();
     }
 
     public function addActionsBeforeModify($hook, $priority = 1)
     {
-        // add_filter($hook, array($this->exclude, 'changeContentBeforeEncoderModify'), $priority);
         add_filter($hook, array($this->encode, 'changeContentBeforeEncoderModify'), $priority);
     }
 
     public function addActionsAfterModify($hook, $priority = 999)
     {
-        // add_filter($hook, array($this->exclude, 'changeContentAfterEncoderModify'), $priority);
         add_filter($hook, array($this->encode, 'changeContentAfterEncoderModify'), $priority);
     }
 }
