@@ -20,7 +20,7 @@ use Cleantalk\Common\HTTP\Request;
 class API
 {
     /* Default params  */
-    const URL = 'https://api.cleantalk.org';
+    public static $api_url = 'https://api.cleantalk.org';
     const AGENT = 'ct-api-3.2';
 
     /**
@@ -230,7 +230,7 @@ class API
             $request['date'] = $date;
         }
 
-        return static::sendRequest($request, self::URL, 20);
+        return static::sendRequest($request, 20);
     }
 
     /**
@@ -818,7 +818,7 @@ class API
      *
      * @return array|bool
      */
-    public static function sendRequest($data, $_url = self::URL, $timeout = 10)
+    public static function sendRequest($data, $timeout = 10)
     {
         // Possibility to switch agent version
         $data['agent'] = ! empty($data['agent'])
@@ -826,7 +826,7 @@ class API
             : (defined('CLEANTALK_AGENT') ? CLEANTALK_AGENT : self::AGENT);
 
         // Possibility to switch API url
-        $url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : $_url;
+        $url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : self::$api_url;
 
         $http = new Request();
 
@@ -853,7 +853,7 @@ class API
      *
      * @return mixed (array || array('error' => true))
      */
-    public static function checkResponse($result, $_url = null, $method_name = null)
+    public static function checkResponse($result, $method_name = null)
     {
         // Errors handling
         // Bad connection

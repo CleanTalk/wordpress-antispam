@@ -76,10 +76,10 @@ class API extends \Cleantalk\Common\API
      *
      * @return array|bool
      */
-    public static function sendRequest($data, $_url = self::URL, $timeout = 10)
+    public static function sendRequest($data, $timeout = 10)
     {
         // Possibility to switch API url
-        $url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : $_url;
+        $url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : self::$api_url;
 
         // Adding agent version to data
         $data['agent'] = defined('APBCT_AGENT') ? APBCT_AGENT : '';
