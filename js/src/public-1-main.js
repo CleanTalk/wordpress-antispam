@@ -1,4 +1,3 @@
-
 class ApbctEventTokenTransport {
     /**
      * Attach event token to multipage Gravity Forms
@@ -449,7 +448,7 @@ class ApbctHandler {
 
         form.ctFormIndex = index;
         form.onsubmit = function(event) {
-            attachData.attachVisibleFieldsDuringSubmit(event, form);
+            new ApbctAttachData().attachVisibleFieldsDuringSubmit(event, form);
 
             // Call previous submit action
             if (event.target.onsubmit_prev instanceof Function && !this.prevCallExclude(event.target)) {
@@ -544,7 +543,7 @@ class ApbctHandler {
 
     catchFetchRequest() {
         setTimeout(function() {
-            if (document.forms.map((form) => form.classList.contains('metform-form-content')).length > 0) {
+            if (Array.from(document.forms).map((form) => form.classList.contains('metform-form-content')).length > 0) {
                 window.fetch = function(...args) {
                     if (args &&
                         args[0] &&
