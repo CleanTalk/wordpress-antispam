@@ -758,8 +758,9 @@ function isFormHasDiviRedirect(formObj) {
 function sendAjaxCheckingFormData(form) {
     // Get visible fields and set cookie
     const visibleFields = {};
-    visibleFields[0] = apbct_collect_visible_fields(form);
-    apbct_visible_fields_set_cookie( visibleFields );
+    const attachData = new ApbctAttachData();
+    visibleFields[0] = attachData.collectVisibleFields(form);
+    attachData.setVisibleFieldsCookie(visibleFields);
 
     const data = {
         'ct_bot_detector_event_token': apbctLocalStorage.get('bot_detector_event_token'),
@@ -1001,9 +1002,10 @@ function sendAjaxCheckingDynamicFormData(form) {
 
     // Get visible fields and set cookie
     const visibleFields = {};
-    visibleFields[0] = apbct_collect_visible_fields(form);
-    apbct_visible_fields_set_cookie(visibleFields);
-    form.append(ctNoCookieConstructHiddenField('hidden'));
+    const attachData = new ApbctAttachData();
+    visibleFields[0] = attachData.collectVisibleFields(form);
+    attachData.setVisibleFieldsCookie(visibleFields);
+    form.append(attachData.constructNoCookieHiddenField('hidden'));
 
     const data = {};
     let elems = form.elements;

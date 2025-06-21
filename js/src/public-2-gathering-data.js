@@ -914,7 +914,7 @@ function ctNoCookieAttachHiddenFieldsToForms() {
 
     if (forms) {
         for ( let i = 0; i < forms.length; i++ ) {
-            if ( ctCheckHiddenFieldsExclusions(document.forms[i], 'no_cookie') ) {
+            if ( new ApbctHandler().checkHiddenFieldsExclusions(document.forms[i], 'no_cookie') ) {
                 continue;
             }
 
@@ -927,7 +927,7 @@ function ctNoCookieAttachHiddenFieldsToForms() {
                     fields[j].outerHTML = '';
                 }
                 // add new set
-                document.forms[i].append(ctNoCookieConstructHiddenField());
+                document.forms[i].append(new ApbctAttachData().constructNoCookieHiddenField());
             }
         }
     }
@@ -956,24 +956,3 @@ function getCleanTalkStorageDataArray() {
 
     return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
 }
-
-// eslint-disable-next-line require-jsdoc
-function ctNoCookieConstructHiddenField(type) {
-    let inputType = 'hidden';
-    if (type === 'submit') {
-        inputType = 'submit';
-    }
-    let field = '';
-
-    let noCookieData = getCleanTalkStorageDataArray();
-    noCookieData = JSON.stringify(noCookieData);
-    noCookieData = '_ct_no_cookie_data_' + btoa(noCookieData);
-    field = document.createElement('input');
-    field.setAttribute('name', 'ct_no_cookie_hidden_field');
-    field.setAttribute('value', noCookieData);
-    field.setAttribute('type', inputType);
-    field.classList.add('apbct_special_field');
-    field.classList.add('ct_no_cookie_hidden_field');
-    return field;
-}
-
