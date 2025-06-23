@@ -311,6 +311,10 @@ class RemoteCalls
         $out['fw_stats']           = $apbct->fw_stats;
         $out['data']               = $apbct->data;
         $out['cron']               = $apbct->cron;
+        $out['sessions']           = [
+            'sessions count' => $wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_SESSIONS),
+            'sessions clear log' => get_option('cleantalk_sessions_clear_log', 'empty yet'),
+        ];
         $out['errors']             = $apbct->errors;
         $out['queue']              = get_option('cleantalk_sfw_update_queue');
         $out['connection_reports'] = $apbct->getConnectionReports()->remoteCallOutput();

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.57.99-dev
+  Version: 6.58.99-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -442,8 +442,11 @@ if (
 // Metform
 if (
     apbct_is_plugin_active('metform/metform.php') &&
-    apbct_is_in_uri('/wp-json/metform/') &&
-    sizeof($_POST) > 0
+    sizeof($_POST) > 0 &&
+    (
+        apbct_is_in_uri('/wp-json/metform/') ||
+        (apbct_get_rest_url_only_path() !== 'index.php' && apbct_is_in_uri(apbct_get_rest_url_only_path() . 'metform/'))
+    )
 ) {
     apbct_form__metform_subscribe__testSpam();
 }
@@ -2751,11 +2754,13 @@ function ct_account_status_check($api_key = null, $process_errors = true)
 
         //todo:temporary solution for description, until we found the way to transfer this from cloud
         if (defined('APBCT_WHITELABEL_PLUGIN_DESCRIPTION')) {
+            /** @psalm-suppress PossiblyInvalidArrayAssignment */
             $result['wl_antispam_description'] = APBCT_WHITELABEL_PLUGIN_DESCRIPTION;
         }
 
         //todo:temporary solution for FAQ
         if (defined('APBCT_WHITELABEL_FAQ_LINK')) {
+            /** @psalm-suppress PossiblyInvalidArrayAssignment */
             $result['wl_faq_url'] = APBCT_WHITELABEL_FAQ_LINK;
         }
 
@@ -2846,15 +2851,24 @@ function ct_cron_send_js_error_report_email()
  */
 function apbct_cron_clear_old_session_data()
 {
-    global $wpdb;
+    global $wpdb, $apbct;
 
     $query = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like(APBCT_TBL_SESSIONS));
     $session_table_exists = $wpdb->get_var($query);
+
     if (empty($session_table_exists)) {
         return;
     }
 
-    \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
+    $res = \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
+
+    $session_clear_log = get_option('cleantalk_sessions_clear_log', []);
+    $session_clear_log[] = array(
+        'time' => time(),
+        'result' => $res,
+    );
+    $session_clear_log = array_slice((array)$session_clear_log, -4, 4, true);
+    update_option('cleantalk_sessions_clear_log', $session_clear_log);
 
     $ct_cron = new Cron();
     if (\Cleantalk\ApbctWP\Variables\AltSessions::checkHasUndeletedOldSessions()) {
