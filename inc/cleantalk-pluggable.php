@@ -1108,7 +1108,9 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         //Skip RegistrationMagic service request
         if (
             apbct_is_plugin_active('custom-registration-form-builder-with-submission-manager/registration_magic.php') &&
-            Post::get('action') === 'rm_user_exists'
+            Post::get('action') === 'rm_user_exists' ||
+            Post::get('action') === 'check_username_validity' ||
+            Post::get('action') === 'check_email_exists'
         ) {
             return 'RegistrationMagic service request';
         }
@@ -1558,6 +1560,13 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
         /*****************************************/
+        //Skip RegistrationMagic main request - has own integration
+        if (
+            apbct_is_plugin_active('custom-registration-form-builder-with-submission-manager/registration_magic.php') &&
+            isset($_POST['rm_cond_hidden_fields'])
+        ) {
+            return 'RegistrationMagic main request';
+        }
         // WC payment APIs
         if ( apbct_is_plugin_active('woocommerce/woocommerce.php') &&
              apbct_is_in_uri('wc-api=2checkout_ipn_convert_plus') ) {
