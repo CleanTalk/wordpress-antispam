@@ -4225,7 +4225,14 @@ function checkFormsExistForCatching() {
                 if (args &&
                     args[0] &&
                     typeof args[0].includes === 'function' &&
-                    args[0].includes('/wp-json/metform/')
+                    (args[0].includes('/wp-json/metform/') ||
+                    (ctPublicFunctions._rest_url && (() => {
+                        try {
+                            return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
+                        } catch (e) {
+                            return false;
+                        }
+                    })()))
                 ) {
                     let noCookieData = getNoCookieData();
 
