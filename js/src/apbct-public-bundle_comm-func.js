@@ -3521,7 +3521,11 @@ function ctAddWCMiddlewares() {
  */
 function apbctCatchXmlHttpRequest() {
     // 1) Check the page if it needed to catch XHR
-    if ( document.querySelector('div.wfu_container') !== null ) {
+    if (
+        document.querySelector('div.wfu_container') !== null ||
+        document.querySelector('#newAppointmentForm') !== null ||
+        document.querySelector('.booked-calendar-shortcode-wrap') !== null
+    ) {
         const originalSend = XMLHttpRequest.prototype.send;
         XMLHttpRequest.prototype.send = function(body) {
             // 2) Check the caught request fi it needed to modify
@@ -3529,7 +3533,8 @@ function apbctCatchXmlHttpRequest() {
                 body &&
                 typeof body === 'string' &&
                 (
-                    body.indexOf('action=wfu_ajax_action_ask_server') !== -1
+                    body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
+                    body.indexOf('action=booked_add_appt') !== -1
                 )
             ) {
                 let addidionalCleantalkData = '';
