@@ -24,14 +24,13 @@ class ServerRequirementsChecker
             );
         }
 
-        // Check cURL support
-        if (!function_exists('curl_version')) {
+        $curl_available = function_exists('curl_version');
+        if (!$curl_available) {
             $this->warnings[] = __('cURL support is required', 'cleantalk-spam-protect');
-        }
-
-        // Check allow_url_fopen
-        if (!ini_get('allow_url_fopen')) {
-            $this->warnings[] = __('allow_url_fopen must be enabled', 'cleantalk-spam-protect');
+            // If cURL is not available, check allow_url_fopen
+            if (!ini_get('allow_url_fopen')) {
+                $this->warnings[] = __('allow_url_fopen must be enabled if cURL is not available', 'cleantalk-spam-protect');
+            }
         }
 
         // Check memory_limit
