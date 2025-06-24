@@ -4,6 +4,7 @@ namespace Antispam;
 
 use Cleantalk\Antispam\EmailEncoder\EmailEncoder;
 use PHPUnit\Framework\TestCase;
+use Cleantalk\ApbctWP\State;
 
 class TestEmailEncoder extends TestCase
 {
@@ -33,6 +34,41 @@ class TestEmailEncoder extends TestCase
         global $apbct;
         $this->assertFalse($apbct->isHaveErrors());
         $this->assertEquals($decoded_entity, $this->plain_text);
+    }
+
+    public function testEncodeErrors()
+    {
+        /**
+         * @var State $apbct
+         */
+        global $apbct;
+        $null = null;
+
+        $encoded_plain = $this->email_encoder->encoder->encodeString($null);
+        $this->assertNull($null);
+        $this->assertTrue($apbct->isHaveErrors());
+        $this->assertArrayHasKey('email_encoder', $apbct->errors);
+        $this->assertIsArray($apbct->errors['email_encoder']);
+        $this->assertIsArray($apbct->errors['email_encoder'][0]);
+        $this->assertArrayHasKey('error', $apbct->errors['email_encoder'][0]);
+        $this->assertStringContainsString('is not string', $apbct->errors['email_encoder'][0]['error']);
+        $this->assertStringContainsString('TYPE_NULL', $apbct->errors['email_encoder'][0]['error']);
+        $this->assertStringContainsString('NO_ACTION', $apbct->errors['email_encoder'][0]['error']);
+        $apbct->errorDeleteAll();
+
+        $empty_string = '';
+
+        $encoded_plain = $this->email_encoder->encoder->encodeString($empty_string);
+        $this->assertEmpty($empty_string);
+        $this->assertTrue($apbct->isHaveErrors());
+        $this->assertArrayHasKey('email_encoder', $apbct->errors);
+        $this->assertIsArray($apbct->errors['email_encoder']);
+        $this->assertIsArray($apbct->errors['email_encoder'][0]);
+        $this->assertArrayHasKey('error', $apbct->errors['email_encoder'][0]);
+        $this->assertStringContainsString('Empty plain string', $apbct->errors['email_encoder'][0]['error']);
+        $this->assertStringContainsString('NO_ACTION', $apbct->errors['email_encoder'][0]['error']);
+        $this->assertStringContainsString('EMPTY_STRING', $apbct->errors['email_encoder'][0]['error']);
+        $apbct->errorDeleteAll(true);
     }
 
     public function testPlainTextEncodeDecodeBase()
