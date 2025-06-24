@@ -23,8 +23,5 @@ class HooksRegistrar
 
         // Force Protection check bot
         $ajax_service->addPublicAction('apbct_force_protection_check_bot', 'apbct_force_protection_check_bot');
-
-        // Force ajax set important parameters (apbct_timestamp etc)
-        $ajax_service->addPublicAction('apbct_set_important_parameters', 'apbct_cookie');
     }
 }

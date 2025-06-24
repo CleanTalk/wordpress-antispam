@@ -3011,10 +3011,6 @@ function apbct_ready() {
     // Initializing the collection of user activity
     new ApbctCollectingUserActivity();
 
-    // Set important paramaters via ajax if problematic cache solutions found
-    // todo These AJAX calls removed untill we find a better solution, reason is a lot of requests to the server.
-    // apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
-
     // Checking that the bot detector has loaded and received the event token for Anti-Crawler
     if (ctPublic.settings__sfw__anti_crawler) {
         checkBotDetectorExist();
@@ -3117,21 +3113,6 @@ function apbctCatchXmlHttpRequest() {
             }
             return originalSend.apply(this, [body]);
         };
-    }
-}
-
-/**
- * Run AJAX to set important_parameters on the site backend if problematic cache solutions are defined.
- * @param {boolean} cacheExist
- */
-function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) { // eslint-disable-line no-unused-vars
-    // Set important parameters via ajax
-    if ( cacheExist ) {
-        if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
-            apbct_public_sendREST('apbct_set_important_parameters', {});
-        } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
-            apbct_public_sendAJAX({action: 'apbct_set_important_parameters'}, {});
-        }
     }
 }
 

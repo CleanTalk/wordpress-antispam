@@ -2579,7 +2579,7 @@ function apbct_cookie()
     $domain = '';
 
     // Submit time
-    if ( empty($_POST) || Post::get('action') === 'apbct_set_important_parameters' ) {
+    if ( empty($_POST) ) {
         $apbct_timestamp = time();
         RequestParameters::set('apbct_timestamp', (string)$apbct_timestamp, true);
         $cookie_test_value['cookies_names'][] = 'apbct_timestamp';
