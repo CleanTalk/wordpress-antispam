@@ -1081,7 +1081,7 @@ function apbct_ready() {
  * Checking that the bot detector has loaded and received the event token
  */
 function checkBotDetectorExist() {
-    if (ctPublic.settings__data__bot_detector_enabled) {
+    if (+ctPublic.settings__data__bot_detector_enabled) {
         const botDetectorIntervalSearch = setInterval(() => {
             let botDetectorEventToken = localStorage.bot_detector_event_token ? true : false;
 
