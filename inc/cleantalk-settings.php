@@ -13,6 +13,7 @@ use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
 use Cleantalk\ApbctWP\PluginSettingsPage\SettingsField;
+use Cleantalk\ApbctWP\ServerRequirementsChecker\ServerRequirementsChecker;
 
 /**
  * Admin action 'admin_menu' - Add the admin options page
@@ -2006,6 +2007,10 @@ function apbct_settings__field__action_buttons()
 {
     global $apbct;
 
+    $checker = new ServerRequirementsChecker();
+    $warnings = $checker->checkRequirements() ?: [];
+    $has_requirements_warning = !empty($warnings);
+
     add_filter('apbct_settings_action_buttons', function ($buttons_array) {
         $buttons_array[] =
             '<a href="edit-comments.php?page=ct_check_spam" class="ct_support_link">'
@@ -2028,10 +2033,14 @@ function apbct_settings__field__action_buttons()
         });
     }
 
-    add_filter('apbct_settings_action_buttons', function ($buttons_array) {
+    add_filter('apbct_settings_action_buttons', function ($buttons_array) use ($has_requirements_warning) {
+        $dot = $has_requirements_warning
+            ? '<span class="apbct_warning_red_point"></span>'
+            : '';
         $buttons_array[] =
             '<a href="#" class="ct_support_link" onclick="apbctShowHideElem(\'apbct_statistics\')">'
             . __('Statistics & Reports', 'cleantalk-spam-protect')
+            . $dot
             . '</a>';
         return $buttons_array;
     });
@@ -2202,6 +2211,67 @@ function apbct_settings__field__statistics()
                 );
             }
         }
+    }
+
+    $checker = new ServerRequirementsChecker();
+    $warnings = $checker->checkRequirements() ?: [];
+    $reflection = new ReflectionClass($checker);
+    $property = $reflection->getProperty('requirements');
+    $property->setAccessible(true);
+    $requirements_data = $property->getValue($checker);
+
+    // Сопоставление ключей требований с текстами предупреждений
+    $requirement_items = [
+        'php_version' => [
+            'label' => __('PHP version', 'cleantalk-spam-protect') . ': ' . $requirements_data['php_version'] . '+',
+            'pattern' => 'PHP version',
+        ],
+        'curl_support' => [
+            'label' => __('cURL support', 'cleantalk-spam-protect') . ': ' . ($requirements_data['curl_support'] ?
+                __('enabled', 'cleantalk-spam-protect') :
+                __('disabled', 'cleantalk-spam-protect')
+            ),
+            'pattern' => 'cURL',
+        ],
+        'allow_url_fopen' => [
+            'label' => __('allow_url_fopen', 'cleantalk-spam-protect') . ': ' . ($requirements_data['allow_url_fopen'] ?
+                __('enabled', 'cleantalk-spam-protect') :
+                __('disabled', 'cleantalk-spam-protect')
+            ),
+            'pattern' => 'allow_url_fopen',
+        ],
+        'memory_limit' => [
+            'label' => __('PHP memory_limit', 'cleantalk-spam-protect') . ': ' . $requirements_data['memory_limit'] . '+',
+            'pattern' => 'memory_limit',
+        ],
+        'max_execution_time' => [
+            'label' => __('max_execution_time', 'cleantalk-spam-protect') . ': ' . $requirements_data['max_execution_time'] . '+ ' . __('seconds', 'cleantalk-spam-protect'),
+            'pattern' => 'max_execution_time',
+        ],
+    ];
+
+    echo '<hr><h3>' . __('Recommended Server Requirements', 'cleantalk-spam-protect') . '</h3>';
+    echo '<ul style="margin-bottom:0;">';
+
+    foreach ($requirement_items as $item) {
+        $warn_text = '';
+        foreach ($warnings as $warn) {
+            if (stripos($warn, $item['pattern']) !== false) {
+                $warn_text = ' <span style="color:red;">(' . esc_html($warn) . ')</span>';
+                break;
+            }
+        }
+        echo '<li' . ($warn_text ? ' style="color:red;font-weight:bold;"' : '') . '>' . $item['label'] . $warn_text . '</li>';
+    }
+    echo '</ul>';
+
+    if (!empty($warnings)) {
+        $link = LinkConstructor::buildCleanTalkLink('notice_server_requirements', 'help');
+        echo sprintf(
+            '<a href="%s">%s</a>',
+            $link,
+            __('Instructions for solving the compatibility issue', 'cleantalk-spam-protect')
+        );
     }
 
     echo '<br/>';
