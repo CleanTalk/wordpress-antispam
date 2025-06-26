@@ -1877,10 +1877,10 @@ function apbct_settings__get_ajax_type()
     global $apbct;
 
     //force ajax route type if constant is defined and compatible
-    if (defined('APBCT_SET_AJAX_ROUTE_TYPE')
-        && in_array(APBCT_SET_AJAX_ROUTE_TYPE, array('rest','admin_ajax'))
+    if ($apbct->service_constants->set_ajax_route_type->isDefined()
+        && in_array($apbct->service_constants->set_ajax_route_type->getValue(), array('rest','admin_ajax'))
     ) {
-        return APBCT_SET_AJAX_ROUTE_TYPE;
+        return $apbct->service_constants->set_ajax_route_type->getValue();
     }
 
     // Check rest availability
