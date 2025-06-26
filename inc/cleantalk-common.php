@@ -221,7 +221,21 @@ function apbct_base_call($params = array(), $reg_flag = false)
         ! apbct_is_trackback() &&
         ! defined('XMLRPC_REQUEST')
     ) {
-        $params['exception_action'] = 1;
+        /**
+         * If the constant APBCT_SERVICE__DISABLE_EMPTY_EMAIL_EXCEPTION is defined,
+         * it means that the exception action should be disabled for empty email checks.
+         *
+         * Check all post data option ignore this constant.
+         * @since 6.58.99
+         */
+        if (
+            $apbct->service_constants->disable_empty_email_exception->isDefined() &&
+            !$apbct->settings['data__general_postdata_test']
+        ) {
+            $params['exception_action'] = 0;
+        } else {
+            $params['exception_action'] = 1;
+        }
     }
     /**
      * Skip checking excepted requests if the "Log excluded requests" option is disabled.
