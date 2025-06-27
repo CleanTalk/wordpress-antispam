@@ -2067,7 +2067,7 @@ function apbct_settings__field__statistics()
     global $apbct;
 
     echo '<div id="apbct_statistics" class="apbct_settings-field_wrapper" style="display: none;">';
-
+    echo '<div>';
     // Last request
     // Get the server information
     $server = isset($apbct->stats['last_request']['server']) && $apbct->stats['last_request']['server']
@@ -2212,6 +2212,7 @@ function apbct_settings__field__statistics()
             }
         }
     }
+    echo '</div>';
 
     $checker = new ServerRequirementsChecker();
     $warnings = $checker->checkRequirements() ?: [];
@@ -2250,7 +2251,8 @@ function apbct_settings__field__statistics()
         ],
     ];
 
-    echo '<hr><h3>' . __('Recommended Server Requirements', 'cleantalk-spam-protect') . '</h3>';
+    echo '<div class="apbct_check_server_requirements">';
+    echo '<h3 style="margin: 0;">' . __('Check Server Requirements', 'cleantalk-spam-protect') . '</h3>';
     echo '<ul style="margin-bottom:0;">';
 
     foreach ($requirement_items as $item) {
@@ -2266,15 +2268,14 @@ function apbct_settings__field__statistics()
     echo '</ul>';
 
     if (!empty($warnings)) {
-        $link = LinkConstructor::buildCleanTalkLink('notice_server_requirements', 'help');
+        $link = LinkConstructor::buildCleanTalkLink('notice_server_requirements', 'help/system-requirements-for-anti-spam-and-security ');
         echo sprintf(
             '<a href="%s">%s</a>',
             $link,
             __('Instructions for solving the compatibility issue', 'cleantalk-spam-protect')
         );
     }
-
-    echo '<br/>';
+    echo '</div>';
     echo '</div>';
 }
 
