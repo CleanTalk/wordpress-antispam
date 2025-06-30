@@ -1,0 +1,53 @@
+#!/bin/sh
+
+# VERSION: 2.0
+
+# This script is a pre-push hook for Git that checks code quality and coverage before allowing a push to the repository.
+echo "Running PHPUnit coverage check..."
+echo "Detecting changed PHP files in lib/Cleantalk/..."
+
+CHANGED_FILES=$(git diff --name-only origin/dev...HEAD -- '*.php' || true)
+
+if [ -z "$CHANGED_FILES" ]; then
+    echo "No PHP files changed in lib/. Skipping coverage check."
+else
+    echo "Running PHPUnit coverage check..."
+    vendor/bin/phpunit --configuration tests/phpunit.xml --coverage-text > coverage.txt
+
+    COVERAGE_OK=1
+    TOTAL_PERCENT=0
+    FILE_COUNT=0
+
+    echo -e "\nCoverage report for changed files:"
+    for file in $CHANGED_FILES; do
+        percent=$(awk -v f="$file" '$0 ~ f {getline; if ($1=="Lines:") print $2}' coverage.txt | tr -d '%')
+        if [ -z "$percent" ]; then
+            echo "❌ No coverage info for $file"
+            COVERAGE_OK=0
+        elif [ "${percent%.*}" -lt 80 ]; then
+            echo "⚠️  Coverage for $file is $percent% (below 80%)"
+            COVERAGE_OK=0
+        else
+            echo "✅ Coverage for $file is $percent%"
+        fi
+
+        if [ -n "$percent" ]; then
+            TOTAL_PERCENT=$((TOTAL_PERCENT + percent))
+            FILE_COUNT=$((FILE_COUNT + 1))
+        fi
+    done
+
+    if [ "$FILE_COUNT" -gt 0 ]; then
+        AVERAGE_PERCENT=$((TOTAL_PERCENT / FILE_COUNT))
+        echo -e "\n📊 Average coverage for changed files: $AVERAGE_PERCENT%"
+    else
+        echo -e "\n📊 No coverage data available for calculation."
+    fi
+
+    if [ "$COVERAGE_OK" -eq 0 ]; then
+        echo -e "\n❌ Push rejected due to insufficient coverage in changed files."
+        exit 1
+    else
+        echo -e "\n✔️ All changed files meet the minimum 80% coverage requirement."
+    fi
+fi
