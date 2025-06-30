@@ -424,8 +424,21 @@ $apbct_active_integrations = array(
         'hook'    => 'booked_add_appt',
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
-    ),
+    )
 );
+
+add_filter('rest_pre_dispatch', function($result, $server, $request) use ($apbct_active_integrations) {
+    if ($request->get_route() === '/sureforms/v1/submit-form') {
+        $integration_name = 'SureForms';
+        $integrations = new \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$GLOBALS['apbct']->settings);
+        $response = $integrations->checkSpam($request->get_params(), $integration_name);
+
+        if ($response instanceof \WP_REST_Response || is_array($response)) {
+            return $response;
+        }
+    }
+    return $result;
+}, 10, 3);
 
 add_action('plugins_loaded', function () use ($apbct_active_integrations) {
     global $apbct;
