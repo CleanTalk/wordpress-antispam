@@ -27,6 +27,12 @@ class Cleantalk
     private $dataMaxSise = 32768;
 
     /**
+     * Maximum data size in bytes
+     * @var int
+     */
+    private $_dataMaxSise = 32768;
+
+    /**
      * Data compression rate
      * @var int
      */
