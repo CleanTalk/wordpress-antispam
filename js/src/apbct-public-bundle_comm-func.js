@@ -3462,7 +3462,7 @@ function apbct_ready() {
  * Checking that the bot detector has loaded and received the event token
  */
 function checkBotDetectorExist() {
-    if (ctPublic.settings__data__bot_detector_enabled) {
+    if (+ctPublic.settings__data__bot_detector_enabled) {
         const botDetectorIntervalSearch = setInterval(() => {
             let botDetectorEventToken = localStorage.bot_detector_event_token ? true : false;
 
@@ -3517,7 +3517,11 @@ function ctAddWCMiddlewares() {
  */
 function apbctCatchXmlHttpRequest() {
     // 1) Check the page if it needed to catch XHR
-    if ( document.querySelector('div.wfu_container') !== null ) {
+    if (
+        document.querySelector('div.wfu_container') !== null ||
+        document.querySelector('#newAppointmentForm') !== null ||
+        document.querySelector('.booked-calendar-shortcode-wrap') !== null
+    ) {
         const originalSend = XMLHttpRequest.prototype.send;
         XMLHttpRequest.prototype.send = function(body) {
             // 2) Check the caught request fi it needed to modify
@@ -3525,7 +3529,8 @@ function apbctCatchXmlHttpRequest() {
                 body &&
                 typeof body === 'string' &&
                 (
-                    body.indexOf('action=wfu_ajax_action_ask_server') !== -1
+                    body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
+                    body.indexOf('action=booked_add_appt') !== -1
                 )
             ) {
                 let addidionalCleantalkData = '';
@@ -4143,6 +4148,10 @@ function ctCheckHiddenFieldsExclusions(form, hiddenFieldType) {
         return true;
     }
 
+    if (formAction.indexOf('secureinternetbank.com') !== -1 ) {
+        return true;
+    }
+
     if (typeof (hiddenFieldType) === 'string' &&
         ['visible_fields', 'no_cookie'].indexOf(hiddenFieldType) !== -1) {
         const exclusions = ctGetHiddenFieldExclusionsType(form);
@@ -4202,7 +4211,14 @@ function checkFormsExistForCatching() {
                 if (args &&
                     args[0] &&
                     typeof args[0].includes === 'function' &&
-                    args[0].includes('/wp-json/metform/')
+                    (args[0].includes('/wp-json/metform/') ||
+                    (ctPublicFunctions._rest_url && (() => {
+                        try {
+                            return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
+                        } catch (e) {
+                            return false;
+                        }
+                    })()))
                 ) {
                     let noCookieData = getNoCookieData();
 

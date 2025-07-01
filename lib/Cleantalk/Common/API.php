@@ -2,8 +2,6 @@
 
 namespace Cleantalk\Common;
 
-use Cleantalk\Antispam\Cleantalk;
-use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Common\HTTP\Request;
 
 /**
@@ -20,7 +18,7 @@ use Cleantalk\Common\HTTP\Request;
 class API
 {
     /* Default params  */
-    const URL = 'https://api.cleantalk.org';
+    public static $api_url = 'https://api.cleantalk.org';
     const AGENT = 'ct-api-3.2';
 
     /**
@@ -31,7 +29,7 @@ class API
      * @param null|string $out Data output type (JSON or file URL)
      * @param string $version API method version
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -63,7 +61,7 @@ class API
      * @param bool $white_label
      * @param string $hoster_api_key
      *
-     * @return array|bool|mixed
+     * @return array|bool
      */
     public static function methodGetApiKey(
         $product_name,
@@ -103,7 +101,7 @@ class API
      * @param string $host website host
      * @param integer $period report days
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -124,7 +122,7 @@ class API
      *
      * @param string $api_key
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -146,7 +144,7 @@ class API
      * @param string $path_to_cms Website URL
      * @param string $product_name
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -174,7 +172,7 @@ class API
      *
      * @param string $api_key
      *
-     * @return array|bool|mixed
+     * @return array|bool
      */
     public static function getNoticeBanners($api_key)
     {
@@ -192,7 +190,7 @@ class API
      *
      * @param string $data
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -214,7 +212,7 @@ class API
      * @param array $data
      * @param null|string $date
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -230,7 +228,7 @@ class API
             $request['date'] = $date;
         }
 
-        return static::sendRequest($request, self::URL, 20);
+        return static::sendRequest($request, 20);
     }
 
     /**
@@ -241,7 +239,7 @@ class API
      * @param string $path_to_cms Website URL
      * @param string $product_name
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -264,7 +262,7 @@ class API
      * @param array $data
      * @param null|string $date
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -316,7 +314,7 @@ class API
      * @param string $api_key
      * @param array $data
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -340,7 +338,7 @@ class API
      * @param string $api_key
      * @param array $data
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -363,7 +361,7 @@ class API
      *
      * @param string $api_key
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -384,7 +382,7 @@ class API
      *
      * @param string $api_key
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -404,7 +402,7 @@ class API
      *
      * @param string $api_key
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -428,7 +426,7 @@ class API
      * @param int $links_total
      * @param array $links_list
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -463,7 +461,7 @@ class API
      * @param array $modified List of modified files with details
      * @param array $unknown List of modified files with details
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -507,7 +505,7 @@ class API
      * @param string $file_md5 MD5 hash of file
      * @param array $weak_spots List of weak spots found in file
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -538,7 +536,7 @@ class API
      * @param array|string|mixed $data
      * @param string $date
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -564,7 +562,7 @@ class API
      * @param string $api_key
      * @param array $logs
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -591,7 +589,7 @@ class API
      * @param        $repaired_total_files_proccessed
      * @param        $backup_id
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -624,7 +622,7 @@ class API
      * @param string $api_key
      * @param string $plugins_and_themes_to_refresh
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -644,7 +642,7 @@ class API
      *
      * @param string $api_key
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -665,7 +663,7 @@ class API
      * @param string $api_key
      * @param null|string $template_name
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -694,7 +692,7 @@ class API
      * @param string $options
      * @param string $product_name
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -729,7 +727,7 @@ class API
      * @param string $status allow|deny
      * @param string $expired Date Y-m-d H:i:s
      *
-     * @return array|bool|bool[]|mixed|string[]
+     * @return array|bool|bool[]|string[]
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -767,7 +765,7 @@ class API
      * @param string $hostname
      * @param string $settings
      *
-     * @return array|bool|mixed
+     * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
      * @psalm-suppress PossiblyUnusedReturnValue
@@ -811,14 +809,11 @@ class API
      * Function sends raw request to API server
      *
      * @param array $data to send
-     * @param string $_url
      * @param integer $timeout timeout in seconds
-     * @param boolean $ssl use ssl on not
-     * @param string $ssl_path
      *
      * @return array|bool
      */
-    public static function sendRequest($data, $_url = self::URL, $timeout = 10)
+    public static function sendRequest($data, $timeout = 10)
     {
         // Possibility to switch agent version
         $data['agent'] = ! empty($data['agent'])
@@ -826,7 +821,7 @@ class API
             : (defined('CLEANTALK_AGENT') ? CLEANTALK_AGENT : self::AGENT);
 
         // Possibility to switch API url
-        $url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : $_url;
+        $url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : self::$api_url;
 
         $http = new Request();
 
@@ -848,12 +843,12 @@ class API
      * Function checks server response
      *
      * @param array|string $result
-     * @params null|string $_url
      * @param string $method_name
      *
      * @return mixed (array || array('error' => true))
+     * @psalm-suppress PossiblyUnusedReturnValue
      */
-    public static function checkResponse($result, $_url = null, $method_name = null)
+    public static function checkResponse($result, $method_name = null)
     {
         // Errors handling
         // Bad connection

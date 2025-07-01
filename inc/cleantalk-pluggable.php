@@ -236,6 +236,18 @@ function apbct_get_rest_url($blog_id = null, $path = '/', $scheme = 'rest')
 }
 
 /**
+ * Gets REST url only path
+ *
+ * @return string
+ */
+function apbct_get_rest_url_only_path()
+{
+    $url = apbct_get_rest_url(null, '/');
+    $url = parse_url($url);
+    return isset($url['path']) ? $url['path'] : '/';
+}
+
+/**
  * Gets user by filed
  *
  * @param $field
@@ -697,6 +709,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             'nasa_process_login', //Nasa login
             'leaky_paywall_validate_registration', //Leaky Paywall validation request
             'cleantalk_force_ajax_check', //Force ajax check has direct integration
+            'cscf-submitform', // CSCF has direct integration
         );
 
         // Skip test if
@@ -1548,6 +1561,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'Login/Signup Popup';
         }
+
+        // skip QuickCal - has direct integration
+        if (
+            apbct_is_plugin_active('quickcal/quickcal.php') &&
+            Request::getString('action') === 'booked_add_appt'
+        ) {
+            return 'QuickCal';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1657,8 +1678,8 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         // APBCT service actions
         if (
             apbct_is_plugin_active('cleantalk-spam-protect/cleantalk.php') &&
-            apbct_is_in_uri('wp-json/cleantalk-antispam/v1/check_email_before_post') ||
-            apbct_is_in_uri('wp-json/cleantalk-antispam/v1/check_email_exist_post')
+            apbct_is_in_uri('cleantalk-antispam/v1/check_email_before_post') ||
+            apbct_is_in_uri('cleantalk-antispam/v1/check_email_exist_post')
         ) {
             return 'APBCT service actions';
         }
@@ -1728,8 +1749,8 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         // Plugin Name: OptimizeCheckouts - skip fields checks
         if (
             apbct_is_plugin_active('op-cart/op-checkouts.php') &&
-            ( apbct_is_in_uri('wp-json/opc/v1/cart/recalculate') ||
-            apbct_is_in_uri('wp-json/opc/v1/cart/update-payment-method') )
+            ( apbct_is_in_uri('opc/v1/cart/recalculate') ||
+            apbct_is_in_uri('opc/v1/cart/update-payment-method') )
         ) {
             return 'Plugin Name: OptimizeCheckouts skip fields checks';
         }
@@ -1920,7 +1941,10 @@ function apbct__get_cookie_prefix()
 function apbct__is_rest_api_request()
 {
     if (isset($_SERVER['REQUEST_URI'])) {
-        return strpos(TT::toString($_SERVER['REQUEST_URI']), '/wp-json/') !== false;
+        $rest_url_only_path = apbct_get_rest_url_only_path();
+        return strpos(TT::toString($_SERVER['REQUEST_URI']), '/wp-json/') !== false ||
+        ($rest_url_only_path !== 'index.php' &&
+        strpos(TT::toString($_SERVER['REQUEST_URI']), $rest_url_only_path) !== false);
     }
 
     return false;
