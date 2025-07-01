@@ -427,20 +427,33 @@ $apbct_active_integrations = array(
     )
 );
 
-add_filter('rest_pre_dispatch', function($result, $server, $request) use ($apbct_active_integrations) {
-    if ($request->get_route() === '/sureforms/v1/submit-form') {
-        $integration_name = 'SureForms';
-        $integrations = new \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$GLOBALS['apbct']->settings);
-        $response = $integrations->checkSpam($request->get_params(), $integration_name);
+$apbct_active_rest_integrations = array(
+    'SureForms'         => array(
+        'rest_route'    => '/sureforms/v1/submit-form',
+        'setting' => 'forms__contact_forms_test',
+        'rest'       => true,
+    )
+);
 
-        if ($response instanceof \WP_REST_Response || is_array($response)) {
-            return $response;
+add_filter('rest_pre_dispatch', function ($result, $_, $request) use ($apbct_active_integrations, $apbct_active_rest_integrations) {
+    $route = $request->get_route();
+    foreach ($apbct_active_rest_integrations as $integration_name => $rest_data) {
+        if (isset($rest_data['rest_route']) && $rest_data['rest_route'] === $route) {
+            $all_integrations = array_merge($apbct_active_integrations, $apbct_active_rest_integrations);
+            $apbct_settings = isset($GLOBALS['apbct']) ? (array)$GLOBALS['apbct']->settings : array();
+            $integrations = new \Cleantalk\Antispam\Integrations($all_integrations, $apbct_settings);
+            $response = $integrations->checkSpam($request->get_params(), $integration_name);
+
+            if ($response instanceof \WP_REST_Response || is_array($response)) {
+                return $response;
+            }
+            break;
         }
     }
     return $result;
-}, 10, 3);
+}, 999, 3);
 
-add_action('plugins_loaded', function () use ($apbct_active_integrations) {
+add_action('plugins_loaded', function () use ($apbct_active_integrations, $apbct_active_rest_integrations) {
     global $apbct;
 
     if ( defined('FLUENTFORM_VERSION') ) {
@@ -449,5 +462,6 @@ add_action('plugins_loaded', function () use ($apbct_active_integrations) {
             : 'fluentform_before_insert_submission';
     }
 
-    new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
+    $all_integrations = array_merge($apbct_active_integrations, $apbct_active_rest_integrations);
+    new  \Cleantalk\Antispam\Integrations($all_integrations, (array)$apbct->settings);
 });

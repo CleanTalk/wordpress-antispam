@@ -1,0 +1,57 @@
+Array
+(
+    [0] => E:\OSPanel6\home\osp6-wp662.local\wp-content\plugins\cleantalk-spam-protect\lib\Cleantalk\Antispam\Integrations\SureForms.php 23
+    [1] => Array
+        (
+            [_locale] => user
+            [sureforms_form_submit] => 8d3d5fefa5
+            [_wp_http_referer] => /?page_id=5286
+            [form-id] => 5285
+            [srfm-sender-email-field] => 
+            [srfm-email-9327ada7-lbl-RW1haWw-email] => good@cleantalk.org
+            [srfm-input-d3066e3e-lbl-TmFtZQ-text-field] => 35235
+            [srfm-textarea-fff515bf-lbl-TWVzc2FnZQ-textarea] => asdfgaser
+            [ct_bot_detector_event_token] => 579e3bbc4889602afe1de159bf00f1e3bae4bfe0d013112c058a1863eb87cc0f
+            [apbct_visible_fields] => eyIwIjp7InZpc2libGVfZmllbGRzIjoic3JmbS1lbWFpbC05MzI3YWRhNy1sYmwtUlcxaGFXdy1lbWFpbCBzcmZtLWlucHV0LWQzMDY2ZTNlLWxibC1UbUZ0WlEtdGV4dC1maWVsZCBzcmZtLXRleHRhcmVhLWZmZjUxNWJmLWxibC1UV1Z6YzJGblpRLXRleHRhcmVhIiwidmlzaWJsZV9maWVsZHNfY291bnQiOjMsImludmlzaWJsZV9maWVsZHMiOiJzdXJlZm9ybXNfZm9ybV9zdWJtaXQgX3dwX2h0dHBfcmVmZXJlciBmb3JtLWlkIHNyZm0tc2VuZGVyLWVtYWlsLWZpZWxkIGN0X2JvdF9kZXRlY3Rvcl9ldmVudF90b2tlbiIsImludmlzaWJsZV9maWVsZHNfY291bnQiOjV9fQ==
+        )
+
+)
+
+Array
+(
+    [0] => E:\OSPanel6\home\osp6-wp662.local\wp-content\plugins\cleantalk-spam-protect\lib\Cleantalk\Antispam\Integrations\SureForms.php 23
+    [1] => Array
+        (
+            [_locale] => user
+            [sureforms_form_submit] => 8d3d5fefa5
+            [_wp_http_referer] => /?page_id=5286
+            [form-id] => 5285
+            [srfm-sender-email-field] => 
+            [srfm-email-9327ada7-lbl-RW1haWw-email] => adasdefgag@serhy.sdfg
+            [srfm-input-d3066e3e-lbl-TmFtZQ-text-field] => фывфыв
+            [srfm-textarea-fff515bf-lbl-TWVzc2FnZQ-textarea] => ячсмявмывм
+            [ct_bot_detector_event_token] => 579e3bbc4889602afe1de159bf00f1e3bae4bfe0d013112c058a1863eb87cc0f
+            [apbct_visible_fields] => eyIwIjp7InZpc2libGVfZmllbGRzIjoic3JmbS1lbWFpbC05MzI3YWRhNy1sYmwtUlcxaGFXdy1lbWFpbCBzcmZtLWlucHV0LWQzMDY2ZTNlLWxibC1UbUZ0WlEtdGV4dC1maWVsZCBzcmZtLXRleHRhcmVhLWZmZjUxNWJmLWxibC1UV1Z6YzJGblpRLXRleHRhcmVhIiwidmlzaWJsZV9maWVsZHNfY291bnQiOjMsImludmlzaWJsZV9maWVsZHMiOiJzdXJlZm9ybXNfZm9ybV9zdWJtaXQgX3dwX2h0dHBfcmVmZXJlciBmb3JtLWlkIHNyZm0tc2VuZGVyLWVtYWlsLWZpZWxkIGN0X2JvdF9kZXRlY3Rvcl9ldmVudF90b2tlbiIsImludmlzaWJsZV9maWVsZHNfY291bnQiOjV9fQ==
+        )
+
+)
+
+Array
+(
+    [0] => E:\OSPanel6\home\osp6-wp662.local\wp-content\plugins\cleantalk-spam-protect\lib\Cleantalk\Antispam\Integrations\SureForms.php 23
+    [1] => Array
+        (
+            [_locale] => user
+            [sureforms_form_submit] => 8d3d5fefa5
+            [_wp_http_referer] => /?page_id=5286
+            [form-id] => 5285
+            [srfm-sender-email-field] => 
+            [srfm-email-9327ada7-lbl-RW1haWw-email] => good@cleantalk.org
+            [srfm-input-d3066e3e-lbl-TmFtZQ-text-field] => фывфыв
+            [srfm-textarea-fff515bf-lbl-TWVzc2FnZQ-textarea] => ячсмявмывм
+            [ct_bot_detector_event_token] => 579e3bbc4889602afe1de159bf00f1e3bae4bfe0d013112c058a1863eb87cc0f
+            [apbct_visible_fields] => eyIwIjp7InZpc2libGVfZmllbGRzIjoic3JmbS1lbWFpbC05MzI3YWRhNy1sYmwtUlcxaGFXdy1lbWFpbCBzcmZtLWlucHV0LWQzMDY2ZTNlLWxibC1UbUZ0WlEtdGV4dC1maWVsZCBzcmZtLXRleHRhcmVhLWZmZjUxNWJmLWxibC1UV1Z6YzJGblpRLXRleHRhcmVhIiwidmlzaWJsZV9maWVsZHNfY291bnQiOjMsImludmlzaWJsZV9maWVsZHMiOiJzdXJlZm9ybXNfZm9ybV9zdWJtaXQgX3dwX2h0dHBfcmVmZXJlciBmb3JtLWlkIHNyZm0tc2VuZGVyLWVtYWlsLWZpZWxkIGN0X2JvdF9kZXRlY3Rvcl9ldmVudF90b2tlbiIsImludmlzaWJsZV9maWVsZHNfY291bnQiOjV9fQ==
+        )
+
+)
+
