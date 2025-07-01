@@ -2216,46 +2216,20 @@ function apbct_settings__field__statistics()
 
     $checker = new ServerRequirementsChecker();
     $warnings = $checker->checkRequirements() ?: [];
-    $reflection = new ReflectionClass($checker);
-    $property = $reflection->getProperty('requirements');
-    $property->setAccessible(true);
-    $requirements_data = $property->getValue($checker);
-
-    // Сопоставление ключей требований с текстами предупреждений
-    $requirement_items = [
-        'php_version' => [
-            'label' => __('PHP version', 'cleantalk-spam-protect') . ': ' . $requirements_data['php_version'] . '+',
-            'pattern' => 'PHP version',
-        ],
-        'curl_support' => [
-            'label' => __('cURL support', 'cleantalk-spam-protect') . ': ' . ($requirements_data['curl_support'] ?
-                __('enabled', 'cleantalk-spam-protect') :
-                __('disabled', 'cleantalk-spam-protect')
-            ),
-            'pattern' => 'cURL',
-        ],
-        'allow_url_fopen' => [
-            'label' => __('allow_url_fopen', 'cleantalk-spam-protect') . ': ' . ($requirements_data['allow_url_fopen'] ?
-                __('enabled', 'cleantalk-spam-protect') :
-                __('disabled', 'cleantalk-spam-protect')
-            ),
-            'pattern' => 'allow_url_fopen',
-        ],
-        'memory_limit' => [
-            'label' => __('PHP memory_limit', 'cleantalk-spam-protect') . ': ' . $requirements_data['memory_limit'] . '+',
-            'pattern' => 'memory_limit',
-        ],
-        'max_execution_time' => [
-            'label' => __('max_execution_time', 'cleantalk-spam-protect') . ': ' . $requirements_data['max_execution_time'] . '+ ' . __('seconds', 'cleantalk-spam-protect'),
-            'pattern' => 'max_execution_time',
-        ],
-    ];
+    $requirements_data = $checker->requirements;
+    $requirement_items = $checker->requirement_items;
 
     echo '<div class="apbct_check_server_requirements">';
     echo '<h3 style="margin: 0;">' . __('Check Server Requirements', 'cleantalk-spam-protect') . '</h3>';
     echo '<ul style="margin-bottom:0;">';
 
-    foreach ($requirement_items as $item) {
+    foreach ($requirement_items as $key => $item) {
+        $value = $requirements_data[$key];
+        if ($key === 'curl_support' || $key === 'allow_url_fopen') {
+            $value = $value ? __('enabled', 'cleantalk-spam-protect') : __('disabled', 'cleantalk-spam-protect');
+        }
+        $label = sprintf(__($item['label'], 'cleantalk-spam-protect'), $value);
+
         $warn_text = '';
         foreach ($warnings as $warn) {
             if (stripos($warn, $item['pattern']) !== false) {
@@ -2263,7 +2237,7 @@ function apbct_settings__field__statistics()
                 break;
             }
         }
-        echo '<li' . ($warn_text ? ' style="color:red;font-weight:bold;"' : '') . '>' . $item['label'] . $warn_text . '</li>';
+        echo '<li' . ($warn_text ? ' style="color:red;font-weight:bold;"' : '') . '>' . $label . $warn_text . '</li>';
     }
     echo '</ul>';
 
