@@ -917,8 +917,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         }
         // FluentForm multistep skip
         if (
-            (apbct_is_plugin_active('fluentformpro/fluentformpro.php') ||  apbct_is_plugin_active('fluentform/fluentform.php')) &&
-            TT::toString(Post::get('action')) === 'active_step'
+            (
+                apbct_is_plugin_active('fluentformpro/fluentformpro.php')
+                ||  apbct_is_plugin_active('fluentform/fluentform.php'))
+            &&
+            (
+                Post::getString('action') === 'active_step'
+                || Post::getString('action') === 'fluentform_step_form_save_data'
+            )
         ) {
             return 'fluentform_skip';
         }
@@ -1115,7 +1121,9 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         //Skip RegistrationMagic service request
         if (
             apbct_is_plugin_active('custom-registration-form-builder-with-submission-manager/registration_magic.php') &&
-            Post::get('action') === 'rm_user_exists'
+            Post::get('action') === 'rm_user_exists' ||
+            Post::get('action') === 'check_username_validity' ||
+            Post::get('action') === 'check_email_exists'
         ) {
             return 'RegistrationMagic service request';
         }
@@ -1573,6 +1581,13 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
         /*****************************************/
+        //Skip RegistrationMagic main request - has own integration
+        if (
+            apbct_is_plugin_active('custom-registration-form-builder-with-submission-manager/registration_magic.php') &&
+            isset($_POST['rm_cond_hidden_fields'])
+        ) {
+            return 'RegistrationMagic main request';
+        }
         // WC payment APIs
         if ( apbct_is_plugin_active('woocommerce/woocommerce.php') &&
              apbct_is_in_uri('wc-api=2checkout_ipn_convert_plus') ) {
@@ -1883,10 +1898,10 @@ function apbct_settings__get_ajax_type()
     global $apbct;
 
     //force ajax route type if constant is defined and compatible
-    if (defined('APBCT_SET_AJAX_ROUTE_TYPE')
-        && in_array(APBCT_SET_AJAX_ROUTE_TYPE, array('rest','admin_ajax'))
+    if ($apbct->service_constants->set_ajax_route_type->isDefined()
+        && in_array($apbct->service_constants->set_ajax_route_type->getValue(), array('rest','admin_ajax'))
     ) {
-        return APBCT_SET_AJAX_ROUTE_TYPE;
+        return $apbct->service_constants->set_ajax_route_type->getValue();
     }
 
     // Check rest availability
