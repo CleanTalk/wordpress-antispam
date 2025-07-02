@@ -42,17 +42,6 @@ class RestController extends \WP_REST_Controller
                     ),
                 ),
                 'permission_callback' => '__return_true',
-            ),
-            array(
-                'methods'             => 'GET',
-                'callback'            => array(AltSessions::class, 'getFromRemote'),
-                'args'                => array(
-                    'name' => array(
-                        'type'     => 'string',
-                        'required' => true,
-                    ),
-                ),
-                'permission_callback' => '__return_true',
             )
         ));
 

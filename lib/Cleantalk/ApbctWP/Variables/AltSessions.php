@@ -158,23 +158,6 @@ class AltSessions
         return isset($session_value[$name]) ? $session_value[$name] : '';
     }
 
-    /**
-     * @param $request
-     *
-     * @return void
-     * @psalm-suppress PossiblyUnusedMethod
-     */
-    public static function getFromRemote($request = null)
-    {
-        $value = Cookie::getString(
-            $request
-                ? $request->get_param('cookies')
-                : Post::getString('name')
-        );
-
-        wp_send_json(array('success' => true, 'value' => $value));
-    }
-
     public static function cleanFromOld()
     {
         global $wpdb;
