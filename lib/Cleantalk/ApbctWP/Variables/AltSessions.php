@@ -6,6 +6,34 @@ use Cleantalk\ApbctWP\Helper;
 
 class AltSessions
 {
+    /**
+     * @var string[]
+     */
+    private static $allowed_alt_cookies = [
+        'apbct_email_encoder_passed' => 'hash',
+        'apbct_bot_detector_exist' => 'bool',
+        'ct_ps_timestamp' => 'int',
+        'ct_fkp_timestamp' => 'int',
+        'ct_timezone' => 'int',
+        'ct_screen_info' => 'json',
+        'apbct_headless' => 'bool',
+        'apbct_visible_fields' => 'json',
+        'apbct_pixel_url' => 'url',
+        'ct_checked_emails' => 'json',
+        'ct_checked_emails_exist' => 'json',
+        'ct_checkjs' => 'string',
+        'ct_bot_detector_event_token' => 'hash',
+        'ct_has_input_focused' => 'bool',
+        'ct_has_key_up' => 'bool',
+        'ct_has_scrolled' => 'bool',
+        'ct_mouse_moved' => 'bool',
+        'wordpress_apbct_antibot' => 'hash',
+        'apbct_anticrawler_passed' => 'int',
+        'apbct_antiflood_passed' => 'int',
+        'ct_sfw_pass_key' => 'string',
+        'ct_sfw_passed' => 'int',
+    ];
+
     public static function getID()
     {
         $id = Helper::ipGet()
@@ -124,6 +152,45 @@ class AltSessions
             wp_send_json(array(
                 'success' => false,
                 'error' => 'AltSessions: Internal JSON error:' . json_last_error_msg()));
+        }
+
+        // Incoming data validation against allowed alt cookies
+        foreach ($cookies_array as $name => $value) {
+            if ( ! array_key_exists($name, self::$allowed_alt_cookies) ) {
+                unset($cookies_array[$name]);
+                continue;
+            }
+
+            // Validate value type
+            switch (self::$allowed_alt_cookies[$name]) {
+                case 'int':
+                    $cookies_array[$name] = (int)$value;
+                    break;
+                case 'bool':
+                    $cookies_array[$name] = (bool)$value;
+                    break;
+                case 'string':
+                    $cookies_array[$name] = (string)$value;
+                    break;
+                case 'json':
+                    if ( ! is_string($value) || json_decode($value) === null ) {
+                        unset($cookies_array[$name]);
+                    }
+                    break;
+                case 'url':
+                    if ( ! filter_var($value, FILTER_VALIDATE_URL) ) {
+                        unset($cookies_array[$name]);
+                    }
+                    break;
+                case 'hash':
+                    if ( ! preg_match('/^[a-f0-9]{32,128}$/', $value) ) {
+                        unset($cookies_array[$name]);
+                    }
+                    break;
+                default:
+                    // If the type is not recognized, remove the cookie
+                    unset($cookies_array[$name]);
+            }
         }
 
         //other versions json errors if json_decode returns null
