@@ -1067,10 +1067,6 @@ function apbct_ready() {
     // Initializing the collection of user activity
     new ApbctCollectingUserActivity();
 
-    // Set important paramaters via ajax if problematic cache solutions found
-    // todo These AJAX calls removed untill we find a better solution, reason is a lot of requests to the server.
-    // apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
-
     // Checking that the bot detector has loaded and received the event token for Anti-Crawler
     if (ctPublic.settings__sfw__anti_crawler) {
         checkBotDetectorExist();
@@ -1081,7 +1077,7 @@ function apbct_ready() {
  * Checking that the bot detector has loaded and received the event token
  */
 function checkBotDetectorExist() {
-    if (ctPublic.settings__data__bot_detector_enabled) {
+    if (+ctPublic.settings__data__bot_detector_enabled) {
         const botDetectorIntervalSearch = setInterval(() => {
             let botDetectorEventToken = localStorage.bot_detector_event_token ? true : false;
 
@@ -1136,7 +1132,11 @@ function ctAddWCMiddlewares() {
  */
 function apbctCatchXmlHttpRequest() {
     // 1) Check the page if it needed to catch XHR
-    if ( document.querySelector('div.wfu_container') !== null ) {
+    if (
+        document.querySelector('div.wfu_container') !== null ||
+        document.querySelector('#newAppointmentForm') !== null ||
+        document.querySelector('.booked-calendar-shortcode-wrap') !== null
+    ) {
         const originalSend = XMLHttpRequest.prototype.send;
         XMLHttpRequest.prototype.send = function(body) {
             // 2) Check the caught request fi it needed to modify
@@ -1144,7 +1144,8 @@ function apbctCatchXmlHttpRequest() {
                 body &&
                 typeof body === 'string' &&
                 (
-                    body.indexOf('action=wfu_ajax_action_ask_server') !== -1
+                    body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
+                    body.indexOf('action=booked_add_appt') !== -1
                 )
             ) {
                 let addidionalCleantalkData = '';
@@ -1173,21 +1174,6 @@ function apbctCatchXmlHttpRequest() {
             }
             return originalSend.apply(this, [body]);
         };
-    }
-}
-
-/**
- * Run AJAX to set important_parameters on the site backend if problematic cache solutions are defined.
- * @param {boolean} cacheExist
- */
-function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) { // eslint-disable-line no-unused-vars
-    // Set important parameters via ajax
-    if ( cacheExist ) {
-        if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
-            apbct_public_sendREST('apbct_set_important_parameters', {});
-        } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
-            apbct_public_sendAJAX({action: 'apbct_set_important_parameters'}, {});
-        }
     }
 }
 
@@ -1777,6 +1763,10 @@ function ctCheckHiddenFieldsExclusions(form, hiddenFieldType) {
         return true;
     }
 
+    if (formAction.indexOf('secureinternetbank.com') !== -1 ) {
+        return true;
+    }
+
     if (typeof (hiddenFieldType) === 'string' &&
         ['visible_fields', 'no_cookie'].indexOf(hiddenFieldType) !== -1) {
         const exclusions = ctGetHiddenFieldExclusionsType(form);
@@ -1836,7 +1826,14 @@ function checkFormsExistForCatching() {
                 if (args &&
                     args[0] &&
                     typeof args[0].includes === 'function' &&
-                    args[0].includes('/wp-json/metform/')
+                    (args[0].includes('/wp-json/metform/') ||
+                    (ctPublicFunctions._rest_url && (() => {
+                        try {
+                            return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
+                        } catch (e) {
+                            return false;
+                        }
+                    })()))
                 ) {
                     let noCookieData = getNoCookieData();
 

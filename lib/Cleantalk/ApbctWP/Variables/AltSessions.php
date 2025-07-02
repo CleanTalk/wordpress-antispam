@@ -229,19 +229,23 @@ class AltSessions
     {
         global $wpdb;
 
+        $results = [];
+
         // Get all cleantalk_sessions tables across all sites
         $tables = $wpdb->get_col(
             "SHOW TABLES LIKE '{$wpdb->base_prefix}%cleantalk_sessions'"
         );
 
         foreach ($tables as $table) {
-            $wpdb->query(
+            $results[$table] = $wpdb->query(
                 'DELETE FROM `' . $table . '`
                 WHERE last_update < NOW() - INTERVAL ' . APBCT_SEESION__LIVE_TIME . ' SECOND
                 OR last_update IS NULL
                 LIMIT 100000;'
             );
         }
+
+        return $results;
     }
 
     public static function checkHasUndeletedOldSessions()

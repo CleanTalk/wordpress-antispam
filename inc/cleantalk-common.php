@@ -410,11 +410,16 @@ function apbct_exclusions_check__url()
             $exclusions = explode(',', $apbct->settings['exclusions__urls']);
         }
 
+        $rest_url_only_path = apbct_get_rest_url_only_path();
         // Fix for AJAX and WP REST API forms
         $haystack =
             (
                 Server::get('REQUEST_URI') === '/wp-admin/admin-ajax.php' ||
-                stripos(TT::toString(Server::get('REQUEST_URI')), '/wp-json/') === 0
+                stripos(TT::toString(Server::getString('REQUEST_URI')), '/wp-json/') === 0 ||
+                (
+                    $rest_url_only_path !== 'index.php' &&
+                    stripos(TT::toString(Server::getString('REQUEST_URI')), $rest_url_only_path) === 0
+                )
             ) &&
             TT::toString(Server::get('HTTP_REFERER'))
             ? str_ireplace(
