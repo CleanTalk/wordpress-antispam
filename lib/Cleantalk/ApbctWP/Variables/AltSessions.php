@@ -47,7 +47,7 @@ class AltSessions
         return self::setValues($session_value);
     }
 
-    public static function setValues($cookies_array)
+    private static function setValues($cookies_array)
     {
         global $wpdb;
 
@@ -69,7 +69,7 @@ class AltSessions
         ));
     }
 
-    public static function getValues()
+    private static function getValues()
     {
         global $wpdb;
 
