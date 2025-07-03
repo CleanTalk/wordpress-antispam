@@ -24,7 +24,11 @@ class Newsletter extends IntegrationBase
             $argument === 'ajaxsub'
         ) {
             $posted = stripslashes_deep($_REQUEST);
-            $email = $posted['ne'];
+            $email = '';
+            if (isset($posted['ne'])) {
+                $email = $posted['ne'];
+                unset($posted['ne']);
+            }
             $name = '';
             if (isset($posted['nn'])) {
                 $name = $posted['nn'];
