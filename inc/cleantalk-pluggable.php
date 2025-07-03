@@ -236,6 +236,18 @@ function apbct_get_rest_url($blog_id = null, $path = '/', $scheme = 'rest')
 }
 
 /**
+ * Gets REST url only path
+ *
+ * @return string
+ */
+function apbct_get_rest_url_only_path()
+{
+    $url = apbct_get_rest_url(null, '/');
+    $url = parse_url($url);
+    return isset($url['path']) ? $url['path'] : '/';
+}
+
+/**
  * Gets user by filed
  *
  * @param $field
@@ -697,6 +709,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             'nasa_process_login', //Nasa login
             'leaky_paywall_validate_registration', //Leaky Paywall validation request
             'cleantalk_force_ajax_check', //Force ajax check has direct integration
+            'cscf-submitform', // CSCF has direct integration
         );
 
         // Skip test if
@@ -904,8 +917,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         }
         // FluentForm multistep skip
         if (
-            (apbct_is_plugin_active('fluentformpro/fluentformpro.php') ||  apbct_is_plugin_active('fluentform/fluentform.php')) &&
-            TT::toString(Post::get('action')) === 'active_step'
+            (
+                apbct_is_plugin_active('fluentformpro/fluentformpro.php')
+                ||  apbct_is_plugin_active('fluentform/fluentform.php'))
+            &&
+            (
+                Post::getString('action') === 'active_step'
+                || Post::getString('action') === 'fluentform_step_form_save_data'
+            )
         ) {
             return 'fluentform_skip';
         }
@@ -1102,7 +1121,9 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         //Skip RegistrationMagic service request
         if (
             apbct_is_plugin_active('custom-registration-form-builder-with-submission-manager/registration_magic.php') &&
-            Post::get('action') === 'rm_user_exists'
+            Post::get('action') === 'rm_user_exists' ||
+            Post::get('action') === 'check_username_validity' ||
+            Post::get('action') === 'check_email_exists'
         ) {
             return 'RegistrationMagic service request';
         }
@@ -1548,10 +1569,25 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'Login/Signup Popup';
         }
+
+        // skip QuickCal - has direct integration
+        if (
+            apbct_is_plugin_active('quickcal/quickcal.php') &&
+            Request::getString('action') === 'booked_add_appt'
+        ) {
+            return 'QuickCal';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
         /*****************************************/
+        //Skip RegistrationMagic main request - has own integration
+        if (
+            apbct_is_plugin_active('custom-registration-form-builder-with-submission-manager/registration_magic.php') &&
+            isset($_POST['rm_cond_hidden_fields'])
+        ) {
+            return 'RegistrationMagic main request';
+        }
         // WC payment APIs
         if ( apbct_is_plugin_active('woocommerce/woocommerce.php') &&
              apbct_is_in_uri('wc-api=2checkout_ipn_convert_plus') ) {
@@ -1657,8 +1693,8 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         // APBCT service actions
         if (
             apbct_is_plugin_active('cleantalk-spam-protect/cleantalk.php') &&
-            apbct_is_in_uri('wp-json/cleantalk-antispam/v1/check_email_before_post') ||
-            apbct_is_in_uri('wp-json/cleantalk-antispam/v1/check_email_exist_post')
+            apbct_is_in_uri('cleantalk-antispam/v1/check_email_before_post') ||
+            apbct_is_in_uri('cleantalk-antispam/v1/check_email_exist_post')
         ) {
             return 'APBCT service actions';
         }
@@ -1728,8 +1764,8 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         // Plugin Name: OptimizeCheckouts - skip fields checks
         if (
             apbct_is_plugin_active('op-cart/op-checkouts.php') &&
-            ( apbct_is_in_uri('wp-json/opc/v1/cart/recalculate') ||
-            apbct_is_in_uri('wp-json/opc/v1/cart/update-payment-method') )
+            ( apbct_is_in_uri('opc/v1/cart/recalculate') ||
+            apbct_is_in_uri('opc/v1/cart/update-payment-method') )
         ) {
             return 'Plugin Name: OptimizeCheckouts skip fields checks';
         }
@@ -1862,10 +1898,10 @@ function apbct_settings__get_ajax_type()
     global $apbct;
 
     //force ajax route type if constant is defined and compatible
-    if (defined('APBCT_SET_AJAX_ROUTE_TYPE')
-        && in_array(APBCT_SET_AJAX_ROUTE_TYPE, array('rest','admin_ajax'))
+    if ($apbct->service_constants->set_ajax_route_type->isDefined()
+        && in_array($apbct->service_constants->set_ajax_route_type->getValue(), array('rest','admin_ajax'))
     ) {
-        return APBCT_SET_AJAX_ROUTE_TYPE;
+        return $apbct->service_constants->set_ajax_route_type->getValue();
     }
 
     // Check rest availability
@@ -1920,7 +1956,10 @@ function apbct__get_cookie_prefix()
 function apbct__is_rest_api_request()
 {
     if (isset($_SERVER['REQUEST_URI'])) {
-        return strpos(TT::toString($_SERVER['REQUEST_URI']), '/wp-json/') !== false;
+        $rest_url_only_path = apbct_get_rest_url_only_path();
+        return strpos(TT::toString($_SERVER['REQUEST_URI']), '/wp-json/') !== false ||
+        ($rest_url_only_path !== 'index.php' &&
+        strpos(TT::toString($_SERVER['REQUEST_URI']), $rest_url_only_path) !== false);
     }
 
     return false;

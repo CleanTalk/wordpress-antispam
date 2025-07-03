@@ -39,7 +39,7 @@ function ct_contact_form_validate()
     }
 
     // Skip own service REST API requests
-    if ( Server::isPost() && Server::inUri('wp-json/cleantalk-antispam/v1/apbct_decode_email') ) {
+    if ( Server::isPost() && Server::inUri('cleantalk-antispam/v1/apbct_decode_email') ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return null;
@@ -241,12 +241,8 @@ function ct_contact_form_validate()
     if (isset($base_call_result['ct_result'])) {
         $ct_result = $base_call_result['ct_result'];
 
-        // Remove visible fields from POST
-        foreach ($_POST as $key => $_value) {
-            if (stripos((string)$key, 'apbct_visible_fields') === 0) {
-                unset($_POST[$key]);
-            }
-        }
+        // Remove service fields from POST
+        apbct_clear_post_service_data_after_base_call();
 
         if ( $ct_result->allow == 0 ) {
             // Recognize contact form an set it's name to $contact_form to use later
@@ -401,7 +397,7 @@ function ct_contact_form_validate()
                 } else if (
                     // BuddyBoss App - request from mobile app usually
                     apbct_is_plugin_active('buddyboss-app/buddyboss-app.php') &&
-                    Server::getString('REQUEST_URI') === '/wp-json/buddyboss-app/v1/signup'
+                    Server::getString('REQUEST_URI') === '/buddyboss-app/v1/signup'
                 ) {
                     $data = [
                         'code' => 'bp_rest_register_errors',
@@ -747,4 +743,24 @@ function apbct__filter_array_recursive(&$array, $excluded_matches, $level = 0)
     }
 
     return $array;
+}
+
+/**
+ * Remove apbct_visible_fields, ct_bot_detector_event_token, ct_no_cookie_hidden_field fields from POST array.
+ * @return void
+ */
+function apbct_clear_post_service_data_after_base_call()
+{
+    // Remove visible fields from POST
+    foreach ($_POST as $key => $_value) {
+        if (stripos((string)$key, 'apbct_visible_fields') === 0) {
+            unset($_POST[$key]);
+        }
+        if (stripos((string)$key, 'ct_bot_detector_event_token') === 0) {
+            unset($_POST[$key]);
+        }
+        if (stripos((string)$key, 'ct_no_cookie_hidden_field') === 0) {
+            unset($_POST[$key]);
+        }
+    }
 }

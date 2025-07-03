@@ -943,6 +943,13 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         $reg_flag = true;
     }
 
+    if (current_filter() === 'woocommerce_registration_errors') {
+        if (!is_null($sanitized_user_login) && strpos($sanitized_user_login, '.') !== false) {
+            $username_parts = explode('.', $sanitized_user_login);
+            $sanitized_user_login = implode(' ', $username_parts);
+        }
+    }
+
     $base_call_array = array(
         'sender_email'    => $user_email,
         'sender_nickname' => $sanitized_user_login,

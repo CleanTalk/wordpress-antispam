@@ -28,7 +28,7 @@ class API extends \Cleantalk\Common\API
      * @param $note
      * @param $status
      *
-     * @return array|bool|mixed|string[]
+     * @return array|bool|string[]
      * @psalm-suppress PossiblyUnusedMethod
      */
     public static function methodPrivateListAddSfwWl($user_token, $service_id, $ip)
@@ -49,10 +49,11 @@ class API extends \Cleantalk\Common\API
     /**
      * GET method for getting information
      * whether an email exists
+     *
      * @param $email
      * @param $api_key
      *
-     * @return array|bool|mixed
+     * @return array|bool
      */
     public static function methodEmailCheckExist($email, $api_key = '')
     {
@@ -69,31 +70,32 @@ class API extends \Cleantalk\Common\API
      * Function sends raw request to API server.
      * May use built in WordPress HTTP-API
      *
-     * @param array Data to send
-     * @param string API server URL
+     * @param array $data Data to send
      * @param int $timeout
-     * @param bool Do we need to use SSL
      *
      * @return array|bool
      */
-    public static function sendRequest($data, $_url = self::URL, $timeout = 10)
+    public static function sendRequest($data, $timeout = 10)
     {
         // Possibility to switch API url
-        $url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : $_url;
+        $url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : self::$api_url;
 
         // Adding agent version to data
         $data['agent'] = defined('APBCT_AGENT') ? APBCT_AGENT : '';
 
         $http = new Request();
 
-        return $http->setUrl($url)
+        $request = $http->setUrl($url)
                     ->setData($data)
                     ->setPresets(['retry_with_socket'])
-                    ->setOptions(['timeout' => $timeout])
-                    ->addCallback(
-                        __CLASS__ . '::checkResponse',
-                        [$data['method_name']]
-                    )
-                    ->request();
+                    ->setOptions(['timeout' => $timeout]);
+        if ( isset($data['method_name']) ) {
+            $request->addCallback(
+                __CLASS__ . '::checkResponse',
+                [$data['method_name']]
+            );
+        }
+
+        return $request->request();
     }
 }
