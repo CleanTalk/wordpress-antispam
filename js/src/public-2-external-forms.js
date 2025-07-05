@@ -66,7 +66,9 @@ function ctProtectExternal() {
     // Trying to process external form into an iframe
     apbctProcessIframes();
     // if form is still not processed by fields listening, do it here
-    new ApbctGatheringData().startFieldsListening();
+    if (ctPublic.settings__data__bot_detector_enabled != 1) {
+        new ApbctGatheringData().startFieldsListening();
+    }
 }
 
 /**

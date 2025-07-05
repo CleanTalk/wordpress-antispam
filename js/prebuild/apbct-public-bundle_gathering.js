@@ -2482,7 +2482,9 @@ class ApbctHandler {
 
     catchFetchRequest() {
         setTimeout(function() {
-            if (Array.from(document.forms).map((form) => form.classList.contains('metform-form-content')).length > 0) {
+            if (document.forms.length > 0 &&
+                Array.from(document.forms).map((form) => form.classList.contains('metform-form-content')).length > 0
+            ) {
                 window.fetch = function(...args) {
                     if (args &&
                         args[0] &&

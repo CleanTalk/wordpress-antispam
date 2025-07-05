@@ -99,7 +99,7 @@ function bundle_public_external_protection() {
         '!js/src/public-2-gathering-data.js',
         'js/src/public-3*.js',
     ])
-    .pipe(concat('apbct-public-bundle_ext-protection_gathering.js'))
+    .pipe(concat('apbct-public-bundle_ext-protection.js'))
     .pipe(gulp.dest('js/prebuild/'));
 }
 
