@@ -106,13 +106,17 @@ function ctFillDecodedEmailHandler(event = false) {
 function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
     if (event && clickSource) {
         // collect data
-        const javascriptClientData = getJavascriptClientData();
         let data = {
-            event_javascript_data: javascriptClientData,
             post_url: document.location.href,
             referrer: document.referrer,
             encodedEmails: '',
         };
+        if (ctPublic.settings__data__bot_detector_enabled == 1) {
+            data.event_token = botDetectorLocalStorage.get('bot_detector_event_token');
+        } else {
+            data.event_javascript_data = getJavascriptClientData();
+        }
+
         let encodedEmailsCollection = {};
         for (let i = 0; i < encodedEmailNodes.length; i++) {
             // disable click for mailto
@@ -442,7 +446,9 @@ function ctFillDecodedEmail(target, email) {
 // Listen clicks on encoded emails
 document.addEventListener('DOMContentLoaded', function() {
     let encodedEmailNodes = document.querySelectorAll('[data-original-string]');
-    ctPublic.encodedEmailNodes = encodedEmailNodes;
+    if (typeof ctPublic !== 'undefined') {
+        ctPublic.encodedEmailNodes = encodedEmailNodes;
+    }
     if (encodedEmailNodes.length) {
         for (let i = 0; i < encodedEmailNodes.length; ++i) {
             encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
