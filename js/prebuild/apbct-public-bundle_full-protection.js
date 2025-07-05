@@ -4043,10 +4043,14 @@ class ApbctForceProtection {
      */
     checkBot() {
         let data = {
-            event_javascript_data: getJavascriptClientData(),
             post_url: document.location.href,
             referrer: document.referrer,
         };
+        if (ctPublic.settings__data__bot_detector_enabled == 1) {
+            data.event_token = botDetectorLocalStorage.get('bot_detector_event_token');
+        } else {
+            data.event_javascript_data = getJavascriptClientData();
+        }
 
         if (ctPublicFunctions.data__ajax_type === 'rest') {
             apbct_public_sendREST('force_protection_check_bot', {
