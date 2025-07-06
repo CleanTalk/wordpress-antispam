@@ -3,6 +3,8 @@
 namespace Cleantalk\ApbctWP\Variables;
 
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\Common\TT;
+use WP_REST_Request;
 
 class AltSessions
 {
@@ -127,17 +129,45 @@ class AltSessions
     }
 
     /**
-     * @param $request
+     * Sets session values from a remote request (ajax request).
+     *
+     * This method processes incoming data from a remote request or POST data,
+     * validates the cookies against allowed types, and updates the session values.
+     * It also handles JSON decoding errors and ensures proper data sanitization.
+     *
+     * @param WP_REST_Request|null $request
      *
      * @return void
      * @psalm-suppress PossiblyUnusedMethod
      */
     public static function setFromRemote($request = null)
     {
-        if ( !$request || !empty(Post::getString('cookies'))) {
-            $cookies_to_set = Post::getString('cookies');
-        } else {
+        if ( $request instanceof WP_REST_Request ) {
+            $nonce = TT::toString($request->get_header('x_wp_nonce'));
+            $action = 'wp_rest';
             $cookies_to_set = $request->get_param('cookies');
+        } else {
+            $nonce = TT::toString(Post::getString('_ajax_nonce'));
+            $action = 'ct_secret_stuff';
+            $cookies_to_set = Post::getString('cookies');
+        }
+
+        if ( ! $cookies_to_set ) {
+            wp_send_json(
+                array(
+                    'success' => false,
+                    'error' => 'AltSessions: No cookies data provided.'
+                )
+            );
+        }
+
+        if ( ! wp_verify_nonce($nonce, $action) ) {
+            wp_send_json(
+                array(
+                    'success' => false,
+                    'error' => 'AltSessions: Nonce verification failed. Please reload the page and try again.'
+                )
+            );
         }
 
         //clear from double slashes
