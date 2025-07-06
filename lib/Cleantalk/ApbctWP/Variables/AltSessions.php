@@ -159,6 +159,7 @@ class AltSessions
                     'error' => 'AltSessions: No cookies data provided.'
                 )
             );
+            die(); // Need to prevent psalm further processing checking
         }
 
         if ( ! wp_verify_nonce($nonce, $action) ) {
