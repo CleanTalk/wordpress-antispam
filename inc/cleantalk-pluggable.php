@@ -1577,6 +1577,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'QuickCal';
         }
+
+        // skip FluentCommunity (login form)
+        if (
+            apbct_is_plugin_active('fluent-community/fluent-community.php') &&
+            Post::getString('action') === 'fcom_user_login_form'
+        ) {
+            return 'FluentCommunity login form skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
