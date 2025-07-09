@@ -15,6 +15,11 @@ use Cleantalk\Common\TT;
 use Cleantalk\ApbctWP\PluginSettingsPage\SettingsField;
 use Cleantalk\ApbctWP\ServerRequirementsChecker\ServerRequirementsChecker;
 
+// Prevent direct call
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
+
 /**
  * Admin action 'admin_menu' - Add the admin options page
  */

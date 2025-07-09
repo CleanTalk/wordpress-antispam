@@ -2,6 +2,11 @@
 
 use Cleantalk\ApbctWP\LinkConstructor;
 
+// Prevent direct call
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
+
 add_action('admin_footer', 'apbct_settings__footer');
 
 /**
