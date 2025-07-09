@@ -16,6 +16,7 @@ use Cleantalk\ApbctWP\PluginSettingsPage\SettingsField;
 use Cleantalk\ApbctWP\ServerRequirementsChecker\ServerRequirementsChecker;
 
 // Prevent direct call
+/** @psalm-suppress ParadoxicalCondition */
 if ( ! defined('ABSPATH') ) {
     die('Not allowed!');
 }
