@@ -1,0 +1,23 @@
+name: Test Coverage
+
+on:
+  push:
+    branches: [ Coverage-test ]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run PHPUnit Coverage
+        uses: Glomberg/phpunit-coverage-action@master
+        with:
+          php-version: '7.4'
+          min-coverage: '80'
+
+      - name: Upload coverage badge
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-badge
+          path: coverage.svg
