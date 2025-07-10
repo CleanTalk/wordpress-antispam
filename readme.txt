@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 6.58.1
+Stable tag: 6.59
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -430,6 +430,39 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.59 03.07.2025 =
+* Upd. Tests. Reorganizing the file structure of the tests folder
+* New. PhpUnit. A separate script for calculating coverage
+* Mod. Git. Added a file coverage.txt to gitignore
+* Fix. Coverage. Removed the coverage calculation
+* Mod. ShortCodeSkipEncode. Removing the shortcut functionality for skipping from encoding
+* Fix. ShortCodeSkipEncode. Editing text insertion
+* Fix. ShortCodeSkipEncode. Removing the skip test from coding
+* Fix. Integrations. Update woocommerce nickname gathering. 
+* Fix. Integration. Cover-style protection adapted for Zoho iframes.
+* Fix. Clear $_POST service fields after basecall.
+* Fix. Integration. Fluent form steps ignore.
+* Fix. Honeypot. Hidden input for search form fixed.
+* Fix. Helper. ToUTF8. Fix nullable case of pregmatch.
+* New. Integration. Mailchimp embed forms. Form values replacement adapted.
+* New. Hook. Filter user roles who can see the dashboard widget.
+* Mod. RequirementsChecker. Nested check allow_url_fopen dependent on cURL
+* Ref. Integrations. Updated wp-json handler. 
+* Fix. Skip check. Added entry point for breakdance forms.
+* New. Integration. QuickCal integration protection implemented.
+* New. Integrations. RegistrationMagic plugin - prtotect registration.
+* Fix. LoginIPKeeper. Handled fatal error case when user meta returns non- array values.
+* Fix. JS. Removed AJAX call "apbct_set_important_parameters" handlers.
+* Code. EmailEncoder. Encoder. Errors layout refactored.
+* Fix. Integrations. Fixed CSCF nickname gathering.
+* Fix. EmailEncoder. Encoder. Do not use SSL for logged in user on any page, even if encoded via hook.
+* Fix. AntiCrawler. Fixed setCookie statement.
+* New. Cloud service. Ability to change regional cloud servers implemented.
+* Code. Constants handler implemented.
+* Code. Constants "skip_anticrawler_on_rss_feed" and "set_ajax_route_type" are adapted to ServiceConstants class.
+* New. Common. Do not exclude no-email requests if constant "APBCT_SERVICE__DISABLE_EMPTY_EMAIL_EXCEPTION".
+* Fix. Integration. AjaxLogin integration fixed.
 
 = 6.58.1 20.06.2025 =
 * Fix. Honeypot. Hidden input for search form fixed.

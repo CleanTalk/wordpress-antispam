@@ -241,12 +241,8 @@ function ct_contact_form_validate()
     if (isset($base_call_result['ct_result'])) {
         $ct_result = $base_call_result['ct_result'];
 
-        // Remove visible fields from POST
-        foreach ($_POST as $key => $_value) {
-            if (stripos((string)$key, 'apbct_visible_fields') === 0) {
-                unset($_POST[$key]);
-            }
-        }
+        // Remove service fields from POST
+        apbct_clear_post_service_data_after_base_call();
 
         if ( $ct_result->allow == 0 ) {
             // Recognize contact form an set it's name to $contact_form to use later
@@ -747,4 +743,24 @@ function apbct__filter_array_recursive(&$array, $excluded_matches, $level = 0)
     }
 
     return $array;
+}
+
+/**
+ * Remove apbct_visible_fields, ct_bot_detector_event_token, ct_no_cookie_hidden_field fields from POST array.
+ * @return void
+ */
+function apbct_clear_post_service_data_after_base_call()
+{
+    // Remove visible fields from POST
+    foreach ($_POST as $key => $_value) {
+        if (stripos((string)$key, 'apbct_visible_fields') === 0) {
+            unset($_POST[$key]);
+        }
+        if (stripos((string)$key, 'ct_bot_detector_event_token') === 0) {
+            unset($_POST[$key]);
+        }
+        if (stripos((string)$key, 'ct_no_cookie_hidden_field') === 0) {
+            unset($_POST[$key]);
+        }
+    }
 }

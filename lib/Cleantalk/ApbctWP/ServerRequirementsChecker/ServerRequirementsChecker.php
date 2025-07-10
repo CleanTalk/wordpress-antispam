@@ -4,12 +4,35 @@ namespace Cleantalk\ApbctWP\ServerRequirementsChecker;
 
 class ServerRequirementsChecker
 {
-    private $requirements = [
+    public $requirements = [
         'php_version' => '5.6',
         'curl_support' => true,
         'allow_url_fopen' => true,
         'memory_limit' => '128M',
         'max_execution_time' => 30,
+    ];
+
+    public $requirement_items = [
+        'php_version' => [
+            'label' => 'PHP version: %s+',
+            'pattern' => 'PHP version',
+        ],
+        'curl_support' => [
+            'label' => 'cURL support: %s',
+            'pattern' => 'cURL',
+        ],
+        'allow_url_fopen' => [
+            'label' => 'allow_url_fopen: %s',
+            'pattern' => 'allow_url_fopen',
+        ],
+        'memory_limit' => [
+            'label' => 'PHP memory_limit: %s+',
+            'pattern' => 'memory_limit',
+        ],
+        'max_execution_time' => [
+            'label' => 'max_execution_time: %s+ seconds',
+            'pattern' => 'max_execution_time',
+        ],
     ];
 
     private $warnings = [];

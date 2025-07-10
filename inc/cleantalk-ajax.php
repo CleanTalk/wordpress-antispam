@@ -129,11 +129,11 @@ $_cleantalk_hooked_actions[] = 'uwp_ajax_register';
  */
 function ct_validate_email_ajaxlogin($email = null)
 {
-    $email   = is_null($email) ? $email : Post::get('email');
-    $email   = \Cleantalk\ApbctWP\Sanitize::cleanEmail($email);
-    $is_good = ! ( ! filter_var($email, FILTER_VALIDATE_EMAIL) || email_exists($email));
-
     if ( class_exists('AjaxLogin') && Post::get('action') === 'validate_email' ) {
+        $email   = is_null($email) ? $email : Post::get('email');
+        $email   = \Cleantalk\ApbctWP\Sanitize::cleanEmail($email);
+        $is_good = ! ( ! filter_var($email, FILTER_VALIDATE_EMAIL) || email_exists($email));
+
         $sender_info = array();
         $checkjs                            = apbct_js_test(TT::toString(Post::get('ct_checkjs')));
         $sender_info['post_checkjs_passed'] = $checkjs;
@@ -156,25 +156,25 @@ function ct_validate_email_ajaxlogin($email = null)
                 $is_good = false;
             }
         }
-    }
 
-    if ( $is_good ) {
-        $ajaxresult = array(
-            'description' => null,
-            'cssClass'    => 'noon',
-            'code'        => 'success'
-        );
-    } else {
-        $ajaxresult = array(
-            'description' => 'Invalid Email',
-            'cssClass'    => 'error-container',
-            'code'        => 'error'
-        );
-    }
+        if ( $is_good ) {
+            $ajaxresult = array(
+                'description' => null,
+                'cssClass'    => 'noon',
+                'code'        => 'success'
+            );
+        } else {
+            $ajaxresult = array(
+                'description' => 'Invalid Email',
+                'cssClass'    => 'error-container',
+                'code'        => 'error'
+            );
+        }
 
-    $ajaxresult = json_encode($ajaxresult);
-    print $ajaxresult;
-    wp_die();
+        $ajaxresult = json_encode($ajaxresult);
+        print $ajaxresult;
+        wp_die();
+    }
 }
 
 /**

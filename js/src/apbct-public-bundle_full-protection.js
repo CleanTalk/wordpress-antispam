@@ -3011,10 +3011,6 @@ function apbct_ready() {
     // Initializing the collection of user activity
     new ApbctCollectingUserActivity();
 
-    // Set important paramaters via ajax if problematic cache solutions found
-    // todo These AJAX calls removed untill we find a better solution, reason is a lot of requests to the server.
-    // apbctAjaxSetImportantParametersOnCacheExist(ctPublic.advancedCacheExists || ctPublic.varnishCacheExists);
-
     // Checking that the bot detector has loaded and received the event token for Anti-Crawler
     if (ctPublic.settings__sfw__anti_crawler) {
         checkBotDetectorExist();
@@ -3122,21 +3118,6 @@ function apbctCatchXmlHttpRequest() {
             }
             return originalSend.apply(this, [body]);
         };
-    }
-}
-
-/**
- * Run AJAX to set important_parameters on the site backend if problematic cache solutions are defined.
- * @param {boolean} cacheExist
- */
-function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) { // eslint-disable-line no-unused-vars
-    // Set important parameters via ajax
-    if ( cacheExist ) {
-        if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
-            apbct_public_sendREST('apbct_set_important_parameters', {});
-        } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
-            apbct_public_sendAJAX({action: 'apbct_set_important_parameters'}, {});
-        }
     }
 }
 
@@ -4611,31 +4592,30 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     const inputsSource = formSource.querySelectorAll('button, input, textarea, select');
     const inputsTarget = formTarget.querySelectorAll('button, input, textarea, select');
 
-    if (formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1 ||
-        isFormHasDiviRedirect(formSource) ||
-        formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1 ||
-        formSource.outerHTML.indexOf('action="https://api.kit.com') !== -1 ||
-        formSource.outerHTML.indexOf('activehosted.com') !== -1 ||
-        formSource.outerHTML.indexOf('action="https://crm.zoho.com') !== -1
-    ) {
-        inputsSource.forEach((elemSource) => {
-            inputsTarget.forEach((elemTarget) => {
-                if (elemSource.name === elemTarget.name) {
-                    if (elemTarget.type === 'checkbox' || elemTarget.type === 'radio') {
-                        elemTarget.checked = apbctVal(elemSource);
-                    } else {
-                        elemTarget.value = apbctVal(elemSource);
-                    }
-                }
-            });
-        });
-
-        return;
-    }
-
     inputsSource.forEach((elemSource) => {
         inputsTarget.forEach((elemTarget) => {
-            if (elemSource.outerHTML === elemTarget.outerHTML) {
+            if (
+                (
+                    (
+                        formSource.outerHTML.indexOf('list-manage.com/subscribe') !== -1
+                    ) &&
+                    elemSource.id === elemTarget.id // sequence by id
+                ) ||
+                (
+                    (
+                        formSource.outerHTML.indexOf('action="https://www.kulahub.net') !== -1 ||
+                        isFormHasDiviRedirect(formSource) ||
+                        formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1 ||
+                        formSource.outerHTML.indexOf('action="https://api.kit.com') !== -1 ||
+                        formSource.outerHTML.indexOf('activehosted.com') !== -1 ||
+                        formSource.outerHTML.indexOf('action="https://crm.zoho.com') !== -1
+                    ) &&
+                    elemSource.name === elemTarget.name // sequence by name
+                ) ||
+                (
+                    elemSource.outerHTML === elemTarget.outerHTML // sequence by outerHTML (all other cases)
+                )
+            ) {
                 if (elemTarget.type === 'checkbox' || elemTarget.type === 'radio') {
                     elemTarget.checked = apbctVal(elemSource);
                 } else {
@@ -4680,7 +4660,8 @@ function ctProtectOutsideFunctionalOnTagsType(tagType) {
                 let lsStorageName = 'apbct_outside_functional_protected_tags__' + protectedType;
                 let lsUniqueName = entity.id !== '' ? entity.id : false;
                 lsUniqueName = false === lsUniqueName && entity.className !== '' ? entity.className : lsUniqueName;
-                // todo we can not protect any entity that has no id and class :(
+                lsUniqueName = false === lsUniqueName && entity.src !== '' ? entity.src.substring(0, 50) : lsUniqueName;
+                // todo we can not protect any entity that has no id or class or src :(
                 // pass if is already protected
                 if (
                     false === lsUniqueName ||
@@ -4750,7 +4731,8 @@ function ctProtectOutsideFunctionalHandler(entity, lsStorageName, lsUniqueName) 
     if (
         entityParent.style !== undefined &&
         entityParent.style !== null &&
-        entityParent.style.position !== undefined
+        entityParent.style.position !== undefined &&
+        entityParent.style.position !== ''
     ) {
         entityParent.style.position = originParentPosition;
     } else {
@@ -5195,17 +5177,8 @@ function sendAjaxCheckingFormData(form) {
                     form.parentElement.removeChild(form);
                     const prev = form.apbctPrev;
                     const formOriginal = form.apbctFormOriginal;
-                    let mauticIntegration = false;
-
+                    let isExternalFormsRestartRequired = apbctExternalFormsRestartRequired(formOriginal);
                     apbctReplaceInputsValuesFromOtherForm(formNew, formOriginal);
-
-                    // mautic forms integration
-                    if (formOriginal &&
-                        typeof formOriginal.id === 'string' &&
-                        formOriginal.id.indexOf('mautic') !== -1
-                    ) {
-                        mauticIntegration = true;
-                    }
 
                     prev.after( formOriginal );
 
@@ -5222,7 +5195,7 @@ function sendAjaxCheckingFormData(form) {
                     let submButton = formOriginal.querySelectorAll('button[type=submit]');
                     if ( submButton.length !== 0 ) {
                         submButton[0].click();
-                        if (mauticIntegration) {
+                        if (isExternalFormsRestartRequired) {
                             setTimeout(function() {
                                 ctProtectExternal();
                             }, 1500);
@@ -5233,6 +5206,11 @@ function sendAjaxCheckingFormData(form) {
                     submButton = formOriginal.querySelectorAll('input[type=submit]');
                     if ( submButton.length !== 0 ) {
                         submButton[0].click();
+                        if (isExternalFormsRestartRequired) {
+                            setTimeout(function() {
+                                ctProtectExternal();
+                            }, 1500);
+                        }
                         return;
                     }
 
@@ -5268,6 +5246,24 @@ function sendAjaxCheckingFormData(form) {
             },
         });
 }
+
+/**
+ * Checks if a form requires a restart due to external integration.
+ * @param {object} formOriginal
+ * @return {boolean}
+ */
+function apbctExternalFormsRestartRequired(formOriginal) {
+    return formOriginal &&
+        (// mautic forms integration
+            typeof formOriginal.id === 'string' &&
+            formOriginal.id.indexOf('mautic') !== -1
+        ) ||
+        (// mailchimp forms integration
+            typeof formOriginal.action === 'string' &&
+            formOriginal.action.indexOf('list-manage.com/subscribe') !== -1
+        );
+}
+
 
 /**
  * Handle dynamic rendered form

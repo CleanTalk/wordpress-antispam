@@ -322,6 +322,7 @@ class RemoteCalls
         if ($apbct->settings['data__set_cookies'] == 3 && $apbct->data['cookies_type'] === 'alternative') {
             $out['alt_sessions_auto_state_reason'] = $apbct->isAltSessionsRequired(true);
         }
+        $out['active_service_constants'] = $apbct->service_constants->getDefinitionsActive();
 
         if ( APBCT_WPMS ) {
             $out['network_settings'] = $apbct->network_settings;

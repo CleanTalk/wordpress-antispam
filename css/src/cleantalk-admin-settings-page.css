@@ -419,6 +419,57 @@ button[value="save_changes"]:disabled {
     flex-direction: row;
 }
 
+.apbct_warning_red_point {
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    background: red;
+    border-radius: 100%;
+    margin-left: 10px;
+    margin-bottom: 10px;
+    vertical-align: middle;
+    position: relative;
+}
+.apbct_warning_red_point::after {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: -5px;
+    width: 12px;
+    height: 12px;
+    border: 1.5px solid rgba(255, 2, 2, .65);
+    border-radius: 50%;
+    animation: apbct_pulsate 1.2s ease-out infinite;
+    opacity: .7;
+    pointer-events: none;
+}
+
+#apbct_statistics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+}
+
+.apbct_check_server_requirements {
+    position: relative;
+    bottom: 30px;
+}
+
+@keyframes apbct_pulsate {
+    0% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+    50% {
+        transform: scale(1.4);
+        opacity: 0.2;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+}
+
 @media (max-width: 768px) {
     .apbct_settings_top_info__btn {
         display: inline-grid;

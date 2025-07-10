@@ -14,7 +14,7 @@ class CSCF extends IntegrationBase
             if (!Post::hasString('action', 'cscf-submitform')) {
                 return null;
             }
-            $gfa_checked_data = ct_get_fields_any($data);
+            $gfa_checked_data = ct_gfa_dto($data)->getArray();
         } else {
             if (is_object($argument) ) {
                 $email_non_ajax = property_exists($argument, 'Email') ? $argument->Email : '';
@@ -30,12 +30,12 @@ class CSCF extends IntegrationBase
         if (isset($data['ct_bot_detector_event_token'])) {
             $gfa_checked_data['event_token'] = $data['ct_bot_detector_event_token'];
         }
-        if (
-            isset($gfa_checked_data['message']) &&
-            array_key_exists('cscf_name', $gfa_checked_data['message']) &&
-            empty($gfa_checked_data['nickname'])
-        ) {
-            $gfa_checked_data['nickname'] = $gfa_checked_data['message']['cscf_name'];
+        if (isset($gfa_checked_data['message']) && empty($gfa_checked_data['nickname'])) {
+            if (array_key_exists('cscf_name', $gfa_checked_data['message'])) {
+                $gfa_checked_data['nickname'] = $gfa_checked_data['message']['cscf_name'];
+            } elseif (array_key_exists('cscf[name]', $gfa_checked_data['message'])) {
+                $gfa_checked_data['nickname'] = $gfa_checked_data['message']['cscf[name]'];
+            }
         }
 
         if (isset($gfa_checked_data['message'])) {
