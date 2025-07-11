@@ -20,7 +20,7 @@ jobs:
       - name: Run PHPUnit Coverage
         uses: Glomberg/phpunit-coverage-action@master
         with:
-          php-version: ${{ env.PHP_VERSION }}
+          phpunit-command: './vendor/bin/phpunit --configuration tests/phpunit.xml'
           min-coverage: '80'
 
       - name: Upload coverage badge
