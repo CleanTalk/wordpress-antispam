@@ -1809,6 +1809,11 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'Plugin Name: CoBlocks - have the direct integration';
         }
+
+        // Plugin Name: SureForms
+        if ( apbct_is_plugin_active('sureforms/sureforms.php') && apbct_is_in_uri('/sureforms/v1/submit-form')) {
+            return 'Plugin Name: SureForms skip fields checks';
+        }
     }
 
     // WP Fusion Abandoned Cart Addon

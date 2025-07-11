@@ -24,9 +24,11 @@ class SureForms extends IntegrationBase
 
     public function doBlock($message)
     {
-        return new \WP_REST_Response([
-            'registered' => false,
-            'message' => $message,
-        ], 200);
+        wp_send_json_error(
+            array(
+                'message' => $message
+            )
+        );
+        die();
     }
 }
