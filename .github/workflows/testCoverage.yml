@@ -42,3 +42,10 @@ jobs:
         with:
           phpunit-command: './vendor/bin/phpunit --configuration tests/phpunit.xml'
           min-coverage: '80'
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.clover
+          retention-days: 5
