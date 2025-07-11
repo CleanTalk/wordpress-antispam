@@ -36,6 +36,7 @@ class LoginIPKeeperTest extends TestCase
         $ip = get_user_meta($wp_user->ID, '_cleantalk_ip_keeper_data', true);
 
         $this->assertEquals('192.168.1.1', $ip);
+        wp_delete_user($user_id);
     }
 
     public function testGetMetaRecordValue()
@@ -51,5 +52,6 @@ class LoginIPKeeperTest extends TestCase
 
         // Assert the result
         $this->assertEquals('192.168.1.1', $result);
+        wp_delete_user($user_id);
     }
 }
