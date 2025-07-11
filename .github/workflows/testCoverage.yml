@@ -9,13 +9,27 @@ env:
 
 jobs:
   coverage:
-    runs-on: ubuntu-latest
+    name: PHPUnit code Covarege
+    runs-on: ubuntu-22.04
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: localhost
+      DB_PORT: 3306
+      DB_DATABASE: wordpress_test
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
     steps:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
-      - uses: actions/checkout@v4
+
+      - name: Run MySQL server
+        run: sudo systemctl start mysql
+
+      - name: Code Checkout
+        uses: actions/checkout@v4
 
       - name: Make the script files executable
         run: chmod +x ./tests/wp-test-setup.sh
