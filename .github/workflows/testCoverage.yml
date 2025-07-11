@@ -17,6 +17,12 @@ jobs:
           php-version: ${{ env.PHP_VERSION }}
       - uses: actions/checkout@v4
 
+      - name: Make the script files executable
+        run: chmod +x ./tests/wp-test-setup.sh
+
+      - name: Install WP develop
+        run: ./tests/wp-test-setup.sh wordpress_test root root localhost latest
+
       - name: Run PHPUnit Coverage
         uses: Glomberg/phpunit-coverage-action@master
         with:
