@@ -4702,7 +4702,9 @@ function ctProtectOutsideFunctionalIsTagIntegrated(entity) {
         if (entity.tagName === 'DIV') {
             if (
                 entity.className.indexOf('Window__Content-sc') !== -1 || // all in one chat widget
-                entity.className.indexOf('WidgetBackground__Content-sc') !== -1 // all in one contact form widget
+                entity.className.indexOf('WidgetBackground__Content-sc') !== -1 ||// all in one contact form widget
+                // mailchimp shadowroot
+                entity.className.indexOf('mcforms-wrapper') !== -1 // all in one contact form widget
             ) {
                 return entity.tagName;
             }
@@ -4738,7 +4740,17 @@ function ctProtectOutsideFunctionalHandler(entity, lsStorageName, lsUniqueName) 
     } else {
         entityParent.style.position = 'relative';
     }
-    entityParent.appendChild(ctProtectOutsideFunctionalGenerateCover());
+    if (entity.shadowRoot && entity.shadowRoot.mode === 'open') {
+        // shadow root handling start
+        let targetDivsToCover = entity.shadowRoot.querySelectorAll('div[class=" animation-not-started"]');
+        if ( targetDivsToCover.length > 0 ) {
+            targetDivsToCover.forEach(function(element) {
+                element.appendChild(ctProtectOutsideFunctionalGenerateCover());
+            });
+        }
+    } else {
+        entityParent.appendChild(ctProtectOutsideFunctionalGenerateCover());
+    }
     let entitiesProtected = apbctLocalStorage.get(lsStorageName);
     if (false === entitiesProtected) {
         entitiesProtected = [];
@@ -4816,6 +4828,25 @@ function ctProtectOutsideFunctionalGenerateCover() {
                             comment = result.apbct.comment;
                         }
 
+                        // shadow root
+                        let selectFrom = document;
+
+                        if (e.target.parent &&
+                            e.target.parent.shadowRoot &&
+                            e.target.parent.shadowRoot.mode === 'open' &&
+                            e.target.parent.querySelectorAll('div[name="apbct_cover"]') > 0
+                        ) {
+                            selectFrom = e.target.parent.shadowRoot;
+                        }
+
+                        if (
+                            e.target && e.target.shadowRoot &&
+                            e.target.shadowRoot.mode === 'open' &&
+                            e.target.parent.querySelectorAll('div[name="apbct_cover"]') > 0
+                        ) {
+                            selectFrom = e.target.shadowRoot;
+                        }
+
                         if (
                             (
                                 typeof result === 'object' && result.apbct !== undefined &&
@@ -4827,14 +4858,14 @@ function ctProtectOutsideFunctionalGenerateCover() {
                             ) ||
                             callbackError
                         ) {
-                            document.querySelectorAll('div[name="apbct_cover"]').forEach(function(el) {
+                            selectFrom.querySelectorAll('div[name="apbct_cover"]').forEach(function(el) {
                                 el.remove();
                             });
                         } else {
-                            document.querySelectorAll('.apbct-iframe-preloader-text').forEach((el) => {
+                            selectFrom.querySelectorAll('.apbct-iframe-preloader-text').forEach((el) => {
                                 el.innerText = comment;
                             });
-                            document.querySelectorAll('div.apbct-iframe-preloader').forEach((el) => {
+                            selectFrom.querySelectorAll('div.apbct-iframe-preloader').forEach((el) => {
                                 el.remove();
                             });
                         }
