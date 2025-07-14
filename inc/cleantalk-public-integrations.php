@@ -17,6 +17,11 @@ use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
 
+// Prevent direct call
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
+
 //MailChimp premium. Prepare block message for AJAX response.
 if ( class_exists('Cleantalk\Antispam\Integrations\MailChimp') ) {
     add_filter('mc4wp_form_messages', array('Cleantalk\Antispam\Integrations\MailChimp', 'addFormResponse'));

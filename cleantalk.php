@@ -46,6 +46,11 @@ use Cleantalk\Common\Firewall;
 use Cleantalk\Common\Schema;
 use Cleantalk\Common\TT;
 
+// Prevent direct call
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
+
 global $apbct, $wpdb, $pagenow;
 
 $cleantalk_executed = false;

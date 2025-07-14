@@ -1,5 +1,10 @@
 <?php
 
+// Prevent direct call
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
+
 /**
  * Autoloader for \Cleantalk\* classes
  *
