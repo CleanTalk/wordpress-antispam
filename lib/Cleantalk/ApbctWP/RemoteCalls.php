@@ -471,7 +471,6 @@ class RemoteCalls
             'comments__remove_old_spam' => 'Automatically delete spam comments',
             'comments__remove_comments_links' => 'Remove links from approved comments',
             'comments__show_check_links' => 'Show links to check Emails, IPs for spam',
-            'comments__manage_comments_on_public_page' => 'Manage comments on public pages',
             'data__protect_logged_in' => 'Protect logged in Users',
             'comments__check_comments_number' => "Don't check trusted user's comments",
             'data__use_ajax' => 'Use AJAX for JavaScript check',

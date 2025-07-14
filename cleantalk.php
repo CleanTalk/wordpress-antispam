@@ -817,9 +817,6 @@ if ( is_admin() || is_network_admin() ) {
     // Login form - for notifications only
     add_filter('login_message', 'ct_login_message');
 
-    // Comments output hook
-    add_filter('wp_list_comments_args', 'ct_wp_list_comments_args');
-
     // Ait-Themes fix
     if ( Get::get('ait-action') === 'register' ) {
         $tmp = Post::get('redirect_to');
