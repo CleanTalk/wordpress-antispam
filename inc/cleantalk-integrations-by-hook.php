@@ -441,6 +441,5 @@ add_action('plugins_loaded', function () use ($apbct_active_integrations) {
             : 'fluentform_before_insert_submission';
     }
 
-    $all_integrations = array_merge($apbct_active_integrations);
-    new  \Cleantalk\Antispam\Integrations($all_integrations, (array)$apbct->settings);
+    new  \Cleantalk\Antispam\Integrations($apbct_active_integrations, (array)$apbct->settings);
 });

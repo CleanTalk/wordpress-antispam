@@ -9,12 +9,12 @@ $apbct_active_rest_integrations = array(
 );
 
 add_filter('rest_pre_dispatch', function ($result, $_, $request) use ($apbct_active_rest_integrations) {
+    global $apbct;
     $route = $request->get_route();
     foreach ($apbct_active_rest_integrations as $integration_name => $rest_data) {
         if (isset($rest_data['rest_route']) && $rest_data['rest_route'] === $route) {
-            $all_integrations = array_merge($apbct_active_rest_integrations);
-            $apbct_settings = isset($GLOBALS['apbct']) ? (array)$GLOBALS['apbct']->settings : array();
-            $integrations = new \Cleantalk\Antispam\Integrations($all_integrations, $apbct_settings);
+            $apbct_settings = isset($apbct->settings) && is_array($apbct->settings) ? $apbct->settings : array();
+            $integrations = new \Cleantalk\Antispam\Integrations($apbct_active_rest_integrations, $apbct_settings);
             $params = $request->get_params();
             if (isset($params['POST']) && is_array($params['POST'])) {
                 $params = $params['POST'];
