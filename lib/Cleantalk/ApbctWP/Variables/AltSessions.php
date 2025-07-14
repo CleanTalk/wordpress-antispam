@@ -3,9 +3,39 @@
 namespace Cleantalk\ApbctWP\Variables;
 
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\Common\TT;
+use WP_REST_Request;
 
 class AltSessions
 {
+    /**
+     * @var string[]
+     */
+    private static $allowed_alt_cookies = [
+        'apbct_email_encoder_passed' => 'hash',
+        'apbct_bot_detector_exist' => 'bool',
+        'ct_ps_timestamp' => 'int',
+        'ct_fkp_timestamp' => 'int',
+        'ct_timezone' => 'int',
+        'ct_screen_info' => 'json',
+        'apbct_headless' => 'bool',
+        'apbct_visible_fields' => 'json',
+        'apbct_pixel_url' => 'url',
+        'ct_checked_emails' => 'json',
+        'ct_checked_emails_exist' => 'json',
+        'ct_checkjs' => 'string',
+        'ct_bot_detector_event_token' => 'hash',
+        'ct_has_input_focused' => 'bool',
+        'ct_has_key_up' => 'bool',
+        'ct_has_scrolled' => 'bool',
+        'ct_mouse_moved' => 'bool',
+        'wordpress_apbct_antibot' => 'hash',
+        'apbct_anticrawler_passed' => 'int',
+        'apbct_antiflood_passed' => 'int',
+        'ct_sfw_pass_key' => 'string',
+        'ct_sfw_passed' => 'int',
+    ];
+
     public static function getID()
     {
         $id = Helper::ipGet()
@@ -47,7 +77,7 @@ class AltSessions
         return self::setValues($session_value);
     }
 
-    public static function setValues($cookies_array)
+    private static function setValues($cookies_array)
     {
         global $wpdb;
 
@@ -69,7 +99,7 @@ class AltSessions
         ));
     }
 
-    public static function getValues()
+    private static function getValues()
     {
         global $wpdb;
 
@@ -99,17 +129,46 @@ class AltSessions
     }
 
     /**
-     * @param $request
+     * Sets session values from a remote request (ajax request).
+     *
+     * This method processes incoming data from a remote request or POST data,
+     * validates the cookies against allowed types, and updates the session values.
+     * It also handles JSON decoding errors and ensures proper data sanitization.
+     *
+     * @param WP_REST_Request|null $request
      *
      * @return void
      * @psalm-suppress PossiblyUnusedMethod
      */
     public static function setFromRemote($request = null)
     {
-        if ( !$request || !empty(Post::getString('cookies'))) {
-            $cookies_to_set = Post::getString('cookies');
-        } else {
+        if ( $request instanceof WP_REST_Request ) {
+            $nonce = TT::toString($request->get_header('x_wp_nonce'));
+            $action = 'wp_rest';
             $cookies_to_set = $request->get_param('cookies');
+        } else {
+            $nonce = TT::toString(Post::getString('_ajax_nonce'));
+            $action = 'ct_secret_stuff';
+            $cookies_to_set = Post::getString('cookies');
+        }
+
+        if ( ! $cookies_to_set ) {
+            wp_send_json(
+                array(
+                    'success' => false,
+                    'error' => 'AltSessions: No cookies data provided.'
+                )
+            );
+            die(); // Need to prevent psalm further processing checking
+        }
+
+        if ( ! wp_verify_nonce($nonce, $action) ) {
+            wp_send_json(
+                array(
+                    'success' => false,
+                    'error' => 'AltSessions: Nonce verification failed. Please reload the page and try again.'
+                )
+            );
         }
 
         //clear from double slashes
@@ -124,6 +183,45 @@ class AltSessions
             wp_send_json(array(
                 'success' => false,
                 'error' => 'AltSessions: Internal JSON error:' . json_last_error_msg()));
+        }
+
+        // Incoming data validation against allowed alt cookies
+        foreach ($cookies_array as $name => $value) {
+            if ( ! array_key_exists($name, self::$allowed_alt_cookies) ) {
+                unset($cookies_array[$name]);
+                continue;
+            }
+
+            // Validate value type
+            switch (self::$allowed_alt_cookies[$name]) {
+                case 'int':
+                    $cookies_array[$name] = (int)$value;
+                    break;
+                case 'bool':
+                    $cookies_array[$name] = (bool)$value;
+                    break;
+                case 'string':
+                    $cookies_array[$name] = (string)$value;
+                    break;
+                case 'json':
+                    if ( ! is_string($value) || json_decode($value) === null ) {
+                        unset($cookies_array[$name]);
+                    }
+                    break;
+                case 'url':
+                    if ( ! filter_var($value, FILTER_VALIDATE_URL) ) {
+                        unset($cookies_array[$name]);
+                    }
+                    break;
+                case 'hash':
+                    if ( ! preg_match('/^[a-f0-9]{32,128}$/', $value) ) {
+                        unset($cookies_array[$name]);
+                    }
+                    break;
+                default:
+                    // If the type is not recognized, remove the cookie
+                    unset($cookies_array[$name]);
+            }
         }
 
         //other versions json errors if json_decode returns null
@@ -156,23 +254,6 @@ class AltSessions
         $session_value = self::getValues();
 
         return isset($session_value[$name]) ? $session_value[$name] : '';
-    }
-
-    /**
-     * @param $request
-     *
-     * @return void
-     * @psalm-suppress PossiblyUnusedMethod
-     */
-    public static function getFromRemote($request = null)
-    {
-        $value = Cookie::getString(
-            $request
-                ? $request->get_param('cookies')
-                : Post::getString('name')
-        );
-
-        wp_send_json(array('success' => true, 'value' => $value));
     }
 
     public static function cleanFromOld()
