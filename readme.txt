@@ -408,6 +408,30 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
+= 6.60 17.07.2025 =
+* New. BlockServerRequirements. Added a block with the Server Requirements output
+* Mod. BlockServerRequirements. Changed in layout, title, link to the article
+* Fix. Code. URLs collecting. Probably fatal error fixed due JSON decoding.
+* Fix. Code. EmailEncoder.php. Probably fatal fixed on JSON decoding due null passed as decoded emails array on logging.
+* New. Integration. Integration with the SureForms plugin
+* Fix. BlockServerRequirements. Style edits
+* Fix. BlockServerRequirements. Adding information about requirements to a class, changing access to the Requirements variable
+* New. Integration. Integration with SureForms, a new approach to rest integrations
+* Fix. Integration. AjaxLogin integration fixed.
+* New. FluentCommunity. Skipping a request from the login form
+* Fix. Integrations. Newsletter. Fixed warning on acces array offset.
+* Fix. FirewallModule. Added a hook to set special cookie "apbct_firewall_die" to skip page caching.
+* Fix. Integration. Ninja Forms. Fields collection fixed.
+* Fix. Integration. WP Forms. Fields collection fixed.
+* Mod. SureForms. Separate implementation of rest route interception, editing of block message output
+* Fix. SFW. Skip check on probably missed tables due update process.
+* Fix. Code. Code direct call preventing.
+* Fix. Alt sessions. Incoming data validation. 
+* Fix. API. Restored missed first param $url on callback action checkResponse to avoid secound param $method_name missing.
+* Fix. SureForms. Edits based on the review
+* Fix. Integrations. JS. Do not handle onSubmit middleware for the Events Calendar search form.
+* Fix. DB. Table "cleantalk_sessions". If table index is incorrect then recreate the table via updater due update to v6.60.
+
 = 6.59 03.07.2025 =
 * Upd. Tests. Reorganizing the file structure of the tests folder
 * New. PhpUnit. A separate script for calculating coverage
