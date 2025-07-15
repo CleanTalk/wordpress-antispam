@@ -370,6 +370,7 @@ if ( $apbct->settings['forms__general_contact_forms_test'] == 1
 
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-integrations-by-hook.php');
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-integrations-by-class.php');
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-integrations-by-route.php');
 
 // Form protection by shortcode
 new ProtectByShortcode();

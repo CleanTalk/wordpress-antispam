@@ -19,6 +19,14 @@ class Integrations
         $this->integrations = $integrations;
 
         foreach ($this->integrations as $_integration_name => $integration_info) {
+            // If ajax and hook data are not specified in the integration, then we handle this case.
+            if (!isset($integration_info['ajax'])) {
+                $integration_info['ajax'] = false;
+            }
+            if (!isset($integration_info['hook'])) {
+                $integration_info['hook'] = null;
+            }
+
             //validate apbct settings required to run integration
             $integration_settings = $integration_info['setting'] ?: array();
             if ( is_scalar($integration_settings) ) {
@@ -195,6 +203,17 @@ class Integrations
                  * Return arg if provided.
                  */
                 $return_arg = isset($return_arg) ? $return_arg : $argument;
+
+                /**
+                 * If integration has rest API and it is called from REST API - return null
+                 * to prevent further actions.
+                 */
+                if (
+                    !empty($this->integrations[$current_integration]['rest']) &&
+                    $return_arg === $argument
+                ) {
+                    return null;
+                }
 
                 /**
                  *  Final actions
