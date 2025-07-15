@@ -1,16 +1,16 @@
 === Spam protection, Anti-Spam by CleanTalk ===
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
-Tags: antispam, comments, contact form, seo, email
+Tags: antispam, comments, contact form, seo, email 
 Requires at least: 4.7
 Tested up to: 6.8
 Requires PHP: 5.6
 Stable tag: 6.59
 License: GPLv2
 
-Blocks spam comments, fake users, contact form spam and more. No impact on SEO or website performance. Enterprise-ready, premium Anti-Spam plugin.
+Blocks spam comments, fake users, contact form spam and more. No impact on SEO or website performance. Enterprise-ready, premium Anti-Spam plugin. 
 
 == Description ==
-
+Blocks spam comments, fake users, contact form spam and more. No impact on SEO or website performance. Enterprise-ready, premium Anti-Spam plugin. 
 Top-rated anti-spam protection for WordPress. No CAPTCHA, no questions, no animal counting, no puzzles, no math and no spam bots. Universal AntiSpam plugin.
 
 = Anti-Spam features =
@@ -416,7 +416,7 @@ Yes, it is. Please read this article,
 * Mod. ShortCodeSkipEncode. Removing the shortcut functionality for skipping from encoding
 * Fix. ShortCodeSkipEncode. Editing text insertion
 * Fix. ShortCodeSkipEncode. Removing the skip test from coding
-* Fix. Integrations. Update woocommerce nickname gathering.
+* Fix. Integrations. Update woocommerce nickname gathering. 
 * Fix. Integration. Cover-style protection adapted for Zoho iframes.
 * Fix. Clear $_POST service fields after basecall.
 * Fix. Integration. Fluent form steps ignore.
@@ -425,7 +425,7 @@ Yes, it is. Please read this article,
 * New. Integration. Mailchimp embed forms. Form values replacement adapted.
 * New. Hook. Filter user roles who can see the dashboard widget.
 * Mod. RequirementsChecker. Nested check allow_url_fopen dependent on cURL
-* Ref. Integrations. Updated wp-json handler.
+* Ref. Integrations. Updated wp-json handler. 
 * Fix. Skip check. Added entry point for breakdance forms.
 * New. Integration. QuickCal integration protection implemented.
 * New. Integrations. RegistrationMagic plugin - prtotect registration.
