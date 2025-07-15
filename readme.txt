@@ -4,7 +4,7 @@ Tags: antispam, comments, contact form, seo, email
 Requires at least: 4.7
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 6.59
+Stable tag: 6.60
 License: GPLv2
 
 Blocks spam comments, fake users, contact form spam and more. No impact on SEO or website performance. Enterprise-ready, premium Anti-Spam plugin.
