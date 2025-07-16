@@ -691,6 +691,7 @@ class Woocommerce extends IntegrationByClassBase
      * @param $values
      * @param $order
      * @return void
+     * @psalm-suppress PossiblyUnusedParam
      */
     public function removeServiceFieldsFromOrderItems($item, $cart_item_key, $values, $order)
     {
