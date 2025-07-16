@@ -211,7 +211,6 @@ class WPForms extends IntegrationByClassBase
             } else {
                 $nickname = null;
             }
-
         }
 
         $params = ct_gfa_dto($input_array, is_null($email) ? '' : $email, is_null($nickname) ? '' : $nickname)->getArray();
