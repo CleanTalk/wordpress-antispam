@@ -450,11 +450,6 @@ button[value="save_changes"]:disabled {
     gap: 40px;
 }
 
-.apbct_check_server_requirements {
-    position: relative;
-    bottom: 30px;
-}
-
 @keyframes apbct_pulsate {
     0% {
         transform: scale(1);
