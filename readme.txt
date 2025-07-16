@@ -464,6 +464,8 @@ Yes, it is. Please read this article,
 * Code. Constants "skip_anticrawler_on_rss_feed" and "set_ajax_route_type" are adapted to ServiceConstants class.
 * New. Common. Do not exclude no-email requests if constant "APBCT_SERVICE__DISABLE_EMPTY_EMAIL_EXCEPTION".
 * Fix. Integration. AjaxLogin integration fixed.
+* Fix. CheckServerRequirements. Style css edit
+* Fix. WPForms. Editing the username receipt
 
 = 6.58.1 20.06.2025 =
 * Fix. Honeypot. Hidden input for search form fixed.
