@@ -1,5 +1,10 @@
 <?php
 
+// Prevent direct call
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
+
 /**
  * Patch for apache_request_headers()
  * If Apache web server is missing then making

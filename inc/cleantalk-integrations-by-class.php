@@ -1,5 +1,10 @@
 <?php
 
+// Prevent direct call
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
+
 $apbct_integrations_by_class = array(
     'BuddyPress' => array(
         'plugin_path' => 'buddypress/bp-loader.php',

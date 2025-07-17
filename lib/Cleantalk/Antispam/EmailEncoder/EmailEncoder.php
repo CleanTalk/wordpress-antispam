@@ -24,7 +24,7 @@ class EmailEncoder
     /**
      * @var string[]
      */
-    public $decoded_emails_array;
+    public $decoded_emails_array = array();
     /**
      * @var string[]
      */

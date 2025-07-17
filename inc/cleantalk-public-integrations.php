@@ -17,6 +17,11 @@ use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
 
+// Prevent direct call
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
+
 //MailChimp premium. Prepare block message for AJAX response.
 if ( class_exists('Cleantalk\Antispam\Integrations\MailChimp') ) {
     add_filter('mc4wp_form_messages', array('Cleantalk\Antispam\Integrations\MailChimp', 'addFormResponse'));
@@ -1810,20 +1815,21 @@ function apbct_form__ninjaForms__testSpam()
             $nf_form_fields = $form_data['fields'];
             $nickname = '';
             $email = '';
-            // $fields = [];
             foreach ($nf_form_fields as $field) {
                 $field_info = $nf_form_fields_info_array[$field['id']];
-                // $fields['nf-field-' . $field['id'] . '-' . $field_info['field_type']] = $field['value'];
+                // handle nickname-like fields, add matches to existing nickname string
                 if ( stripos($field_info['field_key'], 'name') !== false ) {
-                    $nickname = $field['value'];
+                    $nickname = empty($nickname) ? $field['value'] : $nickname . ' ' . $field['value'];
                 }
-                if ( stripos($field_info['field_key'], 'email') !== false ) {
-                    $email = $field['value'];
+                // handle email-like fields, if no GFA result, set it once
+                if (empty($gfa_dto->email) && stripos($field_info['field_key'], 'email') !== false ) {
+                    $email = empty($email) ? $field['value'] : $email;
                 }
             }
-
-            $gfa_dto->nickname = $nickname;
-            $gfa_dto->email = $email;
+            // if gfa is empty, fill it with data from Ninja Forms, if not empty, append data from Ninja Forms
+            $gfa_dto->nickname = empty($gfa_dto->nickname) ? $nickname : $gfa_dto->nickname . ' ' . $nickname;
+            // if email is empty, fill it with data from Ninja Forms, if not empty, keep DTO
+            $gfa_dto->email = empty($gfa_dto->email) ? $email : $gfa_dto->email;
         }
     }
 
