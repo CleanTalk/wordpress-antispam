@@ -840,15 +840,16 @@ class API
     }
 
     /**
-     * Function checks server response
+     * Callback. Function checks server response
      *
      * @param array|string $result
+     * @param string|null $_url - legacy parameter of callback function, not used here. Do not remove if you are not sure of your actions.
      * @param string $method_name
      *
      * @return mixed (array || array('error' => true))
      * @psalm-suppress PossiblyUnusedReturnValue
      */
-    public static function checkResponse($result, $method_name = null)
+    public static function checkResponse($result, $_url = null, $method_name = null)
     {
         // Errors handling
         // Bad connection

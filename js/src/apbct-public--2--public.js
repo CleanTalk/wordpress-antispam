@@ -1033,33 +1033,7 @@ function apbct_ready() {
     }
 
     // WordPress Search form processing
-    for (const _form of document.forms) {
-        if (
-            typeof ctPublic !== 'undefined' &&
-            + ctPublic.settings__forms__search_test === 1 &&
-            (
-                _form.getAttribute('id') === 'searchform' ||
-                (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1) ||
-                (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
-            )
-        ) {
-            // fibosearch integration
-            if (_form.querySelector('input.dgwt-wcas-search-input')) {
-                continue;
-            }
-
-            if (
-                _form.getAttribute('id') === 'hero-search-form' ||
-                _form.getAttribute('class') === 'hb-booking-search-form'
-            ) {
-                continue;
-            }
-
-            // this handles search forms onsubmit process
-            _form.apbctSearchPrevOnsubmit = _form.onsubmit;
-            _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
-        }
-    }
+    ctSetSearchFormSubmitMiddleWare();
 
     // Check any XMLHttpRequest connections
     apbctCatchXmlHttpRequest();
@@ -1072,6 +1046,45 @@ function apbct_ready() {
         checkBotDetectorExist();
     }
 }
+
+/**
+ * Find wordpress native search form and set form submit handler
+ */
+function ctSetSearchFormSubmitMiddleWare() {
+    const isExclusion = (form) => {
+        return (
+            // fibosearch integration
+            form.querySelector('input.dgwt-wcas-search-input') ||
+            // hero search skip
+            form.getAttribute('id') === 'hero-search-form' ||
+            // hb booking search skip
+            form.getAttribute('class') === 'hb-booking-search-form' ||
+            // events calendar skip
+            (
+                form.getAttribute('class').indexOf('tribe-events') !== -1 &&
+                form.getAttribute('class').indexOf('search') !== -1
+            )
+        );
+    };
+
+    for (const _form of document.forms) {
+        if (
+            typeof ctPublic !== 'undefined' &&
+            + ctPublic.settings__forms__search_test === 1 &&
+            (
+                _form.getAttribute('id') === 'searchform' ||
+                (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1) ||
+                (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
+            ) &&
+            !isExclusion(_form)
+        ) {
+            // this handles search forms onsubmit process
+            _form.apbctSearchPrevOnsubmit = _form.onsubmit;
+            _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
+        }
+    }
+}
+
 
 /**
  * Checking that the bot detector has loaded and received the event token

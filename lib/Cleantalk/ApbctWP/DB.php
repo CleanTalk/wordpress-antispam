@@ -180,4 +180,34 @@ class DB extends \Cleantalk\Common\DB
 
         return $wpdb->last_error;
     }
+
+    /**
+     * Check if all tables exists in DB.
+     * @param array $tables Tables names
+     *
+     * @return bool true if all tables exist, false otherwise
+     */
+    public function tablesExist($tables = array())
+    {
+        if ( ! is_array($tables) || empty($tables) ) {
+            return false;
+        }
+
+        if (count($tables) === 1) {
+            $table = reset($tables);
+            return parent::isTableExists($table);
+        } else {
+            $query = '
+            SELECT 
+                COUNT(TABLE_NAME) as count
+            FROM 
+                INFORMATION_SCHEMA.TABLES 
+            WHERE 
+                TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME IN (\'' . implode('\', \'', $tables) . '\');
+            ';
+        }
+        $result = $this->fetch($query);
+        return is_array($result) && isset($result['count']) && (int)$result['count'] === count($tables);
+    }
 }

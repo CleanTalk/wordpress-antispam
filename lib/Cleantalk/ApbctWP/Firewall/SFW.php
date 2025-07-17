@@ -127,7 +127,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
         if (
             empty($this->db__table__data) ||
-            empty($this->db__table__data_personal)
+            empty($this->db__table__data_personal) ||
+            !$this->db->tablesExist(array($this->db__table__data_personal, $this->db__table__data)) //skip if any of SFW tables missed
         ) {
             return $results;
         }
