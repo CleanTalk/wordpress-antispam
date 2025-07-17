@@ -1,5 +1,10 @@
 <?php
 
+// Prevent direct call
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
+
 $ct_translate_banner_template = '
 <div class="ct_settings_banner" id="ct_translate_plugin">
     <div class="ct_rate_block">'

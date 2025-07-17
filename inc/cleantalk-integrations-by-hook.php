@@ -1,5 +1,10 @@
 <?php
 
+// Prevent direct call
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
+
 $apbct_active_integrations = array(
     'CleantalkInternalForms'         => array(
         'hook'    => 'ct_check_internal',

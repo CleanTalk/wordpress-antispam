@@ -3,6 +3,11 @@
 // Adding menu items for USERS and COMMENTS spam checking pages
 use Cleantalk\ApbctWP\FindSpam\ListTable\Users;
 
+// Prevent direct call
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
+
 add_action('admin_menu', 'ct_add_find_spam_pages');
 function ct_add_find_spam_pages()
 {

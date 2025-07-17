@@ -204,9 +204,13 @@ class WPForms extends IntegrationByClassBase
         $nickname = null;
         $form_data = $this->form_data instanceof \ArrayObject ? (array)$this->form_data : $this->form_data;
         if (array_key_exists('name', $form_data)) {
-            $nickname = isset($form_data['name']) && is_array($form_data['name']) ? array_shift(
-                $form_data['name']
-            ) : null;
+            if (isset($form_data['name']) && is_array($form_data['name'])) {
+                $nickname = array_shift($form_data['name']);
+            } elseif (isset($form_data['name']) && is_string($form_data['name'])) {
+                $nickname = $form_data['name'];
+            } else {
+                $nickname = null;
+            }
         }
 
         $params = ct_gfa_dto($input_array, is_null($email) ? '' : $email, is_null($nickname) ? '' : $nickname)->getArray();
