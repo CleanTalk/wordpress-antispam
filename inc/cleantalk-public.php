@@ -1192,36 +1192,6 @@ function ct_enqueue_scripts_public($_hook)
             }
         }
     }
-
-    // Show controls for commentaries
-    if ( in_array("administrator", $current_user->roles) ) {
-        // Admin javascript for managing comments on public pages
-        if ( $apbct->settings['comments__manage_comments_on_public_page'] ) {
-            $ajax_nonce = $apbct->ajax_service->getAdminNonce();
-            ApbctEnqueue::getInstance()->js('cleantalk-public-admin.js', array('jquery'), false);
-
-            wp_localize_script('cleantalk-public-admin-js', 'ctPublicAdmin', array(
-                'ct_ajax_nonce'       => $ajax_nonce,
-                'ajaxurl'             => admin_url('admin-ajax.php', 'relative'),
-                'ct_feedback_error'   => __('Error occurred while sending feedback.', 'cleantalk-spam-protect'),
-                'ct_feedback_no_hash' => __(
-                    'Feedback wasn\'t sent. There is no associated request.',
-                    'cleantalk-spam-protect'
-                ),
-                'ct_feedback_msg'     => sprintf(
-                    __("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk-spam-protect'),
-                    //HANDLE LINK
-                    $apbct->user_token ? "<a target='_blank' href=https://cleantalk.org/my/show_requests?user_token={$apbct->user_token}&cp_mode=antispam>" : '',
-                    $apbct->user_token ? "</a>" : ''
-                )
-                    . ' '
-                    . esc_html__(
-                        'The service accepts feedback only for requests made less than 7 (or 45 if the Extra Package is activated) days ago.',
-                        'cleantalk-spam-protect'
-                    ),
-            ));
-        }
-    }
 }
 
 function ct_enqueue_styles_public()
@@ -1245,14 +1215,6 @@ function ct_enqueue_styles_public()
     ) {
         ApbctEnqueue::getInstance()->css('cleantalk-public.css');
         ApbctEnqueue::getInstance()->css('cleantalk-email-decoder.css');
-
-        // Public admin styles
-        if ( in_array("administrator", $current_user->roles) ) {
-            // Admin style for managing comments on public pages
-            if ( $apbct->settings['comments__manage_comments_on_public_page'] ) {
-                ApbctEnqueue::getInstance()->css('cleantalk-public-admin.css');
-            }
-        }
     }
     if ( $apbct->settings['comments__the_real_person'] ) {
         ApbctEnqueue::getInstance()->css('cleantalk-trp.css');
@@ -1299,151 +1261,6 @@ function apbct_bot_detector_scripts_exclusion()
     return false;
 }
 
-/**
- * Reassign callback function for the bottom of comment output.
- */
-function ct_wp_list_comments_args($options)
-{
-    global $current_user, $apbct;
-
-    if ( in_array("administrator", $current_user->roles) ) {
-        if ( $apbct->settings['comments__manage_comments_on_public_page'] ) {
-            $theme                   = wp_get_theme();
-            $apbct->active_theme     = $theme->get('Name');
-            $options['end-callback'] = 'ct_comments_output';
-        }
-    }
-
-    return $options;
-}
-
-/**
- * Callback function for the bottom comment output.
- */
-function ct_comments_output($curr_comment, $_param2, $wp_list_comments_args)
-{
-    global $apbct;
-
-    $email = $curr_comment->comment_author_email;
-    $ip    = $curr_comment->comment_author_IP;
-    $id    = $curr_comment->comment_ID;
-
-    $settings_link = '/wp-admin/' . (is_network_admin() ? "settings.php?page=cleantalk" : "options-general.php?page=cleantalk");
-
-    $html = "<div class='ct_comment_info'><div class ='ct_comment_titles'>";
-    $html .= "<p class='ct_comment_info_title'>" . __('Sender info', 'cleantalk-spam-protect') . "</p>";
-
-    if ($apbct->data["wl_mode_enabled"]) {
-        $html .= "<p class='ct_comment_logo_title'>
-                    " . __('by', 'cleantalk-spam-protect')
-            . " <a href='{$settings_link}' target='_blank'>" . $apbct->data["wl_brandname"] . "</a>"
-            . "</p></div>";
-    } else {
-        $html .= "<p class='ct_comment_logo_title'>
-                    " . __('by', 'cleantalk-spam-protect')
-            . " <a href='{$settings_link}' target='_blank'><img class='ct_comment_logo_img' src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/logo_color.png") . "'></a>"
-            . " <a href='{$settings_link}' target='_blank'>CleanTalk</a>"
-            . "</p></div>";
-    }
-    // Outputs email if exists
-    if ($email) {
-        if (! $apbct->data["wl_mode_enabled"]) {
-            //HANDLE LINK
-            $html .= "<a href='https://cleantalk.org/blacklists/$email' target='_blank' title='https://cleantalk.org/blacklists/$email'>"
-                . "$email"
-                . "&nbsp;<img src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/new_window.gif") . "' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
-                . "</a>";
-            $html .= "&nbsp;|&nbsp;";
-        }
-    } else {
-        $html .= __('No email', 'cleantalk-spam-protect');
-        $html .= "&nbsp;|&nbsp;";
-    }
-
-    // Outputs IP if exists
-    if ($ip) {
-        if (! $apbct->data["wl_mode_enabled"]) {
-            //HANDLE LINK
-            $html .= "<a href='https://cleantalk.org/blacklists/$ip' target='_blank' title='https://cleantalk.org/blacklists/$ip'>"
-                . "$ip"
-                . "&nbsp;<img src='" . Escape::escUrl(APBCT_IMG_ASSETS_PATH . "/new_window.gif") . "' border='0' style='float:none; box-shadow: transparent 0 0 0 !important;'/>"
-                . "</a>";
-            $html .= '&nbsp;|&nbsp;';
-        }
-    } else {
-        $html .= __('No IP', 'cleantalk-spam-protect');
-        $html .= '&nbsp;|&nbsp;';
-    }
-
-    $html .= "<span commentid='$id' class='ct_this_is ct_this_is_spam' href='#'>"
-         . __(
-             'Mark as spam',
-             'cleantalk-spam-protect'
-         )
-         . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif') . '" />'
-         . "</span>";
-    $html .= "<span commentid='$id' class='ct_this_is ct_this_is_not_spam ct_hidden' href='#'>"
-         . __(
-             'Unspam',
-             'cleantalk-spam-protect'
-         )
-         . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif') . '" />'
-         . "</span>";
-    $html .= "<p class='ct_feedback_wrap'>";
-    $html .= "<span class='ct_feedback_result ct_feedback_result_spam'>"
-         . __(
-             'Marked as spam.',
-             'cleantalk-spam-protect'
-         )
-         . "</span>";
-    $html .= "<span class='ct_feedback_result ct_feedback_result_not_spam'>"
-         . __(
-             'Marked as not spam.',
-             'cleantalk-spam-protect'
-         )
-         . "</span>";
-    $html .= "&nbsp;<span class='ct_feedback_msg'><span>";
-    $html .= "</p>";
-
-    $html .= "</div>";
-
-    // @todo research what such themes and make exception for them
-    $ending_tag = isset($wp_list_comments_args['style']) ? $wp_list_comments_args['style'] : null;
-    if ( in_array($apbct->active_theme, array('Paperio', 'Twenty Twenty')) ) {
-        $ending_tag = is_null($wp_list_comments_args['style']) ? 'div' : $wp_list_comments_args['style'];
-    };
-
-    // Ending comment output
-    $html .= "</{$ending_tag}>";
-    echo Escape::escKses(
-        $html,
-        array(
-            'div' => array(
-                'class' => true
-            ),
-            'p' => array(
-                'class' => true
-            ),
-            'span' => array(
-                'class' => true,
-                'commentid' => true,
-                'href' => true,
-            ),
-            'img' => array(
-                'style' => true,
-                'class' => true,
-                'src' => true,
-                'border' => true,
-            ),
-            'style' => true,
-            'a' => array(
-                'href' => true,
-                'target' => true,
-                'title' => true,
-            ),
-        )
-    );
-}
 
 /**
  * Trusted and affiliate text handlers

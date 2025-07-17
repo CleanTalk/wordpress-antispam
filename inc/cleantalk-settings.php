@@ -439,14 +439,6 @@ function apbct_settings__set_fields()
                         ),
                     'display'     => ! $apbct->white_label,
                 ),
-                'comments__manage_comments_on_public_page' => array(
-                    'title'       => __('Manage comments on public pages', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        'Allows administrators to manage comments on public post\'s pages with small interactive menu.',
-                        'cleantalk-spam-protect'
-                    ),
-                    'display'     => ! $apbct->white_label,
-                ),
             ),
         ),
 
