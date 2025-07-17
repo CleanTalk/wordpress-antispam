@@ -6,6 +6,11 @@ use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\Common\TT;
 
+// Prevent direct call
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
+
 /**
  * Main function to compare versions and run necessary update functions.
  *

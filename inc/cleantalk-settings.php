@@ -13,6 +13,13 @@ use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
 use Cleantalk\ApbctWP\PluginSettingsPage\SettingsField;
+use Cleantalk\ApbctWP\ServerRequirementsChecker\ServerRequirementsChecker;
+
+// Prevent direct call
+/** @psalm-suppress ParadoxicalCondition */
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
 
 /**
  * Admin action 'admin_menu' - Add the admin options page
@@ -2006,6 +2013,10 @@ function apbct_settings__field__action_buttons()
 {
     global $apbct;
 
+    $checker = new ServerRequirementsChecker();
+    $warnings = $checker->checkRequirements() ?: [];
+    $has_requirements_warning = !empty($warnings);
+
     add_filter('apbct_settings_action_buttons', function ($buttons_array) {
         $buttons_array[] =
             '<a href="edit-comments.php?page=ct_check_spam" class="ct_support_link">'
@@ -2028,10 +2039,14 @@ function apbct_settings__field__action_buttons()
         });
     }
 
-    add_filter('apbct_settings_action_buttons', function ($buttons_array) {
+    add_filter('apbct_settings_action_buttons', function ($buttons_array) use ($has_requirements_warning) {
+        $dot = $has_requirements_warning
+            ? '<span class="apbct_warning_red_point"></span>'
+            : '';
         $buttons_array[] =
             '<a href="#" class="ct_support_link" onclick="apbctShowHideElem(\'apbct_statistics\')">'
             . __('Statistics & Reports', 'cleantalk-spam-protect')
+            . $dot
             . '</a>';
         return $buttons_array;
     });
@@ -2058,7 +2073,7 @@ function apbct_settings__field__statistics()
     global $apbct;
 
     echo '<div id="apbct_statistics" class="apbct_settings-field_wrapper" style="display: none;">';
-
+    echo '<div>';
     // Last request
     // Get the server information
     $server = isset($apbct->stats['last_request']['server']) && $apbct->stats['last_request']['server']
@@ -2203,8 +2218,44 @@ function apbct_settings__field__statistics()
             }
         }
     }
+    echo '</div>';
 
-    echo '<br/>';
+    $checker = new ServerRequirementsChecker();
+    $warnings = $checker->checkRequirements() ?: [];
+    $requirements_data = $checker->requirements;
+    $requirement_items = $checker->requirement_items;
+
+    echo '<div class="apbct_check_server_requirements">';
+    echo '<h3 style="margin: 0;">' . __('Check Server Requirements', 'cleantalk-spam-protect') . '</h3>';
+    echo '<ul style="margin-bottom:0;">';
+
+    foreach ($requirement_items as $key => $item) {
+        $value = $requirements_data[$key];
+        if ($key === 'curl_support' || $key === 'allow_url_fopen') {
+            $value = $value ? __('enabled', 'cleantalk-spam-protect') : __('disabled', 'cleantalk-spam-protect');
+        }
+        $label = sprintf(__($item['label'], 'cleantalk-spam-protect'), $value);
+
+        $warn_text = '';
+        foreach ($warnings as $warn) {
+            if (stripos($warn, $item['pattern']) !== false) {
+                $warn_text = ' <span style="color:red;">(' . esc_html($warn) . ')</span>';
+                break;
+            }
+        }
+        echo '<li' . ($warn_text ? ' style="color:red;font-weight:bold;"' : '') . '>' . $label . $warn_text . '</li>';
+    }
+    echo '</ul>';
+
+    if (!empty($warnings)) {
+        $link = LinkConstructor::buildCleanTalkLink('notice_server_requirements', 'help/system-requirements-for-anti-spam-and-security ');
+        echo sprintf(
+            '<a href="%s">%s</a>',
+            $link,
+            __('Instructions for solving the compatibility issue', 'cleantalk-spam-protect')
+        );
+    }
+    echo '</div>';
     echo '</div>';
 }
 

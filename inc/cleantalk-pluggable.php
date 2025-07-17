@@ -9,6 +9,11 @@ use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
 
+// Prevent direct call
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
+
 /**
  * Getting current user by cookie
  *
@@ -1577,6 +1582,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'QuickCal';
         }
+
+        // skip FluentCommunity (login form)
+        if (
+            apbct_is_plugin_active('fluent-community/fluent-community.php') &&
+            Post::getString('action') === 'fcom_user_login_form'
+        ) {
+            return 'FluentCommunity login form skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1800,6 +1813,11 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             TT::toString(Post::get('action')) === 'coblocks-form-submit'
         ) {
             return 'Plugin Name: CoBlocks - have the direct integration';
+        }
+
+        // Plugin Name: SureForms
+        if ( apbct_is_plugin_active('sureforms/sureforms.php') && apbct_is_in_uri('/sureforms/v1/submit-form')) {
+            return 'Plugin Name: SureForms skip fields checks';
         }
     }
 
