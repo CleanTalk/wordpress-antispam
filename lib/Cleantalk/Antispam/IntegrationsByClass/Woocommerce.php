@@ -284,7 +284,7 @@ class Woocommerce extends IntegrationByClassBase
                     $this->storeBlockedOrder();
                 }
 
-                if ( $order->get_status() === 'checkout-draft' ) {
+                if ( $order->get_status() === 'pending' || $order->get_status() === 'checkout-draft' ) {
                     try {
                         $order->delete(true);
                     } catch (\Exception $e) {
