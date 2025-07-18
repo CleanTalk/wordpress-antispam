@@ -948,11 +948,12 @@ function apbct_ready() {
         }
 
         if (
-            typeof ctPublic.data__cookies_type !== 'undefined' &&
-            ctPublic.data__cookies_type === 'none'
+            typeof ctPublic.data__cookies_type !== 'undefined'
         ) {
-            ctAjaxSetupAddCleanTalkDataBeforeSendAjax();
-            ctAddWCMiddlewares();
+            if (ctPublic.data__cookies_type === 'none') {
+                ctAjaxSetupAddCleanTalkDataBeforeSendAjax();
+            }
+            ctAddWoocommerceMiddlewares(ctPublic.data__cookies_type);
         }
 
         for (let i = 0; i < document.forms.length; i++) {
@@ -1103,9 +1104,10 @@ function checkBotDetectorExist() {
 }
 
 /**
- * Insert no_cookies_data to rest request
+ * @param {string} cookiesType
+ * Insert no_cookies_data to rest request if type is none, insert event_token anyway
  */
-function ctAddWCMiddlewares() {
+function ctAddWoocommerceMiddlewares(cookiesType) {
     const ctPinDataToRequest = (options, next) => {
         if (typeof options !== 'object' || options === null ||
             !options.hasOwnProperty('data') || !options.hasOwnProperty('path')
@@ -1119,13 +1121,17 @@ function ctAddWCMiddlewares() {
             options.data.requests[0].hasOwnProperty('path') &&
             options.data.requests[0].path === '/wc/store/v1/cart/add-item'
         ) {
-            options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+            if (cookiesType === 'none') {
+                options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+            }
             options.data.requests[0].data.event_token = localStorage.getItem('bot_detector_event_token');
         }
 
         // checkout
         if (options.path === '/wc/store/v1/checkout') {
-            options.data.ct_no_cookie_hidden_field = getNoCookieData();
+            if (cookiesType === 'none') {
+                options.data.ct_no_cookie_hidden_field = getNoCookieData();
+            }
             options.data.event_token = localStorage.getItem('bot_detector_event_token');
         }
 
