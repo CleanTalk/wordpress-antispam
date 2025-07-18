@@ -266,4 +266,66 @@ class CleantalkRequest
         // Feedback
         $this->feedback = !empty($params['feedback']) ? $params['feedback'] : null;
     }
+
+    /**
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function debug()
+    {
+        $debug = array();
+        $debug['self']               = $this;
+        $debug['sender_info_parsed'] = @json_decode($this->sender_info, true);
+
+        // Initialize warnings array
+        $debug['warnings'] = [];
+
+        // Only add warnings if the value is not empty
+        if ( empty($this->event_token) ) {
+            $debug['warnings']['event_token_empty'] = true;
+        }
+        if ( empty($this->message) ) {
+            $debug['warnings']['message_empty'] = true;
+        }
+        if ( empty($this->js_on) ) {
+            $debug['warnings']['js_fail'] = $this->js_on;
+        }
+        if ( empty($this->sender_email) ) {
+            $debug['warnings']['email_empty'] = true;
+        }
+        if ( empty($this->sender_nickname) ) {
+            $debug['warnings']['nickname_empty'] = true;
+        }
+        if ( ! empty($this->exception_action) ) {
+            $debug['warnings']['exception_action_found'] = $this->exception_action;
+        }
+
+        // Sender info warnings
+        if ( ! empty($debug['sender_info_parsed']) ) {
+            $debug['warnings']['sender_info'] = [];
+
+            if ( empty($debug['sender_info_parsed']['REFFERRER']) ) {
+                $debug['warnings']['sender_info']['referrer_empty'] = true;
+            }
+            if ( empty($debug['sender_info_parsed']['has_scrolled']) ) {
+                $debug['warnings']['sender_info']['has_scrolled_empty'] = true;
+            }
+            if ( empty($debug['sender_info_parsed']['mouse_moved']) ) {
+                $debug['warnings']['sender_info']['mouse_moved_empty'] = true;
+            }
+            if (
+                isset($debug['sender_info_parsed']['data__cookies_type']) &&
+                $debug['sender_info_parsed']['data__cookies_type'] === 'none' &&
+                empty($debug['sender_info_parsed']['no_cookie_data_taken'])
+            ) {
+                $debug['warnings']['sender_info']['no_cookie_data_taken_empty'] = true;
+            }
+        }
+
+        if (empty($debug['warnings']['sender_info'])) {
+            unset($debug['warnings']['sender_info']);
+        }
+
+        error_log(__FUNCTION__ . ' ' . print_r($debug, true));
+    }
 }
