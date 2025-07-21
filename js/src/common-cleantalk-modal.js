@@ -1,5 +1,5 @@
 /* Cleantalk Modal object */
-let cleantalkModal = {
+var cleantalkModal = cleantalkModal || {
 
     // Flags
     loaded: false,
