@@ -2997,17 +2997,21 @@ function apbct_ready() {
  */
 function ctSetSearchFormSubmitMiddleWare() {
     const isExclusion = (form) => {
+        let className = form.getAttribute('class');
+        if (typeof className !== 'string') {
+            className = '';
+        }
         return (
             // fibosearch integration
             form.querySelector('input.dgwt-wcas-search-input') ||
             // hero search skip
             form.getAttribute('id') === 'hero-search-form' ||
             // hb booking search skip
-            form.getAttribute('class') === 'hb-booking-search-form' ||
+            className === 'hb-booking-search-form' ||
             // events calendar skip
             (
-                form.getAttribute('class').indexOf('tribe-events') !== -1 &&
-                form.getAttribute('class').indexOf('search') !== -1
+                className.indexOf('tribe-events') !== -1 &&
+                className.indexOf('search') !== -1
             )
         );
     };
