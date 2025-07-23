@@ -1,4 +1,4 @@
-=== Spam protection, Anti-Spam by CleanTalk ===
+=== Spam protection, Honeypot, Anti-Spam by CleanTalk ===
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: antispam, comments, contact form, captcha, spam 
 Requires at least: 4.7
@@ -213,6 +213,10 @@ Yes, it will. The Anti-spam by CleanTalk is compatible with any WordPress theme.
 
 = Should I use other anti-spam tools (Captcha, reCaptcha and etc.)? =
 CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam plugins (especially CAPTCHA-type anti-spam plugins). In some cases several anti-spam plugins could conflict with each other.
+
+= Honeypot field =
+The option helps to block bots. The honeypot field option adds a hidden field to the form. When spambots come to a website form, they can fill out each input field. Enable this option to make the protection stronger on these forms. Learn more about supported forms here.
+
 
 == Installation ==
 
