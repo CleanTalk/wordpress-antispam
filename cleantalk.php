@@ -45,6 +45,7 @@ use Cleantalk\Common\DNS;
 use Cleantalk\Common\Firewall;
 use Cleantalk\Common\Schema;
 use Cleantalk\Common\TT;
+use Cleantalk\ApbctWP\ApbctLog;
 
 // Prevent direct call
 if ( ! defined('ABSPATH') ) {
@@ -181,6 +182,8 @@ $apbct->setSFWUpdateSentinel();
 // User IP Keeper - used for checkers
 $apbct->setLoginIPKeeper();
 
+ApbctLog::originPOST()->enableLogging();
+ApbctLog::originPOST()->prepareData($_POST, '$_POST');
 add_action('wp_login', 'apbct_wp_login_actions', 10, 2);
 
 /**
