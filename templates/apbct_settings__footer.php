@@ -11,6 +11,7 @@ add_action('admin_footer', 'apbct_settings__footer');
 
 /**
  * Footer for settings page
+ * @psalm-suppress RedundantCondition
  */
 function apbct_settings__footer()
 {
