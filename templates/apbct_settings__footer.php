@@ -47,10 +47,21 @@ function apbct_settings__footer()
     ?>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const footerLinks = {
-                block1: <?php echo json_encode($block1_links); ?>,
-                block2: <?php echo json_encode($block2_links); ?>
-            };
+            let footerColumns = [
+                {
+                    blockName: "<?php esc_html_e('More solutions for your site', 'cleantalk-spam-protect') ?>",
+                    links: <?php echo json_encode($block1_links); ?>,
+                }
+            ];
+
+            <?php if ( ! empty($block2_links) ) : ?>
+            footerColumns.push(
+                {
+                    blockName: "<?php esc_html_e('Recommended plugins', 'cleantalk-spam-protect') ?>",
+                    links: <?php echo json_encode($block2_links); ?>,
+                }
+            );
+            <?php endif; ?>
 
             const footer = document.createElement('div');
             footer.className = 'apbct_footer';
@@ -90,8 +101,9 @@ function apbct_settings__footer()
                 return column;
             }
 
-            footer.appendChild(createFooterColumn('More solutions for your site', footerLinks.block1));
-            footer.appendChild(createFooterColumn('Recommended plugins', footerLinks.block2));
+            for (let footerColumn in footerColumns) {
+                footer.appendChild(createFooterColumn(footerColumns[footerColumn].blockName, footerColumns[footerColumn].links));
+            }
 
             const wpMainFooter = document.getElementById('wpfooter');
             const footerLeft = document.getElementById('footer-left');
