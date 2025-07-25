@@ -1756,13 +1756,13 @@ function apbct_public_sendREST( route, params ) {
     new ApbctCore().rest(_params);
 }
 
-// eslint-disable-next-line require-jsdoc,camelcase
+// eslint-disable-next-line require-jsdoc,camelcase,no-unused-vars
 function apbct_attach_event_handler(elem, event, callback) {
     if (typeof window.addEventListener === 'function') elem.addEventListener(event, callback);
     else elem.attachEvent(event, callback);
 }
 
-// eslint-disable-next-line require-jsdoc,camelcase
+// eslint-disable-next-line require-jsdoc,camelcase,no-unused-vars
 function apbct_remove_event_handler(elem, event, callback) {
     if (typeof window.removeEventListener === 'function') elem.removeEventListener(event, callback);
     else elem.detachEvent(event, callback);
@@ -1774,7 +1774,7 @@ function apbct_remove_event_handler(elem, event, callback) {
  * @param {mixed} object
  * @return {*}
  */
-function removeDoubleJsonEncoding(object) {
+function removeDoubleJsonEncoding(object) { // eslint-disable-line no-unused-vars
     if ( typeof object === 'object') {
         // eslint-disable-next-line guard-for-in
         for (let objectKey in object) {
@@ -1802,7 +1802,7 @@ function removeDoubleJsonEncoding(object) {
 /**
  * @return {boolean|*}
  */
-function ctGetPageForms() {
+function ctGetPageForms() { // eslint-disable-line no-unused-vars
     let forms = document.forms;
     if (forms) {
         return forms;
@@ -1922,6 +1922,9 @@ let apbctSessionStorage = {
     },
 };
 
+/**
+ * Class for event token transport
+ */
 class ApbctEventTokenTransport {
     /**
      * Attach event token to multipage Gravity Forms
@@ -1947,22 +1950,24 @@ class ApbctEventTokenTransport {
     attachEventTokenToWoocommerceGetRequestAddToCart() {
         if ( ! ctPublic.wc_ajax_add_to_cart ) {
             // 1) Collect all links with add_to_cart_button class
-            document.querySelectorAll('a.add_to_cart_button:not(.product_type_variable):not(.wc-interactive)').forEach((el) => {
-                el.addEventListener('click', function(e) {
-                    let href = el.getAttribute('href');
-                    // 2) Add to href attribute additional parameter ct_bot_detector_event_token gathered from apbctLocalStorage
-                    let eventToken = apbctLocalStorage.get('bot_detector_event_token');
-                    if ( eventToken ) {
-                        if ( href.indexOf('?') === -1 ) {
-                            href += '?';
-                        } else {
-                            href += '&';
+            document.querySelectorAll('a.add_to_cart_button:not(.product_type_variable):not(.wc-interactive)')
+                .forEach((el) => {
+                    el.addEventListener('click', function(e) {
+                        let href = el.getAttribute('href');
+                        // 2) Add to href attribute additional parameter
+                        // ct_bot_detector_event_token gathered from apbctLocalStorage
+                        let eventToken = apbctLocalStorage.get('bot_detector_event_token');
+                        if ( eventToken ) {
+                            if ( href.indexOf('?') === -1 ) {
+                                href += '?';
+                            } else {
+                                href += '&';
+                            }
+                            href += 'ct_bot_detector_event_token=' + eventToken;
+                            el.setAttribute('href', href);
                         }
-                        href += 'ct_bot_detector_event_token=' + eventToken;
-                        el.setAttribute('href', href);
-                    }
+                    });
                 });
-            });
         }
     }
 
@@ -2024,6 +2029,9 @@ class ApbctEventTokenTransport {
     }
 }
 
+/**
+ * Class for attaching data
+ */
 class ApbctAttachData {
     /**
      * Attach hidden fields to forms
@@ -2236,6 +2244,9 @@ class ApbctAttachData {
     }
 }
 
+/**
+ * Class for handling
+ */
 class ApbctHandler {
     /**
      * Exclude form from handling
@@ -2363,6 +2374,11 @@ class ApbctHandler {
         return result;
     }
 
+    /**
+     * Exclude form from prevCallExclude
+     * @param {object} form
+     * @return {boolean}
+     */
     prevCallExclude(form) {
         if (form.classList.contains('hb-booking-search-form')) {
             return true;
@@ -2371,6 +2387,12 @@ class ApbctHandler {
         return false;
     }
 
+    /**
+     * Catch main
+     * @param {object} form
+     * @param {number} index
+     * @return {void}
+     */
     catchMain(form, index) {
         form.onsubmit_prev = form.onsubmit;
 
@@ -2390,6 +2412,11 @@ class ApbctHandler {
         };
     }
 
+    /**
+     * Cron forms handler
+     * @param {number} cronStartTimeout
+     * @return {void}
+     */
     cronFormsHandler(cronStartTimeout = 2000) {
         setTimeout(function() {
             setInterval(function() {
@@ -2478,6 +2505,10 @@ class ApbctHandler {
         }
     }
 
+    /**
+     * Catch fetch request
+     * @return {void}
+     */
     catchFetchRequest() {
         setTimeout(function() {
             if (document.forms.length > 0 &&
@@ -2498,7 +2529,10 @@ class ApbctHandler {
                     ) {
                         if (args && args[1] && args[1].body) {
                             if (+ctPublic.settings__data__bot_detector_enabled) {
-                                args[1].body.append('ct_bot_detector_event_token', apbctLocalStorage.get('bot_detector_event_token'));
+                                args[1].body.append(
+                                    'ct_bot_detector_event_token',
+                                    apbctLocalStorage.get('bot_detector_event_token'),
+                                );
                             } else {
                                 args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
                             }
@@ -2649,7 +2683,10 @@ class ApbctHandler {
                 + ctPublic.settings__forms__search_test === 1 &&
                 (
                     _form.getAttribute('id') === 'searchform' ||
-                    (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1) ||
+                    (
+                        _form.getAttribute('class') !== null &&
+                        _form.getAttribute('class').indexOf('search-form') !== -1
+                    ) ||
                     (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
                 ) &&
                 !isExclusion(_form)
@@ -2771,13 +2808,21 @@ class ApbctHandler {
     }
 }
 
+/**
+ * Class for showing forbidden
+ */
 class ApbctShowForbidden {
     /**
      * Prepare block to intercept AJAX response
      * @return {void}
      */
     prepareBlockForAjaxForms() {
-        function prepareBlockMessage(xhr) {
+        /**
+         * Prepare block message
+         * @param {object} xhr
+         * @return {void}
+         */
+        const prepareBlockMessage = (xhr) => {
             if (xhr.responseText &&
                 xhr.responseText.indexOf('"apbct') !== -1 &&
                 xhr.responseText.indexOf('DOCTYPE') === -1
@@ -2788,7 +2833,7 @@ class ApbctShowForbidden {
                     console.log(e.toString());
                 }
             }
-        }
+        };
 
         if (typeof jQuery !== 'undefined') {
             // Capturing responses and output block message for unknown AJAX forms
@@ -2876,7 +2921,7 @@ function apbct_ready() {
         gatheringData.gatheringMouseData();
     }
 
-    setTimeout(function() { 
+    setTimeout(function() {
         // Attach data when bot detector is enabled
         if (+ctPublic.settings__data__bot_detector_enabled) {
             const eventTokenTransport = new ApbctEventTokenTransport();
@@ -4122,7 +4167,10 @@ function apbctIsFormInDiv(formObj, divClassName) {
     return false;
 }
 
-class ApbctGatheringData {
+/**
+ * Class for gathering data
+ */
+class ApbctGatheringData { // eslint-disable-line no-unused-vars
     /**
      * Set session ID
      * @return {void}
@@ -4158,7 +4206,8 @@ class ApbctGatheringData {
     }
 
     /**
-     * Set cookies type. If it's not set or not equal to ctPublic.data__cookies_type, clear ct_mouse_moved and ct_has_scrolled values.
+     * Set cookies type.
+     * If it's not set or not equal to ctPublic.data__cookies_type, clear ct_mouse_moved and ct_has_scrolled values.
      * @return {void}
      */
     setCookiesType() {
@@ -4546,11 +4595,11 @@ const ctTimeMs = new Date().getTime();
 let ctMouseEventTimerFlag = true; // Reading interval flag
 let ctMouseData = [];
 let ctMouseDataCounter = 0;
-let ctCheckedEmails = {};
-let ctCheckedEmailsExist = {};
+let ctCheckedEmails = {}; // eslint-disable-line no-unused-vars
+let ctCheckedEmailsExist = {}; // eslint-disable-line no-unused-vars
 let ctMouseReadInterval;
 let ctMouseWriteDataInterval;
-let tokenCheckerIntervalId;
+let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 
 
 // Writing first key press timestamp
@@ -4640,8 +4689,6 @@ function ctSetMouseMoved() {
         ctSetCookie('ct_mouse_moved', 'true');
     }
 }
-
-
 
 /**
  * stop listening keyup and focus
@@ -5017,7 +5064,7 @@ function apbctCancelAutocomplete(element) {
 /**
  * @return {string}
  */
-function getNoCookieData() {
+function getNoCookieData() { // eslint-disable-line no-unused-vars
     let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
     let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
     let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
@@ -5062,7 +5109,7 @@ function ctNoCookieAttachHiddenFieldsToForms() {
  * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity}.
  * @return {string}
  */
-function getCleanTalkStorageDataArray() {
+function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
     let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
     let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
 
@@ -5146,7 +5193,7 @@ function needsSaveLogToAltSessions(currentLog) {
 /**
  * @param {mixed} e
  */
-function checkEmail(e) {
+function checkEmail(e) { // eslint-disable-line no-unused-vars
     let currentEmail = e.target.value;
 
     if (! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail)) {
@@ -5198,7 +5245,7 @@ function checkEmail(e) {
 /**
  * @param {mixed} e
  */
-function checkEmailExist(e) {
+function checkEmailExist(e) { // eslint-disable-line no-unused-vars
     let currentEmail = e.target.value;
     let result;
 

@@ -1,7 +1,7 @@
 /**
  * @param {mixed} e
  */
-function checkEmail(e) {
+function checkEmail(e) { // eslint-disable-line no-unused-vars
     let currentEmail = e.target.value;
 
     if (! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail)) {
@@ -53,7 +53,7 @@ function checkEmail(e) {
 /**
  * @param {mixed} e
  */
-function checkEmailExist(e) {
+function checkEmailExist(e) { // eslint-disable-line no-unused-vars
     let currentEmail = e.target.value;
     let result;
 

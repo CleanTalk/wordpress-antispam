@@ -1,5 +1,5 @@
 /* Cleantalk Modal object */
-var cleantalkModal = cleantalkModal || {
+var cleantalkModal = cleantalkModal || { // eslint-disable-line no-var
 
     // Flags
     loaded: false,

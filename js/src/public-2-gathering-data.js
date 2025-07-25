@@ -1,4 +1,7 @@
-class ApbctGatheringData {
+/**
+ * Class for gathering data
+ */
+class ApbctGatheringData { // eslint-disable-line no-unused-vars
     /**
      * Set session ID
      * @return {void}
@@ -34,7 +37,8 @@ class ApbctGatheringData {
     }
 
     /**
-     * Set cookies type. If it's not set or not equal to ctPublic.data__cookies_type, clear ct_mouse_moved and ct_has_scrolled values.
+     * Set cookies type.
+     * If it's not set or not equal to ctPublic.data__cookies_type, clear ct_mouse_moved and ct_has_scrolled values.
      * @return {void}
      */
     setCookiesType() {
@@ -422,11 +426,11 @@ const ctTimeMs = new Date().getTime();
 let ctMouseEventTimerFlag = true; // Reading interval flag
 let ctMouseData = [];
 let ctMouseDataCounter = 0;
-let ctCheckedEmails = {};
-let ctCheckedEmailsExist = {};
+let ctCheckedEmails = {}; // eslint-disable-line no-unused-vars
+let ctCheckedEmailsExist = {}; // eslint-disable-line no-unused-vars
 let ctMouseReadInterval;
 let ctMouseWriteDataInterval;
-let tokenCheckerIntervalId;
+let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 
 
 // Writing first key press timestamp
@@ -516,8 +520,6 @@ function ctSetMouseMoved() {
         ctSetCookie('ct_mouse_moved', 'true');
     }
 }
-
-
 
 /**
  * stop listening keyup and focus
@@ -893,7 +895,7 @@ function apbctCancelAutocomplete(element) {
 /**
  * @return {string}
  */
-function getNoCookieData() {
+function getNoCookieData() { // eslint-disable-line no-unused-vars
     let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
     let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
     let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
@@ -938,7 +940,7 @@ function ctNoCookieAttachHiddenFieldsToForms() {
  * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity}.
  * @return {string}
  */
-function getCleanTalkStorageDataArray() {
+function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
     let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
     let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
 

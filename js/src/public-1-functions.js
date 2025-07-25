@@ -215,13 +215,13 @@ function apbct_public_sendREST( route, params ) {
     new ApbctCore().rest(_params);
 }
 
-// eslint-disable-next-line require-jsdoc,camelcase
+// eslint-disable-next-line require-jsdoc,camelcase,no-unused-vars
 function apbct_attach_event_handler(elem, event, callback) {
     if (typeof window.addEventListener === 'function') elem.addEventListener(event, callback);
     else elem.attachEvent(event, callback);
 }
 
-// eslint-disable-next-line require-jsdoc,camelcase
+// eslint-disable-next-line require-jsdoc,camelcase,no-unused-vars
 function apbct_remove_event_handler(elem, event, callback) {
     if (typeof window.removeEventListener === 'function') elem.removeEventListener(event, callback);
     else elem.detachEvent(event, callback);
@@ -233,7 +233,7 @@ function apbct_remove_event_handler(elem, event, callback) {
  * @param {mixed} object
  * @return {*}
  */
-function removeDoubleJsonEncoding(object) {
+function removeDoubleJsonEncoding(object) { // eslint-disable-line no-unused-vars
     if ( typeof object === 'object') {
         // eslint-disable-next-line guard-for-in
         for (let objectKey in object) {
@@ -261,7 +261,7 @@ function removeDoubleJsonEncoding(object) {
 /**
  * @return {boolean|*}
  */
-function ctGetPageForms() {
+function ctGetPageForms() { // eslint-disable-line no-unused-vars
     let forms = document.forms;
     if (forms) {
         return forms;

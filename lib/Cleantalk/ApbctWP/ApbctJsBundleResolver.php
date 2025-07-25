@@ -12,8 +12,6 @@ class ApbctJsBundleResolver
      */
     public static function getBundleName($settings)
     {
-        $script = '';
-
         if ($settings instanceof \ArrayObject) {
             $settings = $settings->getArrayCopy();
         }
@@ -31,7 +29,7 @@ class ApbctJsBundleResolver
             $script = 'apbct-public-bundle.min.js';
         }
 
-        if ($settings['data__bot_detector_enabled'] != '1') {
+        if (isset($settings['data__bot_detector_enabled']) && $settings['data__bot_detector_enabled'] != '1') {
             $script = str_replace('.min.js', '_gathering.min.js', $script);
         }
 
