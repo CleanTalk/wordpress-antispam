@@ -1,13 +1,13 @@
-=== Spam protection, Anti-Spam by CleanTalk ===
+=== Spam protection, Honeypot, Anti-Spam by CleanTalk ===
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
-Tags: antispam, comments, contact form, seo, email
+Tags: antispam, comments, contact form, captcha, spam 
 Requires at least: 4.7
 Tested up to: 6.8
 Requires PHP: 5.6
 Stable tag: 6.60
 License: GPLv2
 
-Blocks spam comments, fake users, contact form spam and more. No impact on SEO or website performance. Enterprise-ready, premium Anti-Spam plugin.
+Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
 
 == Description ==
 
@@ -213,6 +213,10 @@ Yes, it will. The Anti-spam by CleanTalk is compatible with any WordPress theme.
 
 = Should I use other anti-spam tools (Captcha, reCaptcha and etc.)? =
 CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam plugins (especially CAPTCHA-type anti-spam plugins). In some cases several anti-spam plugins could conflict with each other.
+
+= Honeypot field =
+The option helps to block bots. The honeypot field option adds a hidden field to the form. When spambots come to a website form, they can fill out each input field. Enable this option to make the protection stronger on these forms. Learn more about supported forms here.
+
 
 == Installation ==
 

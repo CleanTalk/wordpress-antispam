@@ -1007,6 +1007,12 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         return $errors;
     }
 
+    if ( $ct_result->allow != 0 ) {
+        if (current_filter() === 'woocommerce_registration_errors' && $apbct->settings['forms__wc_register_from_order']) {
+            $cleantalk_executed = false;
+        }
+    }
+
     if ( $ct_result->allow == 0 ) {
         $ct_negative_comment = $ct_result->comment;
         $ct_registration_error_comment = $ct_result->comment;

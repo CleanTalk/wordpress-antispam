@@ -642,7 +642,6 @@ function apbct_update_to_5_154_0()
         'remove_old_spam'                => 'comments__remove_old_spam',
         'remove_comments_links'          => 'comments__remove_comments_links',
         'show_check_links'               => 'comments__show_check_links',
-        'manage_comments_on_public_page' => 'comments__manage_comments_on_public_page',
         'protect_logged_in'              => 'data__protect_logged_in',
         'use_ajax'                       => 'data__use_ajax',
         'use_static_js_key'              => 'data__use_static_js_key',

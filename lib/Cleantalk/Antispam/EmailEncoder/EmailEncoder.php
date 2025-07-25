@@ -389,9 +389,9 @@ class EmailEncoder
      *
      * @return string
      */
-    public function modifyAny($string)
+    public function modifyAny($string, $mode = 'blur', $replacing_text = null)
     {
-        $encoded_string = $this->encodeAny($string);
+        $encoded_string = $this->encodeAny($string, $mode, $replacing_text);
 
         //please keep this var (do not simplify the code) for further debug
         return $encoded_string;
@@ -824,7 +824,7 @@ class EmailEncoder
      */
     private function registerHookHandler()
     {
-        add_filter('apbct_encode_data', [$this, 'modifyAny']);
+        add_filter('apbct_encode_data', [$this, 'modifyAny'], 10, 3);
         add_filter('apbct_encode_email_data', [$this, 'modifyContent']);
     }
 
