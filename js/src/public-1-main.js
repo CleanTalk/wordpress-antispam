@@ -190,7 +190,7 @@ class ApbctAttachData {
             event.target.action && event.target.action.toString().indexOf('mailpoet_subscription_form') !== -1
         ) {
             window.XMLHttpRequest.prototype.send = function(data) {
-                if (!ctPublic.settings__data__bot_detector_enabled) {
+                if (!+ctPublic.settings__data__bot_detector_enabled) {
                     const noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + getNoCookieData() + '&';
                     defaultSend.call(this, noCookieData + data);
                 } else {
@@ -469,7 +469,7 @@ class ApbctHandler {
     cronFormsHandler(cronStartTimeout = 2000) {
         setTimeout(function() {
             setInterval(function() {
-                if (!ctPublic.settings__data__bot_detector_enabled) {
+                if (!+ctPublic.settings__data__bot_detector_enabled) {
                     new ApbctGatheringData().restartFieldsListening();
                 }
                 new ApbctEventTokenTransport().restartBotDetectorEventTokenAttach();
@@ -535,7 +535,7 @@ class ApbctHandler {
                 ) {
                     let addidionalCleantalkData = '';
 
-                    if (!ctPublic.settings__data__bot_detector_enabled) {
+                    if (!+ctPublic.settings__data__bot_detector_enabled) {
                         let noCookieData = getNoCookieData();
                         addidionalCleantalkData += '&' + 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData;
                     } else {
@@ -573,11 +573,10 @@ class ApbctHandler {
                         })()))
                     ) {
                         if (args && args[1] && args[1].body) {
-                            if (!ctPublic.settings__data__bot_detector_enabled) {
-                                args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
-                            }
-                            if (ctPublic.settings__data__bot_detector_enabled) {
+                            if (+ctPublic.settings__data__bot_detector_enabled) {
                                 args[1].body.append('ct_bot_detector_event_token', apbctLocalStorage.get('bot_detector_event_token'));
+                            } else {
+                                args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
                             }
                         }
                     }
@@ -637,7 +636,7 @@ class ApbctHandler {
                     if (sourceSign) {
                         let eventToken = '';
                         let noCookieData = '';
-                        if (ctPublic.settings__data__bot_detector_enabled) {
+                        if (+ctPublic.settings__data__bot_detector_enabled) {
                             const token = new ApbctHandler().toolGetEventToken();
                             if (token) {
                                 eventToken = 'data%5Bct_bot_detector_event_token%5D=' + token + '&';
@@ -672,7 +671,7 @@ class ApbctHandler {
                 options.data.requests[0].hasOwnProperty('path') &&
                 options.data.requests[0].path === '/wc/store/v1/cart/add-item'
             ) {
-                if (ctPublic.settings__data__bot_detector_enabled) {
+                if (+ctPublic.settings__data__bot_detector_enabled) {
                     options.data.requests[0].data.event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
                     options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
@@ -681,7 +680,7 @@ class ApbctHandler {
 
             // checkout
             if (options.path === '/wc/store/v1/checkout') {
-                if (ctPublic.settings__data__bot_detector_enabled) {
+                if (+ctPublic.settings__data__bot_detector_enabled) {
                     options.data.event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
                     options.data.ct_no_cookie_hidden_field = getNoCookieData();
@@ -941,7 +940,7 @@ function apbct_ready() {
     handler.detectForcedAltCookiesForms();
 
     // Gathering data when bot detector is disabled
-    if (!ctPublic.settings__data__bot_detector_enabled) {
+    if (!+ctPublic.settings__data__bot_detector_enabled) {
         const gatheringData = new ApbctGatheringData();
         gatheringData.setSessionId();
         gatheringData.writeReferrersToSessionStorage();
@@ -955,7 +954,7 @@ function apbct_ready() {
 
     setTimeout(function() { 
         // Attach data when bot detector is enabled
-        if (ctPublic.settings__data__bot_detector_enabled) {
+        if (+ctPublic.settings__data__bot_detector_enabled) {
             const eventTokenTransport = new ApbctEventTokenTransport();
             eventTokenTransport.attachEventTokenToMultipageGravityForms();
             eventTokenTransport.attachEventTokenToWoocommerceGetRequestAddToCart();
@@ -964,7 +963,7 @@ function apbct_ready() {
         const attachData = new ApbctAttachData();
 
         // Attach data when bot detector is disabled
-        if (!ctPublic.settings__data__bot_detector_enabled) {
+        if (!+ctPublic.settings__data__bot_detector_enabled) {
             attachData.attachHiddenFieldsToForms();
             attachData.attachNoCookie();
         }
@@ -983,7 +982,7 @@ function apbct_ready() {
     }, 1000);
 
     if (+ctPublic.settings__forms__search_test === 1) {
-        handler.searchFormHandler();
+        handler.searchFormMiddleware();
     }
 
     handler.catchXmlHttpRequest();
@@ -991,7 +990,7 @@ function apbct_ready() {
     handler.catchJqueryAjax();
     handler.catchWCRestRequestAsMiddleware();
 
-    if (ctPublic.settings__sfw__anti_crawler && ctPublic.settings__data__bot_detector_enabled) {
+    if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {
         handler.toolForAntiCrawlerCheckDuringBotDetector();
     }
 }

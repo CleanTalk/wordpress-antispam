@@ -1820,21 +1820,6 @@ function apbct_js_keys__set_input_value(result, data, params, obj) {
     }
 }
 
-/**
- * Run AJAX to set important_parameters on the site backend if problematic cache solutions are defined.
- * @param {boolean} cacheExist
- */
-function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) { // eslint-disable-line no-unused-vars
-    // Set important parameters via ajax
-    if ( cacheExist ) {
-        if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
-            apbct_public_sendREST('apbct_set_important_parameters', {});
-        } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
-            apbct_public_sendAJAX({action: 'apbct_set_important_parameters'}, {});
-        }
-    }
-}
-
 let apbctLocalStorage = {
     get: function(key, property) {
         if ( typeof property === 'undefined' ) {
@@ -2129,7 +2114,7 @@ class ApbctAttachData {
             event.target.action && event.target.action.toString().indexOf('mailpoet_subscription_form') !== -1
         ) {
             window.XMLHttpRequest.prototype.send = function(data) {
-                if (!ctPublic.settings__data__bot_detector_enabled) {
+                if (!+ctPublic.settings__data__bot_detector_enabled) {
                     const noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + getNoCookieData() + '&';
                     defaultSend.call(this, noCookieData + data);
                 } else {
@@ -2305,6 +2290,10 @@ class ApbctHandler {
             return true;
         }
 
+        if (formAction.indexOf('secureinternetbank.com') !== -1 ) {
+            return true;
+        }
+
         if (typeof (hiddenFieldType) === 'string' &&
             ['visible_fields', 'no_cookie'].indexOf(hiddenFieldType) !== -1) {
             const exclusions = this.getHiddenFieldExclusionsType(form);
@@ -2404,7 +2393,7 @@ class ApbctHandler {
     cronFormsHandler(cronStartTimeout = 2000) {
         setTimeout(function() {
             setInterval(function() {
-                if (!ctPublic.settings__data__bot_detector_enabled) {
+                if (!+ctPublic.settings__data__bot_detector_enabled) {
                     new ApbctGatheringData().restartFieldsListening();
                 }
                 new ApbctEventTokenTransport().restartBotDetectorEventTokenAttach();
@@ -2455,13 +2444,22 @@ class ApbctHandler {
      * @return {void}
      */
     catchXmlHttpRequest() {
-        if ( document.querySelector('div.wfu_container') !== null ) {
+        if (
+            document.querySelector('div.wfu_container') !== null ||
+            document.querySelector('#newAppointmentForm') !== null ||
+            document.querySelector('.booked-calendar-shortcode-wrap') !== null
+        ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
-                if (body && typeof body === 'string' && (body.indexOf('action=wfu_ajax_action_ask_server') !== -1)) {
+                if (body && typeof body === 'string' &&
+                    (
+                        body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
+                        body.indexOf('action=booked_add_appt') !== -1
+                    )
+                ) {
                     let addidionalCleantalkData = '';
 
-                    if (!ctPublic.settings__data__bot_detector_enabled) {
+                    if (!+ctPublic.settings__data__bot_detector_enabled) {
                         let noCookieData = getNoCookieData();
                         addidionalCleantalkData += '&' + 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData;
                     } else {
@@ -2489,14 +2487,20 @@ class ApbctHandler {
                     if (args &&
                         args[0] &&
                         typeof args[0].includes === 'function' &&
-                        args[0].includes('/wp-json/metform/')
+                        (args[0].includes('/wp-json/metform/') ||
+                        (ctPublicFunctions._rest_url && (() => {
+                            try {
+                                return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
+                            } catch (e) {
+                                return false;
+                            }
+                        })()))
                     ) {
                         if (args && args[1] && args[1].body) {
-                            if (!ctPublic.settings__data__bot_detector_enabled) {
-                                args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
-                            }
-                            if (ctPublic.settings__data__bot_detector_enabled) {
+                            if (+ctPublic.settings__data__bot_detector_enabled) {
                                 args[1].body.append('ct_bot_detector_event_token', apbctLocalStorage.get('bot_detector_event_token'));
+                            } else {
+                                args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
                             }
                         }
                     }
@@ -2556,7 +2560,7 @@ class ApbctHandler {
                     if (sourceSign) {
                         let eventToken = '';
                         let noCookieData = '';
-                        if (ctPublic.settings__data__bot_detector_enabled) {
+                        if (+ctPublic.settings__data__bot_detector_enabled) {
                             const token = new ApbctHandler().toolGetEventToken();
                             if (token) {
                                 eventToken = 'data%5Bct_bot_detector_event_token%5D=' + token + '&';
@@ -2591,7 +2595,7 @@ class ApbctHandler {
                 options.data.requests[0].hasOwnProperty('path') &&
                 options.data.requests[0].path === '/wc/store/v1/cart/add-item'
             ) {
-                if (ctPublic.settings__data__bot_detector_enabled) {
+                if (+ctPublic.settings__data__bot_detector_enabled) {
                     options.data.requests[0].data.event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
                     options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
@@ -2600,7 +2604,7 @@ class ApbctHandler {
 
             // checkout
             if (options.path === '/wc/store/v1/checkout') {
-                if (ctPublic.settings__data__bot_detector_enabled) {
+                if (+ctPublic.settings__data__bot_detector_enabled) {
                     options.data.event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
                     options.data.ct_no_cookie_hidden_field = getNoCookieData();
@@ -2619,97 +2623,115 @@ class ApbctHandler {
     }
 
     /**
-     * Handle search forms
+     * Handle search forms middleware
      * @return {void}
      */
-    searchFormHandler() {
+    searchFormMiddleware() {
+        const isExclusion = (form) => {
+            return (
+                // fibosearch integration
+                form.querySelector('input.dgwt-wcas-search-input') ||
+                // hero search skip
+                form.getAttribute('id') === 'hero-search-form' ||
+                // hb booking search skip
+                form.getAttribute('class') === 'hb-booking-search-form' ||
+                // events calendar skip
+                (
+                    form.getAttribute('class').indexOf('tribe-events') !== -1 &&
+                    form.getAttribute('class').indexOf('search') !== -1
+                )
+            );
+        };
+
         for (const _form of document.forms) {
-            // fibosearch integration
-            if (_form.querySelector('input.dgwt-wcas-search-input')) {
-                continue;
-            }
-
-            if (_form.getAttribute('id') === 'hero-search-form' ||
-                _form.getAttribute('class') === 'hb-booking-search-form'
-            ) {
-                continue;
-            }
-
-            if (_form.getAttribute('id') === 'searchform' ||
-                (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1) ||
-                (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
+            if (
+                typeof ctPublic !== 'undefined' &&
+                + ctPublic.settings__forms__search_test === 1 &&
+                (
+                    _form.getAttribute('id') === 'searchform' ||
+                    (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1) ||
+                    (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
+                ) &&
+                !isExclusion(_form)
             ) {
                 // this handles search forms onsubmit process
                 _form.apbctSearchPrevOnsubmit = _form.onsubmit;
-                const handler = function (e, targetForm) {
-                    try {
-                        // get honeypot field and it's value
-                        const honeyPotField = targetForm.querySelector('[name*="apbct_email_id__"]');
-                        let hpValue = null;
-                        if (
-                            honeyPotField !== null &&
-                            honeyPotField.value !== null
-                        ) {
-                            hpValue = honeyPotField.value;
-                        }
-
-                        // get cookie data from storages
-                        let cleantalkStorageDataArray = getCleanTalkStorageDataArray();
-
-                        // get event token from storage
-                        let eventTokenLocalStorage = apbctLocalStorage.get('bot_detector_event_token');
-
-                        // if noCookie data or honeypot data is set, proceed handling
-                        if ( cleantalkStorageDataArray !== null || honeyPotField !== null || eventTokenLocalStorage !== null ) {
-                            e.preventDefault();
-                            const callBack = () => {
-                                if (honeyPotField !== null) {
-                                    honeyPotField.parentNode.removeChild(honeyPotField);
-                                }
-                                if (typeof targetForm.apbctSearchPrevOnsubmit === 'function') {
-                                    targetForm.apbctSearchPrevOnsubmit();
-                                } else {
-                                    HTMLFormElement.prototype.submit.call(targetForm);
-                                }
-                            };
-
-                            let cookiesArray = cleantalkStorageDataArray;
-
-                            // if honeypot data provided add the fields to the parsed data
-                            if ( hpValue !== null ) {
-                                cookiesArray.apbct_search_form__honeypot_value = hpValue;
-                            }
-
-                            // set event token
-                            cookiesArray.ct_bot_detector_event_token = eventTokenLocalStorage;
-
-                            // if the pixel needs to be decoded
-                            if (
-                                typeof cookiesArray.apbct_pixel_url === 'string' &&
-                                cookiesArray.apbct_pixel_url.indexOf('%3A') !== -1
-                            ) {
-                                cookiesArray.apbct_pixel_url = decodeURIComponent(cookiesArray.apbct_pixel_url);
-                            }
-
-                            // data to JSON
-                            const parsedCookies = JSON.stringify(cookiesArray);
-
-                            // if any data provided, proceed data to xhr
-                            if ( typeof parsedCookies !== 'undefined' && parsedCookies.length !== 0 ) {
-                                ctSetAlternativeCookie(
-                                    parsedCookies,
-                                    {callback: callBack, onErrorCallback: callBack, forceAltCookies: true},
-                                );
-                            } else {
-                                callBack();
-                            }
-                        }
-                    } catch (error) {
-                        console.warn('APBCT search form onsubmit handler error. ' + error);
-                    }
-                }
-                _form.onsubmit = (e) => handler(e, _form);
+                _form.onsubmit = (e) => this.searchFormHandler(e, _form);
             }
+        }
+    }
+
+    /**
+     * Handle search forms
+     * @param {SubmitEvent} e
+     * @param {object} targetForm
+     * @return {void}
+     */
+    searchFormHandler(e, targetForm) {
+        try {
+            // get honeypot field and it's value
+            const honeyPotField = targetForm.querySelector('[name*="apbct_email_id__"]');
+            let hpValue = null;
+            if (
+                honeyPotField !== null &&
+                honeyPotField.value !== null
+            ) {
+                hpValue = honeyPotField.value;
+            }
+
+            // get cookie data from storages
+            let cleantalkStorageDataArray = getCleanTalkStorageDataArray();
+
+            // get event token from storage
+            let eventTokenLocalStorage = apbctLocalStorage.get('bot_detector_event_token');
+
+            // if noCookie data or honeypot data is set, proceed handling
+            if ( cleantalkStorageDataArray !== null || honeyPotField !== null || eventTokenLocalStorage !== null ) {
+                e.preventDefault();
+                const callBack = () => {
+                    if (honeyPotField !== null) {
+                        honeyPotField.parentNode.removeChild(honeyPotField);
+                    }
+                    if (typeof targetForm.apbctSearchPrevOnsubmit === 'function') {
+                        targetForm.apbctSearchPrevOnsubmit();
+                    } else {
+                        HTMLFormElement.prototype.submit.call(targetForm);
+                    }
+                };
+
+                let cookiesArray = cleantalkStorageDataArray;
+
+                // if honeypot data provided add the fields to the parsed data
+                if ( hpValue !== null ) {
+                    cookiesArray.apbct_search_form__honeypot_value = hpValue;
+                }
+
+                // set event token
+                cookiesArray.ct_bot_detector_event_token = eventTokenLocalStorage;
+
+                // if the pixel needs to be decoded
+                if (
+                    typeof cookiesArray.apbct_pixel_url === 'string' &&
+                    cookiesArray.apbct_pixel_url.indexOf('%3A') !== -1
+                ) {
+                    cookiesArray.apbct_pixel_url = decodeURIComponent(cookiesArray.apbct_pixel_url);
+                }
+
+                // data to JSON
+                const parsedCookies = JSON.stringify(cookiesArray);
+
+                // if any data provided, proceed data to xhr
+                if ( typeof parsedCookies !== 'undefined' && parsedCookies.length !== 0 ) {
+                    ctSetAlternativeCookie(
+                        parsedCookies,
+                        {callback: callBack, onErrorCallback: callBack, forceAltCookies: true},
+                    );
+                } else {
+                    callBack();
+                }
+            }
+        } catch (error) {
+            console.warn('APBCT search form onsubmit handler error. ' + error);
         }
     }
 
@@ -2842,7 +2864,7 @@ function apbct_ready() {
     handler.detectForcedAltCookiesForms();
 
     // Gathering data when bot detector is disabled
-    if (!ctPublic.settings__data__bot_detector_enabled) {
+    if (!+ctPublic.settings__data__bot_detector_enabled) {
         const gatheringData = new ApbctGatheringData();
         gatheringData.setSessionId();
         gatheringData.writeReferrersToSessionStorage();
@@ -2856,7 +2878,7 @@ function apbct_ready() {
 
     setTimeout(function() { 
         // Attach data when bot detector is enabled
-        if (ctPublic.settings__data__bot_detector_enabled) {
+        if (+ctPublic.settings__data__bot_detector_enabled) {
             const eventTokenTransport = new ApbctEventTokenTransport();
             eventTokenTransport.attachEventTokenToMultipageGravityForms();
             eventTokenTransport.attachEventTokenToWoocommerceGetRequestAddToCart();
@@ -2865,7 +2887,7 @@ function apbct_ready() {
         const attachData = new ApbctAttachData();
 
         // Attach data when bot detector is disabled
-        if (!ctPublic.settings__data__bot_detector_enabled) {
+        if (!+ctPublic.settings__data__bot_detector_enabled) {
             attachData.attachHiddenFieldsToForms();
             attachData.attachNoCookie();
         }
@@ -2884,7 +2906,7 @@ function apbct_ready() {
     }, 1000);
 
     if (+ctPublic.settings__forms__search_test === 1) {
-        handler.searchFormHandler();
+        handler.searchFormMiddleware();
     }
 
     handler.catchXmlHttpRequest();
@@ -2892,7 +2914,7 @@ function apbct_ready() {
     handler.catchJqueryAjax();
     handler.catchWCRestRequestAsMiddleware();
 
-    if (ctPublic.settings__sfw__anti_crawler && ctPublic.settings__data__bot_detector_enabled) {
+    if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {
         handler.toolForAntiCrawlerCheckDuringBotDetector();
     }
 }

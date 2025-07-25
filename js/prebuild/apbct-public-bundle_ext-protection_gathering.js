@@ -1820,21 +1820,6 @@ function apbct_js_keys__set_input_value(result, data, params, obj) {
     }
 }
 
-/**
- * Run AJAX to set important_parameters on the site backend if problematic cache solutions are defined.
- * @param {boolean} cacheExist
- */
-function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) { // eslint-disable-line no-unused-vars
-    // Set important parameters via ajax
-    if ( cacheExist ) {
-        if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
-            apbct_public_sendREST('apbct_set_important_parameters', {});
-        } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
-            apbct_public_sendAJAX({action: 'apbct_set_important_parameters'}, {});
-        }
-    }
-}
-
 let apbctLocalStorage = {
     get: function(key, property) {
         if ( typeof property === 'undefined' ) {
@@ -2129,7 +2114,7 @@ class ApbctAttachData {
             event.target.action && event.target.action.toString().indexOf('mailpoet_subscription_form') !== -1
         ) {
             window.XMLHttpRequest.prototype.send = function(data) {
-                if (!ctPublic.settings__data__bot_detector_enabled) {
+                if (!+ctPublic.settings__data__bot_detector_enabled) {
                     const noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + getNoCookieData() + '&';
                     defaultSend.call(this, noCookieData + data);
                 } else {
@@ -2305,6 +2290,10 @@ class ApbctHandler {
             return true;
         }
 
+        if (formAction.indexOf('secureinternetbank.com') !== -1 ) {
+            return true;
+        }
+
         if (typeof (hiddenFieldType) === 'string' &&
             ['visible_fields', 'no_cookie'].indexOf(hiddenFieldType) !== -1) {
             const exclusions = this.getHiddenFieldExclusionsType(form);
@@ -2404,7 +2393,7 @@ class ApbctHandler {
     cronFormsHandler(cronStartTimeout = 2000) {
         setTimeout(function() {
             setInterval(function() {
-                if (!ctPublic.settings__data__bot_detector_enabled) {
+                if (!+ctPublic.settings__data__bot_detector_enabled) {
                     new ApbctGatheringData().restartFieldsListening();
                 }
                 new ApbctEventTokenTransport().restartBotDetectorEventTokenAttach();
@@ -2455,13 +2444,22 @@ class ApbctHandler {
      * @return {void}
      */
     catchXmlHttpRequest() {
-        if ( document.querySelector('div.wfu_container') !== null ) {
+        if (
+            document.querySelector('div.wfu_container') !== null ||
+            document.querySelector('#newAppointmentForm') !== null ||
+            document.querySelector('.booked-calendar-shortcode-wrap') !== null
+        ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
-                if (body && typeof body === 'string' && (body.indexOf('action=wfu_ajax_action_ask_server') !== -1)) {
+                if (body && typeof body === 'string' &&
+                    (
+                        body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
+                        body.indexOf('action=booked_add_appt') !== -1
+                    )
+                ) {
                     let addidionalCleantalkData = '';
 
-                    if (!ctPublic.settings__data__bot_detector_enabled) {
+                    if (!+ctPublic.settings__data__bot_detector_enabled) {
                         let noCookieData = getNoCookieData();
                         addidionalCleantalkData += '&' + 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData;
                     } else {
@@ -2489,14 +2487,20 @@ class ApbctHandler {
                     if (args &&
                         args[0] &&
                         typeof args[0].includes === 'function' &&
-                        args[0].includes('/wp-json/metform/')
+                        (args[0].includes('/wp-json/metform/') ||
+                        (ctPublicFunctions._rest_url && (() => {
+                            try {
+                                return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
+                            } catch (e) {
+                                return false;
+                            }
+                        })()))
                     ) {
                         if (args && args[1] && args[1].body) {
-                            if (!ctPublic.settings__data__bot_detector_enabled) {
-                                args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
-                            }
-                            if (ctPublic.settings__data__bot_detector_enabled) {
+                            if (+ctPublic.settings__data__bot_detector_enabled) {
                                 args[1].body.append('ct_bot_detector_event_token', apbctLocalStorage.get('bot_detector_event_token'));
+                            } else {
+                                args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
                             }
                         }
                     }
@@ -2556,7 +2560,7 @@ class ApbctHandler {
                     if (sourceSign) {
                         let eventToken = '';
                         let noCookieData = '';
-                        if (ctPublic.settings__data__bot_detector_enabled) {
+                        if (+ctPublic.settings__data__bot_detector_enabled) {
                             const token = new ApbctHandler().toolGetEventToken();
                             if (token) {
                                 eventToken = 'data%5Bct_bot_detector_event_token%5D=' + token + '&';
@@ -2591,7 +2595,7 @@ class ApbctHandler {
                 options.data.requests[0].hasOwnProperty('path') &&
                 options.data.requests[0].path === '/wc/store/v1/cart/add-item'
             ) {
-                if (ctPublic.settings__data__bot_detector_enabled) {
+                if (+ctPublic.settings__data__bot_detector_enabled) {
                     options.data.requests[0].data.event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
                     options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
@@ -2600,7 +2604,7 @@ class ApbctHandler {
 
             // checkout
             if (options.path === '/wc/store/v1/checkout') {
-                if (ctPublic.settings__data__bot_detector_enabled) {
+                if (+ctPublic.settings__data__bot_detector_enabled) {
                     options.data.event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
                     options.data.ct_no_cookie_hidden_field = getNoCookieData();
@@ -2619,97 +2623,115 @@ class ApbctHandler {
     }
 
     /**
-     * Handle search forms
+     * Handle search forms middleware
      * @return {void}
      */
-    searchFormHandler() {
+    searchFormMiddleware() {
+        const isExclusion = (form) => {
+            return (
+                // fibosearch integration
+                form.querySelector('input.dgwt-wcas-search-input') ||
+                // hero search skip
+                form.getAttribute('id') === 'hero-search-form' ||
+                // hb booking search skip
+                form.getAttribute('class') === 'hb-booking-search-form' ||
+                // events calendar skip
+                (
+                    form.getAttribute('class').indexOf('tribe-events') !== -1 &&
+                    form.getAttribute('class').indexOf('search') !== -1
+                )
+            );
+        };
+
         for (const _form of document.forms) {
-            // fibosearch integration
-            if (_form.querySelector('input.dgwt-wcas-search-input')) {
-                continue;
-            }
-
-            if (_form.getAttribute('id') === 'hero-search-form' ||
-                _form.getAttribute('class') === 'hb-booking-search-form'
-            ) {
-                continue;
-            }
-
-            if (_form.getAttribute('id') === 'searchform' ||
-                (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1) ||
-                (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
+            if (
+                typeof ctPublic !== 'undefined' &&
+                + ctPublic.settings__forms__search_test === 1 &&
+                (
+                    _form.getAttribute('id') === 'searchform' ||
+                    (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1) ||
+                    (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
+                ) &&
+                !isExclusion(_form)
             ) {
                 // this handles search forms onsubmit process
                 _form.apbctSearchPrevOnsubmit = _form.onsubmit;
-                const handler = function (e, targetForm) {
-                    try {
-                        // get honeypot field and it's value
-                        const honeyPotField = targetForm.querySelector('[name*="apbct_email_id__"]');
-                        let hpValue = null;
-                        if (
-                            honeyPotField !== null &&
-                            honeyPotField.value !== null
-                        ) {
-                            hpValue = honeyPotField.value;
-                        }
-
-                        // get cookie data from storages
-                        let cleantalkStorageDataArray = getCleanTalkStorageDataArray();
-
-                        // get event token from storage
-                        let eventTokenLocalStorage = apbctLocalStorage.get('bot_detector_event_token');
-
-                        // if noCookie data or honeypot data is set, proceed handling
-                        if ( cleantalkStorageDataArray !== null || honeyPotField !== null || eventTokenLocalStorage !== null ) {
-                            e.preventDefault();
-                            const callBack = () => {
-                                if (honeyPotField !== null) {
-                                    honeyPotField.parentNode.removeChild(honeyPotField);
-                                }
-                                if (typeof targetForm.apbctSearchPrevOnsubmit === 'function') {
-                                    targetForm.apbctSearchPrevOnsubmit();
-                                } else {
-                                    HTMLFormElement.prototype.submit.call(targetForm);
-                                }
-                            };
-
-                            let cookiesArray = cleantalkStorageDataArray;
-
-                            // if honeypot data provided add the fields to the parsed data
-                            if ( hpValue !== null ) {
-                                cookiesArray.apbct_search_form__honeypot_value = hpValue;
-                            }
-
-                            // set event token
-                            cookiesArray.ct_bot_detector_event_token = eventTokenLocalStorage;
-
-                            // if the pixel needs to be decoded
-                            if (
-                                typeof cookiesArray.apbct_pixel_url === 'string' &&
-                                cookiesArray.apbct_pixel_url.indexOf('%3A') !== -1
-                            ) {
-                                cookiesArray.apbct_pixel_url = decodeURIComponent(cookiesArray.apbct_pixel_url);
-                            }
-
-                            // data to JSON
-                            const parsedCookies = JSON.stringify(cookiesArray);
-
-                            // if any data provided, proceed data to xhr
-                            if ( typeof parsedCookies !== 'undefined' && parsedCookies.length !== 0 ) {
-                                ctSetAlternativeCookie(
-                                    parsedCookies,
-                                    {callback: callBack, onErrorCallback: callBack, forceAltCookies: true},
-                                );
-                            } else {
-                                callBack();
-                            }
-                        }
-                    } catch (error) {
-                        console.warn('APBCT search form onsubmit handler error. ' + error);
-                    }
-                }
-                _form.onsubmit = (e) => handler(e, _form);
+                _form.onsubmit = (e) => this.searchFormHandler(e, _form);
             }
+        }
+    }
+
+    /**
+     * Handle search forms
+     * @param {SubmitEvent} e
+     * @param {object} targetForm
+     * @return {void}
+     */
+    searchFormHandler(e, targetForm) {
+        try {
+            // get honeypot field and it's value
+            const honeyPotField = targetForm.querySelector('[name*="apbct_email_id__"]');
+            let hpValue = null;
+            if (
+                honeyPotField !== null &&
+                honeyPotField.value !== null
+            ) {
+                hpValue = honeyPotField.value;
+            }
+
+            // get cookie data from storages
+            let cleantalkStorageDataArray = getCleanTalkStorageDataArray();
+
+            // get event token from storage
+            let eventTokenLocalStorage = apbctLocalStorage.get('bot_detector_event_token');
+
+            // if noCookie data or honeypot data is set, proceed handling
+            if ( cleantalkStorageDataArray !== null || honeyPotField !== null || eventTokenLocalStorage !== null ) {
+                e.preventDefault();
+                const callBack = () => {
+                    if (honeyPotField !== null) {
+                        honeyPotField.parentNode.removeChild(honeyPotField);
+                    }
+                    if (typeof targetForm.apbctSearchPrevOnsubmit === 'function') {
+                        targetForm.apbctSearchPrevOnsubmit();
+                    } else {
+                        HTMLFormElement.prototype.submit.call(targetForm);
+                    }
+                };
+
+                let cookiesArray = cleantalkStorageDataArray;
+
+                // if honeypot data provided add the fields to the parsed data
+                if ( hpValue !== null ) {
+                    cookiesArray.apbct_search_form__honeypot_value = hpValue;
+                }
+
+                // set event token
+                cookiesArray.ct_bot_detector_event_token = eventTokenLocalStorage;
+
+                // if the pixel needs to be decoded
+                if (
+                    typeof cookiesArray.apbct_pixel_url === 'string' &&
+                    cookiesArray.apbct_pixel_url.indexOf('%3A') !== -1
+                ) {
+                    cookiesArray.apbct_pixel_url = decodeURIComponent(cookiesArray.apbct_pixel_url);
+                }
+
+                // data to JSON
+                const parsedCookies = JSON.stringify(cookiesArray);
+
+                // if any data provided, proceed data to xhr
+                if ( typeof parsedCookies !== 'undefined' && parsedCookies.length !== 0 ) {
+                    ctSetAlternativeCookie(
+                        parsedCookies,
+                        {callback: callBack, onErrorCallback: callBack, forceAltCookies: true},
+                    );
+                } else {
+                    callBack();
+                }
+            }
+        } catch (error) {
+            console.warn('APBCT search form onsubmit handler error. ' + error);
         }
     }
 
@@ -2842,7 +2864,7 @@ function apbct_ready() {
     handler.detectForcedAltCookiesForms();
 
     // Gathering data when bot detector is disabled
-    if (!ctPublic.settings__data__bot_detector_enabled) {
+    if (!+ctPublic.settings__data__bot_detector_enabled) {
         const gatheringData = new ApbctGatheringData();
         gatheringData.setSessionId();
         gatheringData.writeReferrersToSessionStorage();
@@ -2856,7 +2878,7 @@ function apbct_ready() {
 
     setTimeout(function() { 
         // Attach data when bot detector is enabled
-        if (ctPublic.settings__data__bot_detector_enabled) {
+        if (+ctPublic.settings__data__bot_detector_enabled) {
             const eventTokenTransport = new ApbctEventTokenTransport();
             eventTokenTransport.attachEventTokenToMultipageGravityForms();
             eventTokenTransport.attachEventTokenToWoocommerceGetRequestAddToCart();
@@ -2865,7 +2887,7 @@ function apbct_ready() {
         const attachData = new ApbctAttachData();
 
         // Attach data when bot detector is disabled
-        if (!ctPublic.settings__data__bot_detector_enabled) {
+        if (!+ctPublic.settings__data__bot_detector_enabled) {
             attachData.attachHiddenFieldsToForms();
             attachData.attachNoCookie();
         }
@@ -2884,263 +2906,17 @@ function apbct_ready() {
     }, 1000);
 
     if (+ctPublic.settings__forms__search_test === 1) {
-        handler.searchFormHandler();
+        handler.searchFormMiddleware();
     }
 
-<<<<<<< HEAD:js/prebuild/apbct-public-bundle_ext-protection_gathering.js
     handler.catchXmlHttpRequest();
     handler.catchFetchRequest();
     handler.catchJqueryAjax();
     handler.catchWCRestRequestAsMiddleware();
 
-    if (ctPublic.settings__sfw__anti_crawler && ctPublic.settings__data__bot_detector_enabled) {
+    if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {
         handler.toolForAntiCrawlerCheckDuringBotDetector();
     }
-<<<<<<< HEAD:js/prebuild/apbct-public-bundle_ext-protection_gathering.js
-=======
-=======
-    // WordPress Search form processing
-    ctSetSearchFormSubmitMiddleWare();
->>>>>>> tag-60:js/src/apbct-public-bundle_ext-protection.js
-
-    // Check any XMLHttpRequest connections
-    apbctCatchXmlHttpRequest();
-
-    // Initializing the collection of user activity
-    new ApbctCollectingUserActivity();
-
-    // Checking that the bot detector has loaded and received the event token for Anti-Crawler
-    if (ctPublic.settings__sfw__anti_crawler) {
-        checkBotDetectorExist();
-    }
-}
-
-/**
- * Find wordpress native search form and set form submit handler
- */
-function ctSetSearchFormSubmitMiddleWare() {
-    const isExclusion = (form) => {
-        return (
-            // fibosearch integration
-            form.querySelector('input.dgwt-wcas-search-input') ||
-            // hero search skip
-            form.getAttribute('id') === 'hero-search-form' ||
-            // hb booking search skip
-            form.getAttribute('class') === 'hb-booking-search-form' ||
-            // events calendar skip
-            (
-                form.getAttribute('class').indexOf('tribe-events') !== -1 &&
-                form.getAttribute('class').indexOf('search') !== -1
-            )
-        );
-    };
-
-    for (const _form of document.forms) {
-        if (
-            typeof ctPublic !== 'undefined' &&
-            + ctPublic.settings__forms__search_test === 1 &&
-            (
-                _form.getAttribute('id') === 'searchform' ||
-                (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1) ||
-                (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
-            ) &&
-            !isExclusion(_form)
-        ) {
-            // this handles search forms onsubmit process
-            _form.apbctSearchPrevOnsubmit = _form.onsubmit;
-            _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
-        }
-    }
-}
-
-
-/**
- * Checking that the bot detector has loaded and received the event token
- */
-function checkBotDetectorExist() {
-    if (+ctPublic.settings__data__bot_detector_enabled) {
-        const botDetectorIntervalSearch = setInterval(() => {
-            let botDetectorEventToken = localStorage.bot_detector_event_token ? true : false;
-
-            if (botDetectorEventToken) {
-                ctSetCookie('apbct_bot_detector_exist', '1', '3600');
-                clearInterval(botDetectorIntervalSearch);
-            }
-        }, 500);
-    }
-}
-
-/**
- * Insert no_cookies_data to rest request
- */
-function ctAddWCMiddlewares() {
-    const ctPinDataToRequest = (options, next) => {
-        if (typeof options !== 'object' || options === null ||
-            !options.hasOwnProperty('data') || !options.hasOwnProperty('path')
-        ) {
-            return next(options);
-        }
-
-        // add to cart
-        if (options.data.hasOwnProperty('requests') &&
-            options.data.requests.length > 0 &&
-            options.data.requests[0].hasOwnProperty('path') &&
-            options.data.requests[0].path === '/wc/store/v1/cart/add-item'
-        ) {
-            options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
-            options.data.requests[0].data.event_token = localStorage.getItem('bot_detector_event_token');
-        }
-
-        // checkout
-        if (options.path === '/wc/store/v1/checkout') {
-            options.data.ct_no_cookie_hidden_field = getNoCookieData();
-            options.data.event_token = localStorage.getItem('bot_detector_event_token');
-        }
-
-        return next(options);
-    };
-
-    if (window.hasOwnProperty('wp') &&
-        window.wp.hasOwnProperty('apiFetch') &&
-        typeof window.wp.apiFetch.use === 'function'
-    ) {
-        window.wp.apiFetch.use(ctPinDataToRequest);
-    }
-}
-
-/**
- * Insert event_token and no_cookies_data to some ajax request
- */
-function apbctCatchXmlHttpRequest() {
-    // 1) Check the page if it needed to catch XHR
-    if (
-        document.querySelector('div.wfu_container') !== null ||
-        document.querySelector('#newAppointmentForm') !== null ||
-        document.querySelector('.booked-calendar-shortcode-wrap') !== null
-    ) {
-        const originalSend = XMLHttpRequest.prototype.send;
-        XMLHttpRequest.prototype.send = function(body) {
-            // 2) Check the caught request fi it needed to modify
-            if (
-                body &&
-                typeof body === 'string' &&
-                (
-                    body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
-                    body.indexOf('action=booked_add_appt') !== -1
-                )
-            ) {
-                let addidionalCleantalkData = '';
-                let eventToken = localStorage.getItem('bot_detector_event_token');
-                try {
-                    eventToken = JSON.parse(eventToken);
-                } catch {
-                    eventToken = false;
-                }
-                if (
-                    eventToken !== null &&
-                    eventToken !== false &&
-                    eventToken.hasOwnProperty('value') &&
-                    eventToken.value !== ''
-                ) {
-                    eventToken = eventToken.value;
-                    addidionalCleantalkData += '&' + 'data%5Bct_bot_detector_event_token%5D=' + eventToken;
-                }
-
-                let noCookieData = getNoCookieData();
-                addidionalCleantalkData += '&' + 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData;
-
-                body += addidionalCleantalkData;
-
-                return originalSend.apply(this, [body]);
-            }
-            return originalSend.apply(this, [body]);
-        };
-    }
-}
-
-/**
- * Prepare jQuery.ajaxSetup to add nocookie data to the jQuery ajax request.
- * Notes:
- * - Do it just once, the ajaxSetup.beforeSend will be overwritten for any calls.
- * - Signs of forms need to be caught will be checked during ajaxSetup.settings.data process on send.
- * - Any sign of the form HTML of the caller is insignificant in this process.
- * @return {void}
- */
-function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
-    // jquery ajax call intercept
-    // this is the only place where we can found hard dependency on jQuery, if the form use it - the script
-    // will work independing if jQuery is loaded by CleanTalk or not
-    let eventToken = false;
-    if ( typeof jQuery !== 'undefined' && typeof jQuery.ajaxSetup === 'function') {
-        jQuery.ajaxSetup({
-            beforeSend: function(xhr, settings) {
-                let sourceSign = false;
-                // settings data is string (important!)
-                if ( typeof settings.data === 'string' ) {
-                    if (settings.data.indexOf('twt_cc_signup') !== -1) {
-                        sourceSign = 'twt_cc_signup';
-                    }
-
-                    if (settings.data.indexOf('action=mailpoet') !== -1) {
-                        sourceSign = 'action=mailpoet';
-                    }
-
-                    if (
-                        settings.data.indexOf('action=user_registration') !== -1 &&
-                        settings.data.indexOf('ur_frontend_form_nonce') !== -1
-                    ) {
-                        sourceSign = 'action=user_registration';
-                    }
-
-                    if (settings.data.indexOf('action=happyforms_message') !== -1) {
-                        sourceSign = 'action=happyforms_message';
-                    }
-
-                    if (settings.data.indexOf('action=new_activity_comment') !== -1) {
-                        sourceSign = 'action=new_activity_comment';
-                    }
-                }
-                if ( typeof settings.url === 'string' ) {
-                    if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {
-                        sourceSign = 'wc-ajax=add_to_cart';
-                        if (localStorage.getItem('bot_detector_event_token') !== null) {
-                            eventToken = localStorage.getItem('bot_detector_event_token');
-                            try {
-                                eventToken = JSON.parse(eventToken);
-                            } catch {
-                                eventToken = false;
-                            }
-                            if (eventToken !== false && eventToken.hasOwnProperty('value') && eventToken.value !== '') {
-                                eventToken = eventToken.value;
-                            }
-                        }
-                    }
-                }
-
-                if (sourceSign) {
-                    let noCookieData = getNoCookieData();
-                    if (typeof eventToken === 'string') {
-                        eventToken = 'data%5Bct_bot_detector_event_token%5D=' + eventToken + '&';
-                    } else {
-                        eventToken = '';
-                    }
-                    noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
-
-                    settings.data = noCookieData + eventToken + settings.data;
-                }
-            },
-        });
-    }
-}
-
-// eslint-disable-next-line require-jsdoc
-function ctOnsubmitPrevCallExclude(form) {
-    if (form.classList.contains('hb-booking-search-form')) {
-        return true;
-    }
-
-    return false;
->>>>>>> tag-59:js/src/apbct-public-bundle_ext-protection_comm-func.js
 }
 
 if (ctPublic.data__key_is_ok) {
@@ -3150,547 +2926,8 @@ if (ctPublic.data__key_is_ok) {
         apbct_attach_event_handler(document, 'DOMContentLoaded', apbct_ready);
     }
 
-<<<<<<< HEAD:js/prebuild/apbct-public-bundle_ext-protection_gathering.js
     if (ctPublic.data__cookies_type === 'native') {
         ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true );
-=======
-    apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true );
-}
-
-/**
- * @param {SubmitEvent} e
- * @param {object} targetForm
- */
-function ctSearchFormOnSubmitHandler(e, targetForm) {
-    try {
-        // get honeypot field and it's value
-        const honeyPotField = targetForm.querySelector('[name*="apbct_email_id__"]');
-        let hpValue = null;
-        if (
-            honeyPotField !== null &&
-            honeyPotField.value !== null
-        ) {
-            hpValue = honeyPotField.value;
-        }
-
-        // get cookie data from storages
-        let cleantalkStorageDataArray = getCleanTalkStorageDataArray();
-
-        // get event token from storage
-        let eventTokenLocalStorage = apbctLocalStorage.get('bot_detector_event_token');
-
-        // if noCookie data or honeypot data is set, proceed handling
-        if ( cleantalkStorageDataArray !== null || honeyPotField !== null || eventTokenLocalStorage !== null ) {
-            e.preventDefault();
-            const callBack = () => {
-                if (honeyPotField !== null) {
-                    honeyPotField.parentNode.removeChild(honeyPotField);
-                }
-                if (typeof targetForm.apbctSearchPrevOnsubmit === 'function') {
-                    targetForm.apbctSearchPrevOnsubmit();
-                } else {
-                    HTMLFormElement.prototype.submit.call(targetForm);
-                }
-            };
-
-            let cookiesArray = cleantalkStorageDataArray;
-
-            // if honeypot data provided add the fields to the parsed data
-            if ( hpValue !== null ) {
-                cookiesArray.apbct_search_form__honeypot_value = hpValue;
-            }
-
-            // set event token
-            cookiesArray.ct_bot_detector_event_token = eventTokenLocalStorage;
-
-            // if the pixel needs to be decoded
-            if (
-                typeof cookiesArray.apbct_pixel_url === 'string' &&
-                cookiesArray.apbct_pixel_url.indexOf('%3A') !== -1
-            ) {
-                cookiesArray.apbct_pixel_url = decodeURIComponent(cookiesArray.apbct_pixel_url);
-            }
-
-            // data to JSON
-            const parsedCookies = JSON.stringify(cookiesArray);
-
-            // if any data provided, proceed data to xhr
-            if ( typeof parsedCookies !== 'undefined' && parsedCookies.length !== 0 ) {
-                ctSetAlternativeCookie(
-                    parsedCookies,
-                    {callback: callBack, onErrorCallback: callBack, forceAltCookies: true},
-                );
-            } else {
-                callBack();
-            }
-        }
-    } catch (error) {
-        console.warn('APBCT search form onsubmit handler error. ' + error);
-    }
-}
-
-/**
- * @param {mixed} commonCookies
- * @return {string}
- */
-function getJavascriptClientData(commonCookies = []) { // eslint-disable-line no-unused-vars
-    let resultDataJson = {};
-
-    resultDataJson.ct_checked_emails = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails');
-    resultDataJson.ct_checked_emails_exist = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails_exist');
-    resultDataJson.ct_checkjs = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checkjs');
-    resultDataJson.ct_fkp_timestamp = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_fkp_timestamp');
-    resultDataJson.ct_pointer_data = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_pointer_data');
-    resultDataJson.ct_ps_timestamp = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_ps_timestamp');
-    resultDataJson.ct_screen_info = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_screen_info');
-    resultDataJson.ct_timezone = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_timezone');
-
-    // collecting data from localstorage
-    const ctMouseMovedLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
-    const ctHasScrolledLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
-    const ctCookiesTypeLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
-    const apbctPageHits = apbctLocalStorage.get('apbct_page_hits');
-    const apbctPrevReferer = apbctSessionStorage.get('apbct_prev_referer');
-    const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
-    const ctJsErrorsLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_js_errors');
-    const ctPixelUrl = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
-    const apbctHeadless = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_headless');
-    const ctBotDetectorFrontendDataLog = apbctLocalStorage.get(
-        ctPublicFunctions.cookiePrefix + 'ct_bot_detector_frontend_data_log',
-    );
-
-    // collecting data from cookies
-    const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
-    const ctHasScrolledCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
-    const ctCookiesTypeCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
-    const ctCookiesPixelUrl = ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
-    const apbctHeadlessNative = !!ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_headless');
-
-
-    resultDataJson.ct_mouse_moved = ctMouseMovedLocalStorage !== undefined ?
-        ctMouseMovedLocalStorage : ctMouseMovedCookie;
-    resultDataJson.ct_has_scrolled = ctHasScrolledLocalStorage !== undefined ?
-        ctHasScrolledLocalStorage : ctHasScrolledCookie;
-    resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ?
-        ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
-    resultDataJson.apbct_pixel_url = ctPixelUrl !== undefined ?
-        ctPixelUrl : ctCookiesPixelUrl;
-    resultDataJson.apbct_headless = apbctHeadless !== undefined ?
-        apbctHeadless : apbctHeadlessNative;
-    resultDataJson.ct_bot_detector_frontend_data_log = ctBotDetectorFrontendDataLog !== undefined ?
-        ctBotDetectorFrontendDataLog : '';
-    if (resultDataJson.apbct_pixel_url && typeof(resultDataJson.apbct_pixel_url) == 'string') {
-        if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
-            resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
-        }
-    }
-
-    resultDataJson.apbct_page_hits = apbctPageHits;
-    resultDataJson.apbct_prev_referer = apbctPrevReferer;
-    resultDataJson.apbct_site_referer = apbctSiteReferer;
-    resultDataJson.apbct_ct_js_errors = ctJsErrorsLocalStorage;
-
-    if (!resultDataJson.apbct_pixel_url) {
-        resultDataJson.apbct_pixel_url = ctPublic.pixel__url;
-    }
-
-    if ( typeof (commonCookies) === 'object') {
-        for (let i = 0; i < commonCookies.length; ++i) {
-            if ( typeof (commonCookies[i][1]) === 'object' ) {
-                // this is for handle SFW cookies
-                resultDataJson[commonCookies[i][1][0]] = commonCookies[i][1][1];
-            } else {
-                resultDataJson[commonCookies[i][0]] = commonCookies[i][1];
-            }
-        }
-    } else {
-        console.log('APBCT JS ERROR: Collecting data type mismatch');
-    }
-
-    // Parse JSON properties to prevent double JSON encoding
-    resultDataJson = removeDoubleJsonEncoding(resultDataJson);
-
-
-    return JSON.stringify(resultDataJson);
-}
-
-/**
- * Recursive
- *
- * Recursively decode JSON-encoded properties
- *
- * @param {mixed} object
- * @return {*}
- */
-function removeDoubleJsonEncoding(object) {
-    if ( typeof object === 'object') {
-        // eslint-disable-next-line guard-for-in
-        for (let objectKey in object) {
-            // Recursion
-            if ( typeof object[objectKey] === 'object') {
-                object[objectKey] = removeDoubleJsonEncoding(object[objectKey]);
-            }
-
-            // Common case (out)
-            if (
-                typeof object[objectKey] === 'string' &&
-                object[objectKey].match(/^[\[{].*?[\]}]$/) !== null // is like JSON
-            ) {
-                const parsedValue = JSON.parse(object[objectKey]);
-                if ( typeof parsedValue === 'object' ) {
-                    object[objectKey] = parsedValue;
-                }
-            }
-        }
-    }
-
-    return object;
-}
-
-// eslint-disable-next-line camelcase,require-jsdoc
-function apbct_collect_visible_fields( form ) {
-    // Get only fields
-    let inputs = [];
-    let inputsVisible = '';
-    let inputsVisibleCount = 0;
-    let inputsInvisible = '';
-    let inputsInvisibleCount = 0;
-    let inputsWithDuplicateNames = [];
-
-    for (let key in form.elements) {
-        if (!isNaN(+key)) {
-            inputs[key] = form.elements[key];
-        }
-    }
-
-    // Filter fields
-    inputs = inputs.filter(function(elem) {
-        // Filter already added fields
-        if ( inputsWithDuplicateNames.indexOf( elem.getAttribute('name') ) !== -1 ) {
-            return false;
-        }
-        // Filter inputs with same names for type == radio
-        if ( -1 !== ['radio', 'checkbox'].indexOf( elem.getAttribute('type') )) {
-            inputsWithDuplicateNames.push( elem.getAttribute('name') );
-            return false;
-        }
-        return true;
-    });
-
-    // Visible fields
-    inputs.forEach(function(elem, i, elements) {
-        // Unnecessary fields
-        if (
-            elem.getAttribute('type') === 'submit' || // type == submit
-            elem.getAttribute('name') === null ||
-            elem.getAttribute('name') === 'ct_checkjs'
-        ) {
-            return;
-        }
-        // Invisible fields
-        if (
-            getComputedStyle(elem).display === 'none' || // hidden
-            getComputedStyle(elem).visibility === 'hidden' || // hidden
-            getComputedStyle(elem).opacity === '0' || // hidden
-            elem.getAttribute('type') === 'hidden' // type == hidden
-        ) {
-            if ( elem.classList.contains('wp-editor-area') ) {
-                inputsVisible += ' ' + elem.getAttribute('name');
-                inputsVisibleCount++;
-            } else {
-                inputsInvisible += ' ' + elem.getAttribute('name');
-                inputsInvisibleCount++;
-            }
-            // eslint-disable-next-line brace-style
-        }
-        // Visible fields
-        else {
-            inputsVisible += ' ' + elem.getAttribute('name');
-            inputsVisibleCount++;
-        }
-    });
-
-    inputsInvisible = inputsInvisible.trim();
-    inputsVisible = inputsVisible.trim();
-
-    return {
-        visible_fields: inputsVisible,
-        visible_fields_count: inputsVisibleCount,
-        invisible_fields: inputsInvisible,
-        invisible_fields_count: inputsInvisibleCount,
-    };
-}
-
-// eslint-disable-next-line camelcase,require-jsdoc
-function apbct_visible_fields_set_cookie( visibleFieldsCollection, formId ) {
-    let collection = typeof visibleFieldsCollection === 'object' && visibleFieldsCollection !== null ?
-        visibleFieldsCollection : {};
-
-    if ( ctPublic.data__cookies_type === 'native' ) {
-        // eslint-disable-next-line guard-for-in
-        for ( let i in collection ) {
-            if ( i > 10 ) {
-                // Do not generate more than 10 cookies
-                return;
-            }
-            let collectionIndex = formId !== undefined ? formId : i;
-            ctSetCookie('apbct_visible_fields_' + collectionIndex, JSON.stringify( collection[i] ) );
-        }
-    } else {
-        ctSetCookie('apbct_visible_fields', JSON.stringify( collection ) );
-    }
-}
-
-// eslint-disable-next-line camelcase,require-jsdoc,no-unused-vars
-function apbct_js_keys__set_input_value(result, data, params, obj) {
-    if ( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
-        let elements = document.querySelectorAll('[name^=ct_checkjs]');
-        for ( let i = 0; i < elements.length; i++ ) {
-            elements[i].value = result.js_key;
-        }
-    }
-}
-
-/**
- * @return {string}
- */
-function apbctGetScreenInfo() {
-    return JSON.stringify({
-        fullWidth: document.documentElement.scrollWidth,
-        fullHeight: Math.max(
-            document.body.scrollHeight, document.documentElement.scrollHeight,
-            document.body.offsetHeight, document.documentElement.offsetHeight,
-            document.body.clientHeight, document.documentElement.clientHeight,
-        ),
-        visibleWidth: document.documentElement.clientWidth,
-        visibleHeight: document.documentElement.clientHeight,
-    });
-}
-
-// eslint-disable-next-line require-jsdoc
-function ctParseBlockMessage(response) {
-    let msg = '';
-    if (typeof response.apbct !== 'undefined') {
-        response = response.apbct;
-        if (response.blocked) {
-            msg = response.comment;
-        }
-    }
-    if (typeof response.data !== 'undefined') {
-        response = response.data;
-        if (response.message !== undefined) {
-            msg = response.message;
-        }
-    }
-
-    if (msg) {
-        document.dispatchEvent(
-            new CustomEvent( 'apbctAjaxBockAlert', {
-                bubbles: true,
-                detail: {message: msg},
-            } ),
-        );
-
-        // Show the result by modal
-        cleantalkModal.loaded = msg;
-        cleantalkModal.open();
-
-        if (+response.stop_script === 1) {
-            window.stop();
-        }
-    }
-}
-
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function ctSetPixelUrlLocalstorage(ajaxPixelUrl) {
-    // set pixel to the storage
-    ctSetCookie('apbct_pixel_url', ajaxPixelUrl);
-}
-
-// eslint-disable-next-line require-jsdoc
-function ctNoCookieConstructHiddenField(type) {
-    let inputType = 'hidden';
-    if (type === 'submit') {
-        inputType = 'submit';
-    }
-    let field = '';
-
-    let noCookieData = getCleanTalkStorageDataArray();
-    noCookieData = JSON.stringify(noCookieData);
-    noCookieData = '_ct_no_cookie_data_' + btoa(noCookieData);
-    field = document.createElement('input');
-    field.setAttribute('name', 'ct_no_cookie_hidden_field');
-    field.setAttribute('value', noCookieData);
-    field.setAttribute('type', inputType);
-    field.classList.add('apbct_special_field');
-    field.classList.add('ct_no_cookie_hidden_field');
-    return field;
-}
-
-/**
- * Retrieves the clentalk "cookie" data from starages.
- * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity}.
- * @return {string}
- */
-function getCleanTalkStorageDataArray() {
-    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
-    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
-
-    let noCookieDataTypo = {typo: []};
-    if (document.ctTypoData && document.ctTypoData.data) {
-        noCookieDataTypo = {typo: document.ctTypoData.data};
-    }
-
-    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
-
-    if (document.ctCollectingUserActivityData) {
-        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
-        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
-    }
-
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
-}
-
-/**
- * @return {boolean|*}
- */
-function ctGetPageForms() {
-    let forms = document.forms;
-    if (forms) {
-        return forms;
-    }
-    return false;
-}
-
-/**
- * Get type of the field should be excluded. Return exclusion signs via object.
- * @param {object} form Form dom object.
- * @return {object} {'no_cookie': 1|0, 'visible_fields': 1|0}
- */
-function ctGetHiddenFieldExclusionsType(form) {
-    // visible fields
-    let result = {'no_cookie': 0, 'visible_fields': 0};
-    if (
-        +ctPublic.data__visible_fields_required === 0 ||
-        (form.method.toString().toLowerCase() === 'get' &&
-        form.querySelectorAll('.nf-form-content').length === 0 &&
-        form.id !== 'twt_cc_signup') ||
-        form.classList.contains('slp_search_form') || // StoreLocatorPlus form
-        form.parentElement.classList.contains('mec-booking') ||
-        form.action.toString().indexOf('activehosted.com') !== -1 || // Active Campaign
-        (form.id && form.id === 'caspioform') || // Caspio Form
-        (form.classList && form.classList.contains('tinkoffPayRow')) || // TinkoffPayForm
-        (form.classList && form.classList.contains('give-form')) || // GiveWP
-        (form.id && form.id === 'ult-forgot-password-form') || // ult forgot password
-        (form.id && form.id.toString().indexOf('calculatedfields') !== -1) || // CalculatedFieldsForm
-        (form.id && form.id.toString().indexOf('sac-form') !== -1) || // Simple Ajax Chat
-        (form.id &&
-            form.id.toString().indexOf('cp_tslotsbooking_pform') !== -1) || // WP Time Slots Booking Form
-        (form.name &&
-            form.name.toString().indexOf('cp_tslotsbooking_pform') !== -1) || // WP Time Slots Booking Form
-        form.action.toString() === 'https://epayment.epymtservice.com/epay.jhtml' || // Custom form
-        (form.name && form.name.toString().indexOf('tribe-bar-form') !== -1) || // The Events Calendar
-        (form.id && form.id === 'ihf-login-form') || // Optima Express login
-        (form.id &&
-            form.id === 'subscriberForm' &&
-            form.action.toString().indexOf('actionType=update') !== -1) || // Optima Express update
-        (form.id && form.id === 'ihf-main-search-form') || // Optima Express search
-        (form.id && form.id === 'frmCalc') || // nobletitle-calc
-        form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1 ||
-        form.querySelector('a[name="login"]') !== null // digimember login form
-    ) {
-        result.visible_fields = 1;
-    }
-
-    // ajax search pro exclusion
-    let ncFieldExclusionsSign = form.parentNode;
-    if (
-        ncFieldExclusionsSign && ncFieldExclusionsSign.classList.contains('proinput') ||
-        (form.name === 'options' && form.classList.contains('asp-fss-flex'))
-    ) {
-        result.no_cookie = 1;
-    }
-
-    // woocommerce login form
-    if (
-        form && form.classList.contains('woocommerce-form-login')
-    ) {
-        result.visible_fields = 1;
-        result.no_cookie = 1;
-    }
-
-    return result;
-}
-
-/**
- * Check if the form should be skipped from hidden field attach.
- * Return exclusion description if it is found, false otherwise.
- * @param {object} form Form dom object.
- * @param {string} hiddenFieldType Type of hidden field that needs to be checked.
- * Possible values: 'no_cookie'|'visible_fields'.
- * @return {boolean}
- */
-function ctCheckHiddenFieldsExclusions(form, hiddenFieldType) {
-    const formAction = typeof(form.action) == 'string' ? form.action : '';
-    // Ajax Search Lite
-    if (Boolean(form.querySelector('fieldset.asl_sett_scroll'))) {
-        return true;
-    }
-    // Super WooCommerce Product Filter
-    if (form.classList.contains('swpf-instant-filtering')) {
-        return true;
-    }
-    // PayU 3-rd party service forms
-    if (formAction.indexOf('secure.payu.com') !== -1 ) {
-        return true;
-    }
-
-    if (formAction.indexOf('hsforms') !== -1 ) {
-        return true;
-    }
-
-    if (formAction.indexOf('secureinternetbank.com') !== -1 ) {
-        return true;
-    }
-
-    if (typeof (hiddenFieldType) === 'string' &&
-        ['visible_fields', 'no_cookie'].indexOf(hiddenFieldType) !== -1) {
-        const exclusions = ctGetHiddenFieldExclusionsType(form);
-        return exclusions[hiddenFieldType] === 1;
-    }
-
-    return false;
-}
-
-/**
- * ctNoCookieAttachHiddenFieldsToForms
- */
-function ctNoCookieAttachHiddenFieldsToForms() {
-    if (ctPublic.data__cookies_type !== 'none') {
-        return;
-    }
-
-    let forms = ctGetPageForms();
-
-    if (forms) {
-        for ( let i = 0; i < forms.length; i++ ) {
-            if ( ctCheckHiddenFieldsExclusions(document.forms[i], 'no_cookie') ) {
-                continue;
-            }
-
-            // ignore forms with get method @todo We need to think about this
-            if (document.forms[i].getAttribute('method') === null ||
-                document.forms[i].getAttribute('method').toLowerCase() === 'post') {
-                // remove old sets
-                let fields = forms[i].querySelectorAll('.ct_no_cookie_hidden_field');
-                for ( let j = 0; j < fields.length; j++ ) {
-                    fields[j].outerHTML = '';
-                }
-                // add new set
-                document.forms[i].append(ctNoCookieConstructHiddenField());
-            }
-        }
->>>>>>> tag-6.58:js/src/apbct-public-bundle_ext-protection_comm-func.js
     }
 }
 
@@ -3700,495 +2937,7 @@ const defaultSend = XMLHttpRequest.prototype.send;
 /**
  * Run cron jobs
  */
-<<<<<<< HEAD:js/prebuild/apbct-public-bundle_ext-protection_gathering.js
 new ApbctHandler().cronFormsHandler(2000);
-=======
-function checkFormsExistForCatching() {
-    setTimeout(function() {
-        if (isFormThatNeedCatch()) {
-            window.fetch = function(...args) {
-                if (args &&
-                    args[0] &&
-                    typeof args[0].includes === 'function' &&
-                    (args[0].includes('/wp-json/metform/') ||
-                    (ctPublicFunctions._rest_url && (() => {
-                        try {
-                            return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
-                        } catch (e) {
-                            return false;
-                        }
-                    })()))
-                ) {
-                    let noCookieData = getNoCookieData();
-
-                    if (args && args[1] && args[1].body) {
-                        args[1].body.append('ct_no_cookie_hidden_field', noCookieData);
-                    }
-                }
-
-                return defaultFetch.apply(window, args);
-            };
-        }
-    }, 1000);
-}
-
-/**
- * @return {boolean}
- */
-function isFormThatNeedCatch() {
-    const formClasses = [
-        'metform-form-content',
-    ];
-    let classExists = false;
-
-    const forms = document.forms;
-    for (let form of forms) {
-        formClasses.forEach(function(classForm) {
-            if (form.classList.contains(classForm)) {
-                classExists = true;
-            }
-        });
-    }
-
-    return classExists;
-}
-
-/**
- * @param {HTMLElement} form
- * @return {boolean}
- */
-function isFormThatNeedCatchXhr(form) {
-    if (document.querySelector('div.elementor-widget[title=\'Login/Signup\']') != null) {
-        return false;
-    }
-    if (form && form.action && form.action.toString().indexOf('mailpoet_subscription_form') !== -1) {
-        return true;
-    }
-
-    return false;
-}
-
-/**
- * @return {string}
- */
-function getNoCookieData() {
-    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
-    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
-    let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
-    noCookieData = JSON.stringify(noCookieData);
-
-    return '_ct_no_cookie_data_' + btoa(noCookieData);
-}
-
-/**
- * Set three statements to the sessions storage: apbct_session_current_page, apbct_prev_referer.
- * @return {void}
- */
-function apbctWriteReferrersToSessionStorage() {
-    const sessionCurrentPage = apbctSessionStorage.get('apbct_session_current_page');
-
-    // set session apbct_referer
-    if (sessionCurrentPage!== false && document.location.href !== sessionCurrentPage) {
-        apbctSessionStorage.set('apbct_prev_referer', sessionCurrentPage, false);
-    }
-
-    // set session current page to know referrer
-    apbctSessionStorage.set('apbct_session_current_page', document.location.href, false);
-}
-
-/**
- * WooCommerce add to cart by GET request params collecting
- */
-function apbctCheckAddToCartByGet() {
-    // 1) Collect all links with add_to_cart_button class
-    document.querySelectorAll('a.add_to_cart_button:not(.product_type_variable):not(.wc-interactive)').forEach((el) => {
-        el.addEventListener('click', function(e) {
-            let href = el.getAttribute('href');
-            // 2) Add to href attribute additional parameter ct_bot_detector_event_token gathered from apbctLocalStorage
-            let eventToken = apbctLocalStorage.get('bot_detector_event_token');
-            if ( eventToken ) {
-                if ( href.indexOf('?') === -1 ) {
-                    href += '?';
-                } else {
-                    href += '&';
-                }
-                href += 'ct_bot_detector_event_token=' + eventToken;
-                el.setAttribute('href', href);
-            }
-        });
-    });
-}
-
-/* Cleantalk Modal object */
-let cleantalkModal = {
-
-    // Flags
-    loaded: false,
-    loading: false,
-    opened: false,
-    opening: false,
-    ignoreURLConvert: false,
-
-    // Methods
-    load: function( action ) {
-        if ( ! this.loaded ) {
-            this.loading = true;
-            let callback = function( result, data, params, obj ) {
-                cleantalkModal.loading = false;
-                cleantalkModal.loaded = result;
-                document.dispatchEvent(
-                    new CustomEvent( 'cleantalkModalContentLoaded', {
-                        bubbles: true,
-                    } ),
-                );
-            };
-            // eslint-disable-next-line camelcase
-            if ( typeof apbct_admin_sendAJAX === 'function' ) {
-                apbct_admin_sendAJAX( {'action': action}, {'callback': callback, 'notJson': true} );
-            } else {
-                apbct_public_sendAJAX( {'action': action}, {'callback': callback, 'notJson': true} );
-            }
-        }
-    },
-
-    open: function() {
-        /* Cleantalk Modal CSS start */
-        let renderCss = function() {
-            let cssStr = '';
-            // eslint-disable-next-line guard-for-in
-            for ( const key in this.styles ) {
-                cssStr += key + ':' + this.styles[key] + ';';
-            }
-            return cssStr;
-        };
-        let overlayCss = {
-            styles: {
-                'z-index': '9999999999',
-                'position': 'fixed',
-                'top': '0',
-                'left': '0',
-                'width': '100%',
-                'height': '100%',
-                'background': 'rgba(0,0,0,0.5)',
-                'display': 'flex',
-                'justify-content': 'center',
-                'align-items': 'center',
-            },
-            toString: renderCss,
-        };
-        let innerCss = {
-            styles: {
-                'position': 'relative',
-                'padding': '30px',
-                'background': '#FFF',
-                'border': '1px solid rgba(0,0,0,0.75)',
-                'border-radius': '4px',
-                'box-shadow': '7px 7px 5px 0px rgba(50,50,50,0.75)',
-            },
-            toString: renderCss,
-        };
-        let closeCss = {
-            styles: {
-                'position': 'absolute',
-                'background': '#FFF',
-                'width': '20px',
-                'height': '20px',
-                'border': '2px solid rgba(0,0,0,0.75)',
-                'border-radius': '15px',
-                'cursor': 'pointer',
-                'top': '-8px',
-                'right': '-8px',
-                'box-sizing': 'content-box',
-            },
-            toString: renderCss,
-        };
-        let closeCssBefore = {
-            styles: {
-                'content': '""',
-                'display': 'block',
-                'position': 'absolute',
-                'background': '#000',
-                'border-radius': '1px',
-                'width': '2px',
-                'height': '16px',
-                'top': '2px',
-                'left': '9px',
-                'transform': 'rotate(45deg)',
-            },
-            toString: renderCss,
-        };
-        let closeCssAfter = {
-            styles: {
-                'content': '""',
-                'display': 'block',
-                'position': 'absolute',
-                'background': '#000',
-                'border-radius': '1px',
-                'width': '2px',
-                'height': '16px',
-                'top': '2px',
-                'left': '9px',
-                'transform': 'rotate(-45deg)',
-            },
-            toString: renderCss,
-        };
-        let bodyCss = {
-            styles: {
-                'overflow': 'hidden',
-            },
-            toString: renderCss,
-        };
-        let cleantalkModalStyle = document.createElement( 'style' );
-        cleantalkModalStyle.setAttribute( 'id', 'cleantalk-modal-styles' );
-        cleantalkModalStyle.innerHTML = 'body.cleantalk-modal-opened{' + bodyCss + '}';
-        cleantalkModalStyle.innerHTML += '#cleantalk-modal-overlay{' + overlayCss + '}';
-        cleantalkModalStyle.innerHTML += '#cleantalk-modal-close{' + closeCss + '}';
-        cleantalkModalStyle.innerHTML += '#cleantalk-modal-close:before{' + closeCssBefore + '}';
-        cleantalkModalStyle.innerHTML += '#cleantalk-modal-close:after{' + closeCssAfter + '}';
-        document.body.append( cleantalkModalStyle );
-        /* Cleantalk Modal CSS end */
-
-        let overlay = document.createElement( 'div' );
-        overlay.setAttribute( 'id', 'cleantalk-modal-overlay' );
-        document.body.append( overlay );
-
-        document.body.classList.add( 'cleantalk-modal-opened' );
-
-        let inner = document.createElement( 'div' );
-        inner.setAttribute( 'id', 'cleantalk-modal-inner' );
-        inner.setAttribute( 'style', innerCss );
-        overlay.append( inner );
-
-        let close = document.createElement( 'div' );
-        close.setAttribute( 'id', 'cleantalk-modal-close' );
-        inner.append( close );
-
-        let content = document.createElement( 'div' );
-        if ( this.loaded ) {
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            const serviceContentRegex = /.*\/inc/g;
-            if (serviceContentRegex.test(this.loaded) || this.ignoreURLConvert) {
-                content.innerHTML = this.loaded;
-            } else {
-                content.innerHTML = this.loaded.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
-            }
-        } else {
-            content.innerHTML = 'Loading...';
-            // @ToDo Here is hardcoded parameter. Have to get this from a 'data-' attribute.
-            this.load( 'get_options_template' );
-        }
-        content.setAttribute( 'id', 'cleantalk-modal-content' );
-        inner.append( content );
-
-        this.opened = true;
-    },
-
-    close: function() {
-        document.body.classList.remove( 'cleantalk-modal-opened' );
-        document.getElementById( 'cleantalk-modal-overlay' ).remove();
-        document.getElementById( 'cleantalk-modal-styles' ).remove();
-        document.dispatchEvent(
-            new CustomEvent( 'cleantalkModalClosed', {
-                bubbles: true,
-            } ),
-        );
-    },
-
-};
-
-/* Cleantalk Modal helpers */
-document.addEventListener('click', function( e ) {
-    if ( e.target && (e.target.id === 'cleantalk-modal-overlay' || e.target.id === 'cleantalk-modal-close') ) {
-        cleantalkModal.close();
-    }
-});
-document.addEventListener('cleantalkModalContentLoaded', function( e ) {
-    if ( cleantalkModal.opened && cleantalkModal.loaded ) {
-        document.getElementById( 'cleantalk-modal-content' ).innerHTML = cleantalkModal.loaded;
-    }
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-    let ctTrpLocalize = undefined;
-    let ctTrpIsAdminCommentsList = false;
-
-    if ( typeof ctPublic !== 'undefined' || typeof ctTrpAdminLocalize !== 'undefined' ) {
-        if ( typeof ctPublic !== 'undefined' && ctPublic.theRealPerson ) {
-            ctTrpLocalize = ctPublic.theRealPerson;
-        }
-        if (
-            typeof ctTrpLocalize === 'undefined' &&
-            typeof ctTrpAdminLocalize !== 'undefined' &&
-            ctTrpAdminLocalize.theRealPerson
-        ) {
-            ctTrpLocalize = ctTrpAdminLocalize.theRealPerson;
-            ctTrpIsAdminCommentsList = true;
-        }
-    }
-
-    if ( ! ctTrpLocalize ) {
-        return;
-    }
-
-    // Selectors. Try to handle the WIDE range of themes.
-    let themesCommentsSelector = '.apbct-trp *[class*="comment-author"]';
-    if ( document.querySelector('.apbct-trp .comment-author .comment-author-link') ) {
-        // For Spacious theme
-        themesCommentsSelector = '.apbct-trp *[class*="comment-author-link"]';
-    }
-    let woocommerceReviewsSelector = '.apbct-trp *[class*="review__author"]';
-    let adminCommentsListSelector = '.apbct-trp td[class*="column-author"] > strong';
-    const trpComments = document.querySelectorAll(
-        themesCommentsSelector + ',' +
-        woocommerceReviewsSelector + ',' +
-        adminCommentsListSelector);
-
-    if ( trpComments.length === 0 ) {
-        return;
-    }
-
-    trpComments.forEach(( element, index ) => {
-        // Exceptions for items that are included in the selection
-        if (
-            typeof pagenow == 'undefined' &&
-            element.parentElement.className.indexOf('group') < 0 &&
-            element.tagName != 'DIV'
-        ) {
-            return;
-        }
-
-        let trpLayout = document.createElement('div');
-        trpLayout.setAttribute('class', 'apbct-real-user-badge');
-
-        let trpImage = document.createElement('img');
-        trpImage.setAttribute('src', ctTrpLocalize.imgPersonUrl);
-        trpImage.setAttribute('class', 'apbct-real-user-popup-img');
-
-        let trpDescription = document.createElement('div');
-        trpDescription.setAttribute('class', 'apbct-real-user-popup');
-
-        let trpDescriptionHeading = document.createElement('p');
-        trpDescriptionHeading.setAttribute('class', 'apbct-real-user-popup-header');
-        trpDescriptionHeading.append(ctTrpLocalize.phrases.trpHeading);
-
-        let trpDescriptionContent = document.createElement('div');
-        trpDescriptionContent.setAttribute('class', 'apbct-real-user-popup-content_row');
-
-        let trpDescriptionContentSpan = document.createElement('span');
-        trpDescriptionContentSpan.append(ctTrpLocalize.phrases.trpContent1 + ' ');
-        trpDescriptionContentSpan.append(ctTrpLocalize.phrases.trpContent2);
-
-        if ( ctTrpIsAdminCommentsList ) {
-            let learnMoreLink = document.createElement('a');
-            learnMoreLink.setAttribute('href', ctTrpLocalize.trpContentLink);
-            learnMoreLink.setAttribute('target', '_blank');
-            learnMoreLink.text = ctTrpLocalize.phrases.trpContentLearnMore;
-            trpDescriptionContentSpan.append(' '); // Need one space
-            trpDescriptionContentSpan.append(learnMoreLink);
-        }
-
-        trpDescriptionContent.append(trpDescriptionContentSpan);
-        trpDescription.append(trpDescriptionHeading, trpDescriptionContent);
-        trpLayout.append(trpImage);
-        element.append(trpLayout);
-        element.append(trpDescription);
-    });
-
-    const badges = document.querySelectorAll('.apbct-real-user-badge');
-
-    badges.forEach((badge) => {
-        let hideTimeout = undefined;
-
-        this.body.addEventListener('click', function(e) {
-            if (
-                e.target.className.indexOf('apbct-real-user') == -1 &&
-                e.target.parentElement.className.indexOf('apbct-real-user') == -1
-            ) {
-                closeAllPopupTRP();
-            }
-        });
-
-        badge.addEventListener('click', function() {
-            const popup = this.nextElementSibling;
-            if (popup && popup.classList.contains('apbct-real-user-popup')) {
-                popup.classList.toggle('visible');
-            }
-        });
-
-        badge.addEventListener('mouseenter', function() {
-            closeAllPopupTRP();
-            const popup = this.nextElementSibling;
-            if (popup && popup.classList.contains('apbct-real-user-popup')) {
-                popup.classList.add('visible');
-            }
-        });
-
-        badge.addEventListener('mouseleave', function() {
-            hideTimeout = setTimeout(() => {
-                const popup = this.nextElementSibling;
-                if (popup && popup.classList.contains('apbct-real-user-popup')) {
-                    popup.classList.remove('visible');
-                }
-            }, 1000);
-        });
-
-        const popup = badge.nextElementSibling;
-        popup.addEventListener('mouseenter', function() {
-            clearTimeout(hideTimeout);
-            popup.classList.add('visible');
-        });
-
-        popup.addEventListener('mouseleave', function() {
-            hideTimeout = setTimeout(() => {
-                if (popup.classList.contains('apbct-real-user-popup')) {
-                    popup.classList.remove('visible');
-                }
-            }, 1000);
-        });
-
-        // For mobile devices
-        badge.addEventListener('touchend', function() {
-            hideTimeout = setTimeout(() => {
-                const popup = this.nextElementSibling;
-                const selection = window.getSelection();
-                // Check if no text is selected
-                if (popup && selection && popup.classList.contains('apbct-real-user-popup') &&
-                    selection.toString().length === 0
-                ) {
-                    popup.classList.remove('visible');
-                } else {
-                    clearTimeout(hideTimeout);
-                    document.addEventListener('selectionchange', function onSelectionChange() {
-                        const selection = window.getSelection();
-                        if (selection && selection.toString().length === 0) {
-                            // Restart the hide timeout when selection is cleared
-                            hideTimeout = setTimeout(() => {
-                                const popup = badge.nextElementSibling;
-                                if (popup && popup.classList.contains('apbct-real-user-popup')) {
-                                    popup.classList.remove('visible');
-                                }
-                            }, 3000);
-                            document.removeEventListener('selectionchange', onSelectionChange);
-                        }
-                    });
-                }
-            }, 3000);
-        });
-    });
-});
-
-/**
- * Closing all TRP popup
- */
-function closeAllPopupTRP() {
-    let allDisplayPopup = document.querySelectorAll('.apbct-real-user-popup.visible');
-    if (allDisplayPopup.length > 0) {
-        allDisplayPopup.forEach((element) => {
-            element.classList.remove('visible');
-        });
-    }
-}
->>>>>>> tag-59:js/src/apbct-public-bundle_ext-protection_comm-func.js
 
 /**
  * Handle external forms
