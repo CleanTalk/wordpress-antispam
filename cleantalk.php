@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.58.1
+  Version: 6.59
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -118,7 +118,15 @@ if ( preg_match('@^(\d+)\.(\d+)\.(\d{1,2})-(dev|fix)$@', $plugin_version__agent,
     $plugin_version__agent = $major_version . '.' . $minor_version . '.' . $branch_sub . $padded;
 }
 define('APBCT_AGENT', 'wordpress-' . $plugin_version__agent); // Prepared agent
-const APBCT_MODERATE_URL = 'https://moderate.cleantalk.org'; // Api URL
+
+if ( defined('CLEANTALK_SERVER') ) {
+    define('APBCT_MODERATE_URL', 'https://moderate.' . CLEANTALK_SERVER);
+    if ( ! defined('CLEANTALK_API_URL') ) {
+        define('CLEANTALK_API_URL', 'https://api.' . CLEANTALK_SERVER);
+    }
+} else {
+    define('APBCT_MODERATE_URL', 'https://moderate.cleantalk.org'); // Api URL
+}
 
 /**
  * Require base classes.
@@ -442,8 +450,11 @@ if (
 // Metform
 if (
     apbct_is_plugin_active('metform/metform.php') &&
-    apbct_is_in_uri('/wp-json/metform/') &&
-    sizeof($_POST) > 0
+    sizeof($_POST) > 0 &&
+    (
+        apbct_is_in_uri('/wp-json/metform/') ||
+        (apbct_get_rest_url_only_path() !== 'index.php' && apbct_is_in_uri(apbct_get_rest_url_only_path() . 'metform/'))
+    )
 ) {
     apbct_form__metform_subscribe__testSpam();
 }
@@ -582,7 +593,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
                 . APBCT_URL_PATH
                 . '/js/apbct-public-bundle.min.js'
                 . '?ver=' . APBCT_VERSION . '" id="ct_public_functions-js"></script>';
-            echo '<script src="https://moderate.cleantalk.org/ct-bot-detector-wrapper.js?ver='
+            echo '<script src="' . APBCT_MODERATE_URL . '/ct-bot-detector-wrapper.js?ver='
                 . APBCT_VERSION . '" id="ct_bot_detector-js"></script>';
         }, 100);
     }
@@ -2579,7 +2590,7 @@ function apbct_cookie()
     $domain = '';
 
     // Submit time
-    if ( empty($_POST) || Post::get('action') === 'apbct_set_important_parameters' ) {
+    if ( empty($_POST) ) {
         $apbct_timestamp = time();
         RequestParameters::set('apbct_timestamp', (string)$apbct_timestamp, true);
         $cookie_test_value['cookies_names'][] = 'apbct_timestamp';
@@ -2751,11 +2762,13 @@ function ct_account_status_check($api_key = null, $process_errors = true)
 
         //todo:temporary solution for description, until we found the way to transfer this from cloud
         if (defined('APBCT_WHITELABEL_PLUGIN_DESCRIPTION')) {
+            /** @psalm-suppress PossiblyInvalidArrayAssignment */
             $result['wl_antispam_description'] = APBCT_WHITELABEL_PLUGIN_DESCRIPTION;
         }
 
         //todo:temporary solution for FAQ
         if (defined('APBCT_WHITELABEL_FAQ_LINK')) {
+            /** @psalm-suppress PossiblyInvalidArrayAssignment */
             $result['wl_faq_url'] = APBCT_WHITELABEL_FAQ_LINK;
         }
 

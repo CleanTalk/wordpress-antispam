@@ -97,6 +97,10 @@ class EmailEncoder
 
         $this->encoder = new Encoder(md5($apbct->api_key));
 
+        if (apbct_is_user_logged_in()) {
+            $this->ignoreOpenSSLMode();
+        }
+
         if ( $this->exclusions->doSkipBeforeAnything() ) {
             return;
         }
@@ -104,7 +108,6 @@ class EmailEncoder
         $this->shortcodes->registerAll();
         $this->shortcodes->addActionsAfterModify('the_content', 11);
         $this->shortcodes->addActionsAfterModify('the_title', 11);
-        // add_action('the_title', array($this->shortcodes->exclude, 'clearTitleContentFromShortcodeConstruction'), 12);
 
         $this->registerHookHandler();
 
@@ -732,7 +735,7 @@ class EmailEncoder
 
         // use non ssl mode for logged in user on settings page
         if ( apbct_is_user_logged_in() ) {
-            $this->decoded_emails_array = $this->ignoreOpenSSLMode()->decodeEmailFromPost();
+            $this->decoded_emails_array = $this->decodeEmailFromPost();
             $this->response = $this->compileResponse($this->decoded_emails_array, true);
             wp_send_json_success($this->response);
         }

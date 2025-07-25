@@ -30,8 +30,8 @@ class LoginIPKeeper
         // run record adding to user meta
         if ($wp_user instanceof \WP_User && 0 !== $wp_user->ID) {
             $session_tokens = get_user_meta($wp_user->ID, 'session_tokens', true);
-            $data = reset($session_tokens);
-            if ($data) {
+            $data = is_array($session_tokens) ? reset($session_tokens) : false;
+            if ( is_array($data) ) {
                 $ip = TT::getArrayValueAsString($data, 'ip');
                 if ( Helper::ipValidate($ip) ) {
                     update_user_meta($wp_user->ID, self::$wp_meta_name, $ip);

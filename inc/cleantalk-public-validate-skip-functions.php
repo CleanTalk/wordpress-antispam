@@ -52,7 +52,7 @@ function skip_for_ct_contact_form_validate_postdata()
          (isset($_POST['woocommerce-login-nonce'], $_POST['login'], $_POST['password'], $_POST['_wp_http_referer'])) || //WooCommerce login form
          (isset($_POST['provider'], $_POST['authcode']) && $_POST['provider'] === 'Two_Factor_Totp') || //TwoFactor authorization
          (isset($_GET['wc-ajax']) && $_GET['wc-ajax'] === 'sa_wc_buy_now_get_ajax_buy_now_button') || //BuyNow add to cart
-         apbct_is_in_uri('/wp-json/wpstatistics/v1/hit') || //WPStatistics
+         apbct_is_in_uri('/wpstatistics/v1/hit') || //WPStatistics
          (isset($_POST['ihcaction']) && $_POST['ihcaction'] === 'login') || //Skip login form
          (isset($_POST['action']) && $_POST['action'] === 'infinite_scroll') || //Scroll
          isset($_POST['gform_submit']) || //Skip gravity checking because of direct integration
@@ -83,7 +83,10 @@ function skip_for_ct_contact_form_validate()
 
     $exclusions = array(
         '2' => (isset($_POST['signup_username'], $_POST['signup_email'], $_POST['signup_password'])),
-        '3' => (isset($pagenow) && $pagenow === 'wp-login.php'),
+        '3' => (
+            isset($pagenow) && $pagenow === 'wp-login.php'
+            && Post::getString('wp-submit') !== 'Register'
+        ),
         // WordPress log in form
         '4' =>
             (isset($pagenow, $_GET['action']) && $pagenow === 'wp-login.php' && $_GET['action'] === 'lostpassword'),
@@ -250,14 +253,14 @@ function skip_for_ct_contact_form_validate()
         '89' => apbct_is_plugin_active('memberpress/memberpress.php') && Post::get('mepr_process_signup_form'),
         // WooCommerce recovery password form
         '90' => (isset($_POST['wc_reset_password'], $_POST['woocommerce-lost-password-nonce'])),
-        '91' => apbct_is_plugin_active('envira-gallery/envira-gallery.php') && Server::inUri('wp-json/envira-background/v1/resize-image'),
+        '91' => apbct_is_plugin_active('envira-gallery/envira-gallery.php') && Server::inUri('envira-background/v1/resize-image'),
         // woocommerce cfw_validate_email_domain skip
         '92' => apbct_is_plugin_active('checkout-for-woocommerce/checkout-for-woocommerce.php') && Server::inUri('wc-ajax=cfw_validate_email_domain'),
         // FunnelKit Automations
-        '93' => (apbct_is_in_uri('/wp-json/autonami/v1/events') && apbct_is_plugin_active('wp-marketing-automations/wp-marketing-automations.php')),
-        '94' => (apbct_is_in_uri('/wp-json/woofunnels/v1/worker') && apbct_is_plugin_active('wp-marketing-automations/wp-marketing-automations.php')),
+        '93' => (apbct_is_in_uri('/autonami/v1/events') && apbct_is_plugin_active('wp-marketing-automations/wp-marketing-automations.php')),
+        '94' => (apbct_is_in_uri('/woofunnels/v1/worker') && apbct_is_plugin_active('wp-marketing-automations/wp-marketing-automations.php')),
         // Mailchimp for woocommerce
-        '95' => (apbct_is_in_uri('/wp-json/mailchimp-for-woocommerce/v1/member-sync')
+        '95' => (apbct_is_in_uri('/mailchimp-for-woocommerce/v1/member-sync')
             && apbct_is_plugin_active('mailchimp-for-woocommerce/mailchimp-woocommerce.php')),
         '96' => (
             apbct_is_plugin_active('woo-stripe-payment/stripe-payments.php') &&

@@ -279,21 +279,6 @@ function apbct_js_keys__set_input_value(result, data, params, obj) {
     }
 }
 
-/**
- * Run AJAX to set important_parameters on the site backend if problematic cache solutions are defined.
- * @param {boolean} cacheExist
- */
-function apbctAjaxSetImportantParametersOnCacheExist(cacheExist) { // eslint-disable-line no-unused-vars
-    // Set important parameters via ajax
-    if ( cacheExist ) {
-        if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
-            apbct_public_sendREST('apbct_set_important_parameters', {});
-        } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
-            apbct_public_sendAJAX({action: 'apbct_set_important_parameters'}, {});
-        }
-    }
-}
-
 let apbctLocalStorage = {
     get: function(key, property) {
         if ( typeof property === 'undefined' ) {

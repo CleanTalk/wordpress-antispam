@@ -3347,6 +3347,7 @@ function ctEmailExistSetElementsPositions() {
  * @param {mixed} msg
  * @param {string} url
  */
+<<<<<<< HEAD:js/prebuild/apbct-public-bundle_int-protection.js
 function ctProcessError(msg, url) {
     let log = {};
     if (msg && msg.message) {
@@ -3359,6 +3360,823 @@ function ctProcessError(msg, url) {
             'cause': !!url ? JSON.stringify(url) : false,
             'errorObj': !!error ? error : false,
         };
+=======
+function ctIsDrawPixel() {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
+
+    return +ctPublic.pixel__enabled ||
+        (ctPublic.data__cookies_type === 'none' && document.querySelectorAll('img#apbct_pixel').length === 0) ||
+        (ctPublic.data__cookies_type === 'alternative' && document.querySelectorAll('img#apbct_pixel').length === 0);
+}
+
+/**
+ * @param {string} pixelUrl
+ * @return {bool}
+ */
+function ctSetPixelImg(pixelUrl) {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
+    ctSetCookie('apbct_pixel_url', pixelUrl);
+    if ( ctIsDrawPixel() ) {
+        if ( ! document.getElementById('apbct_pixel') ) {
+            let insertedImg = document.createElement('img');
+            insertedImg.setAttribute('alt', 'CleanTalk Pixel');
+            insertedImg.setAttribute('title', 'CleanTalk Pixel');
+            insertedImg.setAttribute('id', 'apbct_pixel');
+            insertedImg.setAttribute('style', 'display: none; left: 99999px;');
+            insertedImg.setAttribute('src', pixelUrl);
+            apbct('body').append(insertedImg);
+        }
+    }
+}
+
+/**
+ * @param {string} pixelUrl
+ * @return {bool}
+ */
+function ctSetPixelImgFromLocalstorage(pixelUrl) {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
+    if ( ctIsDrawPixel() ) {
+        if ( ! document.getElementById('apbct_pixel') ) {
+            let insertedImg = document.createElement('img');
+            insertedImg.setAttribute('alt', 'CleanTalk Pixel');
+            insertedImg.setAttribute('title', 'CleanTalk Pixel');
+            insertedImg.setAttribute('id', 'apbct_pixel');
+            insertedImg.setAttribute('style', 'display: none; left: 99999px;');
+            insertedImg.setAttribute('src', decodeURIComponent(pixelUrl));
+            apbct('body').append(insertedImg);
+        }
+    }
+}
+
+/**
+ * ctGetPixelUrl
+ * @return {bool}
+ */
+function ctGetPixelUrl() {
+    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+        return false;
+    }
+
+    // Check if pixel is already in localstorage and is not outdated
+    let localStoragePixelUrl = apbctLocalStorage.get('apbct_pixel_url');
+    if ( localStoragePixelUrl !== false ) {
+        if ( ! apbctLocalStorage.isAlive('apbct_pixel_url', 3600 * 3) ) {
+            apbctLocalStorage.delete('apbct_pixel_url');
+        } else {
+            // if so - load pixel from localstorage and draw it skipping AJAX
+            ctSetPixelImgFromLocalstorage(localStoragePixelUrl);
+            return;
+        }
+    }
+    // Using REST API handler
+    if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
+        apbct_public_sendREST(
+            'apbct_get_pixel_url',
+            {
+                method: 'POST',
+                callback: function(result) {
+                    if (result &&
+                        (typeof result === 'string' || result instanceof String) && result.indexOf('https') === 0) {
+                        // set  pixel url to localstorage
+                        if ( ! apbctLocalStorage.get('apbct_pixel_url') ) {
+                            // set pixel to the storage
+                            apbctLocalStorage.set('apbct_pixel_url', result);
+                            // update pixel data in the hidden fields
+                            ctNoCookieAttachHiddenFieldsToForms();
+                        }
+                        // then run pixel drawing
+                        ctSetPixelImg(result);
+                    }
+                },
+            },
+        );
+        // Using AJAX request and handler
+    } else {
+        apbct_public_sendAJAX(
+            {
+                action: 'apbct_get_pixel_url',
+            },
+            {
+                notJson: true,
+                callback: function(result) {
+                    if (result &&
+                        (typeof result === 'string' || result instanceof String) && result.indexOf('https') === 0) {
+                        // set  pixel url to localstorage
+                        if ( ! apbctLocalStorage.get('apbct_pixel_url') ) {
+                            // set pixel to the storage
+                            apbctLocalStorage.set('apbct_pixel_url', result);
+                            // update pixel data in the hidden fields
+                            ctNoCookieAttachHiddenFieldsToForms();
+                        }
+                        // then run pixel drawing
+                        ctSetPixelImg(result);
+                    }
+                },
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader('X-Robots-Tag', 'noindex, nofollow');
+                },
+            },
+        );
+    }
+}
+
+/**
+ * ctSetHasScrolled
+ */
+function ctSetHasScrolled() {
+    if ( ! apbctLocalStorage.isSet('ct_has_scrolled') || ! apbctLocalStorage.get('ct_has_scrolled') ) {
+        ctSetCookie('ct_has_scrolled', 'true');
+        apbctLocalStorage.set('ct_has_scrolled', true);
+    }
+    if (
+        ctPublic.data__cookies_type === 'native' &&
+        ctGetCookie('ct_has_scrolled') === undefined
+    ) {
+        ctSetCookie('ct_has_scrolled', 'true');
+    }
+}
+
+/**
+ * ctSetMouseMoved
+ */
+function ctSetMouseMoved() {
+    if ( ! apbctLocalStorage.isSet('ct_mouse_moved') || ! apbctLocalStorage.get('ct_mouse_moved') ) {
+        ctSetCookie('ct_mouse_moved', 'true');
+        apbctLocalStorage.set('ct_mouse_moved', true);
+    }
+    if (
+        ctPublic.data__cookies_type === 'native' &&
+        ctGetCookie('ct_mouse_moved') === undefined
+    ) {
+        ctSetCookie('ct_mouse_moved', 'true');
+    }
+}
+
+/**
+ * Restart listen fields to set ct_has_input_focused or ct_has_key_up
+ */
+function restartFieldsListening() {
+    if (!apbctLocalStorage.isSet('ct_has_input_focused') && !apbctLocalStorage.isSet('ct_has_key_up')) {
+        ctStartFieldsListening();
+    }
+}
+
+/**
+ * init listeners for keyup and focus events
+ */
+function ctStartFieldsListening() {
+    if (
+        (apbctLocalStorage.isSet('ct_has_key_up') || apbctLocalStorage.get('ct_has_key_up')) &&
+        (apbctLocalStorage.isSet('ct_has_input_focused') || apbctLocalStorage.get('ct_has_input_focused')) &&
+        (
+            ctPublic.data__cookies_type === 'native' &&
+            ctGetCookie('ct_has_input_focused') !== undefined &&
+            ctGetCookie('ct_has_key_up') !== undefined
+        )
+    ) {
+        // already set
+        return;
+    }
+
+    let forms = ctGetPageForms();
+    ctPublic.handled_fields = [];
+
+    if (forms.length > 0) {
+        for (let i = 0; i < forms.length; i++) {
+            // handle only inputs and textareas
+            const handledFormFields = forms[i].querySelectorAll('input,textarea');
+            for (let i = 0; i < handledFormFields.length; i++) {
+                if (handledFormFields[i].type !== 'hidden') {
+                    // collect handled fields to remove handler in the future
+                    ctPublic.handled_fields.push(handledFormFields[i]);
+                    // do attach handlers
+                    apbct_attach_event_handler(handledFormFields[i], 'focus', ctFunctionHasInputFocused);
+                    apbct_attach_event_handler(handledFormFields[i], 'keyup', ctFunctionHasKeyUp);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * stop listening keyup and focus
+ * @param {string} eventName
+ * @param {string} functionName
+ */
+function ctStopFieldsListening(eventName, functionName) {
+    if (typeof ctPublic.handled_fields !== 'undefined' && ctPublic.handled_fields.length > 0) {
+        for (let i = 0; i < ctPublic.handled_fields.length; i++) {
+            apbct_remove_event_handler(ctPublic.handled_fields[i], eventName, functionName);
+        }
+    }
+}
+
+let ctFunctionHasInputFocused = function output(event) {
+    ctSetHasInputFocused();
+    ctStopFieldsListening('focus', ctFunctionHasInputFocused);
+};
+
+let ctFunctionHasKeyUp = function output(event) {
+    ctSetHasKeyUp();
+    ctStopFieldsListening('keyup', ctFunctionHasKeyUp);
+};
+
+/**
+ * set ct_has_input_focused ct_has_key_up cookies on session period
+ */
+function ctSetHasInputFocused() {
+    if ( ! apbctLocalStorage.isSet('ct_has_input_focused') || ! apbctLocalStorage.get('ct_has_input_focused') ) {
+        apbctLocalStorage.set('ct_has_input_focused', true);
+    }
+    if (
+        (
+            (
+                ctPublic.data__cookies_type === 'native' &&
+                ctGetCookie('ct_has_input_focused') === undefined
+            ) ||
+            ctPublic.data__cookies_type === 'alternative'
+        ) ||
+        (
+            ctPublic.data__cookies_type === 'none' &&
+            (
+                typeof ctPublic.force_alt_cookies !== 'undefined' ||
+                (ctPublic.force_alt_cookies !== undefined && ctPublic.force_alt_cookies)
+            )
+        )
+    ) {
+        ctSetCookie('ct_has_input_focused', 'true');
+    }
+}
+
+/**
+ * ctSetHasKeyUp
+ */
+function ctSetHasKeyUp() {
+    if ( ! apbctLocalStorage.isSet('ct_has_key_up') || ! apbctLocalStorage.get('ct_has_key_up') ) {
+        apbctLocalStorage.set('ct_has_key_up', true);
+    }
+    if (
+        (
+            (
+                ctPublic.data__cookies_type === 'native' &&
+                ctGetCookie('ct_has_key_up') === undefined
+            ) ||
+            ctPublic.data__cookies_type === 'alternative'
+        ) ||
+        (
+            ctPublic.data__cookies_type === 'none' &&
+            (
+                typeof ctPublic.force_alt_cookies !== 'undefined' ||
+                (ctPublic.force_alt_cookies !== undefined && ctPublic.force_alt_cookies)
+            )
+        )
+    ) {
+        ctSetCookie('ct_has_key_up', 'true');
+    }
+}
+
+if (ctPublic.data__key_is_ok) {
+    apbct_attach_event_handler(document, 'mousemove', ctFunctionMouseMove);
+    apbct_attach_event_handler(document, 'mousedown', ctFunctionFirstKey);
+    apbct_attach_event_handler(document, 'keydown', ctFunctionFirstKey);
+    apbct_attach_event_handler(document, 'scroll', ctSetHasScrolled);
+}
+
+/**
+ * Prepare block to intercept AJAX response
+ */
+function apbctPrepareBlockForAjaxForms() {
+    // eslint-disable-next-line require-jsdoc
+    function ctPrepareBlockMessage(xhr) {
+        if (xhr.responseText &&
+            xhr.responseText.indexOf('"apbct') !== -1 &&
+            xhr.responseText.indexOf('DOCTYPE') === -1
+        ) {
+            try {
+                ctParseBlockMessage(JSON.parse(xhr.responseText));
+            } catch (e) {
+                console.log(e.toString());
+            }
+        }
+    }
+
+    if (typeof jQuery !== 'undefined') {
+        // Capturing responses and output block message for unknown AJAX forms
+        if (typeof jQuery(document).ajaxComplete() !== 'function') {
+            jQuery(document).on('ajaxComplete', function(event, xhr, settings) {
+                ctPrepareBlockMessage(xhr);
+            });
+        } else {
+            jQuery(document).ajaxComplete( function(event, xhr, settings) {
+                ctPrepareBlockMessage(xhr);
+            });
+        }
+    } else {
+        // if Jquery is not avaliable try to use xhr
+        if (typeof XMLHttpRequest !== 'undefined') {
+            // Capturing responses and output block message for unknown AJAX forms
+            document.addEventListener('readystatechange', function(event) {
+                if (event.target.readyState === 4) {
+                    ctPrepareBlockMessage(event.target);
+                }
+            });
+        }
+    }
+}
+
+/**
+ * For forced alt cookies.
+ * If token is not added to the LS on apbc_ready, check every second if so and send token to the alt sessions.
+ */
+function startForcedAltEventTokenChecker() {
+    tokenCheckerIntervalId = setInterval( function() {
+        if (apbctLocalStorage.get('event_token_forced_set') === '1') {
+            clearInterval(tokenCheckerIntervalId);
+            return;
+        }
+        let eventToken = apbctLocalStorage.get('bot_detector_event_token');
+        if (eventToken) {
+            ctSetAlternativeCookie([['ct_bot_detector_event_token', eventToken]], {forceAltCookies: true});
+            apbctLocalStorage.set('event_token_forced_set', '1');
+            clearInterval(tokenCheckerIntervalId);
+        } else {
+        }
+    }, 1000);
+}
+
+
+/**
+ * Ready function
+ */
+// eslint-disable-next-line camelcase,require-jsdoc
+function apbct_ready() {
+    document.addEventListener('gform_page_loaded', function() {
+        if (
+            typeof ctPublic.force_alt_cookies === 'undefined' ||
+            (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
+        ) {
+            ctNoCookieAttachHiddenFieldsToForms();
+            if (typeof setEventTokenField === 'function' && typeof botDetectorLocalStorage === 'function') {
+                setEventTokenField(botDetectorLocalStorage.get('bot_detector_event_token'));
+            }
+        }
+    });
+    if ( ! ctPublic.wc_ajax_add_to_cart ) {
+        apbctCheckAddToCartByGet();
+    }
+
+    apbctPrepareBlockForAjaxForms();
+
+    // set session ID
+    if (!apbctSessionStorage.isSet('apbct_session_id')) {
+        const sessionID = apbctGenerateUniqueID();
+        apbctSessionStorage.set('apbct_session_id', sessionID, false);
+        apbctLocalStorage.set('apbct_page_hits', 1);
+        if (document.referrer) {
+            let urlReferer = new URL(document.referrer);
+            if (urlReferer.host !== location.host) {
+                apbctSessionStorage.set('apbct_site_referer', document.referrer, false);
+            }
+        }
+    } else {
+        apbctLocalStorage.set('apbct_page_hits', Number(apbctLocalStorage.get('apbct_page_hits')) + 1);
+    }
+
+    apbctWriteReferrersToSessionStorage();
+
+    const cookiesType = apbctLocalStorage.get('ct_cookies_type');
+    if ( ! cookiesType || cookiesType !== ctPublic.data__cookies_type ) {
+        apbctLocalStorage.set('ct_cookies_type', ctPublic.data__cookies_type);
+        apbctLocalStorage.delete('ct_mouse_moved');
+        apbctLocalStorage.delete('ct_has_scrolled');
+    }
+
+    if (ctPublic.data__cookies_type !== 'alternative') {
+        ctStartFieldsListening();
+        // 2nd try to add listeners for delayed appears forms
+        setTimeout(ctStartFieldsListening, 1000);
+    }
+
+    window.addEventListener('animationstart', apbctOnAnimationStart, true);
+    window.addEventListener('input', apbctOnInput, true);
+    document.ctTypoData = new CTTypoData();
+    document.ctTypoData.gatheringFields();
+    document.ctTypoData.setListeners();
+
+    // Collect scrolling info
+    const initCookies = [
+        ['ct_ps_timestamp', Math.floor(new Date().getTime() / 1000)],
+        ['ct_fkp_timestamp', '0'],
+        ['ct_pointer_data', '0'],
+        // eslint-disable-next-line camelcase
+        ['ct_timezone', ctDate.getTimezoneOffset()/60*(-1)],
+        ['ct_screen_info', apbctGetScreenInfo()],
+        ['apbct_headless', navigator.webdriver],
+    ];
+
+    apbctLocalStorage.set('ct_ps_timestamp', Math.floor(new Date().getTime() / 1000));
+    apbctLocalStorage.set('ct_fkp_timestamp', '0');
+    apbctLocalStorage.set('ct_pointer_data', '0');
+    // eslint-disable-next-line camelcase
+    apbctLocalStorage.set('ct_timezone', ctDate.getTimezoneOffset()/60*(-1) );
+    apbctLocalStorage.set('ct_screen_info', apbctGetScreenInfo());
+    apbctLocalStorage.set('apbct_headless', navigator.webdriver);
+
+    if ( ctPublic.data__cookies_type !== 'native' ) {
+        initCookies.push(['apbct_visible_fields', '0']);
+    } else {
+        // Delete all visible fields cookies on load the page
+        let cookiesArray = document.cookie.split(';');
+        if ( cookiesArray.length !== 0 ) {
+            for ( let i = 0; i < cookiesArray.length; i++ ) {
+                let currentCookie = cookiesArray[i].trim();
+                let cookieName = currentCookie.split('=')[0];
+                if ( cookieName.indexOf('apbct_visible_fields_') === 0 ) {
+                    ctDeleteCookie(cookieName);
+                }
+            }
+        }
+    }
+
+    if (
+        +ctPublic.pixel__setting &&
+        !(+ctPublic.pixel__setting == 3 && ctPublic.settings__data__bot_detector_enabled == 1)
+    ) {
+        if ( ctIsDrawPixel() ) {
+            ctGetPixelUrl();
+        } else {
+            initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
+        }
+    }
+
+    if ( +ctPublic.data__email_check_before_post) {
+        initCookies.push(['ct_checked_emails', '0']);
+        apbct('input[type = \'email\'], #email').on('blur', checkEmail);
+    }
+
+    if ( +ctPublic.data__email_check_exist_post) {
+        initCookies.push(['ct_checked_emails_exist', '0']);
+        apbct('comment-form input[name = \'email\'], input#email').on('blur', checkEmailExist);
+    }
+
+    if (apbctLocalStorage.isSet('ct_checkjs')) {
+        initCookies.push(['ct_checkjs', apbctLocalStorage.get('ct_checkjs')]);
+    } else {
+        initCookies.push(['ct_checkjs', 0]);
+    }
+
+    // detect integrated forms that need to be handled via alternative cookies
+    ctDetectForcedAltCookiesForms();
+
+    // send bot detector event token to alt cookies on problem forms
+    let tokenForForceAlt = apbctLocalStorage.get('bot_detector_event_token');
+    if (typeof ctPublic.force_alt_cookies !== 'undefined' &&
+        ctPublic.force_alt_cookies &&
+        ctPublic.settings__data__bot_detector_enabled
+    ) {
+        apbctLocalStorage.set('event_token_forced_set', '0');
+        if (tokenForForceAlt) {
+            initCookies.push(['ct_bot_detector_event_token', tokenForForceAlt]);
+            apbctLocalStorage.set('event_token_forced_set', '1');
+        } else {
+            startForcedAltEventTokenChecker();
+        }
+    }
+
+    ctSetCookie(initCookies);
+
+    setTimeout(function() {
+        if (
+            typeof ctPublic.force_alt_cookies == 'undefined' ||
+            (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
+        ) {
+            ctNoCookieAttachHiddenFieldsToForms();
+        }
+
+        if (
+            typeof ctPublic.data__cookies_type !== 'undefined' &&
+            ctPublic.data__cookies_type === 'none'
+        ) {
+            ctAjaxSetupAddCleanTalkDataBeforeSendAjax();
+            ctAddWCMiddlewares();
+        }
+
+        for (let i = 0; i < document.forms.length; i++) {
+            let form = document.forms[i];
+
+            // Exclusion for forms
+            if (ctCheckHiddenFieldsExclusions(document.forms[i], 'visible_fields')) {
+                continue;
+            }
+            if (form.querySelector('input[name="wspsc_add_cart_submit"]') ||
+                form.querySelector('input[name="option"][value="com_vikrentcar"]') ||
+                form.querySelector('input[name="option"][value="com_vikbooking"]')
+            ) {
+                continue;
+            }
+
+            // The Form has hidden field like apbct_visible_fields
+            if (
+                document.forms[i].elements.apbct_visible_fields !== undefined &&
+                document.forms[i].elements.apbct_visible_fields.length > 0
+            ) {
+                continue;
+            }
+
+            if (form.querySelector('input[name="apbct_visible_fields"]')) {
+                let visibleFields = form.querySelector('input[name="apbct_visible_fields"]');
+                form.removeChild(visibleFields);
+            }
+
+            let hiddenInput = document.createElement( 'input' );
+            hiddenInput.setAttribute( 'type', 'hidden' );
+            hiddenInput.setAttribute( 'id', 'apbct_visible_fields_' + i );
+            hiddenInput.setAttribute( 'name', 'apbct_visible_fields');
+            let visibleFieldsToInput = {};
+            visibleFieldsToInput[0] = apbct_collect_visible_fields(form);
+            hiddenInput.value = btoa(JSON.stringify(visibleFieldsToInput));
+            form.append( hiddenInput );
+
+            form.onsubmit_prev = form.onsubmit;
+
+            form.ctFormIndex = i;
+            form.onsubmit = function(event) {
+                if ( ctPublic.data__cookies_type !== 'native' && typeof event.target.ctFormIndex !== 'undefined' ) {
+                    apbct_visible_fields_set_cookie( apbct_collect_visible_fields(this), event.target.ctFormIndex );
+                }
+
+                if (ctPublic.data__cookies_type === 'none' && isFormThatNeedCatchXhr(event.target)) {
+                    window.XMLHttpRequest.prototype.send = function(data) {
+                        let noCookieData = getNoCookieData();
+                        noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                        defaultSend.call(this, noCookieData + data);
+                        setTimeout(() => {
+                            window.XMLHttpRequest.prototype.send = defaultSend;
+                        }, 0);
+                    };
+                }
+
+                // Call previous submit action
+                if (event.target.onsubmit_prev instanceof Function && !ctOnsubmitPrevCallExclude(event.target)) {
+                    if (event.target.classList !== undefined && event.target.classList.contains('brave_form_form')) {
+                        event.preventDefault();
+                    }
+                    setTimeout(function() {
+                        event.target.onsubmit_prev.call(event.target, event);
+                    }, 0);
+                }
+            };
+        }
+    }, 1000);
+
+    // Listen clicks on encoded emails
+    let encodedEmailNodes = document.querySelectorAll('[data-original-string]');
+    ctPublic.encodedEmailNodes = encodedEmailNodes;
+    if (encodedEmailNodes.length) {
+        for (let i = 0; i < encodedEmailNodes.length; ++i) {
+            encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
+        }
+    }
+
+    // WordPress Search form processing
+    for (const _form of document.forms) {
+        if (
+            typeof ctPublic !== 'undefined' &&
+            + ctPublic.settings__forms__search_test === 1 &&
+            (
+                _form.getAttribute('id') === 'searchform' ||
+                (_form.getAttribute('class') !== null && _form.getAttribute('class').indexOf('search-form') !== -1) ||
+                (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
+            )
+        ) {
+            // fibosearch integration
+            if (_form.querySelector('input.dgwt-wcas-search-input')) {
+                continue;
+            }
+
+            if (
+                _form.getAttribute('id') === 'hero-search-form' ||
+                _form.getAttribute('class') === 'hb-booking-search-form'
+            ) {
+                continue;
+            }
+
+            // this handles search forms onsubmit process
+            _form.apbctSearchPrevOnsubmit = _form.onsubmit;
+            _form.onsubmit = (e) => ctSearchFormOnSubmitHandler(e, _form);
+        }
+    }
+
+    // Check any XMLHttpRequest connections
+    apbctCatchXmlHttpRequest();
+
+    // Initializing the collection of user activity
+    new ApbctCollectingUserActivity();
+
+    // Checking that the bot detector has loaded and received the event token for Anti-Crawler
+    if (ctPublic.settings__sfw__anti_crawler) {
+        checkBotDetectorExist();
+    }
+}
+
+/**
+ * Checking that the bot detector has loaded and received the event token
+ */
+function checkBotDetectorExist() {
+    if (+ctPublic.settings__data__bot_detector_enabled) {
+        const botDetectorIntervalSearch = setInterval(() => {
+            let botDetectorEventToken = localStorage.bot_detector_event_token ? true : false;
+
+            if (botDetectorEventToken) {
+                ctSetCookie('apbct_bot_detector_exist', '1', '3600');
+                clearInterval(botDetectorIntervalSearch);
+            }
+        }, 500);
+    }
+}
+
+/**
+ * Insert no_cookies_data to rest request
+ */
+function ctAddWCMiddlewares() {
+    const ctPinDataToRequest = (options, next) => {
+        if (typeof options !== 'object' || options === null ||
+            !options.hasOwnProperty('data') || !options.hasOwnProperty('path')
+        ) {
+            return next(options);
+        }
+
+        // add to cart
+        if (options.data.hasOwnProperty('requests') &&
+            options.data.requests.length > 0 &&
+            options.data.requests[0].hasOwnProperty('path') &&
+            options.data.requests[0].path === '/wc/store/v1/cart/add-item'
+        ) {
+            options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+            options.data.requests[0].data.event_token = localStorage.getItem('bot_detector_event_token');
+        }
+
+        // checkout
+        if (options.path === '/wc/store/v1/checkout') {
+            options.data.ct_no_cookie_hidden_field = getNoCookieData();
+            options.data.event_token = localStorage.getItem('bot_detector_event_token');
+        }
+
+        return next(options);
+    };
+
+    if (window.hasOwnProperty('wp') &&
+        window.wp.hasOwnProperty('apiFetch') &&
+        typeof window.wp.apiFetch.use === 'function'
+    ) {
+        window.wp.apiFetch.use(ctPinDataToRequest);
+    }
+}
+
+/**
+ * Insert event_token and no_cookies_data to some ajax request
+ */
+function apbctCatchXmlHttpRequest() {
+    // 1) Check the page if it needed to catch XHR
+    if (
+        document.querySelector('div.wfu_container') !== null ||
+        document.querySelector('#newAppointmentForm') !== null ||
+        document.querySelector('.booked-calendar-shortcode-wrap') !== null
+    ) {
+        const originalSend = XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.send = function(body) {
+            // 2) Check the caught request fi it needed to modify
+            if (
+                body &&
+                typeof body === 'string' &&
+                (
+                    body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
+                    body.indexOf('action=booked_add_appt') !== -1
+                )
+            ) {
+                let addidionalCleantalkData = '';
+                let eventToken = localStorage.getItem('bot_detector_event_token');
+                try {
+                    eventToken = JSON.parse(eventToken);
+                } catch {
+                    eventToken = false;
+                }
+                if (
+                    eventToken !== null &&
+                    eventToken !== false &&
+                    eventToken.hasOwnProperty('value') &&
+                    eventToken.value !== ''
+                ) {
+                    eventToken = eventToken.value;
+                    addidionalCleantalkData += '&' + 'data%5Bct_bot_detector_event_token%5D=' + eventToken;
+                }
+
+                let noCookieData = getNoCookieData();
+                addidionalCleantalkData += '&' + 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData;
+
+                body += addidionalCleantalkData;
+
+                return originalSend.apply(this, [body]);
+            }
+            return originalSend.apply(this, [body]);
+        };
+    }
+}
+
+/**
+ * Prepare jQuery.ajaxSetup to add nocookie data to the jQuery ajax request.
+ * Notes:
+ * - Do it just once, the ajaxSetup.beforeSend will be overwritten for any calls.
+ * - Signs of forms need to be caught will be checked during ajaxSetup.settings.data process on send.
+ * - Any sign of the form HTML of the caller is insignificant in this process.
+ * @return {void}
+ */
+function ctAjaxSetupAddCleanTalkDataBeforeSendAjax() {
+    // jquery ajax call intercept
+    // this is the only place where we can found hard dependency on jQuery, if the form use it - the script
+    // will work independing if jQuery is loaded by CleanTalk or not
+    let eventToken = false;
+    if ( typeof jQuery !== 'undefined' && typeof jQuery.ajaxSetup === 'function') {
+        jQuery.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                let sourceSign = false;
+                // settings data is string (important!)
+                if ( typeof settings.data === 'string' ) {
+                    if (settings.data.indexOf('twt_cc_signup') !== -1) {
+                        sourceSign = 'twt_cc_signup';
+                    }
+
+                    if (settings.data.indexOf('action=mailpoet') !== -1) {
+                        sourceSign = 'action=mailpoet';
+                    }
+
+                    if (
+                        settings.data.indexOf('action=user_registration') !== -1 &&
+                        settings.data.indexOf('ur_frontend_form_nonce') !== -1
+                    ) {
+                        sourceSign = 'action=user_registration';
+                    }
+
+                    if (settings.data.indexOf('action=happyforms_message') !== -1) {
+                        sourceSign = 'action=happyforms_message';
+                    }
+
+                    if (settings.data.indexOf('action=new_activity_comment') !== -1) {
+                        sourceSign = 'action=new_activity_comment';
+                    }
+                }
+                if ( typeof settings.url === 'string' ) {
+                    if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {
+                        sourceSign = 'wc-ajax=add_to_cart';
+                        if (localStorage.getItem('bot_detector_event_token') !== null) {
+                            eventToken = localStorage.getItem('bot_detector_event_token');
+                            try {
+                                eventToken = JSON.parse(eventToken);
+                            } catch {
+                                eventToken = false;
+                            }
+                            if (eventToken !== false && eventToken.hasOwnProperty('value') && eventToken.value !== '') {
+                                eventToken = eventToken.value;
+                            }
+                        }
+                    }
+                }
+
+                if (sourceSign) {
+                    let noCookieData = getNoCookieData();
+                    if (typeof eventToken === 'string') {
+                        eventToken = 'data%5Bct_bot_detector_event_token%5D=' + eventToken + '&';
+                    } else {
+                        eventToken = '';
+                    }
+                    noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+
+                    settings.data = noCookieData + eventToken + settings.data;
+                }
+            },
+        });
+    }
+}
+
+// eslint-disable-next-line require-jsdoc
+function ctOnsubmitPrevCallExclude(form) {
+    if (form.classList.contains('hb-booking-search-form')) {
+        return true;
+    }
+
+    return false;
+}
+
+if (ctPublic.data__key_is_ok) {
+    if (document.readyState !== 'loading') {
+        apbct_ready();
+>>>>>>> tag-59:js/src/apbct-public-bundle_int-protection.js
     } else {
         log.err = {
             'msg': msg,
@@ -3693,7 +4511,14 @@ function checkFormsExistForCatching() {
                 if (args &&
                     args[0] &&
                     typeof args[0].includes === 'function' &&
-                    args[0].includes('/wp-json/metform/')
+                    (args[0].includes('/wp-json/metform/') ||
+                    (ctPublicFunctions._rest_url && (() => {
+                        try {
+                            return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
+                        } catch (e) {
+                            return false;
+                        }
+                    })()))
                 ) {
                     let noCookieData = getNoCookieData();
 

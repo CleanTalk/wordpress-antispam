@@ -520,10 +520,19 @@ class ApbctHandler {
      * @return {void}
      */
     catchXmlHttpRequest() {
-        if ( document.querySelector('div.wfu_container') !== null ) {
+        if (
+            document.querySelector('div.wfu_container') !== null ||
+            document.querySelector('#newAppointmentForm') !== null ||
+            document.querySelector('.booked-calendar-shortcode-wrap') !== null
+        ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
-                if (body && typeof body === 'string' && (body.indexOf('action=wfu_ajax_action_ask_server') !== -1)) {
+                if (body && typeof body === 'string' &&
+                    (
+                        body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
+                        body.indexOf('action=booked_add_appt') !== -1
+                    )
+                ) {
                     let addidionalCleantalkData = '';
 
                     if (!ctPublic.settings__data__bot_detector_enabled) {
@@ -554,7 +563,14 @@ class ApbctHandler {
                     if (args &&
                         args[0] &&
                         typeof args[0].includes === 'function' &&
-                        args[0].includes('/wp-json/metform/')
+                        (args[0].includes('/wp-json/metform/') ||
+                        (ctPublicFunctions._rest_url && (() => {
+                            try {
+                                return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
+                            } catch (e) {
+                                return false;
+                            }
+                        })()))
                     ) {
                         if (args && args[1] && args[1].body) {
                             if (!ctPublic.settings__data__bot_detector_enabled) {

@@ -95,8 +95,16 @@ function ct_dashboard_statistics_widget()
     if (isset($apbct->data['wl_brandname']) && $apbct->data['wl_brandname'] !== APBCT_NAME) {
         $actual_plugin_name = $apbct->data['wl_brandname'];
     }
+    /**
+     * Hook. List of allowed user roles for the Dashboard widget.
+     * add_filter('apbct_hook_dashboard_widget_allowed_roles_list', function($roles_list) {
+     *  $roles_list[] = 'editor';
+     *  return $roles_list;
+     * });
+     */
+    $roles_list = apply_filters('apbct_hook_dashboard_widget_allowed_roles_list', array('administrator'));
 
-    if ( apbct_is_user_role_in(array('administrator')) ) {
+    if (is_array($roles_list) && apbct_is_user_role_in($roles_list) ) {
         wp_add_dashboard_widget(
             'ct_dashboard_statistics_widget',
             $actual_plugin_name,
@@ -172,7 +180,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
                  "<u>{$apbct->brief_data['error']}</u>"
              )
              . '</h2>';
-        if ( $apbct->user_token && ! $apbct->white_label ) {
+        if (apbct_is_user_role_in(array('administrator')) && $apbct->user_token && ! $apbct->white_label ) {
             $link = LinkConstructor::buildCleanTalkLink(
                 'anti_crawler_inactive',
                 'my',
@@ -225,7 +233,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
                 } ?>
             </table>
             <?php
-            if ( $apbct->user_token && ! $apbct->data["wl_mode_enabled"] ) {
+            if (apbct_is_user_role_in(array('administrator')) && $apbct->user_token && ! $apbct->data["wl_mode_enabled"] ) {
                 $link = LinkConstructor::buildCleanTalkLink(
                     'dashboard_widget_all_data_link',
                     'my/show_requests',
@@ -244,50 +252,55 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
         <?php
     }
     // Notice at the bottom
-    if ( isset($current_user) && in_array('administrator', $current_user->roles) ) {
-        if ( $apbct->spam_count && $apbct->spam_count > 0 ) {
+    if ( $apbct->spam_count && $apbct->spam_count > 0 ) {
+        $cp_total_stats = '';
+        //Link to CP is only for admins due the token provided
+        if ( apbct_is_user_role_in(array('administrator')) ) {
             $link = LinkConstructor::buildCleanTalkLink(
                 'dashboard_widget_go_to_cp',
                 'my',
                 array(
                     'user_token' => $apbct->user_token,
-                    'cp_mode' => 'antispam'
+                    'cp_mode'    => 'antispam'
                 )
             );
-            echo '<div class="ct_widget_wprapper_total_blocked">'
-                 . ($apbct->data["wl_mode_enabled"] ? '' : '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" class="ct_widget_small_logo"/>')
-                 . '<span title="' . sprintf(
-                     __(
-                         'This is the count from the %s\'s cloud and could be different to admin bar counters',
-                         'cleantalk-spam-protect'
-                     ) . '">',
-                     $actual_plugin_name
-                 )
-                 . sprintf(
-                 /* translators: %s: Number of spam messages */
-                     __(
-                         '%s%s%s has blocked %s spam for past year. The statistics are automatically updated every 24 hours.',
-                         'cleantalk-spam-protect'
-                     ),
-                     ! $apbct->data["wl_mode_enabled"] ? '<a href="' . $link . '" target="_blank">' : '',
-                     $actual_plugin_name,
-                     ! $apbct->data["wl_mode_enabled"] ? '</a>' : '',
-                     number_format($apbct->data['spam_count'], 0, ',', ' ')
-                 )
-                 . '</span>'
-                 . (! $apbct->white_label && ! $apbct->data["wl_mode_enabled"]
-                    ? '<br><br>'
-                      . '<b style="font-size: 16px;">'
-                      . sprintf(
-                          __('Do you like CleanTalk? %sPost your feedback here%s.', 'cleantalk-spam-protect'),
-                          '<u><a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/#new-post" target="_blank">',
-                          '</a></u>'
-                      )
-                      . '</b>'
-                    : ''
-                 )
-                 . '</div>';
+            $cp_total_stats =
+                ($apbct->data["wl_mode_enabled"] ? '' : '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" class="ct_widget_small_logo"/>')
+                . '<span title="'
+                . sprintf(
+                    __(
+                        'This is the count from the %s\'s cloud and could be different to admin bar counters',
+                        'cleantalk-spam-protect'
+                    ) . '">',
+                    $actual_plugin_name
+                )
+                . sprintf(
+                /* translators: %s: Number of spam messages */
+                    __(
+                        '%s%s%s has blocked %s spam for past year. The statistics are automatically updated every 24 hours.',
+                        'cleantalk-spam-protect'
+                    ),
+                    ! $apbct->data["wl_mode_enabled"] ? '<a href="' . $link . '" target="_blank">' : '',
+                    $actual_plugin_name,
+                    ! $apbct->data["wl_mode_enabled"] ? '</a>' : '',
+                    number_format($apbct->data['spam_count'], 0, ',', ' ')
+                )
+                . '</span>';
         }
+        echo '<div class="ct_widget_wprapper_total_blocked">'
+             . $cp_total_stats
+             . (! $apbct->white_label && ! $apbct->data["wl_mode_enabled"]
+                ? '<br><br>'
+                  . '<b style="font-size: 16px;">'
+                  . sprintf(
+                      __('Do you like CleanTalk? %sPost your feedback here%s.', 'cleantalk-spam-protect'),
+                      '<u><a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/#new-post" target="_blank">',
+                      '</a></u>'
+                  )
+                  . '</b>'
+                : ''
+             )
+             . '</div>';
     }
     echo '</div>';
 }
@@ -527,10 +540,18 @@ function apbct_admin__enqueue_scripts($hook)
     $data = array_merge($data, EmailEncoder::getLocalizationText());
     wp_localize_script('cleantalk-admin-js', 'ctAdminCommon', $data);
 
+    /**
+     * Hook. List of allowed user roles for the Dashboard widget.
+     * add_filter('apbct_hook_dashboard_widget_allowed_roles_list', function($roles_list) {
+     *  $roles_list[] = 'editor';
+     *  return $roles_list;
+     * });
+     */
+    $roles_list = apply_filters('apbct_hook_dashboard_widget_allowed_roles_list', array('administrator'));
     // DASHBOARD page JavaScript and CSS
     if (
         $hook == 'index.php' &&
-        apbct_is_user_role_in(array('administrator')) &&
+        is_array($roles_list) && apbct_is_user_role_in($roles_list) &&
         $apbct->settings['wp__dashboard_widget__show'] &&
         ! $apbct->moderate_ip
     ) {
