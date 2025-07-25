@@ -41,7 +41,7 @@ function apbct_settings__footer()
         )],
     ];
     $block2_links = [
-        ['text' => __('Everest Forms', 'cleantalk-spam-protect'), 'url' => 'https://tinyurl.com/apbct-everest-forms'],
+        ['text' => 'Security plugin by CleanTalk', 'url' => admin_url('plugin-install.php') . '?s=spbct&tab=search&type=term']
     ];
 
     ?>
