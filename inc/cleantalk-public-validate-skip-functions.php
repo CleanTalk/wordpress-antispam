@@ -4,6 +4,11 @@ use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\Variables\Post;
 
+// Prevent direct call
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
+
 /**
  * Function for skip in ct_contact_form_validate_postdata()
  * @return bool

@@ -21,6 +21,11 @@ use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 use Cleantalk\Common\TT;
 
+// Prevent direct call
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
+
 function apbct_array($array)
 {
     return new \Cleantalk\Common\Arr($array);
@@ -559,7 +564,14 @@ function apbct_get_sender_info()
     $cache_plugins_detected = json_encode($cache_plugins_detected);
 
     $apbct_urls = RequestParameters::getCommonStorage('apbct_urls');
-    $apbct_urls = $apbct_urls ? json_encode(json_decode($apbct_urls, true)) : null;
+    if (!empty($apbct_urls)) {
+        if (is_string($apbct_urls)) {
+            $apbct_urls = json_encode(json_decode($apbct_urls, true));
+        } else {
+            $apbct_urls = json_encode($apbct_urls);
+        }
+    }
+    $apbct_urls = !empty($apbct_urls) ? $apbct_urls : null;
 
     $site_landing_ts = RequestParameters::get('apbct_site_landing_ts', true);
     $site_landing_ts = !empty($site_landing_ts) ? TT::toString($site_landing_ts) : null;

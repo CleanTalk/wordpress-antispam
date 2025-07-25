@@ -1,13 +1,13 @@
-=== Spam protection, Anti-Spam, FireWall by CleanTalk ===
+=== Spam protection, Anti-Spam by CleanTalk ===
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
-Tags: spam, antispam, anti-spam, comments, firewall
+Tags: antispam, comments, contact form, seo, email
 Requires at least: 4.7
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 6.59
+Stable tag: 6.60
 License: GPLv2
 
-Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
+Blocks spam comments, fake users, contact form spam and more. No impact on SEO or website performance. Enterprise-ready, premium Anti-Spam plugin.
 
 == Description ==
 
@@ -107,7 +107,7 @@ Spam protection for everything about bbPress: logins, registrations, forums, top
 * WP User Frontend, UserPro.
 * WordPress Landing Pages.
 
-Protectoin for forms above works as built-in function of Anti-Spam by CleanTalk, without any additional actions from a user. Anywaym, if you have missed spam, try to activate a few options below. If nothing helps, ask for help at support forum <a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/">https://wordpress.org/support/plugin/cleantalk-spam-protect/</a>
+Protection for forms above works as built-in function of Anti-Spam by CleanTalk, without any additional actions from a user. Anywaym, if you have missed spam, try to activate a few options below. If nothing helps, ask for help at support forum <a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/">https://wordpress.org/support/plugin/cleantalk-spam-protect/</a>
 
 * Any WordPress form (checkbox 'Custom contact forms').
 * Any submission to the site (checkbox 'Check all POST data').
@@ -128,21 +128,18 @@ This option hides the «Website» field from standard WordPress comments forms. 
 This plugin uses multiple anti-spam tests to filter spam bots having as low false/positive rate as possible.
 
 = How does CleanTalk improve SEO for your website? =
-So, you already know that the speed of the site has a direct impact on SEO.
-
 *CleanTalk works faster than most of the other anti-spam plugins.* It is common knowledge that the faster your site loads, the better your customer experience is, the better your SEO will be, and the better your site will convert. Speed is becoming increasingly important in SEO, conversion and user experience. Today, site speed is one of the most important ranking factors on Google. A site that loads slowly will lose visitors and potential revenue.
 
-Among anti-spam plugins CleanTalk AntiSpam is one of the fastest. Despite the large plugin functionality, the developers have optimized the performance of
+Among anti-spam plugins CleanTalk is one of the fastest. Despite the large plugin functionality, the developers have optimized the performance of
 the plugin so that AntiSpam by CleanTalk is faster than most analogs. This contributes to the cloud service architecture, as all calculations take place in the cloud, not on the server, the server receives the finished result for further action.
 
 https://s.w.org/plugins/cleantalk-spam-protect/screenshot-5.png?r=1288723
 
-Unlike stand-alone plugins (WP Armour, Antispam Bee, WP Cerber) Anti-Spam by CleanTalk uses less CPU that improves site response, visitors experience and SEO results.
+Unlike stand-alone plugins (like Antispam Bee) Anti-Spam by CleanTalk uses less CPU that improves site response, visitors experience and SEO results.
 
 = Spam FireWall =
-Spam FireWall allows blocking the most active spam bots before they get access to your website. It prevents spam bots from loading website pages so your web server doesn't have to perform all scripts on these pages. Also it prevents scanning of pages of the website by spam bots. Therefore Spam FireWall significantly reduces the load on your web server. Spam FireWall also makes CleanTalk the two-step protection from spam bots. Spam FireWall is the first step and it blocks the most active spam bots.  CleanTalk Anti-Spam is the second step and checks all other requests on the website in the moment of submitting comments/registers etc.
+Spam FireWall allows blocking the most active spam bots before they get access to your website. It prevents spam bots from loading website pages so your web server doesn't have to perform all scripts on these pages. Also it prevents scanning of pages of the website by spam bots. Therefore Spam FireWall significantly reduces the load on your web server. Spam FireWall also makes CleanTalk the two-step protection from spam bots. Spam FireWall is the first step and it blocks the most active spam bots.  CleanTalk Anti-Spam is the second step and checks all other requests on the website in the moment of submitting comments/registers etc. How does it work?
 
-= How does Spam FireWall work? =
  * The visitor enters to your web site.
  * HTTP request data are being checked in the nearly 5.8 million of the identified spam bot IPs.
  * If it is an active spam bot, the bot gets a blank page, if it is a visitor then he receives a normal page. This process is completely transparent for the visitors.
@@ -152,43 +149,12 @@ All the CleanTalk Spam FireWall activity is being logged in the process of filte
 = Spam FireWall: Anti-Flood & Anti-Crawler =
 Spam FireWall: Anti-Flood and Anti-Crawler options are intended for blocking unwanted bots, content parsing, shop goods prices parsing or aggressive website scanning bots. Learn more https://cleantalk.org/help/anti-flood-and-anti-crawler
 
-= Anti-Spam plugin info =
-CleanTalk is an all-in-one anti-spam solution for WordPress that protects login, comment, contact and WooCommerce forms at once. You don't need to install separate antispam plugins for each form. It allows your blog to work faster and save resources.
-
-CleanTalk is a transparent antispam tool, we provide detailed stats of all incoming comments and logins. You can always be sure that **there are no errors**. We have developed a mobile app for you to see antispam stats wherever you want.
-
-We have developed the antispam for WordPress that protects you from spam bots at the maximum level allowing you to provide your visitors a simple and convenient form of comments/registrations without annoying CAPTCHAs and puzzles. CleanTalk detects spam in multistage tests allowing us to block up to 99.998% of spam bots. The anti-spam method offered by CleanTalk avoids inconvenient for communication methods (CAPTCHA, question-answer etc.), and offers to your site visitors a more comfortable one.
-
-CleanTalk is a premium anti-spam service for WordPress, the plugin works with our own CleanTalk Cloud Service. Anti Spam by CleanTalk offers a free trial, you can look at the <a href="https://cleantalk.org/price">pricing</a> here. We provide anti-spam services at the highest level. To maintain this level we cannot afford to offer a free version of our service, as this will immediately affect the quality of the providing anti-spam protection. Paying for a year of anti-spam service, you save a lot more and receive:
-
- * Up to 99.998% protection from spam bots.
- * Time and resources saving.
- * More registrations/comments/visitors.
- * Spam protection of the several websites at once in different CMS.
- * Ease in installation and using.
- * Traffic increase and loyalty to the users.
- * 24/7 technical support.
- * Clear stats.
- * Spam FireWall.
- * No captcha (reCaptcha), puzzles, etc.
-
 = How to protect sites from spam bots without CAPTCHA? =
 The most popular anti-spam method is CAPTCHA - the annoying picture with curved and sloping symbols, which are presented to the visitor to decipher and fill in. In is supposed that spam bots won't discern these CAPTCHA, but a visitor will. CAPTCHA provokes great irritation, but if the visitor wants to comment, he has to fill in these symbols time after time, making mistakes and starting once again. Sometimes CAPTCHA reminds us of the doodles of a two year old child. For users with vision problems CAPTCHA is an insurmountable obstacle. Users hate captcha. Captcha for users means "hate". Unreadable CAPTCHA stops about 80% of site visitors. After 2 failed attempts to decipher CAPTCHA 95% of visitors reject further attempts. At the sight of CAPTCHA and after input errors, many visitors leave the resource. Thus, CAPTCHA helps to protect the resource spam both from bots and visitors. CAPTCHA is not a panacea from spam. Doubts concerning the Need for CAPTCHA?
 
 *"Ultimately, CAPTCHAs are useless for spam because they're designed to tell you if someone is 'human' or not, but not whether something is spam or not." Matt Mullenweg*
 
 You do not have to work in IT to know what spam is. Besides piles of unwanted email, there are spam bots, or special software programs designed to act as human website visitors that post unwelcome messages over the Internet to advertise dubious services. More often than not spam messages do not even make sense. Similar to bacteria and virus mutations developing antibiotic resistance, spam bots are becoming more resilient in penetrating Internet firewalls and security layers.
-
-= White Label Mode =
-
-To switch the plugin work in the white-label mode you should set up a few settings on your main site in Wordpress Multisite Network:
-
-1. Check setting "Enable White Label Mode".
-2. Fill "Hoster API Key" field with key from CleanTalk's hoster panel.
-3. Fill "Plugin name" field. It could be any name you want for the plugin.
-4. Save settings.
-
-The plugin will do everything rest.
 
 = Real-time email validation. Is email real or Not. =
 It is very important to be sure that the user used his real email address. Spambots very often use fake email addresses, i.e. which addresses do not exist.
@@ -204,14 +170,26 @@ Non-existing email addresses also entail several other problems for website owne
 Improve your email list with email validation without fake emails.
 
 = Blocking  disposable & temporary emails =
-
 Block fake and suspicious users with disposable & temporary emails to improve email delivery. So, it also prevents malicious activity, spam bots, and internet trolls.
 
-= Stops Spam in Search Form =
+= Latest and the most SPAM active IPs, Emails, Domains and ASN =
+* yawiviseya67@gmail.com
+* xrumer888@outlook.com
+* irinademenkova86@gmail.com
+* zekisuquc419@gmail.com
+* prince@stopformspam.xyz
+* 191.101.217.24
+* 199.167.138.22
+* 178.159.37.17
+* 185.190.42.200
+* 45.133.172.23
 
+Effective date is July 13th, 2025. Real-time data is available at <a href="https://cleantalk.org/blacklists">https://cleantalk.org/blacklists</a>.
+
+
+= Stops Spam in Search Form =
 Spam bots can use your search form to make a GET request with spam text. CleanTalk Anti-Spam has the option to protect your website search form from spam bots. Each time, the search generates a new page and if there are many requests, this can create additional load. So, under some conditions, spam searches can be indexed, which affects SEO,
 
-* Spam FireWall blocks access to all website pages for the most active spambots. It lowers your web server load and traffic just by doing this.
 * Anti-Spam protection for website search forms repels spambots.
 * If your search form gets data too often the CleanTalk Anti-Spam plugin will add a pause and increase it with each new attempt to send data. It saves your web server processor time.
 * Spam protection allows you to not forbid indexation for the crawler bots if you really need it but simultaneously you will get protection from spambots.
@@ -227,9 +205,8 @@ This option disables comments on your site. You can choose one or several option
 
 When using Disables comments, existing comments will not be deleted and will remain on the pages.
 
-= Email Address Encoder =
-
-CleanTalk Anti-Spam offers a feature called "Encode contact data" that is designed to encode all email addresses on the website pages. Encoding the email addresses increases the level of protection of contact data from being abused, parsed, getting spammed and used in spam mailing lists by bots and online criminals. To reveal the encoded email address simply click on it and it will be decoded instantly.
+= Email, Phones Address Encoder =
+CleanTalk Anti-Spam offers a feature called "Encode contact data" that is designed to encode all email addresses on the website pages. Encoding email, phontes addresses increases the level of protection of contact data from being abused, parsed, getting spammed and used in spam mailing lists by bots and online criminals. To reveal the encoded email address simply click on it and it will be decoded instantly.
 
 = Will the anti-spam plugin protect my theme? =
 Yes, it will. The Anti-spam by CleanTalk is compatible with any WordPress theme.
@@ -431,6 +408,30 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
+= 6.60 17.07.2025 =
+* New. BlockServerRequirements. Added a block with the Server Requirements output
+* Mod. BlockServerRequirements. Changed in layout, title, link to the article
+* Fix. Code. URLs collecting. Probably fatal error fixed due JSON decoding.
+* Fix. Code. EmailEncoder.php. Probably fatal fixed on JSON decoding due null passed as decoded emails array on logging.
+* New. Integration. Integration with the SureForms plugin
+* Fix. BlockServerRequirements. Style edits
+* Fix. BlockServerRequirements. Adding information about requirements to a class, changing access to the Requirements variable
+* New. Integration. Integration with SureForms, a new approach to rest integrations
+* Fix. Integration. AjaxLogin integration fixed.
+* New. FluentCommunity. Skipping a request from the login form
+* Fix. Integrations. Newsletter. Fixed warning on acces array offset.
+* Fix. FirewallModule. Added a hook to set special cookie "apbct_firewall_die" to skip page caching.
+* Fix. Integration. Ninja Forms. Fields collection fixed.
+* Fix. Integration. WP Forms. Fields collection fixed.
+* Mod. SureForms. Separate implementation of rest route interception, editing of block message output
+* Fix. SFW. Skip check on probably missed tables due update process.
+* Fix. Code. Code direct call preventing.
+* Fix. Alt sessions. Incoming data validation. 
+* Fix. API. Restored missed first param $url on callback action checkResponse to avoid secound param $method_name missing.
+* Fix. SureForms. Edits based on the review
+* Fix. Integrations. JS. Do not handle onSubmit middleware for the Events Calendar search form.
+* Fix. DB. Table "cleantalk_sessions". If table index is incorrect then recreate the table via updater due update to v6.60.
+
 = 6.59 03.07.2025 =
 * Upd. Tests. Reorganizing the file structure of the tests folder
 * New. PhpUnit. A separate script for calculating coverage
@@ -439,7 +440,7 @@ Yes, it is. Please read this article,
 * Mod. ShortCodeSkipEncode. Removing the shortcut functionality for skipping from encoding
 * Fix. ShortCodeSkipEncode. Editing text insertion
 * Fix. ShortCodeSkipEncode. Removing the skip test from coding
-* Fix. Integrations. Update woocommerce nickname gathering. 
+* Fix. Integrations. Update woocommerce nickname gathering.
 * Fix. Integration. Cover-style protection adapted for Zoho iframes.
 * Fix. Clear $_POST service fields after basecall.
 * Fix. Integration. Fluent form steps ignore.
@@ -448,7 +449,7 @@ Yes, it is. Please read this article,
 * New. Integration. Mailchimp embed forms. Form values replacement adapted.
 * New. Hook. Filter user roles who can see the dashboard widget.
 * Mod. RequirementsChecker. Nested check allow_url_fopen dependent on cURL
-* Ref. Integrations. Updated wp-json handler. 
+* Ref. Integrations. Updated wp-json handler.
 * Fix. Skip check. Added entry point for breakdance forms.
 * New. Integration. QuickCal integration protection implemented.
 * New. Integrations. RegistrationMagic plugin - prtotect registration.
@@ -463,6 +464,8 @@ Yes, it is. Please read this article,
 * Code. Constants "skip_anticrawler_on_rss_feed" and "set_ajax_route_type" are adapted to ServiceConstants class.
 * New. Common. Do not exclude no-email requests if constant "APBCT_SERVICE__DISABLE_EMPTY_EMAIL_EXCEPTION".
 * Fix. Integration. AjaxLogin integration fixed.
+* Fix. CheckServerRequirements. Style css edit
+* Fix. WPForms. Editing the username receipt
 
 = 6.58.1 20.06.2025 =
 * Fix. Honeypot. Hidden input for search form fixed.

@@ -1,5 +1,10 @@
 <?php
 
+// Prevent direct call
+if ( ! defined('ABSPATH') ) {
+    die('Not allowed!');
+}
+
 $top_info_tmp = '
     <div class="apbct_settings_top_info__div">
     <p class="apbct_settings_top_info__p">%SUPPORT_BRAND%&nbsp<a target="_blank" href="%SUPPORT_LINK%">%SUPPORT_URL_TEXT%</a></p>
