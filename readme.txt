@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 6.57.2
+Stable tag: 6.58
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
@@ -96,13 +96,19 @@ The plugin blocks spam emails via any theme (built-in ones included) contact for
 = bbPress spam filter =
 Spam protection for everything about bbPress: logins, registrations, forums, topics and replies.
 
-= Other spam filters =
-* WordPress Landing Pages.
+= Many other great contact, signups and all kind of forms that supported by CleanTalk =
+* AWeber form builder <a href="https://wordpress.org/plugins/aweber-web-form-widget/">https://wordpress.org/plugins/aweber-web-form-widget/</a>
+* Contact form by BestWebSoft <a href="https://wordpress.org/plugins/contact-form-plugin/">https://wordpress.org/plugins/contact-form-plugin/</a>
+* Contact Form Plugin by Fluent Forms Ninja forms <a href="https://fluentforms.com/">https://fluentforms.com</a>
+* Forminator contact from <a href="https://wpmudev.com/project/forminator-pro/">https://wpmudev.com/project/forminator-pro/</a>
+* Ninja forms <a href="https://ninjaforms.com/">https://ninjaforms.com</a>
+* Newsletters - MC4WP: Mailchimp for WordPress (<a href="https://www.mc4wp.com/">mc4wp.com</a>), MailPoet – emails and newsletters in WordPress (https://www.mailpoet.com/)
+* WS Form Lite <a href="https://wordpress.org/plugins/ws-form/">https://wordpress.org/plugins/ws-form/</a>
 * WP User Frontend, UserPro.
-* Ninja forms <a href="https://ninjaforms.com/">https://ninjaforms.com</a>.
-* Contact Form Plugin by Fluent Forms Ninja forms <a href="https://fluentforms.com/">https://fluentforms.com</a>.
-* Forminator contact from <a href="https://wpmudev.com/project/forminator-pro/">https://wpmudev.com/project/forminator-pro/</a>.
-* Newsletters - MC4WP: Mailchimp for WordPress (<a href="https://www.mc4wp.com/">mc4wp.com</a>), MailPoet – emails and newsletters in WordPress (https://www.mailpoet.com/).
+* WordPress Landing Pages.
+
+Protectoin for forms above works as built-in function of Anti-Spam by CleanTalk, without any additional actions from a user. Anywaym, if you have missed spam, try to activate a few options below. If nothing helps, ask for help at support forum <a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/">https://wordpress.org/support/plugin/cleantalk-spam-protect/</a>
+
 * Any WordPress form (checkbox 'Custom contact forms').
 * Any submission to the site (checkbox 'Check all POST data').
 
@@ -344,21 +350,7 @@ CleanTalk is fully compatible with CloudFlare. Service doesn't filter CloudFlare
 Yes, it is. CleanTalk works with any CDN system, i.e. CloudFlare, MaxCDN, Akamai.
 
 = Can I use CleanTalk functionality in my plugins? =
-Yes, you can. Just use following snippet:
-
-    <?php
-    if(!function_exists('ct_test_message')){
-    	include_once( ABSPATH . '/wp-content/plugins/cleantalk-spam-protect/cleantalk.php' );
-    }
-    //for registration test:
-    $res=ct_test_registration("nickname", "stop_email@example.com", "127.0.0.1");
-    //or for some other messages (contact forms, comments etc.)
-    $res=ct_test_message("nickname", "stop_email@example.com", "127.0.0.1", "test message");
-
-
-$res now contents array with two parameters:
-  * $res['allow'] - is request allowed (1) or not (0)
-  * $res['comment'] - comment for our server's decision.
+Yes, you can. Follow this guide <a href="https://cleantalk.org/help/api-check-message">https://cleantalk.org/help/api-check-message</a>
 
 = I see two loads of script cleantalk_nocache.js. Why do you use it twice? =
 This script is used for AJAX JavaScript checking. Different themes use different mechanisms of loading, so we use two methods for loading our script. If you absolutely know what you are doing, you can switch one of the methods off by defining constants in your wp-config.php file:
@@ -404,15 +396,6 @@ Yes, it does. But you have to turn off the SpamFireWall and the option 'Use AJAX
 = Should I change anything in the plugin's settings or in my CleanTalk Dashboard when I switch my website from HTTP to HTTPS or vice versa? =
 No. You don't need to change anything in the plugin's settings or in your CleanTalk Dashboard. The plugin will work regardless of the protocol.
 
-= Spam FireWall and AntiSpam - Networks Blocking =
-
-Anti-Spam - will blocks users from selected IP or network from using contacts/messages/registrations/comments forms.
-Spam FireWall - will blocks users from selected IP or network from entering the website.
-
-Please, read more here
-https://cleantalk.org/help/sfw-blocks-networks
-
-
 = Spam Comment Management =
 
 By default, all spam comments are placed in the spam folder, now you can change the way the plugin deals with spam comments:
@@ -447,6 +430,16 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.58 18.06.2025 =
+* Upd. Settings. Updated hosting license flow.
+* Upd. Remote Calls. Debug call improved - show alt. sessions status.
+* Mod. AJAXService. Separating hack connections into a separate class, editing no_priv, renaming the function to AJAXService.
+* Fix. Encoder. Encoding content by hooks fixed.
+* Fix. Honeypot. Remove label for the Wave validator compatibility.
+* Fix. Honeypot. Aria attribute added for label tag.
+* Fix. Integration. WP Forms integration protection fixed.
+* Fix. Integration. Forminator protection improved.
 
 = 6.57.2 09.06.2025 =
 * Fix. Integration. WP Forms integration protection fixed.

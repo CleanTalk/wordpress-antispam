@@ -192,6 +192,7 @@ function minify_public_js_files() {
         }))
         .pipe(uglify())
         .pipe(rename({suffix: '.min'}))
+        .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('js'));
 }
 

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.57.2
+  Version: 6.58
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -14,7 +14,6 @@
 use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
-use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\ApbctWP\Antispam\ForceProtection;
 use Cleantalk\ApbctWP\API;
@@ -231,41 +230,8 @@ function apbct_register_my_rest_routes()
     $controller->register_routes();
 }
 
-// Alt cookies via WP ajax handler
-$apbct->ajax_service->addPublicAction(
-    'apbct_alt_session__save__AJAX',
-    array(
-        Cleantalk\ApbctWP\Variables\AltSessions::class,
-        'setFromRemote'
-    )
-);
-// Get JS via WP ajax handler
-$apbct->ajax_service->addPublicAction('apbct_js_keys__get', array($apbct->ajax_service, 'getJSKeys'));
-// Get Pixel URL via WP ajax handler
-$apbct->ajax_service->addPublicAction('apbct_get_pixel_url', 'apbct_get_pixel_url');
-// Checking email before POST
-$apbct->ajax_service->addPublicAction(
-    'apbct_email_check_before_post',
-    'apbct_email_check_before_post',
-    'no_priv'
-);
-// Checking email exist POST
-$apbct->ajax_service->addPublicAction(
-    'apbct_email_check_exist_post',
-    'apbct_email_check_exist_post',
-    'no_priv'
-);
-// Force Protection check bot
-$apbct->ajax_service->addPublicAction(
-    'apbct_force_protection_check_bot',
-    'apbct_force_protection_check_bot',
-    'no_priv'
-);
-// Force ajax set important parameters (apbct_timestamp etc)
-$apbct->ajax_service->addPublicAction(
-    'apbct_set_important_parameters',
-    'apbct_cookie'
-);
+// Register hooks for AJAX requests
+\Cleantalk\ApbctWP\HooksRegistrar::registerAjaxHooks($apbct->ajax_service);
 
 // Database prefix
 global $wpdb, $wp_version;
@@ -1946,7 +1912,8 @@ function ct_sfw_send_logs($api_key = '')
     if (
         time() - $apbct->stats['sfw']['sending_logs__timestamp'] < 180 ||
         empty($api_key) ||
-        $apbct->settings['sfw__enabled'] != 1
+        $apbct->settings['sfw__enabled'] != 1 ||
+        apbct__is_hosting_license()
     ) {
         return true;
     }
@@ -2879,15 +2846,24 @@ function ct_cron_send_js_error_report_email()
  */
 function apbct_cron_clear_old_session_data()
 {
-    global $wpdb;
+    global $wpdb, $apbct;
 
     $query = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like(APBCT_TBL_SESSIONS));
     $session_table_exists = $wpdb->get_var($query);
+
     if (empty($session_table_exists)) {
         return;
     }
 
-    \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
+    $res = \Cleantalk\ApbctWP\Variables\AltSessions::cleanFromOld();
+
+    $session_clear_log = get_option('cleantalk_sessions_clear_log', []);
+    $session_clear_log[] = array(
+        'time' => time(),
+        'result' => $res,
+    );
+    $session_clear_log = array_slice((array)$session_clear_log, -4, 4, true);
+    update_option('cleantalk_sessions_clear_log', $session_clear_log);
 
     $ct_cron = new Cron();
     if (\Cleantalk\ApbctWP\Variables\AltSessions::checkHasUndeletedOldSessions()) {

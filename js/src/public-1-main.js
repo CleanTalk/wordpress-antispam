@@ -366,6 +366,10 @@ class ApbctHandler {
             return true;
         }
 
+        if (formAction.indexOf('secureinternetbank.com') !== -1 ) {
+            return true;
+        }
+
         if (typeof (hiddenFieldType) === 'string' &&
             ['visible_fields', 'no_cookie'].indexOf(hiddenFieldType) !== -1) {
             const exclusions = this.getHiddenFieldExclusionsType(form);

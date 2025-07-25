@@ -3,12 +3,13 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Variables\AltSessions;
+use Cleantalk\Common\TT;
 
 class Honeypot
 {
     /**
      * Returns HTML of a honeypot hidden field to the form. If $form_method is GET, adds a hidden submit button.
-     * @param $form_type
+     * @param string $form_type
      * @param string $form_method
      * @return string
      */
@@ -22,30 +23,42 @@ class Honeypot
 
         // generate the honeypot trap input
         $honeypot =
-            '<label id="apbct_label_id_' . mt_rand(0, 100000) . '" class="apbct_special_field">' . // field label (preventing validators warning)
                 '<input
-                    class="apbct_special_field apbct__email_id__' . $form_type . '"
-                    name="apbct_email_id__' . $form_type . '"
+                    class="apbct_special_field %s"
+                    name="%s"
+                    aria-label="%s"
                     type="text" size="30" maxlength="200" autocomplete="off"
                     value=""
-                />' .
-            '</label>';
+                />';
 
-        if ($form_method === 'post') {
-            return $honeypot;
-        }
+        $honeypot = sprintf(
+            $honeypot,
+            esc_attr('apbct_email_id__' . $form_type),
+            esc_attr('apbct__email_id__' . $form_type),
+            esc_attr('apbct__label_id__' . $form_type)
+        );
 
-        // if GET, place a submit button if method is get to prevent keyboard send misfunction
-        return $honeypot .
-               '<input
-                   id="apbct_submit_id__' . $form_type . '" 
-                   class="apbct_special_field apbct__email_id__' . $form_type . '"
-                   name="apbct_submit_id__' . $form_type . '"  
+        $submit_for_get_forms = '<input
+                   id="%s" 
+                   class="%s"
+                   name="%s"
+                   aria-label="%s"
                    type="submit"
                    size="30"
                    maxlength="200"
-                   value="' . mt_rand(0, 100000) . '"
+                   value="%s"
                />';
+
+        $submit_for_get_forms = sprintf(
+            $submit_for_get_forms,
+            esc_attr('apbct_submit_id__' . $form_type),
+            esc_attr('apbct__email_id__' . $form_type),
+            esc_attr('apbct__label_id__' . $form_type),
+            esc_attr('apbct_submit_name__' . $form_type),
+            TT::toString(mt_rand(0, 100000))
+        );
+
+        return $form_method === 'post' ? $honeypot : $honeypot . $submit_for_get_forms;
     }
 
     /**

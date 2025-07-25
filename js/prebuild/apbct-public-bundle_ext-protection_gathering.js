@@ -2904,8 +2904,547 @@ if (ctPublic.data__key_is_ok) {
         apbct_attach_event_handler(document, 'DOMContentLoaded', apbct_ready);
     }
 
+<<<<<<< HEAD:js/prebuild/apbct-public-bundle_ext-protection_gathering.js
     if (ctPublic.data__cookies_type === 'native') {
         ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true );
+=======
+    apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true );
+}
+
+/**
+ * @param {SubmitEvent} e
+ * @param {object} targetForm
+ */
+function ctSearchFormOnSubmitHandler(e, targetForm) {
+    try {
+        // get honeypot field and it's value
+        const honeyPotField = targetForm.querySelector('[name*="apbct_email_id__"]');
+        let hpValue = null;
+        if (
+            honeyPotField !== null &&
+            honeyPotField.value !== null
+        ) {
+            hpValue = honeyPotField.value;
+        }
+
+        // get cookie data from storages
+        let cleantalkStorageDataArray = getCleanTalkStorageDataArray();
+
+        // get event token from storage
+        let eventTokenLocalStorage = apbctLocalStorage.get('bot_detector_event_token');
+
+        // if noCookie data or honeypot data is set, proceed handling
+        if ( cleantalkStorageDataArray !== null || honeyPotField !== null || eventTokenLocalStorage !== null ) {
+            e.preventDefault();
+            const callBack = () => {
+                if (honeyPotField !== null) {
+                    honeyPotField.parentNode.removeChild(honeyPotField);
+                }
+                if (typeof targetForm.apbctSearchPrevOnsubmit === 'function') {
+                    targetForm.apbctSearchPrevOnsubmit();
+                } else {
+                    HTMLFormElement.prototype.submit.call(targetForm);
+                }
+            };
+
+            let cookiesArray = cleantalkStorageDataArray;
+
+            // if honeypot data provided add the fields to the parsed data
+            if ( hpValue !== null ) {
+                cookiesArray.apbct_search_form__honeypot_value = hpValue;
+            }
+
+            // set event token
+            cookiesArray.ct_bot_detector_event_token = eventTokenLocalStorage;
+
+            // if the pixel needs to be decoded
+            if (
+                typeof cookiesArray.apbct_pixel_url === 'string' &&
+                cookiesArray.apbct_pixel_url.indexOf('%3A') !== -1
+            ) {
+                cookiesArray.apbct_pixel_url = decodeURIComponent(cookiesArray.apbct_pixel_url);
+            }
+
+            // data to JSON
+            const parsedCookies = JSON.stringify(cookiesArray);
+
+            // if any data provided, proceed data to xhr
+            if ( typeof parsedCookies !== 'undefined' && parsedCookies.length !== 0 ) {
+                ctSetAlternativeCookie(
+                    parsedCookies,
+                    {callback: callBack, onErrorCallback: callBack, forceAltCookies: true},
+                );
+            } else {
+                callBack();
+            }
+        }
+    } catch (error) {
+        console.warn('APBCT search form onsubmit handler error. ' + error);
+    }
+}
+
+/**
+ * @param {mixed} commonCookies
+ * @return {string}
+ */
+function getJavascriptClientData(commonCookies = []) { // eslint-disable-line no-unused-vars
+    let resultDataJson = {};
+
+    resultDataJson.ct_checked_emails = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails');
+    resultDataJson.ct_checked_emails_exist = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails_exist');
+    resultDataJson.ct_checkjs = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checkjs');
+    resultDataJson.ct_fkp_timestamp = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_fkp_timestamp');
+    resultDataJson.ct_pointer_data = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_pointer_data');
+    resultDataJson.ct_ps_timestamp = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_ps_timestamp');
+    resultDataJson.ct_screen_info = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_screen_info');
+    resultDataJson.ct_timezone = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_timezone');
+
+    // collecting data from localstorage
+    const ctMouseMovedLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
+    const ctHasScrolledLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
+    const ctCookiesTypeLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
+    const apbctPageHits = apbctLocalStorage.get('apbct_page_hits');
+    const apbctPrevReferer = apbctSessionStorage.get('apbct_prev_referer');
+    const apbctSiteReferer = apbctSessionStorage.get('apbct_site_referer');
+    const ctJsErrorsLocalStorage = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'ct_js_errors');
+    const ctPixelUrl = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
+    const apbctHeadless = apbctLocalStorage.get(ctPublicFunctions.cookiePrefix + 'apbct_headless');
+    const ctBotDetectorFrontendDataLog = apbctLocalStorage.get(
+        ctPublicFunctions.cookiePrefix + 'ct_bot_detector_frontend_data_log',
+    );
+
+    // collecting data from cookies
+    const ctMouseMovedCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_mouse_moved');
+    const ctHasScrolledCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_has_scrolled');
+    const ctCookiesTypeCookie = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_cookies_type');
+    const ctCookiesPixelUrl = ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_pixel_url');
+    const apbctHeadlessNative = !!ctGetCookie(ctPublicFunctions.cookiePrefix + 'apbct_headless');
+
+
+    resultDataJson.ct_mouse_moved = ctMouseMovedLocalStorage !== undefined ?
+        ctMouseMovedLocalStorage : ctMouseMovedCookie;
+    resultDataJson.ct_has_scrolled = ctHasScrolledLocalStorage !== undefined ?
+        ctHasScrolledLocalStorage : ctHasScrolledCookie;
+    resultDataJson.ct_cookies_type = ctCookiesTypeLocalStorage !== undefined ?
+        ctCookiesTypeLocalStorage : ctCookiesTypeCookie;
+    resultDataJson.apbct_pixel_url = ctPixelUrl !== undefined ?
+        ctPixelUrl : ctCookiesPixelUrl;
+    resultDataJson.apbct_headless = apbctHeadless !== undefined ?
+        apbctHeadless : apbctHeadlessNative;
+    resultDataJson.ct_bot_detector_frontend_data_log = ctBotDetectorFrontendDataLog !== undefined ?
+        ctBotDetectorFrontendDataLog : '';
+    if (resultDataJson.apbct_pixel_url && typeof(resultDataJson.apbct_pixel_url) == 'string') {
+        if (resultDataJson.apbct_pixel_url.indexOf('%3A%2F')) {
+            resultDataJson.apbct_pixel_url = decodeURIComponent(resultDataJson.apbct_pixel_url);
+        }
+    }
+
+    resultDataJson.apbct_page_hits = apbctPageHits;
+    resultDataJson.apbct_prev_referer = apbctPrevReferer;
+    resultDataJson.apbct_site_referer = apbctSiteReferer;
+    resultDataJson.apbct_ct_js_errors = ctJsErrorsLocalStorage;
+
+    if (!resultDataJson.apbct_pixel_url) {
+        resultDataJson.apbct_pixel_url = ctPublic.pixel__url;
+    }
+
+    if ( typeof (commonCookies) === 'object') {
+        for (let i = 0; i < commonCookies.length; ++i) {
+            if ( typeof (commonCookies[i][1]) === 'object' ) {
+                // this is for handle SFW cookies
+                resultDataJson[commonCookies[i][1][0]] = commonCookies[i][1][1];
+            } else {
+                resultDataJson[commonCookies[i][0]] = commonCookies[i][1];
+            }
+        }
+    } else {
+        console.log('APBCT JS ERROR: Collecting data type mismatch');
+    }
+
+    // Parse JSON properties to prevent double JSON encoding
+    resultDataJson = removeDoubleJsonEncoding(resultDataJson);
+
+
+    return JSON.stringify(resultDataJson);
+}
+
+/**
+ * Recursive
+ *
+ * Recursively decode JSON-encoded properties
+ *
+ * @param {mixed} object
+ * @return {*}
+ */
+function removeDoubleJsonEncoding(object) {
+    if ( typeof object === 'object') {
+        // eslint-disable-next-line guard-for-in
+        for (let objectKey in object) {
+            // Recursion
+            if ( typeof object[objectKey] === 'object') {
+                object[objectKey] = removeDoubleJsonEncoding(object[objectKey]);
+            }
+
+            // Common case (out)
+            if (
+                typeof object[objectKey] === 'string' &&
+                object[objectKey].match(/^[\[{].*?[\]}]$/) !== null // is like JSON
+            ) {
+                const parsedValue = JSON.parse(object[objectKey]);
+                if ( typeof parsedValue === 'object' ) {
+                    object[objectKey] = parsedValue;
+                }
+            }
+        }
+    }
+
+    return object;
+}
+
+// eslint-disable-next-line camelcase,require-jsdoc
+function apbct_collect_visible_fields( form ) {
+    // Get only fields
+    let inputs = [];
+    let inputsVisible = '';
+    let inputsVisibleCount = 0;
+    let inputsInvisible = '';
+    let inputsInvisibleCount = 0;
+    let inputsWithDuplicateNames = [];
+
+    for (let key in form.elements) {
+        if (!isNaN(+key)) {
+            inputs[key] = form.elements[key];
+        }
+    }
+
+    // Filter fields
+    inputs = inputs.filter(function(elem) {
+        // Filter already added fields
+        if ( inputsWithDuplicateNames.indexOf( elem.getAttribute('name') ) !== -1 ) {
+            return false;
+        }
+        // Filter inputs with same names for type == radio
+        if ( -1 !== ['radio', 'checkbox'].indexOf( elem.getAttribute('type') )) {
+            inputsWithDuplicateNames.push( elem.getAttribute('name') );
+            return false;
+        }
+        return true;
+    });
+
+    // Visible fields
+    inputs.forEach(function(elem, i, elements) {
+        // Unnecessary fields
+        if (
+            elem.getAttribute('type') === 'submit' || // type == submit
+            elem.getAttribute('name') === null ||
+            elem.getAttribute('name') === 'ct_checkjs'
+        ) {
+            return;
+        }
+        // Invisible fields
+        if (
+            getComputedStyle(elem).display === 'none' || // hidden
+            getComputedStyle(elem).visibility === 'hidden' || // hidden
+            getComputedStyle(elem).opacity === '0' || // hidden
+            elem.getAttribute('type') === 'hidden' // type == hidden
+        ) {
+            if ( elem.classList.contains('wp-editor-area') ) {
+                inputsVisible += ' ' + elem.getAttribute('name');
+                inputsVisibleCount++;
+            } else {
+                inputsInvisible += ' ' + elem.getAttribute('name');
+                inputsInvisibleCount++;
+            }
+            // eslint-disable-next-line brace-style
+        }
+        // Visible fields
+        else {
+            inputsVisible += ' ' + elem.getAttribute('name');
+            inputsVisibleCount++;
+        }
+    });
+
+    inputsInvisible = inputsInvisible.trim();
+    inputsVisible = inputsVisible.trim();
+
+    return {
+        visible_fields: inputsVisible,
+        visible_fields_count: inputsVisibleCount,
+        invisible_fields: inputsInvisible,
+        invisible_fields_count: inputsInvisibleCount,
+    };
+}
+
+// eslint-disable-next-line camelcase,require-jsdoc
+function apbct_visible_fields_set_cookie( visibleFieldsCollection, formId ) {
+    let collection = typeof visibleFieldsCollection === 'object' && visibleFieldsCollection !== null ?
+        visibleFieldsCollection : {};
+
+    if ( ctPublic.data__cookies_type === 'native' ) {
+        // eslint-disable-next-line guard-for-in
+        for ( let i in collection ) {
+            if ( i > 10 ) {
+                // Do not generate more than 10 cookies
+                return;
+            }
+            let collectionIndex = formId !== undefined ? formId : i;
+            ctSetCookie('apbct_visible_fields_' + collectionIndex, JSON.stringify( collection[i] ) );
+        }
+    } else {
+        ctSetCookie('apbct_visible_fields', JSON.stringify( collection ) );
+    }
+}
+
+// eslint-disable-next-line camelcase,require-jsdoc,no-unused-vars
+function apbct_js_keys__set_input_value(result, data, params, obj) {
+    if ( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
+        let elements = document.querySelectorAll('[name^=ct_checkjs]');
+        for ( let i = 0; i < elements.length; i++ ) {
+            elements[i].value = result.js_key;
+        }
+    }
+}
+
+/**
+ * @return {string}
+ */
+function apbctGetScreenInfo() {
+    return JSON.stringify({
+        fullWidth: document.documentElement.scrollWidth,
+        fullHeight: Math.max(
+            document.body.scrollHeight, document.documentElement.scrollHeight,
+            document.body.offsetHeight, document.documentElement.offsetHeight,
+            document.body.clientHeight, document.documentElement.clientHeight,
+        ),
+        visibleWidth: document.documentElement.clientWidth,
+        visibleHeight: document.documentElement.clientHeight,
+    });
+}
+
+// eslint-disable-next-line require-jsdoc
+function ctParseBlockMessage(response) {
+    let msg = '';
+    if (typeof response.apbct !== 'undefined') {
+        response = response.apbct;
+        if (response.blocked) {
+            msg = response.comment;
+        }
+    }
+    if (typeof response.data !== 'undefined') {
+        response = response.data;
+        if (response.message !== undefined) {
+            msg = response.message;
+        }
+    }
+
+    if (msg) {
+        document.dispatchEvent(
+            new CustomEvent( 'apbctAjaxBockAlert', {
+                bubbles: true,
+                detail: {message: msg},
+            } ),
+        );
+
+        // Show the result by modal
+        cleantalkModal.loaded = msg;
+        cleantalkModal.open();
+
+        if (+response.stop_script === 1) {
+            window.stop();
+        }
+    }
+}
+
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function ctSetPixelUrlLocalstorage(ajaxPixelUrl) {
+    // set pixel to the storage
+    ctSetCookie('apbct_pixel_url', ajaxPixelUrl);
+}
+
+// eslint-disable-next-line require-jsdoc
+function ctNoCookieConstructHiddenField(type) {
+    let inputType = 'hidden';
+    if (type === 'submit') {
+        inputType = 'submit';
+    }
+    let field = '';
+
+    let noCookieData = getCleanTalkStorageDataArray();
+    noCookieData = JSON.stringify(noCookieData);
+    noCookieData = '_ct_no_cookie_data_' + btoa(noCookieData);
+    field = document.createElement('input');
+    field.setAttribute('name', 'ct_no_cookie_hidden_field');
+    field.setAttribute('value', noCookieData);
+    field.setAttribute('type', inputType);
+    field.classList.add('apbct_special_field');
+    field.classList.add('ct_no_cookie_hidden_field');
+    return field;
+}
+
+/**
+ * Retrieves the clentalk "cookie" data from starages.
+ * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity}.
+ * @return {string}
+ */
+function getCleanTalkStorageDataArray() {
+    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
+    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
+
+    let noCookieDataTypo = {typo: []};
+    if (document.ctTypoData && document.ctTypoData.data) {
+        noCookieDataTypo = {typo: document.ctTypoData.data};
+    }
+
+    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
+
+    if (document.ctCollectingUserActivityData) {
+        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
+        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
+    }
+
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
+}
+
+/**
+ * @return {boolean|*}
+ */
+function ctGetPageForms() {
+    let forms = document.forms;
+    if (forms) {
+        return forms;
+    }
+    return false;
+}
+
+/**
+ * Get type of the field should be excluded. Return exclusion signs via object.
+ * @param {object} form Form dom object.
+ * @return {object} {'no_cookie': 1|0, 'visible_fields': 1|0}
+ */
+function ctGetHiddenFieldExclusionsType(form) {
+    // visible fields
+    let result = {'no_cookie': 0, 'visible_fields': 0};
+    if (
+        +ctPublic.data__visible_fields_required === 0 ||
+        (form.method.toString().toLowerCase() === 'get' &&
+        form.querySelectorAll('.nf-form-content').length === 0 &&
+        form.id !== 'twt_cc_signup') ||
+        form.classList.contains('slp_search_form') || // StoreLocatorPlus form
+        form.parentElement.classList.contains('mec-booking') ||
+        form.action.toString().indexOf('activehosted.com') !== -1 || // Active Campaign
+        (form.id && form.id === 'caspioform') || // Caspio Form
+        (form.classList && form.classList.contains('tinkoffPayRow')) || // TinkoffPayForm
+        (form.classList && form.classList.contains('give-form')) || // GiveWP
+        (form.id && form.id === 'ult-forgot-password-form') || // ult forgot password
+        (form.id && form.id.toString().indexOf('calculatedfields') !== -1) || // CalculatedFieldsForm
+        (form.id && form.id.toString().indexOf('sac-form') !== -1) || // Simple Ajax Chat
+        (form.id &&
+            form.id.toString().indexOf('cp_tslotsbooking_pform') !== -1) || // WP Time Slots Booking Form
+        (form.name &&
+            form.name.toString().indexOf('cp_tslotsbooking_pform') !== -1) || // WP Time Slots Booking Form
+        form.action.toString() === 'https://epayment.epymtservice.com/epay.jhtml' || // Custom form
+        (form.name && form.name.toString().indexOf('tribe-bar-form') !== -1) || // The Events Calendar
+        (form.id && form.id === 'ihf-login-form') || // Optima Express login
+        (form.id &&
+            form.id === 'subscriberForm' &&
+            form.action.toString().indexOf('actionType=update') !== -1) || // Optima Express update
+        (form.id && form.id === 'ihf-main-search-form') || // Optima Express search
+        (form.id && form.id === 'frmCalc') || // nobletitle-calc
+        form.action.toString().indexOf('property-organizer-delete-saved-search-submit') !== -1 ||
+        form.querySelector('a[name="login"]') !== null // digimember login form
+    ) {
+        result.visible_fields = 1;
+    }
+
+    // ajax search pro exclusion
+    let ncFieldExclusionsSign = form.parentNode;
+    if (
+        ncFieldExclusionsSign && ncFieldExclusionsSign.classList.contains('proinput') ||
+        (form.name === 'options' && form.classList.contains('asp-fss-flex'))
+    ) {
+        result.no_cookie = 1;
+    }
+
+    // woocommerce login form
+    if (
+        form && form.classList.contains('woocommerce-form-login')
+    ) {
+        result.visible_fields = 1;
+        result.no_cookie = 1;
+    }
+
+    return result;
+}
+
+/**
+ * Check if the form should be skipped from hidden field attach.
+ * Return exclusion description if it is found, false otherwise.
+ * @param {object} form Form dom object.
+ * @param {string} hiddenFieldType Type of hidden field that needs to be checked.
+ * Possible values: 'no_cookie'|'visible_fields'.
+ * @return {boolean}
+ */
+function ctCheckHiddenFieldsExclusions(form, hiddenFieldType) {
+    const formAction = typeof(form.action) == 'string' ? form.action : '';
+    // Ajax Search Lite
+    if (Boolean(form.querySelector('fieldset.asl_sett_scroll'))) {
+        return true;
+    }
+    // Super WooCommerce Product Filter
+    if (form.classList.contains('swpf-instant-filtering')) {
+        return true;
+    }
+    // PayU 3-rd party service forms
+    if (formAction.indexOf('secure.payu.com') !== -1 ) {
+        return true;
+    }
+
+    if (formAction.indexOf('hsforms') !== -1 ) {
+        return true;
+    }
+
+    if (formAction.indexOf('secureinternetbank.com') !== -1 ) {
+        return true;
+    }
+
+    if (typeof (hiddenFieldType) === 'string' &&
+        ['visible_fields', 'no_cookie'].indexOf(hiddenFieldType) !== -1) {
+        const exclusions = ctGetHiddenFieldExclusionsType(form);
+        return exclusions[hiddenFieldType] === 1;
+    }
+
+    return false;
+}
+
+/**
+ * ctNoCookieAttachHiddenFieldsToForms
+ */
+function ctNoCookieAttachHiddenFieldsToForms() {
+    if (ctPublic.data__cookies_type !== 'none') {
+        return;
+    }
+
+    let forms = ctGetPageForms();
+
+    if (forms) {
+        for ( let i = 0; i < forms.length; i++ ) {
+            if ( ctCheckHiddenFieldsExclusions(document.forms[i], 'no_cookie') ) {
+                continue;
+            }
+
+            // ignore forms with get method @todo We need to think about this
+            if (document.forms[i].getAttribute('method') === null ||
+                document.forms[i].getAttribute('method').toLowerCase() === 'post') {
+                // remove old sets
+                let fields = forms[i].querySelectorAll('.ct_no_cookie_hidden_field');
+                for ( let j = 0; j < fields.length; j++ ) {
+                    fields[j].outerHTML = '';
+                }
+                // add new set
+                document.forms[i].append(ctNoCookieConstructHiddenField());
+            }
+        }
+>>>>>>> tag-6.58:js/src/apbct-public-bundle_ext-protection_comm-func.js
     }
 }
 
