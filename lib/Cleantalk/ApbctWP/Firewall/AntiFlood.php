@@ -70,6 +70,10 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
     {
         $results = array();
 
+        if (empty($apbct->key_is_ok)) {
+            return $results;
+        }
+
         $this->clearTable();
 
         $time = time() - $this->store_interval;

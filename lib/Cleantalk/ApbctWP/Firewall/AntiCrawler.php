@@ -172,6 +172,10 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     {
         $results = array();
 
+        if (empty($apbct->key_is_ok)) {
+            return $results;
+        }
+
         foreach ( $this->ip_array as $_ip_origin => $current_ip ) {
             // Skip by 301 response code
             if ( $this->isRedirected() ) {
