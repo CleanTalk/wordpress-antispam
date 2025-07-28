@@ -122,7 +122,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     {
         global $apbct;
 
-
         $results = array();
         $status  = 0;
 
