@@ -2972,8 +2972,9 @@ if (ctPublic.data__key_is_ok) {
         apbct_attach_event_handler(document, 'DOMContentLoaded', apbct_ready);
     }
 
+    apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
     if (ctPublic.data__cookies_type === 'native') {
-        ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true );
+        ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true);
     }
 }
 
