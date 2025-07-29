@@ -135,7 +135,7 @@ class AdminNotices
      */
     public function notice_get_key_error() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if (isset($this->apbct->errors['key_get']) && 
+        if (isset($this->apbct->errors['key_get']) &&
             !empty($this->apbct->errors['key_get']) && !$this->apbct->white_label
         ) {
             $banner_data = new BannerDataDto();
