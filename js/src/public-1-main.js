@@ -899,7 +899,7 @@ class ApbctShowForbidden {
          * @param {object} xhr
          * @return {void}
          */
-        const prepareBlockMessage = (xhr) => {
+        const prepareBlockMessage = function(xhr) {
             if (xhr.responseText &&
                 xhr.responseText.indexOf('"apbct') !== -1 &&
                 xhr.responseText.indexOf('DOCTYPE') === -1
@@ -910,7 +910,7 @@ class ApbctShowForbidden {
                     console.log(e.toString());
                 }
             }
-        };
+        }.bind(this);
 
         if (typeof jQuery !== 'undefined') {
             // Capturing responses and output block message for unknown AJAX forms
