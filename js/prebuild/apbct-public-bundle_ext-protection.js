@@ -2671,6 +2671,7 @@ class ApbctHandler {
                 form.getAttribute('class') === 'hb-booking-search-form' ||
                 // events calendar skip
                 (
+                    form.getAttribute('class') !== null &&
                     form.getAttribute('class').indexOf('tribe-events') !== -1 &&
                     form.getAttribute('class').indexOf('search') !== -1
                 )
