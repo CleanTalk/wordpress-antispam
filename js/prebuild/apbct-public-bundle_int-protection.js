@@ -2388,35 +2388,51 @@ class ApbctAttachData {
             return true;
         });
 
-        // Visible fields
-        inputs.forEach(function(elem, i, elements) {
+        // Batch all style computations to avoid forced layouts
+        const styleChecks = inputs.map(function(elem) {
             // Unnecessary fields
             if (
                 elem.getAttribute('type') === 'submit' || // type == submit
                 elem.getAttribute('name') === null ||
                 elem.getAttribute('name') === 'ct_checkjs'
             ) {
+                return { elem: elem, skip: true };
+            }
+
+            // Check for hidden type first (no layout required)
+            if (elem.getAttribute('type') === 'hidden') {
+                return { elem: elem, isVisible: false, isWpEditor: elem.classList.contains('wp-editor-area') };
+            }
+
+            // Batch getComputedStyle calls to avoid multiple layout thrashing
+            const computedStyle = getComputedStyle(elem);
+            const isHidden = computedStyle.display === 'none' || 
+                           computedStyle.visibility === 'hidden' || 
+                           computedStyle.opacity === '0';
+
+            return { 
+                elem: elem, 
+                isVisible: !isHidden, 
+                isWpEditor: elem.classList.contains('wp-editor-area') 
+            };
+        });
+
+        // Process the results
+        styleChecks.forEach(function(check) {
+            if (check.skip) {
                 return;
             }
-            // Invisible fields
-            if (
-                getComputedStyle(elem).display === 'none' || // hidden
-                getComputedStyle(elem).visibility === 'hidden' || // hidden
-                getComputedStyle(elem).opacity === '0' || // hidden
-                elem.getAttribute('type') === 'hidden' // type == hidden
-            ) {
-                if ( elem.classList.contains('wp-editor-area') ) {
-                    inputsVisible += ' ' + elem.getAttribute('name');
+
+            if (!check.isVisible) {
+                if (check.isWpEditor) {
+                    inputsVisible += ' ' + check.elem.getAttribute('name');
                     inputsVisibleCount++;
                 } else {
-                    inputsInvisible += ' ' + elem.getAttribute('name');
+                    inputsInvisible += ' ' + check.elem.getAttribute('name');
                     inputsInvisibleCount++;
                 }
-                // eslint-disable-next-line brace-style
-            }
-            // Visible fields
-            else {
-                inputsVisible += ' ' + elem.getAttribute('name');
+            } else {
+                inputsVisible += ' ' + check.elem.getAttribute('name');
                 inputsVisibleCount++;
             }
         });

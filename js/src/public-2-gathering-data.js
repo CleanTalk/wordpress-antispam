@@ -94,15 +94,31 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
      * @return {string}
      */
     getScreenInfo() {
+        // Batch all layout-triggering property reads to avoid forced synchronous layouts
+        const docEl = document.documentElement;
+        const body = document.body;
+        
+        // Read all layout properties in one batch
+        const layoutData = {
+            scrollWidth: docEl.scrollWidth,
+            bodyScrollHeight: body.scrollHeight,
+            docScrollHeight: docEl.scrollHeight,
+            bodyOffsetHeight: body.offsetHeight,
+            docOffsetHeight: docEl.offsetHeight,
+            bodyClientHeight: body.clientHeight,
+            docClientHeight: docEl.clientHeight,
+            docClientWidth: docEl.clientWidth
+        };
+
         return JSON.stringify({
-            fullWidth: document.documentElement.scrollWidth,
+            fullWidth: layoutData.scrollWidth,
             fullHeight: Math.max(
-                document.body.scrollHeight, document.documentElement.scrollHeight,
-                document.body.offsetHeight, document.documentElement.offsetHeight,
-                document.body.clientHeight, document.documentElement.clientHeight,
+                layoutData.bodyScrollHeight, layoutData.docScrollHeight,
+                layoutData.bodyOffsetHeight, layoutData.docOffsetHeight,
+                layoutData.bodyClientHeight, layoutData.docClientHeight,
             ),
-            visibleWidth: document.documentElement.clientWidth,
-            visibleHeight: document.documentElement.clientHeight,
+            visibleWidth: layoutData.docClientWidth,
+            visibleHeight: layoutData.docClientHeight,
         });
     }
 
@@ -670,7 +686,7 @@ function getJavascriptClientData(commonCookies = []) { // eslint-disable-line no
         resultDataJson.apbct_pixel_url = ctPublic.pixel__url;
     }
 
-    if ( typeof (commonCookies) === 'object') {
+    if (typeof (commonCookies) === 'object') {
         for (let i = 0; i < commonCookies.length; ++i) {
             if ( typeof (commonCookies[i][1]) === 'object' ) {
                 // this is for handle SFW cookies
