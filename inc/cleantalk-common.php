@@ -210,10 +210,6 @@ function apbct_base_call($params = array(), $reg_flag = false)
         $default_params['sender_info']['typo'] = Cookie::get('typo');
     }
 
-    if (RequestParameters::get('collecting_user_activity_data')) {
-        $default_params['sender_info']['collecting_user_activity_data'] = RequestParameters::get('collecting_user_activity_data');
-    }
-
     /**
      * Add exception_action sender email is empty
      */
