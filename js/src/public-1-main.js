@@ -52,27 +52,15 @@ class ApbctEventTokenTransport {
      * @return {void}
      */
     setEventTokenToAltCookies() {
-        let tokenForForceAlt = apbctLocalStorage.get('bot_detector_event_token');
         if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-            apbctLocalStorage.set('event_token_forced_set', '0');
-            if (tokenForForceAlt) {
-                initCookies.push(['ct_bot_detector_event_token', tokenForForceAlt]);
-                apbctLocalStorage.set('event_token_forced_set', '1');
-            } else {
-                tokenCheckerIntervalId = setInterval( function() {
-                    if (apbctLocalStorage.get('event_token_forced_set') === '1') {
-                        clearInterval(tokenCheckerIntervalId);
-                        return;
-                    }
-                    let eventToken = apbctLocalStorage.get('bot_detector_event_token');
-                    if (eventToken) {
-                        ctSetAlternativeCookie([['ct_bot_detector_event_token', eventToken]], {forceAltCookies: true});
-                        apbctLocalStorage.set('event_token_forced_set', '1');
-                        clearInterval(tokenCheckerIntervalId);
-                    } else {
-                    }
-                }, 1000);
-            }
+            tokenCheckerIntervalId = setInterval( function() {
+                let eventToken = apbctLocalStorage.get('bot_detector_event_token');
+                if (eventToken) {
+                    ctSetAlternativeCookie([JSON.stringify({'ct_bot_detector_event_token': eventToken})], {forceAltCookies: true});
+                    clearInterval(tokenCheckerIntervalId);
+                } else {
+                }
+            }, 1000);
         }
     }
 
@@ -1036,6 +1024,12 @@ function apbct_ready() {
     handler.catchFetchRequest();
     handler.catchJqueryAjax();
     handler.catchWCRestRequestAsMiddleware();
+
+    console.log(1);
+    if (+ctPublic.settings__data__bot_detector_enabled) {
+        console.log(2);
+        new ApbctEventTokenTransport().setEventTokenToAltCookies();
+    }
 
     if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {
         handler.toolForAntiCrawlerCheckDuringBotDetector();
