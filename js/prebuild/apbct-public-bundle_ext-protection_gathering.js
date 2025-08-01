@@ -2243,8 +2243,9 @@ class ApbctAttachData {
         if (typeof ctPublic.data__cookies_type !== 'undefined' &&
             ctPublic.data__cookies_type === 'none'
         ) {
-            ctAjaxSetupAddCleanTalkDataBeforeSendAjax();
-            ctAddWCMiddlewares();
+            const handler = new ApbctHandler();
+            handler.catchJqueryAjax();
+            handler.catchWCRestRequestAsMiddleware();
         }
     }
 
