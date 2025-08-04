@@ -3099,7 +3099,6 @@ function apbct_ready() {
         gatheringData.listenAutocomplete();
         gatheringData.gatheringTypoData();
         gatheringData.initParams();
-        gatheringData.gatheringMouseData();
     }
 
     setTimeout(function() {
@@ -4597,14 +4596,6 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
     }
 
     /**
-     * Gathering mouse data
-     * @return {void}
-     */
-    gatheringMouseData() {
-        new ApbctCollectingUserMouseActivity();
-    }
-
-    /**
      * Get screen info
      * @return {string}
      */
@@ -4730,122 +4721,6 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
                 }
             }
         }
-    }
-}
-
-/**
- * Class collecting user mouse activity data
- *
- */
-// eslint-disable-next-line no-unused-vars, require-jsdoc
-class ApbctCollectingUserMouseActivity {
-    elementBody = document.querySelector('body');
-    collectionForms = document.forms;
-    /**
-     * Constructor
-     */
-    constructor() {
-        this.setListeners();
-    }
-
-    /**
-     * Set listeners
-     */
-    setListeners() {
-        this.elementBody.addEventListener('click', (event) => {
-            this.checkElementInForms(event, 'addClicks');
-        });
-
-        this.elementBody.addEventListener('mouseup', (event) => {
-            const selectedType = document.getSelection().type.toString();
-            if (selectedType == 'Range') {
-                this.addSelected();
-            }
-        });
-
-        this.elementBody.addEventListener('mousemove', (event) => {
-            this.checkElementInForms(event, 'trackMouseMovement');
-        });
-    }
-
-    /**
-     * Checking if there is an element in the form
-     * @param {object} event
-     * @param {string} addTarget
-     */
-    checkElementInForms(event, addTarget) {
-        let resultCheck;
-        for (let i = 0; i < this.collectionForms.length; i++) {
-            if (
-                event.target.outerHTML.length > 0 &&
-                this.collectionForms[i].innerHTML.length > 0
-            ) {
-                resultCheck = this.collectionForms[i].innerHTML.indexOf(event.target.outerHTML);
-            } else {
-                resultCheck = -1;
-            }
-        }
-
-        switch (addTarget) {
-        case 'addClicks':
-            if (resultCheck < 0) {
-                this.addClicks();
-            }
-            break;
-        case 'trackMouseMovement':
-            if (resultCheck > -1) {
-                this.trackMouseMovement();
-            }
-            break;
-        default:
-            break;
-        }
-    }
-
-    /**
-     * Add clicks
-     */
-    addClicks() {
-        if (document.ctCollectingUserActivityData) {
-            if (document.ctCollectingUserActivityData.clicks) {
-                document.ctCollectingUserActivityData.clicks++;
-            } else {
-                document.ctCollectingUserActivityData.clicks = 1;
-            }
-            return;
-        }
-
-        document.ctCollectingUserActivityData = {clicks: 1};
-    }
-
-    /**
-     * Add selected
-     */
-    addSelected() {
-        if (document.ctCollectingUserActivityData) {
-            if (document.ctCollectingUserActivityData.selected) {
-                document.ctCollectingUserActivityData.selected++;
-            } else {
-                document.ctCollectingUserActivityData.selected = 1;
-            }
-            return;
-        }
-
-        document.ctCollectingUserActivityData = {selected: 1};
-    }
-
-    /**
-     * Track mouse movement
-     */
-    trackMouseMovement() {
-        if (!document.ctCollectingUserActivityData) {
-            document.ctCollectingUserActivityData = {};
-        }
-        if (!document.ctCollectingUserActivityData.mouseMovementsInsideForm) {
-            document.ctCollectingUserActivityData.mouseMovementsInsideForm = false;
-        }
-
-        document.ctCollectingUserActivityData.mouseMovementsInsideForm = true;
     }
 }
 
@@ -5464,14 +5339,7 @@ function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
         noCookieDataTypo = {typo: document.ctTypoData.data};
     }
 
-    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
-
-    if (document.ctCollectingUserActivityData) {
-        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
-        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
-    }
-
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo};
 }
 
 /**

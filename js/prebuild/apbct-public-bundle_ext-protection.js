@@ -3099,7 +3099,6 @@ function apbct_ready() {
         gatheringData.listenAutocomplete();
         gatheringData.gatheringTypoData();
         gatheringData.initParams();
-        gatheringData.gatheringMouseData();
     }
 
     setTimeout(function() {
