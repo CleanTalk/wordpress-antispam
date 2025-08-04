@@ -3386,6 +3386,7 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     const prev = currentForm.previousSibling;
     const formHtml = currentForm.outerHTML;
     const formOriginal = currentForm;
+    const formContent = currentForm.querySelectorAll('input, textarea, select');
 
     // Remove the original form
     currentForm.parentElement.removeChild(currentForm);
@@ -3393,7 +3394,26 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     // Insert a clone
     const placeholder = document.createElement('div');
     placeholder.innerHTML = formHtml;
-    prev.after(placeholder.firstElementChild);
+    const clonedForm = placeholder.firstElementChild;
+    prev.after(clonedForm);
+
+    if (formContent && formContent.length > 0) {
+        formContent.forEach(function(content) {
+            if (content && content.name && content.type !== 'submit' && content.type !== 'button') {
+                if (content.type === 'checkbox') {
+                    const checkboxInput = clonedForm.querySelector(`input[name="${content.name}"]`);
+                    if (checkboxInput) {
+                        checkboxInput.checked = content.checked;
+                    }
+                } else {
+                    const input = clonedForm.querySelector(`input[name="${content.name}"], textarea[name="${content.name}"], select[name="${content.name}"]`);
+                    if (input) {
+                        input.value = content.value;
+                    }
+                }
+            }
+        });
+    }
 
     const forceAction = document.createElement('input');
     forceAction.name = 'action';
