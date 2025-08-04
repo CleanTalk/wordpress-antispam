@@ -2843,14 +2843,16 @@ function apbct_settings__get_key_auto($direct_call = false)
             'error' => isset($result['error_message']) ? esc_html($result['error_message']) : esc_html('Our service is not available in your region.'),
         );
     } elseif ( ! isset($result['auth_key']) ) {
-        //HANDLE LINK
+        $msg = sprintf(
+            __('Please, get the Access Key from CleanTalk Control Panel %s and insert it in the Access Key field', 'cleantalk-spam-protect'),
+            'https://cleantalk.org/my/?cp_mode=antispam'
+        );
+        $apbct->errorAdd('key_get', $msg);
+        $apbct->saveErrors();
         $out = array(
             'success' => true,
             'reload'  => false,
-            'error' => sprintf(
-                __('Please, get the Access Key from CleanTalk Control Panel %s and insert it in the Access Key field', 'cleantalk-spam-protect'),
-                'https://cleantalk.org/my/?cp_mode=antispam'
-            )
+            'error' => $msg
         );
     } else {
         if ( isset($result['user_token']) ) {
