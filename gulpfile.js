@@ -64,6 +64,7 @@ function bundle_and_minify_admin_and_common_js() {
 function bundle_public_default() {
     return gulp.src([
         'js/src/common-decoder.js',
+        'js/src/common-cleantalk-modal.js',
         'js/src/public-0*.js',
         'js/src/public-1*.js',
         'js/src/public-3*.js',
@@ -78,6 +79,7 @@ function bundle_public_default() {
 function bundle_public_default_with_gathering() {
     return gulp.src([
         'js/src/common-decoder.js',
+        'js/src/common-cleantalk-modal.js',
         'js/src/public-0*.js',
         'js/src/public-1*.js',
         'js/src/public-2-gathering-data.js',
@@ -93,6 +95,7 @@ function bundle_public_default_with_gathering() {
 function bundle_public_external_protection() {
     return gulp.src([
         'js/src/common-decoder.js',
+        'js/src/common-cleantalk-modal.js',
         'js/src/public-0*.js',
         'js/src/public-1*.js',
         'js/src/public-2-external-forms.js',
@@ -109,6 +112,7 @@ function bundle_public_external_protection() {
 function bundle_public_external_protection_with_gathering() {
     return gulp.src([
         'js/src/common-decoder.js',
+        'js/src/common-cleantalk-modal.js',
         'js/src/public-0*.js',
         'js/src/public-1*.js',
         'js/src/public-2-external-forms.js',
@@ -125,6 +129,7 @@ function bundle_public_external_protection_with_gathering() {
 function bundle_public_internal_protection() {
     return gulp.src([
         'js/src/common-decoder.js',
+        'js/src/common-cleantalk-modal.js',
         'js/src/public-0*.js',
         'js/src/public-1*.js',
         'js/src/public-2-internal-forms.js',
@@ -140,6 +145,7 @@ function bundle_public_internal_protection() {
 function bundle_public_internal_protection_with_gathering() {
     return gulp.src([
         'js/src/common-decoder.js',
+        'js/src/common-cleantalk-modal.js',
         'js/src/public-0*.js',
         'js/src/public-1*.js',
         'js/src/public-2-internal-forms.js',
@@ -156,6 +162,7 @@ function bundle_public_internal_protection_with_gathering() {
 function bundle_public_full_protection() {
     return gulp.src([
         'js/src/common-decoder.js',
+        'js/src/common-cleantalk-modal.js',
         'js/src/public-0*.js',
         'js/src/public-1*.js',
         'js/src/public-2*.js',
@@ -172,6 +179,7 @@ function bundle_public_full_protection() {
 function bundle_public_full_protection_with_gathering() {
     return gulp.src([
         'js/src/common-decoder.js',
+        'js/src/common-cleantalk-modal.js',
         'js/src/public-0*.js',
         'js/src/public-1*.js',
         'js/src/public-2*.js',
