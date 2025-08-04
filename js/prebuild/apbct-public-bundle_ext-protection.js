@@ -1811,7 +1811,7 @@ function ctSetAlternativeCookie(cookies, params) {
         if (Array.isArray(cookies)) {
             cookies = getJavascriptClientData(cookies);
         }
-    } else {
+    } else if (!+ctPublic.settings__data__bot_detector_enabled) {
         console.log('APBCT ERROR: getJavascriptClientData() is not loaded');
     }
 
@@ -2165,27 +2165,17 @@ class ApbctEventTokenTransport {
      * @return {void}
      */
     setEventTokenToAltCookies() {
-        let tokenForForceAlt = apbctLocalStorage.get('bot_detector_event_token');
         if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-            apbctLocalStorage.set('event_token_forced_set', '0');
-            if (tokenForForceAlt) {
-                initCookies.push(['ct_bot_detector_event_token', tokenForForceAlt]);
-                apbctLocalStorage.set('event_token_forced_set', '1');
-            } else {
-                tokenCheckerIntervalId = setInterval( function() {
-                    if (apbctLocalStorage.get('event_token_forced_set') === '1') {
-                        clearInterval(tokenCheckerIntervalId);
-                        return;
-                    }
-                    let eventToken = apbctLocalStorage.get('bot_detector_event_token');
-                    if (eventToken) {
-                        ctSetAlternativeCookie([['ct_bot_detector_event_token', eventToken]], {forceAltCookies: true});
-                        apbctLocalStorage.set('event_token_forced_set', '1');
-                        clearInterval(tokenCheckerIntervalId);
-                    } else {
-                    }
-                }, 1000);
-            }
+            tokenCheckerIntervalId = setInterval( function() {
+                let eventToken = apbctLocalStorage.get('bot_detector_event_token');
+                if (eventToken) {
+                    ctSetAlternativeCookie(
+                        [JSON.stringify({'ct_bot_detector_event_token': eventToken})],
+                        {forceAltCookies: true},
+                    );
+                    clearInterval(tokenCheckerIntervalId);
+                }
+            }, 1000);
         }
     }
 
@@ -2243,8 +2233,9 @@ class ApbctAttachData {
         if (typeof ctPublic.data__cookies_type !== 'undefined' &&
             ctPublic.data__cookies_type === 'none'
         ) {
-            ctAjaxSetupAddCleanTalkDataBeforeSendAjax();
-            ctAddWCMiddlewares();
+            const handler = new ApbctHandler();
+            handler.catchJqueryAjax();
+            handler.catchWCRestRequestAsMiddleware();
         }
     }
 
@@ -3148,6 +3139,10 @@ function apbct_ready() {
     handler.catchJqueryAjax();
     handler.catchWCRestRequestAsMiddleware();
 
+    if (+ctPublic.settings__data__bot_detector_enabled) {
+        new ApbctEventTokenTransport().setEventTokenToAltCookies();
+    }
+
     if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {
         handler.toolForAntiCrawlerCheckDuringBotDetector();
     }
@@ -3390,6 +3385,7 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     const prev = currentForm.previousSibling;
     const formHtml = currentForm.outerHTML;
     const formOriginal = currentForm;
+    const formContent = currentForm.querySelectorAll('input, textarea, select');
 
     // Remove the original form
     currentForm.parentElement.removeChild(currentForm);
@@ -3397,7 +3393,26 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     // Insert a clone
     const placeholder = document.createElement('div');
     placeholder.innerHTML = formHtml;
-    prev.after(placeholder.firstElementChild);
+    const clonedForm = placeholder.firstElementChild;
+    prev.after(clonedForm);
+
+    if (formContent && formContent.length > 0) {
+        formContent.forEach(function(content) {
+            if (content && content.name && content.type !== 'submit' && content.type !== 'button') {
+                if (content.type === 'checkbox') {
+                    const checkboxInput = clonedForm.querySelector(`input[name="${content.name}"]`);
+                    if (checkboxInput) {
+                        checkboxInput.checked = content.checked;
+                    }
+                } else {
+                    const input = clonedForm.querySelector(`input[name="${content.name}"], textarea[name="${content.name}"], select[name="${content.name}"]`);
+                    if (input) {
+                        input.value = content.value;
+                    }
+                }
+            }
+        });
+    }
 
     const forceAction = document.createElement('input');
     forceAction.name = 'action';

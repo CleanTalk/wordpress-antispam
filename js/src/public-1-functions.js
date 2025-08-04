@@ -81,7 +81,7 @@ function ctSetAlternativeCookie(cookies, params) {
         if (Array.isArray(cookies)) {
             cookies = getJavascriptClientData(cookies);
         }
-    } else {
+    } else if (!+ctPublic.settings__data__bot_detector_enabled) {
         console.log('APBCT ERROR: getJavascriptClientData() is not loaded');
     }
 
