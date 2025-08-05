@@ -46,12 +46,8 @@ class Woocommerce extends IntegrationByClassBase
 
         // honeypot
         add_filter('woocommerce_checkout_fields', [$this, 'addHoneypotField']);
-
-        // add to cart
-        if ( ! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart'] ) {
-            add_filter('woocommerce_add_to_cart_validation', [$this, 'addToCartUnloggedUser'], 10, 6);
-            add_filter('woocommerce_store_api_add_to_cart_data', [$this, 'storeApiAddToCartData'], 10, 2);
-        }
+        //add to cart hooks if cart works with non-ajax requests
+        $this->addCartActions();
 
         // checkout
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
@@ -76,6 +72,9 @@ class Woocommerce extends IntegrationByClassBase
     public function doAjaxWork()
     {
         global $apbct;
+
+        //add to cart AJAX actions
+        $this->addCartActions();
 
         // checkout
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
@@ -678,6 +677,20 @@ class Woocommerce extends IntegrationByClassBase
                 $ct->sendFeedback($ct_request);
             } catch (\Exception $e) {
             }
+        }
+    }
+
+    /**
+     * Add actions for add to cart. Works on AJAX calls OR on REST API calls.
+     * @return void
+     */
+    private function addCartActions()
+    {
+        global $apbct;
+        // add to cart
+        if (! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart'] ) {
+            add_filter('woocommerce_add_to_cart_validation', [$this, 'addToCartUnloggedUser'], 10, 6);
+            add_filter('woocommerce_store_api_add_to_cart_data', [$this, 'storeApiAddToCartData'], 10, 2);
         }
     }
 }
