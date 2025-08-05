@@ -715,6 +715,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             'leaky_paywall_validate_registration', //Leaky Paywall validation request
             'cleantalk_force_ajax_check', //Force ajax check has direct integration
             'cscf-submitform', // CSCF has direct integration
+            'mailpoet', // Mailpoet has direct integration
         );
 
         // Skip test if

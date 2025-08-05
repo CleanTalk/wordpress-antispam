@@ -66,7 +66,9 @@ function ctProtectExternal() {
     // Trying to process external form into an iframe
     apbctProcessIframes();
     // if form is still not processed by fields listening, do it here
-    ctStartFieldsListening();
+    if (ctPublic.settings__data__bot_detector_enabled != 1) {
+        new ApbctGatheringData().startFieldsListening();
+    }
 }
 
 /**
@@ -212,6 +214,7 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     const prev = currentForm.previousSibling;
     const formHtml = currentForm.outerHTML;
     const formOriginal = currentForm;
+    const formContent = currentForm.querySelectorAll('input, textarea, select');
 
     // Remove the original form
     currentForm.parentElement.removeChild(currentForm);
@@ -219,7 +222,30 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     // Insert a clone
     const placeholder = document.createElement('div');
     placeholder.innerHTML = formHtml;
-    prev.after(placeholder.firstElementChild);
+    const clonedForm = placeholder.firstElementChild;
+    prev.after(clonedForm);
+
+    if (formContent && formContent.length > 0) {
+        formContent.forEach(function(content) {
+            if (content && content.name && content.type !== 'submit' && content.type !== 'button') {
+                if (content.type === 'checkbox') {
+                    const checkboxInput = clonedForm.querySelector(`input[name="${content.name}"]`);
+                    if (checkboxInput) {
+                        checkboxInput.checked = content.checked;
+                    }
+                } else {
+                    const input = clonedForm.querySelector(
+                        `input[name="${content.name}"], ` +
+                        `textarea[name="${content.name}"], ` +
+                        `select[name="${content.name}"]`,
+                    );
+                    if (input) {
+                        input.value = content.value;
+                    }
+                }
+            }
+        });
+    }
 
     const forceAction = document.createElement('input');
     forceAction.name = 'action';
@@ -828,8 +854,9 @@ function isFormHasDiviRedirect(formObj) {
 function sendAjaxCheckingFormData(form) {
     // Get visible fields and set cookie
     const visibleFields = {};
-    visibleFields[0] = apbct_collect_visible_fields(form);
-    apbct_visible_fields_set_cookie( visibleFields );
+    const attachData = new ApbctAttachData();
+    visibleFields[0] = attachData.collectVisibleFields(form);
+    attachData.setVisibleFieldsCookie(visibleFields);
 
     const data = {
         'ct_bot_detector_event_token': apbctLocalStorage.get('bot_detector_event_token'),
@@ -984,7 +1011,7 @@ function sendAjaxCheckingFormData(form) {
                 if ((result.apbct !== undefined && +result.apbct.blocked) ||
                     (result.data !== undefined && result.data.message !== undefined)
                 ) {
-                    ctParseBlockMessage(result);
+                    new ApbctHandler().parseBlockMessage(result);
                     // hubspot embed form needs to reload page to prevent forms mishandling
                     if (isHubSpotEmbedForm) {
                         setTimeout(function() {
@@ -1085,9 +1112,10 @@ function sendAjaxCheckingDynamicFormData(form) {
 
     // Get visible fields and set cookie
     const visibleFields = {};
-    visibleFields[0] = apbct_collect_visible_fields(form);
-    apbct_visible_fields_set_cookie(visibleFields);
-    form.append(ctNoCookieConstructHiddenField('hidden'));
+    const attachData = new ApbctAttachData();
+    visibleFields[0] = attachData.collectVisibleFields(form);
+    attachData.setVisibleFieldsCookie(visibleFields);
+    form.append(attachData.constructNoCookieHiddenField('hidden'));
 
     const data = {};
     let elems = form.elements;
@@ -1136,7 +1164,7 @@ function sendAjaxCheckingDynamicFormData(form) {
                 }
 
                 if (result.apbct !== undefined && +result.apbct.blocked) {
-                    ctParseBlockMessage(result);
+                    new ApbctHandler().parseBlockMessage(result);
                 }
             },
         });

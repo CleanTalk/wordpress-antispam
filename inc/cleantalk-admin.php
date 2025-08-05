@@ -525,8 +525,8 @@ function apbct_admin__enqueue_scripts($hook)
     global $apbct;
 
     // Scripts to all admin pages
-    ApbctEnqueue::getInstance()->js('apbct-public--3--cleantalk-modal.js', array('jquery'));
-    ApbctEnqueue::getInstance()->js('cleantalk-admin.js', array('apbct-public--3--cleantalk-modal-js', 'jquery'));
+    ApbctEnqueue::getInstance()->js('common-cleantalk-modal.js', array('jquery'));
+    ApbctEnqueue::getInstance()->js('cleantalk-admin.js', array('common-cleantalk-modal-js', 'jquery'));
     ApbctEnqueue::getInstance()->css('cleantalk-admin.css');
     ApbctEnqueue::getInstance()->css('cleantalk-icons.css');
     ApbctEnqueue::getInstance()->css('cleantalk-email-decoder.css');
@@ -605,7 +605,7 @@ function apbct_admin__enqueue_scripts($hook)
             'key_is_ok'   => ! empty($apbct->key_is_ok) && !empty($apbct->settings['apikey'])
         ));
 
-        ApbctEnqueue::getInstance()->js('apbct-public--3--cleantalk-modal.js');
+        ApbctEnqueue::getInstance()->js('common-cleantalk-modal.min.js');
     }
 
     // COMMENTS page JavaScript

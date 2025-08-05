@@ -6,6 +6,7 @@ use Cleantalk\ApbctWP\Honeypot;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Helper;
 
@@ -191,7 +192,8 @@ class WPForms extends IntegrationByClassBase
     {
         global $apbct;
 
-        $checkjs = apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs_wpforms')));
+        $checkjs = $apbct->settings['data__set_cookies'] == 1 ? Cookie::get('ct_checkjs') : Post::get('ct_checkjs_wpforms');
+        $checkjs = apbct_js_test(Sanitize::cleanTextField($checkjs));
         $input_array = apply_filters('apbct__filter_post', $_POST);
 
         $email = $this->form_data['email'] ? $this->form_data['email'] : null;
