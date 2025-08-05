@@ -1820,6 +1820,17 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         if ( apbct_is_plugin_active('sureforms/sureforms.php') && apbct_is_in_uri('/sureforms/v1/submit-form')) {
             return 'Plugin Name: SureForms skip fields checks';
         }
+
+        // skip AsgarosForum - has direct integration
+        if (
+            apbct_is_plugin_active('asgaros-forum/asgaros-forum.php') &&
+            (
+                Request::getString('submit_action') === 'add_topic' ||
+                Request::getString('submit_action') === 'add_post'
+            )
+        ) {
+            return 'AsgarosForum';
+        }
     }
 
     // WP Fusion Abandoned Cart Addon

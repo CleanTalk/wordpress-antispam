@@ -255,17 +255,22 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                 ),
-                'forms__search_test'                    => array(
-                    'title'       => __('Test default WordPress search form for spam', 'cleantalk-spam-protect'),
+                'forms__search_test' => array(
+                    'title' => __('Test default WordPress search form for spam', 'cleantalk-spam-protect'),
                     'description' =>
                         __('Spam protection for Search form.', 'cleantalk-spam-protect')
-                        //HANDLE LINK
-                        . (! $apbct->white_label || is_main_site() ?
-                            sprintf(
-                                __('Read more about %sspam protection for Search form%s on our blog. The "noindex" tag will be placed in the meta directive on the search results page.', 'cleantalk-spam-protect'),
+                        . (
+                            ! $apbct->white_label || is_main_site()
+                            ? ' ' . sprintf(
+                                __(
+                                    'Read more about %sspam protection for Search form%s on our blog. The "noindex" tag will be placed in the meta directive on the search results page.',
+                                    'cleantalk-spam-protect'
+                                ),
                                 '<a href="https://blog.cleantalk.org/how-to-protect-website-search-from-spambots/" target="_blank">',
                                 '</a>'
-                            ) : '')
+                            )
+                            : ''
+                        ),
                 ),
                 'forms__check_external'                 => array(
                     'title'       => __('Protect external forms', 'cleantalk-spam-protect'),
@@ -2843,14 +2848,16 @@ function apbct_settings__get_key_auto($direct_call = false)
             'error' => isset($result['error_message']) ? esc_html($result['error_message']) : esc_html('Our service is not available in your region.'),
         );
     } elseif ( ! isset($result['auth_key']) ) {
-        //HANDLE LINK
+        $msg = sprintf(
+            __('Please, get the Access Key from CleanTalk Control Panel %s and insert it in the Access Key field', 'cleantalk-spam-protect'),
+            'https://cleantalk.org/my/?cp_mode=antispam'
+        );
+        $apbct->errorAdd('key_get', $msg);
+        $apbct->saveErrors();
         $out = array(
             'success' => true,
             'reload'  => false,
-            'error' => sprintf(
-                __('Please, get the Access Key from CleanTalk Control Panel %s and insert it in the Access Key field', 'cleantalk-spam-protect'),
-                'https://cleantalk.org/my/?cp_mode=antispam'
-            )
+            'error' => $msg
         );
     } else {
         if ( isset($result['user_token']) ) {

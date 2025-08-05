@@ -11,6 +11,7 @@ add_action('admin_footer', 'apbct_settings__footer');
 
 /**
  * Footer for settings page
+ * @psalm-suppress RedundantCondition
  */
 function apbct_settings__footer()
 {
@@ -41,16 +42,27 @@ function apbct_settings__footer()
         )],
     ];
     $block2_links = [
-        ['text' => __('Everest Forms', 'cleantalk-spam-protect'), 'url' => 'https://tinyurl.com/apbct-everest-forms'],
+        ['text' => 'Security plugin by CleanTalk', 'url' => admin_url('plugin-install.php') . '?s=spbct&tab=search&type=term']
     ];
 
     ?>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const footerLinks = {
-                block1: <?php echo json_encode($block1_links); ?>,
-                block2: <?php echo json_encode($block2_links); ?>
-            };
+            let footerColumns = [
+                {
+                    blockName: "<?php esc_html_e('More solutions for your site', 'cleantalk-spam-protect') ?>",
+                    links: <?php echo json_encode($block1_links); ?>,
+                }
+            ];
+
+            <?php if ( ! empty($block2_links) ) : ?>
+            footerColumns.push(
+                {
+                    blockName: "<?php esc_html_e('Recommended plugins', 'cleantalk-spam-protect') ?>",
+                    links: <?php echo json_encode($block2_links); ?>,
+                }
+            );
+            <?php endif; ?>
 
             const footer = document.createElement('div');
             footer.className = 'apbct_footer';
@@ -90,8 +102,9 @@ function apbct_settings__footer()
                 return column;
             }
 
-            footer.appendChild(createFooterColumn('More solutions for your site', footerLinks.block1));
-            footer.appendChild(createFooterColumn('Recommended plugins', footerLinks.block2));
+            for (let footerColumn in footerColumns) {
+                footer.appendChild(createFooterColumn(footerColumns[footerColumn].blockName, footerColumns[footerColumn].links));
+            }
 
             const wpMainFooter = document.getElementById('wpfooter');
             const footerLeft = document.getElementById('footer-left');
