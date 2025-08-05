@@ -234,7 +234,11 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
                         checkboxInput.checked = content.checked;
                     }
                 } else {
-                    const input = clonedForm.querySelector(`input[name="${content.name}"], textarea[name="${content.name}"], select[name="${content.name}"]`);
+                    const input = clonedForm.querySelector(
+                        `input[name="${content.name}"], ` +
+                        `textarea[name="${content.name}"], ` +
+                        `select[name="${content.name}"]`,
+                    );
                     if (input) {
                         input.value = content.value;
                     }
