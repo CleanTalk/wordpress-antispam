@@ -113,20 +113,6 @@ class ApbctAttachData {
     }
 
     /**
-     * Attach no cookie
-     * @return {void}
-     */
-    attachNoCookie() {
-        if (typeof ctPublic.data__cookies_type !== 'undefined' &&
-            ctPublic.data__cookies_type === 'none'
-        ) {
-            const handler = new ApbctHandler();
-            handler.catchJqueryAjax();
-            handler.catchWCRestRequestAsMiddleware();
-        }
-    }
-
-    /**
      * Attach visible fields to form
      * @param {HTMLFormElement} form
      * @param {number} index
@@ -699,7 +685,9 @@ class ApbctHandler {
                 if (+ctPublic.settings__data__bot_detector_enabled) {
                     options.data.requests[0].data.event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
-                    options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+                    if (ctPublic.data__cookies_type === 'none') {
+                        options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+                    }
                 }
             }
 
@@ -708,7 +696,9 @@ class ApbctHandler {
                 if (+ctPublic.settings__data__bot_detector_enabled) {
                     options.data.event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
-                    options.data.ct_no_cookie_hidden_field = getNoCookieData();
+                    if (ctPublic.data__cookies_type === 'none') {
+                        options.data.ct_no_cookie_hidden_field = getNoCookieData();
+                    }
                 }
             }
 
@@ -1001,7 +991,6 @@ function apbct_ready() {
         // Attach data when bot detector is disabled
         if (!+ctPublic.settings__data__bot_detector_enabled) {
             attachData.attachHiddenFieldsToForms();
-            attachData.attachNoCookie();
         }
 
         for (let i = 0; i < document.forms.length; i++) {
