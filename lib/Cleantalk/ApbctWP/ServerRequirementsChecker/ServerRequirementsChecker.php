@@ -37,13 +37,18 @@ class ServerRequirementsChecker
 
     private $warnings = [];
 
+    /**
+     * Check server requirements for the plugin.
+     * @return array|null
+     */
     public function checkRequirements()
     {
         // Check PHP version
         if (version_compare(PHP_VERSION, $this->requirements['php_version'], '<')) {
             $this->warnings[] = sprintf(
-                __('PHP version must be at least %s', 'cleantalk-spam-protect'),
-                $this->requirements['php_version']
+                __('PHP version must be at least %s, current is %s', 'cleantalk-spam-protect'),
+                $this->requirements['php_version'],
+                esc_html(PHP_VERSION)
             );
         }
 
@@ -56,31 +61,44 @@ class ServerRequirementsChecker
             }
         }
 
+        $current_memory_limit = ini_get('memory_limit');
+        $is_memory_unset = -1 == $current_memory_limit;
+        $current_max_exec_time = ini_get('max_execution_time');
+        $is_exec_time_unset = 0 == $current_max_exec_time;
+
         // Check memory_limit
-        $current_limit = $this->normalizeMemoryLimit(ini_get('memory_limit'));
+        $current_limit = $this->normalizeMemoryLimit($current_memory_limit);
         $required_limit = $this->normalizeMemoryLimit($this->requirements['memory_limit']);
-        if ($current_limit < $required_limit) {
+        if (!$is_memory_unset && $current_limit < $required_limit) {
             $this->warnings[] = sprintf(
-                __('PHP memory_limit must be at least %s', 'cleantalk-spam-protect'),
-                $this->requirements['memory_limit']
+                __('PHP memory_limit must be at least %s, ini_get() returns %s', 'cleantalk-spam-protect'),
+                $this->requirements['memory_limit'],
+                esc_html($current_memory_limit)
             );
         }
 
         // Check max_execution_time
-        if (intval(ini_get('max_execution_time')) < intval($this->requirements['max_execution_time'])) {
+        if (!$is_exec_time_unset && intval($current_max_exec_time) < intval($this->requirements['max_execution_time'])) {
             $this->warnings[] = sprintf(
-                __('max_execution_time must be at least %d seconds', 'cleantalk-spam-protect'),
-                $this->requirements['max_execution_time']
+                __('max_execution_time must be at least %d seconds, ini_get() returns %s', 'cleantalk-spam-protect'),
+                $this->requirements['max_execution_time'],
+                esc_html($current_max_exec_time)
             );
         }
 
         if (empty($this->warnings)) {
-            return;
+            return null;
         }
 
         return $this->warnings;
     }
 
+    /**
+     * Normalize memory limit to workable int/float.
+     * @param $val
+     *
+     * @return float|int
+     */
     private function normalizeMemoryLimit($val)
     {
         $val = trim($val);
