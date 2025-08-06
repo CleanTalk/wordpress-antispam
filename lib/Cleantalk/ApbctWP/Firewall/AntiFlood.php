@@ -72,7 +72,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
 
         $results = array();
 
-        if (empty($apbct->key_is_ok)) {
+        if (empty($apbct->key_is_ok) || empty($apbct->api_key)) {
             return $results;
         }
 

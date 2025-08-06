@@ -12,6 +12,7 @@ class TestSFWPrivateRecordsHandler extends PHPUnit\Framework\TestCase
         global $apbct;
         $apbct = new \Cleantalk\ApbctWP\State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
         $apbct->key_is_ok = 1;
+        $apbct->api_key = 'test';
 
         apbct_run_update_actions('5.188','5.189');
         $this->sfw = new \Cleantalk\ApbctWP\Firewall\SFW(DB::getInstance(),

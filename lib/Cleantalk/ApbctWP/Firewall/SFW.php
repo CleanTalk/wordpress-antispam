@@ -125,7 +125,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         $results = array();
         $status  = 0;
 
-        if (empty($apbct->key_is_ok)) {
+        if (empty($apbct->key_is_ok) || empty($apbct->api_key)) {
             return $results;
         }
 
