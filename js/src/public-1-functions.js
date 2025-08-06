@@ -45,7 +45,9 @@ function ctSetCookie( cookies, value, expires ) {
             // do it just once
             ctSetAlternativeCookie(cookies, {forceAltCookies: true});
         } else {
-            ctNoCookieAttachHiddenFieldsToForms();
+            if (!+ctPublic.settings__data__bot_detector_enabled) {
+                ctNoCookieAttachHiddenFieldsToForms();
+            }
         }
 
         // Using traditional cookies

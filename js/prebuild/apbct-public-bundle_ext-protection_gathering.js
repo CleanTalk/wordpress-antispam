@@ -1775,7 +1775,9 @@ function ctSetCookie( cookies, value, expires ) {
             // do it just once
             ctSetAlternativeCookie(cookies, {forceAltCookies: true});
         } else {
-            ctNoCookieAttachHiddenFieldsToForms();
+            if (!+ctPublic.settings__data__bot_detector_enabled) {
+                ctNoCookieAttachHiddenFieldsToForms();
+            }
         }
 
         // Using traditional cookies
@@ -2220,8 +2222,10 @@ class ApbctAttachData {
         if (typeof ctPublic.force_alt_cookies == 'undefined' ||
             (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
         ) {
-            ctNoCookieAttachHiddenFieldsToForms();
-            document.addEventListener('gform_page_loaded', ctNoCookieAttachHiddenFieldsToForms);
+            if (!+ctPublic.settings__data__bot_detector_enabled) {
+                ctNoCookieAttachHiddenFieldsToForms();
+                document.addEventListener('gform_page_loaded', ctNoCookieAttachHiddenFieldsToForms);
+            }
         }
     }
 
