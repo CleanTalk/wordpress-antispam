@@ -152,9 +152,6 @@ class WPForms extends IntegrationByClassBase
 
         $spam_comment = $this->testSpam();
 
-        error_log('showResponse');
-        error_log(print_r($spam_comment, true));
-
         if (!$spam_comment ) {
             return $errors;
         }

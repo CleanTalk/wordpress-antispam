@@ -57,7 +57,7 @@ class ApbctEventTokenTransport {
                 let eventToken = apbctLocalStorage.get('bot_detector_event_token');
                 if (eventToken) {
                     ctSetAlternativeCookie(
-                        [JSON.stringify({'ct_bot_detector_event_token': eventToken})],
+                        JSON.stringify({'ct_bot_detector_event_token': eventToken}),
                         {forceAltCookies: true},
                     );
                     clearInterval(tokenCheckerIntervalId);

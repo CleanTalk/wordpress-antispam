@@ -1817,11 +1817,18 @@ function ctSetAlternativeCookie(cookies, params) {
         console.log('APBCT ERROR: getJavascriptClientData() is not loaded');
     }
 
-    try {
-        cookies = JSON.parse(cookies);
-    } catch (e) {
-        console.log('APBCT ERROR: JSON parse error:' + e);
-        return;
+    // if cookies is array, convert it to object
+    if (Array.isArray(cookies) && cookies[0] && cookies[0][0] === 'apbct_bot_detector_exist') {
+        cookies = {apbct_bot_detector_exist: cookies[0][1]};
+    }
+    // Only try to parse if cookies is a string (JSON)
+    if (typeof cookies === 'string') {
+        try {
+            cookies = JSON.parse(cookies);
+        } catch (e) {
+            console.log('APBCT ERROR: JSON parse error:' + e);
+            return;
+        }
     }
 
     const callback = params && params.callback || null;
@@ -2172,7 +2179,7 @@ class ApbctEventTokenTransport {
                 let eventToken = apbctLocalStorage.get('bot_detector_event_token');
                 if (eventToken) {
                     ctSetAlternativeCookie(
-                        [JSON.stringify({'ct_bot_detector_event_token': eventToken})],
+                        JSON.stringify({'ct_bot_detector_event_token': eventToken}),
                         {forceAltCookies: true},
                     );
                     clearInterval(tokenCheckerIntervalId);
