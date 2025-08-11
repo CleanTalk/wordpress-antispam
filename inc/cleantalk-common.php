@@ -744,7 +744,7 @@ function apbct_email_check_before_post()
 }
 
 /**
- * Checking email before POST
+ * Checking email exist before POST
  */
 function apbct_email_check_exist_post()
 {
