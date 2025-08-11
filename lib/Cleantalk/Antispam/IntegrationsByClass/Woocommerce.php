@@ -46,7 +46,8 @@ class Woocommerce extends IntegrationByClassBase
 
         // honeypot
         add_filter('woocommerce_checkout_fields', [$this, 'addHoneypotField']);
-        //add to cart hooks if cart works with non-ajax requests
+
+        // add to cart hooks if cart works with non-ajax requests
         $this->addCartActions();
 
         // checkout
@@ -81,8 +82,14 @@ class Woocommerce extends IntegrationByClassBase
             $this->addActions();
         }
 
+        //add to cart AJAX actions
+        $this->addCartActions();
+
         // Restore Spam Order
         add_action('wp_ajax_apbct_restore_spam_order', array(WcSpamOrdersFunctions::class, 'restoreOrderAction'));
+
+        // Uni CPO integration, remove service fields from order items
+        add_action('woocommerce_checkout_create_order_line_item', [$this, 'removeServiceFieldsFromOrderItems'], 100, 4);
     }
 
     public function doAdminWork()
@@ -681,14 +688,38 @@ class Woocommerce extends IntegrationByClassBase
     }
 
     /**
+     * Remove service fields from order items
+     * @param $item
+     * @param $cart_item_key
+     * @param $values
+     * @param $order
+     * @return void
+     * @psalm-suppress PossiblyUnusedParam
+     */
+    public function removeServiceFieldsFromOrderItems($item, $cart_item_key, $values, $order)
+    {
+        if (isset($values['_cpo_data'])) {
+            if (isset($values['_cpo_data']['ct_bot_detector_event_token'])) {
+                $item->delete_meta_data('_ct_bot_detector_event_token');
+            }
+            if (isset($values['_cpo_data']['ct_no_cookie_hidden_field'])) {
+                $item->delete_meta_data('_ct_no_cookie_hidden_field');
+            }
+            if (isset($values['_cpo_data']['apbct_visible_fields'])) {
+                $item->delete_meta_data('_apbct_visible_fields');
+            }
+        }
+    }
+
+    /**
      * Add actions for add to cart. Works on AJAX calls OR on REST API calls.
      * @return void
      */
     private function addCartActions()
     {
         global $apbct;
-        // add to cart
-        if (! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart'] ) {
+
+        if ( ! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart'] ) {
             add_filter('woocommerce_add_to_cart_validation', [$this, 'addToCartUnloggedUser'], 10, 6);
             add_filter('woocommerce_store_api_add_to_cart_data', [$this, 'storeApiAddToCartData'], 10, 2);
         }

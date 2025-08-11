@@ -1,13 +1,13 @@
-=== Spam protection, Anti-Spam by CleanTalk ===
+=== Spam protection, Honeypot, Anti-Spam by CleanTalk ===
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
-Tags: antispam, comments, contact form, seo, email
+Tags: antispam, comments, contact form, captcha, spam 
 Requires at least: 4.7
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 6.60
+Stable tag: 6.61
 License: GPLv2
 
-Blocks spam comments, fake users, contact form spam and more. No impact on SEO or website performance. Enterprise-ready, premium Anti-Spam plugin.
+Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
 
 == Description ==
 
@@ -214,6 +214,10 @@ Yes, it will. The Anti-spam by CleanTalk is compatible with any WordPress theme.
 = Should I use other anti-spam tools (Captcha, reCaptcha and etc.)? =
 CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam plugins (especially CAPTCHA-type anti-spam plugins). In some cases several anti-spam plugins could conflict with each other.
 
+= Honeypot field =
+The option helps to block bots. The honeypot field option adds a hidden field to the form. When spambots come to a website form, they can fill out each input field. Enable this option to make the protection stronger on these forms. Learn more about supported forms here.
+
+
 == Installation ==
 
 = Installation instructions =
@@ -407,6 +411,22 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.61 07.08.2025 =
+* New. Integration. Asgaros Forum topics and replies protected.
+* Upd. EmailEncoder. Add mode handler for shortcode.
+* Upd. Settings. Restore notice about get key auto.
+* Upd. Footer links. Footer links block Recommended plugins updated.
+* Upd. ServerRequirementsChecker. Check updated, unit test provided, docs added.
+* Ref. JS. Refactoring to optimize bundle size.
+* Mod. Code. Removing the option - Manage comments on public pages.
+* Del. Script. Remove cleantalk-public-admin.js.
+* Fix. Integrations. Do not skip check for woo registration during checkout.
+* Fix. Integrations. Fixed uni cpo gathering meta data about woocommerce item.
+* Fix. Woocommerce. Deleting REST API order if on pending status.
+* Fix. Woocommerce. Event token gathering fixed on any cookies mode.
+* Fix. Searchform. JS error on form class gathering fixed.
+* Fix. Settings. Search forms. Forgotten space added.
 
 = 6.60 17.07.2025 =
 * New. BlockServerRequirements. Added a block with the Server Requirements output

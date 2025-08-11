@@ -59,7 +59,18 @@ class EncodeContentSC extends EmailEncoderShortCode
             return (string)$content;
         }
 
-        return EmailEncoder::getInstance()->modifyAny($content);
+        $mode = 'blur';
+        if (isset($_atts['mode']) && in_array($_atts['mode'], ['blur', 'obfuscate', 'replace'])) {
+            $mode = $_atts['mode'];
+        }
+
+        if (isset($_atts['replacing_text']) && !empty($_atts['replacing_text']) && is_string($_atts['replacing_text'])) {
+            $replacing_text = esc_html($_atts['replacing_text']);
+        } else {
+            $replacing_text = null;
+        }
+
+        return EmailEncoder::getInstance()->modifyAny($content, $mode, $replacing_text);
     }
 
     /**

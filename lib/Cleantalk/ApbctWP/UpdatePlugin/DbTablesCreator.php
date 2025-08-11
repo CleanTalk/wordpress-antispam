@@ -26,12 +26,12 @@ class DbTablesCreator
 
             //save SFW common table name
             if ( $table_key === 'sfw' ) {
-                $current_options = get_option('cleantalk_data');
+                $current_options = get_option('cleantalk_data', []);
                 $current_options['sfw_common_table_name']  = $wpdb_prefix . $schema_prefix . $table_key;
             }
             //save SFW personal table name for mutual key
             if ( $table_key === 'sfw_personal' ) {
-                $current_options = get_option('cleantalk_data');
+                $current_options = get_option('cleantalk_data', []);
                 $current_options['sfw_personal_table_name'] = $wpdb_prefix . $schema_prefix . $table_key;
             }
 

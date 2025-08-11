@@ -156,6 +156,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
     if (
         isset($apbct->plugin_request_ids[ $apbct->plugin_request_id ]) &&
         current_filter() !== 'woocommerce_registration_errors' && // Prevent skip checking woocommerce registration during checkout
+        current_filter() !== 'woocommerce_store_api_checkout_order_processed' && // Prevent skip checking woocommerce registration during checkout
         current_filter() !== 'um_submit_form_register' // Prevent skip checking UltimateMember register
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
@@ -207,10 +208,6 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
     if (Cookie::get('typo')) {
         $default_params['sender_info']['typo'] = Cookie::get('typo');
-    }
-
-    if (RequestParameters::get('collecting_user_activity_data')) {
-        $default_params['sender_info']['collecting_user_activity_data'] = RequestParameters::get('collecting_user_activity_data');
     }
 
     /**
@@ -1664,11 +1661,9 @@ function apbct_clear_superglobal_service_data($superglobal, $type)
 
     switch ($type) {
         case 'post':
-            //Magnesium Quiz special $_request clearance
-            if (
-                (
-                apbct_is_plugin_active('magnesium-quiz/magnesium-quiz.php')
-                )
+            // Magnesium Quiz special $_request clearance || Uni CPO
+            if ((apbct_is_plugin_active('magnesium-quiz/magnesium-quiz.php')) ||
+                (apbct_is_plugin_active('uni-woo-custom-product-options/uni-cpo.php'))
             ) {
                 $fields_to_clear[] = 'ct_bot_detector_event_token';
                 $fields_to_clear[] = 'ct_no_cookie_hidden_field';
@@ -1679,12 +1674,14 @@ function apbct_clear_superglobal_service_data($superglobal, $type)
             break;
         case 'request':
             //Optima Express special $_request clearance
-            if (
-                (
-                    apbct_is_plugin_active('optima-express/iHomefinder.php')
-                )
-            ) {
+            if ((apbct_is_plugin_active('optima-express/iHomefinder.php'))) {
                 $fields_to_clear[] = 'ct_no_cookie_hidden_field';
+            }
+            if ((apbct_is_plugin_active('uni-woo-custom-product-options/uni-cpo.php'))) {
+                $fields_to_clear[] = 'ct_bot_detector_event_token';
+                $fields_to_clear[] = 'ct_no_cookie_hidden_field';
+                $fields_to_clear[] = 'apbct_event_id';
+                $fields_to_clear[] = 'apbct__email_id';
             }
             break;
     }

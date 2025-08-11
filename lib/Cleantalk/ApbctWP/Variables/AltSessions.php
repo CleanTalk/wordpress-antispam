@@ -185,6 +185,20 @@ class AltSessions
                 'error' => 'AltSessions: Internal JSON error:' . json_last_error_msg()));
         }
 
+        // if cookies_array is array of arrays, then convert it to object
+        if (is_array($cookies_array) &&
+            isset($cookies_array[0]) &&
+            is_array($cookies_array[0])
+        ) {
+            $prepared_cookies_array = array();
+            foreach ($cookies_array as $cookie) {
+                if (is_array($cookie) && isset($cookie[0]) && isset($cookie[1])) {
+                    $prepared_cookies_array[$cookie[0]] = $cookie[1];
+                }
+            }
+            $cookies_array = $prepared_cookies_array;
+        }
+
         // Incoming data validation against allowed alt cookies
         foreach ($cookies_array as $name => $value) {
             if ( ! array_key_exists($name, self::$allowed_alt_cookies) ) {
