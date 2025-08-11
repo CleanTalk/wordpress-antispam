@@ -192,7 +192,9 @@ class AltSessions
         ) {
             $prepared_cookies_array = array();
             foreach ($cookies_array as $cookie) {
-                $prepared_cookies_array[$cookie[0]] = $cookie[1];
+                if (is_array($cookie) && isset($cookie[0]) && isset($cookie[1])) {
+                    $prepared_cookies_array[$cookie[0]] = $cookie[1];
+                }
             }
             $cookies_array = $prepared_cookies_array;
         }
