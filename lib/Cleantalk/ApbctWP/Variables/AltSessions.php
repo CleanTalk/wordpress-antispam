@@ -186,7 +186,10 @@ class AltSessions
         }
 
         // if cookies_array is array of arrays, then convert it to object
-        if (is_array($cookies_array) && count($cookies_array) > 0 && is_array($cookies_array[0])) {
+        if (is_array($cookies_array) &&
+            isset($cookies_array[0]) &&
+            is_array($cookies_array[0])
+        ) {
             $prepared_cookies_array = array();
             foreach ($cookies_array as $cookie) {
                 $prepared_cookies_array[$cookie[0]] = $cookie[1];
