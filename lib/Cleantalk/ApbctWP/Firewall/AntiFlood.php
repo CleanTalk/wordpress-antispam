@@ -68,7 +68,13 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
      */
     public function check()
     {
+        global $apbct;
+
         $results = array();
+
+        if (empty($apbct->key_is_ok) || empty($apbct->api_key)) {
+            return $results;
+        }
 
         $this->clearTable();
 

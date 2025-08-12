@@ -125,6 +125,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         $results = array();
         $status  = 0;
 
+        if (empty($apbct->key_is_ok) || empty($apbct->api_key)) {
+            return $results;
+        }
+
         if (
             empty($this->db__table__data) ||
             empty($this->db__table__data_personal) ||
@@ -199,22 +203,22 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $needles = array_unique($needles);
 
             $query =  "(SELECT
-				0 as is_personal, network, mask, status
-				FROM " . $this->db__table__data . "
-				WHERE network IN (" . implode(',', $needles) . ")
-				AND	network = " . $current_ip_v4 . " & mask 
-				AND " . rand(1, 100000) . "  
-				ORDER BY status DESC, status)";
+                0 as is_personal, network, mask, status
+                FROM " . $this->db__table__data . "
+                WHERE network IN (" . implode(',', $needles) . ")
+                AND	network = " . $current_ip_v4 . " & mask 
+                AND " . rand(1, 100000) . "  
+                ORDER BY status DESC, status)";
 
             $query .= " UNION ";
 
             $query .=  "(SELECT
-				1 as is_personal, network, mask, status
-				FROM " . $this->db__table__data_personal . "
-				WHERE network IN (" . implode(',', $needles) . ")
-				AND	network = " . $current_ip_v4 . " & mask 
-				AND " . rand(1, 100000) . "  
-				ORDER BY status DESC, status)";
+                1 as is_personal, network, mask, status
+                FROM " . $this->db__table__data_personal . "
+                WHERE network IN (" . implode(',', $needles) . ")
+                AND	network = " . $current_ip_v4 . " & mask 
+                AND " . rand(1, 100000) . "  
+                ORDER BY status DESC, status)";
 
             $db_results = $this->db->fetchAll($query);
 
