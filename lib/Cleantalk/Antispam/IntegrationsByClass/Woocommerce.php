@@ -47,11 +47,8 @@ class Woocommerce extends IntegrationByClassBase
         // honeypot
         add_filter('woocommerce_checkout_fields', [$this, 'addHoneypotField']);
 
-        // add to cart
-        if ( ! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart'] ) {
-            add_filter('woocommerce_add_to_cart_validation', [$this, 'addToCartUnloggedUser'], 10, 6);
-            add_filter('woocommerce_store_api_add_to_cart_data', [$this, 'storeApiAddToCartData'], 10, 2);
-        }
+        // add to cart hooks if cart works with non-ajax requests
+        $this->addCartActions();
 
         // checkout
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
@@ -81,6 +78,9 @@ class Woocommerce extends IntegrationByClassBase
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
             $this->addActions();
         }
+
+        //add to cart AJAX actions
+        $this->addCartActions();
 
         // Restore Spam Order
         add_action('wp_ajax_apbct_restore_spam_order', array(WcSpamOrdersFunctions::class, 'restoreOrderAction'));
@@ -287,7 +287,7 @@ class Woocommerce extends IntegrationByClassBase
                     $this->storeBlockedOrder();
                 }
 
-                if ( $order->get_status() === 'checkout-draft' ) {
+                if ( $order->get_status() === 'pending' || $order->get_status() === 'checkout-draft' ) {
                     try {
                         $order->delete(true);
                     } catch (\Exception $e) {
@@ -705,6 +705,20 @@ class Woocommerce extends IntegrationByClassBase
             if (isset($values['_cpo_data']['apbct_visible_fields'])) {
                 $item->delete_meta_data('_apbct_visible_fields');
             }
+        }
+    }
+
+    /**
+     * Add actions for add to cart. Works on AJAX calls OR on REST API calls.
+     * @return void
+     */
+    private function addCartActions()
+    {
+        global $apbct;
+
+        if ( ! apbct_is_user_logged_in() && $apbct->settings['forms__wc_add_to_cart'] ) {
+            add_filter('woocommerce_add_to_cart_validation', [$this, 'addToCartUnloggedUser'], 10, 6);
+            add_filter('woocommerce_store_api_add_to_cart_data', [$this, 'storeApiAddToCartData'], 10, 2);
         }
     }
 }

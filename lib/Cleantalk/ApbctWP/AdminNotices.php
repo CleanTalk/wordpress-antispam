@@ -31,6 +31,7 @@ class AdminNotices
      */
     const NOTICES = array(
         'notice_key_is_incorrect',
+        'notice_get_key_error',
         'notice_trial',
         'notice_renew',
         'notice_incompatibility',
@@ -134,11 +135,11 @@ class AdminNotices
      */
     public function notice_get_key_error() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if ($this->apbct->notice_show &&
-            ! empty($this->apbct->errors['key_get']) &&
-            ! $this->apbct->white_label
+        if (isset($this->apbct->errors['key_get']) &&
+            !empty($this->apbct->errors['key_get']) && !$this->apbct->white_label
         ) {
             $banner_data = new BannerDataDto();
+            $banner_data->type = 'get_key_error';
             $banner_data->text = __("Unable to get Access key automatically:", 'cleantalk-spam-protect');
             $banner_data->secondary_text = end($this->apbct->errors['key_get'])['error'];
 

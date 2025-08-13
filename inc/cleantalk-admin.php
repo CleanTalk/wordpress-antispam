@@ -611,9 +611,9 @@ function apbct_admin__enqueue_scripts($hook)
     // COMMENTS page JavaScript
     if ( $hook == 'edit-comments.php' ) {
         ApbctEnqueue::getInstance()->css('cleantalk-trp.css');
-        ApbctEnqueue::getInstance()->js('apbct-public--7--trp.js');
+        ApbctEnqueue::getInstance()->js('/public-3-trp.js');
         wp_localize_script(
-            'apbct-public--7--trp-js',
+            'public-3-trp-js',
             'ctTrpAdminLocalize',
             \Cleantalk\ApbctWP\CleantalkRealPerson::getLocalizingData()
         );

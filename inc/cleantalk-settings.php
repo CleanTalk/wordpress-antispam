@@ -255,17 +255,22 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                 ),
-                'forms__search_test'                    => array(
-                    'title'       => __('Test default WordPress search form for spam', 'cleantalk-spam-protect'),
+                'forms__search_test' => array(
+                    'title' => __('Test default WordPress search form for spam', 'cleantalk-spam-protect'),
                     'description' =>
                         __('Spam protection for Search form.', 'cleantalk-spam-protect')
-                        //HANDLE LINK
-                        . (! $apbct->white_label || is_main_site() ?
-                            sprintf(
-                                __('Read more about %sspam protection for Search form%s on our blog. The "noindex" tag will be placed in the meta directive on the search results page.', 'cleantalk-spam-protect'),
+                        . (
+                            ! $apbct->white_label || is_main_site()
+                            ? ' ' . sprintf(
+                                __(
+                                    'Read more about %sspam protection for Search form%s on our blog. The "noindex" tag will be placed in the meta directive on the search results page.',
+                                    'cleantalk-spam-protect'
+                                ),
                                 '<a href="https://blog.cleantalk.org/how-to-protect-website-search-from-spambots/" target="_blank">',
                                 '</a>'
-                            ) : '')
+                            )
+                            : ''
+                        ),
                 ),
                 'forms__check_external'                 => array(
                     'title'       => __('Protect external forms', 'cleantalk-spam-protect'),
@@ -1873,6 +1878,13 @@ function apbct_settings__field__apikey()
     $define_show_key_field = ! (apbct_api_key__is_correct($apbct->api_key) && isset($apbct->data["key_changed"]) && $apbct->data["key_changed"]);
     $define_show_deobfuscating_href = apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok && (!isset($apbct->data["key_changed"]) || !$apbct->data["key_changed"]);
 
+    $get_key_manual_chunk_display = '';
+    if (!empty($apbct->settings['apikey']) ||
+        APBCT_WPMS && !is_main_site() && $apbct->network_settings['multisite__work_mode'] == 2
+    ) {
+        $get_key_manual_chunk_display = 'style="display:none"';
+    }
+
     $replaces = [
         'wpms_admin_provided' => '',
         'key_label_display' => 'style="display:none"',
@@ -1891,7 +1903,7 @@ function apbct_settings__field__apikey()
         'get_key_auto_preloader_src' => Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif'),
         'get_key_auto_success_icon_src' => Escape::escUrl(APBCT_URL_PATH . '/inc/images/yes.png'),
         'get_key_manual_chunk' => '',
-        'get_key_manual_chunk_display' => empty($apbct->settings['apikey']) ? '' : 'style="display:none"',
+        'get_key_manual_chunk_display' => $get_key_manual_chunk_display,
         'save_changes_button_text' => __('Save the Access key', 'cleantalk-spam-protect'),
         'trying_to_set_bad_key_notice' => __('Please, insert a correct access key before saving changes! Key should contain at least 8 symbols.', 'cleantalk-spam-protect'),
         'public_offer_display' => 'style="display:none"',
@@ -1918,9 +1930,10 @@ function apbct_settings__field__apikey()
     $replaces['deobfuscating_href_display'] = $define_show_deobfuscating_href ? '' : 'style="display:none"';
 
     //ACCOUNT NAME
+    $account_name = isset($apbct->data['account_name_ob']) ? $apbct->data['account_name_ob'] : '';
     $replaces['account_name_ob'] = sprintf(
         __('Account at cleantalk.org is %s.', 'cleantalk-spam-protect'),
-        '<b>' . Escape::escHtml($apbct->data['account_name_ob']) . '</b>'
+        '<b>' . Escape::escHtml($account_name) . '</b>'
     );
     //GET KEY AUTO
     $replaces['get_key_auto_wrapper_display'] = $define_show_key_field && empty($apbct->api_key)
@@ -2843,14 +2856,16 @@ function apbct_settings__get_key_auto($direct_call = false)
             'error' => isset($result['error_message']) ? esc_html($result['error_message']) : esc_html('Our service is not available in your region.'),
         );
     } elseif ( ! isset($result['auth_key']) ) {
-        //HANDLE LINK
+        $msg = sprintf(
+            __('Please, get the Access Key from CleanTalk Control Panel %s and insert it in the Access Key field', 'cleantalk-spam-protect'),
+            'https://cleantalk.org/my/?cp_mode=antispam'
+        );
+        $apbct->errorAdd('key_get', $msg);
+        $apbct->saveErrors();
         $out = array(
             'success' => true,
             'reload'  => false,
-            'error' => sprintf(
-                __('Please, get the Access Key from CleanTalk Control Panel %s and insert it in the Access Key field', 'cleantalk-spam-protect'),
-                'https://cleantalk.org/my/?cp_mode=antispam'
-            )
+            'error' => $msg
         );
     } else {
         if ( isset($result['user_token']) ) {

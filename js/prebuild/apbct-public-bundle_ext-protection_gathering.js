@@ -1775,7 +1775,9 @@ function ctSetCookie( cookies, value, expires ) {
             // do it just once
             ctSetAlternativeCookie(cookies, {forceAltCookies: true});
         } else {
-            ctNoCookieAttachHiddenFieldsToForms();
+            if (!+ctPublic.settings__data__bot_detector_enabled) {
+                ctNoCookieAttachHiddenFieldsToForms();
+            }
         }
 
         // Using traditional cookies
@@ -1811,15 +1813,22 @@ function ctSetAlternativeCookie(cookies, params) {
         if (Array.isArray(cookies)) {
             cookies = getJavascriptClientData(cookies);
         }
-    } else {
+    } else if (!+ctPublic.settings__data__bot_detector_enabled) {
         console.log('APBCT ERROR: getJavascriptClientData() is not loaded');
     }
 
-    try {
-        cookies = JSON.parse(cookies);
-    } catch (e) {
-        console.log('APBCT ERROR: JSON parse error:' + e);
-        return;
+    // if cookies is array, convert it to object
+    if (Array.isArray(cookies) && cookies[0] && cookies[0][0] === 'apbct_bot_detector_exist') {
+        cookies = {apbct_bot_detector_exist: cookies[0][1]};
+    }
+    // Only try to parse if cookies is a string (JSON)
+    if (typeof cookies === 'string') {
+        try {
+            cookies = JSON.parse(cookies);
+        } catch (e) {
+            console.log('APBCT ERROR: JSON parse error:' + e);
+            return;
+        }
     }
 
     const callback = params && params.callback || null;
@@ -2165,27 +2174,17 @@ class ApbctEventTokenTransport {
      * @return {void}
      */
     setEventTokenToAltCookies() {
-        let tokenForForceAlt = apbctLocalStorage.get('bot_detector_event_token');
         if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-            apbctLocalStorage.set('event_token_forced_set', '0');
-            if (tokenForForceAlt) {
-                initCookies.push(['ct_bot_detector_event_token', tokenForForceAlt]);
-                apbctLocalStorage.set('event_token_forced_set', '1');
-            } else {
-                tokenCheckerIntervalId = setInterval( function() {
-                    if (apbctLocalStorage.get('event_token_forced_set') === '1') {
-                        clearInterval(tokenCheckerIntervalId);
-                        return;
-                    }
-                    let eventToken = apbctLocalStorage.get('bot_detector_event_token');
-                    if (eventToken) {
-                        ctSetAlternativeCookie([['ct_bot_detector_event_token', eventToken]], {forceAltCookies: true});
-                        apbctLocalStorage.set('event_token_forced_set', '1');
-                        clearInterval(tokenCheckerIntervalId);
-                    } else {
-                    }
-                }, 1000);
-            }
+            tokenCheckerIntervalId = setInterval( function() {
+                let eventToken = apbctLocalStorage.get('bot_detector_event_token');
+                if (eventToken) {
+                    ctSetAlternativeCookie(
+                        JSON.stringify({'ct_bot_detector_event_token': eventToken}),
+                        {forceAltCookies: true},
+                    );
+                    clearInterval(tokenCheckerIntervalId);
+                }
+            }, 1000);
         }
     }
 
@@ -2230,21 +2229,10 @@ class ApbctAttachData {
         if (typeof ctPublic.force_alt_cookies == 'undefined' ||
             (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
         ) {
-            ctNoCookieAttachHiddenFieldsToForms();
-            document.addEventListener('gform_page_loaded', ctNoCookieAttachHiddenFieldsToForms);
-        }
-    }
-
-    /**
-     * Attach no cookie
-     * @return {void}
-     */
-    attachNoCookie() {
-        if (typeof ctPublic.data__cookies_type !== 'undefined' &&
-            ctPublic.data__cookies_type === 'none'
-        ) {
-            ctAjaxSetupAddCleanTalkDataBeforeSendAjax();
-            ctAddWCMiddlewares();
+            if (!+ctPublic.settings__data__bot_detector_enabled) {
+                ctNoCookieAttachHiddenFieldsToForms();
+                document.addEventListener('gform_page_loaded', ctNoCookieAttachHiddenFieldsToForms);
+            }
         }
     }
 
@@ -2388,51 +2376,35 @@ class ApbctAttachData {
             return true;
         });
 
-        // Batch all style computations to avoid forced layouts
-        const styleChecks = inputs.map(function(elem) {
+        // Visible fields
+        inputs.forEach(function(elem, i, elements) {
             // Unnecessary fields
             if (
                 elem.getAttribute('type') === 'submit' || // type == submit
                 elem.getAttribute('name') === null ||
                 elem.getAttribute('name') === 'ct_checkjs'
             ) {
-                return { elem: elem, skip: true };
-            }
-
-            // Check for hidden type first (no layout required)
-            if (elem.getAttribute('type') === 'hidden') {
-                return { elem: elem, isVisible: false, isWpEditor: elem.classList.contains('wp-editor-area') };
-            }
-
-            // Batch getComputedStyle calls to avoid multiple layout thrashing
-            const computedStyle = getComputedStyle(elem);
-            const isHidden = computedStyle.display === 'none' || 
-                           computedStyle.visibility === 'hidden' || 
-                           computedStyle.opacity === '0';
-
-            return { 
-                elem: elem, 
-                isVisible: !isHidden, 
-                isWpEditor: elem.classList.contains('wp-editor-area') 
-            };
-        });
-
-        // Process the results
-        styleChecks.forEach(function(check) {
-            if (check.skip) {
                 return;
             }
-
-            if (!check.isVisible) {
-                if (check.isWpEditor) {
-                    inputsVisible += ' ' + check.elem.getAttribute('name');
+            // Invisible fields
+            if (
+                getComputedStyle(elem).display === 'none' || // hidden
+                getComputedStyle(elem).visibility === 'hidden' || // hidden
+                getComputedStyle(elem).opacity === '0' || // hidden
+                elem.getAttribute('type') === 'hidden' // type == hidden
+            ) {
+                if ( elem.classList.contains('wp-editor-area') ) {
+                    inputsVisible += ' ' + elem.getAttribute('name');
                     inputsVisibleCount++;
                 } else {
-                    inputsInvisible += ' ' + check.elem.getAttribute('name');
+                    inputsInvisible += ' ' + elem.getAttribute('name');
                     inputsInvisibleCount++;
                 }
-            } else {
-                inputsVisible += ' ' + check.elem.getAttribute('name');
+                // eslint-disable-next-line brace-style
+            }
+            // Visible fields
+            else {
+                inputsVisible += ' ' + elem.getAttribute('name');
                 inputsVisibleCount++;
             }
         });
@@ -2837,7 +2809,9 @@ class ApbctHandler {
                 if (+ctPublic.settings__data__bot_detector_enabled) {
                     options.data.requests[0].data.event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
-                    options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+                    if (ctPublic.data__cookies_type === 'none') {
+                        options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+                    }
                 }
             }
 
@@ -2846,7 +2820,9 @@ class ApbctHandler {
                 if (+ctPublic.settings__data__bot_detector_enabled) {
                     options.data.event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
-                    options.data.ct_no_cookie_hidden_field = getNoCookieData();
+                    if (ctPublic.data__cookies_type === 'none') {
+                        options.data.ct_no_cookie_hidden_field = getNoCookieData();
+                    }
                 }
             }
 
@@ -2867,19 +2843,20 @@ class ApbctHandler {
      */
     searchFormMiddleware() {
         const isExclusion = (form) => {
+            let className = form.getAttribute('class');
+            if (typeof className !== 'string') {
+                className = '';
+            }
+
             return (
                 // fibosearch integration
                 form.querySelector('input.dgwt-wcas-search-input') ||
                 // hero search skip
                 form.getAttribute('id') === 'hero-search-form' ||
                 // hb booking search skip
-                form.getAttribute('class') === 'hb-booking-search-form' ||
+                className === 'hb-booking-search-form' ||
                 // events calendar skip
-                (
-                    form.getAttribute('class') !== null &&
-                    form.getAttribute('class').indexOf('tribe-events') !== -1 &&
-                    form.getAttribute('class').indexOf('search') !== -1
-                )
+                (className.indexOf('tribe-events') !== -1 && className.indexOf('search') !== -1)
             );
         };
 
@@ -3124,7 +3101,6 @@ function apbct_ready() {
         gatheringData.listenAutocomplete();
         gatheringData.gatheringTypoData();
         gatheringData.initParams();
-        gatheringData.gatheringMouseData();
     }
 
     setTimeout(function() {
@@ -3140,7 +3116,6 @@ function apbct_ready() {
         // Attach data when bot detector is disabled
         if (!+ctPublic.settings__data__bot_detector_enabled) {
             attachData.attachHiddenFieldsToForms();
-            attachData.attachNoCookie();
         }
 
         for (let i = 0; i < document.forms.length; i++) {
@@ -3164,6 +3139,10 @@ function apbct_ready() {
     handler.catchFetchRequest();
     handler.catchJqueryAjax();
     handler.catchWCRestRequestAsMiddleware();
+
+    if (+ctPublic.settings__data__bot_detector_enabled) {
+        new ApbctEventTokenTransport().setEventTokenToAltCookies();
+    }
 
     if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {
         handler.toolForAntiCrawlerCheckDuringBotDetector();
@@ -3407,6 +3386,7 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     const prev = currentForm.previousSibling;
     const formHtml = currentForm.outerHTML;
     const formOriginal = currentForm;
+    const formContent = currentForm.querySelectorAll('input, textarea, select');
 
     // Remove the original form
     currentForm.parentElement.removeChild(currentForm);
@@ -3414,7 +3394,30 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     // Insert a clone
     const placeholder = document.createElement('div');
     placeholder.innerHTML = formHtml;
-    prev.after(placeholder.firstElementChild);
+    const clonedForm = placeholder.firstElementChild;
+    prev.after(clonedForm);
+
+    if (formContent && formContent.length > 0) {
+        formContent.forEach(function(content) {
+            if (content && content.name && content.type !== 'submit' && content.type !== 'button') {
+                if (content.type === 'checkbox') {
+                    const checkboxInput = clonedForm.querySelector(`input[name="${content.name}"]`);
+                    if (checkboxInput) {
+                        checkboxInput.checked = content.checked;
+                    }
+                } else {
+                    const input = clonedForm.querySelector(
+                        `input[name="${content.name}"], ` +
+                        `textarea[name="${content.name}"], ` +
+                        `select[name="${content.name}"]`,
+                    );
+                    if (input) {
+                        input.value = content.value;
+                    }
+                }
+            }
+        });
+    }
 
     const forceAction = document.createElement('input');
     forceAction.name = 'action';
@@ -4458,43 +4461,19 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
     }
 
     /**
-     * Gathering mouse data
-     * @return {void}
-     */
-    gatheringMouseData() {
-        new ApbctCollectingUserMouseActivity();
-    }
-
-    /**
      * Get screen info
      * @return {string}
      */
     getScreenInfo() {
-        // Batch all layout-triggering property reads to avoid forced synchronous layouts
-        const docEl = document.documentElement;
-        const body = document.body;
-        
-        // Read all layout properties in one batch
-        const layoutData = {
-            scrollWidth: docEl.scrollWidth,
-            bodyScrollHeight: body.scrollHeight,
-            docScrollHeight: docEl.scrollHeight,
-            bodyOffsetHeight: body.offsetHeight,
-            docOffsetHeight: docEl.offsetHeight,
-            bodyClientHeight: body.clientHeight,
-            docClientHeight: docEl.clientHeight,
-            docClientWidth: docEl.clientWidth
-        };
-
         return JSON.stringify({
-            fullWidth: layoutData.scrollWidth,
+            fullWidth: document.documentElement.scrollWidth,
             fullHeight: Math.max(
-                layoutData.bodyScrollHeight, layoutData.docScrollHeight,
-                layoutData.bodyOffsetHeight, layoutData.docOffsetHeight,
-                layoutData.bodyClientHeight, layoutData.docClientHeight,
+                document.body.scrollHeight, document.documentElement.scrollHeight,
+                document.body.offsetHeight, document.documentElement.offsetHeight,
+                document.body.clientHeight, document.documentElement.clientHeight,
             ),
-            visibleWidth: layoutData.docClientWidth,
-            visibleHeight: layoutData.docClientHeight,
+            visibleWidth: document.documentElement.clientWidth,
+            visibleHeight: document.documentElement.clientHeight,
         });
     }
 
@@ -4607,122 +4586,6 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
                 }
             }
         }
-    }
-}
-
-/**
- * Class collecting user mouse activity data
- *
- */
-// eslint-disable-next-line no-unused-vars, require-jsdoc
-class ApbctCollectingUserMouseActivity {
-    elementBody = document.querySelector('body');
-    collectionForms = document.forms;
-    /**
-     * Constructor
-     */
-    constructor() {
-        this.setListeners();
-    }
-
-    /**
-     * Set listeners
-     */
-    setListeners() {
-        this.elementBody.addEventListener('click', (event) => {
-            this.checkElementInForms(event, 'addClicks');
-        });
-
-        this.elementBody.addEventListener('mouseup', (event) => {
-            const selectedType = document.getSelection().type.toString();
-            if (selectedType == 'Range') {
-                this.addSelected();
-            }
-        });
-
-        this.elementBody.addEventListener('mousemove', (event) => {
-            this.checkElementInForms(event, 'trackMouseMovement');
-        });
-    }
-
-    /**
-     * Checking if there is an element in the form
-     * @param {object} event
-     * @param {string} addTarget
-     */
-    checkElementInForms(event, addTarget) {
-        let resultCheck;
-        for (let i = 0; i < this.collectionForms.length; i++) {
-            if (
-                event.target.outerHTML.length > 0 &&
-                this.collectionForms[i].innerHTML.length > 0
-            ) {
-                resultCheck = this.collectionForms[i].innerHTML.indexOf(event.target.outerHTML);
-            } else {
-                resultCheck = -1;
-            }
-        }
-
-        switch (addTarget) {
-        case 'addClicks':
-            if (resultCheck < 0) {
-                this.addClicks();
-            }
-            break;
-        case 'trackMouseMovement':
-            if (resultCheck > -1) {
-                this.trackMouseMovement();
-            }
-            break;
-        default:
-            break;
-        }
-    }
-
-    /**
-     * Add clicks
-     */
-    addClicks() {
-        if (document.ctCollectingUserActivityData) {
-            if (document.ctCollectingUserActivityData.clicks) {
-                document.ctCollectingUserActivityData.clicks++;
-            } else {
-                document.ctCollectingUserActivityData.clicks = 1;
-            }
-            return;
-        }
-
-        document.ctCollectingUserActivityData = {clicks: 1};
-    }
-
-    /**
-     * Add selected
-     */
-    addSelected() {
-        if (document.ctCollectingUserActivityData) {
-            if (document.ctCollectingUserActivityData.selected) {
-                document.ctCollectingUserActivityData.selected++;
-            } else {
-                document.ctCollectingUserActivityData.selected = 1;
-            }
-            return;
-        }
-
-        document.ctCollectingUserActivityData = {selected: 1};
-    }
-
-    /**
-     * Track mouse movement
-     */
-    trackMouseMovement() {
-        if (!document.ctCollectingUserActivityData) {
-            document.ctCollectingUserActivityData = {};
-        }
-        if (!document.ctCollectingUserActivityData.mouseMovementsInsideForm) {
-            document.ctCollectingUserActivityData.mouseMovementsInsideForm = false;
-        }
-
-        document.ctCollectingUserActivityData.mouseMovementsInsideForm = true;
     }
 }
 
@@ -5062,7 +4925,7 @@ function getJavascriptClientData(commonCookies = []) { // eslint-disable-line no
         resultDataJson.apbct_pixel_url = ctPublic.pixel__url;
     }
 
-    if (typeof (commonCookies) === 'object') {
+    if ( typeof (commonCookies) === 'object') {
         for (let i = 0; i < commonCookies.length; ++i) {
             if ( typeof (commonCookies[i][1]) === 'object' ) {
                 // this is for handle SFW cookies
@@ -5341,14 +5204,7 @@ function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
         noCookieDataTypo = {typo: document.ctTypoData.data};
     }
 
-    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
-
-    if (document.ctCollectingUserActivityData) {
-        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
-        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
-    }
-
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo};
 }
 
 let botDetectorLogLastUpdate = 0;

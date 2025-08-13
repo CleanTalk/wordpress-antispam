@@ -435,6 +435,14 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
+    'AsgarosForum'         => array(
+        'hook'    => array(
+            'asgarosforum_filter_before_topic_submit',
+            'asgarosforum_filter_before_post_submit',
+        ),
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_active_integrations) {
