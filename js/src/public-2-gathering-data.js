@@ -82,19 +82,43 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
     }
 
     /**
+     * Gathering mouse data
+     * @return {void}
+     */
+    gatheringMouseData() {
+        new ApbctCollectingUserMouseActivity();
+    }
+
+    /**
      * Get screen info
      * @return {string}
      */
     getScreenInfo() {
+        // Batch all layout-triggering property reads to avoid forced synchronous layouts
+        const docEl = document.documentElement;
+        const body = document.body;
+
+        // Read all layout properties in one batch
+        const layoutData = {
+            scrollWidth: docEl.scrollWidth,
+            bodyScrollHeight: body.scrollHeight,
+            docScrollHeight: docEl.scrollHeight,
+            bodyOffsetHeight: body.offsetHeight,
+            docOffsetHeight: docEl.offsetHeight,
+            bodyClientHeight: body.clientHeight,
+            docClientHeight: docEl.clientHeight,
+            docClientWidth: docEl.clientWidth,
+        };
+
         return JSON.stringify({
-            fullWidth: document.documentElement.scrollWidth,
+            fullWidth: layoutData.scrollWidth,
             fullHeight: Math.max(
-                document.body.scrollHeight, document.documentElement.scrollHeight,
-                document.body.offsetHeight, document.documentElement.offsetHeight,
-                document.body.clientHeight, document.documentElement.clientHeight,
+                layoutData.bodyScrollHeight, layoutData.docScrollHeight,
+                layoutData.bodyOffsetHeight, layoutData.docOffsetHeight,
+                layoutData.bodyClientHeight, layoutData.docClientHeight,
             ),
-            visibleWidth: document.documentElement.clientWidth,
-            visibleHeight: document.documentElement.clientHeight,
+            visibleWidth: layoutData.docClientWidth,
+            visibleHeight: layoutData.docClientHeight,
         });
     }
 
@@ -207,6 +231,122 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
                 }
             }
         }
+    }
+}
+
+/**
+ * Class collecting user mouse activity data
+ *
+ */
+// eslint-disable-next-line no-unused-vars, require-jsdoc
+class ApbctCollectingUserMouseActivity {
+    elementBody = document.querySelector('body');
+    collectionForms = document.forms;
+    /**
+     * Constructor
+     */
+    constructor() {
+        this.setListeners();
+    }
+
+    /**
+     * Set listeners
+     */
+    setListeners() {
+        this.elementBody.addEventListener('click', (event) => {
+            this.checkElementInForms(event, 'addClicks');
+        });
+
+        this.elementBody.addEventListener('mouseup', (event) => {
+            const selectedType = document.getSelection().type.toString();
+            if (selectedType == 'Range') {
+                this.addSelected();
+            }
+        });
+
+        this.elementBody.addEventListener('mousemove', (event) => {
+            this.checkElementInForms(event, 'trackMouseMovement');
+        });
+    }
+
+    /**
+     * Checking if there is an element in the form
+     * @param {object} event
+     * @param {string} addTarget
+     */
+    checkElementInForms(event, addTarget) {
+        let resultCheck;
+        for (let i = 0; i < this.collectionForms.length; i++) {
+            if (
+                event.target.outerHTML.length > 0 &&
+                this.collectionForms[i].innerHTML.length > 0
+            ) {
+                resultCheck = this.collectionForms[i].innerHTML.indexOf(event.target.outerHTML);
+            } else {
+                resultCheck = -1;
+            }
+        }
+
+        switch (addTarget) {
+        case 'addClicks':
+            if (resultCheck < 0) {
+                this.addClicks();
+            }
+            break;
+        case 'trackMouseMovement':
+            if (resultCheck > -1) {
+                this.trackMouseMovement();
+            }
+            break;
+        default:
+            break;
+        }
+    }
+
+    /**
+     * Add clicks
+     */
+    addClicks() {
+        if (document.ctCollectingUserActivityData) {
+            if (document.ctCollectingUserActivityData.clicks) {
+                document.ctCollectingUserActivityData.clicks++;
+            } else {
+                document.ctCollectingUserActivityData.clicks = 1;
+            }
+            return;
+        }
+
+        document.ctCollectingUserActivityData = {clicks: 1};
+    }
+
+    /**
+     * Add selected
+     */
+    addSelected() {
+        if (document.ctCollectingUserActivityData) {
+            if (document.ctCollectingUserActivityData.selected) {
+                document.ctCollectingUserActivityData.selected++;
+            } else {
+                document.ctCollectingUserActivityData.selected = 1;
+            }
+            return;
+        }
+
+        document.ctCollectingUserActivityData = {selected: 1};
+    }
+
+    /**
+     * Track mouse movement
+     */
+    trackMouseMovement() {
+        if (!document.ctCollectingUserActivityData) {
+            document.ctCollectingUserActivityData = {};
+        }
+        if (!document.ctCollectingUserActivityData.mouseMovementsInsideForm) {
+            document.ctCollectingUserActivityData.mouseMovementsInsideForm = false;
+        }
+
+        document.ctCollectingUserActivityData.mouseMovementsInsideForm = true;
     }
 }
 
@@ -546,7 +686,7 @@ function getJavascriptClientData(commonCookies = []) { // eslint-disable-line no
         resultDataJson.apbct_pixel_url = ctPublic.pixel__url;
     }
 
-    if ( typeof (commonCookies) === 'object') {
+    if (typeof (commonCookies) === 'object') {
         for (let i = 0; i < commonCookies.length; ++i) {
             if ( typeof (commonCookies[i][1]) === 'object' ) {
                 // this is for handle SFW cookies
@@ -825,5 +965,12 @@ function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
         noCookieDataTypo = {typo: document.ctTypoData.data};
     }
 
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo};
+    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
+
+    if (document.ctCollectingUserActivityData) {
+        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
+        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
+    }
+
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
 }
