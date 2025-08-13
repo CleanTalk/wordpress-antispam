@@ -97,7 +97,7 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
         // Batch all layout-triggering property reads to avoid forced synchronous layouts
         const docEl = document.documentElement;
         const body = document.body;
-        
+
         // Read all layout properties in one batch
         const layoutData = {
             scrollWidth: docEl.scrollWidth,
@@ -107,7 +107,7 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
             docOffsetHeight: docEl.offsetHeight,
             bodyClientHeight: body.clientHeight,
             docClientHeight: docEl.clientHeight,
-            docClientWidth: docEl.clientWidth
+            docClientWidth: docEl.clientWidth,
         };
 
         return JSON.stringify({

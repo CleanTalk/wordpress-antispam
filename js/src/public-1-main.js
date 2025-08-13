@@ -262,12 +262,12 @@ class ApbctAttachData {
                 elem.getAttribute('name') === null ||
                 elem.getAttribute('name') === 'ct_checkjs'
             ) {
-                return { elem: elem, skip: true };
+                return {elem: elem, skip: true};
             }
 
             // Check for hidden type first (no layout required)
             if (elem.getAttribute('type') === 'hidden') {
-                return { elem: elem, isVisible: false, isWpEditor: elem.classList.contains('wp-editor-area') };
+                return {elem: elem, isVisible: false, isWpEditor: elem.classList.contains('wp-editor-area')};
             }
 
             // Batch getComputedStyle calls to avoid multiple layout thrashing
@@ -279,7 +279,7 @@ class ApbctAttachData {
             return {
                 elem: elem,
                 isVisible: !isHidden,
-                isWpEditor: elem.classList.contains('wp-editor-area')
+                isWpEditor: elem.classList.contains('wp-editor-area'),
             };
         });
 

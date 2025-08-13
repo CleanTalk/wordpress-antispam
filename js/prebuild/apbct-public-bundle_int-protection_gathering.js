@@ -2384,12 +2384,12 @@ class ApbctAttachData {
                 elem.getAttribute('name') === null ||
                 elem.getAttribute('name') === 'ct_checkjs'
             ) {
-                return { elem: elem, skip: true };
+                return {elem: elem, skip: true};
             }
 
             // Check for hidden type first (no layout required)
             if (elem.getAttribute('type') === 'hidden') {
-                return { elem: elem, isVisible: false, isWpEditor: elem.classList.contains('wp-editor-area') };
+                return {elem: elem, isVisible: false, isWpEditor: elem.classList.contains('wp-editor-area')};
             }
 
             // Batch getComputedStyle calls to avoid multiple layout thrashing
@@ -2401,7 +2401,7 @@ class ApbctAttachData {
             return {
                 elem: elem,
                 isVisible: !isHidden,
-                isWpEditor: elem.classList.contains('wp-editor-area')
+                isWpEditor: elem.classList.contains('wp-editor-area'),
             };
         });
 
@@ -3387,7 +3387,7 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
         // Batch all layout-triggering property reads to avoid forced synchronous layouts
         const docEl = document.documentElement;
         const body = document.body;
-        
+
         // Read all layout properties in one batch
         const layoutData = {
             scrollWidth: docEl.scrollWidth,
@@ -3397,7 +3397,7 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
             docOffsetHeight: docEl.offsetHeight,
             bodyClientHeight: body.clientHeight,
             docClientHeight: docEl.clientHeight,
-            docClientWidth: docEl.clientWidth
+            docClientWidth: docEl.clientWidth,
         };
 
         return JSON.stringify({
