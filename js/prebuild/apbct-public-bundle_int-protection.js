@@ -3588,27 +3588,35 @@ function viewCheckEmailExist(e, state, textResult) {
 
 /**
  * Shift the envelope to the input field on resizing the window
- * @param {object} envelope
- * @param {object} inputEmail
  */
 function ctEmailExistSetElementsPositions() {
     const envelopeWidth = 35;
     const inputEmail = document.querySelector('comment-form input[name*="email"], input#email');
+
     if (!inputEmail) {
         return;
     }
+
+    const inputRect = inputEmail.getBoundingClientRect();
+    const inputHeight = inputEmail.offsetHeight;
+    const inputWidth = inputEmail.offsetWidth;
+
     const envelope = document.getElementById('apbct-check_email_exist-block');
     if (envelope) {
-        envelope.style.top = inputEmail.getBoundingClientRect().top + 'px';
-        envelope.style.left = inputEmail.getBoundingClientRect().right - envelopeWidth - 10 + 'px';
-        envelope.style.height = inputEmail.offsetHeight + 'px';
-        envelope.style.width = envelopeWidth + 'px';
+        envelope.style.cssText = `
+            top: ${inputRect.top}px;
+            left: ${inputRect.right - envelopeWidth - 10}px;
+            height: ${inputHeight}px;
+            width: ${envelopeWidth}px;
+        `;
     }
 
     const hint = document.getElementById('apbct-check_email_exist-popup_description');
     if (hint) {
-        hint.style.width = inputEmail.offsetWidth + 'px';
-        hint.style.left = inputEmail.getBoundingClientRect().left + 'px';
+        hint.style.cssText = `
+            width: ${inputWidth}px;
+            left: ${inputRect.left}px;
+        `;
     }
 }
 
