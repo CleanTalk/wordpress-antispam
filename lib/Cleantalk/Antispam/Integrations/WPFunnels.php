@@ -24,8 +24,12 @@ class WPFunnels extends IntegrationBase
 
         $data = ct_gfa_dto($input_array)->getArray();
 
+        if ( isset($data['apbct_visible_fields']) ) {
+            unset($data['apbct_visible_fields']);
+        }
+
         if (isset($data['message']) && is_array($data['message'])) {
-            foreach (['apbct_visible_fields', 'event_token'] as $key) {
+            foreach (['event_token'] as $key) {
                 if (isset($data['message'][$key])) {
                     $data[$key] = $data['message'][$key];
                     unset($data['message'][$key]);
