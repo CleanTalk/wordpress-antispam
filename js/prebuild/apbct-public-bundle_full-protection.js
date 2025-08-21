@@ -2018,6 +2018,8 @@ function apbct_js_keys__set_input_value(result, data, params, obj) {
     }
 }
 
+
+
 let apbctLocalStorage = {
     get: function(key, property) {
         if ( typeof property === 'undefined' ) {
@@ -2119,6 +2121,18 @@ let apbctSessionStorage = {
         return data;
     },
 };
+
+/**
+ * @return {string}
+ */
+function getNoCookieData() { // eslint-disable-line no-unused-vars
+    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
+    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
+    let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
+    noCookieData = JSON.stringify(noCookieData);
+
+    return '_ct_no_cookie_data_' + btoa(noCookieData);
+}
 
 /**
  * Class for event token transport
