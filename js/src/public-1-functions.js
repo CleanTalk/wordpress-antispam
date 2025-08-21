@@ -389,3 +389,15 @@ let apbctSessionStorage = {
         return data;
     },
 };
+
+/**
+ * @return {string}
+ */
+function getNoCookieData() { // eslint-disable-line no-unused-vars
+    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
+    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
+    let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
+    noCookieData = JSON.stringify(noCookieData);
+
+    return '_ct_no_cookie_data_' + btoa(noCookieData);
+}

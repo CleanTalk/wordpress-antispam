@@ -1,10 +1,10 @@
 === Spam protection, Honeypot, Anti-Spam by CleanTalk ===
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
-Tags: antispam, comments, contact form, captcha, spam 
+Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 6.61
+Stable tag: 6.62
 License: GPLv2
 
 Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
@@ -412,6 +412,13 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
+= 6.62 21.08.2025 =
+* Mod. Firewall. Disabling SFW, AntiCrawler, and AntiFlood if the key is invalid or empty
+* Fix. Woocommerce. Add to cart validation on AJAX fixed.
+* Mod. Settings. Renaming email verification options before submitting the form
+* Fix. EmailCheckExist. Edit for WL mode
+* Ref. Frontend. Optimize flow to prevent forсed reflow.
+
 = 6.61 07.08.2025 =
 * New. Integration. Asgaros Forum topics and replies protected.
 * Upd. EmailEncoder. Add mode handler for shortcode.
@@ -446,7 +453,7 @@ Yes, it is. Please read this article,
 * Mod. SureForms. Separate implementation of rest route interception, editing of block message output
 * Fix. SFW. Skip check on probably missed tables due update process.
 * Fix. Code. Code direct call preventing.
-* Fix. Alt sessions. Incoming data validation. 
+* Fix. Alt sessions. Incoming data validation.
 * Fix. API. Restored missed first param $url on callback action checkResponse to avoid secound param $method_name missing.
 * Fix. SureForms. Edits based on the review
 * Fix. Integrations. JS. Do not handle onSubmit middleware for the Events Calendar search form.

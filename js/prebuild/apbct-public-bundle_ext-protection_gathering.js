@@ -2121,6 +2121,18 @@ let apbctSessionStorage = {
 };
 
 /**
+ * @return {string}
+ */
+function getNoCookieData() { // eslint-disable-line no-unused-vars
+    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
+    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
+    let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
+    noCookieData = JSON.stringify(noCookieData);
+
+    return '_ct_no_cookie_data_' + btoa(noCookieData);
+}
+
+/**
  * Class for event token transport
  */
 class ApbctEventTokenTransport {
@@ -2376,35 +2388,51 @@ class ApbctAttachData {
             return true;
         });
 
-        // Visible fields
-        inputs.forEach(function(elem, i, elements) {
+        // Batch all style computations to avoid forced layouts
+        const styleChecks = inputs.map(function(elem) {
             // Unnecessary fields
             if (
                 elem.getAttribute('type') === 'submit' || // type == submit
                 elem.getAttribute('name') === null ||
                 elem.getAttribute('name') === 'ct_checkjs'
             ) {
+                return {elem: elem, skip: true};
+            }
+
+            // Check for hidden type first (no layout required)
+            if (elem.getAttribute('type') === 'hidden') {
+                return {elem: elem, isVisible: false, isWpEditor: elem.classList.contains('wp-editor-area')};
+            }
+
+            // Batch getComputedStyle calls to avoid multiple layout thrashing
+            const computedStyle = getComputedStyle(elem);
+            const isHidden = computedStyle.display === 'none' ||
+                           computedStyle.visibility === 'hidden' ||
+                           computedStyle.opacity === '0';
+
+            return {
+                elem: elem,
+                isVisible: !isHidden,
+                isWpEditor: elem.classList.contains('wp-editor-area'),
+            };
+        });
+
+        // Process the results
+        styleChecks.forEach(function(check) {
+            if (check.skip) {
                 return;
             }
-            // Invisible fields
-            if (
-                getComputedStyle(elem).display === 'none' || // hidden
-                getComputedStyle(elem).visibility === 'hidden' || // hidden
-                getComputedStyle(elem).opacity === '0' || // hidden
-                elem.getAttribute('type') === 'hidden' // type == hidden
-            ) {
-                if ( elem.classList.contains('wp-editor-area') ) {
-                    inputsVisible += ' ' + elem.getAttribute('name');
+
+            if (!check.isVisible) {
+                if (check.isWpEditor) {
+                    inputsVisible += ' ' + check.elem.getAttribute('name');
                     inputsVisibleCount++;
                 } else {
-                    inputsInvisible += ' ' + elem.getAttribute('name');
+                    inputsInvisible += ' ' + check.elem.getAttribute('name');
                     inputsInvisibleCount++;
                 }
-                // eslint-disable-next-line brace-style
-            }
-            // Visible fields
-            else {
-                inputsVisible += ' ' + elem.getAttribute('name');
+            } else {
+                inputsVisible += ' ' + check.elem.getAttribute('name');
                 inputsVisibleCount++;
             }
         });
@@ -4461,19 +4489,43 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
     }
 
     /**
+     * Gathering mouse data
+     * @return {void}
+     */
+    gatheringMouseData() {
+        new ApbctCollectingUserMouseActivity();
+    }
+
+    /**
      * Get screen info
      * @return {string}
      */
     getScreenInfo() {
+        // Batch all layout-triggering property reads to avoid forced synchronous layouts
+        const docEl = document.documentElement;
+        const body = document.body;
+
+        // Read all layout properties in one batch
+        const layoutData = {
+            scrollWidth: docEl.scrollWidth,
+            bodyScrollHeight: body.scrollHeight,
+            docScrollHeight: docEl.scrollHeight,
+            bodyOffsetHeight: body.offsetHeight,
+            docOffsetHeight: docEl.offsetHeight,
+            bodyClientHeight: body.clientHeight,
+            docClientHeight: docEl.clientHeight,
+            docClientWidth: docEl.clientWidth,
+        };
+
         return JSON.stringify({
-            fullWidth: document.documentElement.scrollWidth,
+            fullWidth: layoutData.scrollWidth,
             fullHeight: Math.max(
-                document.body.scrollHeight, document.documentElement.scrollHeight,
-                document.body.offsetHeight, document.documentElement.offsetHeight,
-                document.body.clientHeight, document.documentElement.clientHeight,
+                layoutData.bodyScrollHeight, layoutData.docScrollHeight,
+                layoutData.bodyOffsetHeight, layoutData.docOffsetHeight,
+                layoutData.bodyClientHeight, layoutData.docClientHeight,
             ),
-            visibleWidth: document.documentElement.clientWidth,
-            visibleHeight: document.documentElement.clientHeight,
+            visibleWidth: layoutData.docClientWidth,
+            visibleHeight: layoutData.docClientHeight,
         });
     }
 
@@ -4586,6 +4638,122 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
                 }
             }
         }
+    }
+}
+
+/**
+ * Class collecting user mouse activity data
+ *
+ */
+// eslint-disable-next-line no-unused-vars, require-jsdoc
+class ApbctCollectingUserMouseActivity {
+    elementBody = document.querySelector('body');
+    collectionForms = document.forms;
+    /**
+     * Constructor
+     */
+    constructor() {
+        this.setListeners();
+    }
+
+    /**
+     * Set listeners
+     */
+    setListeners() {
+        this.elementBody.addEventListener('click', (event) => {
+            this.checkElementInForms(event, 'addClicks');
+        });
+
+        this.elementBody.addEventListener('mouseup', (event) => {
+            const selectedType = document.getSelection().type.toString();
+            if (selectedType == 'Range') {
+                this.addSelected();
+            }
+        });
+
+        this.elementBody.addEventListener('mousemove', (event) => {
+            this.checkElementInForms(event, 'trackMouseMovement');
+        });
+    }
+
+    /**
+     * Checking if there is an element in the form
+     * @param {object} event
+     * @param {string} addTarget
+     */
+    checkElementInForms(event, addTarget) {
+        let resultCheck;
+        for (let i = 0; i < this.collectionForms.length; i++) {
+            if (
+                event.target.outerHTML.length > 0 &&
+                this.collectionForms[i].innerHTML.length > 0
+            ) {
+                resultCheck = this.collectionForms[i].innerHTML.indexOf(event.target.outerHTML);
+            } else {
+                resultCheck = -1;
+            }
+        }
+
+        switch (addTarget) {
+        case 'addClicks':
+            if (resultCheck < 0) {
+                this.addClicks();
+            }
+            break;
+        case 'trackMouseMovement':
+            if (resultCheck > -1) {
+                this.trackMouseMovement();
+            }
+            break;
+        default:
+            break;
+        }
+    }
+
+    /**
+     * Add clicks
+     */
+    addClicks() {
+        if (document.ctCollectingUserActivityData) {
+            if (document.ctCollectingUserActivityData.clicks) {
+                document.ctCollectingUserActivityData.clicks++;
+            } else {
+                document.ctCollectingUserActivityData.clicks = 1;
+            }
+            return;
+        }
+
+        document.ctCollectingUserActivityData = {clicks: 1};
+    }
+
+    /**
+     * Add selected
+     */
+    addSelected() {
+        if (document.ctCollectingUserActivityData) {
+            if (document.ctCollectingUserActivityData.selected) {
+                document.ctCollectingUserActivityData.selected++;
+            } else {
+                document.ctCollectingUserActivityData.selected = 1;
+            }
+            return;
+        }
+
+        document.ctCollectingUserActivityData = {selected: 1};
+    }
+
+    /**
+     * Track mouse movement
+     */
+    trackMouseMovement() {
+        if (!document.ctCollectingUserActivityData) {
+            document.ctCollectingUserActivityData = {};
+        }
+        if (!document.ctCollectingUserActivityData.mouseMovementsInsideForm) {
+            document.ctCollectingUserActivityData.mouseMovementsInsideForm = false;
+        }
+
+        document.ctCollectingUserActivityData.mouseMovementsInsideForm = true;
     }
 }
 
@@ -4925,7 +5093,7 @@ function getJavascriptClientData(commonCookies = []) { // eslint-disable-line no
         resultDataJson.apbct_pixel_url = ctPublic.pixel__url;
     }
 
-    if ( typeof (commonCookies) === 'object') {
+    if (typeof (commonCookies) === 'object') {
         for (let i = 0; i < commonCookies.length; ++i) {
             if ( typeof (commonCookies[i][1]) === 'object' ) {
                 // this is for handle SFW cookies
@@ -5148,18 +5316,6 @@ function apbctCancelAutocomplete(element) {
 }
 
 /**
- * @return {string}
- */
-function getNoCookieData() { // eslint-disable-line no-unused-vars
-    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
-    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
-    let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
-    noCookieData = JSON.stringify(noCookieData);
-
-    return '_ct_no_cookie_data_' + btoa(noCookieData);
-}
-
-/**
  * ctNoCookieAttachHiddenFieldsToForms
  */
 function ctNoCookieAttachHiddenFieldsToForms() {
@@ -5204,7 +5360,14 @@ function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
         noCookieDataTypo = {typo: document.ctTypoData.data};
     }
 
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo};
+    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
+
+    if (document.ctCollectingUserActivityData) {
+        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
+        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
+    }
+
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
 }
 
 let botDetectorLogLastUpdate = 0;
@@ -5507,27 +5670,35 @@ function viewCheckEmailExist(e, state, textResult) {
 
 /**
  * Shift the envelope to the input field on resizing the window
- * @param {object} envelope
- * @param {object} inputEmail
  */
 function ctEmailExistSetElementsPositions() {
     const envelopeWidth = 35;
     const inputEmail = document.querySelector('comment-form input[name*="email"], input#email');
+
     if (!inputEmail) {
         return;
     }
+
+    const inputRect = inputEmail.getBoundingClientRect();
+    const inputHeight = inputEmail.offsetHeight;
+    const inputWidth = inputEmail.offsetWidth;
+
     const envelope = document.getElementById('apbct-check_email_exist-block');
     if (envelope) {
-        envelope.style.top = inputEmail.getBoundingClientRect().top + 'px';
-        envelope.style.left = inputEmail.getBoundingClientRect().right - envelopeWidth - 10 + 'px';
-        envelope.style.height = inputEmail.offsetHeight + 'px';
-        envelope.style.width = envelopeWidth + 'px';
+        envelope.style.cssText = `
+            top: ${inputRect.top}px;
+            left: ${inputRect.right - envelopeWidth - 10}px;
+            height: ${inputHeight}px;
+            width: ${envelopeWidth}px;
+        `;
     }
 
     const hint = document.getElementById('apbct-check_email_exist-popup_description');
     if (hint) {
-        hint.style.width = inputEmail.offsetWidth + 'px';
-        hint.style.left = inputEmail.getBoundingClientRect().left + 'px';
+        hint.style.cssText = `
+            width: ${inputWidth}px;
+            left: ${inputRect.left}px;
+        `;
     }
 }
 

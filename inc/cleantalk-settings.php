@@ -626,11 +626,11 @@ function apbct_settings__set_fields()
                 ),
                 'data__email_check_before_post'        => array(
                     'title'       => __('Check email before POST request', 'cleantalk-spam-protect'),
-                    'description' => __('Check email address before sending form data', 'cleantalk-spam-protect'),
+                    'description' => __('Checks the email address as soon as it is entered in the form field, before the form is submitted. This allows CleanTalk to pre-check and cache the result, speeding up the main form submission and reducing unnecessary checks.', 'cleantalk-spam-protect'),
                 ),
                 'data__email_check_exist_post'        => array(
                     'title'       => __('Show email existence alert when filling in the field', 'cleantalk-spam-protect'),
-                    'description' => __('Check email address exist before sending form data', 'cleantalk-spam-protect'),
+                    'description' => __('Checks the email address and shows the result as an icon in the email field before submitting the form. Works only for the standard WordPress comment form.', 'cleantalk-spam-protect'),
                 ),
             ),
         ),

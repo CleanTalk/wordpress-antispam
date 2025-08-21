@@ -2121,6 +2121,18 @@ let apbctSessionStorage = {
 };
 
 /**
+ * @return {string}
+ */
+function getNoCookieData() { // eslint-disable-line no-unused-vars
+    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
+    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
+    let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
+    noCookieData = JSON.stringify(noCookieData);
+
+    return '_ct_no_cookie_data_' + btoa(noCookieData);
+}
+
+/**
  * Class for event token transport
  */
 class ApbctEventTokenTransport {
@@ -2376,35 +2388,51 @@ class ApbctAttachData {
             return true;
         });
 
-        // Visible fields
-        inputs.forEach(function(elem, i, elements) {
+        // Batch all style computations to avoid forced layouts
+        const styleChecks = inputs.map(function(elem) {
             // Unnecessary fields
             if (
                 elem.getAttribute('type') === 'submit' || // type == submit
                 elem.getAttribute('name') === null ||
                 elem.getAttribute('name') === 'ct_checkjs'
             ) {
+                return {elem: elem, skip: true};
+            }
+
+            // Check for hidden type first (no layout required)
+            if (elem.getAttribute('type') === 'hidden') {
+                return {elem: elem, isVisible: false, isWpEditor: elem.classList.contains('wp-editor-area')};
+            }
+
+            // Batch getComputedStyle calls to avoid multiple layout thrashing
+            const computedStyle = getComputedStyle(elem);
+            const isHidden = computedStyle.display === 'none' ||
+                           computedStyle.visibility === 'hidden' ||
+                           computedStyle.opacity === '0';
+
+            return {
+                elem: elem,
+                isVisible: !isHidden,
+                isWpEditor: elem.classList.contains('wp-editor-area'),
+            };
+        });
+
+        // Process the results
+        styleChecks.forEach(function(check) {
+            if (check.skip) {
                 return;
             }
-            // Invisible fields
-            if (
-                getComputedStyle(elem).display === 'none' || // hidden
-                getComputedStyle(elem).visibility === 'hidden' || // hidden
-                getComputedStyle(elem).opacity === '0' || // hidden
-                elem.getAttribute('type') === 'hidden' // type == hidden
-            ) {
-                if ( elem.classList.contains('wp-editor-area') ) {
-                    inputsVisible += ' ' + elem.getAttribute('name');
+
+            if (!check.isVisible) {
+                if (check.isWpEditor) {
+                    inputsVisible += ' ' + check.elem.getAttribute('name');
                     inputsVisibleCount++;
                 } else {
-                    inputsInvisible += ' ' + elem.getAttribute('name');
+                    inputsInvisible += ' ' + check.elem.getAttribute('name');
                     inputsInvisibleCount++;
                 }
-                // eslint-disable-next-line brace-style
-            }
-            // Visible fields
-            else {
-                inputsVisible += ' ' + elem.getAttribute('name');
+            } else {
+                inputsVisible += ' ' + check.elem.getAttribute('name');
                 inputsVisibleCount++;
             }
         });
@@ -3470,27 +3498,35 @@ function viewCheckEmailExist(e, state, textResult) {
 
 /**
  * Shift the envelope to the input field on resizing the window
- * @param {object} envelope
- * @param {object} inputEmail
  */
 function ctEmailExistSetElementsPositions() {
     const envelopeWidth = 35;
     const inputEmail = document.querySelector('comment-form input[name*="email"], input#email');
+
     if (!inputEmail) {
         return;
     }
+
+    const inputRect = inputEmail.getBoundingClientRect();
+    const inputHeight = inputEmail.offsetHeight;
+    const inputWidth = inputEmail.offsetWidth;
+
     const envelope = document.getElementById('apbct-check_email_exist-block');
     if (envelope) {
-        envelope.style.top = inputEmail.getBoundingClientRect().top + 'px';
-        envelope.style.left = inputEmail.getBoundingClientRect().right - envelopeWidth - 10 + 'px';
-        envelope.style.height = inputEmail.offsetHeight + 'px';
-        envelope.style.width = envelopeWidth + 'px';
+        envelope.style.cssText = `
+            top: ${inputRect.top}px;
+            left: ${inputRect.right - envelopeWidth - 10}px;
+            height: ${inputHeight}px;
+            width: ${envelopeWidth}px;
+        `;
     }
 
     const hint = document.getElementById('apbct-check_email_exist-popup_description');
     if (hint) {
-        hint.style.width = inputEmail.offsetWidth + 'px';
-        hint.style.left = inputEmail.getBoundingClientRect().left + 'px';
+        hint.style.cssText = `
+            width: ${inputWidth}px;
+            left: ${inputRect.left}px;
+        `;
     }
 }
 

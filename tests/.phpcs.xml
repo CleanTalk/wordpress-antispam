@@ -29,6 +29,7 @@
 	<rule ref="PHPCompatibility">
 		<exclude name="PHPCompatibility.ParameterValues.NewHTMLEntitiesFlagsDefault.NotSet"/>
 		<exclude name="PHPCompatibility.Attributes.NewAttributes.Found"/>
+		<exclude name="PHPCompatibility.FunctionDeclarations.RemovedCallingDestructAfterConstructorExit" />
 	</rule>
 	<rule ref="PSR12"/>
 </ruleset>
