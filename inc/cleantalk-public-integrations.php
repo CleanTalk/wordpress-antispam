@@ -31,10 +31,17 @@ if ( class_exists('Cleantalk\Antispam\Integrations\MailChimp') ) {
  * Fluent Booking shortcode localize CT script and vars.
  */
 add_action('fluent_booking/before_calendar_event_landing_page', function () {
+    global $apbct;
+
+    $bundle_name = ApbctJsBundleResolver::getBundleName($apbct->settings) ?: 'apbct-public-bundle.min.js';
+    $js_url_wrapper = APBCT_MODERATE_URL . '/ct-bot-detector-wrapper.js'. '?' . APBCT_VERSION;
+    $js_url = APBCT_URL_PATH . '/js/' . $bundle_name . '?' . APBCT_VERSION;
+
     echo CtPublicFunctionsLocalize::getCode();
     echo CtPublicLocalize::getCode();
-    $js_url = APBCT_URL_PATH . '/js/apbct-public-bundle.min.js?' . APBCT_VERSION;
+
     echo '<script src="' . $js_url . '" type="application/javascript"></script>';
+    echo '<script src="' . $js_url_wrapper . '" type="application/javascript"></script>';
 }, 1);
 
 /**
