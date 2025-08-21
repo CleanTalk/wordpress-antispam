@@ -2018,8 +2018,6 @@ function apbct_js_keys__set_input_value(result, data, params, obj) {
     }
 }
 
-
-
 let apbctLocalStorage = {
     get: function(key, property) {
         if ( typeof property === 'undefined' ) {
