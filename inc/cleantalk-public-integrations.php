@@ -16,6 +16,7 @@ use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
+use Cleantalk\ApbctWP\ApbctJsBundleResolver;
 
 // Prevent direct call
 if ( ! defined('ABSPATH') ) {
@@ -34,7 +35,7 @@ add_action('fluent_booking/before_calendar_event_landing_page', function () {
     global $apbct;
 
     $bundle_name = ApbctJsBundleResolver::getBundleName($apbct->settings) ?: 'apbct-public-bundle.min.js';
-    $js_url_wrapper = APBCT_MODERATE_URL . '/ct-bot-detector-wrapper.js'. '?' . APBCT_VERSION;
+    $js_url_wrapper = APBCT_MODERATE_URL . '/ct-bot-detector-wrapper.js' . '?' . APBCT_VERSION;
     $js_url = APBCT_URL_PATH . '/js/' . $bundle_name . '?' . APBCT_VERSION;
 
     echo CtPublicFunctionsLocalize::getCode();
