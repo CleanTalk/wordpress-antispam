@@ -466,13 +466,14 @@ class ApbctHandler {
      */
     catchMain(form, index) {
         form.onsubmit_prev = form.onsubmit;
-
         form.ctFormIndex = index;
+
+        const handler = this;
+
         form.onsubmit = function(event) {
             new ApbctAttachData().attachVisibleFieldsDuringSubmit(event, form);
 
-            // Call previous submit action
-            if (event.target.onsubmit_prev instanceof Function && !this.prevCallExclude(event.target)) {
+            if (event.target.onsubmit_prev instanceof Function && !handler.prevCallExclude(event.target)) {
                 if (event.target.classList !== undefined && event.target.classList.contains('brave_form_form')) {
                     event.preventDefault();
                 }
