@@ -724,4 +724,32 @@ class Woocommerce extends IntegrationByClassBase
             add_filter('woocommerce_store_api_add_to_cart_data', [$this, 'storeApiAddToCartData'], 10, 2);
         }
     }
+
+    /**
+     * Process registration from woocommerce_process_registration_errors hook
+     * @param mixed $errors
+     * @param mixed $username
+     * @param mixed $email
+     * @return \WP_Error|null
+     * @psalm-suppress PossiblyUnusedReturnValue
+     */
+    public static function processRegistrationErrors($errors, $username, $email)
+    {
+        if (empty($email) && isset($_POST['email'])) {
+            $email_raw = $_POST['email'];
+            if (is_array($email_raw)) {
+                $email_raw = reset($email_raw);
+            }
+
+            if (is_string($email_raw) && filter_var($email_raw, FILTER_VALIDATE_EMAIL)) {
+                $email = sanitize_email($email_raw);
+            } else {
+                $email = '';
+            }
+        }
+
+        $errors = ct_registration_errors($errors, $username, $email);
+
+        return $errors;
+    }
 }

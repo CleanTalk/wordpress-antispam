@@ -792,7 +792,7 @@ if ( is_admin() || is_network_admin() ) {
 
         add_filter('plugin_row_meta', 'apbct_admin__register_plugin_links', 10, 3);
     }
-// Public pages actions
+    // Public pages actions
 } else {
     add_action('wp_enqueue_scripts', 'ct_enqueue_scripts_public');
     add_action('wp_enqueue_scripts', 'ct_enqueue_styles_public');
@@ -815,6 +815,13 @@ if ( is_admin() || is_network_admin() ) {
     add_filter('registration_errors', 'ct_registration_errors', 1, 3);
     add_filter('registration_errors', 'ct_check_registration_errors', 999999, 3);
     add_action('user_register', 'apbct_user_register');
+
+    add_filter(
+        'woocommerce_process_registration_errors',
+        [\Cleantalk\Antispam\IntegrationsByClass\Woocommerce::class, 'processRegistrationErrors'],
+        1,
+        3
+    );
 
     // WordPress Multisite registrations
     add_action('signup_extra_fields', 'ct_register_form');
