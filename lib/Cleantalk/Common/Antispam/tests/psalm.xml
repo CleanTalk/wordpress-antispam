@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<psalm
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="https://getpsalm.org/schema/config"
+        name="Psalm for Cleantalk AntiSpam Protection"
+        autoloader="./bootstrap.php"
+        errorLevel="3"
+        throwExceptionOnError="0"
+        findUnusedCode="true"
+        ensureArrayStringOffsetsExist="true"
+        ensureArrayIntOffsetsExist="true"
+        allowNamedArgumentCalls="false"
+        hoistConstants="true"
+        runTaintAnalysis="true"
+        phpVersion="5.6"
+        hideExternalErrors="true"
+        xsi:schemaLocation="https://getpsalm.org/schema/config config.xsd"
+        limitMethodComplexity="true"
+>
+    <projectFiles>
+        <directory name="../"/>
+        <ignoreFiles allowMissingFiles="true">
+            <directory name="../lib"/>
+            <directory name="../tests"/>
+            <directory name="../vendor"/>
+            <directory name="../node_modules" />
+            <directory name="../src" />
+        </ignoreFiles>
+    </projectFiles>
+</psalm>

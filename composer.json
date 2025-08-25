@@ -8,6 +8,9 @@
             "email": "plugins@cleantalk.org"
         }
     ],
+    "require": {
+        "cleantalk/email-encoder": "*"
+    },
     "require-dev": {
         "vimeo/psalm": "^4.8",
         "phpunit/phpunit": "^7.5",
@@ -37,7 +40,8 @@
     },
     "config": {
         "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "cleantalk/apbct-installer": true
         }
     }
 }

@@ -1,0 +1,46 @@
+name: Tests
+
+on: # event list
+  push: # on push to each of these branches
+    branches:
+      - dev
+      - fix
+      - master
+  pull_request:
+    branches:
+      - dev
+      - master
+
+env: # environment variables (available in any part of the action)
+  PHP_VERSION: 7.4
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+
+      - name: Code Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: composer i
+
+      - name: Running tests
+        run: composer test
+
+      - name: Matrix notify
+        if: failure()
+        uses: Glomberg/matrix-messenger-action@master
+        with:
+          server: ${{ secrets.MATRIX_SERVER }}
+          to: ${{ secrets.MATRIX_EXTERNSION_ROOM }}
+          token: ${{ secrets.MATRIX_USER_TOKEN }}
+          message: |
+            Hi, <strong>${{ github.actor }}</strong>! Your commit for <strong>${{ github.repository }}</strong> 
+            contains 💯 the best solution but it have to be fixed!
+            <a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">Auto-Tests (PHPUnit, PHPCS, Psalm)</a> build failed ⛔!

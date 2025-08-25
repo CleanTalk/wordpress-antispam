@@ -1,0 +1,34 @@
+name: Tests
+
+on: # event list
+  push: # on push to each of these branches
+    branches:
+      - dev
+      - fix
+      - master
+  pull_request:
+    branches:
+      - dev
+      - master
+
+env: # environment variables (available in any part of the action)
+  PHP_VERSION: 7.4
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+
+      - name: Code Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: composer i
+
+      - name: Running tests
+        run: composer test

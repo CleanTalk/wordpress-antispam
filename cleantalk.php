@@ -14,6 +14,7 @@
 use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
+use Cleantalk\ApbctWP\Antispam\ContactsEncoder;
 use Cleantalk\ApbctWP\Antispam\EmailEncoder;
 use Cleantalk\ApbctWP\Antispam\ForceProtection;
 use Cleantalk\ApbctWP\API;
@@ -220,10 +221,19 @@ if (
     }
 
     if (!$skip_email_encode && !apbct_is_amp_request()) {
-        EmailEncoder::getInstance();
-
-        // Email Encoder ajax handlers
-        EmailEncoder::getInstance()->registerAjaxRoute();
+        $params = array(
+            'key' => $apbct->api_key,
+            'is_buffer_enabled' => $apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post() && !is_admin(),
+            'skip_rules' => array(
+                'byPluginSetting' => $apbct->settings['data__email_decoder'],
+                'byUrlOnHooks' => array(
+                    'options-general.php?page=cleantalk',
+                ),
+            ),
+        );
+        $contactsEncoder = new ContactsEncoder($params);
+        $contactsEncoder->setContent();
+        $contactsEncoder->registerAjaxRoute();
     }
 
     // Force protection to avoid spam from bots without javascript

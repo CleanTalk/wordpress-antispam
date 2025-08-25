@@ -1,19 +1,14 @@
 <?php
 
-namespace Cleantalk\Antispam\EmailEncoder;
+namespace Cleantalk\Common\ContactsEncoder;
 
-use Cleantalk\Antispam\EmailEncoder\Shortcodes\ShortCodesService;
-use Cleantalk\ApbctWP\AJAXService;
-use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\Templates\Singleton;
 
 /**
  * Email Encoder class.
  */
-class EmailEncoder
+class ContactsEncoder
 {
-    use Singleton;
-
     /**
      * @var Encoder
      */
@@ -85,19 +80,17 @@ class EmailEncoder
 
 
     /**
-     * @param array $params
+     * @inheritDoc
      */
-    protected function init($params = array())
+    protected function init()
     {
-        if (!isset($params['key']) || empty($params['key'])) {
-            return;
-        }
-
-        $this->encoder = new Encoder(md5($params['key']));
+        global $apbct;
 
         $this->exclusions = new ExclusionsService();
         $this->shortcodes = new ShortCodesService();
         $this->helper = new EmailEncoderHelper();
+
+        $this->encoder = new Encoder(md5($apbct->api_key));
 
         if (apbct_is_user_logged_in()) {
             $this->ignoreOpenSSLMode();
@@ -111,8 +104,7 @@ class EmailEncoder
         $this->shortcodes->addActionsAfterModify('the_content', 11);
         $this->shortcodes->addActionsAfterModify('the_title', 11);
 
-        add_filter('apbct_encode_data', [$this, 'modifyAny'], 10, 3);
-        add_filter('apbct_encode_email_data', [$this, 'modifyContent']);
+        $this->registerHookHandler();
 
         if ( $this->exclusions->doSkipBeforeModifyingHooksAdded() ) {
             return;
@@ -139,7 +131,7 @@ class EmailEncoder
         );
 
         // Search data to buffer
-        if ($this->is_buffer_enabled) {
+        if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post() && !is_admin()) {
             add_action('wp', 'apbct_buffer__start');
             add_action('shutdown', 'apbct_buffer__end', 0);
             add_action('shutdown', array($this, 'bufferOutput'), 2);
@@ -810,6 +802,26 @@ class EmailEncoder
     /*
      * =============== SERVICE ===============
      */
+
+
+    /**
+     * Register AJAX routes to run decoding
+     * @return void
+     */
+    public function registerAjaxRoute()
+    {
+        add_action('wp_ajax_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
+        add_action('wp_ajax_nopriv_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
+    }
+
+    /**
+     * @return void
+     */
+    private function registerHookHandler()
+    {
+        add_filter('apbct_encode_data', [$this, 'modifyAny'], 10, 3);
+        add_filter('apbct_encode_email_data', [$this, 'modifyContent']);
+    }
 
     /**
      * Fluid. Ignore SSL mode for encoding/decoding on the instance.
