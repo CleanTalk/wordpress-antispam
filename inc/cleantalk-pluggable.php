@@ -1591,6 +1591,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'FluentCommunity login form skip';
         }
+
+        // Skip fluent booking integration request
+        if (
+            apbct_is_plugin_active('fluent-booking/fluent-booking.php') &&
+            Post::getString('action') === 'fluent_cal_schedule_meeting'
+        ) {
+            return 'fluent booking integration request';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
