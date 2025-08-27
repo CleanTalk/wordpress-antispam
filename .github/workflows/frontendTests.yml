@@ -88,4 +88,9 @@ jobs:
 
       - name: Run tests
         uses: CleanTalk/e2e-tests-banners@Banners-test-refactoring
+        env:
+          BANNERS_TESTS_API_KEY_REGULAR: ${{ secrets.BANNERS_TESTS_API_KEY_REGULAR }}
+          BANNERS_TESTS_API_KEY_REVIEW: ${{ secrets.BANNERS_TESTS_API_KEY_REVIEW }}
+          BANNERS_TESTS_API_KEY_TRIAL_EXPIRED: ${{ secrets.BANNERS_TESTS_API_KEY_TRIAL_EXPIRED }}
+          BANNERS_TESTS_API_KEY_PAID_EXPIRED: ${{ secrets.BANNERS_TESTS_API_KEY_PAID_EXPIRED }}
 
