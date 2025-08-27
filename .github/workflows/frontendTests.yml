@@ -51,7 +51,6 @@ jobs:
           DB_CONTAINER_ID=$(docker ps -qf "ancestor=mysql:5.7")
           
           # Устанавливаем WordPress через wp-cli
-          echo $DB_CONTAINER_ID
           docker run --rm \
             --volumes-from $WP_CONTAINER_ID \
             --network container:$WP_CONTAINER_ID \
@@ -82,11 +81,8 @@ jobs:
             -e WORDPRESS_DB_NAME=wordpress \
             wordpress:cli wp plugin activate cleantalk-spam-protect
 
-      - name: Set DB_HOST
-        run: echo "DB_HOST=$(docker ps -qf "ancestor=mysql:5.7")" >> $GITHUB_ENV
-
       - name: Run tests
         uses: CleanTalk/e2e-tests-banners@Banners-test-refactoring
         with:
-          DB_HOST: ${{ env.DB_HOST }}
+          DB_HOST: db
 
