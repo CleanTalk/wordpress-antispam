@@ -21,8 +21,6 @@ jobs:
           - ./:/var/www/html/wp-content/plugins/cleantalk-spam-protect
       db:
         image: mysql:5.7
-        ports:
-          - "3306:3306"
         env:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: wordpress
