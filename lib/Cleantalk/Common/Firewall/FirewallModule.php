@@ -86,6 +86,21 @@ class FirewallModule extends FirewallModuleAbstract
      */
     public function diePage($result)
     {
+        /**
+         * Use something like that to set a cookie before die (useful for cache 403 errors).
+         *
+         * add_action('apbct_firewall_before_die', function ($_result){
+         *  if ( ! headers_sent() ) {
+         *    $cookie_name = 'apbct_firewall_die';
+         *    $cookie_value = '1';
+         *    $cookie_expiration = time() + 3600; // 1 hour
+         *    $cookie_path = '/';
+         *    setcookie($cookie_name, $cookie_value, $cookie_expiration, $cookie_path);
+         *  }
+         * });
+         */
+        do_action('apbct_firewall_before_die', $result);
+
         // JCH Optimize caching preventing
         add_filter('jch_optimize_page_cache_set_caching', static function ($_is_cache_active) {
             return false;

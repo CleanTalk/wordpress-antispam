@@ -170,7 +170,13 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
      */
     public function check()
     {
+        global $apbct;
+
         $results = array();
+
+        if (empty($apbct->key_is_ok) || empty($apbct->api_key)) {
+            return $results;
+        }
 
         foreach ( $this->ip_array as $_ip_origin => $current_ip ) {
             // Skip by 301 response code
@@ -503,6 +509,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             'data__email_check_before_post' => $apbct->settings['data__email_check_before_post'],
             'data__cookies_type'            => $apbct->data['cookies_type'],
             'data__visible_fields_required' => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
+            'settings__data__bot_detector_enabled' => $apbct->settings['data__bot_detector_enabled'],
         );
 
         $replaces = array(

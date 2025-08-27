@@ -1,13 +1,13 @@
-=== Spam protection, Anti-Spam by CleanTalk ===
+=== Spam protection, Honeypot, Anti-Spam by CleanTalk ===
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
-Tags: antispam, comments, contact form, seo, email
+Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 6.59
+Stable tag: 6.62
 License: GPLv2
 
-Blocks spam comments, fake users, contact form spam and more. No impact on SEO or website performance. Enterprise-ready, premium Anti-Spam plugin.
+Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
 
 == Description ==
 
@@ -214,6 +214,10 @@ Yes, it will. The Anti-spam by CleanTalk is compatible with any WordPress theme.
 = Should I use other anti-spam tools (Captcha, reCaptcha and etc.)? =
 CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam plugins (especially CAPTCHA-type anti-spam plugins). In some cases several anti-spam plugins could conflict with each other.
 
+= Honeypot field =
+The option helps to block bots. The honeypot field option adds a hidden field to the form. When spambots come to a website form, they can fill out each input field. Enable this option to make the protection stronger on these forms. Learn more about supported forms here.
+
+
 == Installation ==
 
 = Installation instructions =
@@ -408,6 +412,53 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
+= 6.62 21.08.2025 =
+* Mod. Firewall. Disabling SFW, AntiCrawler, and AntiFlood if the key is invalid or empty
+* Fix. Woocommerce. Add to cart validation on AJAX fixed.
+* Mod. Settings. Renaming email verification options before submitting the form
+* Fix. EmailCheckExist. Edit for WL mode
+* Ref. Frontend. Optimize flow to prevent forсed reflow.
+
+= 6.61 07.08.2025 =
+* New. Integration. Asgaros Forum topics and replies protected.
+* Upd. EmailEncoder. Add mode handler for shortcode.
+* Upd. Settings. Restore notice about get key auto.
+* Upd. Footer links. Footer links block Recommended plugins updated.
+* Upd. ServerRequirementsChecker. Check updated, unit test provided, docs added.
+* Ref. JS. Refactoring to optimize bundle size.
+* Mod. Code. Removing the option - Manage comments on public pages.
+* Del. Script. Remove cleantalk-public-admin.js.
+* Fix. Integrations. Do not skip check for woo registration during checkout.
+* Fix. Integrations. Fixed uni cpo gathering meta data about woocommerce item.
+* Fix. Woocommerce. Deleting REST API order if on pending status.
+* Fix. Woocommerce. Event token gathering fixed on any cookies mode.
+* Fix. Searchform. JS error on form class gathering fixed.
+* Fix. Settings. Search forms. Forgotten space added.
+
+= 6.60 17.07.2025 =
+* New. BlockServerRequirements. Added a block with the Server Requirements output
+* Mod. BlockServerRequirements. Changed in layout, title, link to the article
+* Fix. Code. URLs collecting. Probably fatal error fixed due JSON decoding.
+* Fix. Code. EmailEncoder.php. Probably fatal fixed on JSON decoding due null passed as decoded emails array on logging.
+* New. Integration. Integration with the SureForms plugin
+* Fix. BlockServerRequirements. Style edits
+* Fix. BlockServerRequirements. Adding information about requirements to a class, changing access to the Requirements variable
+* New. Integration. Integration with SureForms, a new approach to rest integrations
+* Fix. Integration. AjaxLogin integration fixed.
+* New. FluentCommunity. Skipping a request from the login form
+* Fix. Integrations. Newsletter. Fixed warning on acces array offset.
+* Fix. FirewallModule. Added a hook to set special cookie "apbct_firewall_die" to skip page caching.
+* Fix. Integration. Ninja Forms. Fields collection fixed.
+* Fix. Integration. WP Forms. Fields collection fixed.
+* Mod. SureForms. Separate implementation of rest route interception, editing of block message output
+* Fix. SFW. Skip check on probably missed tables due update process.
+* Fix. Code. Code direct call preventing.
+* Fix. Alt sessions. Incoming data validation.
+* Fix. API. Restored missed first param $url on callback action checkResponse to avoid secound param $method_name missing.
+* Fix. SureForms. Edits based on the review
+* Fix. Integrations. JS. Do not handle onSubmit middleware for the Events Calendar search form.
+* Fix. DB. Table "cleantalk_sessions". If table index is incorrect then recreate the table via updater due update to v6.60.
+
 = 6.59 03.07.2025 =
 * Upd. Tests. Reorganizing the file structure of the tests folder
 * New. PhpUnit. A separate script for calculating coverage
@@ -440,6 +491,8 @@ Yes, it is. Please read this article,
 * Code. Constants "skip_anticrawler_on_rss_feed" and "set_ajax_route_type" are adapted to ServiceConstants class.
 * New. Common. Do not exclude no-email requests if constant "APBCT_SERVICE__DISABLE_EMPTY_EMAIL_EXCEPTION".
 * Fix. Integration. AjaxLogin integration fixed.
+* Fix. CheckServerRequirements. Style css edit
+* Fix. WPForms. Editing the username receipt
 
 = 6.58.1 20.06.2025 =
 * Fix. Honeypot. Hidden input for search form fixed.

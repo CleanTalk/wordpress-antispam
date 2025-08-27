@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.59.99-dev
+  Version: 6.62.99-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -370,6 +370,7 @@ if ( $apbct->settings['forms__general_contact_forms_test'] == 1
 
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-integrations-by-hook.php');
 require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-integrations-by-class.php');
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-integrations-by-route.php');
 
 // Form protection by shortcode
 new ProtectByShortcode();
@@ -821,9 +822,6 @@ if ( is_admin() || is_network_admin() ) {
 
     // Login form - for notifications only
     add_filter('login_message', 'ct_login_message');
-
-    // Comments output hook
-    add_filter('wp_list_comments_args', 'ct_wp_list_comments_args');
 
     // Ait-Themes fix
     if ( Get::get('ait-action') === 'register' ) {

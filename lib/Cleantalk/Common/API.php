@@ -232,14 +232,13 @@ class API
     }
 
     /**
-     * Wrapper for notice_paid_till API method.
-     * Gets information about renew notice.
+     * Sends an email to the CleanTalk cloud for pre-validation and caching.
+     * This is called as soon as the user enters an email before submitting the form.
+     * The result will be cached and used later, which will avoid re-checking.
      *
-     * @param string $api_key Access key
-     * @param string $path_to_cms Website URL
-     * @param string $product_name
-     *
-     * @return array|bool
+     * @param string $email      Email address to check.
+     * @param bool   $cache_only Cache result only, default true.
+     * @return array|bool        API response or false on failure.
      *
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -840,15 +839,16 @@ class API
     }
 
     /**
-     * Function checks server response
+     * Callback. Function checks server response
      *
      * @param array|string $result
+     * @param string|null $_url - legacy parameter of callback function, not used here. Do not remove if you are not sure of your actions.
      * @param string $method_name
      *
      * @return mixed (array || array('error' => true))
      * @psalm-suppress PossiblyUnusedReturnValue
      */
-    public static function checkResponse($result, $method_name = null)
+    public static function checkResponse($result, $_url = null, $method_name = null)
     {
         // Errors handling
         // Bad connection

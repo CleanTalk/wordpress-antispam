@@ -20,13 +20,19 @@ class ApbctJsBundleResolver
         $internal = !empty($settings['forms__check_internal']) && $settings['forms__check_internal'] === '1';
 
         if ($external && $internal) {
-            return 'apbct-public-bundle_full-protection_comm-func.js';
+            $script = 'apbct-public-bundle_full-protection.min.js';
         } elseif ($external) {
-            return 'apbct-public-bundle_ext-protection_comm-func.js';
+            $script = 'apbct-public-bundle_ext-protection.min.js';
         } elseif ($internal) {
-            return 'apbct-public-bundle_int-protection_comm-func.js';
+            $script = 'apbct-public-bundle_int-protection.min.js';
         } else {
-            return 'apbct-public-bundle_comm-func.js';
+            $script = 'apbct-public-bundle.min.js';
         }
+
+        if (isset($settings['data__bot_detector_enabled']) && $settings['data__bot_detector_enabled'] != '1') {
+            $script = str_replace('.min.js', '_gathering.min.js', $script);
+        }
+
+        return $script;
     }
 }

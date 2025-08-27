@@ -59,14 +59,21 @@ class ForceProtection
     {
         global $apbct;
 
-        $event_javascript_data = Helper::isJson(TT::toString(Post::get('event_javascript_data')))
-            ? Post::get('event_javascript_data')
-            : stripslashes(TT::toString(Post::get('event_javascript_data')));
+        $event_javascript_data = '';
+        $event_token = '';
+        if ($apbct->settings['data__bot_detector_enabled'] == 1) {
+            $event_token = Post::getString('event_token');
+        } else {
+            $event_javascript_data = Helper::isJson(TT::toString(Post::get('event_javascript_data')))
+                ? Post::get('event_javascript_data')
+                : stripslashes(TT::toString(Post::get('event_javascript_data')));
+        }
 
         $params = array(
             'auth_key'              => $apbct->api_key,
             'agent'                 => APBCT_AGENT,
             'event_javascript_data' => $event_javascript_data,
+            'event_token'           => $event_token,
             'sender_ip'             => Helper::ipGet('real', false),
             'event_type'            => 'GENERAL_BOT_CHECK',
             'page_url'              => Post::get('post_url'),

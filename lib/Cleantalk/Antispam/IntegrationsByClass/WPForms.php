@@ -6,6 +6,7 @@ use Cleantalk\ApbctWP\Honeypot;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Helper;
 
@@ -72,11 +73,15 @@ class WPForms extends IntegrationByClassBase
             }
 
             // name field
-            if ($field_type === 'name') {
+            if ( $field_type === 'name' ) {
                 if ( is_array($entry_field_value) ) {
-                    $handled_result['name'][] = implode(' ', array_slice($entry_field_value, 0, 3));
+                    $handled_result['name'] = isset($handled_result['name'])
+                        ? $handled_result['name'] . ' ' . implode(' ', array_slice($entry_field_value, 0, 3))
+                        : implode(' ', array_slice($entry_field_value, 0, 3));
                 } else {
-                    $handled_result['name'][] = $entry_field_value;
+                    $handled_result['name'] = isset($handled_result['name'])
+                        ? $handled_result['name'] . ' ' . $entry_field_value
+                        : $entry_field_value;
                 }
                 continue;
             }
@@ -147,9 +152,6 @@ class WPForms extends IntegrationByClassBase
 
         $spam_comment = $this->testSpam();
 
-        error_log('showResponse');
-        error_log(print_r($spam_comment, true));
-
         if (!$spam_comment ) {
             return $errors;
         }
@@ -187,7 +189,8 @@ class WPForms extends IntegrationByClassBase
     {
         global $apbct;
 
-        $checkjs = apbct_js_test(Sanitize::cleanTextField(Post::get('ct_checkjs_wpforms')));
+        $checkjs = $apbct->settings['data__set_cookies'] == 1 ? Cookie::get('ct_checkjs') : Post::get('ct_checkjs_wpforms');
+        $checkjs = apbct_js_test(Sanitize::cleanTextField($checkjs));
         $input_array = apply_filters('apbct__filter_post', $_POST);
 
         $email = $this->form_data['email'] ? $this->form_data['email'] : null;
@@ -200,9 +203,13 @@ class WPForms extends IntegrationByClassBase
         $nickname = null;
         $form_data = $this->form_data instanceof \ArrayObject ? (array)$this->form_data : $this->form_data;
         if (array_key_exists('name', $form_data)) {
-            $nickname = isset($form_data['name']) && is_array($form_data['name']) ? array_shift(
-                $form_data['name']
-            ) : null;
+            if (isset($form_data['name']) && is_array($form_data['name'])) {
+                $nickname = array_shift($form_data['name']);
+            } elseif (isset($form_data['name']) && is_string($form_data['name'])) {
+                $nickname = $form_data['name'];
+            } else {
+                $nickname = null;
+            }
         }
 
         $params = ct_gfa_dto($input_array, is_null($email) ? '' : $email, is_null($nickname) ? '' : $nickname)->getArray();
