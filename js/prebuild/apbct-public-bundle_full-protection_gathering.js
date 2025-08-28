@@ -2132,6 +2132,31 @@ function getNoCookieData() { // eslint-disable-line no-unused-vars
     return '_ct_no_cookie_data_' + btoa(noCookieData);
 }
 
+
+/**
+ * Retrieves the clentalk "cookie" data from starages.
+ * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity}.
+ * @return {string}
+ */
+function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
+    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
+    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
+
+    let noCookieDataTypo = {typo: []};
+    if (document.ctTypoData && document.ctTypoData.data) {
+        noCookieDataTypo = {typo: document.ctTypoData.data};
+    }
+
+    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
+
+    if (document.ctCollectingUserActivityData) {
+        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
+        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
+    }
+
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
+}
+
 /**
  * Class for event token transport
  */
@@ -5485,30 +5510,6 @@ function ctNoCookieAttachHiddenFieldsToForms() {
             }
         }
     }
-}
-
-/**
- * Retrieves the clentalk "cookie" data from starages.
- * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity}.
- * @return {string}
- */
-function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
-    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
-    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
-
-    let noCookieDataTypo = {typo: []};
-    if (document.ctTypoData && document.ctTypoData.data) {
-        noCookieDataTypo = {typo: document.ctTypoData.data};
-    }
-
-    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
-
-    if (document.ctCollectingUserActivityData) {
-        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
-        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
-    }
-
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
 }
 
 /**
