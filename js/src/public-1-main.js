@@ -564,6 +564,7 @@ class ApbctHandler {
                     } else {
                         const eventToken = new ApbctHandler().toolGetEventToken();
                         if (eventToken) {
+
                             addidionalCleantalkData += '&' + 'data%5Bct_bot_detector_event_token%5D=' + eventToken;
                         }
                     }
@@ -655,6 +656,9 @@ class ApbctHandler {
 
                         if (settings.data.indexOf('action=new_activity_comment') !== -1) {
                             sourceSign = 'action=new_activity_comment';
+                        }
+                        if (settings.data.indexOf('action=wwlc_create_user') !== -1) {
+                            sourceSign = 'action=wwlc_create_user';
                         }
                     }
                     if ( typeof settings.url === 'string' ) {

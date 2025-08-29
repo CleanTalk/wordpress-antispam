@@ -1592,12 +1592,12 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'FluentCommunity login form skip';
         }
 
-        // Skip fluent booking integration request
+        // WooCommerce Wholesale Lead Capture have the direct integration
         if (
-            apbct_is_plugin_active('fluent-booking/fluent-booking.php') &&
-            Post::getString('action') === 'fluent_cal_schedule_meeting'
+            apbct_is_plugin_active('woocommerce-wholesale-lead-capture/woocommerce-wholesale-lead-capture.bootstrap.php') &&
+            Post::getString('action') === 'wwlc_create_user'
         ) {
-            return 'fluent booking integration request';
+            return 'wwlc_create_user';
         }
     } else {
         /*****************************************/
