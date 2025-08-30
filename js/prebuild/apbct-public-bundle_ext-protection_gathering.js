@@ -2723,7 +2723,6 @@ class ApbctHandler {
                     } else {
                         const eventToken = new ApbctHandler().toolGetEventToken();
                         if (eventToken) {
-
                             addidionalCleantalkData += '&' + 'data%5Bct_bot_detector_event_token%5D=' + eventToken;
                         }
                     }
