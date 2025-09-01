@@ -12,7 +12,6 @@ use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
-use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
@@ -931,7 +930,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
     $sender_info = array(
         'post_checkjs_passed'   => $checkjs_post,
         'cookie_checkjs_passed' => $checkjs_cookie,
-        'form_validation'       => ! empty($errors)
+        'form_validation'       => ! empty($errors) && $errors instanceof \WP_Error
             ? json_encode(
                 array(
                     'validation_notice' => $errors->get_error_message(),
