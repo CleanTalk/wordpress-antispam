@@ -435,6 +435,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
+    'BuddyBossAppRestAPI'         => array(
+        'hook'    => 'bbapp_auth_rest_user_registration_pre_check',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
     'AsgarosForum'         => array(
         'hook'    => array(
             'asgarosforum_filter_before_topic_submit',

@@ -2982,38 +2982,36 @@ function apbct_custom_forms_trappings()
 {
     global $apbct;
 
-    // Registration form of Wishlist Members plugin
-    if ( $apbct->settings['forms__registrations_test'] && Post::get('action') === 'wpm_register' ) {
-        return true;
-    }
+    if ($apbct->settings['forms__registrations_test']) {
+        // Registration form of Wishlist Members plugin
+        if ( Post::get('action') === 'wpm_register' ) {
+            return true;
+        }
 
-    // Registration form of masteriyo registration
-    if ( $apbct->settings['forms__registrations_test'] &&
-         Post::get('masteriyo-registration') === 'yes' &&
-         (
-             apbct_is_plugin_active('learning-management-system/lms.php') ||
-             apbct_is_plugin_active('learning-management-system-pro/lms.php')
-         )
-    ) {
-        return true;
-    }
+        // Registration form of masteriyo registration
+        if ( Post::get('masteriyo-registration') === 'yes' &&
+             (
+                 apbct_is_plugin_active('learning-management-system/lms.php') ||
+                 apbct_is_plugin_active('learning-management-system-pro/lms.php')
+             )
+        ) {
+            return true;
+        }
 
-    // Registration form of eMember plugin
-    if (
-        $apbct->settings['forms__registrations_test'] &&
-        Request::get('emember-form-builder-submit') &&
-        wp_verify_nonce(TT::toString(Request::get('_wpnonce')), 'emember-form-builder-nonce')
-    ) {
-        return true;
-    }
+        // Registration form of eMember plugin
+        if ( Request::get('emember-form-builder-submit') &&
+            wp_verify_nonce(TT::toString(Request::get('_wpnonce')), 'emember-form-builder-nonce')
+        ) {
+            return true;
+        }
 
-    // Registration form of goodlayers-lms
-    if (
-        apbct_is_plugin_active('goodlayers-lms/goodlayers-lms.php') &&
-        $apbct->settings['forms__registrations_test'] &&
-        Post::get('action') === 'create-new-user'
-    ) {
-        return true;
+        // Registration form of goodlayers-lms
+        if (
+            apbct_is_plugin_active('goodlayers-lms/goodlayers-lms.php') &&
+            Post::get('action') === 'create-new-user'
+        ) {
+            return true;
+        }
     }
 
     return false;
