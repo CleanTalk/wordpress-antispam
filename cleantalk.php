@@ -31,6 +31,7 @@ use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
+use Cleantalk\ApbctWP\RequestParameters\SubmitTimeHandler;
 use Cleantalk\ApbctWP\RestController;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\State;
@@ -2594,10 +2595,7 @@ function apbct_cookie()
 
     // Submit time
     if ( empty($_POST) ) {
-        $apbct_timestamp = time();
-        RequestParameters::set('apbct_timestamp', (string)$apbct_timestamp, true);
-        $cookie_test_value['cookies_names'][] = 'apbct_timestamp';
-        $cookie_test_value['check_value']     .= $apbct_timestamp;
+        SubmitTimeHandler::setToRequest(time(), $cookie_test_value);
     }
 
     // Landing time
@@ -2614,12 +2612,18 @@ function apbct_cookie()
         if ( $http_referrer ) {
             Cookie::set('apbct_prev_referer', $http_referrer, 0, '/', $domain, null, true, 'Lax', true);
             $cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
-            $cookie_test_value['check_value']     .= $http_referrer;
+            $cookie_test_value['check_value']     = isset($cookie_test_value['check_value'])
+                ? $cookie_test_value['check_value'] . $http_referrer
+                : $http_referrer;
         }
     }
 
     // Cookies test
-    $cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
+    $cookie_test_value['check_value'] = md5(
+        isset($cookie_test_value['check_value'])
+            ? $cookie_test_value['check_value']
+            : ''
+    );
     if ( $apbct->data['cookies_type'] !== 'alternative' ) {
         Cookie::set('apbct_cookies_test', urlencode(json_encode($cookie_test_value)), 0, '/', $domain, null, true);
     }
@@ -2694,19 +2698,6 @@ function apbct_cookies_test()
     }
 
     return null;
-}
-
-/**
- * Gets submit time
- * Uses Cookies with check via apbct_cookies_test()
- * @return null|int
- * @throws JsonException
- */
-function apbct_get_submit_time()
-{
-    $apbct_timestamp = (int) RequestParameters::get('apbct_timestamp', true);
-
-    return apbct_cookies_test() === 1 && $apbct_timestamp !== 0 ? time() - $apbct_timestamp : null;
 }
 
 /**
