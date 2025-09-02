@@ -1591,6 +1591,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'FluentCommunity login form skip';
         }
+
+        // WooCommerce Wholesale Lead Capture have the direct integration
+        if (
+            apbct_is_plugin_active('woocommerce-wholesale-lead-capture/woocommerce-wholesale-lead-capture.bootstrap.php') &&
+            Post::getString('action') === 'wwlc_create_user'
+        ) {
+            return 'wwlc_create_user';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

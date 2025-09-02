@@ -448,6 +448,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
+    'WooCommerceWholesaleLeadCapture' => array(
+        'hook'    => 'wwlc_action_before_create_wholesale_lead',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_active_integrations) {

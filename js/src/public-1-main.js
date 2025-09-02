@@ -466,13 +466,14 @@ class ApbctHandler {
      */
     catchMain(form, index) {
         form.onsubmit_prev = form.onsubmit;
-
         form.ctFormIndex = index;
+
+        const handler = this;
+
         form.onsubmit = function(event) {
             new ApbctAttachData().attachVisibleFieldsDuringSubmit(event, form);
 
-            // Call previous submit action
-            if (event.target.onsubmit_prev instanceof Function && !this.prevCallExclude(event.target)) {
+            if (event.target.onsubmit_prev instanceof Function && !handler.prevCallExclude(event.target)) {
                 if (event.target.classList !== undefined && event.target.classList.contains('brave_form_form')) {
                     event.preventDefault();
                 }
@@ -654,6 +655,9 @@ class ApbctHandler {
 
                         if (settings.data.indexOf('action=new_activity_comment') !== -1) {
                             sourceSign = 'action=new_activity_comment';
+                        }
+                        if (settings.data.indexOf('action=wwlc_create_user') !== -1) {
+                            sourceSign = 'action=wwlc_create_user';
                         }
                     }
                     if ( typeof settings.url === 'string' ) {
