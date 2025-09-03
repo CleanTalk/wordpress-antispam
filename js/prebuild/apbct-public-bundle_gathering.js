@@ -1728,6 +1728,73 @@ if (!Object.prototype.hasOwn) {
     });
 }
 
+// Глобальные переменные для email-чекеров
+var ctCheckedEmails = {};
+var ctCheckedEmailsExist = {};
+/**
+ * Set init params
+ */
+function initParams() {
+    const ctDate = new Date();
+    const initCookies = [
+        ['ct_ps_timestamp', Math.floor(new Date().getTime() / 1000)],
+        ['ct_fkp_timestamp', '0'],
+        ['ct_pointer_data', '0'],
+        ['ct_timezone', ctDate.getTimezoneOffset()/60*(-1)],
+        ['ct_screen_info', (typeof ApbctGatheringData !== 'undefined' && typeof ApbctGatheringData.prototype.getScreenInfo === 'function') ? new ApbctGatheringData().getScreenInfo() : ''],
+        ['apbct_headless', navigator.webdriver],
+    ];
+
+    apbctLocalStorage.set('ct_ps_timestamp', Math.floor(new Date().getTime() / 1000));
+    apbctLocalStorage.set('ct_fkp_timestamp', '0');
+    apbctLocalStorage.set('ct_pointer_data', '0');
+    apbctLocalStorage.set('ct_timezone', ctDate.getTimezoneOffset()/60*(-1));
+    apbctLocalStorage.set('ct_screen_info', (typeof ApbctGatheringData !== 'undefined' && typeof ApbctGatheringData.prototype.getScreenInfo === 'function') ? new ApbctGatheringData().getScreenInfo() : '');
+    apbctLocalStorage.set('apbct_headless', navigator.webdriver);
+
+    if ( ctPublic.data__cookies_type !== 'native' ) {
+        initCookies.push(['apbct_visible_fields', '0']);
+    } else {
+        // Delete all visible fields cookies on load the page
+        let cookiesArray = document.cookie.split(';');
+        if ( cookiesArray.length !== 0 ) {
+            for ( let i = 0; i < cookiesArray.length; i++ ) {
+                let currentCookie = cookiesArray[i].trim();
+                let cookieName = currentCookie.split('=')[0];
+                if ( cookieName.indexOf('apbct_visible_fields_') === 0 ) {
+                    ctDeleteCookie(cookieName);
+                }
+            }
+        }
+    }
+
+    if (+ctPublic.pixel__setting && +ctPublic.pixel__setting !== 3) {
+        if (typeof ctIsDrawPixel === 'function' && ctIsDrawPixel()) {
+            if (typeof ctGetPixelUrl === 'function') ctGetPixelUrl();
+        } else {
+            initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
+        }
+    }
+
+    if ( +ctPublic.data__email_check_before_post) {
+        initCookies.push(['ct_checked_emails', '0']);
+        if (typeof apbct === 'function') apbct('input[type = "email"], #email').on('blur', checkEmail);
+    }
+
+    if ( +ctPublic.data__email_check_exist_post) {
+        initCookies.push(['ct_checked_emails_exist', '0']);
+        if (typeof apbct === 'function') apbct('comment-form input[name = "email"], input#email').on('blur', checkEmailExist);
+    }
+
+    if (apbctLocalStorage.isSet('ct_checkjs')) {
+        initCookies.push(['ct_checkjs', apbctLocalStorage.get('ct_checkjs')]);
+    } else {
+        initCookies.push(['ct_checkjs', 0]);
+    }
+
+    ctSetCookie(initCookies);
+}
+
 /**
  * @param {object|array|string} cookies
  * @param {object|array|string} value
@@ -3157,7 +3224,14 @@ function apbct_ready() {
         gatheringData.startFieldsListening();
         gatheringData.listenAutocomplete();
         gatheringData.gatheringTypoData();
-        gatheringData.initParams();
+    }
+    // Всегда вызываем initParams, чтобы куки и параметры были установлены
+    if (typeof initParams === 'function') {
+        try {
+            initParams();
+        } catch (e) {
+            console.log('initParams error:', e);
+        }
     }
 
     setTimeout(function() {
@@ -3349,69 +3423,6 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
             visibleWidth: layoutData.docClientWidth,
             visibleHeight: layoutData.docClientHeight,
         });
-    }
-
-    /**
-     * Set init params
-     * @return {void}
-     */
-    initParams() {
-        const initCookies = [
-            ['ct_ps_timestamp', Math.floor(new Date().getTime() / 1000)],
-            ['ct_fkp_timestamp', '0'],
-            ['ct_pointer_data', '0'],
-            // eslint-disable-next-line camelcase
-            ['ct_timezone', ctDate.getTimezoneOffset()/60*(-1)],
-            ['ct_screen_info', this.getScreenInfo()],
-            ['apbct_headless', navigator.webdriver],
-        ];
-
-        apbctLocalStorage.set('ct_ps_timestamp', Math.floor(new Date().getTime() / 1000));
-        apbctLocalStorage.set('ct_fkp_timestamp', '0');
-        apbctLocalStorage.set('ct_pointer_data', '0');
-        // eslint-disable-next-line camelcase
-        apbctLocalStorage.set('ct_timezone', ctDate.getTimezoneOffset()/60*(-1) );
-        apbctLocalStorage.set('ct_screen_info', this.getScreenInfo());
-        apbctLocalStorage.set('apbct_headless', navigator.webdriver);
-
-        if ( ctPublic.data__cookies_type !== 'native' ) {
-            initCookies.push(['apbct_visible_fields', '0']);
-        } else {
-            // Delete all visible fields cookies on load the page
-            let cookiesArray = document.cookie.split(';');
-            if ( cookiesArray.length !== 0 ) {
-                for ( let i = 0; i < cookiesArray.length; i++ ) {
-                    let currentCookie = cookiesArray[i].trim();
-                    let cookieName = currentCookie.split('=')[0];
-                    if ( cookieName.indexOf('apbct_visible_fields_') === 0 ) {
-                        ctDeleteCookie(cookieName);
-                    }
-                }
-            }
-        }
-
-        if (+ctPublic.pixel__setting && +ctPublic.pixel__setting !== 3) {
-            ctIsDrawPixel() ? ctGetPixelUrl() : initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
-        }
-
-        if ( +ctPublic.data__email_check_before_post) {
-            initCookies.push(['ct_checked_emails', '0']);
-            apbct('input[type = \'email\'], #email').on('blur', checkEmail);
-        }
-
-        if ( +ctPublic.data__email_check_exist_post) {
-            initCookies.push(['ct_checked_emails_exist', '0']);
-            apbct('comment-form input[name = \'email\'], input#email').on('blur', checkEmailExist);
-        }
-
-        if (apbctLocalStorage.isSet('ct_checkjs')) {
-            initCookies.push(['ct_checkjs', apbctLocalStorage.get('ct_checkjs')]);
-        } else {
-            initCookies.push(['ct_checkjs', 0]);
-        }
-
-
-        ctSetCookie(initCookies);
     }
 
     /**
@@ -3671,8 +3682,6 @@ const ctTimeMs = new Date().getTime();
 let ctMouseEventTimerFlag = true; // Reading interval flag
 let ctMouseData = [];
 let ctMouseDataCounter = 0;
-let ctCheckedEmails = {}; // eslint-disable-line no-unused-vars
-let ctCheckedEmailsExist = {}; // eslint-disable-line no-unused-vars
 let ctMouseReadInterval;
 let ctMouseWriteDataInterval;
 let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
