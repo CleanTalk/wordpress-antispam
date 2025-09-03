@@ -183,12 +183,12 @@ function viewCheckEmailExist(e, state, textResult) {
         envelope.after(hint);
     }
 
-    ctEmailExistSetElementsPositions();
+    ctEmailExistSetElementsPositions(inputEmail);
 
     window.addEventListener('resize', function(event) {
-        ctEmailExistSetElementsPositions();
+        ctEmailExistSetElementsPositions(inputEmail);
     });
-
+    
     switch (state) {
     case 'load':
         envelope.classList.remove('apbct-check_email_exist-good_email', 'apbct-check_email_exist-bad_email');
@@ -237,9 +237,8 @@ function viewCheckEmailExist(e, state, textResult) {
 /**
  * Shift the envelope to the input field on resizing the window
  */
-function ctEmailExistSetElementsPositions() {
+function ctEmailExistSetElementsPositions(inputEmail) {
     const envelopeWidth = 35;
-    const inputEmail = document.querySelector('comment-form input[name*="email"], input#email');
 
     if (!inputEmail) {
         return;

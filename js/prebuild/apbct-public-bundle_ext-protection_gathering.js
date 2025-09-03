@@ -1783,7 +1783,10 @@ function initParams() {
 
     if ( +ctPublic.data__email_check_exist_post) {
         initCookies.push(['ct_checked_emails_exist', '0']);
-        if (typeof apbct === 'function') apbct('comment-form input[name = "email"], input#email').on('blur', checkEmailExist);
+        if (typeof apbct === 'function') {
+            apbct('.comment-form input[name = "email"], input#email').on('blur', checkEmailExist);
+            apbct('.frm-fluent-form input[name = "email"], input#email').on('blur', checkEmailExist);
+        }
     }
 
     if (apbctLocalStorage.isSet('ct_checkjs')) {
@@ -5631,12 +5634,12 @@ function viewCheckEmailExist(e, state, textResult) {
         envelope.after(hint);
     }
 
-    ctEmailExistSetElementsPositions();
+    ctEmailExistSetElementsPositions(inputEmail);
 
     window.addEventListener('resize', function(event) {
-        ctEmailExistSetElementsPositions();
+        ctEmailExistSetElementsPositions(inputEmail);
     });
-
+    
     switch (state) {
     case 'load':
         envelope.classList.remove('apbct-check_email_exist-good_email', 'apbct-check_email_exist-bad_email');
@@ -5685,9 +5688,8 @@ function viewCheckEmailExist(e, state, textResult) {
 /**
  * Shift the envelope to the input field on resizing the window
  */
-function ctEmailExistSetElementsPositions() {
+function ctEmailExistSetElementsPositions(inputEmail) {
     const envelopeWidth = 35;
-    const inputEmail = document.querySelector('comment-form input[name*="email"], input#email');
 
     if (!inputEmail) {
         return;

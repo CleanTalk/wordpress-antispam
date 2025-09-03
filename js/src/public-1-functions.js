@@ -53,7 +53,10 @@ function initParams() {
 
     if ( +ctPublic.data__email_check_exist_post) {
         initCookies.push(['ct_checked_emails_exist', '0']);
-        if (typeof apbct === 'function') apbct('comment-form input[name = "email"], input#email').on('blur', checkEmailExist);
+        if (typeof apbct === 'function') {
+            apbct('.comment-form input[name = "email"], input#email').on('blur', checkEmailExist);
+            apbct('.frm-fluent-form input[name = "email"], input#email').on('blur', checkEmailExist);
+        }
     }
 
     if (apbctLocalStorage.isSet('ct_checkjs')) {
