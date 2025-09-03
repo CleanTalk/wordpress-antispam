@@ -374,7 +374,6 @@ class CTTypoData {
 }
 
 // eslint-disable-next-line camelcase
-const ctDate = new Date();
 const ctTimeMs = new Date().getTime();
 let ctMouseEventTimerFlag = true; // Reading interval flag
 let ctMouseData = [];
@@ -701,6 +700,7 @@ function ctSetPixelImgFromLocalstorage(pixelUrl) {
  * ctGetPixelUrl
  * @return {bool}
  */
+// eslint-disable-next-line no-unused-vars, require-jsdoc
 function ctGetPixelUrl() {
     if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
         return false;

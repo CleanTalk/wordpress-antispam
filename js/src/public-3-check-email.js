@@ -1,3 +1,6 @@
+let ctCheckedEmails = {};
+let ctCheckedEmailsExist = {};
+
 /**
  * @param {mixed} e
  */
@@ -188,7 +191,7 @@ function viewCheckEmailExist(e, state, textResult) {
     window.addEventListener('resize', function(event) {
         ctEmailExistSetElementsPositions(inputEmail);
     });
-    
+
     switch (state) {
     case 'load':
         envelope.classList.remove('apbct-check_email_exist-good_email', 'apbct-check_email_exist-bad_email');
@@ -236,6 +239,7 @@ function viewCheckEmailExist(e, state, textResult) {
 
 /**
  * Shift the envelope to the input field on resizing the window
+ * @param {mixed} inputEmail
  */
 function ctEmailExistSetElementsPositions(inputEmail) {
     const envelopeWidth = 35;

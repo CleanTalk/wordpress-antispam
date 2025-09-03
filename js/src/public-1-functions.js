@@ -1,9 +1,7 @@
-// Глобальные переменные для email-чекеров
-var ctCheckedEmails = {};
-var ctCheckedEmailsExist = {};
 /**
  * Set init params
  */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
 function initParams() {
     const ctDate = new Date();
     const initCookies = [
@@ -11,7 +9,11 @@ function initParams() {
         ['ct_fkp_timestamp', '0'],
         ['ct_pointer_data', '0'],
         ['ct_timezone', ctDate.getTimezoneOffset()/60*(-1)],
-        ['ct_screen_info', (typeof ApbctGatheringData !== 'undefined' && typeof ApbctGatheringData.prototype.getScreenInfo === 'function') ? new ApbctGatheringData().getScreenInfo() : ''],
+        ['ct_screen_info',
+            (
+                typeof ApbctGatheringData !== 'undefined' &&
+                typeof ApbctGatheringData.prototype.getScreenInfo === 'function'
+            ) ? new ApbctGatheringData().getScreenInfo() : ''],
         ['apbct_headless', navigator.webdriver],
     ];
 
@@ -19,7 +21,11 @@ function initParams() {
     apbctLocalStorage.set('ct_fkp_timestamp', '0');
     apbctLocalStorage.set('ct_pointer_data', '0');
     apbctLocalStorage.set('ct_timezone', ctDate.getTimezoneOffset()/60*(-1));
-    apbctLocalStorage.set('ct_screen_info', (typeof ApbctGatheringData !== 'undefined' && typeof ApbctGatheringData.prototype.getScreenInfo === 'function') ? new ApbctGatheringData().getScreenInfo() : '');
+    apbctLocalStorage.set('ct_screen_info',
+        (
+            typeof ApbctGatheringData !== 'undefined' &&
+            typeof ApbctGatheringData.prototype.getScreenInfo === 'function'
+        ) ? new ApbctGatheringData().getScreenInfo() : '');
     apbctLocalStorage.set('apbct_headless', navigator.webdriver);
 
     if ( ctPublic.data__cookies_type !== 'native' ) {
