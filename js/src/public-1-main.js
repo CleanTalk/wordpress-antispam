@@ -12,8 +12,8 @@ class ApbctEventTokenTransport {
                 typeof ctPublic.force_alt_cookies === 'undefined' ||
                 (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
             ) {
-                if (typeof setEventTokenField === 'function' && typeof botDetectorLocalStorage === 'function') {
-                    setEventTokenField(botDetectorLocalStorage.get('bot_detector_event_token'));
+                if (typeof setEventTokenField === 'function' && typeof apbctLocalStorage === 'function') {
+                    setEventTokenField(apbctLocalStorage.get('bot_detector_event_token'));
                 }
             }
         });
