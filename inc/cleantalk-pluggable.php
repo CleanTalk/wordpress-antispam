@@ -1592,6 +1592,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'FluentCommunity login form skip';
         }
 
+        // skip WPFunnels
+        if (
+            apbct_is_plugin_active('wpfunnels/wpfnl.php') &&
+            Post::getString('action') === 'wpfnl_gutenberg_optin_submission'
+        ) {
+            return 'WPFunnels form skip';
+        }
+
         // WooCommerce Wholesale Lead Capture have the direct integration
         if (
             apbct_is_plugin_active('woocommerce-wholesale-lead-capture/woocommerce-wholesale-lead-capture.bootstrap.php') &&
