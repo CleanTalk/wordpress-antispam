@@ -1592,12 +1592,21 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'FluentCommunity login form skip';
         }
 
+<<<<<<< HEAD
         // skip WPFunnels
         if (
             apbct_is_plugin_active('wpfunnels/wpfnl.php') &&
             Post::getString('action') === 'wpfnl_gutenberg_optin_submission'
         ) {
             return 'WPFunnels form skip';
+=======
+        // WooCommerce Wholesale Lead Capture have the direct integration
+        if (
+            apbct_is_plugin_active('woocommerce-wholesale-lead-capture/woocommerce-wholesale-lead-capture.bootstrap.php') &&
+            Post::getString('action') === 'wwlc_create_user'
+        ) {
+            return 'wwlc_create_user';
+>>>>>>> 5bd50a0591552ef50961b0a221b3c98f0fffe46e
         }
     } else {
         /*****************************************/

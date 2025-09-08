@@ -112,7 +112,7 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
             encodedEmails: '',
         };
         if (ctPublic.settings__data__bot_detector_enabled == 1) {
-            data.event_token = botDetectorLocalStorage.get('bot_detector_event_token');
+            data.event_token = apbctLocalStorage.get('bot_detector_event_token');
         } else {
             data.event_javascript_data = getJavascriptClientData();
         }
@@ -2121,6 +2121,43 @@ let apbctSessionStorage = {
 };
 
 /**
+ * @return {string}
+ */
+function getNoCookieData() { // eslint-disable-line no-unused-vars
+    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
+    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
+    let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
+    noCookieData = JSON.stringify(noCookieData);
+
+    return '_ct_no_cookie_data_' + btoa(noCookieData);
+}
+
+
+/**
+ * Retrieves the clentalk "cookie" data from starages.
+ * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity}.
+ * @return {string}
+ */
+function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
+    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
+    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
+
+    let noCookieDataTypo = {typo: []};
+    if (document.ctTypoData && document.ctTypoData.data) {
+        noCookieDataTypo = {typo: document.ctTypoData.data};
+    }
+
+    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
+
+    if (document.ctCollectingUserActivityData) {
+        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
+        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
+    }
+
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
+}
+
+/**
  * Class for event token transport
  */
 class ApbctEventTokenTransport {
@@ -2134,8 +2171,8 @@ class ApbctEventTokenTransport {
                 typeof ctPublic.force_alt_cookies === 'undefined' ||
                 (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
             ) {
-                if (typeof setEventTokenField === 'function' && typeof botDetectorLocalStorage === 'function') {
-                    setEventTokenField(botDetectorLocalStorage.get('bot_detector_event_token'));
+                if (typeof setEventTokenField === 'function' && typeof apbctLocalStorage === 'function') {
+                    setEventTokenField(apbctLocalStorage.get('bot_detector_event_token'));
                 }
             }
         });
@@ -2588,13 +2625,14 @@ class ApbctHandler {
      */
     catchMain(form, index) {
         form.onsubmit_prev = form.onsubmit;
-
         form.ctFormIndex = index;
+
+        const handler = this;
+
         form.onsubmit = function(event) {
             new ApbctAttachData().attachVisibleFieldsDuringSubmit(event, form);
 
-            // Call previous submit action
-            if (event.target.onsubmit_prev instanceof Function && !this.prevCallExclude(event.target)) {
+            if (event.target.onsubmit_prev instanceof Function && !handler.prevCallExclude(event.target)) {
                 if (event.target.classList !== undefined && event.target.classList.contains('brave_form_form')) {
                     event.preventDefault();
                 }
@@ -2776,6 +2814,9 @@ class ApbctHandler {
 
                         if (settings.data.indexOf('action=new_activity_comment') !== -1) {
                             sourceSign = 'action=new_activity_comment';
+                        }
+                        if (settings.data.indexOf('action=wwlc_create_user') !== -1) {
+                            sourceSign = 'action=wwlc_create_user';
                         }
                     }
                     if ( typeof settings.url === 'string' ) {
@@ -4430,7 +4471,7 @@ class ApbctForceProtection {
             referrer: document.referrer,
         };
         if (ctPublic.settings__data__bot_detector_enabled == 1) {
-            data.event_token = botDetectorLocalStorage.get('bot_detector_event_token');
+            data.event_token = apbctLocalStorage.get('bot_detector_event_token');
         } else {
             data.event_javascript_data = getJavascriptClientData();
         }

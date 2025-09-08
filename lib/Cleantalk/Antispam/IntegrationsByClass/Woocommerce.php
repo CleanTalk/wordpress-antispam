@@ -74,6 +74,9 @@ class Woocommerce extends IntegrationByClassBase
     {
         global $apbct;
 
+        //add to cart AJAX actions
+        $this->addCartActions();
+
         // checkout
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
             $this->addActions();

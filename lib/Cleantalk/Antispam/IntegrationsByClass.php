@@ -50,6 +50,13 @@ class IntegrationsByClass
              */
             $integration = new $class();
 
+            // Public work
+            if ($integration->isSkipIntegration()) {
+                continue;
+            }
+
+            $integration->doPublicWork();
+
             // Ajax work
             if (apbct_is_ajax()) {
                 $integration->doAjaxWork();
@@ -61,13 +68,6 @@ class IntegrationsByClass
                 $integration->doAdminWork();
                 continue;
             }
-
-            // Public work
-            if ($integration->isSkipIntegration()) {
-                continue;
-            }
-
-            $integration->doPublicWork();
         }
     }
 
