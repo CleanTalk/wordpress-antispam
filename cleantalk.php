@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.62.99-dev
+  Version: 6.63.99-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -31,6 +31,7 @@ use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
+use Cleantalk\ApbctWP\RequestParameters\SubmitTimeHandler;
 use Cleantalk\ApbctWP\RestController;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\State;
@@ -132,6 +133,8 @@ if ( defined('CLEANTALK_SERVER') ) {
 } else {
     define('APBCT_MODERATE_URL', 'https://moderate.cleantalk.org'); // Api URL
 }
+
+define('APBCT_BOT_DETECTOR_SCRIPT_URL', 'https://fd.cleantalk.org/ct-bot-detector-wrapper.js');
 
 /**
  * Require base classes.
@@ -599,7 +602,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
                 . APBCT_URL_PATH
                 . '/js/apbct-public-bundle.min.js'
                 . '?ver=' . APBCT_VERSION . '" id="ct_public_functions-js"></script>';
-            echo '<script src="' . APBCT_MODERATE_URL . '/ct-bot-detector-wrapper.js?ver='
+            echo '<script src="' . APBCT_BOT_DETECTOR_SCRIPT_URL . '?ver='
                 . APBCT_VERSION . '" id="ct_bot_detector-js"></script>';
         }, 100);
     }
@@ -2594,10 +2597,7 @@ function apbct_cookie()
 
     // Submit time
     if ( empty($_POST) ) {
-        $apbct_timestamp = time();
-        RequestParameters::set('apbct_timestamp', (string)$apbct_timestamp, true);
-        $cookie_test_value['cookies_names'][] = 'apbct_timestamp';
-        $cookie_test_value['check_value']     .= $apbct_timestamp;
+        SubmitTimeHandler::setToRequest(time(), $cookie_test_value);
     }
 
     // Landing time
@@ -2614,12 +2614,18 @@ function apbct_cookie()
         if ( $http_referrer ) {
             Cookie::set('apbct_prev_referer', $http_referrer, 0, '/', $domain, null, true, 'Lax', true);
             $cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
-            $cookie_test_value['check_value']     .= $http_referrer;
+            $cookie_test_value['check_value']     = isset($cookie_test_value['check_value'])
+                ? $cookie_test_value['check_value'] . $http_referrer
+                : $http_referrer;
         }
     }
 
     // Cookies test
-    $cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
+    $cookie_test_value['check_value'] = md5(
+        isset($cookie_test_value['check_value'])
+            ? $cookie_test_value['check_value']
+            : ''
+    );
     if ( $apbct->data['cookies_type'] !== 'alternative' ) {
         Cookie::set('apbct_cookies_test', urlencode(json_encode($cookie_test_value)), 0, '/', $domain, null, true);
     }
@@ -2694,19 +2700,6 @@ function apbct_cookies_test()
     }
 
     return null;
-}
-
-/**
- * Gets submit time
- * Uses Cookies with check via apbct_cookies_test()
- * @return null|int
- * @throws JsonException
- */
-function apbct_get_submit_time()
-{
-    $apbct_timestamp = (int) RequestParameters::get('apbct_timestamp', true);
-
-    return apbct_cookies_test() === 1 && $apbct_timestamp !== 0 ? time() - $apbct_timestamp : null;
 }
 
 /**
