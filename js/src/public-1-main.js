@@ -13,7 +13,8 @@ class ApbctEventTokenTransport {
                 (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
             ) {
                 // @ToDo need to be refactored? maybe just ctNoCookieAttachHiddenFieldsToForms(); need calling here?
-                // @ToDo function `setEventTokenField`, `botDetectorLocalStorage` are never defined, this condition is everytime false
+                // @ToDo function `setEventTokenField`, `botDetectorLocalStorage`
+                // are never defined, this condition is everytime false
                 if (typeof setEventTokenField === 'function' && typeof botDetectorLocalStorage === 'function') {
                     setEventTokenField(botDetectorLocalStorage.get('bot_detector_event_token'));
                 }
