@@ -3234,7 +3234,7 @@ function apbct_ready() {
         gatheringData.listenAutocomplete();
         gatheringData.gatheringTypoData();
     }
-    // Всегда вызываем initParams, чтобы куки и параметры были установлены
+    // Always call initParams to set cookies and parameters
     if (typeof initParams === 'function') {
         try {
             initParams();
