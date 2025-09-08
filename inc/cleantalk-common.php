@@ -19,6 +19,7 @@ use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
+use Cleantalk\ApbctWP\RequestParameters\SubmitTimeHandler;
 use Cleantalk\Common\TT;
 
 // Prevent direct call
@@ -196,7 +197,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
         'agent'       => APBCT_AGENT,
         'sender_info' => $sender_info,
-        'submit_time' => apbct_get_submit_time(),
+        'submit_time' => SubmitTimeHandler::getFromRequest(),
     );
 
     if (!isset($params['post_info']['post_url'])) {
@@ -664,6 +665,7 @@ function apbct_get_sender_info()
         'bot_detector_fired_form_exclusions' => apbct__bot_detector_get_fired_exclusions(),
         'bot_detector_prepared_form_exclusions' => apbct__bot_detector_get_prepared_exclusion(),
         'bot_detector_frontend_data_log' => apbct__bot_detector_get_fd_log(),
+        'submit_time_calculation_enabled' => SubmitTimeHandler::isCalculationDisabled() ? 0 : 1,
     );
 
     // Unset cookies_enabled from sender_info if cookies_type === none
