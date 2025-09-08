@@ -1729,6 +1729,82 @@ if (!Object.prototype.hasOwn) {
 }
 
 /**
+ * Set init params
+ */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function initParams() {
+    const ctDate = new Date();
+    const initCookies = [
+        ['ct_ps_timestamp', Math.floor(new Date().getTime() / 1000)],
+        ['ct_fkp_timestamp', '0'],
+        ['ct_pointer_data', '0'],
+        ['ct_timezone', ctDate.getTimezoneOffset()/60*(-1)],
+        ['ct_screen_info',
+            (
+                typeof ApbctGatheringData !== 'undefined' &&
+                typeof ApbctGatheringData.prototype.getScreenInfo === 'function'
+            ) ? new ApbctGatheringData().getScreenInfo() : ''],
+        ['apbct_headless', navigator.webdriver],
+    ];
+
+    apbctLocalStorage.set('ct_ps_timestamp', Math.floor(new Date().getTime() / 1000));
+    apbctLocalStorage.set('ct_fkp_timestamp', '0');
+    apbctLocalStorage.set('ct_pointer_data', '0');
+    apbctLocalStorage.set('ct_timezone', ctDate.getTimezoneOffset()/60*(-1));
+    apbctLocalStorage.set('ct_screen_info',
+        (
+            typeof ApbctGatheringData !== 'undefined' &&
+            typeof ApbctGatheringData.prototype.getScreenInfo === 'function'
+        ) ? new ApbctGatheringData().getScreenInfo() : '');
+    apbctLocalStorage.set('apbct_headless', navigator.webdriver);
+
+    if ( ctPublic.data__cookies_type !== 'native' ) {
+        initCookies.push(['apbct_visible_fields', '0']);
+    } else {
+        // Delete all visible fields cookies on load the page
+        let cookiesArray = document.cookie.split(';');
+        if ( cookiesArray.length !== 0 ) {
+            for ( let i = 0; i < cookiesArray.length; i++ ) {
+                let currentCookie = cookiesArray[i].trim();
+                let cookieName = currentCookie.split('=')[0];
+                if ( cookieName.indexOf('apbct_visible_fields_') === 0 ) {
+                    ctDeleteCookie(cookieName);
+                }
+            }
+        }
+    }
+
+    if (+ctPublic.pixel__setting && +ctPublic.pixel__setting !== 3) {
+        if (typeof ctIsDrawPixel === 'function' && ctIsDrawPixel()) {
+            if (typeof ctGetPixelUrl === 'function') ctGetPixelUrl();
+        } else {
+            initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
+        }
+    }
+
+    if ( +ctPublic.data__email_check_before_post) {
+        initCookies.push(['ct_checked_emails', '0']);
+        if (typeof apbct === 'function') apbct('input[type = "email"], #email').on('blur', checkEmail);
+    }
+
+    if ( +ctPublic.data__email_check_exist_post) {
+        initCookies.push(['ct_checked_emails_exist', '0']);
+        if (typeof apbct === 'function') {
+            apbct('.comment-form input[name = "email"], input#email').on('blur', checkEmailExist);
+            apbct('.frm-fluent-form input[name = "email"], input#email').on('blur', checkEmailExist);
+        }
+    }
+
+    if (apbctLocalStorage.isSet('ct_checkjs')) {
+        initCookies.push(['ct_checkjs', apbctLocalStorage.get('ct_checkjs')]);
+    } else {
+        initCookies.push(['ct_checkjs', 0]);
+    }
+
+    ctSetCookie(initCookies);
+}
+
+/**
  * @param {object|array|string} cookies
  * @param {object|array|string} value
  * @param {string|number} expires
@@ -3157,7 +3233,14 @@ function apbct_ready() {
         gatheringData.startFieldsListening();
         gatheringData.listenAutocomplete();
         gatheringData.gatheringTypoData();
-        gatheringData.initParams();
+    }
+    // Always call initParams to set cookies and parameters
+    if (typeof initParams === 'function') {
+        try {
+            initParams();
+        } catch (e) {
+            console.log('initParams error:', e);
+        }
     }
 
     setTimeout(function() {
@@ -4496,6 +4579,9 @@ function needsSaveLogToAltSessions(currentLog) {
 
 
 
+let ctCheckedEmails = {};
+let ctCheckedEmailsExist = {};
+
 /**
  * @param {mixed} e
  */
@@ -4681,10 +4767,10 @@ function viewCheckEmailExist(e, state, textResult) {
         envelope.after(hint);
     }
 
-    ctEmailExistSetElementsPositions();
+    ctEmailExistSetElementsPositions(inputEmail);
 
     window.addEventListener('resize', function(event) {
-        ctEmailExistSetElementsPositions();
+        ctEmailExistSetElementsPositions(inputEmail);
     });
 
     switch (state) {
@@ -4734,10 +4820,10 @@ function viewCheckEmailExist(e, state, textResult) {
 
 /**
  * Shift the envelope to the input field on resizing the window
+ * @param {mixed} inputEmail
  */
-function ctEmailExistSetElementsPositions() {
+function ctEmailExistSetElementsPositions(inputEmail) {
     const envelopeWidth = 35;
-    const inputEmail = document.querySelector('comment-form input[name*="email"], input#email');
 
     if (!inputEmail) {
         return;
