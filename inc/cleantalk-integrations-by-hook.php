@@ -448,17 +448,15 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
-<<<<<<< HEAD
     'WPFunnels'         => array(
         'hook'    => 'wpfnl_gutenberg_optin_submission',
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
-=======
+    ),
     'WooCommerceWholesaleLeadCapture' => array(
         'hook'    => 'wwlc_action_before_create_wholesale_lead',
         'setting' => 'forms__registrations_test',
         'ajax'    => false
->>>>>>> 5bd50a0591552ef50961b0a221b3c98f0fffe46e
     ),
 );
 
