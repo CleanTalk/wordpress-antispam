@@ -3743,7 +3743,14 @@ function ctProtectOutsideFunctionalHandler(entity, lsStorageName, lsUniqueName) 
     ) {
         entityParent.style.position = originParentPosition;
     } else {
-        entityParent.style.position = 'relative';
+        const computedStyle = window.getComputedStyle(entityParent);
+        if ( computedStyle.position !== undefined &&
+            ( computedStyle.position === 'fixed' || computedStyle.position === 'relative' )
+        ) {
+            // There is already right position. Skip
+        } else {
+            entityParent.style.position = 'relative';
+        }
     }
     entityParent.appendChild(ctProtectOutsideFunctionalGenerateCover());
     let entitiesProtected = apbctLocalStorage.get(lsStorageName);
