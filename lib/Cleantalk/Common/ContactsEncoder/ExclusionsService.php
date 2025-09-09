@@ -1,6 +1,6 @@
 <?php
 
-namespace Cleantalk\Antispam\EmailEncoder;
+namespace Cleantalk\Common\ContactsEncoder;
 
 use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Cookie;
@@ -125,6 +125,16 @@ class ExclusionsService
         }
 
         return false;
+    }
+
+    /**
+     * @param State $apbct
+     *
+     * @return bool
+     */
+    private function byPluginSetting($apbct)
+    {
+        return ! $apbct->settings['data__email_decoder'];
     }
 
     /**
