@@ -4,29 +4,26 @@
 // eslint-disable-next-line no-unused-vars,require-jsdoc
 function initParams() {
     const ctDate = new Date();
+    const headless = navigator.webdriver;
+    const screenInfo = (
+        typeof ApbctGatheringData !== 'undefined' &&
+        typeof ApbctGatheringData.prototype.getScreenInfo === 'function'
+    ) ? new ApbctGatheringData().getScreenInfo() : '';
     const initCookies = [
         ['ct_ps_timestamp', Math.floor(new Date().getTime() / 1000)],
         ['ct_fkp_timestamp', '0'],
         ['ct_pointer_data', '0'],
         ['ct_timezone', ctDate.getTimezoneOffset()/60*(-1)],
-        ['ct_screen_info',
-            (
-                typeof ApbctGatheringData !== 'undefined' &&
-                typeof ApbctGatheringData.prototype.getScreenInfo === 'function'
-            ) ? new ApbctGatheringData().getScreenInfo() : ''],
-        ['apbct_headless', navigator.webdriver],
+        ['ct_screen_info', screenInfo],
+        ['apbct_headless', headless],
     ];
 
     apbctLocalStorage.set('ct_ps_timestamp', Math.floor(new Date().getTime() / 1000));
     apbctLocalStorage.set('ct_fkp_timestamp', '0');
     apbctLocalStorage.set('ct_pointer_data', '0');
     apbctLocalStorage.set('ct_timezone', ctDate.getTimezoneOffset()/60*(-1));
-    apbctLocalStorage.set('ct_screen_info',
-        (
-            typeof ApbctGatheringData !== 'undefined' &&
-            typeof ApbctGatheringData.prototype.getScreenInfo === 'function'
-        ) ? new ApbctGatheringData().getScreenInfo() : '');
-    apbctLocalStorage.set('apbct_headless', navigator.webdriver);
+    apbctLocalStorage.set('ct_screen_info', screenInfo);
+    apbctLocalStorage.set('apbct_headless', headless);
 
     if ( ctPublic.data__cookies_type !== 'native' ) {
         initCookies.push(['apbct_visible_fields', '0']);
@@ -62,6 +59,7 @@ function initParams() {
         if (typeof apbct === 'function') {
             apbct('.comment-form input[name = "email"], input#email').on('blur', checkEmailExist);
             apbct('.frm-fluent-form input[name = "email"], input#email').on('blur', checkEmailExist);
+            apbct('#registerform input[name = "user_email"]').on('blur', checkEmailExist);
         }
     }
 
