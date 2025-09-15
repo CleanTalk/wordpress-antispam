@@ -551,7 +551,7 @@ class ApbctHandler {
             (
                 // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
                 document.body.classList.contains('single-product') &&
-                document.querySelector('.cwginstock-subscribe-form') !== undefined
+                cwginstock !== undefined
             )
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
