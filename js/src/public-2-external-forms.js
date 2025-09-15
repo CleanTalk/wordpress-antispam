@@ -467,7 +467,11 @@ function ctProtectOutsideFunctionalIsTagIntegrated(entity) {
                 entity.src.indexOf('forms.zohopublic.com') !== -1 ||
                 entity.src.indexOf('link.surepathconnect.com') !== -1 ||
                 entity.src.indexOf('hello.dubsado.com') !== -1 ||
-                entity.classList.contains('hs-form-iframe') ||
+                (
+                    // HubSpot modified the iframe layout
+                    entity.classList.contains('hs-form-iframe') ||
+                    entity.parentElement.classList.contains('hs-form-frame')
+                ) ||
                 ( entity.src.indexOf('facebook.com') !== -1 && entity.src.indexOf('plugins/comments.php') !== -1) ||
                 entity.id.indexOf('chatway_widget_app') !== -1
             ) {

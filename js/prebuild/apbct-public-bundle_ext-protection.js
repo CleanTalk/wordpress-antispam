@@ -2707,7 +2707,11 @@ class ApbctHandler {
             document.querySelector('div.wfu_container') !== null ||
             document.querySelector('#newAppointmentForm') !== null ||
             document.querySelector('.booked-calendar-shortcode-wrap') !== null ||
-            (document.body.classList.contains('single-product') && document.querySelector('.cwginstock-subscribe-form') !== undefined)
+            (
+                // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
+                document.body.classList.contains('single-product') &&
+                cwginstock !== undefined
+            )
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
@@ -3699,7 +3703,11 @@ function ctProtectOutsideFunctionalIsTagIntegrated(entity) {
                 entity.src.indexOf('forms.zohopublic.com') !== -1 ||
                 entity.src.indexOf('link.surepathconnect.com') !== -1 ||
                 entity.src.indexOf('hello.dubsado.com') !== -1 ||
-                entity.classList.contains('hs-form-iframe') ||
+                (
+                    // HubSpot modified the iframe layout
+                    entity.classList.contains('hs-form-iframe') ||
+                    entity.parentElement.classList.contains('hs-form-frame')
+                ) ||
                 ( entity.src.indexOf('facebook.com') !== -1 && entity.src.indexOf('plugins/comments.php') !== -1) ||
                 entity.id.indexOf('chatway_widget_app') !== -1
             ) {
