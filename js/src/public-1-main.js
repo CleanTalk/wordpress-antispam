@@ -548,7 +548,11 @@ class ApbctHandler {
             document.querySelector('div.wfu_container') !== null ||
             document.querySelector('#newAppointmentForm') !== null ||
             document.querySelector('.booked-calendar-shortcode-wrap') !== null ||
-            (document.body.classList.contains('single-product') && document.querySelector('.cwginstock-subscribe-form') !== undefined)
+            (
+                // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
+                document.body.classList.contains('single-product') &&
+                document.querySelector('.cwginstock-subscribe-form') !== undefined
+            )
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
