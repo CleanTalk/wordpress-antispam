@@ -12,8 +12,11 @@ class ApbctEventTokenTransport {
                 typeof ctPublic.force_alt_cookies === 'undefined' ||
                 (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
             ) {
-                if (typeof setEventTokenField === 'function' && typeof apbctLocalStorage === 'function') {
-                    setEventTokenField(apbctLocalStorage.get('bot_detector_event_token'));
+                // @ToDo need to be refactored? maybe just ctNoCookieAttachHiddenFieldsToForms(); need calling here?
+                // @ToDo function `setEventTokenField`, `botDetectorLocalStorage`
+                // are never defined, this condition is everytime false
+                if (typeof setEventTokenField === 'function' && typeof botDetectorLocalStorage === 'function') {
+                    setEventTokenField(botDetectorLocalStorage.get('bot_detector_event_token'));
                 }
             }
         });
@@ -509,7 +512,6 @@ class ApbctHandler {
         let elementorUltimateAddonsRegister = document.querySelectorAll('.uael-registration-form-wrapper').length > 0;
         let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
-        let cwginstockForm = document.querySelectorAll('.cwginstock-subscribe-form').length > 0;
         let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
         let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
         let fluentBookingApp = document.querySelectorAll('div[class^="fluent_booking_app"]').length > 0;
@@ -521,7 +523,6 @@ class ApbctHandler {
             ninjaFormsSign ||
             jetpackCommentsForm ||
             elementorUltimateAddonsRegister ||
-            cwginstockForm ||
             userRegistrationProForm ||
             etPbDiviSubscriptionForm ||
             fluentBookingApp ||
@@ -546,14 +547,20 @@ class ApbctHandler {
         if (
             document.querySelector('div.wfu_container') !== null ||
             document.querySelector('#newAppointmentForm') !== null ||
-            document.querySelector('.booked-calendar-shortcode-wrap') !== null
+            document.querySelector('.booked-calendar-shortcode-wrap') !== null ||
+            (
+                // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
+                document.body.classList.contains('single-product') &&
+                cwginstock !== undefined
+            )
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
                 if (body && typeof body === 'string' &&
                     (
                         body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
-                        body.indexOf('action=booked_add_appt') !== -1
+                        body.indexOf('action=booked_add_appt') !== -1 ||
+                        body.indexOf('action=cwginstock_product_subscribe') !== -1
                     )
                 ) {
                     let addidionalCleantalkData = '';

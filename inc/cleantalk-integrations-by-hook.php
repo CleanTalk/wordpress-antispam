@@ -458,6 +458,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
+    'LifterLMS' => array(
+        'hook'    => 'lifterlms_before_new_user_registration',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_active_integrations) {
