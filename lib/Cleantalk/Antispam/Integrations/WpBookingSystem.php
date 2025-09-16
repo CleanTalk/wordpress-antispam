@@ -11,6 +11,8 @@ class WpBookingSystem extends IntegrationBase
     {
         global $apbct;
 
+        $event_token = '';
+
         if ( ! Post::get('form_data') ) {
             return null;
         }
@@ -21,7 +23,16 @@ class WpBookingSystem extends IntegrationBase
             apbct_form__get_no_cookie_data($data);
         }
 
-        return ct_get_fields_any($input_array);
+        if ( isset($data['ct_bot_detector_event_token']) ) {
+            $event_token = $data['ct_bot_detector_event_token'];
+        }
+
+        $data_for_checking = ct_gfa_dto($input_array)->getArray();
+        if ( ! empty($event_token) ) {
+            $data_for_checking['event_token'] = $event_token;
+        }
+
+        return $data_for_checking;
     }
 
     public function doBlock($message)

@@ -1029,9 +1029,9 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         }
         // WP Booking System Premium
         if (
-            (apbct_is_plugin_active('wp-booking-system-premium/index.php') &&
-            TT::toString(Post::get('action')) === 'wpbs_calculate_pricing') ||
-            TT::toString(Post::get('action')) === 'wpbs_validate_date_selection'
+            apbct_is_plugin_active('wp-booking-system-premium/index.php') &&
+            (TT::toString(Post::get('action')) === 'wpbs_calculate_pricing' ||
+            TT::toString(Post::get('action')) === 'wpbs_validate_date_selection')
         ) {
             return 'WP Booking System Premium';
         }
@@ -1136,7 +1136,10 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
 
         //Wp Booking System request - having the direct integration
         if (
-            apbct_is_plugin_active('wp-booking-system/wp-booking-system.php') &&
+            (
+                apbct_is_plugin_active('wp-booking-system/wp-booking-system.php') ||
+                apbct_is_plugin_active('wp-booking-system-premium/index.php')
+            ) &&
             Post::get('action') === 'wpbs_submit_form'
         ) {
             return 'Wp Booking System request';
