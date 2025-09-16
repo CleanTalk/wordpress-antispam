@@ -4,7 +4,7 @@ Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 6.63
+Stable tag: 6.64
 License: GPLv2
 
 Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
@@ -411,6 +411,21 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.64 18.09.2025 =
+New. Integration. Integration with WPFunnels.
+New. CheckEmailExist. Support for Registration Form.
+New. Integration. LifterLMS (registration) protection implemented.
+New. CheckEmailExist. Support for Fluent Forms.
+Upd. Request parameters. Calculate no submittime if bot detector enabled.
+Upd. Bot detector gathering. Changed URL of wrapper to fd.cleantalk.org
+Mod. Integration. Unset visible fields.
+Fix. Integration. Happy Forms protection fixed.
+Fix. Integration. HabSpot external form (transparent div) protection fixed.
+Fix. Integration. Back-In-Stock ajax catching detect fixed.
+Fix. Integration. Back-in-stock-notifier fixed event token transport.
+Fix. External forms. Protection by cover fixed.
+Fix. Code. Undefined object botDetectorLocalStorage using removed.
 
 = 6.63 04.09.2025 =
 New. Integrations. BuddyPress App REST API protection.
