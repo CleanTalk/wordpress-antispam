@@ -1602,6 +1602,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'wwlc_create_user';
         }
+
+        // Fluent Booking Pro ave the direct integration
+        if (
+            apbct_is_plugin_active('fluent-booking-pro/fluent-booking-pro.php') &&
+            Post::getString('action') === 'fluent_cal_schedule_meeting'
+        ) {
+            return 'Fluent Booking Pro skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
