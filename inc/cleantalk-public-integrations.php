@@ -3117,11 +3117,15 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
     global $cleantalk_executed;
 
     if ( ! $cleantalk_executed && $is_valid ) {
+        $event_token = null;
         /**
          * Filter for request
          */
         if (isset($request['data'])) {
             apbct_form__get_no_cookie_data($request['data']);
+            if ( isset($request['data']['ct_bot_detector_event_token']) ) {
+                $event_token = $request['data']['ct_bot_detector_event_token'];
+            }
             unset($request['data']);
         }
 
@@ -3140,6 +3144,7 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
                 'sender_info'     => array(
                     'sender_emails_array' => isset($data['emails_array']) ? $data['emails_array'] : '',
                 ),
+                'event_token' => $event_token ?: '',
             )
         );
 

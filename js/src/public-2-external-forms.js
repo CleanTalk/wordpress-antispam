@@ -467,7 +467,11 @@ function ctProtectOutsideFunctionalIsTagIntegrated(entity) {
                 entity.src.indexOf('forms.zohopublic.com') !== -1 ||
                 entity.src.indexOf('link.surepathconnect.com') !== -1 ||
                 entity.src.indexOf('hello.dubsado.com') !== -1 ||
-                entity.classList.contains('hs-form-iframe') ||
+                (
+                    // HubSpot modified the iframe layout
+                    entity.classList.contains('hs-form-iframe') ||
+                    entity.parentElement.classList.contains('hs-form-frame')
+                ) ||
                 ( entity.src.indexOf('facebook.com') !== -1 && entity.src.indexOf('plugins/comments.php') !== -1) ||
                 entity.id.indexOf('chatway_widget_app') !== -1
             ) {
@@ -511,7 +515,14 @@ function ctProtectOutsideFunctionalHandler(entity, lsStorageName, lsUniqueName) 
     ) {
         entityParent.style.position = originParentPosition;
     } else {
-        entityParent.style.position = 'relative';
+        const computedStyle = window.getComputedStyle(entityParent);
+        if ( computedStyle.position !== undefined &&
+            ( computedStyle.position === 'fixed' || computedStyle.position === 'relative' )
+        ) {
+            // There is already right position. Skip
+        } else {
+            entityParent.style.position = 'relative';
+        }
     }
     entityParent.appendChild(ctProtectOutsideFunctionalGenerateCover());
     let entitiesProtected = apbctLocalStorage.get(lsStorageName);

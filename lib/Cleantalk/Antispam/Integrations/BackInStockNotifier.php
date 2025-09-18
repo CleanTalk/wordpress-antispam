@@ -2,14 +2,10 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\ApbctWP\Variables\Cookie;
-
 class BackInStockNotifier extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        Cookie::$force_alt_cookies_global = true;
-
         $email = isset($_POST['user_email']) && is_string($_POST['user_email']) ? sanitize_email($_POST['user_email']) : '';
         $nickname = isset($_POST['subscriber_name']) && is_string($_POST['subscriber_name']) ? sanitize_text_field($_POST['subscriber_name']) : '';
         $data = array();
@@ -21,7 +17,11 @@ class BackInStockNotifier extends IntegrationBase
             $data['nickname'] = $nickname;
         }
 
-        $data['event_token'] = Cookie::get('ct_bot_detector_event_token');
+        if ( isset($_REQUEST['data']['ct_bot_detector_event_token']) ) {
+            $data['event_token'] = $_REQUEST['data']['ct_bot_detector_event_token'];
+            unset($_REQUEST['data']['ct_bot_detector_event_token']);
+        }
+
         $data['sender_info']['form_without_tags'] = true;
 
         return $data;
