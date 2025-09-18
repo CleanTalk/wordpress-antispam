@@ -2963,7 +2963,7 @@ function apbct_is_user_role_in($roles, $user = false)
  *
  * @param $exec_time
  */
-function apbct_statistics__rotate($exec_time)
+function apbct_summary_and_support__rotate($exec_time)
 {
     global $apbct;
 
@@ -3058,4 +3058,14 @@ function apbct_sfw_update_sentinel__run_watchdog()
 {
     global $apbct;
     $apbct->sfw_update_sentinel->runWatchDog();
+}
+
+/**
+ * Cron wrapper. Remove support user.
+ * @return void
+ */
+function apbct_cron_remove_support_user()
+{
+    $temp_user_service = new \Cleantalk\ApbctWP\SupportUser();
+    $temp_user_service->performCronDeleteUser();
 }
