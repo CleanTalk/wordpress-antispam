@@ -3002,16 +3002,10 @@ class ApbctHandler {
             if (
                 typeof ctPublic !== 'undefined' &&
                 + ctPublic.settings__forms__search_test === 1 &&
-                (
-                    _form.getAttribute('id') === 'searchform' ||
-                    (
-                        _form.getAttribute('class') !== null &&
-                        _form.getAttribute('class').indexOf('search-form') !== -1
-                    ) ||
-                    (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
-                ) &&
-                !isExclusion(_form)
+                _form.getAttribute('apbct-form-sign') !== null &&
+                _form.getAttribute('apbct-form-sign') === 'native_search'
             ) {
+                console.table('_form',_form)
                 // this handles search forms onsubmit process
                 _form.apbctSearchPrevOnsubmit = _form.onsubmit;
                 _form.onsubmit = (e) => this.searchFormHandler(e, _form);

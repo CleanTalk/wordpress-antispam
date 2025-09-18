@@ -89,9 +89,17 @@ class WPSearchForm extends IntegrationByClassBase
                     : trim($matches[1]);
             }
             $form_method = strtolower($method);
+            $form_sign = esc_attr(
+                sprintf(
+                    '%s="%s"',
+                    'apbct-form-sign',
+                    'native_search'
+                )
+            );
 
-            $resalt = str_replace('</form>', Honeypot::generateHoneypotField('search_form', $form_method) . '</form>', $form_html);
-            return $resalt;
+            $result = str_replace('<form', '<form ' . $form_sign, $form_html);
+            $result = str_replace('</form>', Honeypot::generateHoneypotField('search_form', $form_method) . '</form>', $result);
+            return $result;
         }
 
         return $form_html;
