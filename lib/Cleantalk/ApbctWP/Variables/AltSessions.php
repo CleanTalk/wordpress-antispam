@@ -199,6 +199,14 @@ class AltSessions
             $cookies_array = $prepared_cookies_array;
         }
 
+        //other versions json errors if json_decode returns null
+        if ( is_null($cookies_array) ) {
+            $cookies_array = array();
+            wp_send_json(array(
+                'success' => false,
+                'error' => 'AltSessions: Internal JSON error: $cookies_array is null.'));
+        }
+
         // Incoming data validation against allowed alt cookies
         foreach ($cookies_array as $name => $value) {
             if ( ! array_key_exists($name, self::$allowed_alt_cookies) ) {
@@ -236,14 +244,6 @@ class AltSessions
                     // If the type is not recognized, remove the cookie
                     unset($cookies_array[$name]);
             }
-        }
-
-        //other versions json errors if json_decode returns null
-        if ( is_null($cookies_array) ) {
-            $cookies_array = array();
-            wp_send_json(array(
-                'success' => false,
-                'error' => 'AltSessions: Internal JSON error:' . json_last_error_msg()));
         }
 
         if ( array_key_exists('apbct_force_alt_cookies', $cookies_array) ) {
