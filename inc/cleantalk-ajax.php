@@ -569,7 +569,7 @@ function ct_ajax_hook($message_obj = null)
             die();
         }
 
-        if ( Post::getString('action', 'glsr_public_action') ) {
+        if ( Post::getString('action') === 'glsr_public_action' ) {
             $result = array(
                 'success' => false,
                 'data' => array(
@@ -1001,6 +1001,15 @@ function ct_ajax_hook($message_obj = null)
                 )
             );
             die();
+        }
+
+        // Indeed Coming Soon
+        // Works only with special Indeed plugin version. Look at https://doboard.com/1/task/31617#comment_207324
+        if (
+            Post::getString('action') === 'ics_save_email_subscribe' ||
+            Post::getString('action') === 'ics_send_email_fc'
+        ) {
+            wp_send_json_error($ct_result->comment);
         }
 
         // Regular block output
