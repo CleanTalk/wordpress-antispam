@@ -860,7 +860,7 @@ function apbctCreateSupportUser() { // eslint-disable-line no-unused-vars
  * Create support user
  */
 function apbctCreateSupportUserCallback() {
-    const preloader = jQuery('#apbct_summary_and_support-create_user_button_preloader')
+    const preloader = jQuery('#apbct_summary_and_support-create_user_button_preloader');
     preloader.css('display', 'block');
     apbct_admin_sendAJAX(
         {
