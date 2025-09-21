@@ -2963,7 +2963,7 @@ function apbct_is_user_role_in($roles, $user = false)
  *
  * @param $exec_time
  */
-function apbct_summary_and_support__rotate($exec_time)
+function apbct_statistics_rotate($exec_time)
 {
     global $apbct;
 
