@@ -834,14 +834,6 @@ function apbctHighlightElement(id, times) {
 }
 
 /**
- * Open external link in a new tab
- * @param {string} url
- */
-function apbctStatisticsOpenExternalLink(url) { // eslint-disable-line no-unused-vars
-    window.open(url, '_blank');
-}
-
-/**
  * Open modal to create support user
  */
 function apbctCreateSupportUser() { // eslint-disable-line no-unused-vars

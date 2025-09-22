@@ -105,6 +105,9 @@ i.animate-spin {
     border-radius: 2px;
 }
 .cleantalk_link-auto:hover {color: #fff;}
+.cleantalk_link-auto.cleantalk_link_text_center {
+    text-align: center;
+}
 .cleantalk_link-manual {
     background: #2ea2cc;
     border-color: #0074a2;

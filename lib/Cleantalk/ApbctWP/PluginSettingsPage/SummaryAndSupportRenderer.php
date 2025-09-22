@@ -123,12 +123,8 @@ class SummaryAndSupportRenderer
     {
         $template = '
         <div class="apbct_summary_and_support-support_buttons_wrapper">
-            <button type="button" class="cleantalk_link cleantalk_link-auto" onclick="apbctStatisticsOpenExternalLink(\'%s\')">
-                    <div>%s</div>
-            </button>
-            <button type="button" class="cleantalk_link cleantalk_link-auto" onclick="apbctStatisticsOpenExternalLink(\'%s\')">
-                    <div>%s</div>
-            </button>
+            <a href="%s" target="_blank" class="cleantalk_link cleantalk_link-auto cleantalk_link_text_center">%s</a>
+            <a href="%s" target="_blank" class="cleantalk_link cleantalk_link-auto cleantalk_link_text_center">%s</a>
             <button type="button" id="apbct_summary_and_support-create_user_button" class="cleantalk_link cleantalk_link-auto" onclick="apbctCreateSupportUser()">
                     <div>%s</div>
                     <img id="apbct_summary_and_support-create_user_button_preloader" class="apbct_preloader_button" src="https://wordpress.loc/wp-content/plugins/cleantalk-spam-protect/inc/images/preloader2.gif">
