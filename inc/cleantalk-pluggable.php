@@ -716,6 +716,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             'cleantalk_force_ajax_check', //Force ajax check has direct integration
             'cscf-submitform', // CSCF has direct integration
             'mailpoet', // Mailpoet has direct integration
+            'wpcommunity_auth_login', // WPCommunity login
         );
 
         // Skip test if
