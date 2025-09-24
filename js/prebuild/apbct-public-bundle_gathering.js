@@ -1790,6 +1790,7 @@ function initParams() {
             apbct('.comment-form input[name = "email"], input#email').on('blur', checkEmailExist);
             apbct('.frm-fluent-form input[name = "email"], input#email').on('blur', checkEmailExist);
             apbct('#registerform input[name = "user_email"]').on('blur', checkEmailExist);
+            apbct('form.wc-block-checkout__form input[type = "email"]').on('blur', checkEmailExist);
         }
     }
 
@@ -4406,6 +4407,10 @@ function getResultCheckEmailExist(e, result, currentEmail) {
 function viewCheckEmailExist(e, state, textResult) {
     let parentElement = e.target.parentElement;
     let inputEmail = parentElement.querySelector('[name*="email"]');
+
+    if (!inputEmail) {
+        inputEmail = parentElement.querySelector('[type*="email"]');
+    }
 
     if (!inputEmail) {
         return;

@@ -153,6 +153,10 @@ function viewCheckEmailExist(e, state, textResult) {
     let inputEmail = parentElement.querySelector('[name*="email"]');
 
     if (!inputEmail) {
+        inputEmail = parentElement.querySelector('[type*="email"]');
+    }
+
+    if (!inputEmail) {
         return;
     }
 
