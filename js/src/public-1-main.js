@@ -747,37 +747,12 @@ class ApbctHandler {
      * @return {void}
      */
     searchFormMiddleware() {
-        const isExclusion = (form) => {
-            let className = form.getAttribute('class');
-            if (typeof className !== 'string') {
-                className = '';
-            }
-
-            return (
-                // fibosearch integration
-                form.querySelector('input.dgwt-wcas-search-input') ||
-                // hero search skip
-                form.getAttribute('id') === 'hero-search-form' ||
-                // hb booking search skip
-                className === 'hb-booking-search-form' ||
-                // events calendar skip
-                (className.indexOf('tribe-events') !== -1 && className.indexOf('search') !== -1)
-            );
-        };
-
         for (const _form of document.forms) {
             if (
                 typeof ctPublic !== 'undefined' &&
                 + ctPublic.settings__forms__search_test === 1 &&
-                (
-                    _form.getAttribute('id') === 'searchform' ||
-                    (
-                        _form.getAttribute('class') !== null &&
-                        _form.getAttribute('class').indexOf('search-form') !== -1
-                    ) ||
-                    (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
-                ) &&
-                !isExclusion(_form)
+                _form.getAttribute('apbct-form-sign') !== null &&
+                _form.getAttribute('apbct-form-sign') === 'native_search'
             ) {
                 // this handles search forms onsubmit process
                 _form.apbctSearchPrevOnsubmit = _form.onsubmit;
