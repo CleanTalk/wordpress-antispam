@@ -6,6 +6,7 @@ use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\ServerRequirementsChecker\ServerRequirementsChecker;
 use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\LinkConstructor;
+use Cleantalk\Common\TT;
 
 /**
  * Class SummaryAndSupportRenderer
@@ -154,7 +155,7 @@ class SummaryAndSupportRenderer
             esc_html('https://cleantalk.org/help/introduction#anti-spam'),
             __('CleanTalk Anti-Spam Help'),
             __('Create Support User'),
-            Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif'),
+            TT::toString(Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif')),
             __('Username'),
             __('Email'),
             __('Password')
