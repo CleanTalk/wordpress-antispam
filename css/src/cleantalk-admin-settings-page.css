@@ -476,7 +476,7 @@ button[value="save_changes"]:disabled {
 #apbct_summary_and_support {
     display: flex;
     flex-wrap: wrap;
-    width: fit-content;
+    width: -webkit-fill-available;
     border: 1px solid #ddd;
     border-radius: 3px;
     padding: 10px;
@@ -499,6 +499,7 @@ button[value="save_changes"]:disabled {
     display: flex;
     flex-direction: row;
     margin: 10px 0 10px;
+    width: 100%;
 }
 
 .apbct_summary_and_support-side_header {
@@ -699,5 +700,22 @@ button[value="save_changes"]:disabled {
     .apcbt_contact_data_encoder__line {
         max-width: 100%;
         margin-top: 5px;
+    }
+
+    #apbct_summary_and_support-right_side {
+        border-top: 1px solid #dcdcde;
+        border-left: 0;
+        margin: 35px 0 0;
+        padding: 0;
+        width: -webkit-fill-available;
+    }
+
+    #apbct_summary_and_support-left_side {
+        border-top: 1px solid #dcdcde;
+        width: -webkit-fill-available;
+    }
+
+    #apbct_summary_and_support-sides_wrap {
+        flex-direction: column;
     }
 }

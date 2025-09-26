@@ -127,7 +127,7 @@ class SummaryAndSupportRenderer
             <a href="%s" target="_blank" class="cleantalk_link cleantalk_link-auto cleantalk_link_text_center">%s</a>
             <button type="button" id="apbct_summary_and_support-create_user_button" class="cleantalk_link cleantalk_link-auto" onclick="apbctCreateSupportUser()">
                     <div>%s</div>
-                    <img id="apbct_summary_and_support-create_user_button_preloader" class="apbct_preloader_button" src="https://wordpress.loc/wp-content/plugins/cleantalk-spam-protect/inc/images/preloader2.gif">
+                    <img id="apbct_summary_and_support-create_user_button_preloader" class="apbct_preloader_button" src="%s">
             </button>
         </div>
         <div class="apbct_summary_and_support-user_creation_result">
@@ -154,6 +154,7 @@ class SummaryAndSupportRenderer
             esc_html('https://cleantalk.org/help/introduction#anti-spam'),
             __('CleanTalk Anti-Spam Help'),
             __('Create Support User'),
+            Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif'),
             __('Username'),
             __('Email'),
             __('Password')
