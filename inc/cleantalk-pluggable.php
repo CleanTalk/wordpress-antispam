@@ -717,6 +717,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             'cscf-submitform', // CSCF has direct integration
             'mailpoet', // Mailpoet has direct integration
             'wpcommunity_auth_login', // WPCommunity login
+            'submit_nex_form', // NEXForms has direct integration
         );
 
         // Skip test if
