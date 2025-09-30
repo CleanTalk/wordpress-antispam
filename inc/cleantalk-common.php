@@ -286,7 +286,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
     // Statistics
     // Average request time
-    apbct_statistics__rotate($exec_time);
+    apbct_statistics_rotate($exec_time);
     // Last request
     $apbct->stats['last_request']['time']   = time();
     $apbct->stats['last_request']['server'] = $ct->work_url;

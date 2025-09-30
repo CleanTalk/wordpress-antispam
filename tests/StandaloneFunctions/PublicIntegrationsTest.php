@@ -25,7 +25,7 @@ class PublicIntegrationsTest extends TestCase
 </form>';
         $this->assertNotFalse(
             simplexml_load_string($wp_search_form->apbctFormSearchAddFields($sample_form)),
-            'TEST DATA:[' . $sample_form . ']'
+            'TEST DATA:[' . $sample_form . '] \n Returned [' . $wp_search_form->apbctFormSearchAddFields($sample_form) . ']'
         );
         //define empty string test
         $this->assertEmpty($wp_search_form->apbctFormSearchAddFields(''),

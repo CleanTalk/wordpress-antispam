@@ -832,3 +832,103 @@ function apbctHighlightElement(id, times) {
         });
     });
 }
+
+/**
+ * Open modal to create support user
+ */
+function apbctCreateSupportUser() { // eslint-disable-line no-unused-vars
+    const localTextArray = ctSettingsPage.support_user_creation_msg_array;
+    cleantalkModal.loaded = false;
+    cleantalkModal.open(false);
+    cleantalkModal.confirm(
+        localTextArray.confirm_header,
+        localTextArray.confirm_text,
+        '',
+        apbctCreateSupportUserCallback,
+    );
+}
+
+/**
+ * Create support user
+ */
+function apbctCreateSupportUserCallback() {
+    const preloader = jQuery('#apbct_summary_and_support-create_user_button_preloader');
+    preloader.css('display', 'block');
+    apbct_admin_sendAJAX(
+        {
+            action: 'apbct_action__create_support_user',
+        },
+        {
+            timeout: 10000,
+            notJson: 1,
+            callback: function(result, data, params, obj) {
+                let localTextArray = ctSettingsPage.support_user_creation_msg_array;
+                let popupMsg = localTextArray.default_error;
+                const responseValid = (
+                    typeof result === 'object' &&
+                    result.hasOwnProperty('success') &&
+                    result.hasOwnProperty('user_created') &&
+                    result.hasOwnProperty('mail_sent') &&
+                    result.hasOwnProperty('cron_updated') &&
+                    result.hasOwnProperty('user_data') &&
+                    result.hasOwnProperty('result_code') &&
+                    typeof result.user_data === 'object' &&
+                    result.user_data.hasOwnProperty('username') &&
+                    result.user_data.hasOwnProperty('email') &&
+                    result.user_data.hasOwnProperty('password')
+                );
+                if (responseValid && result.success) {
+                    if (result.user_created) {
+                        let mailSentMsg = '';
+                        let successCreationMsg = '';
+                        let cronUpdatedMsg = localTextArray.cron_updated;
+
+                        if (result.mail_sent) {
+                            mailSentMsg = localTextArray.mail_sent_success;
+                        } else {
+                            mailSentMsg = localTextArray.mail_sent_error;
+                        }
+
+                        if (result.result_code === 0) {
+                            successCreationMsg = localTextArray.user_updated;
+                        } else {
+                            successCreationMsg = localTextArray.user_created;
+                        }
+
+                        jQuery('#apbct_summary_and_support-user_creation_username').text(result.user_data.username);
+                        jQuery('#apbct_summary_and_support-user_creation_email').text(result.user_data.email);
+                        jQuery('#apbct_summary_and_support-user_creation_password').text(result.user_data.password);
+                        jQuery('#apbct_summary_and_support-user_creation_mail_sent').text(mailSentMsg);
+                        jQuery('#apbct_summary_and_support-user_creation_title').text(successCreationMsg);
+                        jQuery('#apbct_summary_and_support-user_creation_cron_updated').text(cronUpdatedMsg);
+                        jQuery('.apbct_summary_and_support-user_creation_result').css('display', 'block');
+                        const createUserButton = jQuery('#apbct_summary_and_support-create_user_button');
+                        createUserButton.attr('disabled', true);
+                        createUserButton.css('color', 'rgba(93,89,86,0.55)');
+                        createUserButton.css('background', '#cccccc');
+                        preloader.css('display', 'none');
+                        return;
+                    } else {
+                        if (result.result_code === -2) {
+                            popupMsg = localTextArray.invalid_permission;
+                        } else if (result.result_code === -1) {
+                            popupMsg = localTextArray.unknown_creation_error;
+                        } else if (result.result_code === -4) {
+                            popupMsg = localTextArray.on_cooldown;
+                        } else if (result.result_code === -5) {
+                            popupMsg = localTextArray.email_is_busy;
+                        }
+                    }
+                }
+                preloader.css('display', 'none');
+                cleantalkModal.loaded = popupMsg;
+                cleantalkModal.open();
+            },
+            errorOutput: function(msg) {
+                preloader.css('display', 'none');
+                cleantalkModal.loaded = msg;
+                cleantalkModal.open();
+            },
+        },
+    );
+}
