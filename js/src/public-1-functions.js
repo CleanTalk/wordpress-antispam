@@ -60,6 +60,8 @@ function initParams() {
             apbct('.comment-form input[name = "email"], input#email').on('blur', checkEmailExist);
             apbct('.frm-fluent-form input[name = "email"], input#email').on('blur', checkEmailExist);
             apbct('#registerform input[name = "user_email"]').on('blur', checkEmailExist);
+            apbct('form.wc-block-checkout__form input[type = "email"]').on('blur', checkEmailExist);
+            apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
         }
     }
 
