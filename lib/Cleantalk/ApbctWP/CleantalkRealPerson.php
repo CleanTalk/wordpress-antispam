@@ -30,7 +30,21 @@ class CleantalkRealPerson
     public function publicCommentAddTrpClass($classes, $_css_class, $comment_id, $comment, $_post)
     {
         $ct_hash = get_comment_meta((int)$comment_id, 'ct_real_user_badge_hash', true);
-        if ( $ct_hash && $comment->comment_author ) {
+
+        // Check `ct_hash` exists (the comment has been checked) for show TRP
+        $show_trp_on_hash = $ct_hash && $comment->comment_author;
+
+        $show_trp_on_roles = false;
+        $roles_to_show_trp = ['administrator', 'editor'];
+        // Check user role for show TRP
+        if ( $comment->user_id ) {
+            $user = get_userdata($comment->user_id);
+            if ( $user && is_array($user->roles) && count(array_intersect($user->roles, $roles_to_show_trp)) > 0 ) {
+                $show_trp_on_roles = true;
+            }
+        }
+
+        if ( $show_trp_on_hash || $show_trp_on_roles ) {
             $classes[] = 'apbct-trp';
             return $classes;
         }
