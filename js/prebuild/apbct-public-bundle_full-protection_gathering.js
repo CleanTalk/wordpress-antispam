@@ -4393,7 +4393,7 @@ function sendAjaxCheckingFormData(form) {
                 if ((result.apbct !== undefined && +result.apbct.blocked) ||
                     (result.data !== undefined && result.data.message !== undefined)
                 ) {
-                    new ApbctHandler().parseBlockMessage(result);
+                    new ApbctShowForbidden().parseBlockMessage(result);
                     // hubspot embed form needs to reload page to prevent forms mishandling
                     if (isHubSpotEmbedForm) {
                         setTimeout(function() {
@@ -4546,7 +4546,7 @@ function sendAjaxCheckingDynamicFormData(form) {
                 }
 
                 if (result.apbct !== undefined && +result.apbct.blocked) {
-                    new ApbctHandler().parseBlockMessage(result);
+                    new ApbctShowForbidden().parseBlockMessage(result);
                 }
             },
         });
