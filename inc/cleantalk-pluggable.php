@@ -716,6 +716,8 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             'cleantalk_force_ajax_check', //Force ajax check has direct integration
             'cscf-submitform', // CSCF has direct integration
             'mailpoet', // Mailpoet has direct integration
+            'wpcommunity_auth_login', // WPCommunity login
+            'submit_nex_form', // NEXForms has direct integration
         );
 
         // Skip test if
@@ -1029,9 +1031,9 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         }
         // WP Booking System Premium
         if (
-            (apbct_is_plugin_active('wp-booking-system-premium/index.php') &&
-            TT::toString(Post::get('action')) === 'wpbs_calculate_pricing') ||
-            TT::toString(Post::get('action')) === 'wpbs_validate_date_selection'
+            apbct_is_plugin_active('wp-booking-system-premium/index.php') &&
+            (TT::toString(Post::get('action')) === 'wpbs_calculate_pricing' ||
+            TT::toString(Post::get('action')) === 'wpbs_validate_date_selection')
         ) {
             return 'WP Booking System Premium';
         }
@@ -1127,16 +1129,19 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         //Skip RegistrationMagic service request
         if (
             apbct_is_plugin_active('custom-registration-form-builder-with-submission-manager/registration_magic.php') &&
-            Post::get('action') === 'rm_user_exists' ||
+            (Post::get('action') === 'rm_user_exists' ||
             Post::get('action') === 'check_username_validity' ||
-            Post::get('action') === 'check_email_exists'
+            Post::get('action') === 'check_email_exists')
         ) {
             return 'RegistrationMagic service request';
         }
 
         //Wp Booking System request - having the direct integration
         if (
-            apbct_is_plugin_active('wp-booking-system/wp-booking-system.php') &&
+            (
+                apbct_is_plugin_active('wp-booking-system/wp-booking-system.php') ||
+                apbct_is_plugin_active('wp-booking-system-premium/index.php')
+            ) &&
             Post::get('action') === 'wpbs_submit_form'
         ) {
             return 'Wp Booking System request';
@@ -1330,8 +1335,8 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         //WP GeoDirectory service action
         if (
             apbct_is_plugin_active('geodirectory/geodirectory.php') &&
-            Post::get('action') === 'geodir_auto_save_post' ||
-            Post::get('action') === 'geodir_save_post'
+            (Post::get('action') === 'geodir_auto_save_post' ||
+            Post::get('action') === 'geodir_save_post')
         ) {
             return 'WP GeoDirectory service action';
         }
@@ -1351,10 +1356,10 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
                 apbct_is_plugin_active('easy-digital-downloads/easy-digital-downloads.php') ||
                 apbct_is_plugin_active('easy-digital-downloads-pro/easy-digital-downloads.php')
             ) &&
-            Post::get('action') === 'edd_add_to_cart' ||
+            (Post::get('action') === 'edd_add_to_cart' ||
             Post::get('action') === 'edd_get_shipping_rate' ||
             Post::get('action') === 'edd_check_email' ||
-            Post::get('action') === 'edd_recalculate_discounts_pro'
+            Post::get('action') === 'edd_recalculate_discounts_pro')
         ) {
             return 'Easy Digital Downloads service action';
         }
@@ -1364,8 +1369,8 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
                 apbct_is_plugin_active('bookingpress-appointment-booking/bookingpress-appointment-booking.php') ||
                 apbct_is_plugin_active('bookingpress-appointment-booking-pro/bookingpress-appointment-booking-pro.php')
             ) &&
-            Post::get('action') === 'bookingpress_pre_booking_verify_details' ||
-            Post::get('action') === 'bookingpress_book_appointment_booking'
+            (Post::get('action') === 'bookingpress_pre_booking_verify_details' ||
+            Post::get('action') === 'bookingpress_book_appointment_booking')
         ) {
             return 'BookingPress service action';
         }
@@ -1545,9 +1550,9 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         // Exclusion of hooks from the Avada theme for the forms of the fusion form builder
         if (
             (apbct_is_theme_active('Avada') || apbct_is_theme_active('Avada Child')) &&
-            Post::get('action') === 'fusion_form_submit_form_to_database_email' ||
+            (Post::get('action') === 'fusion_form_submit_form_to_database_email' ||
             Post::get('action') === 'fusion_form_submit_form_to_email' ||
-            Post::get('action') === 'fusion_form_submit_ajax'
+            Post::get('action') === 'fusion_form_submit_ajax')
         ) {
             return 'fusion_form/avada_theme skip';
         }
@@ -1607,6 +1612,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'wwlc_create_user';
         }
+
+        // Fluent Booking Pro ave the direct integration
+        if (
+            apbct_is_plugin_active('fluent-booking-pro/fluent-booking-pro.php') &&
+            Post::getString('action') === 'fluent_cal_schedule_meeting'
+        ) {
+            return 'Fluent Booking Pro skip';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1646,8 +1659,8 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         // HappyForms skip every requests. HappyForms have the direct integration
         if ( (apbct_is_plugin_active('happyforms-upgrade/happyforms-upgrade.php') ||
               apbct_is_plugin_active('happyforms/happyforms.php')) &&
-             (Post::get('happyforms_message_nonce') !== '') ||
-             (Post::get('action') === 'happyforms_message' && Post::get('happyforms_form_id') !== '')
+             ((Post::get('happyforms_message_nonce') !== '') ||
+             (Post::get('action') === 'happyforms_message' && Post::get('happyforms_form_id') !== ''))
         ) {
             return 'happyform_skipped';
         }
@@ -1715,16 +1728,16 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         if (
             apbct_is_plugin_active('restrict-content-pro/restrict-content-pro.php') &&
             Post::equal('rcp_action', 'login') &&
-            Post::get('rcp_user_login') ||
-            Post::get('rcp_user_pass')
+            (Post::get('rcp_user_login') ||
+            Post::get('rcp_user_pass'))
         ) {
             return 'Restrict Content Pro Login Form skip';
         }
         // APBCT service actions
         if (
             apbct_is_plugin_active('cleantalk-spam-protect/cleantalk.php') &&
-            apbct_is_in_uri('cleantalk-antispam/v1/check_email_before_post') ||
-            apbct_is_in_uri('cleantalk-antispam/v1/check_email_exist_post')
+            (apbct_is_in_uri('cleantalk-antispam/v1/check_email_before_post') ||
+            apbct_is_in_uri('cleantalk-antispam/v1/check_email_exist_post'))
         ) {
             return 'APBCT service actions';
         }

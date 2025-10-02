@@ -4,7 +4,7 @@ Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 6.64
+Stable tag: 6.65
 License: GPLv2
 
 Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
@@ -411,6 +411,25 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.65 02.10.2025 =
+Fix. Code. Pluggable exclusions logic fixed.
+Fix. Common. Alt cookies getting fixed.
+Fix. ContactEncoder. Skip SVG content.
+Fix. Integration. Added WPCommunity login to request exclusions.
+Fix. Integration. Fluent Booking Pro integration fixed - exclude requests from general contact forms checking.
+Fix. Integration. Skip BuddyBoss login form.
+Fix. Integration. WooCommerce mark spam orders fixed.
+Fix. Integration. WP Booking System integration fixed - support pro version.
+Fix. Integrations. Added rules to skip woocommerce service request.
+New. CheckEmailExist. Support for Registration Form.
+New. CheckEmailExist. Support for Woocommerce checkout form.
+New. Integration. Added NEXForms integration.
+New. Integration. Indeed Coming Soon integration implemented.
+New. Summary and statistics. Temporary support user creation implemented.
+Upd. CheckEmailExist. Improve support for Woocommerce checkout form and update option description.
+Upd. Search form. Added CleanTalk unique sign for native form.
+Upd. UsersChecker. Include first name, last name, and nickname in csv report of user data output.
 
 = 6.64 18.09.2025 =
 New. Integration. Integration with WPFunnels.

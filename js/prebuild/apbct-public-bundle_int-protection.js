@@ -488,7 +488,11 @@ var cleantalkModal = cleantalkModal || { // eslint-disable-line no-var
         }
     },
 
-    open: function() {
+    /**
+     * Open modal
+     * @param {boolean|string} actionCallbackName
+     */
+    open: function(actionCallbackName = 'get_options_template') {
         /* Cleantalk Modal CSS start */
         let renderCss = function() {
             let cssStr = '';
@@ -612,7 +616,9 @@ var cleantalkModal = cleantalkModal || { // eslint-disable-line no-var
         } else {
             content.innerHTML = 'Loading...';
             // @ToDo Here is hardcoded parameter. Have to get this from a 'data-' attribute.
-            this.load( 'get_options_template' );
+            if (actionCallbackName) {
+                this.load( actionCallbackName );
+            }
         }
         content.setAttribute( 'id', 'cleantalk-modal-content' );
         inner.append( content );
@@ -620,10 +626,66 @@ var cleantalkModal = cleantalkModal || { // eslint-disable-line no-var
         this.opened = true;
     },
 
+    confirm: function(header, text = '', filePath = '', callback, yesButtonText = 'Yes', noButtonText = 'No') {
+        cleantalkModal.loading = false;
+        let contentBlock = document.getElementById('cleantalk-modal-content');
+        if (contentBlock) {
+            contentBlock.innerHTML = '';
+
+            const headerBlock = document.createElement('div');
+            headerBlock.className = 'cleantalk-confirm-modal_header';
+            headerBlock.textContent = header;
+            contentBlock.append(headerBlock);
+
+            // Create text block
+            const textBlock = document.createElement('div');
+            textBlock.className = 'cleantalk-confirm-modal_text-block';
+            contentBlock.append(textBlock);
+
+            if (filePath && filePath.length > 60) {
+                filePath = '...' + filePath.slice(filePath.length - 60);
+            }
+
+            const textElem = document.createElement('div');
+            textElem.className = 'cleantalk-confirm-modal_text';
+            textElem.textContent = text;
+            textBlock.append(textElem);
+
+            // Create buttons block
+            const buttonsBlock = document.createElement('div');
+            buttonsBlock.className = 'cleantalk-confirm-modal_buttons-block';
+            contentBlock.append(buttonsBlock);
+
+            const yesButton = document.createElement('button');
+            yesButton.className = 'cleantalk_link cleantalk_link-auto';
+            yesButton.textContent = yesButtonText;
+            yesButton.onclick = function() {
+                callback(true);
+                cleantalkModal.close();
+            };
+            buttonsBlock.append(yesButton);
+
+            const noButton = document.createElement('button');
+            noButton.className = 'cleantalk_link cleantalk_link-auto';
+            noButton.textContent = noButtonText;
+            noButton.onclick = function() {
+                cleantalkModal.close();
+            };
+            buttonsBlock.append(noButton);
+        }
+        document.dispatchEvent(
+            new CustomEvent( 'cleantalkModalContentLoaded', {
+                bubbles: true,
+            } ),
+        );
+    },
+
     close: function() {
         document.body.classList.remove( 'cleantalk-modal-opened' );
-        document.getElementById( 'cleantalk-modal-overlay' ).remove();
-        document.getElementById( 'cleantalk-modal-styles' ).remove();
+        const overlay = document.getElementById( 'cleantalk-modal-overlay' );
+        const styles = document.getElementById( 'cleantalk-modal-styles' );
+        overlay !== null && overlay.remove();
+        styles !== null && styles.remove();
         document.dispatchEvent(
             new CustomEvent( 'cleantalkModalClosed', {
                 bubbles: true,
@@ -1790,6 +1852,8 @@ function initParams() {
             apbct('.comment-form input[name = "email"], input#email').on('blur', checkEmailExist);
             apbct('.frm-fluent-form input[name = "email"], input#email').on('blur', checkEmailExist);
             apbct('#registerform input[name = "user_email"]').on('blur', checkEmailExist);
+            apbct('form.wc-block-checkout__form input[type = "email"]').on('blur', checkEmailExist);
+            apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
         }
     }
 
@@ -2980,37 +3044,12 @@ class ApbctHandler {
      * @return {void}
      */
     searchFormMiddleware() {
-        const isExclusion = (form) => {
-            let className = form.getAttribute('class');
-            if (typeof className !== 'string') {
-                className = '';
-            }
-
-            return (
-                // fibosearch integration
-                form.querySelector('input.dgwt-wcas-search-input') ||
-                // hero search skip
-                form.getAttribute('id') === 'hero-search-form' ||
-                // hb booking search skip
-                className === 'hb-booking-search-form' ||
-                // events calendar skip
-                (className.indexOf('tribe-events') !== -1 && className.indexOf('search') !== -1)
-            );
-        };
-
         for (const _form of document.forms) {
             if (
                 typeof ctPublic !== 'undefined' &&
                 + ctPublic.settings__forms__search_test === 1 &&
-                (
-                    _form.getAttribute('id') === 'searchform' ||
-                    (
-                        _form.getAttribute('class') !== null &&
-                        _form.getAttribute('class').indexOf('search-form') !== -1
-                    ) ||
-                    (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
-                ) &&
-                !isExclusion(_form)
+                _form.getAttribute('apbct-form-sign') !== null &&
+                _form.getAttribute('apbct-form-sign') === 'native_search'
             ) {
                 // this handles search forms onsubmit process
                 _form.apbctSearchPrevOnsubmit = _form.onsubmit;
@@ -3214,6 +3253,21 @@ class ApbctShowForbidden {
 
             if (+response.stop_script === 1) {
                 window.stop();
+                if (response.integration && response.integration === 'NEXForms') {
+                    const btn = document.querySelector('form.submit-nex-form button.nex-submit');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.5';
+                        btn.style.cursor = 'not-allowed';
+                        btn.style.pointerEvents = 'none';
+                        btn.style.backgroundColor = '#ccc';
+                        btn.style.color = '#fff';
+                    }
+                    const successMessage = document.querySelector('div.nex_success_message');
+                    if (successMessage) {
+                        successMessage.style.display = 'none';
+                    }
+                }
             }
         }
     }
@@ -3632,6 +3686,10 @@ function getResultCheckEmailExist(e, result, currentEmail) {
 function viewCheckEmailExist(e, state, textResult) {
     let parentElement = e.target.parentElement;
     let inputEmail = parentElement.querySelector('[name*="email"]');
+
+    if (!inputEmail) {
+        inputEmail = parentElement.querySelector('[type*="email"]');
+    }
 
     if (!inputEmail) {
         return;
