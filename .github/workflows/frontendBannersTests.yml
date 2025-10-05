@@ -92,7 +92,7 @@ jobs:
         run: echo "DB_HOST=$(docker ps -qf "ancestor=mysql:5.7")" >> $GITHUB_ENV
 
       - name: Run Banners tests
-        uses: CleanTalk/e2e-tests-banners@Banners-test-refactoring
+        uses: CleanTalk/e2e-tests-banners@master
         env:
           BANNERS_TESTS_API_KEY_REGULAR: ${{ secrets.BANNERS_TESTS_API_KEY_REGULAR }}
           BANNERS_TESTS_API_KEY_REVIEW: ${{ secrets.BANNERS_TESTS_API_KEY_REVIEW }}
