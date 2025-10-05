@@ -1,0 +1,101 @@
+name: Testing Banners on admin side (frontend)
+
+on:
+  push: # on push to each of these branches
+    branches:
+      - master
+  pull_request:
+    branches:
+      - dev
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      wordpress:
+        image: wordpress:latest
+        ports:
+          - 8080:80
+        env:
+          WORDPRESS_DB_HOST: db
+          WORDPRESS_DB_USER: wordpress
+          WORDPRESS_DB_PASSWORD: wordpress
+          WORDPRESS_DB_NAME: wordpress
+        volumes:
+          - ./:/var/www/html/wp-content/plugins/cleantalk-spam-protect
+      db:
+        image: mysql:5.7
+        ports:
+          - "3306:3306"
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: wordpress
+          MYSQL_USER: wordpress
+          MYSQL_PASSWORD: wordpress
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Wait for database to be ready
+        run: |
+          echo "Waiting for MySQL to be ready..."
+          for i in {1..30}; do
+          if docker exec $(docker ps -qf "ancestor=mysql:5.7") mysqladmin ping -ppassword --silent; then
+           echo "MySQL is ready!"
+           exit 0
+          fi
+          echo "Attempt $i/30: MySQL not ready yet..."
+          sleep 5
+          done
+          echo "MySQL connection timed out!"
+          exit 1
+
+      - name: Install WordPress using wp-cli
+        run: |
+          WP_CONTAINER_ID=$(docker ps -qf "ancestor=wordpress:latest")
+          DB_CONTAINER_ID=$(docker ps -qf "ancestor=mysql:5.7")
+          
+          # Устанавливаем WordPress через wp-cli
+          docker run --rm \
+            --volumes-from $WP_CONTAINER_ID \
+            --network container:$WP_CONTAINER_ID \
+            -e WORDPRESS_DB_HOST=$DB_CONTAINER_ID \
+            -e WORDPRESS_DB_USER=wordpress \
+            -e WORDPRESS_DB_PASSWORD=wordpress \
+            -e WORDPRESS_DB_NAME=wordpress \
+            wordpress:cli wp core install \
+            --url="http://localhost:8080" \
+            --title="Test Site" \
+            --admin_user="admin" \
+            --admin_password="password" \
+            --admin_email="admin@example.com" \
+            --skip-email
+
+      - name: Install and activate plugin
+        run: |
+          WP_CONTAINER_ID=$(docker ps -qf "ancestor=wordpress:latest")
+          DB_CONTAINER_ID=$(docker ps -qf "ancestor=mysql:5.7")
+          
+          # Activate the plugin using wp-cli
+          docker run --rm \
+            --volumes-from $WP_CONTAINER_ID \
+            --network container:$WP_CONTAINER_ID \
+            -e WORDPRESS_DB_HOST=$DB_CONTAINER_ID \
+            -e WORDPRESS_DB_USER=wordpress \
+            -e WORDPRESS_DB_PASSWORD=wordpress \
+            -e WORDPRESS_DB_NAME=wordpress \
+            wordpress:cli wp plugin activate cleantalk-spam-protect
+
+      - name: Set DB_HOST
+        run: echo "DB_HOST=$(docker ps -qf "ancestor=mysql:5.7")" >> $GITHUB_ENV
+
+      - name: Run Banners tests
+        uses: CleanTalk/e2e-tests-banners@Banners-test-refactoring
+        env:
+          BANNERS_TESTS_API_KEY_REGULAR: ${{ secrets.BANNERS_TESTS_API_KEY_REGULAR }}
+          BANNERS_TESTS_API_KEY_REVIEW: ${{ secrets.BANNERS_TESTS_API_KEY_REVIEW }}
+          BANNERS_TESTS_API_KEY_TRIAL_EXPIRED: ${{ secrets.BANNERS_TESTS_API_KEY_TRIAL_EXPIRED }}
+          BANNERS_TESTS_API_KEY_PAID_EXPIRED: ${{ secrets.BANNERS_TESTS_API_KEY_PAID_EXPIRED }}
+
