@@ -1,8 +1,13 @@
 name: Testing Banners on admin side (frontend)
 
 on:
-  push:
-    branches: [ FontEnd-Tests-action ]
+  push: # on push to each of these branches
+    branches:
+      - master
+  pull_request:
+    branches:
+      - dev
+      - master
 
 jobs:
   test:
