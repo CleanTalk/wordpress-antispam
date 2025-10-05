@@ -698,6 +698,11 @@ if ( is_admin() || is_network_admin() ) {
     // Show notices
     add_action('admin_init', array(AdminNotices::class, 'showAdminNotices'));
 
+    // Register AJAX hooks
+    add_action('admin_init', function () use ($apbct) {
+        \Cleantalk\ApbctWP\HooksRegistrar::registerAdminHooks($apbct->ajax_service);
+    });
+
     if ( ! (defined('DOING_AJAX') && DOING_AJAX) ) {
         add_action('admin_enqueue_scripts', 'apbct_admin__enqueue_scripts');
 
