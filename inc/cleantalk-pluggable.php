@@ -718,6 +718,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             'mailpoet', // Mailpoet has direct integration
             'wpcommunity_auth_login', // WPCommunity login
             'submit_nex_form', // NEXForms has direct integration
+            'rnoc_track_user_data', // service request
         );
 
         // Skip test if
