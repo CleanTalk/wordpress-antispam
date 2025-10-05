@@ -35,7 +35,7 @@ class ApbctForceProtection {
             referrer: document.referrer,
         };
         if (ctPublic.settings__data__bot_detector_enabled == 1) {
-            data.event_token = botDetectorLocalStorage.get('bot_detector_event_token');
+            data.event_token = apbctLocalStorage.get('bot_detector_event_token');
         } else {
             data.event_javascript_data = getJavascriptClientData();
         }

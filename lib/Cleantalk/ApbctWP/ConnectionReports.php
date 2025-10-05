@@ -284,7 +284,7 @@ class ConnectionReports
         }
         //draw main report table
         $reports_html .= "
-                <table id='negative_reports_table'>
+                <table id='apbct_negative_reports_table'>
                 <th colspan='7'>Failed connection reports</th>
                 <tr>
                     <td>#</td>
@@ -297,8 +297,7 @@ class ConnectionReports
                 </tr>"
             //attach reports rows
             . $rows
-            . "</table>"
-            . "<br/>";
+            . "</table>";
 
         return $reports_html;
     }

@@ -435,12 +435,32 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
+    'BuddyBossAppRestAPI'         => array(
+        'hook'    => 'bbapp_auth_rest_user_registration_pre_check',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
     'AsgarosForum'         => array(
         'hook'    => array(
             'asgarosforum_filter_before_topic_submit',
             'asgarosforum_filter_before_post_submit',
         ),
         'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
+    'WPFunnels'         => array(
+        'hook'    => 'wpfnl_gutenberg_optin_submission',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
+    'WooCommerceWholesaleLeadCapture' => array(
+        'hook'    => 'wwlc_action_before_create_wholesale_lead',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
+    'LifterLMS' => array(
+        'hook'    => 'lifterlms_before_new_user_registration',
+        'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
 );
