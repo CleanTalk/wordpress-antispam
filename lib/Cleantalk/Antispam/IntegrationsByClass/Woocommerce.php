@@ -619,7 +619,7 @@ class Woocommerce extends IntegrationByClassBase
         $spam_ids = array();
 
         foreach ($ids as $order_id) {
-            $order = new WC_Order((int)$order_id);
+            $order = new \WC_Order((int)$order_id);
             if ( $action === 'unspamorder' ) {
                 $order->update_status('wc-on-hold');
             } else {

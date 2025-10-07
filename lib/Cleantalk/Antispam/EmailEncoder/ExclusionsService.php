@@ -31,6 +31,8 @@ class ExclusionsService
         array('class', 'elementor-swiper', 'elementor-testimonial', 'swiper-pagination'),
         // ics-calendar
         array('ics_calendar'),
+        // svg
+        array('svg'),
     );
 
     /**

@@ -1852,6 +1852,8 @@ function initParams() {
             apbct('.comment-form input[name = "email"], input#email').on('blur', checkEmailExist);
             apbct('.frm-fluent-form input[name = "email"], input#email').on('blur', checkEmailExist);
             apbct('#registerform input[name = "user_email"]').on('blur', checkEmailExist);
+            apbct('form.wc-block-checkout__form input[type = "email"]').on('blur', checkEmailExist);
+            apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
         }
     }
 
@@ -3251,6 +3253,21 @@ class ApbctShowForbidden {
 
             if (+response.stop_script === 1) {
                 window.stop();
+                if (response.integration && response.integration === 'NEXForms') {
+                    const btn = document.querySelector('form.submit-nex-form button.nex-submit');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.5';
+                        btn.style.cursor = 'not-allowed';
+                        btn.style.pointerEvents = 'none';
+                        btn.style.backgroundColor = '#ccc';
+                        btn.style.color = '#fff';
+                    }
+                    const successMessage = document.querySelector('div.nex_success_message');
+                    if (successMessage) {
+                        successMessage.style.display = 'none';
+                    }
+                }
             }
         }
     }
@@ -4376,7 +4393,7 @@ function sendAjaxCheckingFormData(form) {
                 if ((result.apbct !== undefined && +result.apbct.blocked) ||
                     (result.data !== undefined && result.data.message !== undefined)
                 ) {
-                    new ApbctHandler().parseBlockMessage(result);
+                    new ApbctShowForbidden().parseBlockMessage(result);
                     // hubspot embed form needs to reload page to prevent forms mishandling
                     if (isHubSpotEmbedForm) {
                         setTimeout(function() {
@@ -4529,7 +4546,7 @@ function sendAjaxCheckingDynamicFormData(form) {
                 }
 
                 if (result.apbct !== undefined && +result.apbct.blocked) {
-                    new ApbctHandler().parseBlockMessage(result);
+                    new ApbctShowForbidden().parseBlockMessage(result);
                 }
             },
         });
@@ -4785,6 +4802,10 @@ function getResultCheckEmailExist(e, result, currentEmail) {
 function viewCheckEmailExist(e, state, textResult) {
     let parentElement = e.target.parentElement;
     let inputEmail = parentElement.querySelector('[name*="email"]');
+
+    if (!inputEmail) {
+        inputEmail = parentElement.querySelector('[type*="email"]');
+    }
 
     if (!inputEmail) {
         return;
