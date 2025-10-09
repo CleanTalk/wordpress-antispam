@@ -1,0 +1,26 @@
+name: Notice about review approved via Matrix
+
+on:
+  pull_request_review:
+    types: [ submitted ]
+
+jobs:
+
+  build:
+    if: github.event.review.state == 'approved' && toJSON(github.event.pull_request.requested_reviewers) == '[]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Convert date format
+        id: date
+        run: echo "::set-output name=date::$(date -d "${{ github.event.pull_request.created_at }}" +"%Y-%m-%d")"
+      - name: Send Matrix message on review approved
+        uses: Glomberg/matrix-messenger-action@master
+        with:
+          server: ${{ secrets.MATRIX_SERVER }}
+          to: ${{ secrets.MATRIX_EXTERNSION_ROOM }}
+          token: ${{ secrets.MATRIX_USER_TOKEN }}
+          message: |
+            💥🎉🎉🎉💥 Pull-request <a href="${{ github.event.pull_request.html_url }}"><strong>${{ github.event.pull_request.title }}</strong></a> 
+            submitted by <strong>${{ github.event.pull_request.user.login }}</strong> at <strong>${{ steps.date.outputs.date }}</strong>
+
+            was <strong>approved</strong> and is ready to merge <a href="${{ github.event.pull_request.html_url }}">➡️</a> !!!
