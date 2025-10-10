@@ -197,6 +197,7 @@ class AdminNotices
         if ( ! $this->apbct->white_label &&
             ! empty($this->apbct->api_key) &&
             apbct_api_key__is_correct() &&
+            ! $this->apbct->key_is_ok &&
             $this->apbct->moderate_ip == 0
         ) {
             $banner_data = new BannerDataDto();
