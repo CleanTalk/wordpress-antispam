@@ -1127,6 +1127,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'WooCommerce addon Wati add to cart trigger skip';
         }
 
+        //Skip WooCommerce addon - Abandoned Cart Recovery for WooCommerce
+        if (
+            apbct_is_plugin_active('woocommerce/woocommerce.php') &&
+            Post::getString('action') === 'fc_ab_cart_update_cart_data'
+        ) {
+            return 'WooCommerce addon Abandoned Cart Recovery skip';
+        }
+
         //Skip RegistrationMagic service request
         if (
             apbct_is_plugin_active('custom-registration-form-builder-with-submission-manager/registration_magic.php') &&
