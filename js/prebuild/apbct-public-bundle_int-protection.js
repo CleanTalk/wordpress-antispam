@@ -2848,7 +2848,7 @@ class ApbctHandler {
             (
                 // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
                 document.body.classList.contains('single-product') &&
-                cwginstock !== undefined
+                typeof cwginstock !== 'undefined'
             )
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
@@ -3018,7 +3018,7 @@ class ApbctHandler {
             }
 
             // checkout
-            if (options.path === '/wc/store/v1/checkout') {
+            if (options.path.includes('/wc/store/v1/checkout')) {
                 if (+ctPublic.settings__data__bot_detector_enabled) {
                     options.data.event_token = localStorage.getItem('bot_detector_event_token');
                 } else {

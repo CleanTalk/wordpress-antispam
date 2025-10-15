@@ -718,6 +718,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             'mailpoet', // Mailpoet has direct integration
             'wpcommunity_auth_login', // WPCommunity login
             'submit_nex_form', // NEXForms has direct integration
+            'rnoc_track_user_data', // service request
         );
 
         // Skip test if
@@ -1124,6 +1125,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             Post::get('action') === 'wati_cartflows_save_cart_abandonment_data'
         ) {
             return 'WooCommerce addon Wati add to cart trigger skip';
+        }
+
+        //Skip WooCommerce addon - Abandoned Cart Recovery for WooCommerce
+        if (
+            apbct_is_plugin_active('woocommerce/woocommerce.php') &&
+            Post::getString('action') === 'fc_ab_cart_update_cart_data'
+        ) {
+            return 'WooCommerce addon Abandoned Cart Recovery skip';
         }
 
         //Skip RegistrationMagic service request
@@ -1635,6 +1644,11 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         if ( apbct_is_plugin_active('woocommerce/woocommerce.php') &&
              apbct_is_in_uri('wc-api=2checkout_ipn_convert_plus') ) {
             return 'wc-payment-api';
+        }
+        // WC experimental calc totals
+        if ( apbct_is_plugin_active('woocommerce/woocommerce.php') &&
+             apbct_is_in_uri('__experimental_calc_totals=true') ) {
+            return 'WC experimental calc totals';
         }
         // BuddyPress edit profile checking skip
         if ( apbct_is_plugin_active('buddypress/bp-loader.php') &&
