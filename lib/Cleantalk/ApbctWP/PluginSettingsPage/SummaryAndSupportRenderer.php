@@ -175,7 +175,7 @@ class SummaryAndSupportRenderer
             : __('unknown', 'cleantalk-spam-protect');
 
         $time = isset($this->apbct->stats['last_request']['time']) && $this->apbct->stats['last_request']['time']
-            ? date('M d Y H:i:s', $this->apbct->stats['last_request']['time'])
+            ? wp_date('M d Y H:i:s', $this->apbct->stats['last_request']['time'])
             : __('unknown', 'cleantalk-spam-protect');
 
         $html = sprintf(
@@ -231,7 +231,7 @@ class SummaryAndSupportRenderer
             : __('unknown', 'cleantalk-spam-protect');
 
         $last_sfw_block_time = isset($this->apbct->stats['last_sfw_block']['time']) && $this->apbct->stats['last_sfw_block']['time']
-            ? date('M d Y H:i:s', $this->apbct->stats['last_sfw_block']['time'])
+            ? wp_date('M d Y H:i:s', $this->apbct->stats['last_sfw_block']['time'])
             : __('unknown', 'cleantalk-spam-protect');
 
         $html = sprintf(
@@ -251,7 +251,7 @@ class SummaryAndSupportRenderer
     private function renderSfwUpdate()
     {
         $last_update_time = isset($this->apbct->stats['sfw']['last_update_time']) && $this->apbct->stats['sfw']['last_update_time']
-            ? date('M d Y H:i:s', $this->apbct->stats['sfw']['last_update_time'])
+            ? wp_date('M d Y H:i:s', $this->apbct->stats['sfw']['last_update_time'])
             : __('unknown', 'cleantalk-spam-protect');
 
         $html = sprintf(
@@ -275,7 +275,7 @@ class SummaryAndSupportRenderer
     private function renderSfwLogs()
     {
         $last_send_time = $this->apbct->stats['sfw']['last_send_time']
-            ? date('M d Y H:i:s', $this->apbct->stats['sfw']['last_send_time'])
+            ? wp_date('M d Y H:i:s', $this->apbct->stats['sfw']['last_send_time'])
             : __('unknown', 'cleantalk-spam-protect');
 
         $html = sprintf(
