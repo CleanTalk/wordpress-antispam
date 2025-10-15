@@ -1645,6 +1645,11 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
              apbct_is_in_uri('wc-api=2checkout_ipn_convert_plus') ) {
             return 'wc-payment-api';
         }
+        // WC experimental calc totals
+        if ( apbct_is_plugin_active('woocommerce/woocommerce.php') &&
+             apbct_is_in_uri('__experimental_calc_totals=true') ) {
+            return 'WC experimental calc totals';
+        }
         // BuddyPress edit profile checking skip
         if ( apbct_is_plugin_active('buddypress/bp-loader.php') &&
              array_key_exists('profile-group-edit-submit', $_POST) ) {
