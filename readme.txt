@@ -412,7 +412,7 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
-= 6.65 16.10.2025 =
+= 6.66 16.10.2025 =
 Fix. Remote calls. Debug RC now hide sensitive data.
 Fix. TRP. Show TRP for admins and editors.
 Fix. TRP. Twenty Twenty-Five theme support added.
