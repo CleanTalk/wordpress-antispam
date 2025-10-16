@@ -1911,21 +1911,46 @@ function apbct_form__ninjaForms__testSpam()
                 1,
                 2
             ); // Prevent mail notification
-            add_filter('ninja_forms_run_action_type_add_to_hubspot', function ($result) {
-                return false;
-            }, 1);
-            add_filter('ninja_forms_run_action_type_nfacds', function ($result) {
-                return false;
-            }, 1);
-            add_filter('ninja_forms_run_action_type_save', function ($result) {
-                return false;
-            }, 1);
-            add_filter('ninja_forms_run_action_type_successmessage', function ($result) {
-                return false;
-            }, 1);
-            add_filter('ninja_forms_run_action_type_email', function ($result) {
-                return false;
-            }, 1);
+            add_filter(
+                'ninja_forms_run_action_type_add_to_hubspot',
+                /** @psalm-suppress UnusedClosureParam */
+                function ($result) {
+                    return false;
+                },
+                1
+            );
+            add_filter(
+                'ninja_forms_run_action_type_nfacds',
+                /** @psalm-suppress UnusedClosureParam */
+                function ($result) {
+                    return false;
+                },
+                1
+            );
+            add_filter(
+                'ninja_forms_run_action_type_save',
+                /** @psalm-suppress UnusedClosureParam */
+                function ($result) {
+                    return false;
+                },
+                1
+            );
+            add_filter(
+                'ninja_forms_run_action_type_successmessage',
+                /** @psalm-suppress UnusedClosureParam */
+                function ($result) {
+                    return false;
+                },
+                1
+            );
+            add_filter(
+                'ninja_forms_run_action_type_email',
+                /** @psalm-suppress UnusedClosureParam */
+                function ($result) {
+                    return false;
+                },
+                1
+            );
         }
     }
 }
