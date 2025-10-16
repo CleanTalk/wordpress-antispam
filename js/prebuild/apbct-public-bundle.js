@@ -2938,6 +2938,9 @@ class ApbctHandler {
                     let sourceSign = false;
                     // settings data is string (important!)
                     if ( typeof settings.data === 'string' ) {
+                        if (settings.data.indexOf('action=fl_builder_subscribe_form_submit') !== -1) {
+                            sourceSign = 'fl_builder_subscribe_form_submit';
+                        }
                         if (settings.data.indexOf('twt_cc_signup') !== -1) {
                             sourceSign = 'twt_cc_signup';
                         }
