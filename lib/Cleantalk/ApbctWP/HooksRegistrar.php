@@ -28,10 +28,17 @@ class HooksRegistrar
 
         // Force Protection check bot
         $ajax_service->addPublicAction('apbct_force_protection_check_bot', 'apbct_force_protection_check_bot');
+    }
 
+    /**
+     * Register admin hooks
+     * @param AJAXService $ajax_service
+     *
+     * @return void
+     */
+    public static function registerAdminHooks($ajax_service)
+    {
         // Support user creation
-        add_action('admin_init', function () use ($ajax_service) {
-            $ajax_service->addAdminAction('apbct_action__create_support_user', 'apbct_action__create_support_user');
-        });
+        $ajax_service->addAdminAction('apbct_action__create_support_user', 'apbct_action__create_support_user');
     }
 }

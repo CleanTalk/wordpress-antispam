@@ -2848,7 +2848,7 @@ class ApbctHandler {
             (
                 // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
                 document.body.classList.contains('single-product') &&
-                cwginstock !== undefined
+                typeof cwginstock !== 'undefined'
             )
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
@@ -3018,7 +3018,7 @@ class ApbctHandler {
             }
 
             // checkout
-            if (options.path === '/wc/store/v1/checkout') {
+            if (options.path.includes('/wc/store/v1/checkout')) {
                 if (+ctPublic.settings__data__bot_detector_enabled) {
                     options.data.event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
@@ -3890,7 +3890,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Selectors. Try to handle the WIDE range of themes.
-    let themesCommentsSelector = '.apbct-trp *[class*="comment-author"]';
+    let themesCommentsSelector = '.apbct-trp > .comment-body *[class*="comment-author"]';
+    // For Twenty Twenty-Five theme
+    let twentyTwentyFiveCommentsSelector = '.apbct-trp > .wp-block-group *[class*="comment-author"]';
     if ( document.querySelector('.apbct-trp .comment-author .comment-author-link') ) {
         // For Spacious theme
         themesCommentsSelector = '.apbct-trp *[class*="comment-author-link"]';
@@ -3899,6 +3901,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let adminCommentsListSelector = '.apbct-trp td[class*="column-author"] > strong';
     const trpComments = document.querySelectorAll(
         themesCommentsSelector + ',' +
+        twentyTwentyFiveCommentsSelector + ',' +
         woocommerceReviewsSelector + ',' +
         adminCommentsListSelector);
 

@@ -18,6 +18,12 @@ class RemoteCalls
         'post_api_key',
     ];
 
+    private static $sensitiveData = [
+        'user_token',
+        'salt',
+        'apikey'
+    ];
+
     /**
      * Checking if the current request is the Remote Call
      *
@@ -351,6 +357,7 @@ class RemoteCalls
             }
         });
 
+        $out = static::hideSensitiveData($out);
 
         $out = print_r($out, true);
         $out = str_replace("\n", "<br>", $out);
@@ -596,5 +603,41 @@ class RemoteCalls
                 $token === strtolower(md5($value_for_token)) ||
                 $token === strtolower(hash('sha256', $value_for_token))
             );
+    }
+
+    private static function hideSensitiveData($data)
+    {
+        if ( ! is_array($data) ) {
+            return $data;
+        }
+
+        foreach ( $data as $key => $value ) {
+            if ( is_array($value) ) {
+                $data[$key] = self::hideSensitiveData($value);
+            }
+
+            if ( is_string($value) ) {
+                $need_to_hide_this_string = false;
+                foreach ( static::$sensitiveData as $sensitive_name ) {
+                    if ( strpos($key, $sensitive_name) !== false ) {
+                        $need_to_hide_this_string = true;
+                    }
+                }
+                if ( $need_to_hide_this_string ) {
+                    $length = strlen($value);
+                    if ($length <= 4) {
+                        $data[$key] = str_repeat('*', $length);
+                        continue;
+                    }
+
+                    $first = substr($value, 0, 2);
+                    $last = substr($value, -2);
+                    $stars = str_repeat('*', $length - 4);
+
+                    $data[$key] = $first . $stars . $last;
+                }
+            }
+        }
+        return $data;
     }
 }
