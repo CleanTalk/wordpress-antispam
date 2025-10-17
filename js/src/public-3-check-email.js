@@ -190,11 +190,11 @@ function viewCheckEmailExist(e, state, textResult) {
         envelope.after(hint);
     }
 
+    // draw on init
     ctEmailExistSetElementsPositions(inputEmail);
 
-    window.addEventListener('resize', function(event) {
-        ctEmailExistSetElementsPositions(inputEmail);
-    });
+    // redraw on events
+    ctListenRequiredRedrawing(inputEmail);
 
     switch (state) {
     case 'load':
@@ -243,26 +243,38 @@ function viewCheckEmailExist(e, state, textResult) {
 
 /**
  * Shift the envelope to the input field on resizing the window
- * @param {mixed} inputEmail
+ * @param {HTMLInputElement} inputEmail
  */
 function ctEmailExistSetElementsPositions(inputEmail) {
-    const envelopeWidth = 35;
-
-    if (!inputEmail) {
+    if (!inputEmail instanceof HTMLInputElement) {
         return;
     }
-
+    /** @type {DOMRect} */
     const inputRect = inputEmail.getBoundingClientRect();
     const inputHeight = inputEmail.offsetHeight;
     const inputWidth = inputEmail.offsetWidth;
-
+    const envelopeWidth = inputHeight * 1.2;
+    let backgroundSize;
+    try {
+        let inputComputedStyle = window.getComputedStyle(inputEmail);
+        let inputTextSize = (
+            typeof inputComputedStyle.fontSize === 'string' ?
+                inputComputedStyle.fontSize :
+                false
+        );
+        backgroundSize = inputTextSize ? inputTextSize : 'inherit';
+    } catch (e) {
+        backgroundSize = 'inherit';
+    }
     const envelope = document.getElementById('apbct-check_email_exist-block');
     if (envelope) {
         envelope.style.cssText = `
             top: ${inputRect.top}px;
-            left: ${inputRect.right - envelopeWidth - 10}px;
+            left: ${inputRect.right - envelopeWidth}px;
             height: ${inputHeight}px;
             width: ${envelopeWidth}px;
+            background-size: ${backgroundSize};
+            background-position: center;
         `;
     }
 
@@ -273,4 +285,62 @@ function ctEmailExistSetElementsPositions(inputEmail) {
             left: ${inputRect.left}px;
         `;
     }
+}
+
+/**
+ * Define when the email badge positions should be redrawn.
+ * @param {HTMLInputElement} inputEmail - Dom element to change
+ */
+function ctListenRequiredRedrawing(inputEmail) {
+    window.addEventListener('resize', function(event) {
+        ctEmailExistSetElementsPositions(inputEmail);
+    });
+
+    const formChangesToListen = [
+        {
+            'selector': 'form.wpcf7-form',
+            'observerConfig': {
+                childList: true,
+                subtree: true,
+            },
+            'emailElement': inputEmail,
+        },
+    ];
+
+    formChangesToListen.forEach((aForm) => {
+        ctWatchFormChanges(
+            aForm.selector,
+            aForm.observerConfig,
+            () => {
+                ctEmailExistSetElementsPositions(aForm.emailElement);
+            });
+    });
+}
+
+/**
+ * Watch for changes in form, using MutationObserver and its config.
+ * @see MutationObserver
+ * @param {string} formSelector
+ * @param {object} observerConfig
+ * @param {function} callback
+ * @return {MutationObserver|false}
+ */
+function ctWatchFormChanges(formSelector = '', observerConfig = null, callback) {
+    const form = document.querySelector(formSelector);
+
+    if (!form || !observerConfig) {
+        return false;
+    }
+
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' || mutation.type === 'attributes') {
+                callback(form, mutation);
+            }
+        });
+    });
+
+    observer.observe(form, observerConfig);
+    // you can listen what is changed reading this
+    return observer;
 }
