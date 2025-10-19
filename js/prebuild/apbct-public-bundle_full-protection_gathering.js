@@ -2849,17 +2849,26 @@ class ApbctHandler {
                 // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
                 document.body.classList.contains('single-product') &&
                 typeof cwginstock !== 'undefined'
-            )
+            ) ||
+            document.querySelector('div.fcal_calendar_slot_wrap') !== null // Fluent Booking Pro
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
-                if (body && typeof body === 'string' &&
+                console.log('body', body);
+                let isNeedToAddCleantalkDataCheckString = body && typeof body === 'string' &&
                     (
                         body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
                         body.indexOf('action=booked_add_appt') !== -1 ||
                         body.indexOf('action=cwginstock_product_subscribe') !== -1
-                    )
-                ) {
+                    );
+
+                let isNeedToAddCleantalkDataCheckFormData = body && typeof body === 'object' &&
+                    body instanceof FormData &&
+                    (
+                        body.has('action') && body.get('action') === 'fluent_cal_schedule_meeting'
+                    );
+
+                if (isNeedToAddCleantalkDataCheckString) {
                     let addidionalCleantalkData = '';
 
                     if (!+ctPublic.settings__data__bot_detector_enabled) {
@@ -2873,9 +2882,20 @@ class ApbctHandler {
                     }
 
                     body += addidionalCleantalkData;
-
-                    return originalSend.apply(this, [body]);
                 }
+
+                if (isNeedToAddCleantalkDataCheckFormData) {
+                    if (!+ctPublic.settings__data__bot_detector_enabled) {
+                        let noCookieData = getNoCookieData();
+                        body.append('ct_no_cookie_hidden_field', noCookieData);
+                    } else {
+                        const eventToken = new ApbctHandler().toolGetEventToken();
+                        if (eventToken) {
+                            body.append('ct_bot_detector_event_token', eventToken);
+                        }
+                    }
+                }
+
                 return originalSend.apply(this, [body]);
             };
         }
@@ -3366,6 +3386,8 @@ if (ctPublic.data__key_is_ok) {
 
 const defaultFetch = window.fetch;
 const defaultSend = XMLHttpRequest.prototype.send;
+
+let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 
 /**
  * Run cron jobs
@@ -5112,7 +5134,6 @@ let ctMouseData = [];
 let ctMouseDataCounter = 0;
 let ctMouseReadInterval;
 let ctMouseWriteDataInterval;
-let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 
 
 // Writing first key press timestamp
