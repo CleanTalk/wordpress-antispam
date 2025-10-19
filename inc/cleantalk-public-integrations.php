@@ -969,6 +969,12 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         }
     }
 
+    if (Post::getString('tutor_action') === 'tutor_register_student') {
+        $user_email = Post::getString('email');
+        $sanitized_user_login = Post::getString('user_login');
+        $reg_flag = true;
+    }
+
     $base_call_array = array(
         'sender_email'    => $user_email,
         'sender_nickname' => $sanitized_user_login,
