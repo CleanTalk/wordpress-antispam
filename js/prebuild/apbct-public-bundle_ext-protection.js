@@ -2854,7 +2854,6 @@ class ApbctHandler {
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
-                console.log('body', body);
                 let isNeedToAddCleantalkDataCheckString = body && typeof body === 'string' &&
                     (
                         body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
