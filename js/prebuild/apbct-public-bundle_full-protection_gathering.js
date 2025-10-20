@@ -6148,7 +6148,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Selectors. Try to handle the WIDE range of themes.
-    let themesCommentsSelector = '.apbct-trp *[class*="comment-author"]';
+    let themesCommentsSelector = '.apbct-trp > .comment-body *[class*="comment-author"]';
+    // For Twenty Twenty-Five theme
+    let twentyTwentyFiveCommentsSelector = '.apbct-trp > .wp-block-group *[class*="comment-author"]';
     if ( document.querySelector('.apbct-trp .comment-author .comment-author-link') ) {
         // For Spacious theme
         themesCommentsSelector = '.apbct-trp *[class*="comment-author-link"]';
@@ -6157,6 +6159,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let adminCommentsListSelector = '.apbct-trp td[class*="column-author"] > strong';
     const trpComments = document.querySelectorAll(
         themesCommentsSelector + ',' +
+        twentyTwentyFiveCommentsSelector + ',' +
         woocommerceReviewsSelector + ',' +
         adminCommentsListSelector);
 
