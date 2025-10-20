@@ -412,11 +412,17 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
-= 6.65 16.10.2025 =
+= 6.66 16.10.2025 =
 Fix. Remote calls. Debug RC now hide sensitive data.
 Fix. TRP. Show TRP for admins and editors.
 Fix. TRP. Twenty Twenty-Five theme support added.
 Fix. Settings. Activator fixed.
+New. Summary and statistics. Support user action moved.
+Fix. Integrations. Skip service requests for checkout process.
+Fix. FW. Improved rules to update personal tables.
+Fix. Integrations. Updated statement to skip woo-mailerlite service requests.
+Fix. Integrations. Fixed statement for cwginstock.
+Fix. Integrations. Improved statement to intruding to checkout request.
 
 = 6.65 02.10.2025 =
 Fix. Code. Pluggable exclusions logic fixed.
