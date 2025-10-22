@@ -1711,7 +1711,7 @@ function apbct_form__appointment_booking_calendar__testSpam()
  *
  * @return void
  */
-function apbct_form__optimizepress__testSpam()
+function apbct_form__optimizepress__testSpam($reg_flag = false)
 {
     $params = ct_gfa(apply_filters('apbct__filter_post', $_POST));
 
@@ -1725,7 +1725,8 @@ function apbct_form__optimizepress__testSpam()
             'sender_nickname' => isset($params['nickname']) ? $params['nickname'] : Post::get('first_name'),
             'post_info'       => array('comment_type' => 'subscribe_form_wordpress_optimizepress'),
             'sender_info'     => $sender_info,
-        )
+        ),
+        $reg_flag
     );
 
     if ( isset($base_call_result['ct_result']) ) {
