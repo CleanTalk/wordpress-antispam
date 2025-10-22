@@ -3,7 +3,6 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\Common\TT;
-use Cleantalk\Variables\Post;
 
 class WpBookingSystem extends IntegrationBase
 {
@@ -13,10 +12,10 @@ class WpBookingSystem extends IntegrationBase
 
         $event_token = '';
 
-        if ( ! Post::get('form_data') ) {
+        if ( ! $_POST['form_data'] ) {
             return null;
         }
-        parse_str(TT::toString(Post::get('form_data')), $data);
+        parse_str(TT::toString($_POST['form_data']), $data);
         $input_array = apply_filters('apbct__filter_post', $data);
 
         if ( ! $apbct->stats['no_cookie_data_taken'] ) {
