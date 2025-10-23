@@ -721,6 +721,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             'rnoc_track_user_data', // service request
             'fl_builder_subscribe_form_submit', // FLBuilderForms has direct integration
             'tutor_pro_social_authentication', // Tutor Pro social authentication, we trust a third-party service
+            'drplus_login', // Doctor Plus theme login
         );
 
         // Skip test if
