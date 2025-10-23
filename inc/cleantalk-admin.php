@@ -13,6 +13,7 @@ use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\LinkConstructor;
 use Cleantalk\Common\TT;
+use Cleantalk\ApbctWP\SupportUser;
 
 // Prevent direct call
 if ( ! defined('ABSPATH') ) {
@@ -602,7 +603,8 @@ function apbct_admin__enqueue_scripts($hook)
             'ct_subtitle' => $apbct->ip_license ? __('Hosting Anti-Spam', 'cleantalk-spam-protect') : '',
             'ip_license'  => $apbct->ip_license ? true : false,
             'key_changed' => ! empty($apbct->data['key_changed']),
-            'key_is_ok'   => ! empty($apbct->key_is_ok) && !empty($apbct->settings['apikey'])
+            'key_is_ok'   => ! empty($apbct->key_is_ok) && !empty($apbct->settings['apikey']),
+            'support_user_creation_msg_array' => SupportUser::getMessages(),
         ));
 
         ApbctEnqueue::getInstance()->js('common-cleantalk-modal.min.js');
@@ -1483,4 +1485,11 @@ function apbct_action_adjust_reverse()
     }
 
     wp_send_json_success();
+}
+
+function apbct_action__create_support_user()
+{
+    $support_user = new SupportUser();
+    $result = $support_user->ajaxProcess();
+    wp_send_json($result);
 }

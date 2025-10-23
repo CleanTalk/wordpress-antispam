@@ -230,21 +230,21 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
             return;
         }
 
-        if ( ! $action = $this->current_action() ) {
+        if ( ! $this->current_action() ) {
             return;
         }
 
         $awaited_action = 'bulk-' . TT::getArrayValueAsString($this->_args, 'plural');
-        if ( ! wp_verify_nonce(TT::toString(Post::get('_wpnonce')), $awaited_action)) {
+        if ( ! wp_verify_nonce(Post::getString('_wpnonce'), $awaited_action)) {
             wp_die('nonce error');
         }
 
-        $spam_ids = wp_parse_id_list(TT::toString(Post::get('spamids')));
-        if ( 'trash' === $action ) {
+        $spam_ids = wp_parse_id_list(Post::getArray('spamids'));
+        if ( 'trash' === $this->current_action() ) {
             $this->moveToTrash($spam_ids);
         }
 
-        if ( 'spam' === $action ) {
+        if ( 'spam' === $this->current_action() ) {
             $this->moveToSpam($spam_ids);
         }
     }

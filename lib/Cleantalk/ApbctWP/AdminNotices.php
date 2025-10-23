@@ -31,6 +31,7 @@ class AdminNotices
      */
     const NOTICES = array(
         'notice_key_is_incorrect',
+        'notice_key_is_empty',
         'notice_get_key_error',
         'notice_trial',
         'notice_renew',
@@ -160,17 +161,50 @@ class AdminNotices
      * Callback for the notice hook
      * @psalm-suppress PossiblyUnusedMethod
      */
+    public function notice_key_is_empty() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        if ( ! $this->apbct->white_label &&
+            empty($this->apbct->api_key) &&
+            $this->apbct->moderate_ip == 0
+        ) {
+            $banner_data = new BannerDataDto();
+            $banner_data->type = 'key_is_empty';
+
+            $banner_data->text = sprintf(
+                __("Please enter the Access Key in %s plugin to enable spam protection!", 'cleantalk-spam-protect'),
+                $this->apbct->plugin_name
+            );
+
+            $banner_data->button_url = $this->settings_link;
+            $banner_data->button_text = __('Settings', 'cleantalk-spam-protect');
+
+            $banner_data->level = 'error';
+            $banner_data->is_dismissible = ! $this->is_cleantalk_page;
+
+            $banner = new ApbctUniversalBanner($banner_data);
+            $banner->echoBannerBody();
+
+            $this->apbct->notice_show = false;
+        }
+    }
+
+    /**
+     * Callback for the notice hook
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function notice_key_is_incorrect() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ( ! $this->apbct->white_label &&
-            ! apbct_api_key__is_correct() &&
+            ! empty($this->apbct->api_key) &&
+            apbct_api_key__is_correct() &&
+            ! $this->apbct->key_is_ok &&
             $this->apbct->moderate_ip == 0
         ) {
             $banner_data = new BannerDataDto();
             $banner_data->type = 'key_is_incorrect';
 
             $banner_data->text = sprintf(
-                __("Please enter the Access Key in %s plugin to enable spam protection!", 'cleantalk-spam-protect'),
+                __("Access key is not valid, update the plugin settings. %s.", 'cleantalk-spam-protect'),
                 $this->apbct->plugin_name
             );
 

@@ -12,10 +12,10 @@ use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
-use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
+use Cleantalk\ApbctWP\ApbctJsBundleResolver;
 
 // Prevent direct call
 if ( ! defined('ABSPATH') ) {
@@ -31,10 +31,17 @@ if ( class_exists('Cleantalk\Antispam\Integrations\MailChimp') ) {
  * Fluent Booking shortcode localize CT script and vars.
  */
 add_action('fluent_booking/before_calendar_event_landing_page', function () {
+    global $apbct;
+
+    $bundle_name = ApbctJsBundleResolver::getBundleName($apbct->settings) ?: 'apbct-public-bundle.min.js';
+    $js_url_wrapper = APBCT_MODERATE_URL . '/ct-bot-detector-wrapper.js' . '?' . APBCT_VERSION;
+    $js_url = APBCT_URL_PATH . '/js/' . $bundle_name . '?' . APBCT_VERSION;
+
     echo CtPublicFunctionsLocalize::getCode();
     echo CtPublicLocalize::getCode();
-    $js_url = APBCT_URL_PATH . '/js/apbct-public-bundle.min.js?' . APBCT_VERSION;
+
     echo '<script src="' . $js_url . '" type="application/javascript"></script>';
+    echo '<script src="' . $js_url_wrapper . '" type="application/javascript"></script>';
 }, 1);
 
 /**
@@ -861,7 +868,14 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         }
     }
 
+    /**
+     * Exclusions
+     */
     if ( Post::get('wpmem_reg_page') && apbct_is_plugin_active('wp-members/wp-members.php') ) {
+        return $errors;
+    }
+    // BuddyBoss login form
+    if ( Post::getString('wp-submit') && Post::getString('log') && Post::getString('pwd') ) {
         return $errors;
     }
 
@@ -923,7 +937,7 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
     $sender_info = array(
         'post_checkjs_passed'   => $checkjs_post,
         'cookie_checkjs_passed' => $checkjs_cookie,
-        'form_validation'       => ! empty($errors)
+        'form_validation'       => ! empty($errors) && $errors instanceof \WP_Error
             ? json_encode(
                 array(
                     'validation_notice' => $errors->get_error_message(),
@@ -2982,38 +2996,36 @@ function apbct_custom_forms_trappings()
 {
     global $apbct;
 
-    // Registration form of Wishlist Members plugin
-    if ( $apbct->settings['forms__registrations_test'] && Post::get('action') === 'wpm_register' ) {
-        return true;
-    }
+    if ($apbct->settings['forms__registrations_test']) {
+        // Registration form of Wishlist Members plugin
+        if ( Post::get('action') === 'wpm_register' ) {
+            return true;
+        }
 
-    // Registration form of masteriyo registration
-    if ( $apbct->settings['forms__registrations_test'] &&
-         Post::get('masteriyo-registration') === 'yes' &&
-         (
-             apbct_is_plugin_active('learning-management-system/lms.php') ||
-             apbct_is_plugin_active('learning-management-system-pro/lms.php')
-         )
-    ) {
-        return true;
-    }
+        // Registration form of masteriyo registration
+        if ( Post::get('masteriyo-registration') === 'yes' &&
+             (
+                 apbct_is_plugin_active('learning-management-system/lms.php') ||
+                 apbct_is_plugin_active('learning-management-system-pro/lms.php')
+             )
+        ) {
+            return true;
+        }
 
-    // Registration form of eMember plugin
-    if (
-        $apbct->settings['forms__registrations_test'] &&
-        Request::get('emember-form-builder-submit') &&
-        wp_verify_nonce(TT::toString(Request::get('_wpnonce')), 'emember-form-builder-nonce')
-    ) {
-        return true;
-    }
+        // Registration form of eMember plugin
+        if ( Request::get('emember-form-builder-submit') &&
+            wp_verify_nonce(TT::toString(Request::get('_wpnonce')), 'emember-form-builder-nonce')
+        ) {
+            return true;
+        }
 
-    // Registration form of goodlayers-lms
-    if (
-        apbct_is_plugin_active('goodlayers-lms/goodlayers-lms.php') &&
-        $apbct->settings['forms__registrations_test'] &&
-        Post::get('action') === 'create-new-user'
-    ) {
-        return true;
+        // Registration form of goodlayers-lms
+        if (
+            apbct_is_plugin_active('goodlayers-lms/goodlayers-lms.php') &&
+            Post::get('action') === 'create-new-user'
+        ) {
+            return true;
+        }
     }
 
     return false;
@@ -3112,11 +3124,15 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
     global $cleantalk_executed;
 
     if ( ! $cleantalk_executed && $is_valid ) {
+        $event_token = null;
         /**
          * Filter for request
          */
         if (isset($request['data'])) {
             apbct_form__get_no_cookie_data($request['data']);
+            if ( isset($request['data']['ct_bot_detector_event_token']) ) {
+                $event_token = $request['data']['ct_bot_detector_event_token'];
+            }
             unset($request['data']);
         }
 
@@ -3135,6 +3151,7 @@ function apbct_form_happyforms_test_spam($is_valid, $request, $_form)
                 'sender_info'     => array(
                     'sender_emails_array' => isset($data['emails_array']) ? $data['emails_array'] : '',
                 ),
+                'event_token' => $event_token ?: '',
             )
         );
 

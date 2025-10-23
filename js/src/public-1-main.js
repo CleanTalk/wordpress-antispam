@@ -12,6 +12,9 @@ class ApbctEventTokenTransport {
                 typeof ctPublic.force_alt_cookies === 'undefined' ||
                 (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
             ) {
+                // @ToDo need to be refactored? maybe just ctNoCookieAttachHiddenFieldsToForms(); need calling here?
+                // @ToDo function `setEventTokenField`, `botDetectorLocalStorage`
+                // are never defined, this condition is everytime false
                 if (typeof setEventTokenField === 'function' && typeof botDetectorLocalStorage === 'function') {
                     setEventTokenField(botDetectorLocalStorage.get('bot_detector_event_token'));
                 }
@@ -466,13 +469,14 @@ class ApbctHandler {
      */
     catchMain(form, index) {
         form.onsubmit_prev = form.onsubmit;
-
         form.ctFormIndex = index;
+
+        const handler = this;
+
         form.onsubmit = function(event) {
             new ApbctAttachData().attachVisibleFieldsDuringSubmit(event, form);
 
-            // Call previous submit action
-            if (event.target.onsubmit_prev instanceof Function && !this.prevCallExclude(event.target)) {
+            if (event.target.onsubmit_prev instanceof Function && !handler.prevCallExclude(event.target)) {
                 if (event.target.classList !== undefined && event.target.classList.contains('brave_form_form')) {
                     event.preventDefault();
                 }
@@ -508,7 +512,6 @@ class ApbctHandler {
         let elementorUltimateAddonsRegister = document.querySelectorAll('.uael-registration-form-wrapper').length > 0;
         let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
-        let cwginstockForm = document.querySelectorAll('.cwginstock-subscribe-form').length > 0;
         let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
         let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
         let fluentBookingApp = document.querySelectorAll('div[class^="fluent_booking_app"]').length > 0;
@@ -520,7 +523,6 @@ class ApbctHandler {
             ninjaFormsSign ||
             jetpackCommentsForm ||
             elementorUltimateAddonsRegister ||
-            cwginstockForm ||
             userRegistrationProForm ||
             etPbDiviSubscriptionForm ||
             fluentBookingApp ||
@@ -545,14 +547,20 @@ class ApbctHandler {
         if (
             document.querySelector('div.wfu_container') !== null ||
             document.querySelector('#newAppointmentForm') !== null ||
-            document.querySelector('.booked-calendar-shortcode-wrap') !== null
+            document.querySelector('.booked-calendar-shortcode-wrap') !== null ||
+            (
+                // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
+                document.body.classList.contains('single-product') &&
+                typeof cwginstock !== 'undefined'
+            )
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
                 if (body && typeof body === 'string' &&
                     (
                         body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
-                        body.indexOf('action=booked_add_appt') !== -1
+                        body.indexOf('action=booked_add_appt') !== -1 ||
+                        body.indexOf('action=cwginstock_product_subscribe') !== -1
                     )
                 ) {
                     let addidionalCleantalkData = '';
@@ -655,6 +663,9 @@ class ApbctHandler {
                         if (settings.data.indexOf('action=new_activity_comment') !== -1) {
                             sourceSign = 'action=new_activity_comment';
                         }
+                        if (settings.data.indexOf('action=wwlc_create_user') !== -1) {
+                            sourceSign = 'action=wwlc_create_user';
+                        }
                     }
                     if ( typeof settings.url === 'string' ) {
                         if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {
@@ -710,7 +721,7 @@ class ApbctHandler {
             }
 
             // checkout
-            if (options.path === '/wc/store/v1/checkout') {
+            if (options.path.includes('/wc/store/v1/checkout')) {
                 if (+ctPublic.settings__data__bot_detector_enabled) {
                     options.data.event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
@@ -736,37 +747,12 @@ class ApbctHandler {
      * @return {void}
      */
     searchFormMiddleware() {
-        const isExclusion = (form) => {
-            let className = form.getAttribute('class');
-            if (typeof className !== 'string') {
-                className = '';
-            }
-
-            return (
-                // fibosearch integration
-                form.querySelector('input.dgwt-wcas-search-input') ||
-                // hero search skip
-                form.getAttribute('id') === 'hero-search-form' ||
-                // hb booking search skip
-                className === 'hb-booking-search-form' ||
-                // events calendar skip
-                (className.indexOf('tribe-events') !== -1 && className.indexOf('search') !== -1)
-            );
-        };
-
         for (const _form of document.forms) {
             if (
                 typeof ctPublic !== 'undefined' &&
                 + ctPublic.settings__forms__search_test === 1 &&
-                (
-                    _form.getAttribute('id') === 'searchform' ||
-                    (
-                        _form.getAttribute('class') !== null &&
-                        _form.getAttribute('class').indexOf('search-form') !== -1
-                    ) ||
-                    (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
-                ) &&
-                !isExclusion(_form)
+                _form.getAttribute('apbct-form-sign') !== null &&
+                _form.getAttribute('apbct-form-sign') === 'native_search'
             ) {
                 // this handles search forms onsubmit process
                 _form.apbctSearchPrevOnsubmit = _form.onsubmit;
@@ -970,6 +956,21 @@ class ApbctShowForbidden {
 
             if (+response.stop_script === 1) {
                 window.stop();
+                if (response.integration && response.integration === 'NEXForms') {
+                    const btn = document.querySelector('form.submit-nex-form button.nex-submit');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.5';
+                        btn.style.cursor = 'not-allowed';
+                        btn.style.pointerEvents = 'none';
+                        btn.style.backgroundColor = '#ccc';
+                        btn.style.color = '#fff';
+                    }
+                    const successMessage = document.querySelector('div.nex_success_message');
+                    if (successMessage) {
+                        successMessage.style.display = 'none';
+                    }
+                }
             }
         }
     }
@@ -994,7 +995,14 @@ function apbct_ready() {
         gatheringData.startFieldsListening();
         gatheringData.listenAutocomplete();
         gatheringData.gatheringTypoData();
-        gatheringData.initParams();
+    }
+    // Always call initParams to set cookies and parameters
+    if (typeof initParams === 'function') {
+        try {
+            initParams();
+        } catch (e) {
+            console.log('initParams error:', e);
+        }
     }
 
     setTimeout(function() {

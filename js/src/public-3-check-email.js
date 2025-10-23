@@ -1,3 +1,6 @@
+let ctCheckedEmails = {};
+let ctCheckedEmailsExist = {};
+
 /**
  * @param {mixed} e
  */
@@ -150,6 +153,10 @@ function viewCheckEmailExist(e, state, textResult) {
     let inputEmail = parentElement.querySelector('[name*="email"]');
 
     if (!inputEmail) {
+        inputEmail = parentElement.querySelector('[type*="email"]');
+    }
+
+    if (!inputEmail) {
         return;
     }
 
@@ -183,10 +190,10 @@ function viewCheckEmailExist(e, state, textResult) {
         envelope.after(hint);
     }
 
-    ctEmailExistSetElementsPositions();
+    ctEmailExistSetElementsPositions(inputEmail);
 
     window.addEventListener('resize', function(event) {
-        ctEmailExistSetElementsPositions();
+        ctEmailExistSetElementsPositions(inputEmail);
     });
 
     switch (state) {
@@ -236,10 +243,10 @@ function viewCheckEmailExist(e, state, textResult) {
 
 /**
  * Shift the envelope to the input field on resizing the window
+ * @param {mixed} inputEmail
  */
-function ctEmailExistSetElementsPositions() {
+function ctEmailExistSetElementsPositions(inputEmail) {
     const envelopeWidth = 35;
-    const inputEmail = document.querySelector('comment-form input[name*="email"], input#email');
 
     if (!inputEmail) {
         return;

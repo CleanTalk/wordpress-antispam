@@ -103,6 +103,7 @@ class Activator
         $apbct->data['ip_license'] = TT::getArrayValueAsInt($result, 'ip_license', 0);
 
         $apbct->saveData();
+        $apbct->save('settings');
     }
 
     /**

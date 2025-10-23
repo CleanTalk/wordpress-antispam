@@ -144,7 +144,7 @@ class AJAXService
             }
         } else {
             if (!is_string($callback) || !function_exists($callback)) {
-                throw new \InvalidArgumentException('AJAX handler is empty or not callable');
+                throw new \InvalidArgumentException('AJAX not string or is not callable');
             }
         }
 

@@ -53,6 +53,7 @@ function ct_contact_form_validate()
     //Skip woocommerce checkout
     if (
         apbct_is_in_uri('wc-ajax=update_order_review') ||
+        apbct_is_in_uri('wc-ajax=apply_coupon') ||
         apbct_is_in_uri('wc-ajax=checkout') ||
         !empty($_POST['woocommerce_checkout_place_order']) ||
         apbct_is_in_uri('wc-ajax=wc_ppec_start_checkout') ||
@@ -399,21 +400,6 @@ function ct_contact_form_validate()
                             ),
                         )
                     );
-                } else if (
-                    // BuddyBoss App - request from mobile app usually
-                    apbct_is_plugin_active('buddyboss-app/buddyboss-app.php') &&
-                    Server::getString('REQUEST_URI') === '/buddyboss-app/v1/signup'
-                ) {
-                    $data = [
-                        'code' => 'bp_rest_register_errors',
-                        'message' => [
-                            'signup_email' => $ct_result->comment
-                        ],
-                        'data' => [
-                            'status' => 403,
-                        ],
-                    ];
-                    wp_send_json($data);
                 } else {
                     ct_die(null, null);
                 }
