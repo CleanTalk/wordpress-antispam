@@ -2,11 +2,10 @@
 
 namespace Cleantalk\Common\ContactsEncoder;
 
-use Cleantalk\ApbctWP\State;
-use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\ApbctWP\Variables\Post;
-use Cleantalk\ApbctWP\Variables\Server;
-use Cleantalk\Common\TT;
+use Cleantalk\Common\State;
+use Cleantalk\Common\Variables\Post;
+use Cleantalk\Common\Variables\Server;
+use Cleantalk\Common\Variables\Cookie;
 
 class ExclusionsService
 {
@@ -32,40 +31,6 @@ class ExclusionsService
         // ics-calendar
         array('ics_calendar'),
     );
-
-    /**
-     * @return string|false
-     * @psalm-suppress PossiblyUnusedReturnValue
-     */
-    public function doSkipBeforeAnything()
-    {
-        global $apbct;
-        if ( $this->byAccessKeyFail($apbct) ) {
-            return 'byAccessKeyFail';
-        }
-
-        return false;
-    }
-
-    /**
-     * @return string|false
-     * @psalm-suppress PossiblyUnusedReturnValue
-     */
-    public function doSkipBeforeModifyingHooksAdded()
-    {
-        global $apbct;
-
-        if ( $this->byPluginSetting($apbct) ) {
-            return 'byPluginSetting';
-        }
-
-        // Excluded request
-        if ( $this->byServerVars() ) {
-            return 'byServerVars';
-        }
-
-        return false;
-    }
 
     /**
      * @param $content

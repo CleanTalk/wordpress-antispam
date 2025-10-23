@@ -55,35 +55,31 @@ class Encoder
      *
      * @param $plain_string string
      *
-     * @return string
+     * @return array
      */
     public function encodeString($plain_string)
     {
-        global $apbct;
         try {
             if ( $this->use_ssl && $this->encryption_is_available ) {
                 $encoded_email = htmlspecialchars($this->openSSLEncrypt($plain_string));
             } else {
                 $encoded_email = htmlspecialchars(base64_encode(str_rot13($plain_string)));
             }
+            return array(
+                'success' => true,
+                'value' => $encoded_email,
+                'error_message' => null
+            );
         } catch (\Exception $e) {
             $get_last_error = error_get_last();
             $get_last_error = isset($get_last_error['message']) ? $get_last_error['message'] : 'NO_ERROR';
-            $variable = is_string($plain_string) ? $plain_string : 'TYPE_' . gettype($plain_string);
-            $variable = '' === $variable ? 'EMPTY_STRING' : $variable;
-            $action = !empty(current_action()) ? current_action() : 'NO_ACTION';
-            $details = sprintf(
-                '%s, last PHP error: [%s], hook: [%s], input var: [%s]',
-                esc_html($e->getMessage()),
-                esc_html($get_last_error),
-                esc_html($action),
-                esc_html($variable)
+            $error_message = $e->getMessage() . ' | PHP error: ' . $get_last_error;
+            return array(
+                'success' => false,
+                'value' => $plain_string,
+                'error_message' => $error_message
             );
-            $apbct->errorAdd('email_encoder', $details);
-            return $plain_string;
         }
-
-        return $encoded_email;
     }
 
     /**
@@ -135,7 +131,6 @@ class Encoder
      */
     private function openSSLDecrypt($encoded_string)
     {
-        global $apbct;
         try {
             if (!is_string($encoded_string) || empty($encoded_string)) {
                 throw new \Exception('Invalid or empty encoded string');
@@ -182,11 +177,9 @@ class Encoder
             // Return the decrypted string
             return $decoded_string;
         } catch (\Exception $e) {
-            //todo catch errors on higher level
             $get_last_error = error_get_last();
             $get_last_error = isset($get_last_error['message']) ? $get_last_error['message'] : 'no PHP error';
-            $apbct->errorAdd('email_encoder', esc_html($e->getMessage()) . ', backtrace: ' . $get_last_error);
-            return '';
+            return $e->getMessage() . ', backtrace: ' . $get_last_error;
         }
     }
 }

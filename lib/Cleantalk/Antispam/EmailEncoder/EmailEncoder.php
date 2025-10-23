@@ -192,6 +192,10 @@ class EmailEncoder
         $do_encode_emails   = (bool)$apbct->settings['data__email_decoder_encode_email_addresses'];
         $do_encode_phones  = (bool)$apbct->settings['data__email_decoder_encode_phone_numbers'];
 
+        // Ensure exclusions is initialized
+        if (!$this->exclusions) {
+            $this->exclusions = new ExclusionsService();
+        }
         if ( $this->exclusions->doReturnContentBeforeModify($content) ) {
             return $content;
         }
@@ -226,6 +230,10 @@ class EmailEncoder
 
         if ( version_compare(phpversion(), '7.4.0', '>=') ) {
             $replacing_result = preg_replace_callback($pattern, function ($matches) use ($content) {
+                // Ensure helper is initialized
+                if (!$this->helper) {
+                    $this->helper = new EmailEncoderHelper();
+                }
                 if ( isset($matches[3][0], $matches[0][0]) && in_array(strtolower($matches[3][0]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
                     return $matches[0][0];
                 }
