@@ -4952,10 +4952,8 @@ function ctEmailExistSetElementsPositions(inputEmail) {
 
     const hint = document.getElementById('apbct-check_email_exist-popup_description');
     if (hint) {
-        hint.style.cssText = `
-            width: ${inputWidth}px;
-            left: ${inputRect.left}px;
-        `;
+        hint.style.width = `${inputWidth}px`;
+        hint.style.left = `${inputRect.left}px`;
     }
 }
 
