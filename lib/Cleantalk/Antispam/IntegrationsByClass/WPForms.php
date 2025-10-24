@@ -150,7 +150,10 @@ class WPForms extends IntegrationByClassBase
             ! empty($errors) &&
             (
                 ! isset($form_data['id']) || ! isset($errors[$form_data['id']]) ||
-                count($errors[$form_data['id']])
+                (
+                    isset($form_data['id']) &&
+                    count($errors[$form_data['id']])
+                )
             )
         ) {
             return $errors;
