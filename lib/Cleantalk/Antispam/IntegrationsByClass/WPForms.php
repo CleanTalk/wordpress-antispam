@@ -147,10 +147,10 @@ class WPForms extends IntegrationByClassBase
     public function showResponse($errors, $form_data)
     {
         if (
-            !empty( $errors ) &&
+            ! empty($errors) &&
             (
-                !isset( $form_data['id']) || !isset($errors[$form_data['id']] ) ||
-                count( $errors[$form_data['id']] )
+                ! isset($form_data['id']) || ! isset($errors[$form_data['id']]) ||
+                count($errors[$form_data['id']])
             )
         ) {
             return $errors;
