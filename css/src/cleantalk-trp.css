@@ -27,7 +27,7 @@
 
 .apbct-real-user-popup {
     position: absolute;
-    padding: 16px 16px 16px 16px;
+    padding: 8px;
     font-weight: normal;
     color: #000!important;
     background: white;
@@ -65,5 +65,5 @@
 
 .apbct-real-user-popup-header {
     font-weight: bolder;
-    margin: 0;
+    margin: 2px!important;
 }

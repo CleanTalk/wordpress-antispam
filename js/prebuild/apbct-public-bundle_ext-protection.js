@@ -5053,7 +5053,8 @@ document.addEventListener('DOMContentLoaded', function() {
         trpDescriptionContent.setAttribute('class', 'apbct-real-user-popup-content_row');
 
         let trpDescriptionContentSpan = document.createElement('span');
-        trpDescriptionContentSpan.append(ctTrpLocalize.phrases.trpContent1 + ' ');
+        trpDescriptionContentSpan.append(ctTrpLocalize.phrases.trpContent1);
+        trpDescriptionContentSpan.append(document.createElement('br'));
         trpDescriptionContentSpan.append(ctTrpLocalize.phrases.trpContent2);
 
         if ( ctTrpIsAdminCommentsList ) {

@@ -194,15 +194,15 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_source' => 'admin_panel',
             'utm_medium' => 'wordpress',
             'utm_content' => 'footer',
-            'utm_campaign' => 'antispam',
+            'utm_campaign' => 'apbct_links',
         ),
         'settings_footer__uptime_monitoring_link' => array(
             'utm_id' => '',
-             'utm_term' => 'uptime monitoring',
+            'utm_term' => 'uptime monitoring',
             'utm_source' => 'admin_panel',
             'utm_medium' => 'wordpress',
             'utm_content' => 'footer',
-            'utm_campaign' => 'antispam',
+            'utm_campaign' => 'apbct_links',
         ),
         'settings_footer__doboard_link' => array(
             'utm_id' => '',
@@ -210,7 +210,7 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_source' => 'admin_panel',
             'utm_medium' => 'wordpress',
             'utm_content' => 'footer',
-            'utm_campaign' => 'antispam',
+            'utm_campaign' => 'apbct_links',
         ),
         'notice_server_requirements' => array(
             'utm_id' => '',

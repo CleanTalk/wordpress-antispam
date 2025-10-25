@@ -3017,7 +3017,11 @@ function apbct_settings__get__long_description()
     );
 
     if (!empty($setting_id) && isset($descriptions[$setting_id])) {
-        $utm = '?utm_source=apbct_hint_' . esc_attr($setting_id) . '&utm_medium=WordPress&utm_campaign=ABPCT_Settings';
+        if ($setting_id === 'comments__hide_website_field') {
+            $utm = '?utm_source=apbct_hint_' . esc_attr($setting_id) . '&utm_medium=hide_website_field_hint&utm_campaign=apbct_links';
+        } else {
+            $utm = '?utm_source=apbct_hint_' . esc_attr($setting_id) . '&utm_medium=WordPress&utm_campaign=ABPCT_Settings';
+        }
         $descriptions[$setting_id]['desc'] = str_replace('{utm_mark}', $utm, $descriptions[$setting_id]['desc']);
         die(json_encode($descriptions[$setting_id]));
     } else {
