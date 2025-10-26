@@ -11,7 +11,7 @@ jQuery(document).ready(function(){
 		jQuery('.column-author a, .comment-author a').each(function(){
 			var ct_curr_str = jQuery(this).html();
 			if(ct_is_email(ct_curr_str) != -1 || ct_is_ip(ct_curr_str) != -1){
-				ct_curr_str += '?utm_source=admin_side&utm_medium=trp_badge&utm_content=trp_badge_link_click&utm_campaign=apbct_links';
+				ct_curr_str += '?utm_source=admin_side&utm_medium=comments&utm_content=avatar&utm_campaign=apbct_links';
 				jQuery(this).after('&nbsp;<a href="https://cleantalk.org/blacklists/'+ct_curr_str+'" target="_blank" title="https://cleantalk.org/blacklists/'+ct_curr_str+'" class="ct_link_new_tab"><img src="'+ctCommentsScreen.ct_img_src_new_tab+'"></a>');
 			}
 		});
