@@ -1344,7 +1344,7 @@ function apbct_settings__display()
             //HANDLE LINK
             echo '<a class="cleantalk_link cleantalk_link-manual" target="__blank" href="https://cleantalk.org/my?user_token=' . Escape::escHtml($apbct->user_token) . '&cp_mode=antispam">'
                  . __('Cloud Dashboard', 'cleantalk-spam-protect')
-                 . '<img style="margin-left: 7px; margin-top:7px;" src="http://blog.loc/wp-content/plugins/cleantalk-spam-protect/inc/images/new_window.gif">'
+                 . '<img style="margin-left: 7px; margin-top:7px;" src="' . APBCT_URL_PATH . "/inc/images/new_window.gif" . '">'
                  . '</a>';
         }
     }
