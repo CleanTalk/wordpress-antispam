@@ -29,7 +29,8 @@ function ctProtectExternal() {
                     typeof(currentForm.action) == 'string' &&
                     currentForm.action.indexOf('hsforms.com') !== -1 &&
                     currentForm.getAttribute('data-hs-cf-bound')
-                )
+                ) ||
+                currentForm.querySelector('.b24-form-control-container')
             ) {
                 apbctProcessExternalFormByFakeButton(currentForm, i, document);
                 // Common flow - modify form's action
@@ -318,21 +319,32 @@ function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObj
     forceAction.value = 'cleantalk_force_ajax_check';
     forceAction.type = 'hidden';
 
-    const reUseCurrentForm = documentObject.forms[iterator];
+    currentForm.appendChild(forceAction);
 
-    reUseCurrentForm.appendChild(forceAction);
-    reUseCurrentForm.apbctParent = parent;
-    reUseCurrentForm.submitButtonOriginal = submitButtonOriginal;
-    reUseCurrentForm.onsubmitOriginal = onsubmitOriginal;
+    // Сохраняем данные о форме
+    currentForm.apbctParent = parent;
+    currentForm.submitButtonOriginal = submitButtonOriginal;
 
-    documentObject.forms[iterator].onsubmit = function(event) {
+    // Снимаем старый inline-обработчик (если есть)
+    currentForm.onsubmit = null;
+
+    // Добавляем наш обработчик, который всегда сработает первым
+    currentForm.addEventListener('submit', function(event) {
+        // Этап capture — этот обработчик выполнится ДО всех остальных
+        console.log('✅ CleanTalk handler runs first');
+
         event.preventDefault();
 
         // MooSend spinner activate
         apbctMoosendSpinnerToggle(event.currentTarget);
 
         sendAjaxCheckingFormData(event.currentTarget);
-    };
+
+        // Можно вернуть управление исходному обработчику, если нужно:
+        if ( window.apbctBlocked === true ) {
+            currentForm.remove();
+        }
+    }, true); // ← capture = true делает этот обработчик первым
 }
 
 /**
@@ -827,7 +839,7 @@ function isIntegratedForm(formObj) {
             formObj.classList !== undefined &&
             formObj.classList.contains('sp-element-container')
         ) || // Sendpulse form
-        apbctIsFormInDiv(formObj, 'b24-form') || // Bitrix24 CRM external forms
+        //apbctIsFormInDiv(formObj, 'b24-form') || // Bitrix24 CRM external forms
         formAction.indexOf('list-manage.com') !== -1 // MailChimp
     ) {
         return true;
@@ -863,6 +875,7 @@ function isFormHasDiviRedirect(formObj) {
  * @param {HTMLElement} formOriginal
  */
 function sendAjaxCheckingFormData(form) {
+    window.apbctBlocked = null;
     // Get visible fields and set cookie
     const visibleFields = {};
     const attachData = new ApbctAttachData();
@@ -898,6 +911,7 @@ function sendAjaxCheckingFormData(form) {
                 if ((result.apbct === undefined && result.data === undefined) ||
                     (result.apbct !== undefined && ! +result.apbct.blocked)
                 ) {
+                    window.apbctBlocked = false;
                     // Clear service fields
                     for (const el of form.querySelectorAll('input[name="apbct_visible_fields"]')) {
                         el.remove();
@@ -1022,6 +1036,7 @@ function sendAjaxCheckingFormData(form) {
                 if ((result.apbct !== undefined && +result.apbct.blocked) ||
                     (result.data !== undefined && result.data.message !== undefined)
                 ) {
+                    window.apbctBlocked = true;
                     new ApbctShowForbidden().parseBlockMessage(result);
                     // hubspot embed form needs to reload page to prevent forms mishandling
                     if (isHubSpotEmbedForm) {
