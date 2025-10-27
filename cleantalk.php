@@ -235,7 +235,8 @@ if (
     }
 }
 
-if ( $apbct->settings['comments__the_real_person'] ) {
+// The Real Person
+if ( $apbct->settings['comments__the_real_person'] && get_option('cleantalk_allowed_moderation', 1) ) {
     new CleantalkRealPerson();
 }
 
