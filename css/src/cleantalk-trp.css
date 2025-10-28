@@ -52,7 +52,7 @@
 
 .apbct-real-user-popup-content_row {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 1px;
 }
 

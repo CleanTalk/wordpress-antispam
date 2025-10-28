@@ -11,7 +11,7 @@ class CleantalkRealPerson
             'phrases' => [
                 'trpHeading' => esc_html__('The Real Person Badge!', 'cleantalk-spam-protect'),
                 'trpContent1' => esc_html__('The commenter acts as a real person and verified as not a bot.', 'cleantalk-spam-protect'),
-                'trpContent2' => esc_html__(' Anti-Spam by CleanTalk.', 'cleantalk-spam-protect'),
+                'trpContent2' => esc_html__(' Anti-Spam by CleanTalk', 'cleantalk-spam-protect'),
                 'trpContentLearnMore' => esc_html__('Learn more', 'cleantalk-spam-protect'),
             ],
             'trpContentLink' => esc_attr(LinkConstructor::buildCleanTalkLink('trp_learn_more_link', 'help/the-real-person')),

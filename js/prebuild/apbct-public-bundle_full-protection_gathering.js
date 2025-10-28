@@ -6163,29 +6163,44 @@ document.addEventListener('DOMContentLoaded', function() {
         let trpDescription = document.createElement('div');
         trpDescription.setAttribute('class', 'apbct-real-user-popup');
 
-        let trpDescriptionHeading = document.createElement('p');
-        trpDescriptionHeading.setAttribute('class', 'apbct-real-user-popup-header');
+        let trpDescriptionHeading = document.createElement('strong');
         trpDescriptionHeading.append(ctTrpLocalize.phrases.trpHeading);
 
         let trpDescriptionContent = document.createElement('div');
         trpDescriptionContent.setAttribute('class', 'apbct-real-user-popup-content_row');
+        trpDescriptionContent.setAttribute('style', 'white-space: nowrap');
 
-        let trpDescriptionContentSpan = document.createElement('span');
-        trpDescriptionContentSpan.append(ctTrpLocalize.phrases.trpContent1);
-        trpDescriptionContentSpan.append(document.createElement('br'));
-        trpDescriptionContentSpan.append(ctTrpLocalize.phrases.trpContent2);
+        let trpDescriptionContentWrap = document.createElement('div');
 
-        if ( ctTrpIsAdminCommentsList ) {
+        let trpDescriptionContentFirstLine = document.createElement('div');
+        trpDescriptionContentFirstLine.append(trpDescriptionHeading);
+        trpDescriptionContentFirstLine.append(' ');
+        trpDescriptionContentFirstLine.append(ctTrpLocalize.phrases.trpContent1);
+
+        let trpDescriptionContentSecondLine = document.createElement('div');
+        trpDescriptionContentSecondLine.style.display = 'flex';
+        trpDescriptionContentSecondLine.style.gap = '5px';
+        let trpDescriptionContentSecondLineTxt = document.createElement('div');
+        trpDescriptionContentSecondLineTxt.append(ctTrpLocalize.phrases.trpContent2);
+        trpDescriptionContentSecondLine.append(trpDescriptionContentSecondLineTxt);
+        
+        if (ctTrpIsAdminCommentsList) {
+            let learnMoreLinkWrap = document.createElement('div');
             let learnMoreLink = document.createElement('a');
             learnMoreLink.setAttribute('href', ctTrpLocalize.trpContentLink);
             learnMoreLink.setAttribute('target', '_blank');
-            learnMoreLink.text = ctTrpLocalize.phrases.trpContentLearnMore;
-            trpDescriptionContentSpan.append(' '); // Need one space
-            trpDescriptionContentSpan.append(learnMoreLink);
+            let learnMoreLinkImg = document.createElement('img');
+            learnMoreLinkImg.setAttribute('src', ctAdminCommon.new_window_gif);
+            learnMoreLinkImg.setAttribute('alt', 'New window');
+            learnMoreLinkImg.setAttribute('style', 'padding-top:3px');
+            learnMoreLink.append(learnMoreLinkImg);
+            learnMoreLinkWrap.append(learnMoreLink);
+            trpDescriptionContentSecondLine.append(learnMoreLinkWrap);
         }
 
-        trpDescriptionContent.append(trpDescriptionContentSpan);
-        trpDescription.append(trpDescriptionHeading, trpDescriptionContent);
+        trpDescriptionContent.append(trpDescriptionContentFirstLine, trpDescriptionContentSecondLine);
+
+        trpDescription.append(trpDescriptionContent);
         trpLayout.append(trpImage);
         element.append(trpLayout);
         element.append(trpDescription);
