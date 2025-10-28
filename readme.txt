@@ -415,7 +415,16 @@ Yes, it is. Please read this article,
 = 6.67 30.10.2025 =
 New. AdminBanner. Separation of banners about an empty and invalid key
 New. AdminBanner. Editing logic for a banner about an incorrect key
+Fix. ContactEncoder. Revert svg content.
+Fix. Integrations. Prevent spam requests to third-party services.
+Fix. Integrations. Added Beaver Builder.
+Fix. Integrations. Improved gathering data for fluentbooking pro.
+Fix. OptimizePress. Registration process protected.
 Fix. Integration. WP Booking System integration fixed.
+New. Integration. Doctor Plus theme registration and login.
+Fix. Integration. WPForms. Fixed missed request on non-emtpty WPForm form errors array.
+Fix. Hide website field. Forced condition to replace via honeypot.
+Upd. Server Requirements Checker. Added curl_multi_exec to the check-list.
 New. Email exists check. Implemented for CF7. (#669)
 Upd. Settings. Updated access key link parameters for improved registration process.
 
