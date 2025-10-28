@@ -1854,12 +1854,47 @@ function initParams() {
             apbct('#registerform input[name = "user_email"]').on('blur', checkEmailExist);
             apbct('form.wc-block-checkout__form input[type = "email"]').on('blur', checkEmailExist);
             apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
-<<<<<<< HEAD
-            apbct('form.wpforms-form input[type = "email"]').on('blur', checkEmailExist);
-=======
             apbct('form.wpcf7-form input[type = "email"]')
                 .on('blur', ctDebounceFuncExec(checkEmailExist, 300) );
->>>>>>> 5424c20801306f8605f7e62ac1b14278a7e21cfd
+            apbct('form.wpforms-form input[type = "email"]').on('blur', checkEmailExist);
+            // Ninja Forms: универсальный MutationObserver для email-полей
+            const ninjaFormsEmailObserver = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) {
+                            // Проверяем, что это input[type="email"] внутри Ninja Forms
+                            if (
+                                node.matches &&
+                                node.matches('.nf-form-content input[type="email"], input[type="email"].ninja-forms-field')
+                            ) {
+                                if (!node.hasAttribute('data-apbct-email-exist')) {
+                                    node.addEventListener('blur', ctDebounceFuncExec(checkEmailExist, 300));
+                                    node.setAttribute('data-apbct-email-exist', '1');
+                                }
+                            }
+                            // Если добавлен контейнер, ищем email-поля внутри
+                            node.querySelectorAll &&
+                            node.querySelectorAll('.nf-form-content input[type="email"], input[type="email"].ninja-forms-field')
+                                .forEach(function(input) {
+                                    if (!input.hasAttribute('data-apbct-email-exist')) {
+                                        input.addEventListener('blur', ctDebounceFuncExec(checkEmailExist, 300));
+                                        input.setAttribute('data-apbct-email-exist', '1');
+                                    }
+                                });
+                        }
+                    });
+                });
+            });
+            // Запускаем наблюдение за всем документом
+            ninjaFormsEmailObserver.observe(document.body, { childList: true, subtree: true });
+            // Для уже существующих email-полей
+            document.querySelectorAll('.nf-form-content input[type="email"], input[type="email"].ninja-forms-field')
+                .forEach(function(input) {
+                    if (!input.hasAttribute('data-apbct-email-exist')) {
+                        input.addEventListener('blur', ctDebounceFuncExec(checkEmailExist, 300));
+                        input.setAttribute('data-apbct-email-exist', '1');
+                    }
+                });
         }
     }
 
