@@ -1856,6 +1856,7 @@ function initParams() {
             apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
             apbct('form.wpcf7-form input[type = "email"]')
                 .on('blur', ctDebounceFuncExec(checkEmailExist, 300) );
+            apbct('form.wpforms-form input[type = "email"]').on('blur', checkEmailExist);
         }
     }
 
@@ -6036,12 +6037,20 @@ function getResultCheckEmailExist(e, result, currentEmail) {
  * @param {string} textResult
  */
 function viewCheckEmailExist(e, state, textResult) {
+    console.log(e);
+    console.log(state);
+    console.log(textResult);
+    
     let parentElement = e.target.parentElement;
     let inputEmail = parentElement.querySelector('[name*="email"]');
+
+    console.log(parentElement);
+
 
     if (!inputEmail) {
         inputEmail = parentElement.querySelector('[type*="email"]');
     }
+    console.log(inputEmail);
 
     if (!inputEmail) {
         return;
