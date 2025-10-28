@@ -151,7 +151,6 @@ input[class*='apbct'].apbct_special_field{
 
 .apbct-check_email_exist-load, .apbct-check_email_exist-good_email, .apbct-check_email_exist-bad_email {
     z-index: 9999;
-    margin: 0 6px 0 6px;
     transition: none !important;
     background-size: contain;
     background-repeat: no-repeat;
