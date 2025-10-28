@@ -150,53 +150,53 @@ input[class*='apbct'].apbct_special_field{
 }
 
 .apbct-check_email_exist-load, .apbct-check_email_exist-good_email, .apbct-check_email_exist-bad_email {
-    z-index: 9999;
-    margin: 0 6px 0 6px;
+    z-index: 9999!important;
+    margin: 0 6px 0 6px!important;
     transition: none !important;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position-x: right;
-    background-position-y: center;
-    cursor: pointer;
+    background-size: contain!important;
+    background-repeat: no-repeat!important;
+    background-position-x: right!important;
+    background-position-y: center!important;
+    cursor: pointer!important;
 }
 
 .apbct-check_email_exist-load {
-    background-size: contain;
+    background-size: contain!important;
 }
 
 .apbct-check_email_exist-block {
-    position: fixed;
-    display: block;
+    position: fixed!important;
+    display: block!important;
 }
 
 .apbct-check_email_exist-load {
-    background-image: url(../css/images/checking_email.gif);
+    background-image: url(../css/images/checking_email.gif)!important;
 }
 
 .apbct-check_email_exist-good_email {
-    background-image: url(../css/images/good_email.svg);
+    background-image: url(../css/images/good_email.svg)!important;
 }
 
 .apbct-check_email_exist-bad_email {
-    background-image: url(../css/images/bad_email.svg);
+    background-image: url(../css/images/bad_email.svg)!important;
 }
 
 .apbct-check_email_exist-popup_description {
     display: none;
-    position: fixed;
-    padding: 2px;
-    border: 1px solid #E5E8ED;
-    border-radius: 16px 16px 0px 16px;
-    background: #FFFFFF;
-    background-position-x: right;
-    font-size: 14px;
-    text-align: center;
-    transition: all 1s ease-out;
+    position: fixed!important;
+    padding: 2px!important;
+    border: 1px solid #E5E8ED!important;
+    border-radius: 16px 16px 0px 16px!important;
+    background: #FFFFFF!important;
+    background-position-x: right!important;
+    font-size: 14px!important;
+    text-align: center!important;
+    transition: all 1s ease-out!important;
 }
 
 @media screen and (max-width: 782px) {
     .apbct-check_email_exist-popup_description {
-        width: 100%;
+        width: 100%!important;
     }
 }
 

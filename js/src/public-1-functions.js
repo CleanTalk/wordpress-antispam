@@ -62,6 +62,7 @@ function initParams() {
             apbct('#registerform input[name = "user_email"]').on('blur', checkEmailExist);
             apbct('form.wc-block-checkout__form input[type = "email"]').on('blur', checkEmailExist);
             apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
+            apbct('form.wpforms-form input[type = "email"]').on('blur', checkEmailExist);
         }
     }
 
