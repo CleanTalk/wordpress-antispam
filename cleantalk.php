@@ -441,10 +441,13 @@ if (
 // OptimizePress
 if (
     apbct_is_plugin_active('op-dashboard/op-dashboard.php') &&
-    apbct_is_in_uri('/optin/submit') &&
-    sizeof($_POST) > 0
+    !empty($_POST)
 ) {
-    apbct_form__optimizepress__testSpam();
+    $is_optin = apbct_is_in_uri('/optin/submit');
+    $is_reg = apbct_is_in_uri('/users/submit');
+    if ($is_reg || $is_optin) {
+        apbct_form__optimizepress__testSpam($is_reg);
+    }
 }
 
 // Mailoptin. Pass without action because url for ajax request is domain.com/any-page/?mailoptin-ajax=subscribe_to_email_list

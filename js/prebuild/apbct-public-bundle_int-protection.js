@@ -2870,17 +2870,25 @@ class ApbctHandler {
                 // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
                 document.body.classList.contains('single-product') &&
                 typeof cwginstock !== 'undefined'
-            )
+            ) ||
+            document.querySelector('div.fcal_calendar_slot_wrap') !== null // Fluent Booking Pro
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
-                if (body && typeof body === 'string' &&
+                let isNeedToAddCleantalkDataCheckString = body && typeof body === 'string' &&
                     (
                         body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
                         body.indexOf('action=booked_add_appt') !== -1 ||
                         body.indexOf('action=cwginstock_product_subscribe') !== -1
-                    )
-                ) {
+                    );
+
+                let isNeedToAddCleantalkDataCheckFormData = body && typeof body === 'object' &&
+                    body instanceof FormData &&
+                    (
+                        body.has('action') && body.get('action') === 'fluent_cal_schedule_meeting'
+                    );
+
+                if (isNeedToAddCleantalkDataCheckString) {
                     let addidionalCleantalkData = '';
 
                     if (!+ctPublic.settings__data__bot_detector_enabled) {
@@ -2894,9 +2902,20 @@ class ApbctHandler {
                     }
 
                     body += addidionalCleantalkData;
-
-                    return originalSend.apply(this, [body]);
                 }
+
+                if (isNeedToAddCleantalkDataCheckFormData) {
+                    if (!+ctPublic.settings__data__bot_detector_enabled) {
+                        let noCookieData = getNoCookieData();
+                        body.append('ct_no_cookie_hidden_field', noCookieData);
+                    } else {
+                        const eventToken = new ApbctHandler().toolGetEventToken();
+                        if (eventToken) {
+                            body.append('ct_bot_detector_event_token', eventToken);
+                        }
+                    }
+                }
+
                 return originalSend.apply(this, [body]);
             };
         }
@@ -2956,52 +2975,72 @@ class ApbctHandler {
         if ( typeof jQuery !== 'undefined' && typeof jQuery.ajaxSetup === 'function') {
             jQuery.ajaxSetup({
                 beforeSend: function(xhr, settings) {
-                    let sourceSign = false;
+                    let sourceSign = {
+                        'found': false,
+                        'keepUnwrapped': false,
+                    };
                     // settings data is string (important!)
                     if ( typeof settings.data === 'string' ) {
+                        if (settings.data.indexOf('action=fl_builder_subscribe_form_submit') !== -1) {
+                            sourceSign.found = 'fl_builder_subscribe_form_submit';
+                        }
                         if (settings.data.indexOf('twt_cc_signup') !== -1) {
-                            sourceSign = 'twt_cc_signup';
+                            sourceSign.found = 'twt_cc_signup';
                         }
 
                         if (settings.data.indexOf('action=mailpoet') !== -1) {
-                            sourceSign = 'action=mailpoet';
+                            sourceSign.found = 'action=mailpoet';
                         }
 
                         if (
                             settings.data.indexOf('action=user_registration') !== -1 &&
                             settings.data.indexOf('ur_frontend_form_nonce') !== -1
                         ) {
-                            sourceSign = 'action=user_registration';
+                            sourceSign.found = 'action=user_registration';
                         }
 
                         if (settings.data.indexOf('action=happyforms_message') !== -1) {
-                            sourceSign = 'action=happyforms_message';
+                            sourceSign.found = 'action=happyforms_message';
                         }
 
                         if (settings.data.indexOf('action=new_activity_comment') !== -1) {
-                            sourceSign = 'action=new_activity_comment';
+                            sourceSign.found = 'action=new_activity_comment';
                         }
                         if (settings.data.indexOf('action=wwlc_create_user') !== -1) {
-                            sourceSign = 'action=wwlc_create_user';
+                            sourceSign.found = 'action=wwlc_create_user';
+                        }
+                        if (settings.data.indexOf('action=drplus_signup') !== -1) {
+                            sourceSign.found = 'action=drplus_signup';
+                            sourceSign.keepUnwrapped = true;
                         }
                     }
                     if ( typeof settings.url === 'string' ) {
                         if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {
-                            sourceSign = 'wc-ajax=add_to_cart';
+                            sourceSign.found = 'wc-ajax=add_to_cart';
                         }
                     }
 
-                    if (sourceSign) {
+                    if (sourceSign.found !== false) {
                         let eventToken = '';
                         let noCookieData = '';
                         if (+ctPublic.settings__data__bot_detector_enabled) {
                             const token = new ApbctHandler().toolGetEventToken();
                             if (token) {
-                                eventToken = 'data%5Bct_bot_detector_event_token%5D=' + token + '&';
+                                if (sourceSign.keepUnwrapped) {
+                                    eventToken = 'ct_bot_detector_event_token=' + token + '&';
+                                } else {
+                                    eventToken = 'data%5Bct_bot_detector_event_token%5D=' + token + '&';
+                                }
                             }
-                        } else {
+                        }
+
+                        if (ctPublic && ctPublic.data__cookies_type === 'none') {
                             noCookieData = getNoCookieData();
-                            noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                            if (sourceSign.keepUnwrapped) {
+                                noCookieData = 'ct_no_cookie_hidden_field=' + noCookieData + '&';
+                            } else {
+                                noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                            }
                         }
 
                         settings.data = noCookieData + eventToken + settings.data;
@@ -3384,6 +3423,8 @@ if (ctPublic.data__key_is_ok) {
 
 const defaultFetch = window.fetch;
 const defaultSend = XMLHttpRequest.prototype.send;
+
+let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 
 /**
  * Run cron jobs

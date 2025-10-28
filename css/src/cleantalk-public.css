@@ -101,54 +101,6 @@ input[class*='apbct'].apbct_special_field{
     opacity: 1;
 }
 
-.apbct-iframe-preloader {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    position: relative;
-    left: calc(50% - 27px);
-    top: calc(50% - 27px);
-    animation: apbctIframePreloaderRotate 1s linear infinite
-}
-
-.apbct-iframe-preloader-spin {
-    content: "";
-    box-sizing: border-box;
-    position: absolute;
-    inset: 0px;
-    border-radius: 50%;
-    border: 6px solid #FFF;
-    animation: apbctIframePreloaderPrixClipFix 2s linear infinite ;
-}
-
-.apbct-iframe-preloader-text {
-    color: white;
-    background: black;
-    display: block;
-    width: 100%;
-    text-align: center;
-    position: absolute;
-    top: 60%;
-}
-
-
-/*Fix The Real Person popup for theme Spacious By ThemeGrill */
-.comments-area .comment-list article .comment-author {
-    overflow: visible !important;
-}
-
-@keyframes apbctIframePreloaderRotate {
-    100%   {transform: rotate(360deg)}
-}
-
-@keyframes apbctIframePreloaderPrixClipFix {
-    0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
-    25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
-    50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
-    75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
-    100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
-}
-
 .apbct-check_email_exist-load, .apbct-check_email_exist-good_email, .apbct-check_email_exist-bad_email {
     z-index: 9999;
     transition: none !important;
@@ -226,4 +178,9 @@ input[class*='apbct'].apbct_special_field{
     background: #fdd;
     color: red;
     font-weight: bold;
+}
+
+/*Fix The Real Person popup for theme Spacious By ThemeGrill */
+.comments-area .comment-list article .comment-author {
+    overflow: visible !important;
 }

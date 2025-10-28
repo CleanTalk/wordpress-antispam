@@ -1069,6 +1069,7 @@ function apbct__stop_script_after_ajax_checking()
 {
     if (
         Post::hasString('action', 'tve_leads_ajax_') ||
+        Post::hasString('action', 'fl_builder_subscribe_form_submit') ||
         Post::hasString('action', 'submit_nex_form') ||
         (Post::hasString('action', 'xoo_el_form_action') && Post::hasString('_xoo_el_form', 'register')) ||
         (Post::get('elqFormName') && Post::get('elqSiteId') && Post::get('elqFormSubmissionToken'))

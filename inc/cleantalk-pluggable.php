@@ -719,6 +719,9 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             'wpcommunity_auth_login', // WPCommunity login
             'submit_nex_form', // NEXForms has direct integration
             'rnoc_track_user_data', // service request
+            'fl_builder_subscribe_form_submit', // FLBuilderForms has direct integration
+            'tutor_pro_social_authentication', // Tutor Pro social authentication, we trust a third-party service
+            'drplus_login', // Doctor Plus theme login
         );
 
         // Skip test if
