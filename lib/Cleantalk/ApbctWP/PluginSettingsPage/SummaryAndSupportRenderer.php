@@ -68,7 +68,7 @@ class SummaryAndSupportRenderer
             __('Summary'),
             __('Statistics'),
             $this->renderStatistics(), // Statistics will be rendered here
-            __('Sever requirements check'),
+            __('Server requirements check'),
             $this->renderServerRequirements(), // Server requirements will be rendered here
             __('Connections'),
             $this->renderConnectionReports(), // Connection reports will be rendered here
