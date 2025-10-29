@@ -1640,6 +1640,16 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'Newsletter Automated skip';
         }
+
+        if (
+            apbct_is_plugin_active('woo-mailerlite/woo-mailerlite.php') &&
+            (
+                Post::getString('action') === 'save_data' ||
+                Post::getString('action') === 'woo_mailerlite_set_cart_email'
+            )
+        ) {
+            return 'woo_mailerlite service request';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
