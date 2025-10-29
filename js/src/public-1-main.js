@@ -718,9 +718,7 @@ class ApbctHandler {
                                     eventToken = 'data%5Bct_bot_detector_event_token%5D=' + token + '&';
                                 }
                             }
-                        }
-
-                        if (ctPublic && ctPublic.data__cookies_type === 'none') {
+                        } else {
                             noCookieData = getNoCookieData();
                             if (sourceSign.keepUnwrapped) {
                                 noCookieData = 'ct_no_cookie_hidden_field=' + noCookieData + '&';
