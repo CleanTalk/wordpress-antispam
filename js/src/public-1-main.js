@@ -695,6 +695,10 @@ class ApbctHandler {
                             sourceSign.found = 'action=drplus_signup';
                             sourceSign.keepUnwrapped = true;
                         }
+                        if (settings.data.indexOf('action=bt_cc') !== -1) {
+                            sourceSign.found = 'action=bt_cc';
+                            sourceSign.keepUnwrapped = true;
+                        }
                     }
                     if ( typeof settings.url === 'string' ) {
                         if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {
