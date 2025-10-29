@@ -5168,7 +5168,6 @@ function viewCheckEmailExist(e, state, textResult) {
     if (!inputEmail) {
         inputEmail = parentElement.querySelector('[type*="email"]');
     }
-    console.log(inputEmail);
 
     if (!inputEmail) {
         return;
