@@ -701,7 +701,7 @@ function apbct_get_pixel_url($direct_call = false)
         . Helper::timeGetIntervalStart(3600 * 3) // Unique for every 3 hours
     );
 
-    //get params for caсhe plugins exclusion detection
+    //get params for cache plugins exclusion detection
     $cache_plugins_detected = apbct_is_cache_plugins_exists(true);
     $cache_exclusion_snippet = '';
     if ( !empty($cache_plugins_detected) ) {
