@@ -1711,9 +1711,14 @@ function apbct_sfw_update__process_exclusions($direct_update = false)
 {
     global $apbct;
 
+    $db__table__data = APBCT_TBL_FIREWALL_DATA_PERSONAL . '_temp';
+    if ($apbct->data['sfw_load_type'] === 'all') {
+        $db__table__data = $apbct->data['sfw_personal_table_name'] . '_temp';
+    }
+
     $result = SFW::updateWriteToDbExclusions(
         DB::getInstance(),
-        APBCT_TBL_FIREWALL_DATA_PERSONAL . '_temp'
+        $db__table__data
     );
 
     if ( ! empty($result['error']) ) {
