@@ -149,15 +149,8 @@ function getResultCheckEmailExist(e, result, currentEmail) {
  * @param {string} textResult
  */
 function viewCheckEmailExist(e, state, textResult) {
-    console.log(e);
-    console.log(state);
-    console.log(textResult);
-    
     let parentElement = e.target.parentElement;
     let inputEmail = parentElement.querySelector('[name*="email"]');
-
-    console.log(parentElement);
-
 
     if (!inputEmail) {
         inputEmail = parentElement.querySelector('[type*="email"]');
