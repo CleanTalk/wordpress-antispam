@@ -719,6 +719,9 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             'wpcommunity_auth_login', // WPCommunity login
             'submit_nex_form', // NEXForms has direct integration
             'rnoc_track_user_data', // service request
+            'fl_builder_subscribe_form_submit', // FLBuilderForms has direct integration
+            'tutor_pro_social_authentication', // Tutor Pro social authentication, we trust a third-party service
+            'drplus_login', // Doctor Plus theme login
         );
 
         // Skip test if
@@ -1628,6 +1631,24 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             Post::getString('action') === 'fluent_cal_schedule_meeting'
         ) {
             return 'Fluent Booking Pro skip';
+        }
+
+        // Newsletter Automated skip testing newsletter from admins
+        if (
+            apbct_is_plugin_active('newsletter-automated/automated.php') &&
+            Post::getString('action') === 'tnpc_test'
+        ) {
+            return 'Newsletter Automated skip';
+        }
+
+        if (
+            apbct_is_plugin_active('woo-mailerlite/woo-mailerlite.php') &&
+            (
+                Post::getString('action') === 'save_data' ||
+                Post::getString('action') === 'woo_mailerlite_set_cart_email'
+            )
+        ) {
+            return 'woo_mailerlite service request';
         }
     } else {
         /*****************************************/

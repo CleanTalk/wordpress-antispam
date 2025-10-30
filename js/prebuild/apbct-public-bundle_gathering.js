@@ -1854,6 +1854,8 @@ function initParams() {
             apbct('#registerform input[name = "user_email"]').on('blur', checkEmailExist);
             apbct('form.wc-block-checkout__form input[type = "email"]').on('blur', checkEmailExist);
             apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
+            apbct('form.wpcf7-form input[type = "email"]')
+                .on('blur', ctDebounceFuncExec(checkEmailExist, 300) );
         }
     }
 
@@ -2294,6 +2296,25 @@ function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
 
     return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
 }
+
+/**
+ * Execute function with timeout, listening incoming args from context.
+ * Could be useful if something needs to wait other actions and no there is no known event to bind for.
+ * @param {function} func Function to call
+ * @param {number} wait Seconds to delay
+ * @return {(function(...[*]): void)|*}
+ */
+function ctDebounceFuncExec(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            func.apply(context, args);
+        }, wait);
+    };
+}
+
 
 /**
  * Class for event token transport
@@ -2849,17 +2870,25 @@ class ApbctHandler {
                 // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
                 document.body.classList.contains('single-product') &&
                 typeof cwginstock !== 'undefined'
-            )
+            ) ||
+            document.querySelector('div.fcal_calendar_slot_wrap') !== null // Fluent Booking Pro
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
-                if (body && typeof body === 'string' &&
+                let isNeedToAddCleantalkDataCheckString = body && typeof body === 'string' &&
                     (
                         body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
                         body.indexOf('action=booked_add_appt') !== -1 ||
                         body.indexOf('action=cwginstock_product_subscribe') !== -1
-                    )
-                ) {
+                    );
+
+                let isNeedToAddCleantalkDataCheckFormData = body && typeof body === 'object' &&
+                    body instanceof FormData &&
+                    (
+                        body.has('action') && body.get('action') === 'fluent_cal_schedule_meeting'
+                    );
+
+                if (isNeedToAddCleantalkDataCheckString) {
                     let addidionalCleantalkData = '';
 
                     if (!+ctPublic.settings__data__bot_detector_enabled) {
@@ -2873,9 +2902,20 @@ class ApbctHandler {
                     }
 
                     body += addidionalCleantalkData;
-
-                    return originalSend.apply(this, [body]);
                 }
+
+                if (isNeedToAddCleantalkDataCheckFormData) {
+                    if (!+ctPublic.settings__data__bot_detector_enabled) {
+                        let noCookieData = getNoCookieData();
+                        body.append('ct_no_cookie_hidden_field', noCookieData);
+                    } else {
+                        const eventToken = new ApbctHandler().toolGetEventToken();
+                        if (eventToken) {
+                            body.append('ct_bot_detector_event_token', eventToken);
+                        }
+                    }
+                }
+
                 return originalSend.apply(this, [body]);
             };
         }
@@ -2935,52 +2975,74 @@ class ApbctHandler {
         if ( typeof jQuery !== 'undefined' && typeof jQuery.ajaxSetup === 'function') {
             jQuery.ajaxSetup({
                 beforeSend: function(xhr, settings) {
-                    let sourceSign = false;
+                    let sourceSign = {
+                        'found': false,
+                        'keepUnwrapped': false,
+                    };
                     // settings data is string (important!)
                     if ( typeof settings.data === 'string' ) {
+                        if (settings.data.indexOf('action=fl_builder_subscribe_form_submit') !== -1) {
+                            sourceSign.found = 'fl_builder_subscribe_form_submit';
+                        }
                         if (settings.data.indexOf('twt_cc_signup') !== -1) {
-                            sourceSign = 'twt_cc_signup';
+                            sourceSign.found = 'twt_cc_signup';
                         }
 
                         if (settings.data.indexOf('action=mailpoet') !== -1) {
-                            sourceSign = 'action=mailpoet';
+                            sourceSign.found = 'action=mailpoet';
                         }
 
                         if (
                             settings.data.indexOf('action=user_registration') !== -1 &&
                             settings.data.indexOf('ur_frontend_form_nonce') !== -1
                         ) {
-                            sourceSign = 'action=user_registration';
+                            sourceSign.found = 'action=user_registration';
                         }
 
                         if (settings.data.indexOf('action=happyforms_message') !== -1) {
-                            sourceSign = 'action=happyforms_message';
+                            sourceSign.found = 'action=happyforms_message';
                         }
 
                         if (settings.data.indexOf('action=new_activity_comment') !== -1) {
-                            sourceSign = 'action=new_activity_comment';
+                            sourceSign.found = 'action=new_activity_comment';
                         }
                         if (settings.data.indexOf('action=wwlc_create_user') !== -1) {
-                            sourceSign = 'action=wwlc_create_user';
+                            sourceSign.found = 'action=wwlc_create_user';
+                        }
+                        if (settings.data.indexOf('action=drplus_signup') !== -1) {
+                            sourceSign.found = 'action=drplus_signup';
+                            sourceSign.keepUnwrapped = true;
+                        }
+                        if (settings.data.indexOf('action=bt_cc') !== -1) {
+                            sourceSign.found = 'action=bt_cc';
+                            sourceSign.keepUnwrapped = true;
                         }
                     }
                     if ( typeof settings.url === 'string' ) {
                         if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {
-                            sourceSign = 'wc-ajax=add_to_cart';
+                            sourceSign.found = 'wc-ajax=add_to_cart';
                         }
                     }
 
-                    if (sourceSign) {
+                    if (sourceSign.found !== false) {
                         let eventToken = '';
                         let noCookieData = '';
                         if (+ctPublic.settings__data__bot_detector_enabled) {
                             const token = new ApbctHandler().toolGetEventToken();
                             if (token) {
-                                eventToken = 'data%5Bct_bot_detector_event_token%5D=' + token + '&';
+                                if (sourceSign.keepUnwrapped) {
+                                    eventToken = 'ct_bot_detector_event_token=' + token + '&';
+                                } else {
+                                    eventToken = 'data%5Bct_bot_detector_event_token%5D=' + token + '&';
+                                }
                             }
                         } else {
                             noCookieData = getNoCookieData();
-                            noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                            if (sourceSign.keepUnwrapped) {
+                                noCookieData = 'ct_no_cookie_hidden_field=' + noCookieData + '&';
+                            } else {
+                                noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                            }
                         }
 
                         settings.data = noCookieData + eventToken + settings.data;
@@ -3363,6 +3425,8 @@ if (ctPublic.data__key_is_ok) {
 
 const defaultFetch = window.fetch;
 const defaultSend = XMLHttpRequest.prototype.send;
+
+let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 
 /**
  * Run cron jobs
@@ -3751,7 +3815,6 @@ let ctMouseData = [];
 let ctMouseDataCounter = 0;
 let ctMouseReadInterval;
 let ctMouseWriteDataInterval;
-let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 
 
 // Writing first key press timestamp
@@ -4499,11 +4562,11 @@ function viewCheckEmailExist(e, state, textResult) {
         envelope.after(hint);
     }
 
+    // draw on init
     ctEmailExistSetElementsPositions(inputEmail);
 
-    window.addEventListener('resize', function(event) {
-        ctEmailExistSetElementsPositions(inputEmail);
-    });
+    // redraw on events
+    ctListenRequiredRedrawing(inputEmail);
 
     switch (state) {
     case 'load':
@@ -4552,36 +4615,104 @@ function viewCheckEmailExist(e, state, textResult) {
 
 /**
  * Shift the envelope to the input field on resizing the window
- * @param {mixed} inputEmail
+ * @param {HTMLInputElement} inputEmail
  */
 function ctEmailExistSetElementsPositions(inputEmail) {
-    const envelopeWidth = 35;
-
-    if (!inputEmail) {
+    if (!inputEmail instanceof HTMLInputElement) {
         return;
     }
-
+    /** @type {DOMRect} */
     const inputRect = inputEmail.getBoundingClientRect();
     const inputHeight = inputEmail.offsetHeight;
     const inputWidth = inputEmail.offsetWidth;
-
+    const envelopeWidth = inputHeight * 1.2;
+    let backgroundSize;
+    try {
+        let inputComputedStyle = window.getComputedStyle(inputEmail);
+        let inputTextSize = (
+            typeof inputComputedStyle.fontSize === 'string' ?
+                inputComputedStyle.fontSize :
+                false
+        );
+        backgroundSize = inputTextSize ? inputTextSize : 'inherit';
+    } catch (e) {
+        backgroundSize = 'inherit';
+    }
     const envelope = document.getElementById('apbct-check_email_exist-block');
     if (envelope) {
         envelope.style.cssText = `
             top: ${inputRect.top}px;
-            left: ${inputRect.right - envelopeWidth - 10}px;
+            left: ${inputRect.right - envelopeWidth}px;
             height: ${inputHeight}px;
             width: ${envelopeWidth}px;
+            background-size: ${backgroundSize};
+            background-position: center;
         `;
     }
 
     const hint = document.getElementById('apbct-check_email_exist-popup_description');
     if (hint) {
-        hint.style.cssText = `
-            width: ${inputWidth}px;
-            left: ${inputRect.left}px;
-        `;
+        hint.style.width = `${inputWidth}px`;
+        hint.style.left = `${inputRect.left}px`;
     }
+}
+
+/**
+ * Define when the email badge positions should be redrawn.
+ * @param {HTMLInputElement} inputEmail - Dom element to change
+ */
+function ctListenRequiredRedrawing(inputEmail) {
+    window.addEventListener('resize', function(event) {
+        ctEmailExistSetElementsPositions(inputEmail);
+    });
+
+    const formChangesToListen = [
+        {
+            'selector': 'form.wpcf7-form',
+            'observerConfig': {
+                childList: true,
+                subtree: true,
+            },
+            'emailElement': inputEmail,
+        },
+    ];
+
+    formChangesToListen.forEach((aForm) => {
+        ctWatchFormChanges(
+            aForm.selector,
+            aForm.observerConfig,
+            () => {
+                ctEmailExistSetElementsPositions(aForm.emailElement);
+            });
+    });
+}
+
+/**
+ * Watch for changes in form, using MutationObserver and its config.
+ * @see MutationObserver
+ * @param {string} formSelector
+ * @param {object} observerConfig
+ * @param {function} callback
+ * @return {MutationObserver|false}
+ */
+function ctWatchFormChanges(formSelector = '', observerConfig = null, callback) {
+    const form = document.querySelector(formSelector);
+
+    if (!form || !observerConfig) {
+        return false;
+    }
+
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' || mutation.type === 'attributes') {
+                callback(form, mutation);
+            }
+        });
+    });
+
+    observer.observe(form, observerConfig);
+    // you can listen what is changed reading this
+    return observer;
 }
 
 /**

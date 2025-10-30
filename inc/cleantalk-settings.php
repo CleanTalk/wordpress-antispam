@@ -631,7 +631,7 @@ function apbct_settings__set_fields()
                 ),
                 'data__email_check_exist_post'        => array(
                     'title'       => __('Show email existence alert when filling in the field', 'cleantalk-spam-protect'),
-                    'description' => __('Checks the email address and shows the result as an icon in the email field before submitting the form. Works for WooCommerce checkout form, FluentForms, standard WordPress comment form and registration form.', 'cleantalk-spam-protect'),
+                    'description' => __('Checks the email address and shows the result as an icon in the email field before submitting the form. Works for WooCommerce checkout form, FluentForms, Contact Form 7, standard WordPress comment form and registration form.', 'cleantalk-spam-protect'),
                 ),
             ),
         ),
@@ -1950,20 +1950,23 @@ function apbct_settings__field__apikey()
     $replaces['get_key_auto_button_display'] = !$apbct->ip_license ? '' : 'style="display:none"';
 
     //GET KEY MANUAL CHUNK
-    $register_link = LinkConstructor::buildCleanTalkLink('get_access_key_link', 'wordpress-anti-spam-plugin');
+    $register_link = LinkConstructor::buildCleanTalkLink(
+        'get_access_key_link',
+        'register',
+        array(
+            'platform' => 'wordpress',
+            'product_name' => 'antispam',
+            'email' => ct_get_admin_email(),
+            'website' => get_bloginfo('url')
+        )
+    );
     $link_template = __(
         'The admin email %s %s will be used to obtain a key and as the email for signing up at CleanTalk.org.',
         'cleantalk-spam-protect'
     );
     $link_template .= '<br>';
     $link_template .= __('As a backup, use the %sCleanTalk Dashboard%s to copy and paste your key.', 'cleantalk-spam-protect');
-    $href = '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="'
-            . sprintf(
-                $register_link . '&platform=wordpress&email=%s&website=%s',
-                urlencode(ct_get_admin_email()),
-                urlencode(get_bloginfo('url'))
-            )
-            . '">';
+    $href = '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="' . $register_link . '">';
     $replaces['get_key_manual_chunk'] = sprintf(
         $link_template,
         '<span id="apbct-account-email">' . ct_get_admin_email() . '</span>',
