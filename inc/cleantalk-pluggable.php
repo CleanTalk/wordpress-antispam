@@ -1633,6 +1633,15 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'Fluent Booking Pro skip';
         }
 
+        // Gwolle Guestbook have the direct integration
+        if (
+            apbct_is_plugin_active('gwolle-gb/gwolle-gb.php') &&
+            Post::getString('action') === 'gwolle_gb_form_ajax' &&
+            Post::getString('gwolle_gb_function') === 'add_entry'
+        ) {
+            return 'Gwolle Guestbook';
+        }
+
         // Newsletter Automated skip testing newsletter from admins
         if (
             apbct_is_plugin_active('newsletter-automated/automated.php') &&
