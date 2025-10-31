@@ -1343,7 +1343,8 @@ function apbct_settings__display()
             // CP button
             //HANDLE LINK
             echo '<a class="cleantalk_link cleantalk_link-manual" target="__blank" href="https://cleantalk.org/my?user_token=' . Escape::escHtml($apbct->user_token) . '&cp_mode=antispam">'
-                 . __('Click here to get Anti-Spam statistics', 'cleantalk-spam-protect')
+                 . __('Cloud Dashboard', 'cleantalk-spam-protect')
+                 . '<img style="margin-left: 7px; margin-top:7px;" src="' . APBCT_URL_PATH . "/inc/images/new_window.gif" . '">'
                  . '</a>';
         }
     }
@@ -1355,8 +1356,8 @@ function apbct_settings__display()
         // Sync button
         if ( (apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok) || apbct__is_hosting_license() ) {
             echo '<button type="button" class="cleantalk_link cleantalk_link-auto" id="apbct_button__sync" title="' . esc_html__('Synchronizing account status, SpamFireWall database, all kind of journals', 'cleantalk-spam-protect') . '">'
+                . __('Sync with the Cloud', 'cleantalk-spam-protect')
                 . '<i class="apbct-icon-upload-cloud"></i>'
-                . __('Synchronize with Cloud', 'cleantalk-spam-protect')
                 . '<img style="margin-left: 10px;" class="apbct_preloader_button" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif') . '" />'
                 . '<img style="margin-left: 10px;" class="apbct_success --hide" src="' . Escape::escUrl(APBCT_URL_PATH . '/inc/images/yes.png') . '" />'
                 . '</button>';
@@ -3020,7 +3021,11 @@ function apbct_settings__get__long_description()
     );
 
     if (!empty($setting_id) && isset($descriptions[$setting_id])) {
-        $utm = '?utm_source=apbct_hint_' . esc_attr($setting_id) . '&utm_medium=WordPress&utm_campaign=ABPCT_Settings';
+        if ($setting_id === 'comments__hide_website_field') {
+            $utm = '?utm_source=apbct_hint_' . esc_attr($setting_id) . '&utm_medium=hide_website_field_hint&utm_campaign=apbct_links';
+        } else {
+            $utm = '?utm_source=apbct_hint_' . esc_attr($setting_id) . '&utm_medium=WordPress&utm_campaign=ABPCT_Settings';
+        }
         $descriptions[$setting_id]['desc'] = str_replace('{utm_mark}', $utm, $descriptions[$setting_id]['desc']);
         die(json_encode($descriptions[$setting_id]));
     } else {
