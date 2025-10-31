@@ -456,6 +456,12 @@ function ct_ajax_hook($message_obj = null)
     } else {
         $input_array = apply_filters('apbct__filter_post', $_POST);
     }
+
+    //btQuoteBooking admin_email exclude from the form data
+    if ( Post::get('action') === 'bt_cc' ) {
+        unset($input_array['admin_email']);
+    }
+
     $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '';
@@ -1069,6 +1075,7 @@ function apbct__stop_script_after_ajax_checking()
 {
     if (
         Post::hasString('action', 'tve_leads_ajax_') ||
+        Post::hasString('action', 'fl_builder_subscribe_form_submit') ||
         Post::hasString('action', 'submit_nex_form') ||
         (Post::hasString('action', 'xoo_el_form_action') && Post::hasString('_xoo_el_form', 'register')) ||
         (Post::get('elqFormName') && Post::get('elqSiteId') && Post::get('elqFormSubmissionToken'))

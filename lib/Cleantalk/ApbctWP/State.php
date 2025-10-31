@@ -366,6 +366,7 @@ class State extends \Cleantalk\Common\State
         'expected_ua_count'            => 0,
         'update_mode'                  => 0,
         'reason_direct_update_log'     => null,
+        'expected_networks_count_personal' => 0,
     );
 
     /**

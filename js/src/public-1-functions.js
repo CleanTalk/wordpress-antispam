@@ -62,6 +62,8 @@ function initParams() {
             apbct('#registerform input[name = "user_email"]').on('blur', checkEmailExist);
             apbct('form.wc-block-checkout__form input[type = "email"]').on('blur', checkEmailExist);
             apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
+            apbct('form.wpcf7-form input[type = "email"]')
+                .on('blur', ctDebounceFuncExec(checkEmailExist, 300) );
         }
     }
 
@@ -502,3 +504,22 @@ function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
 
     return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
 }
+
+/**
+ * Execute function with timeout, listening incoming args from context.
+ * Could be useful if something needs to wait other actions and no there is no known event to bind for.
+ * @param {function} func Function to call
+ * @param {number} wait Seconds to delay
+ * @return {(function(...[*]): void)|*}
+ */
+function ctDebounceFuncExec(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            func.apply(context, args);
+        }, wait);
+    };
+}
+
