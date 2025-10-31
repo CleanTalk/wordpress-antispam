@@ -36,18 +36,6 @@ class WpForo extends IntegrationBase
             $input_array = apply_filters('apbct__filter_post', $_POST);
             $message     = '';
 
-            //clear message
-            if ( isset($input_array['thread'], $input_array['thread']['body']) ) {
-                $message = $input_array['thread']['body'];
-                if ( function_exists('wp_strip_all_tags') ) {
-                    $message = wp_strip_all_tags($message);
-                } elseif ( function_exists('strip_tags') ) {
-                    $message = strip_tags($message);
-                } else {
-                    $message = '';
-                }
-            }
-
             // get topics
             if ( isset($input_array['thread'], $input_array['thread']['body']) ) {
                 $message = $input_array['thread']['body'];
