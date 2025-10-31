@@ -380,7 +380,6 @@ let ctMouseData = [];
 let ctMouseDataCounter = 0;
 let ctMouseReadInterval;
 let ctMouseWriteDataInterval;
-let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 
 
 // Writing first key press timestamp

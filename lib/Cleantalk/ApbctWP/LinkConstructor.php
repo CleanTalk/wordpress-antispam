@@ -167,11 +167,9 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_content' => 'footer_trusted_link',
         ),
         'get_access_key_link' => array(
-            'utm_id' => '',
-            'utm_term' => '',
-            'utm_source' => 'admin_panel',
-            'utm_medium' => 'settings',
-            'utm_content' => 'get_access_key_link',
+            'utm_source' => 'admin_side',
+            'utm_medium' => 'get_access_key_button',
+            'utm_campaign' => 'apbct_links',
         ),
         'trp_learn_more_link' => array(
             'utm_id' => '',

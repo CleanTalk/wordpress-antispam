@@ -68,7 +68,7 @@ class SummaryAndSupportRenderer
             __('Summary'),
             __('Statistics'),
             $this->renderStatistics(), // Statistics will be rendered here
-            __('Sever requirements check'),
+            __('Server requirements check'),
             $this->renderServerRequirements(), // Server requirements will be rendered here
             __('Connections'),
             $this->renderConnectionReports(), // Connection reports will be rendered here
@@ -371,7 +371,7 @@ class SummaryAndSupportRenderer
 
         foreach ($requirement_items as $key => $item) {
             $value = $requirements_data[$key];
-            if ($key === 'curl_support' || $key === 'allow_url_fopen') {
+            if ($key === 'curl_support' || $key === 'allow_url_fopen' || $key === 'curl_multi_exec') {
                 $value = $value ? __('enabled', 'cleantalk-spam-protect') : __('disabled', 'cleantalk-spam-protect');
             }
             $label = sprintf(__($item['label'], 'cleantalk-spam-protect'), $value);
@@ -392,7 +392,7 @@ class SummaryAndSupportRenderer
                         : ' apbct-green apbct-icon-ok'
                 )
             );
-            $render .= $this->wrapListItem('<span>' . $label . $warn_text . '</span><span ' . $icon_right_style . '></span>');
+            $render .= $this->wrapListItem('<span>' . $label . '<span ' . $icon_right_style . '></span>' . $warn_text . '</span>');
         }
 
         if (!empty($warnings)) {

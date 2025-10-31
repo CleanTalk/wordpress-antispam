@@ -524,6 +524,7 @@ function ctProtectOutsideFunctionalHandler(entity, lsStorageName, lsUniqueName) 
             entityParent.style.position = 'relative';
         }
     }
+    ctAttachCoverCSSToHead();
     entityParent.appendChild(ctProtectOutsideFunctionalGenerateCover());
     let entitiesProtected = apbctLocalStorage.get(lsStorageName);
     if (false === entitiesProtected) {
@@ -533,6 +534,62 @@ function ctProtectOutsideFunctionalHandler(entity, lsStorageName, lsUniqueName) 
         entitiesProtected.push(lsUniqueName);
         apbctLocalStorage.set(lsStorageName, entitiesProtected);
     }
+}
+
+/**
+ * Append cover styles to the head.
+ */
+function ctAttachCoverCSSToHead() {
+    if (document.querySelector('#apbct-cover-stylesheet')) {
+        return;
+    }
+    const styleElement = document.createElement('style');
+    styleElement.setAttribute('type', 'text/css');
+    styleElement.setAttribute('id', 'apbct-cover-stylesheet');
+    styleElement.textContent = `
+        .apbct-iframe-preloader {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            position: relative;
+            left: calc(50% - 27px);
+            top: calc(50% - 27px);
+            animation: apbctIframePreloaderRotate 1s linear infinite
+        }
+        
+        .apbct-iframe-preloader-spin {
+            content: "";
+            box-sizing: border-box;
+            position: absolute;
+            inset: 0px;
+            border-radius: 50%;
+            border: 6px solid #FFF;
+            animation: apbctIframePreloaderPrixClipFix 2s linear infinite ;
+        }
+        
+        .apbct-iframe-preloader-text {
+            color: white;
+            background: black;
+            display: block;
+            width: 100%;
+            text-align: center;
+            position: absolute;
+            top: 60%;
+        }
+        
+        @keyframes apbctIframePreloaderRotate {
+            100%   {transform: rotate(360deg)}
+        }
+        
+        @keyframes apbctIframePreloaderPrixClipFix {
+            0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
+            25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
+            50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
+            75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
+            100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+        }
+    `;
+    document.head.appendChild(styleElement);
 }
 
 /**

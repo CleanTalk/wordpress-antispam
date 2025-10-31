@@ -10,6 +10,7 @@ class ServerRequirementsChecker
         'allow_url_fopen' => true,
         'memory_limit' => '128M',
         'max_execution_time' => 30,
+        'curl_multi_exec' => true,
     ];
 
     public $requirement_items = [
@@ -19,7 +20,7 @@ class ServerRequirementsChecker
         ],
         'curl_support' => [
             'label' => 'cURL support: %s',
-            'pattern' => 'cURL',
+            'pattern' => 'cURL support',
         ],
         'allow_url_fopen' => [
             'label' => 'allow_url_fopen: %s',
@@ -32,6 +33,10 @@ class ServerRequirementsChecker
         'max_execution_time' => [
             'label' => 'max_execution_time: %s+ seconds',
             'pattern' => 'max_execution_time',
+        ],
+        'curl_multi_exec' => [
+            'label' => 'curl_multi_exec: %s',
+            'pattern' => 'curl_multi_exec',
         ],
     ];
 
@@ -84,6 +89,10 @@ class ServerRequirementsChecker
                 $this->requirements['max_execution_time'],
                 esc_html($current_max_exec_time)
             );
+        }
+
+        if (!function_exists('curl_multi_exec') || !is_callable('curl_multi_exec')) {
+            $this->warnings[] = __('function \'curl_multi_exec\' is not available, but required for SpamFireWall features', 'cleantalk-spam-protect');
         }
 
         if (empty($this->warnings)) {
