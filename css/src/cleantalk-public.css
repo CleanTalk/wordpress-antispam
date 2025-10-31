@@ -104,24 +104,21 @@ input[class*='apbct'].apbct_special_field{
 .apbct-check_email_exist-load, .apbct-check_email_exist-good_email, .apbct-check_email_exist-bad_email {
     z-index: 9999!important;
     transition: none !important;
-    background-size: contain!important;
+    background-size: contain;
     background-repeat: no-repeat!important;
-    background-position-x: right!important;
-    background-position-y: center!important;
+    background-position-x: right;
+    background-position-y: center;
     cursor: pointer!important;
 }
 
 .apbct-check_email_exist-load {
-    background-size: contain!important;
+    background-size: contain;
+    background-image: url(../css/images/checking_email.gif)!important;
 }
 
 .apbct-check_email_exist-block {
     position: fixed!important;
     display: block!important;
-}
-
-.apbct-check_email_exist-load {
-    background-image: url(../css/images/checking_email.gif)!important;
 }
 
 .apbct-check_email_exist-good_email {
