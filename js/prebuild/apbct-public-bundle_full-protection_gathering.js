@@ -6170,8 +6170,6 @@ document.addEventListener('DOMContentLoaded', function() {
         trpDescriptionContent.setAttribute('class', 'apbct-real-user-popup-content_row');
         trpDescriptionContent.setAttribute('style', 'white-space: nowrap');
 
-        let trpDescriptionContentWrap = document.createElement('div');
-
         let trpDescriptionContentFirstLine = document.createElement('div');
         trpDescriptionContentFirstLine.append(trpDescriptionHeading);
         trpDescriptionContentFirstLine.append(' ');
@@ -6183,7 +6181,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let trpDescriptionContentSecondLineTxt = document.createElement('div');
         trpDescriptionContentSecondLineTxt.append(ctTrpLocalize.phrases.trpContent2);
         trpDescriptionContentSecondLine.append(trpDescriptionContentSecondLineTxt);
-        
+
         if (ctTrpIsAdminCommentsList) {
             let learnMoreLinkWrap = document.createElement('div');
             let learnMoreLink = document.createElement('a');
