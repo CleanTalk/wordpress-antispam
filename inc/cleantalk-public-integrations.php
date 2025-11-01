@@ -3097,8 +3097,15 @@ function apbct_form__uwp_validate($result, $_type, $data)
  * WS-Forms integration
  * @psalm-suppress UnusedClosureParam
  */
-add_filter('wsf_submit_field_validate', function ($error_validation_action_field, $field_id, $_field_value, $section_repeatable_index, $_post_mode, $_form_submit_class) {
+if (
+    ($apbct instanceof State && $apbct->settings['data__protect_logged_in'] == 1) ||
+    ! apbct_is_user_logged_in()
+) {
+    add_filter('wsf_submit_field_validate', 'apbct_form__ws_forms_test_spam_on_field', 10, 6);
+}
 
+function apbct_form__ws_forms_test_spam_on_field($error_validation_action_field, $field_id, $_field_value, $section_repeatable_index, $_post_mode, $_form_submit_class)
+{
     global $cleantalk_executed;
 
     if ( $cleantalk_executed || $_post_mode != 'submit' ) {
@@ -3154,7 +3161,7 @@ add_filter('wsf_submit_field_validate', function ($error_validation_action_field
     $cleantalk_executed = true;
 
     return $error_validation_action_field;
-}, 10, 6);
+}
 
 /**
  * Happyforms integration
