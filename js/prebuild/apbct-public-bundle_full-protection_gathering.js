@@ -3626,7 +3626,15 @@ function apbctProcessIframes() {
                 if ( formIsExclusion(currentForm)) {
                     continue;
                 }
-                apbctProcessExternalForm(currentForm, y, frames[j].contentDocument);
+                if (currentForm.classList.contains('sender-form-box')) {
+                    // todo Need to implement integration with @sender.net@ iframes,
+                    // todo there is no current way to intercept custom events, onsumbit is null..
+                    // todo however this could be start of new era of integrations
+                    // todo if we do stop propagation, protection will work, but original form is broken
+                    apbctProcessExternalFormByFakeButton(currentForm, y, frames[j].contentDocument);
+                } else {
+                    apbctProcessExternalForm(currentForm, y, frames[j].contentDocument);
+                }
             }
         }
     }
@@ -3730,10 +3738,18 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
  * @param {HTMLElement} documentObject
  */
 function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObject) {
-    const submitButtonOriginal = currentForm.querySelector('[type="submit"]');
-    const onsubmitOriginal = currentForm.querySelector('[type="submit"]').form.onsubmit;
-
+    let submitButtonOriginal = currentForm.querySelector('[type="submit"]');
+    if (!submitButtonOriginal) {
+        // sender.com form button by class
+        submitButtonOriginal = currentForm.querySelector('.submit-button');
+    }
+    // skip if no button found
     if ( ! submitButtonOriginal ) {
+        return;
+    }
+    const onsubmitOriginal = submitButtonOriginal.form.onsubmit;
+    // skip if no onsubmit found
+    if ( ! onsubmitOriginal ) {
         return;
     }
 
