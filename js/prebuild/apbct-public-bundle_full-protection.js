@@ -4943,6 +4943,7 @@ function ctCheckInternalIsExcludedForm(action) {
     const ctInternalScriptExclusions = [
         'wp-login.php', // WordPress login page
         'wp-comments-post.php', // WordPress Comments Form
+        'admin-ajax.php', // WordPress ajax
     ];
 
     return ctInternalScriptExclusions.some((item) => {

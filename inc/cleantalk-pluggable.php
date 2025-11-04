@@ -1963,6 +1963,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         return 'Otter Blocks';
     }
 
+    // Nex Forms have the direct integration
+    if (
+        apbct_is_plugin_active('nex-forms/main.php') &&
+        Post::get('action') === 'submit_nex_form'
+    ) {
+        return 'Nex Forms';
+    }
+
     return false;
 }
 
