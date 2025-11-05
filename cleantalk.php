@@ -235,6 +235,7 @@ if (
     }
 }
 
+// The Real Person
 if ( $apbct->settings['comments__the_real_person'] ) {
     new CleantalkRealPerson();
 }

@@ -29,14 +29,10 @@ class CleantalkRealPerson
 
     public function publicCommentAddTrpClass($classes, $_css_class, $comment_id, $comment, $_post)
     {
-        $ct_hash = get_comment_meta((int)$comment_id, 'ct_real_user_badge_hash', true);
-
-        // Check `ct_hash` exists (the comment has been checked) for show TRP
-        $show_trp_on_hash = $ct_hash && $comment->comment_author;
+        global $apbct;
 
         $show_trp_on_roles = false;
         $roles_to_show_trp = ['administrator', 'editor'];
-        // Check user role for show TRP
         if ( $comment->user_id ) {
             $user = get_userdata($comment->user_id);
             if ( $user && is_array($user->roles) && count(array_intersect($user->roles, $roles_to_show_trp)) > 0 ) {
@@ -44,9 +40,23 @@ class CleantalkRealPerson
             }
         }
 
-        if ( $show_trp_on_hash || $show_trp_on_roles ) {
+        // Logic for show TRP badge
+        $show_trp = false;
+        $the_real_person = !empty($apbct->settings['comments__the_real_person']) && $apbct->settings['comments__the_real_person'] == '1';
+        $allowed_moderation = !empty($apbct->settings['cleantalk_allowed_moderation']) && $apbct->settings['cleantalk_allowed_moderation'] == '1';
+
+        if ($the_real_person && $allowed_moderation) {
+            // Only for auto-moderated
+            $automod_hash = get_comment_meta((int)$comment_id, 'ct_real_user_badge_automod_hash', true);
+            $show_trp = $automod_hash && $comment->comment_author;
+        } elseif ($the_real_person && !$allowed_moderation) {
+            // Only for old
+            $old_hash = get_comment_meta((int)$comment_id, 'ct_real_user_badge_hash', true);
+            $show_trp = $old_hash && $comment->comment_author;
+        }
+
+        if ($show_trp || $show_trp_on_roles) {
             $classes[] = 'apbct-trp';
-            return $classes;
         }
         return $classes;
     }

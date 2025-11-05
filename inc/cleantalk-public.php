@@ -1005,11 +1005,11 @@ function ct_set_approved($approved, $_comment)
  * @psalm-suppress UnusedParam
  * @return void
  */
-function ct_set_real_user_badge_hash($comment_id)
+function ct_set_real_user_badge_automod_hash($comment_id)
 {
     $hash1 = ct_hash();
     if ( ! empty($hash1) ) {
-        update_comment_meta($comment_id, 'ct_real_user_badge_hash', ct_hash());
+        update_comment_meta($comment_id, 'ct_real_user_badge_automod_hash', ct_hash());
     }
 }
 

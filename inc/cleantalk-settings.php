@@ -50,7 +50,7 @@ function apbct_settings_add_page()
     // Add CleanTalk Moderation option to the Discussion page
     add_settings_field(
         'cleantalk_allowed_moderation',
-        esc_html__('CleanTalk allowed comments moderation', 'cleantalk-spam-protect'),
+        esc_html__('CleanTalk Comment Moderation', 'cleantalk-spam-protect'),
         'apbct_discussion_settings__field__moderation',
         'discussion'
     );
@@ -58,6 +58,15 @@ function apbct_settings_add_page()
         $options['discussion'][] = 'cleantalk_allowed_moderation';
         return $options;
     });
+    add_action('update_option_cleantalk_allowed_moderation', function ($old_value, $value) {
+        global $apbct;
+
+        $filtered = ($value === '1' || $value === 1) ? '1' : '0';
+        if ($old_value !== $filtered) {
+            $apbct->settings['cleantalk_allowed_moderation'] = $filtered;
+            $apbct->saveSettings();
+        }
+    }, 10, 2);
     // End modification Discussion page
 
     if ( ! in_array($pagenow, array('options.php', 'options-general.php', 'settings.php', 'admin.php')) ) {
@@ -175,7 +184,8 @@ function apbct_settings__set_fields()
                 ),
                 'comments__the_real_person' => array(
                     'type'        => 'checkbox',
-                    'title'       => __('The Real Person Badge!', 'cleantalk-spam-protect'),
+                    'title' => __('The Real Person Badge!', 'cleantalk-spam-protect')
+                    . ' <img src="' . esc_attr(APBCT_URL_PATH . '/css/images/real_user.svg') . '" class="apbct-real-user-popup-img"/>',
                     'description' => __(
                         'Plugin shows special benchmark for author of a comment or review, that the author passed all anti-spam filters and acts as a real person. It improves quality of users generated content on your website by proving that the content is not from spambots.',
                         'cleantalk-spam-protect'
@@ -382,6 +392,13 @@ function apbct_settings__set_fields()
             'title'  => __('Comments and Messages', 'cleantalk-spam-protect'),
             'section' => 'hidden_section',
             'fields' => array(
+                'cleantalk_allowed_moderation' => array(
+                    'title' => __('CleanTalk Comment Moderation', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'Skip manual approving for the very first comment if a comment has been allowed by CleanTalk Anti-Spam protection.',
+                        'cleantalk-spam-protect'
+                    )
+                ),
                 'comments__disable_comments__all'          => array(
                     'title'       => __('Disable all comments', 'cleantalk-spam-protect'),
                     'description' => __('Disabling comments for all types of content.', 'cleantalk-spam-protect'),
@@ -2075,15 +2092,17 @@ function apbct_settings__field__statistics()
 
 function apbct_discussion_settings__field__moderation()
 {
+    global $apbct;
+
     $output  = '<label for="cleantalk_allowed_moderation">';
     $output .= '<input 
                 type="checkbox" 
                 name="cleantalk_allowed_moderation" 
                 id="cleantalk_allowed_moderation" 
                 value="1" ' .
-                checked('1', get_option('cleantalk_allowed_moderation', 1), false) .
+                checked('1', $apbct->settings['cleantalk_allowed_moderation'], false) .
                 '/> ';
-    $output .= esc_html__('Skip manual approving for the very first comment if a comment has been allowed by CleanTalk Anti-Spam protection', 'cleantalk-spam-protect');
+    $output .= esc_html__('Skip manual approving for the very first comment if a comment has been allowed by CleanTalk Anti-Spam protection.', 'cleantalk-spam-protect');
     $output .= '</label>';
     echo $output;
 }
@@ -2913,7 +2932,8 @@ function apbct_settings__get__long_description()
             'title' => __('The Real Person Badge!', 'cleantalk-spam-protect'),
             //HANDLE LINK
             'desc'  => sprintf(
-                __('Plugin shows special benchmark for author of a comment or review, that the author passed all anti-spam filters and acts as a real person. It improves quality of users generated content on your website by proving that the content is not from spambots. %s', 'cleantalk-spam-protect'),
+                '<p>' . __('Plugin shows special benchmark for author of a comment or review, that the author passed all anti-spam filters and acts as a real person. It improves quality of users generated content on your website by proving that the content is not from spambots. %s', 'cleantalk-spam-protect') . '</p>' .
+                '<p>' . __('Benchmark is visible only for automatically approved comments. Make sure the option "Advanced settings → CleanTalk Comment Moderation" is turned on, and "WP Dashboard → Settings → Discussion → Comment must be manually approved" is turned off', 'cleantalk-spam-protect') . '</p>',
                 '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('trp_learn_more_link', 'the-real-person')) . '" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
