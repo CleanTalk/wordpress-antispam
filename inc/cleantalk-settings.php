@@ -2929,7 +2929,7 @@ function apbct_settings__get__long_description()
             //HANDLE LINK
             'desc'  => sprintf(
                 '<p>' . __('Plugin shows special benchmark for author of a comment or review, that the author passed all anti-spam filters and acts as a real person. It improves quality of users generated content on your website by proving that the content is not from spambots. %s', 'cleantalk-spam-protect') . '</p>' .
-                '<p>' . __('Benchmark is visible only for automatically approved comments. Make sure the option “Advanced Settings → Comments Moderation” is turned on', 'cleantalk-spam-protect') . '</p>',
+                '<p>' . __('Benchmark is visible only for automatically approved comments. Make sure the option "Advanced settings → CleanTalk Comment Moderation" is turned on, and "WP Dashboard → Settings → Discussion → Comment must be manually approved" is turned off', 'cleantalk-spam-protect') . '</p>',
                 '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('trp_learn_more_link', 'the-real-person')) . '" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
