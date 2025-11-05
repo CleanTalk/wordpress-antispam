@@ -563,7 +563,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         }
 
         // skip for RSS Feed requests
-        if ($apbct->service_constants->skip_anticrawler_on_rss_feed->isDefined()) {
+        if ($apbct->constants->skip_anticrawler_on_rss_feed->isDefined()) {
             if (Server::getString('REQUEST_URI') &&
                 preg_match_all('/feed/i', Server::getString('REQUEST_URI'))
             ) {

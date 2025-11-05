@@ -72,7 +72,7 @@ class AdminNotices
                                    in_array(Get::get('page'), array('cleantalk', 'ct_check_spam', 'ct_check_users'));
         $this->user_token        = $this->apbct->user_token ?: '';
 
-        $self_owned_key = $this->apbct->moderate_ip == 0 && ! defined('CLEANTALK_ACCESS_KEY');
+        $self_owned_key = $this->apbct->moderate_ip == 0 && !$this->apbct->constants->self_owned_access_key->isDefinedAndTypeOK();
         $is_dashboard   = is_network_admin() || is_admin();
         $is_admin       = current_user_can('activate_plugins');
         $uid            = get_current_user_id();

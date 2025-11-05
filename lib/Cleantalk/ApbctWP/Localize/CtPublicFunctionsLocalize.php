@@ -23,7 +23,7 @@ class CtPublicFunctionsLocalize
             'data__cookies_type'                   => $apbct->data['cookies_type'],
             'data__ajax_type'                      => $apbct->data['ajax_type'],
             'data__bot_detector_enabled'           => $apbct->settings['data__bot_detector_enabled'],
-            'data__frontend_data_log_enabled'      => defined('APBCT_DO_NOT_COLLECT_FRONTEND_DATA_LOGS') ? 0 : 1,
+            'data__frontend_data_log_enabled'      => $apbct->constants->do_not_collect_frontend_data_logs->isDefinedAndTypeOK() ? 0 : 1,
             'cookiePrefix'                         => apbct__get_cookie_prefix(),
             'wprocket_detected'                    => apbct_is_plugin_active('wp-rocket/wp-rocket.php'),
             'host_url'                             => Server::get('HTTP_HOST'),

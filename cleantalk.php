@@ -52,7 +52,18 @@ if ( ! defined('ABSPATH') ) {
     die('Not allowed!');
 }
 
-global $apbct, $wpdb, $pagenow;
+/**
+ * @var State $apbct
+ */
+global $apbct;
+/**
+ * @var \wpdb $wpdb
+ */
+global $wpdb;
+/**
+ * @var mixed|string $pagenow
+ */
+global $pagenow;
 
 $cleantalk_executed = false;
 
@@ -125,6 +136,7 @@ if ( preg_match('@^(\d+)\.(\d+)\.(\d{1,2})-(dev|fix)$@', $plugin_version__agent,
 }
 define('APBCT_AGENT', 'wordpress-' . $plugin_version__agent); // Prepared agent
 
+//todo make this as $apbct->service_constants
 if ( defined('CLEANTALK_SERVER') ) {
     define('APBCT_MODERATE_URL', 'https://moderate.' . CLEANTALK_SERVER);
     if ( ! defined('CLEANTALK_API_URL') ) {
@@ -252,7 +264,7 @@ function apbct_register_my_rest_routes()
 // Database prefix
 global $wpdb, $wp_version;
 $apbct->db_prefix = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $wpdb->prefix : $wpdb->base_prefix;
-$apbct->db_prefix = ! $apbct->white_label && defined('CLEANTALK_ACCESS_KEY') ? $wpdb->base_prefix : $wpdb->prefix;
+$apbct->db_prefix = ! $apbct->white_label && $apbct->constants->self_owned_access_key->isDefinedAndTypeOK() ? $wpdb->base_prefix : $wpdb->prefix;
 
 /** @todo HARDCODE FIX */
 if ( $apbct->plugin_version === '1.0.0' ) {
@@ -1208,8 +1220,8 @@ function apbct_sfw_update__switch_to_direct()
 
     $apbct->fw_stats['reason_direct_update_log'] = null;
 
-    if (defined('APBCT_SFW_FORCE_DIRECT_UPDATE')) {
-        $apbct->fw_stats['reason_direct_update_log'] = 'const APBCT_SFW_FORCE_DIRECT_UPDATE exists';
+    if ($apbct->constants->sfw_force_direct_update->isDefined()) {
+        $apbct->fw_stats['reason_direct_update_log'] = 'constant exists';
         return true;
     }
 
@@ -2770,15 +2782,15 @@ function ct_account_status_check($api_key = null, $process_errors = true)
             : 0;
 
         //todo:temporary solution for description, until we found the way to transfer this from cloud
-        if (defined('APBCT_WHITELABEL_PLUGIN_DESCRIPTION')) {
+        if ($apbct->constants->whitelabel_plugin_description->isDefinedAndTypeOK()) {
             /** @psalm-suppress PossiblyInvalidArrayAssignment */
-            $result['wl_antispam_description'] = APBCT_WHITELABEL_PLUGIN_DESCRIPTION;
+            $result['wl_antispam_description'] = esc_html($apbct->constants->whitelabel_plugin_description->getValue());
         }
 
         //todo:temporary solution for FAQ
-        if (defined('APBCT_WHITELABEL_FAQ_LINK')) {
+        if ($apbct->constants->whitelabel_faq_link->isDefinedAndTypeOK()) {
             /** @psalm-suppress PossiblyInvalidArrayAssignment */
-            $result['wl_faq_url'] = APBCT_WHITELABEL_FAQ_LINK;
+            $result['wl_faq_url'] = esc_url($apbct->constants->whitelabel_faq_link->getValue());
         }
 
         if ( isset($result['wl_status']) && $result['wl_status'] === 'ON' ) {
