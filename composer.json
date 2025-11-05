@@ -42,5 +42,12 @@
             "dealerdirect/phpcodesniffer-composer-installer": true,
             "cleantalk/apbct-installer": true
         }
-    }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "C:\\Users\\Папа\\Documents\\cleantalk-apbct-composer-packets\\contacts-encoder",
+            "options": {"symlink": true}
+        }
+    ]
 }

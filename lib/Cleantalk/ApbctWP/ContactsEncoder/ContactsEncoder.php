@@ -1,19 +1,38 @@
 <?php
 
-namespace Cleantalk\ApbctWP\Antispam;
+namespace Cleantalk\ApbctWP\ContactsEncoder;
 
 use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
+use Cleantalk\ApbctWP\ContactsEncoder\Shortcodes\ShortCodesService;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Common\TT;
 use Cleantalk\Variables\Post;
 
-class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
+class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
 {
+    /**
+     * @var EmailEncoderHelper
+     */
+    private $helper;
+    /**
+     * @var ShortCodesService
+     */
+    private $shortcodes;
+    /**
+     * @var string
+     */
     /**
      * @var null|string Comment from API response
      */
     private $comment;
+
+    public function init()
+    {
+        parent::init();
+        $this->shortcodes = new ShortCodesService();
+        $this->helper = new EmailEncoderHelper();
+    }
 
     /**
      * Check if the decoding is allowed

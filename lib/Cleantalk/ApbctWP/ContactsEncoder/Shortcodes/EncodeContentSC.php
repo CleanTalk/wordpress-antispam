@@ -1,10 +1,10 @@
 <?php
 
-namespace Cleantalk\Antispam\EmailEncoder\Shortcodes;
+namespace Cleantalk\ApbctWP\ContactsEncoder\Shortcodes;
 
 use Cleantalk\Antispam\EmailEncoder\EmailEncoder;
-use Cleantalk\Antispam\EmailEncoder\ExclusionsService;
 use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService;
 
 /**
  * Shortcode to encode any string content.

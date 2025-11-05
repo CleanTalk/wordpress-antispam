@@ -1,6 +1,6 @@
 <?php
 
-namespace Cleantalk\Antispam\EmailEncoder\Shortcodes;
+namespace Cleantalk\ApbctWP\ContactsEncoder\Shortcodes;
 
 /**
  * Init and register shortcodes for EmailEncoder

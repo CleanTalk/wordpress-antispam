@@ -2,9 +2,12 @@
 
 namespace Cleantalk\Antispam\EmailEncoder;
 
-use Cleantalk\Antispam\EmailEncoder\Shortcodes\ShortCodesService;
 use Cleantalk\ApbctWP\AJAXService;
+use Cleantalk\ApbctWP\ContactsEncoder\EmailEncoderHelper;
+use Cleantalk\ApbctWP\ContactsEncoder\Shortcodes\ShortCodesService;
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\ContactsEncoder\Encoder\Encoder;
+use Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService;
 use Cleantalk\Templates\Singleton;
 
 /**
@@ -18,9 +21,7 @@ class EmailEncoder
      * @var Encoder
      */
     public $encoder;
-    /**
-     * @var ExclusionsService
-     */
+
     /**
      * @var string[]
      */

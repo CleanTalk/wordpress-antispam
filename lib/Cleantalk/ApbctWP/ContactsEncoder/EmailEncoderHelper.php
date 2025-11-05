@@ -1,6 +1,6 @@
 <?php
 
-namespace Cleantalk\Antispam\EmailEncoder;
+namespace Cleantalk\ApbctWP\ContactsEncoder;
 
 /**
  * Exclusions to use on content during modification chunks.
