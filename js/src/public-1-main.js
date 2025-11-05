@@ -695,6 +695,10 @@ class ApbctHandler {
                             sourceSign.found = 'action=drplus_signup';
                             sourceSign.keepUnwrapped = true;
                         }
+                        if (settings.data.indexOf('action=bt_cc') !== -1) {
+                            sourceSign.found = 'action=bt_cc';
+                            sourceSign.keepUnwrapped = true;
+                        }
                     }
                     if ( typeof settings.url === 'string' ) {
                         if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {
@@ -714,9 +718,7 @@ class ApbctHandler {
                                     eventToken = 'data%5Bct_bot_detector_event_token%5D=' + token + '&';
                                 }
                             }
-                        }
-
-                        if (ctPublic && ctPublic.data__cookies_type === 'none') {
+                        } else {
                             noCookieData = getNoCookieData();
                             if (sourceSign.keepUnwrapped) {
                                 noCookieData = 'ct_no_cookie_hidden_field=' + noCookieData + '&';

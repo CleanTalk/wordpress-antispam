@@ -427,6 +427,14 @@ Fix. Hide website field. Forced condition to replace via honeypot.
 Upd. Server Requirements Checker. Added curl_multi_exec to the check-list.
 New. Email exists check. Implemented for CF7. (#669)
 Upd. Settings. Updated access key link parameters for improved registration process.
+Fix. Settings. Typo (system requirements) fixed.
+Fix. Settings. Complete deactivation fixed.
+Fix. State. Default `fw_stats` fixed.
+Fix. SFW. SFW updating (process exclusions) fixed.
+Fix. Exclusion. Newsletter Automation. Skip test newsletter check.
+Fix. Integration. btQuoteBooking form params gathering fixed.
+Fix. Integration. WP Mailer Lite. Fixed exclusion.
+
 
 = 6.66 16.10.2025 =
 Fix. Remote calls. Debug RC now hide sensitive data.
