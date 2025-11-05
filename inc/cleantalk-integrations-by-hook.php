@@ -468,6 +468,16 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'GwolleGuestbook' => array(
+        'hook'    => 'gwolle_gb_new_entry_frontend',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
+    'FLBuilderForms' => array(
+        'hook'    => 'fl_builder_subscribe_form_submit',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_active_integrations) {

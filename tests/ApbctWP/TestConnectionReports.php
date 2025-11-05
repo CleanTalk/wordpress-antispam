@@ -55,41 +55,88 @@ class TestConnectionReports extends TestCase
     public function testAddingSuccessReportProcess()
     {
         $this->connection_reports->wipeReportsData();
-        $this->connection_reports->getReportsDataFromDb();
 
         $this->ct_response->errno = 0;
         $this->ct_response->errstr = '';
         $this->connection_reports->handleRequest($this->ct_request, $this->ct_response, 0);
         $this->assertFalse($this->connection_reports->hasNegativeReports());
-        $this->assertEmpty($this->connection_reports->hasUnsentReports());
+        $this->assertFalse($this->connection_reports->hasUnsentReports());
         $this->assertEquals('Nothing to sent.', $this->connection_reports->sendUnsentReports());
-
     }
 
     public function testAddingNegativeReportProcess()
     {
         $this->connection_reports->wipeReportsData();
-        $this->connection_reports->getReportsDataFromDb();
 
         $this->ct_response->errno = 404;
         $this->ct_response->errstr = 'TEST 404 ERROR';
         $this->ct_response->failed_connections_urls_string = 'test.moderate1.cleantalk.org,test.moderate1.cleantalk.org';
         $this->ct_request->js_on = 0;
         $this->connection_reports->handleRequest($this->ct_request, $this->ct_response, 1);
+
         $this->assertTrue($this->connection_reports->hasNegativeReports());
-        $data = $this->connection_reports->getReportsDataFromDb();
+
+        // Get from RC directly
+        $data = $this->connection_reports->remoteCallOutput();
         $this->assertNotEmpty($data);
         $this->assertNotEmpty($data[0]['lib_report']);
         $this->assertEquals('TEST 404 ERROR', $data[0]['lib_report']);
         $this->assertEquals('1', $data[0]['js_block']);
         $this->assertEquals('test.moderate1.cleantalk.org,test.moderate1.cleantalk.org', $data[0]['failed_work_urls']);
-        $this->assertNotEmpty($this->connection_reports->prepareNegativeReportsHtmlForSettingsPage());
 
+        $this->assertNotEmpty($this->connection_reports->prepareNegativeReportsHtmlForSettingsPage());
         $this->assertTrue($this->connection_reports->hasUnsentReports());
 
         $this->assertEquals('1 reports were sent.', $this->connection_reports->sendUnsentReports());
-
         $this->assertNotEmpty($this->connection_reports->remoteCallOutput());
+    }
 
+    public function testReportsRotation()
+    {
+        $this->connection_reports->wipeReportsData();
+
+        // Try to add more than limit
+        for ($i = 0; $i < 25; $i++) {
+            $this->ct_response->errno = 500;
+            $this->ct_response->errstr = 'TEST ERROR ' . $i;
+            $this->ct_response->failed_connections_urls_string = 'server' . $i . '.cleantalk.org';
+            $this->connection_reports->handleRequest($this->ct_request, $this->ct_response, 0);
+        }
+
+        $data = $this->connection_reports->remoteCallOutput();
+        // Should be 20 maximum
+        $this->assertLessThanOrEqual(20, count($data));
+    }
+
+    public function testUnsentReportsCache()
+    {
+        $this->connection_reports->wipeReportsData();
+
+        // Add several reports
+        $this->ct_response->errno = 404;
+        $this->ct_response->errstr = 'TEST ERROR';
+        $this->ct_response->failed_connections_urls_string = 'test.cleantalk.org';
+
+        $this->connection_reports->handleRequest($this->ct_request, $this->ct_response, 0);
+        $this->connection_reports->handleRequest($this->ct_request, $this->ct_response, 1);
+
+        // Check that unsent exists
+        $this->assertTrue($this->connection_reports->hasUnsentReports());
+
+        // Sending reports
+        $this->assertEquals('2 reports were sent.', $this->connection_reports->sendUnsentReports());
+
+        // Should be no more unsent reports
+        $this->assertFalse($this->connection_reports->hasUnsentReports());
+    }
+
+    public function testEmptyReports()
+    {
+        $this->connection_reports->wipeReportsData();
+
+        $this->assertFalse($this->connection_reports->hasNegativeReports());
+        $this->assertFalse($this->connection_reports->hasUnsentReports());
+        $this->assertEquals('', $this->connection_reports->prepareNegativeReportsHtmlForSettingsPage());
+        $this->assertEquals(array(), $this->connection_reports->remoteCallOutput());
     }
 }
