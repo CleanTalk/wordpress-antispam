@@ -1856,6 +1856,7 @@ function initParams() {
             apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
             apbct('form.wpcf7-form input[type = "email"]')
                 .on('blur', ctDebounceFuncExec(checkEmailExist, 300) );
+            apbct('form.wpforms-form input[type = "email"]').on('blur', checkEmailExist);
         }
     }
 
@@ -5914,6 +5915,7 @@ function ctEmailExistSetElementsPositions(inputEmail) {
         backgroundSize = 'inherit';
     }
     const envelope = document.getElementById('apbct-check_email_exist-block');
+
     if (envelope) {
         envelope.style.cssText = `
             top: ${inputRect.top}px;
