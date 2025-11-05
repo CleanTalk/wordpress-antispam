@@ -6,15 +6,12 @@ use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\ApbctWP\ContactsEncoder\Shortcodes\ShortCodesService;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\Common\ContactsEncoder\Helper\EmailEncoderHelper;
 use Cleantalk\Common\TT;
 use Cleantalk\Variables\Post;
 
 class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
 {
-    /**
-     * @var EmailEncoderHelper
-     */
-    private $helper;
     /**
      * @var ShortCodesService
      */
@@ -27,11 +24,73 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     private $comment;
 
-    public function init()
+    public function init($params)
     {
-        parent::init();
+        global $apbct;
+
+        parent::init($params);
+
         $this->shortcodes = new ShortCodesService();
-        $this->helper = new EmailEncoderHelper();
+
+        $this->shortcodes->registerAll();
+        $this->shortcodes->addActionsAfterModify('the_content', 11);
+        $this->shortcodes->addActionsAfterModify('the_title', 11);
+
+        $this->registerHookHandler();
+
+        $hooks_to_encode = array(
+            'the_title',
+            'the_content',
+            'the_excerpt',
+            'get_footer',
+            'get_header',
+            'get_the_excerpt',
+            'comment_text',
+            'comment_excerpt',
+            'comment_url',
+            'get_comment_author_url',
+            'get_comment_author_url_link',
+            'widget_title',
+            'widget_text',
+            'widget_content',
+            'widget_output',
+            'widget_block_content',
+            'render_block',
+        );
+
+        // Search data to buffer
+        if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post() && !is_admin()) {
+            add_action('wp', 'apbct_buffer__start');
+            add_action('shutdown', 'apbct_buffer__end', 0);
+            add_action('shutdown', array($this, 'bufferOutput'), 2);
+            $this->shortcodes->addActionsAfterModify('shutdown', 3);
+        } else {
+            foreach ( $hooks_to_encode as $hook ) {
+                $this->shortcodes->addActionsBeforeModify($hook, 9);
+                add_filter($hook, array($this, 'modifyContent'), 10);
+            }
+        }
+
+        // integration with Business Directory Plugin
+        add_filter('wpbdp_form_field_display', array($this, 'modifyFormFieldDisplay'), 10, 4);
+    }
+
+    /**
+     * @param string $html
+     * @param object $field
+     * @param string $display_context
+     * @param int $post_id
+     * @return string
+     * @psalm-suppress PossiblyUnusedParam, PossiblyUnusedReturnValue
+     */
+    public function modifyFormFieldDisplay($html, $field, $display_context, $post_id)
+    {
+        if (mb_strpos($html, 'mailto:') !== false) {
+            $html = html_entity_decode($html);
+            return $this->modifyContent($html);
+        }
+
+        return $html;
     }
 
     /**
@@ -437,5 +496,25 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             $ancor_to_section,
             __('to tune the encoding.', 'cleantalk_spam_protect')
         );
+    }
+
+
+    /**
+     * Register AJAX routes to run decoding
+     * @return void
+     */
+    public function registerAjaxRoute()
+    {
+        add_action('wp_ajax_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
+        add_action('wp_ajax_nopriv_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
+    }
+
+    /**
+     * @return void
+     */
+    private function registerHookHandler()
+    {
+        add_filter('apbct_encode_data', [$this, 'modifyAny'], 10, 3);
+        add_filter('apbct_encode_email_data', [$this, 'modifyContent']);
     }
 }

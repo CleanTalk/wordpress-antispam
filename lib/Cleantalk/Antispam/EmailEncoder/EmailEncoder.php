@@ -3,11 +3,11 @@
 namespace Cleantalk\Antispam\EmailEncoder;
 
 use Cleantalk\ApbctWP\AJAXService;
-use Cleantalk\ApbctWP\ContactsEncoder\EmailEncoderHelper;
 use Cleantalk\ApbctWP\ContactsEncoder\Shortcodes\ShortCodesService;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\Common\ContactsEncoder\Encoder\Encoder;
 use Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService;
+use Cleantalk\Common\ContactsEncoder\Helper\EmailEncoderHelper;
 use Cleantalk\Templates\Singleton;
 
 /**
