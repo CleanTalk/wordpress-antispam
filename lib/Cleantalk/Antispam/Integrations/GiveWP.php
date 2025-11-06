@@ -23,11 +23,15 @@ class GiveWP extends IntegrationBase
              * Filter for POST
              */
             $input_array = apply_filters('apbct__filter_post', $_POST);
-            $nickname = Post::getString('firstName');
-            $nickname = empty($nickname)
-                ? Post::getString('lastName')
-                : $nickname . ' ' . Post::getString('lastName');
-            $email = Post::getString('email');
+            $nickname = '';
+            $email = '';
+            if ($this->is_rest) {
+                $nickname = Post::getString('firstName');
+                $nickname = empty($nickname)
+                    ? Post::getString('lastName')
+                    : $nickname . ' ' . Post::getString('lastName');
+                $email = Post::getString('email');
+            }
 
             return ct_get_fields_any($input_array, $email, $nickname);
         }
