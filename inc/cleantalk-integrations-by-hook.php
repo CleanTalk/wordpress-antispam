@@ -99,7 +99,7 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'GiveWP' => array(
-        'hook'    => 'give_checkout_error_checks',
+        'hook'    => ['give_checkout_error_checks','givewp_donation_form_fields_validated'],
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),

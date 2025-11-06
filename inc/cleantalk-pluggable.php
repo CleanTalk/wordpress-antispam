@@ -1044,7 +1044,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         // GiveWP - having the direct integration
         if (
             (apbct_is_plugin_active('give/give.php') &&
-            TT::toString(Post::get('action')) === 'give_process_donation')
+             Post::getString('action') === 'give_process_donation')
         ) {
             return 'GiveWP';
         }
