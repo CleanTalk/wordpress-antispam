@@ -29,7 +29,7 @@ class GiveWP extends IntegrationBase
                 : $nickname . ' ' . Post::getString('lastName');
             $email = Post::getString('email');
 
-            return ct_get_fields_any($input_array, '', $nickname);
+            return ct_get_fields_any($input_array, $email, $nickname);
         }
 
         return null;
