@@ -363,6 +363,11 @@ function apbct_init()
         ct_contact_form_validate();
     }
 
+    // Ultimate affiliate plugin (codecanyon)
+    if (Post::getString('uapaction') === 'register') {
+        ct_contact_form_validate();
+    }
+
     if ( $apbct->settings['trusted_and_affiliate__shortcode'] === '1' ) {
         add_shortcode('cleantalk_affiliate_link', 'apbct_trusted_text_shortcode_handler');
     }
