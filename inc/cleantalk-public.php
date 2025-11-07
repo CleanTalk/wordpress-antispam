@@ -1370,7 +1370,7 @@ function apbct_perfmatters_remove_from_delayed_scripts($included)
     }
 
     // Remove any CleanTalk-related entries from the inclusions list
-    return array_filter($included, function($item) {
+    return array_filter($included, function ($item) {
         return stripos($item, 'ctPublicFunctions') === false &&
                stripos($item, 'ctPublic') === false &&
                stripos($item, 'cleantalk-spam-protect') === false;
