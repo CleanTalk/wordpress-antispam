@@ -1,34 +1,35 @@
 <?php
 
-namespace Antispam;
+namespace ApbctWP\ContactsEncoder;
 
-use Cleantalk\Antispam\EmailEncoder\EmailEncoder;
-use PHPUnit\Framework\TestCase;
+use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\State;
+use Cleantalk\Common\ContactsEncoder\Dto\Params;
+use PHPUnit\Framework\TestCase;
 
 class TestEmailEncoder extends TestCase
 {
 
     /**
-     * @var EmailEncoder
+     * @var ContactsEncoder
      */
-    private $email_encoder;
+    private $contacts_encoder;
 
     private $plain_text = 'This is a plain text';
 
     public function setUp()
     {
         global $apbct;
-        $apbct->api_key      = 'testapikey';
-        $this->email_encoder = EmailEncoder::getInstance();
+        $apbct->api_key         = 'testapikey';
+        $this->contacts_encoder = apbctGetContactsEncoder();
     }
 
     public function testPlainTextEncodeDecodeSSL()
     {
-        $encoded_plain = $this->email_encoder->encoder->encodeString($this->plain_text);
+        $encoded_plain = $this->contacts_encoder->encoder->encodeString($this->plain_text);
         $this->assertNotEmpty($encoded_plain);
         $this->assertIsString($encoded_plain);
-        $decoded_entity = $this->email_encoder->encoder->decodeString($encoded_plain);
+        $decoded_entity = $this->contacts_encoder->encoder->decodeString($encoded_plain);
         $this->assertNotEmpty($decoded_entity);
         $this->assertIsString($decoded_entity);
         global $apbct;
@@ -44,7 +45,7 @@ class TestEmailEncoder extends TestCase
         global $apbct;
         $null = null;
 
-        $encoded_plain = $this->email_encoder->encoder->encodeString($null);
+        $encoded_plain = $this->contacts_encoder->encoder->encodeString($null);
         $this->assertNull($null);
         $this->assertTrue($apbct->isHaveErrors());
         $this->assertArrayHasKey('email_encoder', $apbct->errors);
@@ -58,7 +59,7 @@ class TestEmailEncoder extends TestCase
 
         $empty_string = '';
 
-        $encoded_plain = $this->email_encoder->encoder->encodeString($empty_string);
+        $encoded_plain = $this->contacts_encoder->encoder->encodeString($empty_string);
         $this->assertEmpty($empty_string);
         $this->assertTrue($apbct->isHaveErrors());
         $this->assertArrayHasKey('email_encoder', $apbct->errors);
@@ -73,14 +74,14 @@ class TestEmailEncoder extends TestCase
 
     public function testPlainTextEncodeDecodeBase()
     {
-        $encoded_plain                = $this->email_encoder->ignoreOpenSSLMode()->encoder->encodeString($this->plain_text);
+        $encoded_plain                = $this->contacts_encoder->ignoreOpenSSLMode()->encoder->encodeString($this->plain_text);
         $this->assertNotEmpty($encoded_plain);
         $this->assertIsString($encoded_plain);
         // make sure that b64 fired instead of ssl
         $decoded_b_string = base64_decode($encoded_plain);
         $decoded_b_string = str_rot13($decoded_b_string);
         $this->assertEquals($this->plain_text, $decoded_b_string);
-        $decoded_entity = $this->email_encoder->encoder->decodeString($encoded_plain);
+        $decoded_entity = $this->contacts_encoder->encoder->decodeString($encoded_plain);
         $this->assertNotEmpty($decoded_entity);
         $this->assertIsString($decoded_entity);
         global $apbct;
@@ -101,7 +102,7 @@ class TestEmailEncoder extends TestCase
             ['@.@.@', '@.@.@'],
         );
         foreach ($test_array as $item) {
-            $result = $this->email_encoder->getObfuscatedEmailString($item[0]);
+            $result = $this->contacts_encoder->getObfuscatedEmailString($item[0]);
             $this->assertEquals($item[1],$result);
         }
     }
@@ -116,24 +117,30 @@ class TestEmailEncoder extends TestCase
         $regexp_for_obfuscation = '/.+data-original-string=[\s\S]+apbct-email-encoder[\s\S]+browser\.[\"\']>+' . $test_email_obf . '/';
         $regexp_for_replace = '/.+data-original-string=[\s\S]+apbct-email-encoder[\s\S]+browser\.[\"\']>.+' . $test_email_replace . '/';
 
-        $apbct->settings['data__email_decoder_obfuscation_mode'] = 'blur';
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_BLUR;
         $apbct->saveSettings();
-        $result = $this->email_encoder->modifyContent($test_email);
+        $this->contacts_encoder->dropInstance(); // Need to rebuild the object after the settings changed
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $result = $this->contacts_encoder->modifyContent($test_email);
         $this->assertNotRegExp($regexp_for_obfuscation, $result);
         $this->assertNotRegExp($regexp_for_replace, $result);
         $this->assertRegExp($regexp_for_blur, $result);
 
-        $apbct->settings['data__email_decoder_obfuscation_mode'] = 'obfuscate';
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_OBFUSCATE;
         $apbct->saveSettings();
-        $result = $this->email_encoder->modifyContent($test_email);
+        $this->contacts_encoder->dropInstance(); // Need to rebuild the object after the settings changed
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $result = $this->contacts_encoder->modifyContent($test_email);
         $this->assertNotRegExp($regexp_for_replace, $result);
         $this->assertNotRegExp($regexp_for_blur, $result);
         $this->assertRegExp($regexp_for_obfuscation, $result);
 
-        $apbct->settings['data__email_decoder_obfuscation_mode'] = 'replace';
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_REPLACE;
         $apbct->settings['data__email_decoder_obfuscation_custom_text'] = $test_email_replace;
         $apbct->saveSettings();
-        $result = $this->email_encoder->modifyContent($test_email);
+        $this->contacts_encoder->dropInstance(); // Need to rebuild the object after the settings changed
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $result = $this->contacts_encoder->modifyContent($test_email);
         $this->assertNotRegExp($regexp_for_blur, $result);
         $this->assertNotRegExp($regexp_for_obfuscation, $result);
         $this->assertRegExp($regexp_for_replace, $result);
@@ -143,9 +150,12 @@ class TestEmailEncoder extends TestCase
     {
         global $apbct;
 
-        $apbct->settings['data__email_decoder_obfuscation_mode'] = 'blur';
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_BLUR;
         $apbct->settings['data__email_decoder_encode_phone_numbers'] = 1;
         $apbct->saveSettings();
+
+        $this->contacts_encoder->dropInstance(); // Need to rebuild the object after the settings changed
+        $this->contacts_encoder = apbctGetContactsEncoder();
 
         $test_stack = array(
             '+442071838750',
@@ -172,14 +182,14 @@ class TestEmailEncoder extends TestCase
         $regexp_for_blur = '/.+data-original-string=[\s\S]+apbct-email-encoder[\s\S]+browser\.[\"\']>[\s\S]+apbct-blur[\s\S]+\*?\*+<\/span>[\s\S]+/';
 
         foreach ($test_stack as $phone) {
-            $result = $this->email_encoder->modifyContent($phone);
+            $result = $this->contacts_encoder->modifyContent($phone);
             $this->assertNotEmpty($result);
             $this->assertStringNotContainsString($phone, $result);
             $this->assertRegExp($regexp_for_blur, $result);
         }
 
         foreach ($test_stack_skip_to as $phone) {
-            $result = $this->email_encoder->modifyContent($phone);
+            $result = $this->contacts_encoder->modifyContent($phone);
             $this->assertNotEmpty($result);
             $this->assertEquals($phone, $result);
         }
@@ -193,17 +203,23 @@ class TestEmailEncoder extends TestCase
         $test_tel_obfuscated = '\+1777\*\*\*\*\*22';
         $regexp_for_obfuscation = '/.+data-original-string=[\s\S]+apbct-email-encoder[\s\S]+browser\.[\"\']>+' . $test_tel_obfuscated . '/';
 
-        $apbct->settings['data__email_decoder_obfuscation_mode'] = 'obfuscate';
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_OBFUSCATE;
         $apbct->settings['data__email_decoder_encode_phone_numbers'] = 1;
         $apbct->saveSettings();
 
-        $result = $this->email_encoder->modifyContent($test_tel_origin);
+        $this->contacts_encoder->dropInstance(); // Need to rebuild the object after the settings changed
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $result = $this->contacts_encoder->modifyContent($test_tel_origin);
         $this->assertRegExp($regexp_for_obfuscation, $result);
 
         $apbct->settings['data__email_decoder_encode_phone_numbers'] = 0;
         $apbct->saveSettings();
 
-        $result = $this->email_encoder->modifyContent($test_tel_origin);
+        $this->contacts_encoder->dropInstance(); // Need to rebuild the object after the settings changed
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $result = $this->contacts_encoder->modifyContent($test_tel_origin);
         $this->assertEquals($test_tel_origin, $result);
     }
 
