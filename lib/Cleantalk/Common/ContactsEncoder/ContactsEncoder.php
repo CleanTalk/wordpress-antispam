@@ -1,0 +1,831 @@
+<?php
+
+namespace Cleantalk\Common\ContactsEncoder;
+
+use Cleantalk\Common\ContactsEncoder\Helper\ContactsEncoderHelper;
+use Cleantalk\Common\ContactsEncoder\Dto\Params;
+use Cleantalk\Common\ContactsEncoder\Encoder\Encoder;
+use Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService;
+use Cleantalk\Common\ContactsEncoder\Obfuscator\Obfuscator;
+use Cleantalk\Common\ContactsEncoder\Obfuscator\ObfuscatorEmailData;
+
+/**
+ * Contacts Encoder common class.
+ */
+abstract class ContactsEncoder
+{
+    /**
+     * @var Encoder
+     */
+    public $encoder;
+
+    /**
+     * @var ContactsEncoderHelper
+     */
+    private $helper;
+
+    /**
+     * @var ExclusionsService
+     */
+    protected $exclusions;
+
+    /**
+     * @var string[]
+     */
+    public $decoded_contacts_array = array();
+
+    /**
+     * Temporary content to use in regexp callback
+     * @var string
+     */
+    private $temp_content;
+
+    /**
+     * @var string
+     */
+    private $aria_regex = '/aria-label.?=.?[\'"].+?[\'"]/';
+
+    /**
+     * @var array
+     */
+    private $aria_matches = array();
+
+    /**
+     * Attributes with possible email-like content to drop from the content to avoid unnecessary encoding.
+     * Key is a tag we want to find, value is an attribute with email to drop.
+     * @var array
+     */
+    private static $attributes_to_drop = array(
+        'a' => 'title',
+    );
+
+    /**
+     * @var string
+     */
+    private $global_obfuscation_mode;
+
+    /**
+     * @var string
+     */
+    private $global_replacing_text;
+
+    /**
+     * @var int|mixed
+     */
+    private $do_encode_emails;
+
+    /**
+     * @var int|mixed
+     */
+    private $do_encode_phones;
+
+    /**
+     * @var bool
+     */
+    protected $is_encode_allowed = true;
+
+    /**
+     * @var bool
+     */
+    protected $is_logged_in = false;
+
+    protected static $instance;
+
+    public function __construct()
+    {
+    }
+
+    public function __wakeup()
+    {
+    }
+
+    public function __clone()
+    {
+    }
+
+    /**
+     * Constructor
+     * @return $this
+     * @throws \Exception
+     */
+    public static function getInstance(Params $params = null)
+    {
+        if ( ! isset(static::$instance) ) {
+            if ( ! $params ) {
+                throw new \Exception('Params object not set');
+            }
+            static::$instance = new static();
+            static::$instance->init($params);
+        }
+        return static::$instance;
+    }
+
+    /**
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function dropInstance()
+    {
+        self::$instance = null;
+    }
+
+    /**
+     * @param Params $params
+     *
+     * @return void
+     */
+    protected function init($params)
+    {
+        $this->exclusions = new ExclusionsService();
+        $this->encoder = new Encoder(md5($params->api_key));
+        $this->helper = new ContactsEncoderHelper();
+        $this->global_obfuscation_mode = $params->obfuscation_mode;
+        $this->global_replacing_text = $params->obfuscation_text;
+        $this->do_encode_emails = $params->do_encode_emails;
+        $this->do_encode_phones = $params->do_encode_phones;
+        $this->is_logged_in = $params->is_logged_in;
+
+        if ($this->is_logged_in) {
+            $this->ignoreOpenSSLMode();
+        }
+    }
+
+    public function runEncoding($content = '')
+    {
+        if ( $this->exclusions->doSkipBeforeAnything() ) {
+            return $content;
+        }
+        return $this->modifyContent($content);
+    }
+
+    /**
+     * @param $encoded_contacts_data
+     *
+     * @return array
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function runDecoding($encoded_contacts_data)
+    {
+        return $this->decodeContactData($encoded_contacts_data);
+    }
+
+    /*
+     * =============== MODIFYING ===============
+     */
+
+    /**
+     * @param string $content
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedReturnValue
+     */
+    public function modifyContent($content)
+    {
+        if ( $this->exclusions->doReturnContentBeforeModify($content) ) {
+            return $content;
+        }
+
+        // modify content to prevent aria-label replaces by hiding it
+        $content = $this->handleAriaLabelContent($content);
+
+        // will use this in regexp callback
+        $this->temp_content = $content;
+
+        $content = self::dropAttributesContainEmail($content, self::$attributes_to_drop);
+
+        // Main logic
+
+        $this->do_encode_emails && $content = $this->modifyGlobalEmails($content);
+
+        $this->do_encode_phones && $content = $this->modifyGlobalPhoneNumbers($content);
+
+        return $content;
+    }
+
+    /**
+     * @param string $content
+     * @return string
+     * @psalm-suppress PossiblyUnusedReturnValue
+     * @phpcs:disable PHPCompatibility.FunctionUse.NewFunctionParameters.preg_replace_callback_flagsFound
+     */
+    public function modifyGlobalEmails($content)
+    {
+        $pattern = '/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b))/';
+        $replacing_result = '';
+
+        if ( version_compare(phpversion(), '7.4.0', '>=') ) {
+            $replacing_result = preg_replace_callback($pattern, function ($matches) use ($content) {
+                if ( isset($matches[3][0], $matches[0][0]) && in_array(strtolower($matches[3][0]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
+                    return $matches[0][0];
+                }
+
+                //chek if email is placed in excluded attributes and return unchanged if so
+                if ( isset($matches[0][0]) && $this->helper->hasAttributeExclusions($matches[0][0], $this->temp_content) ) {
+                    return $matches[0][0];
+                }
+
+                // skip encoding if the content in script tag
+                if ( isset($matches[0][0]) && $this->helper->isInsideScriptTag($matches[0][0], $content) ) {
+                    return $matches[0][0];
+                }
+
+                if ( isset($matches[0][0]) && $this->helper->isMailto($matches[0][0]) ) {
+                    return $this->encodeMailtoLinkV2($matches[0], $content);
+                }
+
+                if (
+                    isset($matches[0]) &&
+                    is_array($matches[0]) &&
+                    $this->helper->isMailtoAdditionalCopy($matches[0], $content)
+                ) {
+                    return '';
+                }
+
+                if (
+                    isset($matches[0], $matches[0][0]) &&
+                    is_array($matches[0]) &&
+                    $this->helper->isEmailInLink($matches[0], $content)
+                ) {
+                    return $matches[0][0];
+                }
+
+                if ( isset($matches[0][0]) ) {
+                    return $this->encodePlainEmail($matches[0][0]);
+                }
+
+                return '';
+            }, $content, -1, $count, PREG_OFFSET_CAPTURE);
+        }
+
+        if ( version_compare(phpversion(), '7.4.0', '<') ) {
+            $replacing_result = preg_replace_callback($pattern, function ($matches) {
+                if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) && isset($matches[0]) ) {
+                    return $matches[0];
+                }
+
+                //chek if email is placed in excluded attributes and return unchanged if so
+                if ( isset($matches[0]) && $this->helper->hasAttributeExclusions($matches[0], $this->temp_content) ) {
+                    return $matches[0];
+                }
+
+                if ( isset($matches[0]) &&  $this->helper->isMailto($matches[0]) ) {
+                    return $this->encodeMailtoLink($matches[0]);
+                }
+
+                if ( isset($matches[0]) ) {
+                    return $this->encodePlainEmail($matches[0]);
+                }
+
+                return '';
+            }, $content);
+        }
+
+        // modify content to turn back aria-label
+        $replacing_result = $this->handleAriaLabelContent($replacing_result, true);
+
+        //please keep this var (do not simplify the code) for further debug
+        return $replacing_result;
+    }
+
+    /**
+     * @param string $content
+     * @return string
+     * @psalm-suppress PossiblyUnusedReturnValue
+     * @phpcs:disable PHPCompatibility.FunctionUse.NewFunctionParameters.preg_replace_callback_flagsFound
+     */
+    public function modifyGlobalPhoneNumbers($content)
+    {
+        $pattern = '/(tel:\+\d{8,12})|([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)/';
+        $replacing_result = '';
+
+        if ( version_compare(phpversion(), '7.4.0', '>=') ) {
+            $replacing_result = preg_replace_callback($pattern, function ($matches) use ($content) {
+
+                if ( isset($matches[0][0]) && is_array($matches[0])) {
+                    if ($this->helper->isTelTag($matches[0][0])) {
+                        return $this->encodeTelLinkV2($matches[0], $content);
+                    }
+                    $item_length = strlen(str_replace([' ', '(', ')', '-', '+'], '', $matches[0][0]));
+                    if ($item_length > 12 || $item_length < 8) {
+                        return $matches[0][0];
+                    }
+                    if ($this->helper->hasAttributeExclusions($matches[0][0], $this->temp_content)) {
+                        return $matches[0][0];
+                    }
+                    if ($this->helper->isInsideScriptTag($matches[0][0], $content)) {
+                        return $matches[0][0];
+                    }
+                }
+
+                if ( isset($matches[0][0]) ) {
+                    return $this->encodeAny(
+                        $matches[0][0],
+                        $this->global_obfuscation_mode,
+                        $this->global_replacing_text,
+                        true
+                    );
+                }
+
+                return '';
+            }, $content, -1, $count, PREG_OFFSET_CAPTURE);
+        }
+
+        if ( version_compare(phpversion(), '7.4.0', '<') ) {
+            $replacing_result = preg_replace_callback($pattern, function ($matches) {
+                if ( isset($matches[0]) ) {
+                    if ($this->helper->isTelTag($matches[0]) ) {
+                        return $this->encodeTelLink($matches[0]);
+                    }
+
+                    $item_length = strlen(str_replace([' ', '(', ')', '-', '+'], '', $matches[0]));
+                    if ($item_length > 12 || $item_length < 8) {
+                        return $matches[0];
+                    }
+
+                    if ($this->helper->hasAttributeExclusions($matches[0][0], $this->temp_content)) {
+                        return $matches[0];
+                    }
+                }
+
+                if ( isset($matches[0]) ) {
+                    return $this->encodeAny(
+                        $matches[0],
+                        $this->global_obfuscation_mode,
+                        $this->global_replacing_text,
+                        true
+                    );
+                }
+
+                return '';
+            }, $content);
+        }
+
+        // modify content to turn back aria-label
+        $replacing_result = $this->handleAriaLabelContent($replacing_result, true);
+
+        //please keep this var (do not simplify the code) for further debug
+        return $replacing_result;
+    }
+
+    /**
+     * Wrapper. Encode any string.
+     * @param $string
+     *
+     * @return string
+     */
+    public function modifyAny($string, $mode = Params::OBFUSCATION_MODE_BLUR, $replacing_text = null)
+    {
+        $encoded_string = $this->encodeAny($string, $mode, $replacing_text);
+
+        //please keep this var (do not simplify the code) for further debug
+        return $encoded_string;
+    }
+
+    /*
+     * =============== ENCODE ENTITIES ===============
+     */
+
+    /**
+     * Method to process plain email
+     *
+     * @param string $email_str
+     *
+     * @return string
+     */
+    public function encodePlainEmail($email_str)
+    {
+        $obfuscated_string = $email_str;
+        $chunks_data = false;
+
+        if ( $this->global_obfuscation_mode !== Params::OBFUSCATION_MODE_REPLACE) {
+            $obfuscator = new Obfuscator();
+            $chunks = $obfuscator->getEmailData($email_str);
+            $chunks_data = $obfuscator->obfuscate_success ? $chunks : false;
+        }
+
+        $handled_string = $this->applyEffectsOnMode(
+            true,
+            $obfuscated_string,
+            $this->global_obfuscation_mode,
+            $this->global_replacing_text,
+            $chunks_data
+        );
+        $encoded_string = $this->encoder->encodeString($email_str);
+
+        return $this->constructEncodedSpan($encoded_string, $handled_string);
+    }
+
+    /**
+     * @param string $string of any data
+     * @param string $mode
+     * @param string $replacing_text
+     *
+     * @return string
+     */
+    private function encodeAny($string, $mode = Params::OBFUSCATION_MODE_BLUR, $replacing_text = null, $is_phone_number = false)
+    {
+        $obfuscated_string = $string;
+
+        if ($mode !== Params::OBFUSCATION_MODE_REPLACE) {
+            $obfuscator = new Obfuscator();
+            $obfuscated_string = $is_phone_number
+                ? $obfuscator->processPhone($string)
+                : $obfuscator->processString($string);
+        }
+
+        $string_with_effect = $this->applyEffectsOnMode(
+            false,
+            $obfuscated_string,
+            $mode,
+            $replacing_text
+        );
+        $encoded_string = $this->encoder->encodeString($string);
+
+        return $this->constructEncodedSpan($encoded_string, $string_with_effect);
+    }
+
+    /**
+     * Method to process mailto: links. For PHP < 7.4
+     *
+     * @param string $mailto_link_str
+     *
+     * @return string
+     */
+    private function encodeMailtoLink($mailto_link_str)
+    {
+        // Get inner tag text and place it in $matches[1]
+        preg_match('/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/', $mailto_link_str, $matches);
+        if ( isset($matches[1]) ) {
+            $mailto_inner_text = preg_replace_callback('/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/', function ($matches) {
+                if (isset($matches[0])) {
+                    return $this->getObfuscatedEmailString($matches[0]);
+                }
+            }, $matches[1]);
+        }
+        $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
+        $encoded = $this->encoder->encodeString($mailto_link_str);
+
+        $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
+
+        return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
+    }
+
+    /**
+     * Method to process mailto: links. Use this only for PHP 7.4+
+     *
+     * @param $match array
+     * @param $content string
+     *
+     * @return string
+     */
+    private function encodeMailtoLinkV2($match, $content)
+    {
+        $position = $match[1];
+        $q_position = $position + strcspn($content, '\'"', $position);
+        $mailto_link_str = substr($content, $position, $q_position - $position);
+        // Get inner tag text and place it in $matches[1]
+        preg_match('/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/', $mailto_link_str, $matches);
+        if ( isset($matches[1]) ) {
+            $mailto_inner_text = preg_replace_callback('/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/', function ($matches) {
+                if ( isset($matches[0]) ) {
+                    return $this->getObfuscatedEmailString($matches[0]);
+                }
+
+                return '';
+            }, $matches[1]);
+        }
+
+        $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
+        $encoded = $this->encoder->encodeString($mailto_link_str);
+
+        $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
+
+        return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
+    }
+
+    /**
+     * Method to process tel: links. For PHP < 7.4
+     *
+     * @param string $tel_link_str
+     *
+     * @return string
+     */
+    private function encodeTelLink($tel_link_str)
+    {
+        // Get inner tag text and place it in $matches[1]
+        preg_match('/tel:(\+\d{8,12})/', $tel_link_str, $matches);
+        if ( isset($matches[1]) ) {
+            $mailto_inner_text = preg_replace_callback('/\+\d{8,12}/', function ($matches) {
+                if (isset($matches[0])) {
+                    $obfuscator = new Obfuscator();
+                    return $obfuscator->processPhone($matches[0]);
+                }
+            }, $matches[1]);
+        }
+        $tel_link_str = str_replace('tel:', '', $tel_link_str);
+        $encoded      = $this->encoder->encodeString($tel_link_str);
+
+        $text = isset($mailto_inner_text) ? $mailto_inner_text : $tel_link_str;
+
+        return 'tel:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
+    }
+
+    /**
+     * Method to process tel: links. Use this only for PHP 7.4+
+     *
+     * @param array $match
+     * @param string $content
+     *
+     * @return string
+     */
+    private function encodeTelLinkV2($match, $content)
+    {
+        $position = !empty($match[1]) ? (int)$match[1] : null;
+        if (null === $position) {
+            return $content;
+        }
+        $q_position = $position + strcspn($content, '\'"', $position);
+        $tel_link_string = substr($content, $position, $q_position - $position);
+        // Get inner tag text and place it in $matches[1]
+        preg_match('/tel:(\+\d{8,12})/', $tel_link_string, $matches);
+        if ( isset($matches[1]) ) {
+            $tel_inner_text = preg_replace_callback('/\+\d{8,12}/', function ($matches) {
+                if ( isset($matches[0]) ) {
+                    $obfuscator = new Obfuscator();
+                    return $obfuscator->processPhone($matches[0]);
+                }
+                return '';
+            }, $matches[1]);
+        }
+
+        $tel_link_string = str_replace('tel:', '', $tel_link_string);
+        $encoded = $this->encoder->encodeString($tel_link_string);
+
+        $text = isset($tel_inner_text) ? $tel_inner_text : $tel_link_string;
+
+        return 'tel:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
+    }
+
+    /**
+     * @param string $email_str
+     *
+     * @return string
+     */
+    public function getObfuscatedEmailString($email_str)
+    {
+        $obfuscator = new Obfuscator();
+        $chunks = $obfuscator->getEmailData($email_str);
+        return $obfuscator->obfuscate_success ? $chunks->getFinalString() : $email_str;
+    }
+
+    /*
+     * =============== VISUALS ===============
+     */
+
+    /**
+     * @param $email_str
+     *
+     * @return string
+     */
+    private function addMagicBlurEmail($email_str)
+    {
+        $obfuscator = new Obfuscator();
+        $chunks = $obfuscator->getEmailData($email_str);
+        $chunks_data = $obfuscator->obfuscate_success ? $chunks : false;
+
+        return false !== $chunks_data
+            ? $this->addMagicBlurViaChunksData($chunks_data)
+            : $this->addMagicBlurToString($email_str)
+            ;
+    }
+
+    /**
+     * @param bool $is_email
+     * @param string $obfuscated_string
+     * @param string $mode
+     * @param string $replacing_text
+     * @param ObfuscatorEmailData|false $email_chunks_data
+     *
+     * @return string
+     */
+    private function applyEffectsOnMode($is_email, $obfuscated_string, $mode, $replacing_text = null, $email_chunks_data = null)
+    {
+        switch ($mode) {
+            case Params::OBFUSCATION_MODE_BLUR:
+                $handled_string = $is_email && $email_chunks_data
+                    ? $this->addMagicBlurEmail($obfuscated_string)
+                    : $this->addMagicBlurToString($obfuscated_string);
+                break;
+            case Params::OBFUSCATION_MODE_OBFUSCATE:
+                $handled_string = $is_email
+                    ? $this->getObfuscatedEmailString($obfuscated_string)
+                    : $obfuscated_string;
+                break;
+            case Params::OBFUSCATION_MODE_REPLACE:
+                $handled_string = !empty($replacing_text) ? $replacing_text : static::getDefaultReplacingText();
+                $handled_string = '<span style="text-decoration: underline">' .  $handled_string . '</span>';
+                break;
+            default:
+                return $obfuscated_string;
+        }
+        return $handled_string;
+    }
+
+    /**
+     * @param $encoded_string
+     * @param $obfuscated_string
+     *
+     * @return string
+     */
+    private function constructEncodedSpan($encoded_string, $obfuscated_string)
+    {
+        return "<span 
+                data-original-string='" . $encoded_string . "'
+                class='apbct-email-encoder'
+                title='" . esc_attr($this->getTooltip()) . "'>" . $obfuscated_string . "</span>";
+    }
+
+    /**
+     * @param ObfuscatorEmailData $email_chunks
+     *
+     * @return string
+     */
+    private function addMagicBlurViaChunksData($email_chunks)
+    {
+        return $email_chunks->chunk_raw_left
+               . '<span class="apbct-blur">' . $email_chunks->chunk_obfuscated_left . '</span>'
+               . $email_chunks->chunk_raw_center
+               . '<span class="apbct-blur">' . $email_chunks->chunk_obfuscated_right . '</span>'
+               . $email_chunks->chunk_raw_right
+               . $email_chunks->domain;
+    }
+
+    /**
+     * @param string $obfuscated_string with ** symbols
+     *
+     * @return string
+     */
+    private function addMagicBlurToString($obfuscated_string)
+    {
+        //preparing data to blur
+        $regex = '/^([^*]+)(\*+)([^*]+)$/';
+        preg_match_all($regex, $obfuscated_string, $matches);
+        if (isset($matches[1][0], $matches[2][0], $matches[3][0])) {
+            $first = $matches[1][0];
+            $middle = $matches[2][0];
+            $end = $matches[3][0];
+        } else {
+            return $obfuscated_string;
+        }
+        return $first . '<span class="apbct-blur">' . $middle . '</span>' . $end;
+    }
+
+    /**
+     * Get text for the title attribute
+     *
+     * @return string
+     * @recommended Override this method in child classes to provide custom tooltip text
+     */
+    protected function getTooltip()
+    {
+        return 'This contact has been encoded. Click to decode. To finish the decoding make sure that JavaScript is enabled in your browser.';
+    }
+
+
+    /*
+    * =============== DECODING ===============
+    */
+
+    /**
+     * Main logic of the decoding the encoded data.
+     *
+     * @param array $encoded_contacts_array array of decoded email
+     *
+     * @return array
+     */
+    public function decodeContactData($encoded_contacts_array)
+    {
+        $decoded_emails_array = [];
+
+        if ( empty($encoded_contacts_array) || ! is_array($encoded_contacts_array) ) {
+            return $decoded_emails_array;
+        }
+
+        if ( ! $this->is_logged_in ) {
+            $this->is_encode_allowed = $this->checkRequest();
+        }
+
+        foreach ( $encoded_contacts_array as $encoded_contact) {
+            $decoded_emails_array[$encoded_contact] = $this->encoder->decodeString($encoded_contact);
+        }
+
+        return $decoded_emails_array;
+    }
+
+    /**
+     * Ajax handler for the apbct_decode_email action
+     *
+     * @return bool returns json string to the JS
+     */
+    abstract protected function checkRequest();
+
+    abstract protected function getCheckRequestComment();
+
+    protected function compileResponse($decoded_emails_array, $is_allowed)
+    {
+        $result = array();
+
+        if ( empty($decoded_emails_array) ) {
+            return false;
+        }
+
+        foreach ( $decoded_emails_array as $encoded_email => $decoded_email ) {
+            $result[] = array(
+                'is_allowed' => $is_allowed,
+                'show_comment' => !$is_allowed,
+                'comment' => $this->getCheckRequestComment(),
+                'encoded_email' => strip_tags($encoded_email, '<a>'),
+                'decoded_email' => $is_allowed ? strip_tags($decoded_email, '<a>') : '',
+            );
+        }
+        return $result;
+    }
+
+    /*
+     * =============== SERVICE ===============
+     */
+
+    /**
+     * Fluid. Ignore SSL mode for encoding/decoding on the instance.
+     * @return $this
+     */
+    public function ignoreOpenSSLMode()
+    {
+        $this->encoder->useSSL(false);
+        return $this;
+    }
+
+    /**
+     * Get default replacing text for the encoded email
+     *
+     * @return string
+     * @recommended Override this method in child classes to provide custom replacement text
+     */
+    protected static function getDefaultReplacingText()
+    {
+        return 'Click to show email!';
+    }
+
+    /**
+     * Drop attributes contains email from tag in the content to avoid unnecessary encoding.
+     *
+     * Example: <code><a title="example1@mail.com" href="mailto:example2@mail.com">Email</a></code>
+     * Will be turned to <code><a href="mailto:example2@mail.com">Email</a></code>
+     *
+     * @param string $content The content to process.
+     * @return string The content with attributes removed.
+     */
+    private static function dropAttributesContainEmail($content, $tags)
+    {
+        $attribute_content_chunk = '[\s]{0,}=[\s]{0,}[\"\']\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\..*\b[\"\']';
+        foreach ($tags as $tag => $attribute) {
+            // Regular expression to match the attribute without the tag
+            $regexp_chunk_without_tag = "/{$attribute}{$attribute_content_chunk}/";
+            // Regular expression to match the attribute with the tag
+            $regexp_chunk_with_tag = "/<{$tag}.*{$attribute}{$attribute_content_chunk}/";
+            // Find all matches of the attribute with the tag in the content
+            preg_match_all($regexp_chunk_with_tag, $content, $matches);
+            if (!empty($matches[0])) {
+                // Remove the attribute without the tag from the content
+                $content = preg_replace($regexp_chunk_without_tag, '', $content, count($matches[0]));
+            }
+        }
+        return $content;
+    }
+
+    /**
+     * Modify content to skip aria-label cases correctly.
+     * @param string $content
+     * @param bool $reverse
+     *
+     * @return string
+     */
+    private function handleAriaLabelContent($content, $reverse = false)
+    {
+        if ( !$reverse ) {
+            $this->aria_matches = array();
+            //save match
+            preg_match($this->aria_regex, $content, $this->aria_matches);
+            if (empty($this->aria_matches)) {
+                return $content;
+            }
+            //replace with temp
+            return preg_replace($this->aria_regex, 'ct_temp_aria', $content);
+        }
+        if ( !empty($this->aria_matches[0]) ) {
+            //replace temp with match
+            return preg_replace('/ct_temp_aria/', $this->aria_matches[0], $content);
+        }
+        return $content;
+    }
+}

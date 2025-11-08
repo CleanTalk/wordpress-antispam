@@ -1,0 +1,30 @@
+{
+  "name": "cleantalk/contacts-encoder",
+  "description": "CleanTalk ContactsEncoder class",
+  "type": "cleantalk-apbct-lib",
+  "authors": [
+    {
+      "name": "CleanTalk Team",
+      "email": "support@cleantalk.org"
+    }
+  ],
+  "license": "GPL-3.0-or-later",
+  "require-dev": {
+    "vimeo/psalm": "^4.8",
+    "phpunit/phpunit": "^7.5",
+    "squizlabs/php_codesniffer": "3.*",
+    "phpcompatibility/php-compatibility": "^9.3"
+  },
+  "require": {
+    "cleantalk/apbct-installer": "*"
+  },
+  "scripts": {
+    "test": [
+      "vendor/bin/phpunit --configuration tests/phpunit.xml",
+      "vendor/bin/phpcs --config-set installed_paths vendor/phpcompatibility/php-compatibility",
+      "vendor/bin/phpcs --standard=tests/.phpcs.xml",
+      "vendor/bin/psalm --no-cache --config=tests/psalm.xml",
+      "vendor/bin/psalm --no-cache --config=tests/psalm.xml --taint-analysis"
+    ]
+  }
+}
