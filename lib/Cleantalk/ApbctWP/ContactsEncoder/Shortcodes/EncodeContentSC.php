@@ -37,9 +37,9 @@ class EncodeContentSC extends EmailEncoderShortCode
     /**
      * @param string $public_name
      */
-    public function __construct()
+    public function __construct(Params $params)
     {
-        $this->exclusions = new ExclusionsService();
+        $this->exclusions = new ExclusionsService($params);
     }
 
 

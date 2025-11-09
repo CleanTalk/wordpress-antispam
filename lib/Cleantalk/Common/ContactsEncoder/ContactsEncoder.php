@@ -30,11 +30,6 @@ abstract class ContactsEncoder
     protected $exclusions;
 
     /**
-     * @var string[]
-     */
-    public $decoded_contacts_array = array();
-
-    /**
      * Temporary content to use in regexp callback
      * @var string
      */
@@ -136,7 +131,7 @@ abstract class ContactsEncoder
      */
     protected function init($params)
     {
-        $this->exclusions = new ExclusionsService();
+        $this->exclusions = new ExclusionsService($params);
         $this->encoder = new Encoder(md5($params->api_key));
         $this->helper = new ContactsEncoderHelper();
         $this->global_obfuscation_mode = $params->obfuscation_mode;
@@ -422,7 +417,7 @@ abstract class ContactsEncoder
      *
      * @return string
      */
-    private function encodeAny($string, $mode = Params::OBFUSCATION_MODE_BLUR, $replacing_text = null, $is_phone_number = false)
+    protected function encodeAny($string, $mode = Params::OBFUSCATION_MODE_BLUR, $replacing_text = null, $is_phone_number = false)
     {
         $obfuscated_string = $string;
 

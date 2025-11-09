@@ -8,11 +8,17 @@ use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\ContactsEncoder\Shortcodes\ShortCodesService;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
+use Cleantalk\ApbctWP\ContactsEncoder\Exclusions\ExclusionsService;
 use Cleantalk\Common\TT;
 use Cleantalk\Variables\Post;
 
 class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
 {
+    /**
+     * @var ShortCodesService
+     */
+    private $shortcodes;
+
     /**
      * @var bool
      */
@@ -24,19 +30,29 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     private $privacy_policy_hook_handled = false;
 
     /**
+     * @var string[]
+     */
+    public $decoded_contacts_array = array();
+
+    /**
      * @var null|string Comment from API response
      */
     private $comment;
+
+    public function init($params)
+    {
+        parent::init($params);
+        $this->exclusions = new ExclusionsService($params);
+        $this->shortcodes = new ShortCodesService($params);
+    }
 
     public function runEncoding($content = '')
     {
         global $apbct;
 
-        $shortcodes = new ShortCodesService();
-
-        $shortcodes->registerAll();
-        $shortcodes->addActionsAfterModify('the_content', 11);
-        $shortcodes->addActionsAfterModify('the_title', 11);
+        $this->shortcodes->registerAll();
+        $this->shortcodes->addActionsAfterModify('the_content', 11);
+        $this->shortcodes->addActionsAfterModify('the_title', 11);
 
         $this->registerHookHandler();
 
@@ -69,10 +85,10 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             add_action('wp', 'apbct_buffer__start');
             add_action('shutdown', 'apbct_buffer__end', 0);
             add_action('shutdown', array($this, 'bufferOutput'), 2);
-            $shortcodes->addActionsAfterModify('shutdown', 3);
+            $this->shortcodes->addActionsAfterModify('shutdown', 3);
         } else {
             foreach ( $hooks_to_encode as $hook ) {
-                $shortcodes->addActionsBeforeModify($hook, 9);
+                $this->shortcodes->addActionsBeforeModify($hook, 9);
                 add_filter($hook, array($this, 'modifyContent'), 10);
             }
         }
@@ -99,6 +115,22 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         }
 
         return $html;
+    }
+
+    /**
+     * Wrapper. Encode any string.
+     * @param $string
+     * @param string $mode
+     * @param null $replacing_text
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function modifyAny($string, $mode = Params::OBFUSCATION_MODE_BLUR, $replacing_text = null)
+    {
+        $encoded_string = $this->encodeAny($string, $mode, $replacing_text);
+
+        //please keep this var (do not simplify the code) for further debug
+        return $encoded_string;
     }
 
     /**
