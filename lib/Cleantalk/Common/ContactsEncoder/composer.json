@@ -13,7 +13,7 @@
     "vimeo/psalm": "^4.8",
     "phpunit/phpunit": "^7.5",
     "squizlabs/php_codesniffer": "3.*",
-    "phpcompatibility/php-compatibility": "^9.3"
+    "phpcompatibility/php-compatibility": "@dev"
   },
   "require": {
     "cleantalk/apbct-installer": "*"
@@ -26,5 +26,11 @@
       "vendor/bin/psalm --no-cache --config=tests/psalm.xml",
       "vendor/bin/psalm --no-cache --config=tests/psalm.xml --taint-analysis"
     ]
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "cleantalk/apbct-installer": true
+    }
   }
 }

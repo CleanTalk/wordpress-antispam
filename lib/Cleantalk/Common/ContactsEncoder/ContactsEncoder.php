@@ -76,6 +76,7 @@ abstract class ContactsEncoder
 
     /**
      * @var bool
+     * @psalm-suppress PossiblyUnusedProperty
      */
     protected $is_encode_allowed = true;
 
@@ -102,6 +103,7 @@ abstract class ContactsEncoder
      * Constructor
      * @return $this
      * @throws \Exception
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public static function getInstance(Params $params = null)
     {
@@ -145,6 +147,11 @@ abstract class ContactsEncoder
         }
     }
 
+    /**
+     * @param $content
+     * @return mixed|string
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function runEncoding($content = '')
     {
         if ( $this->exclusions->doSkipBeforeAnything() ) {
@@ -362,20 +369,6 @@ abstract class ContactsEncoder
         return $replacing_result;
     }
 
-    /**
-     * Wrapper. Encode any string.
-     * @param $string
-     *
-     * @return string
-     */
-    public function modifyAny($string, $mode = Params::OBFUSCATION_MODE_BLUR, $replacing_text = null)
-    {
-        $encoded_string = $this->encodeAny($string, $mode, $replacing_text);
-
-        //please keep this var (do not simplify the code) for further debug
-        return $encoded_string;
-    }
-
     /*
      * =============== ENCODE ENTITIES ===============
      */
@@ -462,7 +455,7 @@ abstract class ContactsEncoder
 
         $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
 
-        return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
+        return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8');
     }
 
     /**
@@ -495,7 +488,7 @@ abstract class ContactsEncoder
 
         $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
 
-        return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
+        return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8');
     }
 
     /**
@@ -522,7 +515,7 @@ abstract class ContactsEncoder
 
         $text = isset($mailto_inner_text) ? $mailto_inner_text : $tel_link_str;
 
-        return 'tel:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
+        return 'tel:' . $text . '" data-original-string="' . $encoded . '" title="' . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8');
     }
 
     /**
@@ -558,7 +551,7 @@ abstract class ContactsEncoder
 
         $text = isset($tel_inner_text) ? $tel_inner_text : $tel_link_string;
 
-        return 'tel:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
+        return 'tel:' . $text . '" data-original-string="' . $encoded . '" title="' . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8');
     }
 
     /**
@@ -637,7 +630,7 @@ abstract class ContactsEncoder
         return "<span 
                 data-original-string='" . $encoded_string . "'
                 class='apbct-email-encoder'
-                title='" . esc_attr($this->getTooltip()) . "'>" . $obfuscated_string . "</span>";
+                title='" . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8') . "'>" . $obfuscated_string . "</span>";
     }
 
     /**
@@ -648,11 +641,11 @@ abstract class ContactsEncoder
     private function addMagicBlurViaChunksData($email_chunks)
     {
         return $email_chunks->chunk_raw_left
-               . '<span class="apbct-blur">' . $email_chunks->chunk_obfuscated_left . '</span>'
-               . $email_chunks->chunk_raw_center
-               . '<span class="apbct-blur">' . $email_chunks->chunk_obfuscated_right . '</span>'
-               . $email_chunks->chunk_raw_right
-               . $email_chunks->domain;
+            . '<span class="apbct-blur">' . $email_chunks->chunk_obfuscated_left . '</span>'
+            . $email_chunks->chunk_raw_center
+            . '<span class="apbct-blur">' . $email_chunks->chunk_obfuscated_right . '</span>'
+            . $email_chunks->chunk_raw_right
+            . $email_chunks->domain;
     }
 
     /**
@@ -726,6 +719,12 @@ abstract class ContactsEncoder
 
     abstract protected function getCheckRequestComment();
 
+    /**
+     * @param $decoded_emails_array
+     * @param $is_allowed
+     * @return array|false
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     protected function compileResponse($decoded_emails_array, $is_allowed)
     {
         $result = array();

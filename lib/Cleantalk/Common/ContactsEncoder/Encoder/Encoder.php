@@ -71,13 +71,11 @@ class Encoder
             $get_last_error = isset($get_last_error['message']) ? $get_last_error['message'] : 'NO_ERROR';
             $variable = is_string($plain_string) ? $plain_string : 'TYPE_' . gettype($plain_string);
             $variable = '' === $variable ? 'EMPTY_STRING' : $variable;
-            $action = !empty(current_action()) ? current_action() : 'NO_ACTION';
             $details = sprintf(
-                '%s, last PHP error: [%s], hook: [%s], input var: [%s]',
-                esc_html($e->getMessage()),
-                esc_html($get_last_error),
-                esc_html($action),
-                esc_html($variable)
+                '%s, last PHP error: [%s], input var: [%s]',
+                htmlspecialchars($e->getMessage(), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                htmlspecialchars($get_last_error, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                htmlspecialchars($variable, ENT_QUOTES | ENT_HTML5, 'UTF-8')
             );
             $apbct->errorAdd('email_encoder', $details);
             return $plain_string;
