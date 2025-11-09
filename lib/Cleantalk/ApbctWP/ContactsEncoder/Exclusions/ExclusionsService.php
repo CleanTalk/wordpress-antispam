@@ -48,8 +48,9 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
     /**
      * @inerhitDoc
      */
-    protected function byAccessKeyFail($apbct)
+    protected function byAccessKeyFail()
     {
+        global $apbct;
         return ! $apbct->key_is_ok || ! apbct_api_key__is_correct();
     }
 
