@@ -47,7 +47,7 @@ class ServerRequirementsChecker
      *
      * @param string $param_name
      *
-     * @return void|mixed
+     * @return bool|string|void
      */
     public function getRequiredParameterValue($param_name)
     {
@@ -72,6 +72,7 @@ class ServerRequirementsChecker
     /**
      * Check server requirements for the plugin.
      * @return array|null
+     * @psalm-suppress InvalidScalarArgument
      */
     public function checkRequirements()
     {
