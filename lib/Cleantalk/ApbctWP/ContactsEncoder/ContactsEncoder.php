@@ -76,6 +76,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             'render_block',
         );
 
+        /** @psalm-suppress UndefinedMethod */
         if ( $this->exclusions->doSkipBeforeModifyingHooksAdded() ) {
             return;
         }
@@ -121,7 +122,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      * Wrapper. Encode any string.
      * @param $string
      * @param string $mode
-     * @param null $replacing_text
+     * @param null|string $replacing_text
      * @return string
      * @psalm-suppress PossiblyUnusedMethod
      */

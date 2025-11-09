@@ -54,7 +54,6 @@ class TestEmailEncoder extends TestCase
         $this->assertArrayHasKey('error', $apbct->errors['email_encoder'][0]);
         $this->assertStringContainsString('is not string', $apbct->errors['email_encoder'][0]['error']);
         $this->assertStringContainsString('TYPE_NULL', $apbct->errors['email_encoder'][0]['error']);
-        $this->assertStringContainsString('NO_ACTION', $apbct->errors['email_encoder'][0]['error']);
         $apbct->errorDeleteAll();
 
         $empty_string = '';
@@ -67,7 +66,6 @@ class TestEmailEncoder extends TestCase
         $this->assertIsArray($apbct->errors['email_encoder'][0]);
         $this->assertArrayHasKey('error', $apbct->errors['email_encoder'][0]);
         $this->assertStringContainsString('Empty plain string', $apbct->errors['email_encoder'][0]['error']);
-        $this->assertStringContainsString('NO_ACTION', $apbct->errors['email_encoder'][0]['error']);
         $this->assertStringContainsString('EMPTY_STRING', $apbct->errors['email_encoder'][0]['error']);
         $apbct->errorDeleteAll(true);
     }

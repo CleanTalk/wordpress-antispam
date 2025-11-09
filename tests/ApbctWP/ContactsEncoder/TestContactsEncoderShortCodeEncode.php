@@ -4,6 +4,7 @@ namespace ApbctWP\ContactsEncoder;
 
 use Cleantalk\ApbctWP\ContactsEncoder\Shortcodes\EncodeContentSC;
 use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use PHPUnit\Framework\TestCase;
 
 class testEmailEncoderShortCodeEncode extends TestCase
@@ -18,12 +19,14 @@ class testEmailEncoderShortCodeEncode extends TestCase
         /**
          * @var  \Cleantalk\ApbctWP\State $apbct
          */
-        $this->shortcode = new EncodeContentSC();
-        $this->shortcode->register();
         global $apbct;
         $apbct->api_key              = 'tetskey';
         $apbct->data['cookies_type'] = 'native';
         $apbct->saveData();
+        $params = new Params();
+        $params->api_key = $apbct->api_key;
+        $this->shortcode = new EncodeContentSC($params);
+        $this->shortcode->register();
     }
 
     public function testCallbackEncodesContent()

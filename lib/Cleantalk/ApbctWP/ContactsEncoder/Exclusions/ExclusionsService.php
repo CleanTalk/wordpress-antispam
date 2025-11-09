@@ -6,6 +6,7 @@ use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\TT;
 
 class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService
 {
@@ -57,6 +58,7 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
     /**
      * @return string|false
      * @psalm-suppress PossiblyUnusedReturnValue
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function doSkipBeforeModifyingHooksAdded()
     {
