@@ -14,4 +14,16 @@
             <exclude>./bootstrap.php</exclude>
         </testsuite>
     </testsuites>
+
+    <filter>
+        <whitelist>
+            <directory suffix=".php">../</directory>
+            <exclude>
+                <directory>../vendor</directory>
+                <directory>../tests</directory>
+                <directory>../node_modules</directory>
+                <file>../bootstrap.php</file>
+            </exclude>
+        </whitelist>
+    </filter>
 </phpunit>
