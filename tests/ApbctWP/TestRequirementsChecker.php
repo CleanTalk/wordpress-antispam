@@ -202,4 +202,134 @@ class TestRequirementsChecker extends TestCase
 
         $this->assertCount(6, $warnings, 'Should return warnings for all issues.');
     }
+
+    public function testGetRequiredParameterValuePhpVersion()
+    {
+        $checker = new ServerRequirementsChecker();
+
+        // Не можем замокать константу PHP_VERSION, поэтому просто проверяем что возвращает строку
+        $result = $checker->getRequiredParameterValue('php_version');
+        $this->assertIsString($result);
+        $this->assertNotEmpty($result);
+    }
+
+    public function testGetRequiredParameterValueCurlSupport()
+    {
+        $checker = $this->getMockBuilder(ServerRequirementsChecker::class)
+                        ->setMethods(['isFunctionExists'])
+                        ->getMock();
+
+        $checker->method('isFunctionExists')
+                ->with('curl_version')
+                ->willReturn(true);
+
+        $result = $checker->getRequiredParameterValue('curl_support');
+        $this->assertTrue($result);
+    }
+
+    public function testGetRequiredParameterValueAllowUrlFopen()
+    {
+        $checker = $this->getMockBuilder(ServerRequirementsChecker::class)
+                        ->setMethods(['getIniValue'])
+                        ->getMock();
+
+        $checker->method('getIniValue')
+                ->with('allow_url_fopen')
+                ->willReturn('1');
+
+        $result = $checker->getRequiredParameterValue('allow_url_fopen');
+        $this->assertEquals('1', $result);
+    }
+
+    public function testGetRequiredParameterValueMemoryLimit()
+    {
+        $checker = $this->getMockBuilder(ServerRequirementsChecker::class)
+                        ->setMethods(['getIniValue'])
+                        ->getMock();
+
+        $checker->method('getIniValue')
+                ->with('memory_limit')
+                ->willReturn('256M');
+
+        $result = $checker->getRequiredParameterValue('memory_limit');
+        $this->assertEquals('256M', $result);
+    }
+
+    public function testGetRequiredParameterValueMaxExecutionTime()
+    {
+        $checker = $this->getMockBuilder(ServerRequirementsChecker::class)
+                        ->setMethods(['getIniValue'])
+                        ->getMock();
+
+        $checker->method('getIniValue')
+                ->with('max_execution_time')
+                ->willReturn('30');
+
+        $result = $checker->getRequiredParameterValue('max_execution_time');
+        $this->assertEquals('30', $result);
+    }
+
+    public function testGetRequiredParameterValueCurlMultiExec()
+    {
+        $checker = $this->getMockBuilder(ServerRequirementsChecker::class)
+                        ->setMethods(['isFunctionExists', 'isCallable'])
+                        ->getMock();
+
+        $checker->method('isFunctionExists')
+                ->with('curl_multi_exec')
+                ->willReturn(true);
+
+        $checker->method('isCallable')
+                ->with('curl_multi_exec')
+                ->willReturn(true);
+
+        $result = $checker->getRequiredParameterValue('curl_multi_exec');
+        $this->assertTrue($result);
+    }
+
+    public function testGetRequiredParameterValueCurlMultiExecNotCallable()
+    {
+        $checker = $this->getMockBuilder(ServerRequirementsChecker::class)
+                        ->setMethods(['isFunctionExists', 'isCallable'])
+                        ->getMock();
+
+        $checker->method('isFunctionExists')
+                ->with('curl_multi_exec')
+                ->willReturn(true);
+
+        $checker->method('isCallable')
+                ->with('curl_multi_exec')
+                ->willReturn(false);
+
+        $result = $checker->getRequiredParameterValue('curl_multi_exec');
+        $this->assertFalse($result);
+    }
+
+    public function testGetRequiredParameterValueCurlMultiExecNotExists()
+    {
+        $checker = $this->getMockBuilder(ServerRequirementsChecker::class)
+                        ->setMethods(['isFunctionExists'])
+                        ->getMock();
+
+        $checker->method('isFunctionExists')
+                ->with('curl_multi_exec')
+                ->willReturn(false);
+
+        $result = $checker->getRequiredParameterValue('curl_multi_exec');
+        $this->assertFalse($result);
+    }
+
+    public function testGetRequiredParameterValueWithInvalidParam()
+    {
+        $checker = new ServerRequirementsChecker();
+        $result = $checker->getRequiredParameterValue('invalid_parameter');
+        $this->assertNull($result);
+    }
+
+    public function testGetRequiredParameterValueWithEmptyParam()
+    {
+        $checker = new ServerRequirementsChecker();
+        $result = $checker->getRequiredParameterValue('');
+        $this->assertNull($result);
+    }
 }

@@ -43,6 +43,36 @@ class ServerRequirementsChecker
     private $warnings = [];
 
     /**
+     * This wrapper allow to generate a mock for the testing
+     * @param string $functionName
+     * @return bool
+     */
+    protected function isFunctionExists($functionName)
+    {
+        return function_exists($functionName);
+    }
+
+    /**
+     * This wrapper allow to generate a mock for the testing
+     * @param string $functionName
+     * @return bool
+     */
+    protected function isCallable($functionName)
+    {
+        return is_callable($functionName);
+    }
+
+    /**
+     * This wrapper allow to generate a mock for the testing
+     * @param string $setting
+     * @return string
+     */
+    protected function getIniValue($setting)
+    {
+        return ini_get($setting);
+    }
+
+    /**
      * Get existing parameter value.
      *
      * @param string $param_name
@@ -56,15 +86,15 @@ class ServerRequirementsChecker
                 case 'php_version':
                     return PHP_VERSION;
                 case 'curl_support':
-                    return function_exists('curl_version');
+                    return $this->isFunctionExists('curl_version');
                 case 'allow_url_fopen':
-                    return ini_get('allow_url_fopen');
+                    return $this->getIniValue('allow_url_fopen');
                 case 'memory_limit':
-                    return ini_get('memory_limit');
+                    return $this->getIniValue('memory_limit');
                 case 'max_execution_time':
-                    return ini_get('max_execution_time');
+                    return $this->getIniValue('max_execution_time');
                 case 'curl_multi_exec':
-                    return function_exists('curl_multi_exec') && is_callable('curl_multi_exec');
+                    return $this->isFunctionExists('curl_multi_exec') && $this->isCallable('curl_multi_exec');
             }
         }
     }
