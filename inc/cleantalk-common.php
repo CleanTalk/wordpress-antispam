@@ -1667,8 +1667,10 @@ function apbct_clear_superglobal_service_data($superglobal, $type)
     switch ($type) {
         case 'post':
             // Magnesium Quiz special $_request clearance || Uni CPO
-            if ((apbct_is_plugin_active('magnesium-quiz/magnesium-quiz.php')) ||
-                (apbct_is_plugin_active('uni-woo-custom-product-options/uni-cpo.php'))
+            if (
+                (apbct_is_plugin_active('magnesium-quiz/magnesium-quiz.php')) ||
+                (apbct_is_plugin_active('uni-woo-custom-product-options/uni-cpo.php')) ||
+                (apbct_is_plugin_active('nex-forms/main.php'))
             ) {
                 $fields_to_clear[] = 'ct_bot_detector_event_token';
                 $fields_to_clear[] = 'ct_no_cookie_hidden_field';
@@ -1679,10 +1681,10 @@ function apbct_clear_superglobal_service_data($superglobal, $type)
             break;
         case 'request':
             //Optima Express special $_request clearance
-            if ((apbct_is_plugin_active('optima-express/iHomefinder.php'))) {
+            if ( (apbct_is_plugin_active('optima-express/iHomefinder.php')) ) {
                 $fields_to_clear[] = 'ct_no_cookie_hidden_field';
             }
-            if ((apbct_is_plugin_active('uni-woo-custom-product-options/uni-cpo.php'))) {
+            if ( (apbct_is_plugin_active('uni-woo-custom-product-options/uni-cpo.php')) ) {
                 $fields_to_clear[] = 'ct_bot_detector_event_token';
                 $fields_to_clear[] = 'ct_no_cookie_hidden_field';
                 $fields_to_clear[] = 'apbct_event_id';
