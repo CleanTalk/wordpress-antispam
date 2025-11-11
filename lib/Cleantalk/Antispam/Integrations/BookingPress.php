@@ -18,6 +18,6 @@ class BookingPress extends IntegrationBase
             'variant'  => 'error',
             'title'  => 'Error',
             'msg' => $message
-        ], 403);
+        ], 200);
     }
 }
