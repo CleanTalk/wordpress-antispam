@@ -51,6 +51,11 @@ function apbct_init()
 
         // The exclusion of scripts from wp-rocket handler
         add_filter('rocket_delay_js_exclusions', 'apbct_rocket_delay_js_exclusions');
+
+        // The exclusion of scripts from Perfmatters delay handler (for "delay all" mode)
+        add_filter('perfmatters_delay_js_exclusions', 'apbct_perfmatters_delay_js_exclusions');
+        // Remove from Perfmatters delayed scripts list (for "individual delay" mode)
+        add_filter('perfmatters_delayed_scripts', 'apbct_perfmatters_remove_from_delayed_scripts');
     }
 
     //fix for EPM registration form
@@ -1330,4 +1335,44 @@ function apbct_rocket_delay_js_exclusions($excluded)
         'var ctPublic',
         '/cleantalk-spam-protect/(.*)'
     ));
+}
+
+/**
+ * Exclude CleanTalk scripts from Perfmatters delay (for "delay all" mode)
+ * @param array $excluded
+ * @return array
+ */
+function apbct_perfmatters_delay_js_exclusions($excluded)
+{
+    if (!is_array($excluded)) {
+        $excluded = array();
+    }
+
+    return array_merge($excluded, array(
+        'var ctPublicFunctions',
+        'var ctPublic',
+        'ctPublicFunctions',
+        'ctPublic',
+        '/cleantalk-spam-protect/(.*)'
+    ));
+}
+
+/**
+ * Remove CleanTalk scripts from Perfmatters delayed scripts list (for "individual delay" mode)
+ * This ensures they are not in the inclusions list
+ * @param array $included
+ * @return array
+ */
+function apbct_perfmatters_remove_from_delayed_scripts($included)
+{
+    if (!is_array($included)) {
+        return $included;
+    }
+
+    // Remove any CleanTalk-related entries from the inclusions list
+    return array_filter($included, function ($item) {
+        return stripos($item, 'ctPublicFunctions') === false &&
+               stripos($item, 'ctPublic') === false &&
+               stripos($item, 'cleantalk-spam-protect') === false;
+    });
 }
