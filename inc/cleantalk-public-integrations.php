@@ -30,11 +30,14 @@ if ( class_exists('Cleantalk\Antispam\Integrations\MailChimp') ) {
 /*
  * Fluent Booking shortcode localize CT script and vars.
  */
-add_action('fluent_booking/before_calendar_event_landing_page', function () {
+add_action('fluent_booking/before_calendar_event_landing_page', 'apbct_print_public_scripts', 1);
+add_action('fluent_booking/main_landing', 'apbct_print_public_scripts', 1);
+
+function apbct_print_public_scripts() {
     global $apbct;
 
     $bundle_name = ApbctJsBundleResolver::getBundleName($apbct->settings) ?: 'apbct-public-bundle.min.js';
-    $js_url_wrapper = APBCT_MODERATE_URL . '/ct-bot-detector-wrapper.js' . '?' . APBCT_VERSION;
+    $js_url_wrapper = APBCT_BOT_DETECTOR_SCRIPT_URL;
     $js_url = APBCT_URL_PATH . '/js/' . $bundle_name . '?' . APBCT_VERSION;
 
     echo CtPublicFunctionsLocalize::getCode();
@@ -42,7 +45,7 @@ add_action('fluent_booking/before_calendar_event_landing_page', function () {
 
     echo '<script src="' . $js_url . '" type="application/javascript"></script>';
     echo '<script src="' . $js_url_wrapper . '" type="application/javascript"></script>';
-}, 1);
+}
 
 /**
  * Function to set validate function for CCF form

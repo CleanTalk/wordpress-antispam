@@ -557,7 +557,7 @@ class ApbctHandler {
                 document.body.classList.contains('single-product') &&
                 typeof cwginstock !== 'undefined'
             ) ||
-            document.querySelector('div.fcal_calendar_slot_wrap') !== null // Fluent Booking Pro
+            document.querySelector('div.fluent_booking_wrap') !== null // Fluent Booking Pro
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
