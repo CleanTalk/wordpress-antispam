@@ -82,9 +82,6 @@ class Woocommerce extends IntegrationByClassBase
             $this->addActions();
         }
 
-        //add to cart AJAX actions
-        $this->addCartActions();
-
         // Restore Spam Order
         add_action('wp_ajax_apbct_restore_spam_order', array(WcSpamOrdersFunctions::class, 'restoreOrderAction'));
 
@@ -723,5 +720,31 @@ class Woocommerce extends IntegrationByClassBase
             add_filter('woocommerce_add_to_cart_validation', [$this, 'addToCartUnloggedUser'], 10, 6);
             add_filter('woocommerce_store_api_add_to_cart_data', [$this, 'storeApiAddToCartData'], 10, 2);
         }
+    }
+
+    /**
+     * @return bool
+     * @inheritDoc
+     */
+    public function isSkipIntegration()
+    {
+        if (
+                (isset($_GET['wc-ajax']) && $_GET['wc-ajax'] === 'update_order_review') ||
+                apbct_is_in_referer('wc-ajax=update_order_review') ||
+                apbct_is_in_uri('wc-ajax=iwd_opc_update_order_review') ||
+                apbct_is_in_uri('wc-ajax=apply_coupon')
+        ) {
+            $skip_rules_base = array(
+                    'get' => $_GET,
+                    'post' => $_POST,
+                    'ref' => Server::get('HTTP_REFERER'),
+                    'uri' => Server::get('REQUEST_URI'),
+            );
+            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $skip_rules_base);
+
+            return true;
+        }
+
+        return false;
     }
 }

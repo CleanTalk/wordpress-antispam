@@ -55,8 +55,8 @@ class ApbctEventTokenTransport {
      * @return {void}
      */
     setEventTokenToAltCookies() {
-        if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-            tokenCheckerIntervalId = setInterval( function() {
+        tokenCheckerIntervalId = setInterval( function() {
+            if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
                 let eventToken = apbctLocalStorage.get('bot_detector_event_token');
                 if (eventToken) {
                     ctSetAlternativeCookie(
@@ -65,8 +65,8 @@ class ApbctEventTokenTransport {
                     );
                     clearInterval(tokenCheckerIntervalId);
                 }
-            }, 1000);
-        }
+            }
+        }, 1000);
     }
 
     /**
@@ -533,7 +533,11 @@ class ApbctHandler {
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
-                let bookingPress = document.querySelectorAll('main[id^="bookingpress_booking_form"]').length > 0;
+                const bookingPress =
+                    (
+                        document.querySelectorAll('main[id^="bookingpress_booking_form"]').length > 0 ||
+                        document.querySelectorAll('.bpa-frontend-main-container').length > 0
+                    );
                 ctPublic.force_alt_cookies = bookingPress;
             }
         }, 1000);
