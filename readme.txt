@@ -4,7 +4,7 @@ Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 6.67
+Stable tag: 6.68
 License: GPLv2
 
 Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
@@ -411,6 +411,21 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.68 13.11.2025 =
+New. Integration. Ultimate affiliate plugin (Codecanyon).
+New. Integration. Gwolle Guestbook integration implemented.
+Upd. Integrations. Improved capability with perfmatters.
+Upd. Settings. Improved UX.
+Upd. Email Encoder. Try to decode in both ways ssl/str_base.
+Fix. ContactEncoder. Editing duplicate pages due to buffer interception.
+Fix. Code. Unit text TestRequirementsChecker refactored.
+Fix. Integration. WPForo. Catch email and nickname via native WPF object. Get message from input.
+Fix. Integrations. Nex-forms POST clearance from service fields after check.
+Fix. Protection by fake button. Sender.net forms ignored, preparing for the next iteration.
+Fix. Integrations. GiveWP. Partially protected Give REST submission.
+Code. Unused code removed.
+Mod. TRP. TRP edits, duplicate the cleantalk_allowed_moderation option and move it to settings.
 
 = 6.67 30.10.2025 =
 New. AdminBanner. Separation of banners about an empty and invalid key
