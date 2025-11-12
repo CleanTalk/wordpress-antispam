@@ -33,7 +33,8 @@ if ( class_exists('Cleantalk\Antispam\Integrations\MailChimp') ) {
 add_action('fluent_booking/before_calendar_event_landing_page', 'apbct_print_public_scripts', 1);
 add_action('fluent_booking/main_landing', 'apbct_print_public_scripts', 1);
 
-function apbct_print_public_scripts() {
+function apbct_print_public_scripts()
+{
     global $apbct;
 
     $bundle_name = ApbctJsBundleResolver::getBundleName($apbct->settings) ?: 'apbct-public-bundle.min.js';
