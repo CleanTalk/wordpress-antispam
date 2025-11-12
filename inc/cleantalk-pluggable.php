@@ -1650,6 +1650,13 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'woo_mailerlite service request';
         }
+
+        if (
+            apbct_is_plugin_active('spoki/spoki.php') &&
+            Post::equal('action', 'spoki_cartflows_save_cart_abandonment_data')
+        ) {
+            return 'spoki_abandoned_card_for_woocommerce';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
