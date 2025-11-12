@@ -427,8 +427,11 @@ window.addEventListener('load', function() {
 
     setTimeout(function() {
         ctProtectExternal();
-        catchDynamicRenderedForm();
         catchNextendSocialLoginForm();
+        // run dynamic form catch first time
+        catchDynamicRenderedForm();
+        // run interval to rehandle form if current state is reset and has no cleantalk intervent
+        setInterval(catchDynamicRenderedForm, 2000);
         ctProtectOutsideFunctionalOnTagsType('div');
         ctProtectOutsideFunctionalOnTagsType('iframe');
     }, 2000);
@@ -1160,14 +1163,17 @@ function catchDynamicRenderedForm() {
 function catchDynamicRenderedFormHandler(forms, documentObject = document) {
     const neededFormIds = [];
     for (const form of forms) {
-        const formIdAttr = form.getAttribute('id');
-        if (formIdAttr && formIdAttr.indexOf('hsForm') !== -1) {
-            neededFormIds.push(formIdAttr);
-        }
-        if (formIdAttr && formIdAttr.indexOf('createuser') !== -1 &&
-            (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
-        ) {
-            neededFormIds.push(formIdAttr);
+        // should be checked to do not handle form again on interval
+        if ( !form.hasOwnProperty('apbct_external_onsubmit_prev') ) {
+            const formIdAttr = form.getAttribute('id');
+            if (formIdAttr && formIdAttr.indexOf('hsForm') !== -1) {
+                neededFormIds.push(formIdAttr);
+            }
+            if (formIdAttr && formIdAttr.indexOf('createuser') !== -1 &&
+                (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
+            ) {
+                neededFormIds.push(formIdAttr);
+            }
         }
     }
 
