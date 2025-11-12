@@ -729,15 +729,17 @@ class Woocommerce extends IntegrationByClassBase
     public function isSkipIntegration()
     {
         if (
-                $_GET['wc-ajax'] === 'update_order_review' ||
+                (isset($_GET['wc-ajax']) && $_GET['wc-ajax'] === 'update_order_review') ||
                 apbct_is_in_referer('wc-ajax=update_order_review') ||
                 apbct_is_in_uri('wc-ajax=iwd_opc_update_order_review') ||
                 apbct_is_in_uri('wc-ajax=apply_coupon')
         ) {
-            $skip_rules_base['get']  = $_GET;
-            $skip_rules_base['post'] = $_POST;
-            $skip_rules_base['ref']  = Server::get('HTTP_REFERER');
-            $skip_rules_base['uri']  = Server::get('REQUEST_URI');
+            $skip_rules_base = array(
+                    'get' => $_GET,
+                    'post' => $_POST,
+                    'ref' => Server::get('HTTP_REFERER'),
+                    'uri' => Server::get('REQUEST_URI'),
+            );
             do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $skip_rules_base);
 
             return true;
