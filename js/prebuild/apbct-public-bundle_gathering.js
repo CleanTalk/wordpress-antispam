@@ -1856,47 +1856,11 @@ function initParams() {
             apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
             apbct('form.wpcf7-form input[type = "email"]')
                 .on('blur', ctDebounceFuncExec(checkEmailExist, 300));
-            // Ninja Forms
-            const ninjaFormsEmailObserver = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    mutation.addedNodes.forEach(function(node) {
-                        if (node.nodeType === 1) {
-                            // Check if it's an email input inside Ninja Forms
-                            if (
-                                node.matches &&
-                                node.matches(
-                                    '.nf-form-content input[type="email"], input[type="email"].ninja-forms-field',
-                                )
-                            ) {
-                                if (!node.hasAttribute('data-apbct-email-exist')) {
-                                    node.addEventListener('blur', ctDebounceFuncExec(checkEmailExist, 300));
-                                    node.setAttribute('data-apbct-email-exist', '1');
-                                }
-                            }
-                            // If a whole form or part of it is added
-                            node.querySelectorAll &&
-                            node.querySelectorAll(
-                                '.nf-form-content input[type="email"], input[type="email"].ninja-forms-field',
-                            ).forEach(function(input) {
-                                if (!input.hasAttribute('data-apbct-email-exist')) {
-                                    input.addEventListener('blur', ctDebounceFuncExec(checkEmailExist, 300));
-                                    input.setAttribute('data-apbct-email-exist', '1');
-                                }
-                            });
-                        }
-                    });
-                });
-            });
-            // Start observing the entire document
-            ninjaFormsEmailObserver.observe(document.body, {childList: true, subtree: true});
-            // For already existing email fields
-            document.querySelectorAll(
-                '.nf-form-content input[type="email"], input[type="email"].ninja-forms-field',
-            ).forEach(function(input) {
-                if (!input.hasAttribute('data-apbct-email-exist')) {
-                    input.addEventListener('blur', ctDebounceFuncExec(checkEmailExist, 300));
-                    input.setAttribute('data-apbct-email-exist', '1');
-                }
+            apbctIntegrateDynamicEmailCheck({
+                formSelector: '.nf-form-content',
+                emailSelector: 'input[type="email"], input[type="email"].ninja-forms-field',
+                handler: checkEmailExist,
+                debounce: 300
             });
         }
     }
@@ -4753,6 +4717,49 @@ function ctWatchFormChanges(formSelector = '', observerConfig = null, callback) 
     observer.observe(form, observerConfig);
     // you can listen what is changed reading this
     return observer;
+}
+
+function apbctIntegrateDynamicEmailCheck({
+    formSelector,
+    emailSelector,
+    handler,
+    debounce = 300,
+    attribute = 'data-apbct-email-exist'
+}) {
+    // Init for existing email inputs
+    document.querySelectorAll(formSelector + ' ' + emailSelector)
+        .forEach(function(input) {
+            if (!input.hasAttribute(attribute)) {
+                input.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
+                input.setAttribute(attribute, '1');
+            }
+        });
+
+    // Global MutationObserver
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+                if (node.nodeType === 1) {
+                    // If it is an email input
+                    if (node.matches && node.matches(formSelector + ' ' + emailSelector)) {
+                        if (!node.hasAttribute(attribute)) {
+                            node.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
+                            node.setAttribute(attribute, '1');
+                        }
+                    }
+                    // If there are email inputs inside the added node
+                    node.querySelectorAll &&
+                    node.querySelectorAll(emailSelector).forEach(function(input) {
+                        if (!input.hasAttribute(attribute)) {
+                            input.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
+                            input.setAttribute(attribute, '1');
+                        }
+                    });
+                }
+            });
+        });
+    });
+    observer.observe(document.body, {childList: true, subtree: true});
 }
 
 /**

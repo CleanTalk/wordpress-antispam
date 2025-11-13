@@ -342,3 +342,46 @@ function ctWatchFormChanges(formSelector = '', observerConfig = null, callback) 
     // you can listen what is changed reading this
     return observer;
 }
+
+function apbctIntegrateDynamicEmailCheck({
+    formSelector,
+    emailSelector,
+    handler,
+    debounce = 300,
+    attribute = 'data-apbct-email-exist'
+}) {
+    // Init for existing email inputs
+    document.querySelectorAll(formSelector + ' ' + emailSelector)
+        .forEach(function(input) {
+            if (!input.hasAttribute(attribute)) {
+                input.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
+                input.setAttribute(attribute, '1');
+            }
+        });
+
+    // Global MutationObserver
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+                if (node.nodeType === 1) {
+                    // If it is an email input
+                    if (node.matches && node.matches(formSelector + ' ' + emailSelector)) {
+                        if (!node.hasAttribute(attribute)) {
+                            node.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
+                            node.setAttribute(attribute, '1');
+                        }
+                    }
+                    // If there are email inputs inside the added node
+                    node.querySelectorAll &&
+                    node.querySelectorAll(emailSelector).forEach(function(input) {
+                        if (!input.hasAttribute(attribute)) {
+                            input.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
+                            input.setAttribute(attribute, '1');
+                        }
+                    });
+                }
+            });
+        });
+    });
+    observer.observe(document.body, {childList: true, subtree: true});
+}
