@@ -4,7 +4,7 @@ Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 6.67
+Stable tag: 6.68
 License: GPLv2
 
 Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
@@ -412,6 +412,21 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
+= 6.68 13.11.2025 =
+New. Integration. Ultimate affiliate plugin (Codecanyon).
+New. Integration. Gwolle Guestbook integration implemented.
+Upd. Integrations. Improved capability with perfmatters.
+Upd. Settings. Improved UX.
+Upd. Email Encoder. Try to decode in both ways ssl/str_base.
+Fix. ContactEncoder. Editing duplicate pages due to buffer interception.
+Fix. Code. Unit text TestRequirementsChecker refactored.
+Fix. Integration. WPForo. Catch email and nickname via native WPF object. Get message from input.
+Fix. Integrations. Nex-forms POST clearance from service fields after check.
+Fix. Protection by fake button. Sender.net forms ignored, preparing for the next iteration.
+Fix. Integrations. GiveWP. Partially protected Give REST submission.
+Code. Unused code removed.
+Mod. TRP. TRP edits, duplicate the cleantalk_allowed_moderation option and move it to settings.
+
 = 6.67 30.10.2025 =
 New. AdminBanner. Separation of banners about an empty and invalid key
 New. AdminBanner. Editing logic for a banner about an incorrect key
@@ -427,6 +442,14 @@ Fix. Hide website field. Forced condition to replace via honeypot.
 Upd. Server Requirements Checker. Added curl_multi_exec to the check-list.
 New. Email exists check. Implemented for CF7. (#669)
 Upd. Settings. Updated access key link parameters for improved registration process.
+Fix. Settings. Typo (system requirements) fixed.
+Fix. Settings. Complete deactivation fixed.
+Fix. State. Default `fw_stats` fixed.
+Fix. SFW. SFW updating (process exclusions) fixed.
+Fix. Exclusion. Newsletter Automation. Skip test newsletter check.
+Fix. Integration. btQuoteBooking form params gathering fixed.
+Fix. Integration. WP Mailer Lite. Fixed exclusion.
+
 
 = 6.66 16.10.2025 =
 Fix. Remote calls. Debug RC now hide sensitive data.

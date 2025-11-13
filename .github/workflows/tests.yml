@@ -52,6 +52,11 @@ jobs:
           CLEANTALK_TEST_API_KEY: ${{ secrets.CLEANTALK_TEST_API_KEY }}
         run: composer test
 
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
       - name: Matrix notify
         if: failure()
         uses: Glomberg/matrix-messenger-action@master

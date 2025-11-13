@@ -51,6 +51,11 @@ function apbct_init()
 
         // The exclusion of scripts from wp-rocket handler
         add_filter('rocket_delay_js_exclusions', 'apbct_rocket_delay_js_exclusions');
+
+        // The exclusion of scripts from Perfmatters delay handler (for "delay all" mode)
+        add_filter('perfmatters_delay_js_exclusions', 'apbct_perfmatters_delay_js_exclusions');
+        // Remove from Perfmatters delayed scripts list (for "individual delay" mode)
+        add_filter('perfmatters_delayed_scripts', 'apbct_perfmatters_remove_from_delayed_scripts');
     }
 
     //fix for EPM registration form
@@ -360,6 +365,11 @@ function apbct_init()
         && Post::equal('sib_form_action', 'subscribe_form_submit')
         && apbct_is_plugin_active('mailin/sendinblue.php')
     ) {
+        ct_contact_form_validate();
+    }
+
+    // Ultimate affiliate plugin (codecanyon)
+    if (Post::getString('uapaction') === 'register') {
         ct_contact_form_validate();
     }
 
@@ -1005,11 +1015,11 @@ function ct_set_approved($approved, $_comment)
  * @psalm-suppress UnusedParam
  * @return void
  */
-function ct_set_real_user_badge_hash($comment_id)
+function ct_set_real_user_badge_automod_hash($comment_id)
 {
     $hash1 = ct_hash();
     if ( ! empty($hash1) ) {
-        update_comment_meta($comment_id, 'ct_real_user_badge_hash', ct_hash());
+        update_comment_meta($comment_id, 'ct_real_user_badge_automod_hash', ct_hash());
     }
 }
 
@@ -1330,4 +1340,44 @@ function apbct_rocket_delay_js_exclusions($excluded)
         'var ctPublic',
         '/cleantalk-spam-protect/(.*)'
     ));
+}
+
+/**
+ * Exclude CleanTalk scripts from Perfmatters delay (for "delay all" mode)
+ * @param array $excluded
+ * @return array
+ */
+function apbct_perfmatters_delay_js_exclusions($excluded)
+{
+    if (!is_array($excluded)) {
+        $excluded = array();
+    }
+
+    return array_merge($excluded, array(
+        'var ctPublicFunctions',
+        'var ctPublic',
+        'ctPublicFunctions',
+        'ctPublic',
+        '/cleantalk-spam-protect/(.*)'
+    ));
+}
+
+/**
+ * Remove CleanTalk scripts from Perfmatters delayed scripts list (for "individual delay" mode)
+ * This ensures they are not in the inclusions list
+ * @param array $included
+ * @return array
+ */
+function apbct_perfmatters_remove_from_delayed_scripts($included)
+{
+    if (!is_array($included)) {
+        return $included;
+    }
+
+    // Remove any CleanTalk-related entries from the inclusions list
+    return array_filter($included, function ($item) {
+        return stripos($item, 'ctPublicFunctions') === false &&
+               stripos($item, 'ctPublic') === false &&
+               stripos($item, 'cleantalk-spam-protect') === false;
+    });
 }

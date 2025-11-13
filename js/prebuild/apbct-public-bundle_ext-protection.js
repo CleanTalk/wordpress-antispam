@@ -1855,7 +1855,8 @@ function initParams() {
             apbct('form.wc-block-checkout__form input[type = "email"]').on('blur', checkEmailExist);
             apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
             apbct('form.wpcf7-form input[type = "email"]')
-                .on('blur', ctDebounceFuncExec(checkEmailExist, 300));
+                .on('blur', ctDebounceFuncExec(checkEmailExist, 300) );
+            apbct('form.wpforms-form input[type = "email"]').on('blur', checkEmailExist);
             apbctIntegrateDynamicEmailCheck({
                 formSelector: '.nf-form-content',
                 emailSelector: 'input[type="email"], input[type="email"].ninja-forms-field',
@@ -2379,8 +2380,8 @@ class ApbctEventTokenTransport {
      * @return {void}
      */
     setEventTokenToAltCookies() {
-        if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-            tokenCheckerIntervalId = setInterval( function() {
+        tokenCheckerIntervalId = setInterval( function() {
+            if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
                 let eventToken = apbctLocalStorage.get('bot_detector_event_token');
                 if (eventToken) {
                     ctSetAlternativeCookie(
@@ -2389,8 +2390,8 @@ class ApbctEventTokenTransport {
                     );
                     clearInterval(tokenCheckerIntervalId);
                 }
-            }, 1000);
-        }
+            }
+        }, 1000);
     }
 
     /**
@@ -2857,7 +2858,11 @@ class ApbctHandler {
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
-                let bookingPress = document.querySelectorAll('main[id^="bookingpress_booking_form"]').length > 0;
+                const bookingPress =
+                    (
+                        document.querySelectorAll('main[id^="bookingpress_booking_form"]').length > 0 ||
+                        document.querySelectorAll('.bpa-frontend-main-container').length > 0
+                    );
                 ctPublic.force_alt_cookies = bookingPress;
             }
         }, 1000);
@@ -3019,6 +3024,10 @@ class ApbctHandler {
                             sourceSign.found = 'action=drplus_signup';
                             sourceSign.keepUnwrapped = true;
                         }
+                        if (settings.data.indexOf('action=bt_cc') !== -1) {
+                            sourceSign.found = 'action=bt_cc';
+                            sourceSign.keepUnwrapped = true;
+                        }
                     }
                     if ( typeof settings.url === 'string' ) {
                         if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {
@@ -3038,9 +3047,7 @@ class ApbctHandler {
                                     eventToken = 'data%5Bct_bot_detector_event_token%5D=' + token + '&';
                                 }
                             }
-                        }
-
-                        if (ctPublic && ctPublic.data__cookies_type === 'none') {
+                        } else {
                             noCookieData = getNoCookieData();
                             if (sourceSign.keepUnwrapped) {
                                 noCookieData = 'ct_no_cookie_hidden_field=' + noCookieData + '&';
@@ -3630,7 +3637,15 @@ function apbctProcessIframes() {
                 if ( formIsExclusion(currentForm)) {
                     continue;
                 }
-                apbctProcessExternalForm(currentForm, y, frames[j].contentDocument);
+                if (currentForm.classList.contains('sender-form-box')) {
+                    // todo Need to implement integration with @sender.net@ iframes,
+                    // todo there is no current way to intercept custom events, onsumbit is null..
+                    // todo however this could be start of new era of integrations
+                    // todo if we do stop propagation, protection will work, but original form is broken
+                    apbctProcessExternalFormByFakeButton(currentForm, y, frames[j].contentDocument);
+                } else {
+                    apbctProcessExternalForm(currentForm, y, frames[j].contentDocument);
+                }
             }
         }
     }
@@ -3734,10 +3749,18 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
  * @param {HTMLElement} documentObject
  */
 function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObject) {
-    const submitButtonOriginal = currentForm.querySelector('[type="submit"]');
-    const onsubmitOriginal = currentForm.querySelector('[type="submit"]').form.onsubmit;
-
+    let submitButtonOriginal = currentForm.querySelector('[type="submit"]');
+    if (!submitButtonOriginal) {
+        // sender.com form button by class
+        submitButtonOriginal = currentForm.querySelector('.submit-button');
+    }
+    // skip if no button found
     if ( ! submitButtonOriginal ) {
+        return;
+    }
+    const onsubmitOriginal = submitButtonOriginal.form.onsubmit;
+    // skip if no onsubmit found
+    if ( ! onsubmitOriginal ) {
         return;
     }
 
@@ -5043,6 +5066,7 @@ function ctEmailExistSetElementsPositions(inputEmail) {
         backgroundSize = 'inherit';
     }
     const envelope = document.getElementById('apbct-check_email_exist-block');
+
     if (envelope) {
         envelope.style.cssText = `
             top: ${inputRect.top}px;
@@ -5281,28 +5305,42 @@ document.addEventListener('DOMContentLoaded', function() {
         let trpDescription = document.createElement('div');
         trpDescription.setAttribute('class', 'apbct-real-user-popup');
 
-        let trpDescriptionHeading = document.createElement('p');
-        trpDescriptionHeading.setAttribute('class', 'apbct-real-user-popup-header');
+        let trpDescriptionHeading = document.createElement('strong');
         trpDescriptionHeading.append(ctTrpLocalize.phrases.trpHeading);
 
         let trpDescriptionContent = document.createElement('div');
         trpDescriptionContent.setAttribute('class', 'apbct-real-user-popup-content_row');
+        trpDescriptionContent.setAttribute('style', 'white-space: nowrap');
 
-        let trpDescriptionContentSpan = document.createElement('span');
-        trpDescriptionContentSpan.append(ctTrpLocalize.phrases.trpContent1 + ' ');
-        trpDescriptionContentSpan.append(ctTrpLocalize.phrases.trpContent2);
+        let trpDescriptionContentFirstLine = document.createElement('div');
+        trpDescriptionContentFirstLine.append(trpDescriptionHeading);
+        trpDescriptionContentFirstLine.append(' ');
+        trpDescriptionContentFirstLine.append(ctTrpLocalize.phrases.trpContent1);
 
-        if ( ctTrpIsAdminCommentsList ) {
+        let trpDescriptionContentSecondLine = document.createElement('div');
+        trpDescriptionContentSecondLine.style.display = 'flex';
+        trpDescriptionContentSecondLine.style.gap = '5px';
+        let trpDescriptionContentSecondLineTxt = document.createElement('div');
+        trpDescriptionContentSecondLineTxt.append(ctTrpLocalize.phrases.trpContent2);
+        trpDescriptionContentSecondLine.append(trpDescriptionContentSecondLineTxt);
+
+        if (ctTrpIsAdminCommentsList) {
+            let learnMoreLinkWrap = document.createElement('div');
             let learnMoreLink = document.createElement('a');
             learnMoreLink.setAttribute('href', ctTrpLocalize.trpContentLink);
             learnMoreLink.setAttribute('target', '_blank');
-            learnMoreLink.text = ctTrpLocalize.phrases.trpContentLearnMore;
-            trpDescriptionContentSpan.append(' '); // Need one space
-            trpDescriptionContentSpan.append(learnMoreLink);
+            let learnMoreLinkImg = document.createElement('img');
+            learnMoreLinkImg.setAttribute('src', ctAdminCommon.new_window_gif);
+            learnMoreLinkImg.setAttribute('alt', 'New window');
+            learnMoreLinkImg.setAttribute('style', 'padding-top:3px');
+            learnMoreLink.append(learnMoreLinkImg);
+            learnMoreLinkWrap.append(learnMoreLink);
+            trpDescriptionContentSecondLine.append(learnMoreLinkWrap);
         }
 
-        trpDescriptionContent.append(trpDescriptionContentSpan);
-        trpDescription.append(trpDescriptionHeading, trpDescriptionContent);
+        trpDescriptionContent.append(trpDescriptionContentFirstLine, trpDescriptionContentSecondLine);
+
+        trpDescription.append(trpDescriptionContent);
         trpLayout.append(trpImage);
         element.append(trpLayout);
         element.append(trpDescription);

@@ -813,10 +813,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     {
         global $wpdb, $apbct;
 
-        if ($apbct->data['sfw_load_type'] === 'all') {
-            $db__table__data = $apbct->data['sfw_personal_table_name'] . '_temp';
-        }
-
         $query = 'INSERT INTO `' . $db__table__data . '` (network, mask, status) VALUES ';
 
         //Exclusion for servers IP (SERVER_ADDR)

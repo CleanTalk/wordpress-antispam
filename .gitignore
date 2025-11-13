@@ -9,3 +9,4 @@ package-lock.json
 checkstyle.xml
 /fw_files*
 /cleantalk-spam-protect.bat
+/coverage.xml

@@ -63,7 +63,8 @@ function initParams() {
             apbct('form.wc-block-checkout__form input[type = "email"]').on('blur', checkEmailExist);
             apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
             apbct('form.wpcf7-form input[type = "email"]')
-                .on('blur', ctDebounceFuncExec(checkEmailExist, 300));
+                .on('blur', ctDebounceFuncExec(checkEmailExist, 300) );
+            apbct('form.wpforms-form input[type = "email"]').on('blur', checkEmailExist);
             apbctIntegrateDynamicEmailCheck({
                 formSelector: '.nf-form-content',
                 emailSelector: 'input[type="email"], input[type="email"].ninja-forms-field',

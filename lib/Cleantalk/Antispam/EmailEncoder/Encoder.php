@@ -33,24 +33,6 @@ class Encoder
 
 
     /**
-     * Decoding previously encoded string
-     *
-     * @param $encoded_string string
-     *
-     * @return string
-     */
-    public function decodeString($encoded_string)
-    {
-        if ( $this->use_ssl && $this->encryption_is_available ) {
-            $decoded_string = htmlspecialchars_decode($this->openSSLDecrypt($encoded_string));
-        } else {
-            $decoded_string = htmlspecialchars_decode(base64_decode($encoded_string));
-            $decoded_string = str_rot13($decoded_string);
-        }
-        return $decoded_string;
-    }
-
-    /**
      * Encoding any string
      *
      * @param $plain_string string
@@ -64,7 +46,7 @@ class Encoder
             if ( $this->use_ssl && $this->encryption_is_available ) {
                 $encoded_email = htmlspecialchars($this->openSSLEncrypt($plain_string));
             } else {
-                $encoded_email = htmlspecialchars(base64_encode(str_rot13($plain_string)));
+                $encoded_email = htmlspecialchars($this->strBaseEncrypt($plain_string));
             }
         } catch (\Exception $e) {
             $get_last_error = error_get_last();
@@ -84,6 +66,94 @@ class Encoder
         }
 
         return $encoded_email;
+    }
+
+    /**
+     * Decoding previously encoded string
+     *
+     * @param $encoded_string string
+     *
+     * @return string
+     */
+    public function decodeString($encoded_string)
+    {
+        global $apbct;
+        $decoded_string = '';
+        $attempts = $this->tryToDecodeString($encoded_string);
+
+        if (!empty($attempts->final_string)) {
+            $decoded_string = $attempts->final_string;
+        } else {
+            $tmpl = __('decrypt attempts failed, ssl: %s, str_base: %s');
+            $tmpl = sprintf($tmpl, $attempts->ssl_error, $attempts->str_base_error);
+            $apbct->errorAdd('email_encoder', $tmpl);
+        }
+        return htmlspecialchars_decode($decoded_string);
+    }
+
+    /**
+     * @param string $encoded_string
+     *
+     * @return DecodeAttemptResult
+     */
+    private function tryToDecodeString($encoded_string)
+    {
+        $attempts = new DecodeAttemptResult();
+        try {
+            $attempts->str_base_result = $this->strBaseDecrypt($encoded_string);
+        } catch (\Exception $e) {
+            $attempts->str_base_error = $e->getMessage();
+        }
+
+        try {
+            $attempts->ssl_result = $this->openSSLDecrypt($encoded_string);
+        } catch (\Exception $e) {
+            $attempts->ssl_error = $e->getMessage();
+        }
+
+        if (empty($attempts->str_base_error)) {
+            $attempts->final_string = $attempts->str_base_result;
+        } else if (empty($attempts->ssl_error)) {
+            $attempts->final_string = $attempts->ssl_result;
+        }
+
+        return $attempts;
+    }
+
+
+    /**
+     * @param string $plain_string
+     *
+     * @return string
+     */
+    private function strBaseEncrypt($plain_string)
+    {
+        $plain_string_shadow = $this->encrypted_string_splitter . $plain_string;
+        $plain_string_shadow = base64_encode(str_rot13($plain_string_shadow));
+        return $plain_string_shadow;
+    }
+
+    /**
+     * @param $encoded_string
+     *
+     * @return string
+     */
+    private function strBaseDecrypt($encoded_string)
+    {
+        $no_base64 = @base64_decode($encoded_string);
+        if (false === $no_base64) {
+            throw new \Exception('base64_decode error');
+        }
+        $decoded_string_nostrbase = str_rot13($no_base64);
+        if (strpos($decoded_string_nostrbase, $this->encrypted_string_splitter) !== 0) {
+            throw new \Exception('can not find splitter');
+        }
+        $encoding_string_no_shadow = str_replace($this->encrypted_string_splitter, '', $decoded_string_nostrbase);
+
+        if (empty($encoding_string_no_shadow)) {
+            throw new \Exception('empty result string');
+        }
+        return $encoding_string_no_shadow;
     }
 
     /**
@@ -136,57 +206,49 @@ class Encoder
     private function openSSLDecrypt($encoded_string)
     {
         global $apbct;
-        try {
-            if (!is_string($encoded_string) || empty($encoded_string)) {
-                throw new \Exception('Invalid or empty encoded string');
-            }
-            // Find the position of the splitter in the encoded string
-            $splitter_position = strpos($encoded_string, $this->encrypted_string_splitter);
-
-            if (empty($splitter_position)) {
-                throw new \Exception('Can\'t split string');
-            }
-
-            // Extract the IV chunk from the encoded string
-            $iv_chunk = substr($encoded_string, 0, $splitter_position);
-
-            if (empty($iv_chunk)) {
-                throw new \Exception('Can\'t get initializing vector string');
-            }
-
-            // Extract the encoded data chunk from the encoded string
-            $encoded_data_chunk = substr($encoded_string, $splitter_position + strlen($this->encrypted_string_splitter));
-
-            if (empty($encoded_data_chunk)) {
-                throw new \Exception('Can\'t get encoded data');
-            }
-
-            if (!function_exists('base64_decode')) {
-                throw new \Exception('Can\'t run base64_decode');
-            }
-
-            // Decode the IV chunk from base64
-            $iv_chunk_decoded = base64_decode($iv_chunk);
-
-            if (empty($iv_chunk_decoded)) {
-                throw new \Exception('Can\'t decode initializing vector string');
-            }
-
-            // Decrypt the encoded data chunk using the specified cipher algorithm, secret key, and IV
-            $decoded_string = @openssl_decrypt($encoded_data_chunk, $this->cipher_algo, $this->secret_key, 0, $iv_chunk_decoded);
-
-            if (empty($decoded_string)) {
-                throw new \Exception('Can\'t finish SSL decryption');
-            }
-
-            // Return the decrypted string
-            return $decoded_string;
-        } catch (\Exception $e) {
-            //todo catch errors on higher level
-            $get_last_error = error_get_last();
-            $get_last_error = isset($get_last_error['message']) ? $get_last_error['message'] : 'no PHP error';
-            $apbct->errorAdd('email_encoder', esc_html($e->getMessage()) . ', backtrace: ' . $get_last_error);
-            return '';
+        if (!is_string($encoded_string) || empty($encoded_string)) {
+            throw new \Exception('Invalid or empty encoded string');
         }
+        // Find the position of the splitter in the encoded string
+        $splitter_position = strpos($encoded_string, $this->encrypted_string_splitter);
+
+        if (empty($splitter_position)) {
+            throw new \Exception('Can\'t split string');
+        }
+
+        // Extract the IV chunk from the encoded string
+        $iv_chunk = substr($encoded_string, 0, $splitter_position);
+
+        if (empty($iv_chunk)) {
+            throw new \Exception('Can\'t get initializing vector string');
+        }
+
+        // Extract the encoded data chunk from the encoded string
+        $encoded_data_chunk = substr($encoded_string, $splitter_position + strlen($this->encrypted_string_splitter));
+
+        if (empty($encoded_data_chunk)) {
+            throw new \Exception('Can\'t get encoded data');
+        }
+
+        if (!function_exists('base64_decode')) {
+            throw new \Exception('Can\'t run base64_decode');
+        }
+
+        // Decode the IV chunk from base64
+        $iv_chunk_decoded = base64_decode($iv_chunk);
+
+        if (empty($iv_chunk_decoded)) {
+            throw new \Exception('Can\'t decode initializing vector string');
+        }
+
+        // Decrypt the encoded data chunk using the specified cipher algorithm, secret key, and IV
+        $decoded_string = @openssl_decrypt($encoded_data_chunk, $this->cipher_algo, $this->secret_key, 0, $iv_chunk_decoded);
+
+        if (empty($decoded_string)) {
+            throw new \Exception('Can\'t finish SSL decryption');
+        }
+
+        // Return the decrypted string
+        return $decoded_string;
     }
 }
