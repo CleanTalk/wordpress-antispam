@@ -69,7 +69,7 @@ function initParams() {
                 formSelector: '.nf-form-content',
                 emailSelector: 'input[type="email"], input[type="email"].ninja-forms-field',
                 handler: checkEmailExist,
-                debounce: 300
+                debounce: 300,
             });
         }
     }

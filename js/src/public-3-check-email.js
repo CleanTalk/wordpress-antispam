@@ -344,12 +344,20 @@ function ctWatchFormChanges(formSelector = '', observerConfig = null, callback) 
     return observer;
 }
 
-function apbctIntegrateDynamicEmailCheck({
+/**
+ * Integrate dynamic email check to forms with dynamically added email inputs
+ * @param {*} formSelector
+ * @param {*} emailSelector
+ * @param {*} handler
+ * @param {number} debounce
+ * @param {string} attribute
+ */
+function apbctIntegrateDynamicEmailCheck({ // eslint-disable-line no-unused-vars
     formSelector,
     emailSelector,
     handler,
     debounce = 300,
-    attribute = 'data-apbct-email-exist'
+    attribute = 'data-apbct-email-exist',
 }) {
     // Init for existing email inputs
     document.querySelectorAll(formSelector + ' ' + emailSelector)
