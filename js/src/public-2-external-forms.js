@@ -425,13 +425,20 @@ window.addEventListener('load', function() {
         return;
     }
 
+    if (typeof window.ctDymnamicRenderedFormHandlerInterval === 'number') {
+        clearInterval(window.ctDymnamicRenderedFormHandlerInterval );
+    }
+
     setTimeout(function() {
         ctProtectExternal();
         catchNextendSocialLoginForm();
         // run dynamic form catch first time
         catchDynamicRenderedForm();
         // run interval to rehandle form if current state is reset and has no cleantalk intervent
-        setInterval(catchDynamicRenderedForm, 2000);
+        window.ctDymnamicRenderedFormHandlerInterval = setInterval(
+            catchDynamicRenderedForm,
+            2000,
+        );
         ctProtectOutsideFunctionalOnTagsType('div');
         ctProtectOutsideFunctionalOnTagsType('iframe');
     }, 2000);
