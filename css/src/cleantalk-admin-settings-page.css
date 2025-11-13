@@ -130,7 +130,7 @@ i.animate-spin {
 }
 
 .apbct-icon-upload-cloud {
-    margin-right: 3px;
+    margin-left: 3px;
 }
 
 a.ct_support_link{
@@ -573,6 +573,13 @@ button[value="save_changes"]:disabled {
 
 #apbct_sending_report_disabled_notice {
     margin-right: 5px;
+}
+
+.apbct-real-user-popup-img {
+    align-self: start;
+    margin: 0!important;
+    height: max-content;
+    vertical-align: sub;
 }
 
 @keyframes apbct_pulsate {

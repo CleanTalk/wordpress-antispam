@@ -76,6 +76,7 @@ class State extends \Cleantalk\Common\State
         'comments__show_check_links'               => 1, // Shows check link to Cleantalk's DB.
         'comments__the_real_person'                => 0, // Shows badge on each approved by cloud comments on public page.
         'comments__hide_website_field'             => 0, // Hide website field from comment form
+        'cleantalk_allowed_moderation'              => 1, // Skip manual approving for the very first comment if a comment has been allowed by CleanTalk Anti-Spam protection.
 
         // Data processing
         'data__protect_logged_in'                  => 1, // Do anti-spam tests to for logged-in users.
