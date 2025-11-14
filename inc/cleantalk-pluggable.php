@@ -1044,7 +1044,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         // GiveWP - having the direct integration
         if (
             (apbct_is_plugin_active('give/give.php') &&
-            TT::toString(Post::get('action')) === 'give_process_donation')
+             Post::getString('action') === 'give_process_donation')
         ) {
             return 'GiveWP';
         }
@@ -1659,6 +1659,13 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'woo_mailerlite service request';
         }
+
+        if (
+            apbct_is_plugin_active('spoki/spoki.php') &&
+            Post::equal('action', 'spoki_cartflows_save_cart_abandonment_data')
+        ) {
+            return 'spoki_abandoned_card_for_woocommerce';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1970,6 +1977,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         Post::get('form_data')
     ) {
         return 'Otter Blocks';
+    }
+
+    // Nex Forms have the direct integration
+    if (
+        apbct_is_plugin_active('nex-forms/main.php') &&
+        Post::get('action') === 'submit_nex_form'
+    ) {
+        return 'Nex Forms';
     }
 
     return false;

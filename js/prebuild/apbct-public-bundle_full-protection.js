@@ -1856,6 +1856,7 @@ function initParams() {
             apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
             apbct('form.wpcf7-form input[type = "email"]')
                 .on('blur', ctDebounceFuncExec(checkEmailExist, 300) );
+            apbct('form.wpforms-form input[type = "email"]').on('blur', checkEmailExist);
         }
     }
 
@@ -2373,8 +2374,8 @@ class ApbctEventTokenTransport {
      * @return {void}
      */
     setEventTokenToAltCookies() {
-        if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-            tokenCheckerIntervalId = setInterval( function() {
+        tokenCheckerIntervalId = setInterval( function() {
+            if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
                 let eventToken = apbctLocalStorage.get('bot_detector_event_token');
                 if (eventToken) {
                     ctSetAlternativeCookie(
@@ -2383,8 +2384,8 @@ class ApbctEventTokenTransport {
                     );
                     clearInterval(tokenCheckerIntervalId);
                 }
-            }, 1000);
-        }
+            }
+        }, 1000);
     }
 
     /**
@@ -2851,7 +2852,11 @@ class ApbctHandler {
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
-                let bookingPress = document.querySelectorAll('main[id^="bookingpress_booking_form"]').length > 0;
+                const bookingPress =
+                    (
+                        document.querySelectorAll('main[id^="bookingpress_booking_form"]').length > 0 ||
+                        document.querySelectorAll('.bpa-frontend-main-container').length > 0
+                    );
                 ctPublic.force_alt_cookies = bookingPress;
             }
         }, 1000);
@@ -3626,7 +3631,15 @@ function apbctProcessIframes() {
                 if ( formIsExclusion(currentForm)) {
                     continue;
                 }
-                apbctProcessExternalForm(currentForm, y, frames[j].contentDocument);
+                if (currentForm.classList.contains('sender-form-box')) {
+                    // todo Need to implement integration with @sender.net@ iframes,
+                    // todo there is no current way to intercept custom events, onsumbit is null..
+                    // todo however this could be start of new era of integrations
+                    // todo if we do stop propagation, protection will work, but original form is broken
+                    apbctProcessExternalFormByFakeButton(currentForm, y, frames[j].contentDocument);
+                } else {
+                    apbctProcessExternalForm(currentForm, y, frames[j].contentDocument);
+                }
             }
         }
     }
@@ -3730,10 +3743,18 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
  * @param {HTMLElement} documentObject
  */
 function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObject) {
-    const submitButtonOriginal = currentForm.querySelector('[type="submit"]');
-    const onsubmitOriginal = currentForm.querySelector('[type="submit"]').form.onsubmit;
-
+    let submitButtonOriginal = currentForm.querySelector('[type="submit"]');
+    if (!submitButtonOriginal) {
+        // sender.com form button by class
+        submitButtonOriginal = currentForm.querySelector('.submit-button');
+    }
+    // skip if no button found
     if ( ! submitButtonOriginal ) {
+        return;
+    }
+    const onsubmitOriginal = submitButtonOriginal.form.onsubmit;
+    // skip if no onsubmit found
+    if ( ! onsubmitOriginal ) {
         return;
     }
 
@@ -4943,6 +4964,7 @@ function ctCheckInternalIsExcludedForm(action) {
     const ctInternalScriptExclusions = [
         'wp-login.php', // WordPress login page
         'wp-comments-post.php', // WordPress Comments Form
+        'admin-ajax.php', // WordPress ajax
     ];
 
     return ctInternalScriptExclusions.some((item) => {
@@ -5281,6 +5303,7 @@ function ctEmailExistSetElementsPositions(inputEmail) {
         backgroundSize = 'inherit';
     }
     const envelope = document.getElementById('apbct-check_email_exist-block');
+
     if (envelope) {
         envelope.style.cssText = `
             top: ${inputRect.top}px;

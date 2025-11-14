@@ -1856,6 +1856,7 @@ function initParams() {
             apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
             apbct('form.wpcf7-form input[type = "email"]')
                 .on('blur', ctDebounceFuncExec(checkEmailExist, 300) );
+            apbct('form.wpforms-form input[type = "email"]').on('blur', checkEmailExist);
         }
     }
 
@@ -2373,8 +2374,8 @@ class ApbctEventTokenTransport {
      * @return {void}
      */
     setEventTokenToAltCookies() {
-        if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-            tokenCheckerIntervalId = setInterval( function() {
+        tokenCheckerIntervalId = setInterval( function() {
+            if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
                 let eventToken = apbctLocalStorage.get('bot_detector_event_token');
                 if (eventToken) {
                     ctSetAlternativeCookie(
@@ -2383,8 +2384,8 @@ class ApbctEventTokenTransport {
                     );
                     clearInterval(tokenCheckerIntervalId);
                 }
-            }, 1000);
-        }
+            }
+        }, 1000);
     }
 
     /**
@@ -2851,7 +2852,11 @@ class ApbctHandler {
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
-                let bookingPress = document.querySelectorAll('main[id^="bookingpress_booking_form"]').length > 0;
+                const bookingPress =
+                    (
+                        document.querySelectorAll('main[id^="bookingpress_booking_form"]').length > 0 ||
+                        document.querySelectorAll('.bpa-frontend-main-container').length > 0
+                    );
                 ctPublic.force_alt_cookies = bookingPress;
             }
         }, 1000);
@@ -4639,6 +4644,7 @@ function ctEmailExistSetElementsPositions(inputEmail) {
         backgroundSize = 'inherit';
     }
     const envelope = document.getElementById('apbct-check_email_exist-block');
+
     if (envelope) {
         envelope.style.cssText = `
             top: ${inputRect.top}px;

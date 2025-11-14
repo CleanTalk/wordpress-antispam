@@ -5,6 +5,7 @@ namespace Cleantalk\Antispam\IntegrationsByClass;
 abstract class IntegrationByClassBase
 {
     /**
+     * Do not apply actions on hooks if true;
      * @return bool
      * @psalm-suppress PossiblyUnusedMethod
      */

@@ -3,19 +3,37 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Get;
 
 class GiveWP extends IntegrationBase
 {
+    private $is_rest = false;
     public function getDataForChecking($argument)
     {
-        if ( Post::get('action') === 'give_process_donation'
-            || (in_array(Post::get('give_action'), ['donation', 'purchase']) && Post::get('give_ajax')) ) {
+        $this->is_rest = Get::equal('givewp-route', 'validate');
+        if (
+            Post::get('action') === 'give_process_donation' ||
+            (
+                in_array(Post::get('give_action'), ['donation', 'purchase']) &&
+                Post::get('give_ajax')
+            ) ||
+            $this->is_rest
+        ) {
             /**
              * Filter for POST
              */
             $input_array = apply_filters('apbct__filter_post', $_POST);
+            $nickname = '';
+            $email = '';
+            if ($this->is_rest) {
+                $nickname = Post::getString('firstName');
+                $nickname = empty($nickname)
+                    ? Post::getString('lastName')
+                    : $nickname . ' ' . Post::getString('lastName');
+                $email = Post::getString('email');
+            }
 
-            return ct_get_fields_any($input_array);
+            return ct_get_fields_any($input_array, $email, $nickname);
         }
 
         return null;
@@ -28,6 +46,21 @@ class GiveWP extends IntegrationBase
      */
     public function doBlock($message)
     {
+        if ($this->is_rest) {
+            $error = array(
+                'success' => false,
+                'data' => array(
+                    "type" => "validation_error",
+                    'errors' => array(
+                        'errors' => array(
+                            'email' => [$message]
+                        ),
+                        'error_data' => [],
+                    ),
+                ),
+            );
+            wp_send_json($error);
+        }
         if ( function_exists('give_set_error') ) {
             give_set_error('spam_donation', $message);
         }

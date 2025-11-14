@@ -64,6 +64,7 @@ function initParams() {
             apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
             apbct('form.wpcf7-form input[type = "email"]')
                 .on('blur', ctDebounceFuncExec(checkEmailExist, 300) );
+            apbct('form.wpforms-form input[type = "email"]').on('blur', checkEmailExist);
         }
     }
 
