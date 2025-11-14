@@ -163,6 +163,7 @@ class TestEmailEncoder extends TestCase
             '+7 (123) 456-78-90',
             '+7 123 456 78 90',
             '+71234567890',
+            '(999) 321-1233',
         );
 
         $test_stack_skip_to = array(
