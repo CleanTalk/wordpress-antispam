@@ -2971,7 +2971,8 @@ class ApbctHandler {
                             try {
                                 let bodyObj = JSON.parse(args[1].body);
                                 if (!bodyObj.hasOwnProperty('ct_bot_detector_event_token')) {
-                                    bodyObj.ct_bot_detector_event_token = apbctLocalStorage.get('bot_detector_event_token');
+                                    bodyObj.ct_bot_detector_event_token =
+                                        apbctLocalStorage.get('bot_detector_event_token');
                                     args[1].body = JSON.stringify(bodyObj);
                                 }
                             } catch (e) {
