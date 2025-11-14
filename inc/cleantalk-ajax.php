@@ -876,9 +876,12 @@ function ct_ajax_hook($message_obj = null)
             );
         }
 
-        // bricksextras/bricksextras.php
+        // brick plugin or theme
         if (
-            apbct_is_plugin_active('bricksextras/bricksextras.php') &&
+            (
+                apbct_is_plugin_active('bricksextras/bricksextras.php') ||
+                apbct_is_theme_active('bricks')
+            ) &&
             Post::hasString('action', 'bricks_form_submit')
         ) {
             die(
