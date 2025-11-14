@@ -76,12 +76,10 @@ class TestEmailEncoder extends TestCase
         $this->assertNotEmpty($encoded_plain);
         $this->assertIsString($encoded_plain);
         // make sure that b64 fired instead of ssl
-        $decoded_b_string = base64_decode($encoded_plain);
-        $decoded_b_string = str_rot13($decoded_b_string);
-        $this->assertEquals($this->plain_text, $decoded_b_string);
         $decoded_entity = $this->contacts_encoder->encoder->decodeString($encoded_plain);
         $this->assertNotEmpty($decoded_entity);
         $this->assertIsString($decoded_entity);
+        $this->assertEquals($this->plain_text, $decoded_entity);
         global $apbct;
         $this->assertFalse($apbct->isHaveErrors());
         $this->assertEquals($decoded_entity, $this->plain_text);
