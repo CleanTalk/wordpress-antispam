@@ -255,8 +255,22 @@ function ctEmailExistSetElementsPositions(inputEmail) {
     const inputWidth = inputEmail.offsetWidth;
     const envelopeWidth = inputHeight * 1.2;
     let backgroundSize;
+    let fontSizeOrWidthAfterStyle = 0;
+    let useAfterSize = false;
     try {
         let inputComputedStyle = window.getComputedStyle(inputEmail);
+
+        const targetForAfter = inputEmail.parentElement ? inputEmail.parentElement : inputEmail;
+        const afterStyle = window.getComputedStyle(targetForAfter, '::after');
+        const afterContent = afterStyle.getPropertyValue('content');
+        fontSizeOrWidthAfterStyle = afterStyle.getPropertyValue('font-size') || afterStyle.getPropertyValue('width');
+        if (
+            afterContent && afterContent !== 'none' &&
+            parseFloat(fontSizeOrWidthAfterStyle) > 0
+        ) {
+            useAfterSize = true;
+        }
+
         let inputTextSize = (
             typeof inputComputedStyle.fontSize === 'string' ?
                 inputComputedStyle.fontSize :
@@ -269,9 +283,13 @@ function ctEmailExistSetElementsPositions(inputEmail) {
     const envelope = document.getElementById('apbct-check_email_exist-block');
 
     if (envelope) {
+        let offsetAfterSize = 0;
+        if (useAfterSize) {
+            offsetAfterSize = parseFloat(fontSizeOrWidthAfterStyle);
+        }
         envelope.style.cssText = `
             top: ${inputRect.top}px;
-            left: ${inputRect.right - envelopeWidth}px;
+            left: ${(inputRect.right - envelopeWidth) - offsetAfterSize}px;
             height: ${inputHeight}px;
             width: ${envelopeWidth}px;
             background-size: ${backgroundSize};
