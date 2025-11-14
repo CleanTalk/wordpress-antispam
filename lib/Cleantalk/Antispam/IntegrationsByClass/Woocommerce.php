@@ -446,6 +446,11 @@ class Woocommerce extends IntegrationByClassBase
         }
 
         $event_token = $request->get_param('event_token');
+
+        if (!$event_token) {
+            $event_token = $request->get_param('ct_bot_detector_event_token');
+        }
+
         if ($event_token && $event_token !== 'undefined' && $event_token !== 'null') {
             $token = @json_decode($event_token, true);
             if (is_array($token) && isset($token['value'])) {
