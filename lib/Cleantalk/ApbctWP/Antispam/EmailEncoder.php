@@ -186,6 +186,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
             <p class="apbct-icon-ok" style="padding-left: 10px">%s</p>
             <p class="apbct-icon-ok" style="padding-left: 10px">%s</p>
             <p class="apbct-icon-ok" style="padding-left: 10px">%s</p>
+            <p class="apbct-icon-ok" style="padding-left: 10px">%s</p>
         <p>%s</p>
             <p>%s</p>
         ';
@@ -193,7 +194,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
             $tmp,
             __('Enable this option to encode contact phone numbers', 'cleantalk-spam-protect'),
             __('There are a few requirements to the number format:', 'cleantalk-spam-protect'),
-            __('Should starting with "+" symbol', 'cleantalk-spam-protect'),
+            __('Should starting with "+" symbol or opening brace', 'cleantalk-spam-protect'),
             __('At least 8 digit numbers', 'cleantalk-spam-protect'),
             __('Less than 13 digit numbers', 'cleantalk-spam-protect'),
             __('Spaces, braces and dashes between digits are allowed', 'cleantalk-spam-protect'),
@@ -201,6 +202,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
             esc_html('+1 (234) 567-8901'),
             esc_html('+12345678901'),
             esc_html('+12 34 5678901'),
+            esc_html('(234) 567-8910'),
             __('Complied numbers in the "a" tag with "tel" property will be also encoded', 'cleantalk-spam-protect'),
             esc_html('<a href="tel:+11234567890">Call  +1 (123) 456-7890</a>')
         );
