@@ -150,6 +150,11 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     public function bufferOutput()
     {
         global $apbct;
+        static $already_output = false;
+        if ($already_output) {
+            return;
+        }
+        $already_output = true;
         echo $this->modifyContent($apbct->buffer);
     }
 
