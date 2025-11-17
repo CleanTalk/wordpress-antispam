@@ -2967,7 +2967,10 @@ class ApbctHandler {
                         args[0].includes('/wc/store/v1/cart/add-item') &&
                         args && args[1] && args[1].body
                     ) {
-                        if (+ctPublic.settings__data__bot_detector_enabled) {
+                        if (
+                            +ctPublic.settings__data__bot_detector_enabled &&
+                            +ctPublic.settings__forms__wc_add_to_cart
+                        ) {
                             try {
                                 let bodyObj = JSON.parse(args[1].body);
                                 if (!bodyObj.hasOwnProperty('ct_bot_detector_event_token')) {
