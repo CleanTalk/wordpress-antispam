@@ -44,17 +44,17 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         parent::init($params);
         $this->exclusions = new ExclusionsService($params);
         $this->shortcodes = new ShortCodesService($params);
-    }
-
-    public function runEncoding($content = '')
-    {
-        global $apbct;
 
         $this->shortcodes->registerAll();
         $this->shortcodes->addActionsAfterModify('the_content', 11);
         $this->shortcodes->addActionsAfterModify('the_title', 11);
 
         $this->registerHookHandler();
+    }
+
+    public function runEncoding($content = '')
+    {
+        global $apbct;
 
         $hooks_to_encode = array(
             'the_title',

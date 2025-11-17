@@ -223,10 +223,9 @@ if (
         }
     }
 
-
-
+    $contacts_encoder = apbctGetContactsEncoder();
     if ($apbct->settings['data__email_decoder'] && !$skip_email_encode && !apbct_is_amp_request()) {
-        $contacts_encoder = apbctGetContactsEncoder();
+        // Encode content
         $contacts_encoder->runEncoding();
 
         // Email Encoder ajax handlers for decoding
