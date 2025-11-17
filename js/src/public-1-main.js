@@ -508,7 +508,6 @@ class ApbctHandler {
      * @return {void}
      */
     detectForcedAltCookiesForms() {
-        let ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
         let elementorUltimateAddonsRegister = document.querySelectorAll('.uael-registration-form-wrapper').length > 0;
         let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
@@ -520,7 +519,6 @@ class ApbctHandler {
         let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
         let smartQuizBuilder = document.querySelectorAll('form .sqbform, .fields_reorder_enabled').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
-            ninjaFormsSign ||
             jetpackCommentsForm ||
             elementorUltimateAddonsRegister ||
             userRegistrationProForm ||
@@ -701,6 +699,13 @@ class ApbctHandler {
                         }
                         if (settings.data.indexOf('action=bt_cc') !== -1) {
                             sourceSign.found = 'action=bt_cc';
+                            sourceSign.keepUnwrapped = true;
+                        }
+                        if (
+                            settings.data.indexOf('action=nf_ajax_submit') !== -1 &&
+                            ctPublic.data__cookies_type === 'none'
+                        ) {
+                            sourceSign.found = 'action=nf_ajax_submit';
                             sourceSign.keepUnwrapped = true;
                         }
                     }
