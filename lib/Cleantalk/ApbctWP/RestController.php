@@ -79,7 +79,7 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/apbct_decode_email", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => array(\Cleantalk\ApbctWP\Antispam\EmailEncoder::getInstance(),
+                'callback'            => array(apbctGetContactsEncoder(),
                     'ajaxDecodeEmailHandler'
                 ),
                 'permission_callback' => function (WP_REST_Request $request) {

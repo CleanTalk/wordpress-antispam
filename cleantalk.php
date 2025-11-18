@@ -14,7 +14,7 @@
 use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
-use Cleantalk\ApbctWP\Antispam\EmailEncoder;
+use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Antispam\ForceProtection;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\CleantalkRealPerson;
@@ -42,6 +42,7 @@ use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use Cleantalk\Common\DNS;
 use Cleantalk\Common\Firewall;
 use Cleantalk\Common\Schema;
@@ -222,11 +223,13 @@ if (
         }
     }
 
-    if (!$skip_email_encode && !apbct_is_amp_request()) {
-        EmailEncoder::getInstance();
+    $contacts_encoder = apbctGetContactsEncoder();
+    if ($apbct->settings['data__email_decoder'] && !$skip_email_encode && !apbct_is_amp_request()) {
+        // Encode content
+        $contacts_encoder->runEncoding();
 
-        // Email Encoder ajax handlers
-        EmailEncoder::getInstance()->registerAjaxRoute();
+        // Email Encoder ajax handlers for decoding
+        $contacts_encoder->registerAjaxRoute();
     }
 
     // Force protection to avoid spam from bots without javascript
@@ -3082,4 +3085,23 @@ function apbct_cron_remove_support_user()
 {
     $temp_user_service = new \Cleantalk\ApbctWP\SupportUser();
     $temp_user_service->performCronDeleteUser();
+}
+
+/**
+ * This is a helper function to avoid code duplication on build ContactsEncoder object
+ * @return ContactsEncoder
+ */
+function apbctGetContactsEncoder()
+{
+    global $apbct;
+
+    $contacts_encoder_params = new Params();
+    $contacts_encoder_params->api_key = $apbct->api_key;
+    $contacts_encoder_params->is_logged_in = apbct_is_user_logged_in();
+    $contacts_encoder_params->obfuscation_mode = $apbct->settings['data__email_decoder_obfuscation_mode'];
+    $contacts_encoder_params->obfuscation_text = $apbct->settings['data__email_decoder_obfuscation_custom_text'];
+    $contacts_encoder_params->do_encode_emails = (int)$apbct->settings['data__email_decoder_encode_email_addresses'];
+    $contacts_encoder_params->do_encode_phones = (int)$apbct->settings['data__email_decoder_encode_phone_numbers'];
+
+    return ContactsEncoder::getInstance($contacts_encoder_params);
 }

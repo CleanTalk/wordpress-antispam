@@ -1,71 +1,50 @@
 <?php
 
-namespace Cleantalk\Antispam\EmailEncoder;
+namespace Cleantalk\Common\ContactsEncoder;
 
-use Cleantalk\Antispam\EmailEncoder\Shortcodes\ShortCodesService;
-use Cleantalk\ApbctWP\AJAXService;
-use Cleantalk\ApbctWP\Variables\Post;
-use Cleantalk\Templates\Singleton;
+use Cleantalk\Common\ContactsEncoder\Helper\ContactsEncoderHelper;
+use Cleantalk\Common\ContactsEncoder\Dto\Params;
+use Cleantalk\Common\ContactsEncoder\Encoder\Encoder;
+use Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService;
+use Cleantalk\Common\ContactsEncoder\Obfuscator\Obfuscator;
+use Cleantalk\Common\ContactsEncoder\Obfuscator\ObfuscatorEmailData;
 
 /**
- * Email Encoder class.
+ * Contacts Encoder common class.
  */
-class EmailEncoder
+abstract class ContactsEncoder
 {
-    use Singleton;
-
     /**
      * @var Encoder
      */
     public $encoder;
+
     /**
-     * @var ExclusionsService
-     */
-    /**
-     * @var string[]
-     */
-    public $decoded_emails_array = array();
-    /**
-     * @var string[]
-     */
-    public $encoded_emails_array;
-    /**
-     * @var bool
-     */
-    public $has_connection_error;
-    /**
-     * @var ExclusionsService
-     */
-    private $exclusions;
-    /**
-     * @var EmailEncoderHelper
+     * @var ContactsEncoderHelper
      */
     private $helper;
+
     /**
-     * @var ShortCodesService
+     * @var ExclusionsService
      */
-    private $shortcodes;
-    /**
-     * @var string
-     */
-    private $response;
+    protected $exclusions;
+
     /**
      * Temporary content to use in regexp callback
      * @var string
      */
     private $temp_content;
-    /**
-     * @var bool
-     */
-    private $privacy_policy_hook_handled = false;
+
     /**
      * @var string
      */
     private $aria_regex = '/aria-label.?=.?[\'"].+?[\'"]/';
+
     /**
      * @var array
      */
     private $aria_matches = array();
+
     /**
      * Attributes with possible email-like content to drop from the content to avoid unnecessary encoding.
      * Key is a tag we want to find, value is an attribute with email to drop.
@@ -74,105 +53,128 @@ class EmailEncoder
     private static $attributes_to_drop = array(
         'a' => 'title',
     );
+
     /**
      * @var string
      */
     private $global_obfuscation_mode;
+
     /**
      * @var string
      */
     private $global_replacing_text;
 
+    /**
+     * @var int|mixed
+     */
+    private $do_encode_emails;
 
     /**
-     * @inheritDoc
+     * @var int|mixed
      */
-    protected function init()
+    private $do_encode_phones;
+
+    /**
+     * @var bool
+     * @psalm-suppress PossiblyUnusedProperty
+     */
+    protected $is_encode_allowed = true;
+
+    /**
+     * @var bool
+     */
+    protected $is_logged_in = false;
+
+    protected static $instance;
+
+    public function __construct()
     {
-        global $apbct;
+    }
 
-        $this->exclusions = new ExclusionsService();
-        $this->shortcodes = new ShortCodesService();
-        $this->helper = new EmailEncoderHelper();
+    public function __wakeup()
+    {
+    }
 
-        $this->encoder = new Encoder(md5($apbct->api_key));
+    public function __clone()
+    {
+    }
 
-        if (apbct_is_user_logged_in()) {
+    /**
+     * Constructor
+     * @return $this
+     * @throws \Exception
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public static function getInstance(Params $params = null)
+    {
+        if ( ! isset(static::$instance) ) {
+            if ( ! $params ) {
+                throw new \Exception('Params object not set');
+            }
+            static::$instance = new static();
+            static::$instance->init($params);
+        }
+        return static::$instance;
+    }
+
+    /**
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function dropInstance()
+    {
+        self::$instance = null;
+    }
+
+    /**
+     * @param Params $params
+     *
+     * @return void
+     */
+    protected function init($params)
+    {
+        $this->exclusions = new ExclusionsService($params);
+        $this->encoder = new Encoder(md5($params->api_key));
+        $this->helper = new ContactsEncoderHelper();
+        $this->global_obfuscation_mode = $params->obfuscation_mode;
+        $this->global_replacing_text = $params->obfuscation_text;
+        $this->do_encode_emails = $params->do_encode_emails;
+        $this->do_encode_phones = $params->do_encode_phones;
+        $this->is_logged_in = $params->is_logged_in;
+
+        if ($this->is_logged_in) {
             $this->ignoreOpenSSLMode();
         }
+    }
 
+    /**
+     * @param $content
+     * @return void|mixed|string
+     * @psalm-suppress PossiblyUnusedMethod
+     * @psalm-suppress PossiblyUnusedReturnValue
+     */
+    public function runEncoding($content = '')
+    {
         if ( $this->exclusions->doSkipBeforeAnything() ) {
-            return;
+            return $content;
         }
+        return $this->modifyContent($content);
+    }
 
-        $this->shortcodes->registerAll();
-        $this->shortcodes->addActionsAfterModify('the_content', 11);
-        $this->shortcodes->addActionsAfterModify('the_title', 11);
-
-        $this->registerHookHandler();
-
-        if ( $this->exclusions->doSkipBeforeModifyingHooksAdded() ) {
-            return;
-        }
-
-        $hooks_to_encode = array(
-            'the_title',
-            'the_content',
-            'the_excerpt',
-            'get_footer',
-            'get_header',
-            'get_the_excerpt',
-            'comment_text',
-            'comment_excerpt',
-            'comment_url',
-            'get_comment_author_url',
-            'get_comment_author_url_link',
-            'widget_title',
-            'widget_text',
-            'widget_content',
-            'widget_output',
-            'widget_block_content',
-            'render_block',
-        );
-
-        // Search data to buffer
-        if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post() && !is_admin()) {
-            add_action('wp', 'apbct_buffer__start');
-            add_action('shutdown', 'apbct_buffer__end', 0);
-            add_action('shutdown', array($this, 'bufferOutput'), 2);
-            $this->shortcodes->addActionsAfterModify('shutdown', 3);
-        } else {
-            foreach ( $hooks_to_encode as $hook ) {
-                $this->shortcodes->addActionsBeforeModify($hook, 9);
-                add_filter($hook, array($this, 'modifyContent'), 10);
-            }
-        }
-
-        // integration with Business Directory Plugin
-        add_filter('wpbdp_form_field_display', array($this, 'modifyFormFieldDisplay'), 10, 4);
+    /**
+     * @param $encoded_contacts_data
+     *
+     * @return array
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function runDecoding($encoded_contacts_data)
+    {
+        return $this->decodeContactData($encoded_contacts_data);
     }
 
     /*
      * =============== MODIFYING ===============
      */
-
-    /**
-     * @param string $html
-     * @param object $field
-     * @param string $display_context
-     * @param int $post_id
-     * @return string
-     * @psalm-suppress PossiblyUnusedParam, PossiblyUnusedReturnValue
-     */
-    public function modifyFormFieldDisplay($html, $field, $display_context, $post_id)
-    {
-        if (mb_strpos($html, 'mailto:') !== false) {
-            $html = html_entity_decode($html);
-            return $this->modifyContent($html);
-        }
-
-        return $html;
-    }
 
     /**
      * @param string $content
@@ -182,13 +184,6 @@ class EmailEncoder
      */
     public function modifyContent($content)
     {
-        global $apbct;
-
-        $this->global_obfuscation_mode = $apbct->settings['data__email_decoder_obfuscation_mode'];
-        $this->global_replacing_text   = $apbct->settings['data__email_decoder_obfuscation_custom_text'];
-        $do_encode_emails   = (bool)$apbct->settings['data__email_decoder_encode_email_addresses'];
-        $do_encode_phones  = (bool)$apbct->settings['data__email_decoder_encode_phone_numbers'];
-
         if ( $this->exclusions->doReturnContentBeforeModify($content) ) {
             return $content;
         }
@@ -203,9 +198,9 @@ class EmailEncoder
 
         // Main logic
 
-        $do_encode_emails && $content = $this->modifyGlobalEmails($content);
+        $this->do_encode_emails && $content = $this->modifyGlobalEmails($content);
 
-        $do_encode_phones && $content = $this->modifyGlobalPhoneNumbers($content);
+        $this->do_encode_phones && $content = $this->modifyGlobalPhoneNumbers($content);
 
         return $content;
     }
@@ -257,8 +252,6 @@ class EmailEncoder
                     return $matches[0][0];
                 }
 
-                $this->handlePrivacyPolicyHook();
-
                 if ( isset($matches[0][0]) ) {
                     return $this->encodePlainEmail($matches[0][0]);
                 }
@@ -281,8 +274,6 @@ class EmailEncoder
                 if ( isset($matches[0]) &&  $this->helper->isMailto($matches[0]) ) {
                     return $this->encodeMailtoLink($matches[0]);
                 }
-
-                $this->handlePrivacyPolicyHook();
 
                 if ( isset($matches[0]) ) {
                     return $this->encodePlainEmail($matches[0]);
@@ -329,8 +320,6 @@ class EmailEncoder
                     }
                 }
 
-                $this->handlePrivacyPolicyHook();
-
                 if ( isset($matches[0][0]) ) {
                     return $this->encodeAny(
                         $matches[0][0],
@@ -361,8 +350,6 @@ class EmailEncoder
                     }
                 }
 
-                $this->handlePrivacyPolicyHook();
-
                 if ( isset($matches[0]) ) {
                     return $this->encodeAny(
                         $matches[0],
@@ -383,32 +370,6 @@ class EmailEncoder
         return $replacing_result;
     }
 
-    /**
-     * Wrapper. Encode any string.
-     * @param $string
-     *
-     * @return string
-     */
-    public function modifyAny($string, $mode = 'blur', $replacing_text = null)
-    {
-        $encoded_string = $this->encodeAny($string, $mode, $replacing_text);
-
-        //please keep this var (do not simplify the code) for further debug
-        return $encoded_string;
-    }
-
-    public function bufferOutput()
-    {
-        global $apbct;
-
-        static $already_output = false;
-        if ($already_output) {
-            return;
-        }
-        $already_output = true;
-        echo $this->modifyContent($apbct->buffer);
-    }
-
     /*
      * =============== ENCODE ENTITIES ===============
      */
@@ -425,7 +386,7 @@ class EmailEncoder
         $obfuscated_string = $email_str;
         $chunks_data = false;
 
-        if ( $this->global_obfuscation_mode !== 'replace') {
+        if ( $this->global_obfuscation_mode !== Params::OBFUSCATION_MODE_REPLACE) {
             $obfuscator = new Obfuscator();
             $chunks = $obfuscator->getEmailData($email_str);
             $chunks_data = $obfuscator->obfuscate_success ? $chunks : false;
@@ -450,11 +411,11 @@ class EmailEncoder
      *
      * @return string
      */
-    private function encodeAny($string, $mode = 'blur', $replacing_text = null, $is_phone_number = false)
+    protected function encodeAny($string, $mode = Params::OBFUSCATION_MODE_BLUR, $replacing_text = null, $is_phone_number = false)
     {
         $obfuscated_string = $string;
 
-        if ($mode !== 'replace') {
+        if ($mode !== Params::OBFUSCATION_MODE_REPLACE) {
             $obfuscator = new Obfuscator();
             $obfuscated_string = $is_phone_number
                 ? $obfuscator->processPhone($string)
@@ -495,7 +456,7 @@ class EmailEncoder
 
         $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
 
-        return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
+        return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8');
     }
 
     /**
@@ -528,7 +489,7 @@ class EmailEncoder
 
         $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
 
-        return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
+        return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8');
     }
 
     /**
@@ -555,7 +516,7 @@ class EmailEncoder
 
         $text = isset($mailto_inner_text) ? $mailto_inner_text : $tel_link_str;
 
-        return 'tel:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
+        return 'tel:' . $text . '" data-original-string="' . $encoded . '" title="' . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8');
     }
 
     /**
@@ -591,7 +552,7 @@ class EmailEncoder
 
         $text = isset($tel_inner_text) ? $tel_inner_text : $tel_link_string;
 
-        return 'tel:' . $text . '" data-original-string="' . $encoded . '" title="' . esc_attr($this->getTooltip());
+        return 'tel:' . $text . '" data-original-string="' . $encoded . '" title="' . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8');
     }
 
     /**
@@ -639,17 +600,17 @@ class EmailEncoder
     private function applyEffectsOnMode($is_email, $obfuscated_string, $mode, $replacing_text = null, $email_chunks_data = null)
     {
         switch ($mode) {
-            case 'blur':
+            case Params::OBFUSCATION_MODE_BLUR:
                 $handled_string = $is_email && $email_chunks_data
                     ? $this->addMagicBlurEmail($obfuscated_string)
                     : $this->addMagicBlurToString($obfuscated_string);
                 break;
-            case 'obfuscate':
+            case Params::OBFUSCATION_MODE_OBFUSCATE:
                 $handled_string = $is_email
                     ? $this->getObfuscatedEmailString($obfuscated_string)
                     : $obfuscated_string;
                 break;
-            case 'replace':
+            case Params::OBFUSCATION_MODE_REPLACE:
                 $handled_string = !empty($replacing_text) ? $replacing_text : static::getDefaultReplacingText();
                 $handled_string = '<span style="text-decoration: underline">' .  $handled_string . '</span>';
                 break;
@@ -670,7 +631,7 @@ class EmailEncoder
         return "<span 
                 data-original-string='" . $encoded_string . "'
                 class='apbct-email-encoder'
-                title='" . esc_attr($this->getTooltip()) . "'>" . $obfuscated_string . "</span>";
+                title='" . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8') . "'>" . $obfuscated_string . "</span>";
     }
 
     /**
@@ -681,11 +642,11 @@ class EmailEncoder
     private function addMagicBlurViaChunksData($email_chunks)
     {
         return $email_chunks->chunk_raw_left
-               . '<span class="apbct-blur">' . $email_chunks->chunk_obfuscated_left . '</span>'
-               . $email_chunks->chunk_raw_center
-               . '<span class="apbct-blur">' . $email_chunks->chunk_obfuscated_right . '</span>'
-               . $email_chunks->chunk_raw_right
-               . $email_chunks->domain;
+            . '<span class="apbct-blur">' . $email_chunks->chunk_obfuscated_left . '</span>'
+            . $email_chunks->chunk_raw_center
+            . '<span class="apbct-blur">' . $email_chunks->chunk_obfuscated_right . '</span>'
+            . $email_chunks->chunk_raw_right
+            . $email_chunks->domain;
     }
 
     /**
@@ -712,14 +673,11 @@ class EmailEncoder
      * Get text for the title attribute
      *
      * @return string
+     * @recommended Override this method in child classes to provide custom tooltip text
      */
-    private function getTooltip()
+    protected function getTooltip()
     {
-        global $apbct;
-        return sprintf(
-            esc_html__('This contact has been encoded by %s. Click to decode. To finish the decoding make sure that JavaScript is enabled in your browser.', 'cleantalk-spam-protect'),
-            esc_html__($apbct->data['wl_brandname'])
-        );
+        return 'This contact has been encoded. Click to decode. To finish the decoding make sure that JavaScript is enabled in your browser.';
     }
 
 
@@ -727,61 +685,30 @@ class EmailEncoder
     * =============== DECODING ===============
     */
 
-
-    /**
-     * Ajax handler for the apbct_decode_email action
-     *
-     * @return void returns json string to the JS
-     */
-    public function ajaxDecodeEmailHandler()
-    {
-        if (! defined('REST_REQUEST') && !apbct_is_user_logged_in()) {
-            AJAXService::checkPublicNonce();
-        }
-
-        // use non ssl mode for logged in user on settings page
-        if ( apbct_is_user_logged_in() ) {
-            $this->decoded_emails_array = $this->decodeEmailFromPost();
-            $this->response = $this->compileResponse($this->decoded_emails_array, true);
-            wp_send_json_success($this->response);
-        }
-
-        $this->decoded_emails_array = $this->decodeEmailFromPost();
-
-        if ( $this->checkRequest() ) {
-            //has error response from cloud
-            if ( $this->has_connection_error ) {
-                $this->response = $this->compileResponse($this->decoded_emails_array, false);
-                wp_send_json_error($this->response);
-            }
-            //decoding is allowed by cloud
-            $this->response = $this->compileResponse($this->decoded_emails_array, true);
-            wp_send_json_success($this->response);
-        }
-        //decoding is not allowed by cloud
-        $this->response = $this->compileResponse($this->decoded_emails_array, false);
-        //important - frontend waits success true to handle response
-        wp_send_json_success($this->response);
-    }
-
     /**
      * Main logic of the decoding the encoded data.
      *
-     * @return string[] array of decoded email
+     * @param array $encoded_contacts_array array of decoded email
+     *
+     * @return array
      */
-    public function decodeEmailFromPost()
+    public function decodeContactData($encoded_contacts_array)
     {
-        $encoded_emails_array = Post::get('encodedEmails') ? Post::get('encodedEmails') : false;
-        if ( $encoded_emails_array ) {
-            $encoded_emails_array = str_replace('\\', '', $encoded_emails_array);
-            $this->encoded_emails_array = json_decode($encoded_emails_array, true);
+        $decoded_emails_array = [];
+
+        if ( empty($encoded_contacts_array) || ! is_array($encoded_contacts_array) ) {
+            return $decoded_emails_array;
         }
 
-        foreach ( $this->encoded_emails_array as $_key => $encoded_email) {
-            $this->decoded_emails_array[$encoded_email] = $this->encoder->decodeString($encoded_email);
+        if ( ! $this->is_logged_in ) {
+            $this->is_encode_allowed = $this->checkRequest();
         }
 
-        return $this->decoded_emails_array;
+        foreach ( $encoded_contacts_array as $encoded_contact) {
+            $decoded_emails_array[$encoded_contact] = $this->encoder->decodeString($encoded_contact);
+        }
+
+        return $decoded_emails_array;
     }
 
     /**
@@ -789,12 +716,16 @@ class EmailEncoder
      *
      * @return bool returns json string to the JS
      */
-    protected function checkRequest()
-    {
-        return true;
-    }
+    abstract protected function checkRequest();
 
-    /** @psalm-suppress PossiblyUnusedParam */
+    abstract protected function getCheckRequestComment();
+
+    /**
+     * @param $decoded_emails_array
+     * @param $is_allowed
+     * @return array|false
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     protected function compileResponse($decoded_emails_array, $is_allowed)
     {
         $result = array();
@@ -803,36 +734,21 @@ class EmailEncoder
             return false;
         }
 
-        foreach ( $decoded_emails_array as $_encoded_email => $decoded_email ) {
-            $result[] = strip_tags($decoded_email, '<a>');
+        foreach ( $decoded_emails_array as $encoded_email => $decoded_email ) {
+            $result[] = array(
+                'is_allowed' => $is_allowed,
+                'show_comment' => !$is_allowed,
+                'comment' => $this->getCheckRequestComment(),
+                'encoded_email' => strip_tags($encoded_email, '<a>'),
+                'decoded_email' => $is_allowed ? strip_tags($decoded_email, '<a>') : '',
+            );
         }
         return $result;
     }
 
-
     /*
      * =============== SERVICE ===============
      */
-
-
-    /**
-     * Register AJAX routes to run decoding
-     * @return void
-     */
-    public function registerAjaxRoute()
-    {
-        add_action('wp_ajax_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
-        add_action('wp_ajax_nopriv_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
-    }
-
-    /**
-     * @return void
-     */
-    private function registerHookHandler()
-    {
-        add_filter('apbct_encode_data', [$this, 'modifyAny'], 10, 3);
-        add_filter('apbct_encode_email_data', [$this, 'modifyContent']);
-    }
 
     /**
      * Fluid. Ignore SSL mode for encoding/decoding on the instance.
@@ -845,7 +761,10 @@ class EmailEncoder
     }
 
     /**
+     * Get default replacing text for the encoded email
+     *
      * @return string
+     * @recommended Override this method in child classes to provide custom replacement text
      */
     protected static function getDefaultReplacingText()
     {
@@ -903,18 +822,5 @@ class EmailEncoder
             return preg_replace('/ct_temp_aria/', $this->aria_matches[0], $content);
         }
         return $content;
-    }
-
-    /**
-     * @return void
-     */
-    private function handlePrivacyPolicyHook()
-    {
-        if ( !$this->privacy_policy_hook_handled && current_action() === 'the_title' ) {
-            add_filter('the_privacy_policy_link', function ($link) {
-                return wp_specialchars_decode($link);
-            });
-            $this->privacy_policy_hook_handled = true;
-        }
     }
 }
