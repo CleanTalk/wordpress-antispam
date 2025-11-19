@@ -2370,25 +2370,6 @@ class ApbctEventTokenTransport {
     }
 
     /**
-     * Send bot detector event token to alt cookies on problem forms
-     * @return {void}
-     */
-    setEventTokenToAltCookies() {
-        tokenCheckerIntervalId = setInterval( function() {
-            if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-                let eventToken = apbctLocalStorage.get('bot_detector_event_token');
-                if (eventToken) {
-                    ctSetAlternativeCookie(
-                        JSON.stringify({'ct_bot_detector_event_token': eventToken}),
-                        {forceAltCookies: true},
-                    );
-                    clearInterval(tokenCheckerIntervalId);
-                }
-            }
-        }, 1000);
-    }
-
-    /**
      * Restart event_token attachment if some forms load after document ready.
      * @return {void}
      */
@@ -2827,7 +2808,6 @@ class ApbctHandler {
      * @return {void}
      */
     detectForcedAltCookiesForms() {
-        let ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
         let elementorUltimateAddonsRegister = document.querySelectorAll('.uael-registration-form-wrapper').length > 0;
         let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
@@ -2839,7 +2819,6 @@ class ApbctHandler {
         let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
         let smartQuizBuilder = document.querySelectorAll('form .sqbform, .fields_reorder_enabled').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
-            ninjaFormsSign ||
             jetpackCommentsForm ||
             elementorUltimateAddonsRegister ||
             userRegistrationProForm ||
@@ -3020,6 +2999,13 @@ class ApbctHandler {
                         }
                         if (settings.data.indexOf('action=bt_cc') !== -1) {
                             sourceSign.found = 'action=bt_cc';
+                            sourceSign.keepUnwrapped = true;
+                        }
+                        if (
+                            settings.data.indexOf('action=nf_ajax_submit') !== -1 &&
+                            ctPublic.data__cookies_type === 'none'
+                        ) {
+                            sourceSign.found = 'action=nf_ajax_submit';
                             sourceSign.keepUnwrapped = true;
                         }
                     }
@@ -3407,7 +3393,23 @@ function apbct_ready() {
     handler.catchWCRestRequestAsMiddleware();
 
     if (+ctPublic.settings__data__bot_detector_enabled) {
-        new ApbctEventTokenTransport().setEventTokenToAltCookies();
+        let botDetectorEventTokenStored = false;
+        window.addEventListener('botDetectorEventTokenUpdated', (event) => {
+            const botDetectorEventToken = event.detail?.eventToken;
+            if ( botDetectorEventToken && ! botDetectorEventTokenStored ) {
+                ctSetCookie([
+                    ['ct_bot_detector_event_token', botDetectorEventToken]
+                ]);
+                botDetectorEventTokenStored = true;
+                // @ToDo remove this block afret force_alt_cookies removed
+                if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
+                    ctSetAlternativeCookie(
+                        JSON.stringify({'ct_bot_detector_event_token': botDetectorEventToken}),
+                        {forceAltCookies: true},
+                    );
+                }
+            }
+        });
     }
 
     if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {
