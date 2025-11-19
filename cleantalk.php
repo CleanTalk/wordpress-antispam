@@ -1153,6 +1153,9 @@ function apbct_sfw_update__init($delay = 0)
         $apbct->save('data');
     }
 
+    //drop expected common/personal network counters - do this before(!) direct update fork
+    SFWUpdateHelper::flushCKStats();
+
     if (apbct_sfw_update__switch_to_direct()) {
         return SFWUpdateHelper::directUpdate();
     }
