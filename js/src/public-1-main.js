@@ -51,25 +51,6 @@ class ApbctEventTokenTransport {
     }
 
     /**
-     * Send bot detector event token to alt cookies on problem forms
-     * @return {void}
-     */
-    setEventTokenToAltCookies() {
-        tokenCheckerIntervalId = setInterval( function() {
-            if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-                let eventToken = apbctLocalStorage.get('bot_detector_event_token');
-                if (eventToken) {
-                    ctSetAlternativeCookie(
-                        JSON.stringify({'ct_bot_detector_event_token': eventToken}),
-                        {forceAltCookies: true},
-                    );
-                    clearInterval(tokenCheckerIntervalId);
-                }
-            }
-        }, 1000);
-    }
-
-    /**
      * Restart event_token attachment if some forms load after document ready.
      * @return {void}
      */
@@ -1093,7 +1074,23 @@ function apbct_ready() {
     handler.catchWCRestRequestAsMiddleware();
 
     if (+ctPublic.settings__data__bot_detector_enabled) {
-        new ApbctEventTokenTransport().setEventTokenToAltCookies();
+        let botDetectorEventTokenStored = false;
+        window.addEventListener('botDetectorEventTokenUpdated', (event) => {
+            const botDetectorEventToken = event.detail?.eventToken;
+            if ( botDetectorEventToken && ! botDetectorEventTokenStored ) {
+                ctSetCookie([
+                    ['ct_bot_detector_event_token', botDetectorEventToken]
+                ]);
+                botDetectorEventTokenStored = true;
+                // @ToDo remove this block afret force_alt_cookies removed
+                if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
+                    ctSetAlternativeCookie(
+                        JSON.stringify({'ct_bot_detector_event_token': botDetectorEventToken}),
+                        {forceAltCookies: true},
+                    );
+                }
+            }
+        });
     }
 
     if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {
