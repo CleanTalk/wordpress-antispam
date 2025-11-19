@@ -1079,7 +1079,7 @@ function apbct_ready() {
             const botDetectorEventToken = event.detail?.eventToken;
             if ( botDetectorEventToken && ! botDetectorEventTokenStored ) {
                 ctSetCookie([
-                    ['ct_bot_detector_event_token', botDetectorEventToken]
+                    ['ct_bot_detector_event_token', botDetectorEventToken],
                 ]);
                 botDetectorEventTokenStored = true;
                 // @ToDo remove this block afret force_alt_cookies removed
