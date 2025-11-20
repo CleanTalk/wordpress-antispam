@@ -277,6 +277,13 @@ function skip_for_ct_contact_form_validate()
         '97' => (apbct_is_plugin_active('op-dashboard/op-dashboard.php') && apbct_is_in_uri('/trackFacebookCAPIEvents')),
         // WS Form has a direct integration
         '98' => (apbct_is_plugin_active('ws-form/ws-form.php') && apbct_is_in_uri('/ws-form/v1/submit')),
+        '99' => (apbct_is_plugin_active('give/give.php') && Get::equal('givewp-route', 'validate')),
+        // woocommerce apple pay gateway
+        '100' => (
+            apbct_is_plugin_active('woocommerce/woocommerce.php') &&
+            Get::equal('wc-ajax', 'wc_stripe_frontend_request') &&
+            ! empty(Post::getString('stripe_applepay_token_key'))
+        ),
     );
 
     foreach ( $exclusions as $exclusion_key => $state ) {

@@ -18,20 +18,34 @@ class CleantalkWpDieOnComment extends IntegrationBase
     public function wpDie($message, $title, $args)
     {
         global $apbct;
+
         // only in this way we can collect validation errors
         if ( $title == __('Comment Submission Failure') ) {
-            // save the validation error to use in the new instance
-            $apbct->validation_error = $message;
-            // call the new instance for spam checking
-            $integrations = new \Cleantalk\Antispam\Integrations(array(), $apbct->settings);
-            $check_spam_result = $integrations->checkSpam($apbct->comment_data, 'CleantalkWpDieOnComment');
-            // await for CTR block message
-            if (is_string($check_spam_result)) {
-                // modify the default wp error message
-                $ct_message = '<p>' . TT::toString($check_spam_result) . '</p>';
-                $message .= $ct_message;
+            try {
+                // save the validation error to use in the new instance
+                $apbct->validation_error = $message;
+
+                // call the new instance for spam checking
+                $integrations = new \Cleantalk\Antispam\Integrations(array(), $apbct->settings);
+                $check_spam_result = $integrations->checkSpam($apbct->comment_data, 'CleantalkWpDieOnComment');
+
+                // await for CTR block message
+                if (is_string($check_spam_result)) {
+                    // modify the default wp error message
+                    $ct_message = '<p>' . TT::toString($check_spam_result) . '</p>';
+                    $message .= $ct_message;
+                }
+            } catch (\Exception $e) {
+                // Log the error but don't let it cascade
+                error_log('Cleantalk wpDie error: ' . $e->getMessage());
+
+                // Reset database connection if possible
+                if (function_exists('wp_cache_flush')) {
+                    wp_cache_flush();
+                }
             }
         }
+
         // run default wp die handler anyway
         _default_wp_die_handler($message, $title, $args);
     }
@@ -46,35 +60,40 @@ class CleantalkWpDieOnComment extends IntegrationBase
     {
         global $apbct;
 
-        // if the second call in the flow, the action is changed - do nothing there
-        if (current_action() !== 'wp_die_handler') {
-            return true;
+        try {
+            // if the second call in the flow, the action is changed - do nothing there
+            if (current_action() !== 'wp_die_handler') {
+                return true;
+            }
+
+            // first call in the flow - collect data for further instance calling
+            $comment_data = wp_unslash($_POST);
+            $comment_content        = TT::getArrayValueAsString($comment_data, 'comment');
+            $comment_author         = trim(strip_tags(TT::getArrayValueAsString($comment_data, 'author')));
+            $comment_author_email   = trim(TT::getArrayValueAsString($comment_data, 'email'));
+            $comment_author_url     = trim(TT::getArrayValueAsString($comment_data, 'url'));
+
+            $user = function_exists('apbct_wp_get_current_user') ? apbct_wp_get_current_user() : null;
+
+            if ( $user && $user->exists() ) {
+                $comment_author       = empty($user->display_name) ? $user->user_login : $user->display_name;
+                $comment_author_email = $user->user_email;
+            }
+
+            // use the global state object to keep the comment data
+            $apbct->comment_data = compact(
+                'comment_author',
+                'comment_author_email',
+                'comment_content',
+                'comment_author_url'
+            );
+
+            // return new handler method for wp_die
+            return array($this, 'wpDie');
+        } catch (\Exception $e) {
+            error_log('Cleantalk doPrepareActions error: ' . $e->getMessage());
+            return true; // Fail gracefully
         }
-
-        // first call in the flow - collect data for further instance calling
-        $comment_data = wp_unslash($_POST);
-        $comment_content        = TT::getArrayValueAsString($comment_data, 'comment');
-        $comment_author         = trim(strip_tags(TT::getArrayValueAsString($comment_data, 'author')));
-        $comment_author_email   = trim(TT::getArrayValueAsString($comment_data, 'email'));
-        $comment_author_url     = trim(TT::getArrayValueAsString($comment_data, 'url'));
-
-        $user = function_exists('apbct_wp_get_current_user') ? apbct_wp_get_current_user() : null;
-
-        if ( $user && $user->exists() ) {
-            $comment_author       = empty($user->display_name) ? $user->user_login : $user->display_name;
-            $comment_author_email = $user->user_email;
-        }
-
-        // use the global state object to keep the comment data
-        $apbct->comment_data = compact(
-            'comment_author',
-            'comment_author_email',
-            'comment_content',
-            'comment_author_url'
-        );
-
-        // return new handler method for wp_die
-        return array($this, 'wpDie');
     }
 
     public function collectBaseCallData()

@@ -1,4 +1,83 @@
 /**
+ * Set init params
+ */
+// eslint-disable-next-line no-unused-vars,require-jsdoc
+function initParams() {
+    const ctDate = new Date();
+    const headless = navigator.webdriver;
+    const screenInfo = (
+        typeof ApbctGatheringData !== 'undefined' &&
+        typeof ApbctGatheringData.prototype.getScreenInfo === 'function'
+    ) ? new ApbctGatheringData().getScreenInfo() : '';
+    const initCookies = [
+        ['ct_ps_timestamp', Math.floor(new Date().getTime() / 1000)],
+        ['ct_fkp_timestamp', '0'],
+        ['ct_pointer_data', '0'],
+        ['ct_timezone', ctDate.getTimezoneOffset()/60*(-1)],
+        ['ct_screen_info', screenInfo],
+        ['apbct_headless', headless],
+    ];
+
+    apbctLocalStorage.set('ct_ps_timestamp', Math.floor(new Date().getTime() / 1000));
+    apbctLocalStorage.set('ct_fkp_timestamp', '0');
+    apbctLocalStorage.set('ct_pointer_data', '0');
+    apbctLocalStorage.set('ct_timezone', ctDate.getTimezoneOffset()/60*(-1));
+    apbctLocalStorage.set('ct_screen_info', screenInfo);
+    apbctLocalStorage.set('apbct_headless', headless);
+
+    if ( ctPublic.data__cookies_type !== 'native' ) {
+        initCookies.push(['apbct_visible_fields', '0']);
+    } else {
+        // Delete all visible fields cookies on load the page
+        let cookiesArray = document.cookie.split(';');
+        if ( cookiesArray.length !== 0 ) {
+            for ( let i = 0; i < cookiesArray.length; i++ ) {
+                let currentCookie = cookiesArray[i].trim();
+                let cookieName = currentCookie.split('=')[0];
+                if ( cookieName.indexOf('apbct_visible_fields_') === 0 ) {
+                    ctDeleteCookie(cookieName);
+                }
+            }
+        }
+    }
+
+    if (+ctPublic.pixel__setting && +ctPublic.pixel__setting !== 3) {
+        if (typeof ctIsDrawPixel === 'function' && ctIsDrawPixel()) {
+            if (typeof ctGetPixelUrl === 'function') ctGetPixelUrl();
+        } else {
+            initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
+        }
+    }
+
+    if ( +ctPublic.data__email_check_before_post) {
+        initCookies.push(['ct_checked_emails', '0']);
+        if (typeof apbct === 'function') apbct('input[type = "email"], #email').on('blur', checkEmail);
+    }
+
+    if ( +ctPublic.data__email_check_exist_post) {
+        initCookies.push(['ct_checked_emails_exist', '0']);
+        if (typeof apbct === 'function') {
+            apbct('.comment-form input[name = "email"], input#email').on('blur', checkEmailExist);
+            apbct('.frm-fluent-form input[name = "email"], input#email').on('blur', checkEmailExist);
+            apbct('#registerform input[name = "user_email"]').on('blur', checkEmailExist);
+            apbct('form.wc-block-checkout__form input[type = "email"]').on('blur', checkEmailExist);
+            apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
+            apbct('form.wpcf7-form input[type = "email"]')
+                .on('blur', ctDebounceFuncExec(checkEmailExist, 300) );
+            apbct('form.wpforms-form input[type = "email"]').on('blur', checkEmailExist);
+        }
+    }
+
+    if (apbctLocalStorage.isSet('ct_checkjs')) {
+        initCookies.push(['ct_checkjs', apbctLocalStorage.get('ct_checkjs')]);
+    } else {
+        initCookies.push(['ct_checkjs', 0]);
+    }
+
+    ctSetCookie(initCookies);
+}
+
+/**
  * @param {object|array|string} cookies
  * @param {object|array|string} value
  * @param {string|number} expires
@@ -401,3 +480,47 @@ function getNoCookieData() { // eslint-disable-line no-unused-vars
 
     return '_ct_no_cookie_data_' + btoa(noCookieData);
 }
+
+
+/**
+ * Retrieves the clentalk "cookie" data from starages.
+ * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity}.
+ * @return {string}
+ */
+function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
+    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
+    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
+
+    let noCookieDataTypo = {typo: []};
+    if (document.ctTypoData && document.ctTypoData.data) {
+        noCookieDataTypo = {typo: document.ctTypoData.data};
+    }
+
+    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
+
+    if (document.ctCollectingUserActivityData) {
+        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
+        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
+    }
+
+    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
+}
+
+/**
+ * Execute function with timeout, listening incoming args from context.
+ * Could be useful if something needs to wait other actions and no there is no known event to bind for.
+ * @param {function} func Function to call
+ * @param {number} wait Seconds to delay
+ * @return {(function(...[*]): void)|*}
+ */
+function ctDebounceFuncExec(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            func.apply(context, args);
+        }, wait);
+    };
+}
+

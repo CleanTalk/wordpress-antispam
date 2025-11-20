@@ -15,11 +15,12 @@
         "phpcompatibility/php-compatibility": "@dev",
         "yoast/phpunit-polyfills": "^1.0",
         "ext-dom": "*",
-        "wp-cli/wp-cli-bundle": "*"
+        "wp-cli/wp-cli-bundle": "*",
+        "mockery/mockery": "*"
     },
     "scripts": {
         "test": [
-            "vendor/bin/phpunit --configuration tests/phpunit.xml",
+            "vendor/bin/phpunit --configuration tests/phpunit.xml --coverage-clover=coverage.xml",
             "vendor/bin/phpcs --config-set installed_paths vendor/phpcompatibility/php-compatibility",
             "vendor/bin/phpcs --standard=tests/.phpcs.xml",
             "vendor/bin/psalm --no-cache --config=psalm.xml",

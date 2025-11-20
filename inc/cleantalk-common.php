@@ -19,6 +19,7 @@ use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
+use Cleantalk\ApbctWP\RequestParameters\SubmitTimeHandler;
 use Cleantalk\Common\TT;
 
 // Prevent direct call
@@ -196,7 +197,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
         'agent'       => APBCT_AGENT,
         'sender_info' => $sender_info,
-        'submit_time' => apbct_get_submit_time(),
+        'submit_time' => SubmitTimeHandler::getFromRequest(),
     );
 
     if (!isset($params['post_info']['post_url'])) {
@@ -285,7 +286,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
     // Statistics
     // Average request time
-    apbct_statistics__rotate($exec_time);
+    apbct_statistics_rotate($exec_time);
     // Last request
     $apbct->stats['last_request']['time']   = time();
     $apbct->stats['last_request']['server'] = $ct->work_url;
@@ -664,6 +665,7 @@ function apbct_get_sender_info()
         'bot_detector_fired_form_exclusions' => apbct__bot_detector_get_fired_exclusions(),
         'bot_detector_prepared_form_exclusions' => apbct__bot_detector_get_prepared_exclusion(),
         'bot_detector_frontend_data_log' => apbct__bot_detector_get_fd_log(),
+        'submit_time_calculation_enabled' => SubmitTimeHandler::isCalculationDisabled() ? 0 : 1,
     );
 
     // Unset cookies_enabled from sender_info if cookies_type === none
@@ -699,7 +701,7 @@ function apbct_get_pixel_url($direct_call = false)
         . Helper::timeGetIntervalStart(3600 * 3) // Unique for every 3 hours
     );
 
-    //get params for caсhe plugins exclusion detection
+    //get params for cache plugins exclusion detection
     $cache_plugins_detected = apbct_is_cache_plugins_exists(true);
     $cache_exclusion_snippet = '';
     if ( !empty($cache_plugins_detected) ) {
@@ -1316,7 +1318,10 @@ function apbct__change_type_website_field($fields)
     global $apbct;
 
     if ( isset($apbct->settings['comments__hide_website_field']) && $apbct->settings['comments__hide_website_field'] ) {
-        if ( isset($fields['url']) && $fields['url'] ) {
+        if (
+            !empty($fields['url']) &&
+            strpos($fields['url'], 'input id=') !== false
+        ) {
             $fields['url'] = '<input id="honeypot-field-url" style="display: none;" autocomplete="off" name="url" type="text" value="" size="30" maxlength="200" />';
         }
         $theme = wp_get_theme();
@@ -1662,8 +1667,10 @@ function apbct_clear_superglobal_service_data($superglobal, $type)
     switch ($type) {
         case 'post':
             // Magnesium Quiz special $_request clearance || Uni CPO
-            if ((apbct_is_plugin_active('magnesium-quiz/magnesium-quiz.php')) ||
-                (apbct_is_plugin_active('uni-woo-custom-product-options/uni-cpo.php'))
+            if (
+                (apbct_is_plugin_active('magnesium-quiz/magnesium-quiz.php')) ||
+                (apbct_is_plugin_active('uni-woo-custom-product-options/uni-cpo.php')) ||
+                (apbct_is_plugin_active('nex-forms/main.php'))
             ) {
                 $fields_to_clear[] = 'ct_bot_detector_event_token';
                 $fields_to_clear[] = 'ct_no_cookie_hidden_field';
@@ -1674,10 +1681,10 @@ function apbct_clear_superglobal_service_data($superglobal, $type)
             break;
         case 'request':
             //Optima Express special $_request clearance
-            if ((apbct_is_plugin_active('optima-express/iHomefinder.php'))) {
+            if ( (apbct_is_plugin_active('optima-express/iHomefinder.php')) ) {
                 $fields_to_clear[] = 'ct_no_cookie_hidden_field';
             }
-            if ((apbct_is_plugin_active('uni-woo-custom-product-options/uni-cpo.php'))) {
+            if ( (apbct_is_plugin_active('uni-woo-custom-product-options/uni-cpo.php')) ) {
                 $fields_to_clear[] = 'ct_bot_detector_event_token';
                 $fields_to_clear[] = 'ct_no_cookie_hidden_field';
                 $fields_to_clear[] = 'apbct_event_id';

@@ -167,11 +167,9 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_content' => 'footer_trusted_link',
         ),
         'get_access_key_link' => array(
-            'utm_id' => '',
-            'utm_term' => '',
-            'utm_source' => 'admin_panel',
-            'utm_medium' => 'settings',
-            'utm_content' => 'get_access_key_link',
+            'utm_source' => 'admin_side',
+            'utm_medium' => 'get_access_key_button',
+            'utm_campaign' => 'apbct_links',
         ),
         'trp_learn_more_link' => array(
             'utm_id' => '',
@@ -194,15 +192,15 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_source' => 'admin_panel',
             'utm_medium' => 'wordpress',
             'utm_content' => 'footer',
-            'utm_campaign' => 'antispam',
+            'utm_campaign' => 'apbct_links',
         ),
         'settings_footer__uptime_monitoring_link' => array(
             'utm_id' => '',
-             'utm_term' => 'uptime monitoring',
+            'utm_term' => 'uptime monitoring',
             'utm_source' => 'admin_panel',
             'utm_medium' => 'wordpress',
             'utm_content' => 'footer',
-            'utm_campaign' => 'antispam',
+            'utm_campaign' => 'apbct_links',
         ),
         'settings_footer__doboard_link' => array(
             'utm_id' => '',
@@ -210,7 +208,7 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_source' => 'admin_panel',
             'utm_medium' => 'wordpress',
             'utm_content' => 'footer',
-            'utm_campaign' => 'antispam',
+            'utm_campaign' => 'apbct_links',
         ),
         'notice_server_requirements' => array(
             'utm_id' => '',

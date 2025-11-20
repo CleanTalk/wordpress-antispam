@@ -12,6 +12,9 @@ class ApbctEventTokenTransport {
                 typeof ctPublic.force_alt_cookies === 'undefined' ||
                 (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
             ) {
+                // @ToDo need to be refactored? maybe just ctNoCookieAttachHiddenFieldsToForms(); need calling here?
+                // @ToDo function `setEventTokenField`, `botDetectorLocalStorage`
+                // are never defined, this condition is everytime false
                 if (typeof setEventTokenField === 'function' && typeof botDetectorLocalStorage === 'function') {
                     setEventTokenField(botDetectorLocalStorage.get('bot_detector_event_token'));
                 }
@@ -52,8 +55,8 @@ class ApbctEventTokenTransport {
      * @return {void}
      */
     setEventTokenToAltCookies() {
-        if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-            tokenCheckerIntervalId = setInterval( function() {
+        tokenCheckerIntervalId = setInterval( function() {
+            if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
                 let eventToken = apbctLocalStorage.get('bot_detector_event_token');
                 if (eventToken) {
                     ctSetAlternativeCookie(
@@ -62,8 +65,8 @@ class ApbctEventTokenTransport {
                     );
                     clearInterval(tokenCheckerIntervalId);
                 }
-            }, 1000);
-        }
+            }
+        }, 1000);
     }
 
     /**
@@ -509,7 +512,6 @@ class ApbctHandler {
         let elementorUltimateAddonsRegister = document.querySelectorAll('.uael-registration-form-wrapper').length > 0;
         let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
-        let cwginstockForm = document.querySelectorAll('.cwginstock-subscribe-form').length > 0;
         let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
         let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
         let fluentBookingApp = document.querySelectorAll('div[class^="fluent_booking_app"]').length > 0;
@@ -521,7 +523,6 @@ class ApbctHandler {
             ninjaFormsSign ||
             jetpackCommentsForm ||
             elementorUltimateAddonsRegister ||
-            cwginstockForm ||
             userRegistrationProForm ||
             etPbDiviSubscriptionForm ||
             fluentBookingApp ||
@@ -532,7 +533,11 @@ class ApbctHandler {
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
-                let bookingPress = document.querySelectorAll('main[id^="bookingpress_booking_form"]').length > 0;
+                const bookingPress =
+                    (
+                        document.querySelectorAll('main[id^="bookingpress_booking_form"]').length > 0 ||
+                        document.querySelectorAll('.bpa-frontend-main-container').length > 0
+                    );
                 ctPublic.force_alt_cookies = bookingPress;
             }
         }, 1000);
@@ -546,16 +551,30 @@ class ApbctHandler {
         if (
             document.querySelector('div.wfu_container') !== null ||
             document.querySelector('#newAppointmentForm') !== null ||
-            document.querySelector('.booked-calendar-shortcode-wrap') !== null
+            document.querySelector('.booked-calendar-shortcode-wrap') !== null ||
+            (
+                // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
+                document.body.classList.contains('single-product') &&
+                typeof cwginstock !== 'undefined'
+            ) ||
+            document.querySelector('div.fluent_booking_wrap') !== null // Fluent Booking Pro
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
-                if (body && typeof body === 'string' &&
+                let isNeedToAddCleantalkDataCheckString = body && typeof body === 'string' &&
                     (
                         body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
-                        body.indexOf('action=booked_add_appt') !== -1
-                    )
-                ) {
+                        body.indexOf('action=booked_add_appt') !== -1 ||
+                        body.indexOf('action=cwginstock_product_subscribe') !== -1
+                    );
+
+                let isNeedToAddCleantalkDataCheckFormData = body && typeof body === 'object' &&
+                    body instanceof FormData &&
+                    (
+                        body.has('action') && body.get('action') === 'fluent_cal_schedule_meeting'
+                    );
+
+                if (isNeedToAddCleantalkDataCheckString) {
                     let addidionalCleantalkData = '';
 
                     if (!+ctPublic.settings__data__bot_detector_enabled) {
@@ -569,9 +588,20 @@ class ApbctHandler {
                     }
 
                     body += addidionalCleantalkData;
-
-                    return originalSend.apply(this, [body]);
                 }
+
+                if (isNeedToAddCleantalkDataCheckFormData) {
+                    if (!+ctPublic.settings__data__bot_detector_enabled) {
+                        let noCookieData = getNoCookieData();
+                        body.append('ct_no_cookie_hidden_field', noCookieData);
+                    } else {
+                        const eventToken = new ApbctHandler().toolGetEventToken();
+                        if (eventToken) {
+                            body.append('ct_bot_detector_event_token', eventToken);
+                        }
+                    }
+                }
+
                 return originalSend.apply(this, [body]);
             };
         }
@@ -665,49 +695,74 @@ class ApbctHandler {
         if ( typeof jQuery !== 'undefined' && typeof jQuery.ajaxSetup === 'function') {
             jQuery.ajaxSetup({
                 beforeSend: function(xhr, settings) {
-                    let sourceSign = false;
+                    let sourceSign = {
+                        'found': false,
+                        'keepUnwrapped': false,
+                    };
                     // settings data is string (important!)
                     if ( typeof settings.data === 'string' ) {
+                        if (settings.data.indexOf('action=fl_builder_subscribe_form_submit') !== -1) {
+                            sourceSign.found = 'fl_builder_subscribe_form_submit';
+                        }
                         if (settings.data.indexOf('twt_cc_signup') !== -1) {
-                            sourceSign = 'twt_cc_signup';
+                            sourceSign.found = 'twt_cc_signup';
                         }
 
                         if (settings.data.indexOf('action=mailpoet') !== -1) {
-                            sourceSign = 'action=mailpoet';
+                            sourceSign.found = 'action=mailpoet';
                         }
 
                         if (
                             settings.data.indexOf('action=user_registration') !== -1 &&
                             settings.data.indexOf('ur_frontend_form_nonce') !== -1
                         ) {
-                            sourceSign = 'action=user_registration';
+                            sourceSign.found = 'action=user_registration';
                         }
 
                         if (settings.data.indexOf('action=happyforms_message') !== -1) {
-                            sourceSign = 'action=happyforms_message';
+                            sourceSign.found = 'action=happyforms_message';
                         }
 
                         if (settings.data.indexOf('action=new_activity_comment') !== -1) {
-                            sourceSign = 'action=new_activity_comment';
+                            sourceSign.found = 'action=new_activity_comment';
+                        }
+                        if (settings.data.indexOf('action=wwlc_create_user') !== -1) {
+                            sourceSign.found = 'action=wwlc_create_user';
+                        }
+                        if (settings.data.indexOf('action=drplus_signup') !== -1) {
+                            sourceSign.found = 'action=drplus_signup';
+                            sourceSign.keepUnwrapped = true;
+                        }
+                        if (settings.data.indexOf('action=bt_cc') !== -1) {
+                            sourceSign.found = 'action=bt_cc';
+                            sourceSign.keepUnwrapped = true;
                         }
                     }
                     if ( typeof settings.url === 'string' ) {
                         if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {
-                            sourceSign = 'wc-ajax=add_to_cart';
+                            sourceSign.found = 'wc-ajax=add_to_cart';
                         }
                     }
 
-                    if (sourceSign) {
+                    if (sourceSign.found !== false) {
                         let eventToken = '';
                         let noCookieData = '';
                         if (+ctPublic.settings__data__bot_detector_enabled) {
                             const token = new ApbctHandler().toolGetEventToken();
                             if (token) {
-                                eventToken = 'data%5Bct_bot_detector_event_token%5D=' + token + '&';
+                                if (sourceSign.keepUnwrapped) {
+                                    eventToken = 'ct_bot_detector_event_token=' + token + '&';
+                                } else {
+                                    eventToken = 'data%5Bct_bot_detector_event_token%5D=' + token + '&';
+                                }
                             }
                         } else {
                             noCookieData = getNoCookieData();
-                            noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                            if (sourceSign.keepUnwrapped) {
+                                noCookieData = 'ct_no_cookie_hidden_field=' + noCookieData + '&';
+                            } else {
+                                noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                            }
                         }
 
                         settings.data = noCookieData + eventToken + settings.data;
@@ -745,7 +800,7 @@ class ApbctHandler {
             }
 
             // checkout
-            if (options.path === '/wc/store/v1/checkout') {
+            if (options.path.includes('/wc/store/v1/checkout')) {
                 if (+ctPublic.settings__data__bot_detector_enabled) {
                     options.data.event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
@@ -771,37 +826,12 @@ class ApbctHandler {
      * @return {void}
      */
     searchFormMiddleware() {
-        const isExclusion = (form) => {
-            let className = form.getAttribute('class');
-            if (typeof className !== 'string') {
-                className = '';
-            }
-
-            return (
-                // fibosearch integration
-                form.querySelector('input.dgwt-wcas-search-input') ||
-                // hero search skip
-                form.getAttribute('id') === 'hero-search-form' ||
-                // hb booking search skip
-                className === 'hb-booking-search-form' ||
-                // events calendar skip
-                (className.indexOf('tribe-events') !== -1 && className.indexOf('search') !== -1)
-            );
-        };
-
         for (const _form of document.forms) {
             if (
                 typeof ctPublic !== 'undefined' &&
                 + ctPublic.settings__forms__search_test === 1 &&
-                (
-                    _form.getAttribute('id') === 'searchform' ||
-                    (
-                        _form.getAttribute('class') !== null &&
-                        _form.getAttribute('class').indexOf('search-form') !== -1
-                    ) ||
-                    (_form.getAttribute('role') !== null && _form.getAttribute('role').indexOf('search') !== -1)
-                ) &&
-                !isExclusion(_form)
+                _form.getAttribute('apbct-form-sign') !== null &&
+                _form.getAttribute('apbct-form-sign') === 'native_search'
             ) {
                 // this handles search forms onsubmit process
                 _form.apbctSearchPrevOnsubmit = _form.onsubmit;
@@ -1005,6 +1035,21 @@ class ApbctShowForbidden {
 
             if (+response.stop_script === 1) {
                 window.stop();
+                if (response.integration && response.integration === 'NEXForms') {
+                    const btn = document.querySelector('form.submit-nex-form button.nex-submit');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.5';
+                        btn.style.cursor = 'not-allowed';
+                        btn.style.pointerEvents = 'none';
+                        btn.style.backgroundColor = '#ccc';
+                        btn.style.color = '#fff';
+                    }
+                    const successMessage = document.querySelector('div.nex_success_message');
+                    if (successMessage) {
+                        successMessage.style.display = 'none';
+                    }
+                }
             }
         }
     }
@@ -1029,7 +1074,14 @@ function apbct_ready() {
         gatheringData.startFieldsListening();
         gatheringData.listenAutocomplete();
         gatheringData.gatheringTypoData();
-        gatheringData.initParams();
+    }
+    // Always call initParams to set cookies and parameters
+    if (typeof initParams === 'function') {
+        try {
+            initParams();
+        } catch (e) {
+            console.log('initParams error:', e);
+        }
     }
 
     setTimeout(function() {
@@ -1093,6 +1145,8 @@ if (ctPublic.data__key_is_ok) {
 
 const defaultFetch = window.fetch;
 const defaultSend = XMLHttpRequest.prototype.send;
+
+let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 
 /**
  * Run cron jobs

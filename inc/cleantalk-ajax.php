@@ -275,7 +275,7 @@ function ct_ajax_hook($message_obj = null)
     }
 
     // SiteReviews integration
-    if ( Post::getString('action', 'glsr_public_action') &&
+    if ( Post::getString('action') === 'glsr_public_action' &&
         apbct_is_plugin_active('site-reviews/site-reviews.php')
     ) {
         $post_info['comment_type'] = 'site_reviews_integration';
@@ -456,6 +456,12 @@ function ct_ajax_hook($message_obj = null)
     } else {
         $input_array = apply_filters('apbct__filter_post', $_POST);
     }
+
+    //btQuoteBooking admin_email exclude from the form data
+    if ( Post::get('action') === 'bt_cc' ) {
+        unset($input_array['admin_email']);
+    }
+
     $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '';
@@ -569,7 +575,7 @@ function ct_ajax_hook($message_obj = null)
             die();
         }
 
-        if ( Post::getString('action', 'glsr_public_action') ) {
+        if ( Post::getString('action') === 'glsr_public_action' ) {
             $result = array(
                 'success' => false,
                 'data' => array(
@@ -870,9 +876,12 @@ function ct_ajax_hook($message_obj = null)
             );
         }
 
-        // bricksextras/bricksextras.php
+        // brick plugin or theme
         if (
-            apbct_is_plugin_active('bricksextras/bricksextras.php') &&
+            (
+                apbct_is_plugin_active('bricksextras/bricksextras.php') ||
+                apbct_is_theme_active('bricks')
+            ) &&
             Post::hasString('action', 'bricks_form_submit')
         ) {
             die(
@@ -1003,6 +1012,15 @@ function ct_ajax_hook($message_obj = null)
             die();
         }
 
+        // Indeed Coming Soon
+        // Works only with special Indeed plugin version. Look at https://doboard.com/1/task/31617#comment_207324
+        if (
+            Post::getString('action') === 'ics_save_email_subscribe' ||
+            Post::getString('action') === 'ics_send_email_fc'
+        ) {
+            wp_send_json_error($ct_result->comment);
+        }
+
         // Regular block output
         die(
             json_encode(
@@ -1060,6 +1078,8 @@ function apbct__stop_script_after_ajax_checking()
 {
     if (
         Post::hasString('action', 'tve_leads_ajax_') ||
+        Post::hasString('action', 'fl_builder_subscribe_form_submit') ||
+        Post::hasString('action', 'submit_nex_form') ||
         (Post::hasString('action', 'xoo_el_form_action') && Post::hasString('_xoo_el_form', 'register')) ||
         (Post::get('elqFormName') && Post::get('elqSiteId') && Post::get('elqFormSubmissionToken'))
     ) {

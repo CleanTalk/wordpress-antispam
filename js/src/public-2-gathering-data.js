@@ -123,69 +123,6 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
     }
 
     /**
-     * Set init params
-     * @return {void}
-     */
-    initParams() {
-        const initCookies = [
-            ['ct_ps_timestamp', Math.floor(new Date().getTime() / 1000)],
-            ['ct_fkp_timestamp', '0'],
-            ['ct_pointer_data', '0'],
-            // eslint-disable-next-line camelcase
-            ['ct_timezone', ctDate.getTimezoneOffset()/60*(-1)],
-            ['ct_screen_info', this.getScreenInfo()],
-            ['apbct_headless', navigator.webdriver],
-        ];
-
-        apbctLocalStorage.set('ct_ps_timestamp', Math.floor(new Date().getTime() / 1000));
-        apbctLocalStorage.set('ct_fkp_timestamp', '0');
-        apbctLocalStorage.set('ct_pointer_data', '0');
-        // eslint-disable-next-line camelcase
-        apbctLocalStorage.set('ct_timezone', ctDate.getTimezoneOffset()/60*(-1) );
-        apbctLocalStorage.set('ct_screen_info', this.getScreenInfo());
-        apbctLocalStorage.set('apbct_headless', navigator.webdriver);
-
-        if ( ctPublic.data__cookies_type !== 'native' ) {
-            initCookies.push(['apbct_visible_fields', '0']);
-        } else {
-            // Delete all visible fields cookies on load the page
-            let cookiesArray = document.cookie.split(';');
-            if ( cookiesArray.length !== 0 ) {
-                for ( let i = 0; i < cookiesArray.length; i++ ) {
-                    let currentCookie = cookiesArray[i].trim();
-                    let cookieName = currentCookie.split('=')[0];
-                    if ( cookieName.indexOf('apbct_visible_fields_') === 0 ) {
-                        ctDeleteCookie(cookieName);
-                    }
-                }
-            }
-        }
-
-        if (+ctPublic.pixel__setting && +ctPublic.pixel__setting !== 3) {
-            ctIsDrawPixel() ? ctGetPixelUrl() : initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
-        }
-
-        if ( +ctPublic.data__email_check_before_post) {
-            initCookies.push(['ct_checked_emails', '0']);
-            apbct('input[type = \'email\'], #email').on('blur', checkEmail);
-        }
-
-        if ( +ctPublic.data__email_check_exist_post) {
-            initCookies.push(['ct_checked_emails_exist', '0']);
-            apbct('comment-form input[name = \'email\'], input#email').on('blur', checkEmailExist);
-        }
-
-        if (apbctLocalStorage.isSet('ct_checkjs')) {
-            initCookies.push(['ct_checkjs', apbctLocalStorage.get('ct_checkjs')]);
-        } else {
-            initCookies.push(['ct_checkjs', 0]);
-        }
-
-
-        ctSetCookie(initCookies);
-    }
-
-    /**
      * Restart listen fields to set ct_has_input_focused or ct_has_key_up
      * @return {void}
      */
@@ -437,16 +374,12 @@ class CTTypoData {
 }
 
 // eslint-disable-next-line camelcase
-const ctDate = new Date();
 const ctTimeMs = new Date().getTime();
 let ctMouseEventTimerFlag = true; // Reading interval flag
 let ctMouseData = [];
 let ctMouseDataCounter = 0;
-let ctCheckedEmails = {}; // eslint-disable-line no-unused-vars
-let ctCheckedEmailsExist = {}; // eslint-disable-line no-unused-vars
 let ctMouseReadInterval;
 let ctMouseWriteDataInterval;
-let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 
 
 // Writing first key press timestamp
@@ -766,6 +699,7 @@ function ctSetPixelImgFromLocalstorage(pixelUrl) {
  * ctGetPixelUrl
  * @return {bool}
  */
+// eslint-disable-next-line no-unused-vars, require-jsdoc
 function ctGetPixelUrl() {
     if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
         return false;
@@ -937,28 +871,4 @@ function ctNoCookieAttachHiddenFieldsToForms() {
             }
         }
     }
-}
-
-/**
- * Retrieves the clentalk "cookie" data from starages.
- * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity}.
- * @return {string}
- */
-function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
-    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
-    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
-
-    let noCookieDataTypo = {typo: []};
-    if (document.ctTypoData && document.ctTypoData.data) {
-        noCookieDataTypo = {typo: document.ctTypoData.data};
-    }
-
-    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
-
-    if (document.ctCollectingUserActivityData) {
-        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
-        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
-    }
-
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
 }

@@ -307,7 +307,7 @@ class EmailEncoder
      */
     public function modifyGlobalPhoneNumbers($content)
     {
-        $pattern = '/(tel:\+\d{8,12})|([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)/';
+        $pattern = '/(tel:\+\d{8,12})|([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)|(\(\d{3}\)\s?\d{3}-\d{4})/';
         $replacing_result = '';
 
         if ( version_compare(phpversion(), '7.4.0', '>=') ) {
@@ -400,6 +400,12 @@ class EmailEncoder
     public function bufferOutput()
     {
         global $apbct;
+
+        static $already_output = false;
+        if ($already_output) {
+            return;
+        }
+        $already_output = true;
         echo $this->modifyContent($apbct->buffer);
     }
 

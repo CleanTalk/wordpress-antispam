@@ -4,7 +4,7 @@ Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
 Tested up to: 6.8
 Requires PHP: 5.6
-Stable tag: 6.62
+Stable tag: 6.68
 License: GPLv2
 
 Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
@@ -411,6 +411,102 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.68 13.11.2025 =
+New. Integration. Ultimate affiliate plugin (Codecanyon).
+New. Integration. Gwolle Guestbook integration implemented.
+Upd. Integrations. Improved capability with perfmatters.
+Upd. Settings. Improved UX.
+Upd. Email Encoder. Try to decode in both ways ssl/str_base.
+Fix. ContactEncoder. Editing duplicate pages due to buffer interception.
+Fix. Code. Unit text TestRequirementsChecker refactored.
+Fix. Integration. WPForo. Catch email and nickname via native WPF object. Get message from input.
+Fix. Integrations. Nex-forms POST clearance from service fields after check.
+Fix. Protection by fake button. Sender.net forms ignored, preparing for the next iteration.
+Fix. Integrations. GiveWP. Partially protected Give REST submission.
+Code. Unused code removed.
+Mod. TRP. TRP edits, duplicate the cleantalk_allowed_moderation option and move it to settings.
+
+= 6.67 30.10.2025 =
+New. AdminBanner. Separation of banners about an empty and invalid key
+New. AdminBanner. Editing logic for a banner about an incorrect key
+Fix. ContactEncoder. Revert svg content.
+Fix. Integrations. Prevent spam requests to third-party services.
+Fix. Integrations. Added Beaver Builder.
+Fix. Integrations. Improved gathering data for fluentbooking pro.
+Fix. OptimizePress. Registration process protected.
+Fix. Integration. WP Booking System integration fixed.
+New. Integration. Doctor Plus theme registration and login.
+Fix. Integration. WPForms. Fixed missed request on non-emtpty WPForm form errors array.
+Fix. Hide website field. Forced condition to replace via honeypot.
+Upd. Server Requirements Checker. Added curl_multi_exec to the check-list.
+New. Email exists check. Implemented for CF7. (#669)
+Upd. Settings. Updated access key link parameters for improved registration process.
+Fix. Settings. Typo (system requirements) fixed.
+Fix. Settings. Complete deactivation fixed.
+Fix. State. Default `fw_stats` fixed.
+Fix. SFW. SFW updating (process exclusions) fixed.
+Fix. Exclusion. Newsletter Automation. Skip test newsletter check.
+Fix. Integration. btQuoteBooking form params gathering fixed.
+Fix. Integration. WP Mailer Lite. Fixed exclusion.
+
+
+= 6.66 16.10.2025 =
+Fix. Remote calls. Debug RC now hide sensitive data.
+Fix. TRP. Show TRP for admins and editors.
+Fix. TRP. Twenty Twenty-Five theme support added.
+Fix. Settings. Activator fixed.
+New. Summary and statistics. Support user action moved.
+Fix. Integrations. Skip service requests for checkout process.
+Fix. FW. Improved rules to update personal tables.
+Fix. Integrations. Updated statement to skip woo-mailerlite service requests.
+Fix. Integrations. Fixed statement for cwginstock.
+Fix. Integrations. Improved statement to intruding to checkout request.
+
+= 6.65 02.10.2025 =
+Fix. Code. Pluggable exclusions logic fixed.
+Fix. Common. Alt cookies getting fixed.
+Fix. ContactEncoder. Skip SVG content.
+Fix. Integration. Added WPCommunity login to request exclusions.
+Fix. Integration. Fluent Booking Pro integration fixed - exclude requests from general contact forms checking.
+Fix. Integration. Skip BuddyBoss login form.
+Fix. Integration. WooCommerce mark spam orders fixed.
+Fix. Integration. WP Booking System integration fixed - support pro version.
+Fix. Integrations. Added rules to skip woocommerce service request.
+New. CheckEmailExist. Support for Registration Form.
+New. CheckEmailExist. Support for Woocommerce checkout form.
+New. Integration. Added NEXForms integration.
+New. Integration. Indeed Coming Soon integration implemented.
+New. Summary and statistics. Temporary support user creation implemented.
+Upd. CheckEmailExist. Improve support for Woocommerce checkout form and update option description.
+Upd. Search form. Added CleanTalk unique sign for native form.
+Upd. UsersChecker. Include first name, last name, and nickname in csv report of user data output.
+
+= 6.64 18.09.2025 =
+New. Integration. Integration with WPFunnels.
+New. CheckEmailExist. Support for Registration Form.
+New. Integration. LifterLMS (registration) protection implemented.
+New. CheckEmailExist. Support for Fluent Forms.
+Upd. Request parameters. Calculate no submittime if bot detector enabled.
+Upd. Bot detector gathering. Changed URL of wrapper to fd.cleantalk.org
+Mod. Integration. Unset visible fields.
+Fix. Integration. Happy Forms protection fixed.
+Fix. Integration. HabSpot external form (transparent div) protection fixed.
+Fix. Integration. Back-In-Stock ajax catching detect fixed.
+Fix. Integration. Back-in-stock-notifier fixed event token transport.
+Fix. External forms. Protection by cover fixed.
+Fix. Code. Undefined object botDetectorLocalStorage using removed.
+
+= 6.63 04.09.2025 =
+New. Integrations. BuddyPress App REST API protection.
+New. Integration. WooCommerce Wholesale Lead Capture registration protection implemented.
+Fix. Integration. SiteReviews integration fixed.
+Fix. Integration. Connecting the required js bundle and bot detector for Fluent Booking.
+Fix. JS. Passing the original context to an anonymous function
+Fix. Integration. FluentBooking integration fixed.
+Fix. Code. JS function getCleanTalkStorageDataArray moved to common file.
+Fix. Anti-Spam. Integrations by class logic fixed.
+Fix. Registration. Checking WP_Error during registration protection.
 
 = 6.62 21.08.2025 =
 * Mod. Firewall. Disabling SFW, AntiCrawler, and AntiFlood if the key is invalid or empty

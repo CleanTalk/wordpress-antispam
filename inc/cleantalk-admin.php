@@ -13,6 +13,7 @@ use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\LinkConstructor;
 use Cleantalk\Common\TT;
+use Cleantalk\ApbctWP\SupportUser;
 
 // Prevent direct call
 if ( ! defined('ABSPATH') ) {
@@ -538,6 +539,7 @@ function apbct_admin__enqueue_scripts($hook)
         'logo'               => '<img src="' . Escape::escUrl($apbct->logo) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'logo_small'         => '<img src="' . Escape::escUrl($apbct->logo__small) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'logo_small_colored' => '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
+        'new_window_gif'     => APBCT_URL_PATH . "/inc/images/new_window.gif",
         'notice_when_deleting_user_text' => esc_html__('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.', 'cleantalk-spam-protect'),
         'apbctNoticeDismissSuccess'       => esc_html__('Thank you for the review! We strive to make our Anti-Spam plugin better every day.', 'cleantalk-spam-protect'),
         'apbctNoticeForceProtectionOn'       => esc_html__('This option affects the reflection of the page by checking the user and adds a cookie "apbct_force_protection_check", which serves as an indicator of successful or unsuccessful verification. If the check is successful, it will no longer run.', 'cleantalk-spam-protect'),
@@ -602,7 +604,8 @@ function apbct_admin__enqueue_scripts($hook)
             'ct_subtitle' => $apbct->ip_license ? __('Hosting Anti-Spam', 'cleantalk-spam-protect') : '',
             'ip_license'  => $apbct->ip_license ? true : false,
             'key_changed' => ! empty($apbct->data['key_changed']),
-            'key_is_ok'   => ! empty($apbct->key_is_ok) && !empty($apbct->settings['apikey'])
+            'key_is_ok'   => ! empty($apbct->key_is_ok) && !empty($apbct->settings['apikey']),
+            'support_user_creation_msg_array' => SupportUser::getMessages(),
         ));
 
         ApbctEnqueue::getInstance()->js('common-cleantalk-modal.min.js');
@@ -1483,4 +1486,11 @@ function apbct_action_adjust_reverse()
     }
 
     wp_send_json_success();
+}
+
+function apbct_action__create_support_user()
+{
+    $support_user = new SupportUser();
+    $result = $support_user->ajaxProcess();
+    wp_send_json($result);
 }

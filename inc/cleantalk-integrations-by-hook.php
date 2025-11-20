@@ -99,7 +99,7 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'GiveWP' => array(
-        'hook'    => 'give_checkout_error_checks',
+        'hook'    => ['give_checkout_error_checks','givewp_donation_form_fields_validated'],
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
@@ -435,6 +435,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
+    'BuddyBossAppRestAPI'         => array(
+        'hook'    => 'bbapp_auth_rest_user_registration_pre_check',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
     'AsgarosForum'         => array(
         'hook'    => array(
             'asgarosforum_filter_before_topic_submit',
@@ -442,6 +447,36 @@ $apbct_active_integrations = array(
         ),
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
+    ),
+    'WPFunnels'         => array(
+        'hook'    => ['wpfnl_gutenberg_optin_submission','wffn_submit_custom_optin_form'],
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
+    'WooCommerceWholesaleLeadCapture' => array(
+        'hook'    => 'wwlc_action_before_create_wholesale_lead',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
+    'LifterLMS' => array(
+        'hook'    => 'lifterlms_before_new_user_registration',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
+    'NEXForms' => array(
+        'hook'    => 'submit_nex_form',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
+    'GwolleGuestbook' => array(
+        'hook'    => 'gwolle_gb_new_entry_frontend',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
+    'FLBuilderForms' => array(
+        'hook'    => 'fl_builder_subscribe_form_submit',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
     ),
 );
 

@@ -494,7 +494,7 @@ class UsersChecker extends Checker
         global $apbct;
         AJAXService::checkNonceRestrictingNonAdmins('security');
 
-        $text = 'login,email,ip' . PHP_EOL;
+        $text = 'login,email,ip,first_name,last_name,nickname' . PHP_EOL;
 
         $params = array(
             'meta_query' => array(
@@ -511,13 +511,20 @@ class UsersChecker extends Checker
         foreach ( $u as $iValue ) {
             // gain IP from keeper
             $ip_from_keeper = $apbct->login_ip_keeper->getIP($iValue->ID);
-            $ip_from_keeper = null !== $ip_from_keeper
-                ? $ip_from_keeper
-                : 'N/A';
+            $ip_from_keeper = null !== $ip_from_keeper ? $ip_from_keeper : 'N/A';
+            $first_name = get_user_meta($iValue->ID, 'first_name', true);
+            $first_name = !empty($first_name) ? $first_name : 'N/A';
+            $last_name = get_user_meta($iValue->ID, 'last_name', true);
+            $last_name = !empty($last_name) ? $last_name : 'N/A';
+            $nickname = $iValue->data->user_nicename;
+            $nickname = null !== $nickname ? $nickname : 'N/A';
 
             $text .= $iValue->user_login . ',';
             $text .= $iValue->data->user_email . ',';
-            $text .= $ip_from_keeper;
+            $text .= $ip_from_keeper . ',';
+            $text .= $first_name . ',';
+            $text .= $last_name . ',';
+            $text .= $nickname;
             $text .= PHP_EOL;
         }
 

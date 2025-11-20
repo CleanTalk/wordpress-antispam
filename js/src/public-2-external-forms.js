@@ -191,7 +191,15 @@ function apbctProcessIframes() {
                 if ( formIsExclusion(currentForm)) {
                     continue;
                 }
-                apbctProcessExternalForm(currentForm, y, frames[j].contentDocument);
+                if (currentForm.classList.contains('sender-form-box')) {
+                    // todo Need to implement integration with @sender.net@ iframes,
+                    // todo there is no current way to intercept custom events, onsumbit is null..
+                    // todo however this could be start of new era of integrations
+                    // todo if we do stop propagation, protection will work, but original form is broken
+                    apbctProcessExternalFormByFakeButton(currentForm, y, frames[j].contentDocument);
+                } else {
+                    apbctProcessExternalForm(currentForm, y, frames[j].contentDocument);
+                }
             }
         }
     }
@@ -295,10 +303,18 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
  * @param {HTMLElement} documentObject
  */
 function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObject) {
-    const submitButtonOriginal = currentForm.querySelector('[type="submit"]');
-    const onsubmitOriginal = currentForm.querySelector('[type="submit"]').form.onsubmit;
-
+    let submitButtonOriginal = currentForm.querySelector('[type="submit"]');
+    if (!submitButtonOriginal) {
+        // sender.com form button by class
+        submitButtonOriginal = currentForm.querySelector('.submit-button');
+    }
+    // skip if no button found
     if ( ! submitButtonOriginal ) {
+        return;
+    }
+    const onsubmitOriginal = submitButtonOriginal.form.onsubmit;
+    // skip if no onsubmit found
+    if ( ! onsubmitOriginal ) {
         return;
     }
 
@@ -409,10 +425,20 @@ window.addEventListener('load', function() {
         return;
     }
 
+    if (typeof window.ctDymnamicRenderedFormHandlerInterval === 'number') {
+        clearInterval(window.ctDymnamicRenderedFormHandlerInterval );
+    }
+
     setTimeout(function() {
         ctProtectExternal();
-        catchDynamicRenderedForm();
         catchNextendSocialLoginForm();
+        // run dynamic form catch first time
+        catchDynamicRenderedForm();
+        // run interval to rehandle form if current state is reset and has no cleantalk intervent
+        window.ctDymnamicRenderedFormHandlerInterval = setInterval(
+            catchDynamicRenderedForm,
+            2000,
+        );
         ctProtectOutsideFunctionalOnTagsType('div');
         ctProtectOutsideFunctionalOnTagsType('iframe');
     }, 2000);
@@ -467,7 +493,11 @@ function ctProtectOutsideFunctionalIsTagIntegrated(entity) {
                 entity.src.indexOf('forms.zohopublic.com') !== -1 ||
                 entity.src.indexOf('link.surepathconnect.com') !== -1 ||
                 entity.src.indexOf('hello.dubsado.com') !== -1 ||
-                entity.classList.contains('hs-form-iframe') ||
+                (
+                    // HubSpot modified the iframe layout
+                    entity.classList.contains('hs-form-iframe') ||
+                    entity.parentElement.classList.contains('hs-form-frame')
+                ) ||
                 ( entity.src.indexOf('facebook.com') !== -1 && entity.src.indexOf('plugins/comments.php') !== -1) ||
                 entity.id.indexOf('chatway_widget_app') !== -1
             ) {
@@ -511,8 +541,16 @@ function ctProtectOutsideFunctionalHandler(entity, lsStorageName, lsUniqueName) 
     ) {
         entityParent.style.position = originParentPosition;
     } else {
-        entityParent.style.position = 'relative';
+        const computedStyle = window.getComputedStyle(entityParent);
+        if ( computedStyle.position !== undefined &&
+            ( computedStyle.position === 'fixed' || computedStyle.position === 'relative' )
+        ) {
+            // There is already right position. Skip
+        } else {
+            entityParent.style.position = 'relative';
+        }
     }
+    ctAttachCoverCSSToHead();
     entityParent.appendChild(ctProtectOutsideFunctionalGenerateCover());
     let entitiesProtected = apbctLocalStorage.get(lsStorageName);
     if (false === entitiesProtected) {
@@ -522,6 +560,62 @@ function ctProtectOutsideFunctionalHandler(entity, lsStorageName, lsUniqueName) 
         entitiesProtected.push(lsUniqueName);
         apbctLocalStorage.set(lsStorageName, entitiesProtected);
     }
+}
+
+/**
+ * Append cover styles to the head.
+ */
+function ctAttachCoverCSSToHead() {
+    if (document.querySelector('#apbct-cover-stylesheet')) {
+        return;
+    }
+    const styleElement = document.createElement('style');
+    styleElement.setAttribute('type', 'text/css');
+    styleElement.setAttribute('id', 'apbct-cover-stylesheet');
+    styleElement.textContent = `
+        .apbct-iframe-preloader {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            position: relative;
+            left: calc(50% - 27px);
+            top: calc(50% - 27px);
+            animation: apbctIframePreloaderRotate 1s linear infinite
+        }
+        
+        .apbct-iframe-preloader-spin {
+            content: "";
+            box-sizing: border-box;
+            position: absolute;
+            inset: 0px;
+            border-radius: 50%;
+            border: 6px solid #FFF;
+            animation: apbctIframePreloaderPrixClipFix 2s linear infinite ;
+        }
+        
+        .apbct-iframe-preloader-text {
+            color: white;
+            background: black;
+            display: block;
+            width: 100%;
+            text-align: center;
+            position: absolute;
+            top: 60%;
+        }
+        
+        @keyframes apbctIframePreloaderRotate {
+            100%   {transform: rotate(360deg)}
+        }
+        
+        @keyframes apbctIframePreloaderPrixClipFix {
+            0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
+            25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
+            50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
+            75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
+            100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+        }
+    `;
+    document.head.appendChild(styleElement);
 }
 
 /**
@@ -1011,7 +1105,7 @@ function sendAjaxCheckingFormData(form) {
                 if ((result.apbct !== undefined && +result.apbct.blocked) ||
                     (result.data !== undefined && result.data.message !== undefined)
                 ) {
-                    new ApbctHandler().parseBlockMessage(result);
+                    new ApbctShowForbidden().parseBlockMessage(result);
                     // hubspot embed form needs to reload page to prevent forms mishandling
                     if (isHubSpotEmbedForm) {
                         setTimeout(function() {
@@ -1076,14 +1170,17 @@ function catchDynamicRenderedForm() {
 function catchDynamicRenderedFormHandler(forms, documentObject = document) {
     const neededFormIds = [];
     for (const form of forms) {
-        const formIdAttr = form.getAttribute('id');
-        if (formIdAttr && formIdAttr.indexOf('hsForm') !== -1) {
-            neededFormIds.push(formIdAttr);
-        }
-        if (formIdAttr && formIdAttr.indexOf('createuser') !== -1 &&
-            (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
-        ) {
-            neededFormIds.push(formIdAttr);
+        // should be checked to do not handle form again on interval
+        if ( !form.hasOwnProperty('apbct_external_onsubmit_prev') ) {
+            const formIdAttr = form.getAttribute('id');
+            if (formIdAttr && formIdAttr.indexOf('hsForm') !== -1) {
+                neededFormIds.push(formIdAttr);
+            }
+            if (formIdAttr && formIdAttr.indexOf('createuser') !== -1 &&
+                (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
+            ) {
+                neededFormIds.push(formIdAttr);
+            }
         }
     }
 
@@ -1164,7 +1261,7 @@ function sendAjaxCheckingDynamicFormData(form) {
                 }
 
                 if (result.apbct !== undefined && +result.apbct.blocked) {
-                    new ApbctHandler().parseBlockMessage(result);
+                    new ApbctShowForbidden().parseBlockMessage(result);
                 }
             },
         });

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.62.99-fix
+  Version: 6.68.99-fix
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -31,6 +31,7 @@ use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
+use Cleantalk\ApbctWP\RequestParameters\SubmitTimeHandler;
 use Cleantalk\ApbctWP\RestController;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\State;
@@ -133,6 +134,8 @@ if ( defined('CLEANTALK_SERVER') ) {
     define('APBCT_MODERATE_URL', 'https://moderate.cleantalk.org'); // Api URL
 }
 
+define('APBCT_BOT_DETECTOR_SCRIPT_URL', 'https://fd.cleantalk.org/ct-bot-detector-wrapper.js');
+
 /**
  * Require base classes.
  */
@@ -232,6 +235,7 @@ if (
     }
 }
 
+// The Real Person
 if ( $apbct->settings['comments__the_real_person'] ) {
     new CleantalkRealPerson();
 }
@@ -438,10 +442,13 @@ if (
 // OptimizePress
 if (
     apbct_is_plugin_active('op-dashboard/op-dashboard.php') &&
-    apbct_is_in_uri('/optin/submit') &&
-    sizeof($_POST) > 0
+    !empty($_POST)
 ) {
-    apbct_form__optimizepress__testSpam();
+    $is_optin = apbct_is_in_uri('/optin/submit');
+    $is_reg = apbct_is_in_uri('/users/submit');
+    if ($is_reg || $is_optin) {
+        apbct_form__optimizepress__testSpam($is_reg);
+    }
 }
 
 // Mailoptin. Pass without action because url for ajax request is domain.com/any-page/?mailoptin-ajax=subscribe_to_email_list
@@ -599,7 +606,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
                 . APBCT_URL_PATH
                 . '/js/apbct-public-bundle.min.js'
                 . '?ver=' . APBCT_VERSION . '" id="ct_public_functions-js"></script>';
-            echo '<script src="' . APBCT_MODERATE_URL . '/ct-bot-detector-wrapper.js?ver='
+            echo '<script src="' . APBCT_BOT_DETECTOR_SCRIPT_URL . '?ver='
                 . APBCT_VERSION . '" id="ct_bot_detector-js"></script>';
         }, 100);
     }
@@ -694,6 +701,11 @@ if ( is_admin() || is_network_admin() ) {
 
     // Show notices
     add_action('admin_init', array(AdminNotices::class, 'showAdminNotices'));
+
+    // Register AJAX hooks
+    add_action('admin_init', function () use ($apbct) {
+        \Cleantalk\ApbctWP\HooksRegistrar::registerAdminHooks($apbct->ajax_service);
+    });
 
     if ( ! (defined('DOING_AJAX') && DOING_AJAX) ) {
         add_action('admin_enqueue_scripts', 'apbct_admin__enqueue_scripts');
@@ -919,7 +931,10 @@ function apbct_sfw__check()
 
     $sfw_tables_names = SFW::getSFWTablesNames();
 
-    if (!$sfw_tables_names) {
+    if (
+        !$sfw_tables_names ||
+        !isset($sfw_tables_names['sfw_personal_table_name'], $sfw_tables_names['sfw_common_table_name'])
+    ) {
         add_action('init', function () use ($apbct) {
             $apbct->errorAdd(
                 'sfw',
@@ -1133,7 +1148,7 @@ function apbct_sfw_update__init($delay = 0)
         $apbct->data['sfw_load_type'] = 'common';
     }
 
-    if ( $apbct->network_settings['multisite__work_mode'] == 3) {
+    if ( $apbct->network_settings['multisite__work_mode'] !== 2) {
         $apbct->data['sfw_load_type'] = 'all';
         $apbct->save('data');
     }
@@ -1700,9 +1715,27 @@ function apbct_sfw_update__process_exclusions($direct_update = false)
 {
     global $apbct;
 
+    $table_names = SFW::getSFWTablesNames();
+    $origin_personal_table_name = $table_names && isset($table_names['sfw_personal_table_name']) && is_string($table_names['sfw_personal_table_name'])
+        ? $table_names['sfw_personal_table_name']
+        : null;
+
+    if ($origin_personal_table_name) {
+        $temp_table_name = $origin_personal_table_name . '_temp';
+    } else {
+        return array('error' => 'EXCLUSIONS: CAN NOT GET SFW TABLES NAMES');
+    }
+
+    if (!DB::getInstance()->isTableExists($temp_table_name)) {
+        SFW::createTempTables(DB::getInstance(), $origin_personal_table_name);
+        if (!DB::getInstance()->isTableExists($temp_table_name)) {
+            return array('error' => 'EXCLUSIONS: CAN NOT RECREATE TEMP PERSONAL TABLE ' . $temp_table_name);
+        }
+    }
+
     $result = SFW::updateWriteToDbExclusions(
         DB::getInstance(),
-        APBCT_TBL_FIREWALL_DATA_PERSONAL . '_temp'
+        $temp_table_name
     );
 
     if ( ! empty($result['error']) ) {
@@ -1801,8 +1834,8 @@ function apbct_sfw_update__end_of_update__checking_data($direct_update = false)
     }
 
     if ( in_array($apbct->data['sfw_load_type'], array('all','personal'))
-        && isset($apbct->stats['sfw']['entries_personal'])
-        && ( $apbct->stats['sfw']['entries_personal'] != $apbct->fw_stats['expected_networks_count_personal'] ) ) {
+         && isset($apbct->stats['sfw']['entries_personal'])
+         && ( $apbct->stats['sfw']['entries_personal'] != $apbct->fw_stats['expected_networks_count_personal'] ) ) {
         return array(
             'error' =>
                 'The discrepancy between the amount of data received for the update and in the final table: '
@@ -2009,17 +2042,26 @@ function apbct_sfw_private_records_handler($action, $test_data = null)
         }
         unset($row);
 
+        $table_names = SFW::getSFWTablesNames();
+        $table_name = $table_names && isset($table_names['sfw_personal_table_name']) && is_string($table_names['sfw_personal_table_name'])
+            ? $table_names['sfw_personal_table_name']
+            : false;
+
+        if (!$table_name || !DB::getInstance()->isTableExists($table_name)) {
+            throw new InvalidArgumentException('internal error: sfw table does not exist');
+        }
+
         //method selection
         if ( $action === 'add' ) {
             $handler_output = SFW::privateRecordsAdd(
                 DB::getInstance(),
-                SFW::getSFWTablesNames()['sfw_personal_table_name'],
+                $table_name,
                 $metadata
             );
         } elseif ( $action === 'delete' ) {
             $handler_output = SFW::privateRecordsDelete(
                 DB::getInstance(),
-                SFW::getSFWTablesNames()['sfw_personal_table_name'],
+                $table_name,
                 $metadata
             );
         } else {
@@ -2594,10 +2636,7 @@ function apbct_cookie()
 
     // Submit time
     if ( empty($_POST) ) {
-        $apbct_timestamp = time();
-        RequestParameters::set('apbct_timestamp', (string)$apbct_timestamp, true);
-        $cookie_test_value['cookies_names'][] = 'apbct_timestamp';
-        $cookie_test_value['check_value']     .= $apbct_timestamp;
+        SubmitTimeHandler::setToRequest(time(), $cookie_test_value);
     }
 
     // Landing time
@@ -2614,12 +2653,18 @@ function apbct_cookie()
         if ( $http_referrer ) {
             Cookie::set('apbct_prev_referer', $http_referrer, 0, '/', $domain, null, true, 'Lax', true);
             $cookie_test_value['cookies_names'][] = 'apbct_prev_referer';
-            $cookie_test_value['check_value']     .= $http_referrer;
+            $cookie_test_value['check_value']     = isset($cookie_test_value['check_value'])
+                ? $cookie_test_value['check_value'] . $http_referrer
+                : $http_referrer;
         }
     }
 
     // Cookies test
-    $cookie_test_value['check_value'] = md5($cookie_test_value['check_value']);
+    $cookie_test_value['check_value'] = md5(
+        isset($cookie_test_value['check_value'])
+            ? $cookie_test_value['check_value']
+            : ''
+    );
     if ( $apbct->data['cookies_type'] !== 'alternative' ) {
         Cookie::set('apbct_cookies_test', urlencode(json_encode($cookie_test_value)), 0, '/', $domain, null, true);
     }
@@ -2694,19 +2739,6 @@ function apbct_cookies_test()
     }
 
     return null;
-}
-
-/**
- * Gets submit time
- * Uses Cookies with check via apbct_cookies_test()
- * @return null|int
- * @throws JsonException
- */
-function apbct_get_submit_time()
-{
-    $apbct_timestamp = (int) RequestParameters::get('apbct_timestamp', true);
-
-    return apbct_cookies_test() === 1 && $apbct_timestamp !== 0 ? time() - $apbct_timestamp : null;
 }
 
 /**
@@ -2970,7 +3002,7 @@ function apbct_is_user_role_in($roles, $user = false)
  *
  * @param $exec_time
  */
-function apbct_statistics__rotate($exec_time)
+function apbct_statistics_rotate($exec_time)
 {
     global $apbct;
 
@@ -3065,4 +3097,14 @@ function apbct_sfw_update_sentinel__run_watchdog()
 {
     global $apbct;
     $apbct->sfw_update_sentinel->runWatchDog();
+}
+
+/**
+ * Cron wrapper. Remove support user.
+ * @return void
+ */
+function apbct_cron_remove_support_user()
+{
+    $temp_user_service = new \Cleantalk\ApbctWP\SupportUser();
+    $temp_user_service->performCronDeleteUser();
 }

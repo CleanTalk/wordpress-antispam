@@ -118,7 +118,11 @@ class RestController extends \WP_REST_Controller
                 'args'                => array(
                     'event_javascript_data' => array(
                         'type'     => 'array',
-                        'required' => true,
+                        'required' => false,
+                    ),
+                    'event_token' => array(
+                        'type'     => 'string',
+                        'required' => false,
                     ),
                     'post_url' => array(
                         'type'     => 'string',

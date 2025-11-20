@@ -145,7 +145,6 @@ class CleantalkPreprocessComment extends IntegrationBase
         if ($this->checkMaxCommentsPublishedByUser()) {
             $this->exception_action = true;
             ct_hash(md5(time() . $this->wp_comment['comment_author_email']));
-            add_action('comment_post', 'ct_set_real_user_badge_hash', 999, 2);
         }
 
         $http_host = is_string(Server::get('HTTP_HOST')) ? Server::get('HTTP_HOST') : '';
@@ -246,10 +245,6 @@ class CleantalkPreprocessComment extends IntegrationBase
         // If moderation is required - exit with no changes
         if ( $wp_comment_moderation_enabled ) {
             return;
-        }
-
-        if (!$is_allowed_because_of_inactive_license) {
-            add_action('comment_post', 'ct_set_real_user_badge_hash', 999, 2);
         }
 
         // if anu of options is disabled - standard WP recheck and exit
@@ -548,6 +543,14 @@ class CleantalkPreprocessComment extends IntegrationBase
         }
         if ( $status === 'approved' ) {
             add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
+
+            // Always set hash for auto-moderated (approved) comments if cleantalk_allowed_moderation is enabled
+            if (
+                !empty($this->apbct->settings['cleantalk_allowed_moderation']) &&
+                $this->apbct->settings['cleantalk_allowed_moderation'] == '1'
+            ) {
+                add_action('comment_post', 'ct_set_real_user_badge_automod_hash', 999, 2);
+            }
         } else {
             add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
         }
