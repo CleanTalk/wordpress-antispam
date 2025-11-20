@@ -614,6 +614,40 @@ class ApbctHandler {
                     return defaultFetch.apply(window, args);
                 };
             }
+
+            // WP Recipe Maker user ratings
+            if (document.forms.length > 0 &&
+                Array.from(document.forms).map((form) =>
+                    form.classList.contains('wprm-user-ratings-modal-stars-container')).length > 0
+            ) {
+                window.fetch = function(...args) {
+                    if (
+                        args &&
+                        args[0] &&
+                        typeof args[0].includes === 'function' &&
+                        args[0].includes('/wp-json/wp-recipe-maker/')
+                    ) {
+                        if (args[1] && args[1].body) {
+                            if (typeof args[1].body === 'string') {
+                                let bodyObj;
+                                try {
+                                    bodyObj = JSON.parse(args[1].body);
+                                } catch (e) {
+                                    bodyObj = {};
+                                }
+                                if (+ctPublic.settings__data__bot_detector_enabled) {
+                                    bodyObj.ct_bot_detector_event_token =
+                                        apbctLocalStorage.get('bot_detector_event_token');
+                                } else {
+                                    bodyObj.ct_no_cookie_hidden_field = getNoCookieData();
+                                }
+                                args[1].body = JSON.stringify(bodyObj);
+                            }
+                        }
+                    }
+                    return defaultFetch.apply(window, args);
+                };
+            }
         }, 1000);
     }
 
