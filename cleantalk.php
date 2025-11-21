@@ -1574,11 +1574,11 @@ function apbct_sfw_update__create_tables($direct_update = false, $return_new_tab
     $db_tables_creator->createTable($common_table_name);
     $apbct->data['sfw_common_table_name'] = $common_table_name;
     //personal table
-    $table_name_personal = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
+    $table_name_personal = $wpdb->prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
     $db_tables_creator->createTable($table_name_personal);
     $apbct->data['sfw_personal_table_name'] = $table_name_personal;
     //ua table
-    $personal_ua_bl_table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'ua_bl';
+    $personal_ua_bl_table_name = $wpdb->prefix . Schema::getSchemaTablePrefix() . 'ua_bl';
     $db_tables_creator->createTable($personal_ua_bl_table_name);
     $apbct->data['sfw_personal_ua_bl_table_name'] = $personal_ua_bl_table_name;
 
