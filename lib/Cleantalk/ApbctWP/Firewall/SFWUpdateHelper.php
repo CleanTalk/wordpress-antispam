@@ -69,21 +69,6 @@ class SFWUpdateHelper
     }
 
     /**
-     * Flush expected networks count stats.
-     * @return void
-     */
-    public static function flushCKStats()
-    {
-        global $apbct;
-        //drop stats anyway before processing
-        $apbct->fw_stats['expected_networks_count_personal'] = 0;
-        $apbct->fw_stats['expected_networks_count'] = 0;
-        $apbct->fw_stats['expected_ua_count_personal'] = 0;
-        $apbct->fw_stats['expected_ua_count'] = 0;
-        $apbct->save('fw_stats');
-    }
-
-    /**
      * Not queue stage. Proceed checking of upload integrity.
      * @param $file_path
      * @param $direction

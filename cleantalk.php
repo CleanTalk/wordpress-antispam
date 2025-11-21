@@ -1142,7 +1142,6 @@ function apbct_sfw_update__init($delay = 0)
 
     $wp_upload_dir = wp_upload_dir();
     $base_dir = TT::getArrayValueAsString($wp_upload_dir, 'basedir');
-    $apbct->fw_stats['updating_folder'] = $base_dir . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
     //update only common tables if moderate 0
     if ( ! $apbct->moderate ) {
         $apbct->data['sfw_load_type'] = 'common';
@@ -1153,20 +1152,17 @@ function apbct_sfw_update__init($delay = 0)
         $apbct->save('data');
     }
 
-    //drop expected common/personal network counters - do this before(!) direct update fork
-    SFWUpdateHelper::flushCKStats();
+    // Flush fw stats data
+    $apbct->fw_stats = $apbct->default_fw_stats;
+    $apbct->fw_stats['calls']                        = 0;
+    $apbct->fw_stats['firewall_updating_id']         = md5((string)rand(0, 100000));
+    $apbct->fw_stats['firewall_updating_last_start'] = time();
+    $apbct->fw_stats['updating_folder'] = $base_dir . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
+    $apbct->save('fw_stats');
 
     if (apbct_sfw_update__switch_to_direct()) {
         return SFWUpdateHelper::directUpdate();
     }
-
-    // Set a new update ID and an update time start
-    $apbct->fw_stats['calls']                        = 0;
-    $apbct->fw_stats['firewall_updating_id']         = md5((string)rand(0, 100000));
-    $apbct->fw_stats['firewall_updating_last_start'] = time();
-    $apbct->fw_stats['common_lists_url_id'] = '';
-    $apbct->fw_stats['personal_lists_url_id'] = '';
-    $apbct->save('fw_stats');
 
     $apbct->sfw_update_sentinel->seekId($apbct->fw_stats['firewall_updating_id']);
 
