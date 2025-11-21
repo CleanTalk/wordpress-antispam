@@ -14,7 +14,7 @@ class SfwUpdateInitTest extends TestCase
 
         $apbct = new \Cleantalk\ApbctWP\State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
 
-        // Мокаем внутренний Sentinel
+        // Mock Sentinel
         $apbct->sfw_update_sentinel = $this
             ->getMockBuilder(\Cleantalk\ApbctWP\Firewall\SFWUpdateSentinel::class)
             ->disableOriginalConstructor()
@@ -46,10 +46,10 @@ class SfwUpdateInitTest extends TestCase
     public function test_sfw_update_init_covered()
     {
         global $apbct;
-        // Основной вызов
+        // main call
         $result = apbct_sfw_update__init(0);
 
-        // Проверка
+        // check
         $this->assertNotFalse($result);
 
         error_log('CTDEBUG: [' . __FUNCTION__ . '] []: ' . var_export($apbct->fw_stats,true));
