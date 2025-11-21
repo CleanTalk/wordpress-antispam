@@ -51,7 +51,5 @@ class SfwUpdateInitTest extends TestCase
 
         // check
         $this->assertNotFalse($result);
-
-        error_log('CTDEBUG: [' . __FUNCTION__ . '] []: ' . var_export($apbct->fw_stats,true));
     }
 }
