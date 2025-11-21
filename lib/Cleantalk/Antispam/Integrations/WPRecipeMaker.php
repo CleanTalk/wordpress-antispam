@@ -29,9 +29,12 @@ class WPRecipeMaker extends IntegrationBase
 
     public function doBlock($message)
     {
-        wp_send_json_error(
+        echo json_encode(
             array(
-                'message' => $message
+                'apbct' => array(
+                    'blocked'     => true,
+                    'comment'     => $message,
+                )
             )
         );
         die();
