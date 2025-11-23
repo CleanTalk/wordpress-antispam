@@ -135,6 +135,31 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     }
 
     /**
+     * Modify content of shortcode.
+     * @param string $content
+     * @param string $mode
+     * @param string $replacing_text
+     * @return string
+     */
+    public function modifyShortcodeContent($content, $mode = Params::OBFUSCATION_MODE_BLUR, $replacing_text = null)
+    {
+        // split content by emails to array
+        $parts = preg_split('/(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)/', $content, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+        $result = '';
+        foreach ($parts as $part) {
+            // if part is email, encode it
+            if (preg_match('/(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)/', $part)) {
+                $result .= $this->encodePlainEmail($part);
+            } else {
+                $result .= $this->modifyAny($part, $mode, $replacing_text);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * @return void
      */
     private function handlePrivacyPolicyHook()
