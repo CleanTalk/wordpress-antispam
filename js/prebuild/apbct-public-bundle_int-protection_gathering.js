@@ -87,6 +87,12 @@ function ctFillDecodedEmailHandler(event = false) {
         waitingPopup.append(apbctSetEmailDecoderPopupAnimation());
         document.body.append(waitingPopup);
     } else {
+        // analyze that here is duplicate click because there is mailto or tel link inside
+        const linkElement = event.target.closest('a');
+        if (linkElement && (linkElement.href.indexOf('mailto:') === 0 || linkElement.href.indexOf('tel:') === 0)) {
+            return;
+        }
+
         encoderPopup.setAttribute('style', 'display: inherit');
         if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_wait_for_decoding) {
             document.getElementById('apbct_popup_text').innerHTML = ctPublicFunctions.text__ee_wait_for_decoding;
@@ -4769,15 +4775,15 @@ function ctEmailExistSetElementsPositions(inputEmail) {
         backgroundSize = 'inherit';
     }
     const envelope = document.getElementById('apbct-check_email_exist-block');
-    
+
     if (envelope) {
-        let offset = 0;
+        let offsetAfterSize = 0;
         if (useAfterSize) {
-            offset = parseFloat(fontSizeOrWidthAfterStyle);
+            offsetAfterSize = parseFloat(fontSizeOrWidthAfterStyle);
         }
         envelope.style.cssText = `
             top: ${inputRect.top}px;
-            left: ${(inputRect.right - envelopeWidth) - offset}px;
+            left: ${(inputRect.right - envelopeWidth) - offsetAfterSize}px;
             height: ${inputHeight}px;
             width: ${envelopeWidth}px;
             background-size: ${backgroundSize};

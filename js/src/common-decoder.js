@@ -87,6 +87,12 @@ function ctFillDecodedEmailHandler(event = false) {
         waitingPopup.append(apbctSetEmailDecoderPopupAnimation());
         document.body.append(waitingPopup);
     } else {
+        // analyze that here is duplicate click because there is mailto or tel link inside
+        const linkElement = event.target.closest('a');
+        if (linkElement && (linkElement.href.indexOf('mailto:') === 0 || linkElement.href.indexOf('tel:') === 0)) {
+            return;
+        }
+
         encoderPopup.setAttribute('style', 'display: inherit');
         if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_wait_for_decoding) {
             document.getElementById('apbct_popup_text').innerHTML = ctPublicFunctions.text__ee_wait_for_decoding;
