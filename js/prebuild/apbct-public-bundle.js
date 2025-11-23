@@ -1857,6 +1857,7 @@ function initParams() {
             apbct('form.wpcf7-form input[type = "email"]')
                 .on('blur', ctDebounceFuncExec(checkEmailExist, 300) );
             apbct('form.wpforms-form input[type = "email"]').on('blur', checkEmailExist);
+            apbct('form[id^="gform_"] input[type = "email"]').on('blur', checkEmailExist);
             apbctIntegrateDynamicEmailCheck({
                 formSelector: '.nf-form-content',
                 emailSelector: 'input[type="email"], input[type="email"].ninja-forms-field',
@@ -3791,15 +3792,15 @@ function ctEmailExistSetElementsPositions(inputEmail) {
         backgroundSize = 'inherit';
     }
     const envelope = document.getElementById('apbct-check_email_exist-block');
-    
+
     if (envelope) {
-        let offset = 0;
+        let offsetAfterSize = 0;
         if (useAfterSize) {
-            offset = parseFloat(fontSizeOrWidthAfterStyle);
+            offsetAfterSize = parseFloat(fontSizeOrWidthAfterStyle);
         }
         envelope.style.cssText = `
             top: ${inputRect.top}px;
-            left: ${(inputRect.right - envelopeWidth) - offset}px;
+            left: ${(inputRect.right - envelopeWidth) - offsetAfterSize}px;
             height: ${inputHeight}px;
             width: ${envelopeWidth}px;
             background-size: ${backgroundSize};
