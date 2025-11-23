@@ -1857,6 +1857,12 @@ function initParams() {
             apbct('form.wpcf7-form input[type = "email"]')
                 .on('blur', ctDebounceFuncExec(checkEmailExist, 300) );
             apbct('form.wpforms-form input[type = "email"]').on('blur', checkEmailExist);
+            apbctIntegrateDynamicEmailCheck({
+                formSelector: '.nf-form-content',
+                emailSelector: 'input[type="email"], input[type="email"].ninja-forms-field',
+                handler: checkEmailExist,
+                debounce: 300,
+            });
         }
     }
 
@@ -5050,8 +5056,22 @@ function ctEmailExistSetElementsPositions(inputEmail) {
     const inputWidth = inputEmail.offsetWidth;
     const envelopeWidth = inputHeight * 1.2;
     let backgroundSize;
+    let fontSizeOrWidthAfterStyle = 0;
+    let useAfterSize = false;
     try {
         let inputComputedStyle = window.getComputedStyle(inputEmail);
+
+        const targetForAfter = inputEmail.parentElement ? inputEmail.parentElement : inputEmail;
+        const afterStyle = window.getComputedStyle(targetForAfter, '::after');
+        const afterContent = afterStyle.getPropertyValue('content');
+        fontSizeOrWidthAfterStyle = afterStyle.getPropertyValue('font-size') || afterStyle.getPropertyValue('width');
+        if (
+            afterContent && afterContent !== 'none' &&
+            parseFloat(fontSizeOrWidthAfterStyle) > 0
+        ) {
+            useAfterSize = true;
+        }
+
         let inputTextSize = (
             typeof inputComputedStyle.fontSize === 'string' ?
                 inputComputedStyle.fontSize :
@@ -5062,11 +5082,15 @@ function ctEmailExistSetElementsPositions(inputEmail) {
         backgroundSize = 'inherit';
     }
     const envelope = document.getElementById('apbct-check_email_exist-block');
-
+    
     if (envelope) {
+        let offset = 0;
+        if (useAfterSize) {
+            offset = parseFloat(fontSizeOrWidthAfterStyle);
+        }
         envelope.style.cssText = `
             top: ${inputRect.top}px;
-            left: ${inputRect.right - envelopeWidth}px;
+            left: ${(inputRect.right - envelopeWidth) - offset}px;
             height: ${inputHeight}px;
             width: ${envelopeWidth}px;
             background-size: ${backgroundSize};
@@ -5137,6 +5161,57 @@ function ctWatchFormChanges(formSelector = '', observerConfig = null, callback) 
     observer.observe(form, observerConfig);
     // you can listen what is changed reading this
     return observer;
+}
+
+/**
+ * Integrate dynamic email check to forms with dynamically added email inputs
+ * @param {*} formSelector
+ * @param {*} emailSelector
+ * @param {*} handler
+ * @param {number} debounce
+ * @param {string} attribute
+ */
+function apbctIntegrateDynamicEmailCheck({ // eslint-disable-line no-unused-vars
+    formSelector,
+    emailSelector,
+    handler,
+    debounce = 300,
+    attribute = 'data-apbct-email-exist',
+}) {
+    // Init for existing email inputs
+    document.querySelectorAll(formSelector + ' ' + emailSelector)
+        .forEach(function(input) {
+            if (!input.hasAttribute(attribute)) {
+                input.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
+                input.setAttribute(attribute, '1');
+            }
+        });
+
+    // Global MutationObserver
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+                if (node.nodeType === 1) {
+                    // If it is an email input
+                    if (node.matches && node.matches(formSelector + ' ' + emailSelector)) {
+                        if (!node.hasAttribute(attribute)) {
+                            node.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
+                            node.setAttribute(attribute, '1');
+                        }
+                    }
+                    // If there are email inputs inside the added node
+                    node.querySelectorAll &&
+                    node.querySelectorAll(emailSelector).forEach(function(input) {
+                        if (!input.hasAttribute(attribute)) {
+                            input.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
+                            input.setAttribute(attribute, '1');
+                        }
+                    });
+                }
+            });
+        });
+    });
+    observer.observe(document.body, {childList: true, subtree: true});
 }
 
 /**
