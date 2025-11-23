@@ -1,10 +1,11 @@
 <?php
 
-namespace Cleantalk\Antispam\EmailEncoder\Shortcodes;
+namespace Cleantalk\ApbctWP\ContactsEncoder\Shortcodes;
 
-use Cleantalk\Antispam\EmailEncoder\EmailEncoder;
-use Cleantalk\Antispam\EmailEncoder\ExclusionsService;
+use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\Common\ContactsEncoder\Dto\Params;
+use Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService;
 
 /**
  * Shortcode to encode any string content.
@@ -36,9 +37,9 @@ class EncodeContentSC extends EmailEncoderShortCode
     /**
      * @param string $public_name
      */
-    public function __construct()
+    public function __construct(Params $params)
     {
-        $this->exclusions = new ExclusionsService();
+        $this->exclusions = new ExclusionsService($params);
     }
 
 
@@ -50,8 +51,10 @@ class EncodeContentSC extends EmailEncoderShortCode
      * @param array $_atts Attributes passed to the shortcode.
      * @param string|null $content The content enclosed by the shortcode.
      * @param string $_tag The name of the shortcode tag.
+     *
      * @return string The encoded content or the original content if the cookie is set.
      * @psalm-suppress PossiblyUnusedReturnValue
+     * @throws \Exception
      */
     public function callback($_atts, $content, $_tag)
     {
@@ -59,8 +62,8 @@ class EncodeContentSC extends EmailEncoderShortCode
             return (string)$content;
         }
 
-        $mode = 'blur';
-        if (isset($_atts['mode']) && in_array($_atts['mode'], ['blur', 'obfuscate', 'replace'])) {
+        $mode = Params::OBFUSCATION_MODE_BLUR;
+        if (isset($_atts['mode']) && in_array($_atts['mode'], [Params::OBFUSCATION_MODE_BLUR, Params::OBFUSCATION_MODE_OBFUSCATE, Params::OBFUSCATION_MODE_REPLACE])) {
             $mode = $_atts['mode'];
         }
 
@@ -70,7 +73,7 @@ class EncodeContentSC extends EmailEncoderShortCode
             $replacing_text = null;
         }
 
-        return EmailEncoder::getInstance()->modifyAny($content, $mode, $replacing_text);
+        return ContactsEncoder::getInstance()->modifyAny($content, $mode, $replacing_text);
     }
 
     /**
