@@ -63,6 +63,10 @@ class EncodeContentSC extends EmailEncoderShortCode
      */
     public function callback($_atts, $content, $_tag)
     {
+        if (is_null($content)) {
+            return '';
+        }
+
         if ( Cookie::get('apbct_email_encoder_passed') === apbct_get_email_encoder_pass_key() ) {
             return (string)$content;
         }
@@ -103,11 +107,16 @@ class EncodeContentSC extends EmailEncoderShortCode
         $shortcode_exist_pattern = sprintf('/\[%s\](.*?)\[\/%s\]/s', $this->public_name, $this->public_name);
         $content = preg_replace_callback($shortcode_exist_pattern, function ($matches) {
             $placeholder = preg_replace('/EE\_\d+/', 'EE_' . (string)$this->shortcode_counter++, $this->exclusion_wrapper);
+            if (is_null($placeholder)) {
+                $placeholder = $this->exclusion_wrapper;
+            }
             if (isset($matches[0])) {
                 $this->shortcode_replacements[$placeholder] = $matches[0];
             }
+
             return $placeholder;
         }, $content);
+
         return $content;
     }
 
