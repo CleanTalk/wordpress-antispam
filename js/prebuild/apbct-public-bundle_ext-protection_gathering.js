@@ -87,12 +87,6 @@ function ctFillDecodedEmailHandler(event = false) {
         waitingPopup.append(apbctSetEmailDecoderPopupAnimation());
         document.body.append(waitingPopup);
     } else {
-        // analyze that here is duplicate click because there is mailto or tel link inside
-        const linkElement = event.target.closest('a');
-        if (linkElement && (linkElement.href.indexOf('mailto:') === 0 || linkElement.href.indexOf('tel:') === 0)) {
-            return;
-        }
-
         encoderPopup.setAttribute('style', 'display: inherit');
         if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_wait_for_decoding) {
             document.getElementById('apbct_popup_text').innerHTML = ctPublicFunctions.text__ee_wait_for_decoding;
@@ -457,7 +451,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (encodedEmailNodes.length) {
         for (let i = 0; i < encodedEmailNodes.length; ++i) {
-            encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
+            const node = encodedEmailNodes[i];
+            if (
+                node.parentNode &&
+                node.parentNode.tagName === 'A' &&
+                node.parentNode.getAttribute('href')?.includes('mailto:') &&
+                node.parentNode.hasAttribute('data-original-string')
+            ) {
+                // This node was skipped from listeners
+                continue;
+            }
+            node.addEventListener('click', ctFillDecodedEmailHandler);
         }
     }
 });
