@@ -1788,8 +1788,6 @@ function apbct_form__ninjaForms__testSpam()
 {
     global $apbct, $cleantalk_executed;
 
-    Cookie::$force_alt_cookies_global = true;
-
     if ( $cleantalk_executed ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
@@ -1881,14 +1879,11 @@ function apbct_form__ninjaForms__testSpam()
             'message'         => $message,
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
-            'post_info'       => array('comment_type' => 'contact_form_wordpress_ninja_froms'),
+            'post_info'       => array('comment_type' => 'contact_form_wordpress_ninja_forms'),
             'sender_info'   => array('sender_emails_array' => $sender_emails_array),
             'js_on'           => $checkjs,
-            'event_token'     => Cookie::get('ct_bot_detector_event_token'),
         )
     );
-
-    Cookie::$force_alt_cookies_global = false;
 
     if ( isset($base_call_result['ct_result']) ) {
         $ct_result = $base_call_result['ct_result'];

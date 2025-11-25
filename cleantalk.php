@@ -14,7 +14,7 @@
 use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
-use Cleantalk\ApbctWP\Antispam\EmailEncoder;
+use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Antispam\ForceProtection;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\CleantalkRealPerson;
@@ -42,6 +42,7 @@ use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use Cleantalk\Common\DNS;
 use Cleantalk\Common\Firewall;
 use Cleantalk\Common\Schema;
@@ -222,11 +223,13 @@ if (
         }
     }
 
-    if (!$skip_email_encode && !apbct_is_amp_request()) {
-        EmailEncoder::getInstance();
+    $contacts_encoder = apbctGetContactsEncoder();
+    if ($apbct->settings['data__email_decoder'] && !$skip_email_encode && !apbct_is_amp_request()) {
+        // Encode content
+        $contacts_encoder->runEncoding();
 
-        // Email Encoder ajax handlers
-        EmailEncoder::getInstance()->registerAjaxRoute();
+        // Email Encoder ajax handlers for decoding
+        $contacts_encoder->registerAjaxRoute();
     }
 
     // Force protection to avoid spam from bots without javascript
@@ -1139,7 +1142,6 @@ function apbct_sfw_update__init($delay = 0)
 
     $wp_upload_dir = wp_upload_dir();
     $base_dir = TT::getArrayValueAsString($wp_upload_dir, 'basedir');
-    $apbct->fw_stats['updating_folder'] = $base_dir . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
     //update only common tables if moderate 0
     if ( ! $apbct->moderate ) {
         $apbct->data['sfw_load_type'] = 'common';
@@ -1150,17 +1152,17 @@ function apbct_sfw_update__init($delay = 0)
         $apbct->save('data');
     }
 
-    if (apbct_sfw_update__switch_to_direct()) {
-        return SFWUpdateHelper::directUpdate();
-    }
-
-    // Set a new update ID and an update time start
+    // Flush fw stats data
+    $apbct->fw_stats = $apbct->default_fw_stats;
     $apbct->fw_stats['calls']                        = 0;
     $apbct->fw_stats['firewall_updating_id']         = md5((string)rand(0, 100000));
     $apbct->fw_stats['firewall_updating_last_start'] = time();
-    $apbct->fw_stats['common_lists_url_id'] = '';
-    $apbct->fw_stats['personal_lists_url_id'] = '';
+    $apbct->fw_stats['updating_folder'] = $base_dir . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
     $apbct->save('fw_stats');
+
+    if (apbct_sfw_update__switch_to_direct()) {
+        return SFWUpdateHelper::directUpdate();
+    }
 
     $apbct->sfw_update_sentinel->seekId($apbct->fw_stats['firewall_updating_id']);
 
@@ -1572,11 +1574,11 @@ function apbct_sfw_update__create_tables($direct_update = false, $return_new_tab
     $db_tables_creator->createTable($common_table_name);
     $apbct->data['sfw_common_table_name'] = $common_table_name;
     //personal table
-    $table_name_personal = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
+    $table_name_personal = $wpdb->prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
     $db_tables_creator->createTable($table_name_personal);
     $apbct->data['sfw_personal_table_name'] = $table_name_personal;
     //ua table
-    $personal_ua_bl_table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'ua_bl';
+    $personal_ua_bl_table_name = $wpdb->prefix . Schema::getSchemaTablePrefix() . 'ua_bl';
     $db_tables_creator->createTable($personal_ua_bl_table_name);
     $apbct->data['sfw_personal_ua_bl_table_name'] = $personal_ua_bl_table_name;
 
@@ -3082,4 +3084,23 @@ function apbct_cron_remove_support_user()
 {
     $temp_user_service = new \Cleantalk\ApbctWP\SupportUser();
     $temp_user_service->performCronDeleteUser();
+}
+
+/**
+ * This is a helper function to avoid code duplication on build ContactsEncoder object
+ * @return ContactsEncoder
+ */
+function apbctGetContactsEncoder()
+{
+    global $apbct;
+
+    $contacts_encoder_params = new Params();
+    $contacts_encoder_params->api_key = $apbct->api_key;
+    $contacts_encoder_params->is_logged_in = apbct_is_user_logged_in();
+    $contacts_encoder_params->obfuscation_mode = $apbct->settings['data__email_decoder_obfuscation_mode'];
+    $contacts_encoder_params->obfuscation_text = $apbct->settings['data__email_decoder_obfuscation_custom_text'];
+    $contacts_encoder_params->do_encode_emails = (int)$apbct->settings['data__email_decoder_encode_email_addresses'];
+    $contacts_encoder_params->do_encode_phones = (int)$apbct->settings['data__email_decoder_encode_phone_numbers'];
+
+    return ContactsEncoder::getInstance($contacts_encoder_params);
 }

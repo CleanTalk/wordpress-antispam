@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctWP\Localize;
 
-use Cleantalk\ApbctWP\Antispam\EmailEncoder;
+use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Variables\Server;
 
@@ -28,7 +28,7 @@ class CtPublicFunctionsLocalize
             'wprocket_detected'                    => apbct_is_plugin_active('wp-rocket/wp-rocket.php'),
             'host_url'                             => Server::get('HTTP_HOST'),
         );
-        $data = array_merge($data, EmailEncoder::getLocalizationText());
+        $data = array_merge($data, ContactsEncoder::getLocalizationText());
 
         return $data;
     }

@@ -3,7 +3,7 @@
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentSettings;
 use Cleantalk\ApbctWP\AJAXService;
-use Cleantalk\ApbctWP\Antispam\EmailEncoder;
+use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\LinkConstructor;
@@ -11,6 +11,7 @@ use Cleantalk\ApbctWP\Validate;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use Cleantalk\Common\TT;
 use Cleantalk\ApbctWP\PluginSettingsPage\SettingsField;
 use Cleantalk\ApbctWP\PluginSettingsPage\SummaryAndSupportRenderer;
@@ -660,7 +661,7 @@ function apbct_settings__set_fields()
             'fields' => array(
                 'data__email_decoder'        => array(
                     'title' => __('Encode contact data', 'cleantalk-spam-protect'),
-                    'description' => EmailEncoder::getEncoderOptionDescription(),
+                    'description' => ContactsEncoder::getEncoderOptionDescription(),
                     'childrens' => array(
                         'data__email_decoder_buffer',
                         'data__email_decoder_obfuscation_mode',
@@ -672,37 +673,37 @@ function apbct_settings__set_fields()
                 ),
                 'data__email_decoder_encode_email_addresses'        => array(
                     'title' => __('Encode email addresses', 'cleantalk-spam-protect'),
-                    'description' => EmailEncoder::getEmailsEncodingDescription(),
+                    'description' => ContactsEncoder::getEmailsEncodingDescription(),
                     'class'           => 'apbct_settings-field_wrapper--sub',
                     'parent'            => 'data__email_decoder',
                 ),
                 'data__email_decoder_encode_phone_numbers'        => array(
                     'title' => __('Encode phone numbers', 'cleantalk-spam-protect'),
-                    'description' => EmailEncoder::getPhonesEncodingDescription(),
+                    'description' => ContactsEncoder::getPhonesEncodingDescription(),
                     'class'           => 'apbct_settings-field_wrapper--sub',
                     'parent'            => 'data__email_decoder',
                     'long_description' => true,
                 ),
                 'data__email_decoder_obfuscation_mode'        => array(
                     'title'             => __('Encoder obfuscation mode', 'cleantalk-spam-protect'),
-                    'description'       => EmailEncoder::getObfuscationModesDescription(),
+                    'description'       => ContactsEncoder::getObfuscationModesDescription(),
                     'parent'            => 'data__email_decoder',
                     'class'             => 'apbct_settings-field_wrapper--sub',
-                    'options'  => EmailEncoder::getObfuscationModesOptionsArray(),
+                    'options'  => ContactsEncoder::getObfuscationModesOptionsArray(),
                     'childrens' => array('data__email_decoder_obfuscation_custom_text'),
                     'long_description' => true,
                 ),
                 'data__email_decoder_obfuscation_custom_text'             => array(
                     'type'        => 'textarea',
                     'title'       => __('Custom text to replace email', 'cleantalk-spam-protect'),
-                    'value' => EmailEncoder::getDefaultReplacingText(),
+                    'value' => ContactsEncoder::getDefaultReplacingText(),
                     'description'       => __('If appropriate mode selected, this text will be shown instead of an email.', 'cleantalk-spam-protect'),
                     'parent' => 'data__email_decoder_obfuscation_mode',
                     'class' => 'apbct_settings-field_wrapper--sub',
                 ),
                 'data__email_decoder_buffer'        => array(
                     'title'       => __('Use the output buffer', 'cleantalk-spam-protect'),
-                    'description' => EmailEncoder::getBufferUsageOptionDescription(),
+                    'description' => ContactsEncoder::getBufferUsageOptionDescription(),
                     'parent'          => 'data__email_decoder',
                     'class'           => 'apbct_settings-field_wrapper--sub',
                 ),
@@ -2466,11 +2467,11 @@ function apbct_settings__validate($settings)
     //email encoder obfuscation custom text validation
     if (
             isset($settings['data__email_decoder_obfuscation_mode'])
-            && $settings['data__email_decoder_obfuscation_mode'] === 'replace'
+            && $settings['data__email_decoder_obfuscation_mode'] === Params::OBFUSCATION_MODE_REPLACE
     ) {
         if (empty($settings['data__email_decoder_obfuscation_custom_text'])) {
             $apbct->errorDelete('email_encoder', true, 'settings_validate');
-            $settings['data__email_decoder_obfuscation_custom_text'] = EmailEncoder::getDefaultReplacingText();
+            $settings['data__email_decoder_obfuscation_custom_text'] = ContactsEncoder::getDefaultReplacingText();
             $apbct->errorAdd(
                 'email_encoder',
                 'custom text can not be empty, default value applied.',
@@ -2482,7 +2483,7 @@ function apbct_settings__validate($settings)
         }
     } else {
         $apbct->errorDelete('email_encoder', true, 'settings_validate');
-        $settings['data__email_decoder_obfuscation_custom_text'] = EmailEncoder::getDefaultReplacingText();
+        $settings['data__email_decoder_obfuscation_custom_text'] = ContactsEncoder::getDefaultReplacingText();
     }
 
     /**
@@ -3028,15 +3029,15 @@ function apbct_settings__get__long_description()
         ),
         'data__email_decoder_obfuscation_mode' => array(
             'title' => __('Contact data encoding: obfuscation modes', 'cleantalk-spam-protect'),
-            'desc'  => EmailEncoder::getObfuscationModesLongDescription(),
+            'desc'  => ContactsEncoder::getObfuscationModesLongDescription(),
         ),
         'data__email_decoder_encode_phone_numbers' => array(
             'title' => __('Contact data encoding: phone numbers', 'cleantalk-spam-protect'),
-            'desc'  => EmailEncoder::getPhonesEncodingLongDescription(),
+            'desc'  => ContactsEncoder::getPhonesEncodingLongDescription(),
         ),
         'data__email_decoder' => array(
             'title' => __('Contact data encoding', 'cleantalk-spam-protect'),
-            'desc'  => EmailEncoder::getEmailEncoderCommonLongDescription(),
+            'desc'  => ContactsEncoder::getEmailEncoderCommonLongDescription(),
         ),
     );
 
