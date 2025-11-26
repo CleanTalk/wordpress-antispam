@@ -1729,6 +1729,7 @@ function apbct_form__optimizepress__testSpam($reg_flag = false)
             'sender_nickname' => isset($params['nickname']) ? $params['nickname'] : Post::get('first_name'),
             'post_info'       => array('comment_type' => 'subscribe_form_wordpress_optimizepress'),
             'sender_info'     => $sender_info,
+            'message'         => isset($params['message']) ? $params['message'] : '',
         ),
         $reg_flag
     );
