@@ -1142,7 +1142,6 @@ function apbct_sfw_update__init($delay = 0)
 
     $wp_upload_dir = wp_upload_dir();
     $base_dir = TT::getArrayValueAsString($wp_upload_dir, 'basedir');
-    $apbct->fw_stats['updating_folder'] = $base_dir . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
     //update only common tables if moderate 0
     if ( ! $apbct->moderate ) {
         $apbct->data['sfw_load_type'] = 'common';
@@ -1153,17 +1152,17 @@ function apbct_sfw_update__init($delay = 0)
         $apbct->save('data');
     }
 
-    if (apbct_sfw_update__switch_to_direct()) {
-        return SFWUpdateHelper::directUpdate();
-    }
-
-    // Set a new update ID and an update time start
+    // Flush fw stats data
+    $apbct->fw_stats = $apbct->default_fw_stats;
     $apbct->fw_stats['calls']                        = 0;
     $apbct->fw_stats['firewall_updating_id']         = md5((string)rand(0, 100000));
     $apbct->fw_stats['firewall_updating_last_start'] = time();
-    $apbct->fw_stats['common_lists_url_id'] = '';
-    $apbct->fw_stats['personal_lists_url_id'] = '';
+    $apbct->fw_stats['updating_folder'] = $base_dir . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
     $apbct->save('fw_stats');
+
+    if (apbct_sfw_update__switch_to_direct()) {
+        return SFWUpdateHelper::directUpdate();
+    }
 
     $apbct->sfw_update_sentinel->seekId($apbct->fw_stats['firewall_updating_id']);
 
@@ -1575,11 +1574,11 @@ function apbct_sfw_update__create_tables($direct_update = false, $return_new_tab
     $db_tables_creator->createTable($common_table_name);
     $apbct->data['sfw_common_table_name'] = $common_table_name;
     //personal table
-    $table_name_personal = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
+    $table_name_personal = $wpdb->prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
     $db_tables_creator->createTable($table_name_personal);
     $apbct->data['sfw_personal_table_name'] = $table_name_personal;
     //ua table
-    $personal_ua_bl_table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'ua_bl';
+    $personal_ua_bl_table_name = $wpdb->prefix . Schema::getSchemaTablePrefix() . 'ua_bl';
     $db_tables_creator->createTable($personal_ua_bl_table_name);
     $apbct->data['sfw_personal_ua_bl_table_name'] = $personal_ua_bl_table_name;
 

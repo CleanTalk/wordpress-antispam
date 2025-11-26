@@ -357,17 +357,21 @@ class State extends \Cleantalk\Common\State
     /**
      * @var array
      */
-    private $default_fw_stats = array(
+    public $default_fw_stats = array(
         'firewall_updating'            => false,
         'updating_folder'              => '',
         'firewall_updating_id'         => null,
         'firewall_update_percent'      => 0,
         'firewall_updating_last_start' => 0,
         'expected_networks_count'      => 0,
+        'expected_networks_count_personal' => 0,
         'expected_ua_count'            => 0,
+        'expected_ua_count_personal'   => 0,
         'update_mode'                  => 0,
         'reason_direct_update_log'     => null,
-        'expected_networks_count_personal' => 0,
+        'personal_lists_url_id' => '',
+        'common_lists_url_id' => '',
+        'calls' => 0,
     );
 
     /**
