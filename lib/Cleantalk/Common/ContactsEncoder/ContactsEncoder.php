@@ -41,6 +41,36 @@ abstract class ContactsEncoder
     private $aria_regex = '/aria-label.?=.?[\'"].+?[\'"]/';
 
     /**
+     * @var string
+     */
+    private $global_email_pattern = '/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b))/';
+
+    /**
+     * @var string
+     */
+    private $global_phone_pattern = '/(tel:\+\d{8,12})|([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)/';
+
+    /**
+     * @var string
+     */
+    private $global_mailto_pattern = '/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/';
+
+    /**
+     * @var string
+     */
+    protected $plain_email_pattern = '/(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)/';
+
+    /**
+     * @var string
+     */
+    private $plain_email_pattern_without_capturing = '/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/';
+
+    /**
+     * @var string
+     */
+    private $global_tel_pattern = '/tel:(\+\d{8,12})/';
+
+    /**
      * @var array
      */
     private $aria_matches = array();
@@ -213,11 +243,10 @@ abstract class ContactsEncoder
      */
     public function modifyGlobalEmails($content)
     {
-        $pattern = '/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b))/';
         $replacing_result = '';
 
         if ( version_compare(phpversion(), '7.4.0', '>=') ) {
-            $replacing_result = preg_replace_callback($pattern, function ($matches) use ($content) {
+            $replacing_result = preg_replace_callback($this->global_email_pattern, function ($matches) use ($content) {
                 if ( isset($matches[3][0], $matches[0][0]) && in_array(strtolower($matches[3][0]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
                     return $matches[0][0];
                 }
@@ -261,7 +290,7 @@ abstract class ContactsEncoder
         }
 
         if ( version_compare(phpversion(), '7.4.0', '<') ) {
-            $replacing_result = preg_replace_callback($pattern, function ($matches) {
+            $replacing_result = preg_replace_callback($this->global_email_pattern, function ($matches) {
                 if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) && isset($matches[0]) ) {
                     return $matches[0];
                 }
@@ -298,11 +327,10 @@ abstract class ContactsEncoder
      */
     public function modifyGlobalPhoneNumbers($content)
     {
-        $pattern = '/(tel:\+\d{8,12})|([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)/';
         $replacing_result = '';
 
         if ( version_compare(phpversion(), '7.4.0', '>=') ) {
-            $replacing_result = preg_replace_callback($pattern, function ($matches) use ($content) {
+            $replacing_result = preg_replace_callback($this->global_phone_pattern, function ($matches) use ($content) {
 
                 if ( isset($matches[0][0]) && is_array($matches[0])) {
                     if ($this->helper->isTelTag($matches[0][0])) {
@@ -334,7 +362,7 @@ abstract class ContactsEncoder
         }
 
         if ( version_compare(phpversion(), '7.4.0', '<') ) {
-            $replacing_result = preg_replace_callback($pattern, function ($matches) {
+            $replacing_result = preg_replace_callback($this->global_phone_pattern, function ($matches) {
                 if ( isset($matches[0]) ) {
                     if ($this->helper->isTelTag($matches[0]) ) {
                         return $this->encodeTelLink($matches[0]);
@@ -443,9 +471,9 @@ abstract class ContactsEncoder
     private function encodeMailtoLink($mailto_link_str)
     {
         // Get inner tag text and place it in $matches[1]
-        preg_match('/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/', $mailto_link_str, $matches);
+        preg_match($this->global_mailto_pattern, $mailto_link_str, $matches);
         if ( isset($matches[1]) ) {
-            $mailto_inner_text = preg_replace_callback('/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/', function ($matches) {
+            $mailto_inner_text = preg_replace_callback($this->plain_email_pattern, function ($matches) {
                 if (isset($matches[0])) {
                     return $this->getObfuscatedEmailString($matches[0]);
                 }
@@ -473,9 +501,9 @@ abstract class ContactsEncoder
         $q_position = $position + strcspn($content, '\'"', $position);
         $mailto_link_str = substr($content, $position, $q_position - $position);
         // Get inner tag text and place it in $matches[1]
-        preg_match('/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/', $mailto_link_str, $matches);
+        preg_match($this->global_mailto_pattern, $mailto_link_str, $matches);
         if ( isset($matches[1]) ) {
-            $mailto_inner_text = preg_replace_callback('/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/', function ($matches) {
+            $mailto_inner_text = preg_replace_callback($this->plain_email_pattern_without_capturing, function ($matches) {
                 if ( isset($matches[0]) ) {
                     return $this->getObfuscatedEmailString($matches[0]);
                 }
@@ -502,7 +530,7 @@ abstract class ContactsEncoder
     private function encodeTelLink($tel_link_str)
     {
         // Get inner tag text and place it in $matches[1]
-        preg_match('/tel:(\+\d{8,12})/', $tel_link_str, $matches);
+        preg_match($this->global_tel_pattern, $tel_link_str, $matches);
         if ( isset($matches[1]) ) {
             $mailto_inner_text = preg_replace_callback('/\+\d{8,12}/', function ($matches) {
                 if (isset($matches[0])) {

@@ -144,12 +144,12 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     public function modifyShortcodeContent($content, $mode = Params::OBFUSCATION_MODE_BLUR, $replacing_text = null)
     {
         // split content by emails to array
-        $parts = preg_split('/(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)/', $content, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $parts = preg_split($this->plain_email_pattern, $content, -1, PREG_SPLIT_DELIM_CAPTURE);
 
         $result = '';
         foreach ($parts as $part) {
             // if part is email, encode it
-            if (preg_match('/(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)/', $part)) {
+            if (preg_match($this->plain_email_pattern, $part)) {
                 $result .= $this->encodePlainEmail($part);
             } else {
                 $result .= $this->modifyAny($part, $mode, $replacing_text);
