@@ -5028,16 +5028,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     trpComments.forEach(( element, index ) => {
         // Exceptions for items that are included in the selection
-        console.log('element: ' + typeof pagenow);
-        console.log('element: ' + element.parentElement.className.indexOf('group') < 0);
-        console.log('element: ' + element.tagName != 'DIV');
         if (
             element.className.indexOf('review') < 0 &&
             typeof pagenow == 'undefined' &&
             element.parentElement.className.indexOf('group') < 0 &&
             element.tagName != 'DIV'
         ) {
-            console.log('element: ' + element);
             return;
         }
 
