@@ -649,7 +649,7 @@ function apbct_settings__set_fields()
                 ),
                 'data__email_check_exist_post'        => array(
                     'title'       => __('Show email existence alert when filling in the field', 'cleantalk-spam-protect'),
-                    'description' => __('Checks the email address and shows the result as an icon in the email field before submitting the form. Works for WooCommerce checkout form, FluentForms, Contact Form 7, standard WordPress comment form and registration form.', 'cleantalk-spam-protect'),
+                    'description' => __('Checks the email address and shows the result as an icon in the email field before submitting the form. Works for WooCommerce checkout form, FluentForms, Contact Form 7, Gravity Forms, Ninja Forms, WPForms, standard WordPress comment form and registration form.', 'cleantalk-spam-protect'),
                 ),
             ),
         ),
