@@ -21,7 +21,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y p7zip-full
 
       - name: Set plugin name
-        run: echo "PLUGIN_NAME=cleantalk-spam-protect.zip" >> $GITHUB_ENV
+        run: echo "PLUGIN_NAME=cleantalk-spam-protect" >> $GITHUB_ENV
 
       - name: Create .7zignore
         run: |
