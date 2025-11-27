@@ -2932,11 +2932,20 @@ class ApbctHandler {
      */
     catchFetchRequest() {
         setTimeout(function() {
-            if (document.forms.length > 0 &&
-                Array.from(document.forms).map((form) => form.classList.contains('metform-form-content')).length > 0
+            if (
+                document.forms.length > 0 &&
+                (
+                    Array.from(document.forms).some((form) =>
+                        form.classList.contains('metform-form-content')) ||
+                    Array.from(document.forms).some((form) =>
+                        form.classList.contains('wprm-user-ratings-modal-stars-container'))
+                )
             ) {
                 window.fetch = function(...args) {
-                    if (args &&
+                    // Metform block
+                    if (
+                        Array.from(document.forms).some((form) => form.classList.contains('metform-form-content')) &&
+                        args &&
                         args[0] &&
                         typeof args[0].includes === 'function' &&
                         (args[0].includes('/wp-json/metform/') ||
@@ -2959,18 +2968,11 @@ class ApbctHandler {
                             }
                         }
                     }
-
-                    return defaultFetch.apply(window, args);
-                };
-            }
-
-            // WP Recipe Maker user ratings
-            if (document.forms.length > 0 &&
-                Array.from(document.forms).map((form) =>
-                    form.classList.contains('wprm-user-ratings-modal-stars-container')).length > 0
-            ) {
-                window.fetch = function(...args) {
+                    // WP Recipe Maker block
                     if (
+                        Array.from(document.forms).some(
+                            (form) => form.classList.contains('wprm-user-ratings-modal-stars-container'),
+                        ) &&
                         args &&
                         args[0] &&
                         typeof args[0].includes === 'function' &&
