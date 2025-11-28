@@ -1,0 +1,62 @@
+name: Auto Release Zip on dev/fix push (Linux)
+
+on:
+  push:
+    branches: [dev, fix, beta]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install p7zip
+        run: sudo apt-get update && sudo apt-get install -y p7zip-full
+
+      - name: Set plugin name
+        run: echo "PLUGIN_NAME=cleantalk-spam-protect" >> $GITHUB_ENV
+
+      - name: Create .7zignore
+        run: |
+          echo "node_modules" > .7zignore
+          echo "package.json" >> .7zignore
+          echo "package-lock.json" >> .7zignore
+          echo "gulpfile.js" >> .7zignore
+          echo "tests" >> .7zignore
+          echo "README.md" >> .7zignore
+          echo "LICENSE" >> .7zignore
+          echo "psalm.xml" >> .7zignore
+          echo "composer.json" >> .7zignore
+          echo "composer.lock" >> .7zignore
+          echo "vendor" >> .7zignore
+          echo "js/prebuild" >> .7zignore
+          echo "js/src" >> .7zignore
+          echo "css/src" >> .7zignore
+          echo ".*" >> .7zignore
+
+      - name: Create ZIP archive with 7z
+        run: 7z a -tzip "${PLUGIN_NAME}.zip" . -xr@.7zignore
+
+      - name: Create / update GitHub Release and upload asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}-version
+          name: ${{ github.ref_name }} version
+          body: "Prebuil version from ${{ github.ref_name }} branch"
+          draft: false
+          prerelease: true
+          files: |
+            ${{ env.PLUGIN_NAME }}.zip
+          overwrite_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up
+        run: rm -f "${PLUGIN_NAME}.zip" .7zignore
