@@ -451,7 +451,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (encodedEmailNodes.length) {
         for (let i = 0; i < encodedEmailNodes.length; ++i) {
-            encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
+            const node = encodedEmailNodes[i];
+            if (
+                node.parentNode &&
+                node.parentNode.tagName === 'A' &&
+                node.parentNode.getAttribute('href')?.includes('mailto:') &&
+                node.parentNode.hasAttribute('data-original-string')
+            ) {
+                // This node was skipped from listeners
+                continue;
+            }
+            node.addEventListener('click', ctFillDecodedEmailHandler);
         }
     }
 });
