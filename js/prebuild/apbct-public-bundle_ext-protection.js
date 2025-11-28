@@ -5108,15 +5108,15 @@ function ctEmailExistSetElementsPositions(inputEmail) {
         backgroundSize = 'inherit';
     }
     const envelope = document.getElementById('apbct-check_email_exist-block');
-    
+
     if (envelope) {
-        let offset = 0;
+        let offsetAfterSize = 0;
         if (useAfterSize) {
-            offset = parseFloat(fontSizeOrWidthAfterStyle);
+            offsetAfterSize = parseFloat(fontSizeOrWidthAfterStyle);
         }
         envelope.style.cssText = `
             top: ${inputRect.top}px;
-            left: ${(inputRect.right - envelopeWidth) - offset}px;
+            left: ${(inputRect.right - envelopeWidth) - offsetAfterSize}px;
             height: ${inputHeight}px;
             width: ${envelopeWidth}px;
             background-size: ${backgroundSize};
@@ -5342,6 +5342,7 @@ document.addEventListener('DOMContentLoaded', function() {
     trpComments.forEach(( element, index ) => {
         // Exceptions for items that are included in the selection
         if (
+            element.className.indexOf('review') < 0 &&
             typeof pagenow == 'undefined' &&
             element.parentElement.className.indexOf('group') < 0 &&
             element.tagName != 'DIV'
