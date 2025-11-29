@@ -63,7 +63,9 @@ class CleantalkPreprocessComment extends IntegrationBase
         $this->wp_comment_post_id = $comment_post_id;
 
         $this->post_info = array();
-        $this->comments_check_number_needs_to_skip_request = defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3;
+        $this->comments_check_number_needs_to_skip_request = $apbct->constants->skip_on_approved_comments_number->isDefinedAndTypeOK()
+            ? $apbct->constants->skip_on_approved_comments_number->getValue()
+            : 3;
 
         /**
          * Custom mail notifications processing
@@ -297,7 +299,7 @@ class CleantalkPreprocessComment extends IntegrationBase
     {
         $ct_result = $this->base_call_result['ct_result'];
 
-        global $ct_comment, $ct_stop_words;
+        global $ct_comment, $ct_stop_words, $apbct;
         $ct_comment = $message;
         $ct_stop_words = $ct_result->stop_words;
         /**
@@ -311,9 +313,11 @@ class CleantalkPreprocessComment extends IntegrationBase
 
         $err_text =
             '<center>'
-            . ((defined('CLEANTALK_DISABLE_BLOCKING_TITLE') && CLEANTALK_DISABLE_BLOCKING_TITLE == true)
-                ? ''
-                : '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ')
+            . (
+                $apbct->constants->disable_blocking_title->isDefined()
+                    ? ''
+                    : '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> '
+            )
             . __('Spam protection', 'cleantalk-spam-protect')
             . "</center><br><br>\n"
             . $ct_result->comment;

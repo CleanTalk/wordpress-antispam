@@ -232,7 +232,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
          * @since 6.58.99
          */
         if (
-            $apbct->service_constants->disable_empty_email_exception->isDefined() &&
+            $apbct->constants->disable_empty_email_exception->isDefined() &&
             !$apbct->settings['data__general_postdata_test']
         ) {
             $params['exception_action'] = 0;
@@ -1843,7 +1843,7 @@ function apbct__bot_detector_get_fd_log()
     );
     // Initialize result array with default values
 
-    if (defined('APBCT_DO_NOT_COLLECT_FRONTEND_DATA_LOGS')) {
+    if ($apbct->constants->do_not_collect_frontend_data_logs->isDefined()) {
         $result['plugin_status'] = 'OK';
         $result['error_msg'] = 'bot detector logs collection is disabled via constant definition';
         return json_encode($result);

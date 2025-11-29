@@ -78,7 +78,9 @@ class BuddyPress extends IntegrationByClassBase
         }
 
         // Check for quantity of comments
-        $comments_check_number = defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3;
+        $comments_check_number = $apbct->constants->skip_on_approved_comments_number->isDefinedAndTypeOK()
+            ? $apbct->constants->skip_on_approved_comments_number->getValue()
+            : 3;
 
         if ( $apbct->settings['comments__check_comments_number'] ) {
             $args             = array(
