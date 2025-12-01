@@ -304,26 +304,35 @@ abstract class ContactsEncoder
 
         if ( version_compare(phpversion(), '7.4.0', '>=') ) {
             $replacing_result = preg_replace_callback($pattern, function ($matches) use ($content) {
-
-                if ( isset($matches[0][0]) && is_array($matches[0])) {
-                    if ($this->helper->isTelTag($matches[0][0])) {
-                        return $this->encodeTelLinkV2($matches[0], $content);
-                    }
-                    $item_length = strlen(str_replace([' ', '(', ')', '-', '+'], '', $matches[0][0]));
-                    if ($item_length > 12 || $item_length < 8) {
-                        return $matches[0][0];
-                    }
-                    if ($this->helper->hasAttributeExclusions($matches[0][0], $this->temp_content)) {
-                        return $matches[0][0];
-                    }
-                    if ($this->helper->isInsideScriptTag($matches[0][0], $content)) {
-                        return $matches[0][0];
-                    }
+                if (isset($matches[0])) {
+                    $group_to_work = $matches[0];
+                } else {
+                    return '';
                 }
 
-                if ( isset($matches[0][0]) ) {
+                if (isset($group_to_work[0])) {
+                    $match_to_work = $group_to_work[0];
+                } else {
+                    return '';
+                }
+
+                if ($this->helper->isTelTag($match_to_work)) {
+                    return $this->encodeTelLinkV2($group_to_work, $content);
+                }
+                $item_length = strlen(str_replace([' ', '(', ')', '-', '+'], '', $match_to_work));
+                if ($item_length > 12 || $item_length < 8) {
+                    return $match_to_work;
+                }
+                if ($this->helper->hasAttributeExclusions($match_to_work, $this->temp_content)) {
+                    return $match_to_work;
+                }
+                if ($this->helper->isInsideScriptTag($match_to_work, $content)) {
+                    return $match_to_work;
+                }
+
+                if ( isset($match_to_work) ) {
                     return $this->encodeAny(
-                        $matches[0][0],
+                        $match_to_work,
                         $this->global_obfuscation_mode,
                         $this->global_replacing_text,
                         true
@@ -366,7 +375,7 @@ abstract class ContactsEncoder
 
         // modify content to turn back aria-label
         $replacing_result = $this->handleAriaLabelContent($replacing_result, true);
-
+        var_dump($replacing_result);
         //please keep this var (do not simplify the code) for further debug
         return $replacing_result;
     }
