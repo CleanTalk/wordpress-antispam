@@ -185,6 +185,7 @@ abstract class ContactsEncoder
      */
     public function modifyContent($content, $skip_exclusions = false)
     {
+        echo($content);
         if ( ! $skip_exclusions && $this->exclusions->doReturnContentBeforeModify($content) ) {
             return $content;
         }
@@ -299,8 +300,12 @@ abstract class ContactsEncoder
      */
     public function modifyGlobalPhoneNumbers($content)
     {
-        $pattern = '/(tel:\+\d{8,12})|([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)|(\(\d{3}\)\s?\d{3}-\d{4})/';
+        $pattern = '#(\+\d{8,12})|([+][\s-]?\(?\d[\d\s\-()]{8,}\d)|(\(\d{3}\)\s?\d{3}[-.\s]?\d{4})#';
+        echo("pattern\r\n");
+        echo($pattern . "\r\n");
         $replacing_result = '';
+        echo("content\r\n");
+        echo($content . "\r\n");
 
         if ( version_compare(phpversion(), '7.4.0', '>=') ) {
             $replacing_result = preg_replace_callback($pattern, function ($matches) use ($content) {
@@ -330,16 +335,12 @@ abstract class ContactsEncoder
                     return $match_to_work;
                 }
 
-                if ( isset($match_to_work) ) {
-                    return $this->encodeAny(
-                        $match_to_work,
-                        $this->global_obfuscation_mode,
-                        $this->global_replacing_text,
-                        true
-                    );
-                }
-
-                return '';
+                return $this->encodeAny(
+                    $match_to_work,
+                    $this->global_obfuscation_mode,
+                    $this->global_replacing_text,
+                    true
+                );
             }, $content, -1, $count, PREG_OFFSET_CAPTURE);
         }
 
