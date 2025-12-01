@@ -164,12 +164,17 @@ abstract class ContactsEncoder
     /**
      * @param $encoded_contacts_data
      *
-     * @return array
+     * @return string JSON like {success: bool, data: [compiled response data]}
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function runDecoding($encoded_contacts_data)
     {
-        return $this->decodeContactData($encoded_contacts_data);
+        $decoded_strings = $this->decodeContactData($encoded_contacts_data);
+        // @ToDo Check connections errors during checkRequest and return success:false
+        return json_encode([
+            'success' => true,
+            'data' => $this->compileResponse($decoded_strings, $this->is_encode_allowed),
+        ]);
     }
 
     /*
@@ -178,7 +183,6 @@ abstract class ContactsEncoder
 
     /**
      * @param string $content
-     * @param bool $skip_exclusions
      *
      * @return string
      * @psalm-suppress PossiblyUnusedReturnValue

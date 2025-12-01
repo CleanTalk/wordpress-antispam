@@ -32,5 +32,10 @@
       "dealerdirect/phpcodesniffer-composer-installer": true,
       "cleantalk/apbct-installer": true
     }
+  },
+  "autoload": {
+    "psr-4": {
+      "Cleantalk\\Common\\ContactsEncoder\\": "/"
+    }
   }
 }
