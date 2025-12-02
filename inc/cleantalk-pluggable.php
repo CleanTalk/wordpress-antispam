@@ -1901,6 +1901,11 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'Plugin Name: SureForms skip fields checks';
         }
 
+        // Plugin Name: WPRecipeMaker
+        if ( apbct_is_plugin_active('wp-recipe-maker-premium/wp-recipe-maker-premium.php') && apbct_is_in_uri('/wp-recipe-maker/v1/user-rating/')) {
+            return 'Plugin Name: WPRecipeMaker skip fields checks';
+        }
+
         // skip AsgarosForum - has direct integration
         if (
             apbct_is_plugin_active('asgaros-forum/asgaros-forum.php') &&
