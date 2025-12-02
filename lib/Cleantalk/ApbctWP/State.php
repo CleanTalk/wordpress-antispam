@@ -74,7 +74,7 @@ class State extends \Cleantalk\Common\State
         'comments__remove_old_spam'                => 0,
         'comments__remove_comments_links'          => 0, // Remove links from approved comments
         'comments__show_check_links'               => 1, // Shows check link to Cleantalk's DB.
-        'comments__the_real_person'                => 0, // Shows badge on each approved by cloud comments on public page.
+        'comments__the_real_person'                => 1, // Shows badge on each approved by cloud comments on public page.
         'comments__hide_website_field'             => 0, // Hide website field from comment form
         'cleantalk_allowed_moderation'              => 1, // Skip manual approving for the very first comment if a comment has been allowed by CleanTalk Anti-Spam protection.
 
@@ -357,17 +357,21 @@ class State extends \Cleantalk\Common\State
     /**
      * @var array
      */
-    private $default_fw_stats = array(
+    public $default_fw_stats = array(
         'firewall_updating'            => false,
         'updating_folder'              => '',
         'firewall_updating_id'         => null,
         'firewall_update_percent'      => 0,
         'firewall_updating_last_start' => 0,
         'expected_networks_count'      => 0,
+        'expected_networks_count_personal' => 0,
         'expected_ua_count'            => 0,
+        'expected_ua_count_personal'   => 0,
         'update_mode'                  => 0,
         'reason_direct_update_log'     => null,
-        'expected_networks_count_personal' => 0,
+        'personal_lists_url_id' => '',
+        'common_lists_url_id' => '',
+        'calls' => 0,
     );
 
     /**

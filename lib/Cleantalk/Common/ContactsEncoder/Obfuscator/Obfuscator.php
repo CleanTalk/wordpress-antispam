@@ -1,11 +1,11 @@
 <?php
 
-namespace Cleantalk\Antispam\EmailEncoder;
+namespace Cleantalk\Common\ContactsEncoder\Obfuscator;
 
 /**
  * Class Obfuscator
  * This class is responsible for obfuscating email addresses by hiding parts of the email.
- * @package Cleantalk\Antispam
+ * @package Cleantalk\Common\ContactsEncoder
  */
 class Obfuscator
 {
