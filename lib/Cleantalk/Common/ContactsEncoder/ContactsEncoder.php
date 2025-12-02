@@ -166,6 +166,7 @@ abstract class ContactsEncoder
      *
      * @return string JSON like {success: bool, data: [compiled response data]}
      * @psalm-suppress PossiblyUnusedMethod
+     * @codeCoverageIgnore
      */
     public function runDecoding($encoded_contacts_data)
     {

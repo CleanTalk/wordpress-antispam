@@ -37,6 +37,21 @@ class TestEmailEncoder extends TestCase
         $this->assertEquals($decoded_entity, $this->plain_text);
     }
 
+    public function testPlainTextDecodeError()
+    {
+        $decoded_entity = $this->contacts_encoder->encoder->decodeString('asdas121312');
+        $this->assertEmpty($decoded_entity);
+        $this->assertIsString($decoded_entity);
+        /**
+         * @var State $apbct
+         */
+        global $apbct;
+        $this->assertTrue($apbct->isHaveErrors());
+        $this->assertTrue($apbct->errorExists('email_encoder'), $this->plain_text);
+        $this->assertStringContainsString( 'decrypt attempts failed', $apbct->errors['email_encoder'][0]['error']);
+        $apbct->errorDeleteAll();
+    }
+
     public function testEncodeErrors()
     {
         /**
@@ -226,6 +241,14 @@ class TestEmailEncoder extends TestCase
 
         $result = $this->contacts_encoder->modifyContent($test_tel_origin);
         $this->assertEquals($test_tel_origin, $result);
+    }
+
+    public function testGetPhonesEncodingLongDescription()
+    {
+        $description = ContactsEncoder::getPhonesEncodingLongDescription();
+        $this->assertIsString($description);
+        $this->assertStringStartsWith('<', $description);
+        $this->assertStringEndsWith('>', $description);
     }
 
 }

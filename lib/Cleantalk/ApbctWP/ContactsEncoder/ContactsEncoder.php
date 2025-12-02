@@ -327,7 +327,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             <p>%s</p>
         ';
         $tmp = sprintf(
-            $tmp,
+            trim($tmp),
             __('Enable this option to encode contact phone numbers', 'cleantalk-spam-protect'),
             __('There are a few requirements to the number format:', 'cleantalk-spam-protect'),
             __('Should starting with "+" symbol or opening brace', 'cleantalk-spam-protect'),
