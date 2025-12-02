@@ -17,10 +17,10 @@ class Encoder
         $this->secret_key = md5($api_key);
         $this->encrypted_string_splitter = substr($this->secret_key, 0, 3);
         $this->encryption_is_available = function_exists('openssl_encrypt') &&
-                                         function_exists('openssl_decrypt') &&
-                                         function_exists('openssl_cipher_iv_length') &&
-                                         function_exists('openssl_random_pseudo_bytes') &&
-                                         !empty($this->encrypted_string_splitter) && strlen($this->encrypted_string_splitter) === 3;
+            function_exists('openssl_decrypt') &&
+            function_exists('openssl_cipher_iv_length') &&
+            function_exists('openssl_random_pseudo_bytes') &&
+            !empty($this->encrypted_string_splitter) && strlen($this->encrypted_string_splitter) === 3;
     }
 
     /**
@@ -84,7 +84,7 @@ class Encoder
         if (!empty($attempts->final_string)) {
             $decoded_string = $attempts->final_string;
         } else {
-            $tmpl = __('decrypt attempts failed, ssl: %s, str_base: %s');
+            $tmpl = 'decrypt attempts failed, ssl: %s, str_base: %s';
             $tmpl = sprintf($tmpl, $attempts->ssl_error, $attempts->str_base_error);
             // @ToDo refactor errors handling
             $apbct->errorAdd('email_encoder', $tmpl);
