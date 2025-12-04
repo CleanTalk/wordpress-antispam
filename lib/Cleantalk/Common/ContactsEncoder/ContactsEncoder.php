@@ -164,12 +164,18 @@ abstract class ContactsEncoder
     /**
      * @param $encoded_contacts_data
      *
-     * @return array
+     * @return string JSON like {success: bool, data: [compiled response data]}
      * @psalm-suppress PossiblyUnusedMethod
+     * @codeCoverageIgnore
      */
     public function runDecoding($encoded_contacts_data)
     {
-        return $this->decodeContactData($encoded_contacts_data);
+        $decoded_strings = $this->decodeContactData($encoded_contacts_data);
+        // @ToDo Check connections errors during checkRequest and return success:false
+        return json_encode([
+            'success' => true,
+            'data' => $this->compileResponse($decoded_strings, $this->is_encode_allowed),
+        ]);
     }
 
     /*
@@ -292,76 +298,113 @@ abstract class ContactsEncoder
     }
 
     /**
+     * @return string
+     */
+    private function getPhonesPattern()
+    {
+        $patterns = [
+            '(tel:\+\d{8,12})',                         // tel:+XXXXXXXXXX
+            '([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)',         //
+            '(\(\d{3}\)\s?\d{3}-\d{4})',         // (XXX) XXX-XXXX, (XXX) XXX XXXX
+            '(\+\d{1,3}\.\d{1,3}\.((\d{3}\.\d{4})|\d{7})(?![\w.]))',        // +X?.XX?.XXX.XXXX
+        ];
+
+        $pattern = '/' . implode('|', $patterns) . '/' ;
+        return $pattern;
+    }
+
+    /**
      * @param string $content
+     *
      * @return string
      * @psalm-suppress PossiblyUnusedReturnValue
      * @phpcs:disable PHPCompatibility.FunctionUse.NewFunctionParameters.preg_replace_callback_flagsFound
      */
     public function modifyGlobalPhoneNumbers($content)
     {
-        $pattern = '/(tel:\+\d{8,12})|([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)/';
+        $phones_pattern          = $this->getPhonesPattern();
         $replacing_result = '';
 
         if ( version_compare(phpversion(), '7.4.0', '>=') ) {
-            $replacing_result = preg_replace_callback($pattern, function ($matches) use ($content) {
+            $replacing_result = preg_replace_callback(
+                $phones_pattern,
+                function ($matches) use ($content) {
+                    if ( isset($matches[0]) ) {
+                        $first_group = $matches[0];
+                    } else {
+                        return '';
+                    }
 
-                if ( isset($matches[0][0]) && is_array($matches[0])) {
-                    if ($this->helper->isTelTag($matches[0][0])) {
-                        return $this->encodeTelLinkV2($matches[0], $content);
+                    if ( isset($first_group[0]) ) {
+                        $second_group = $first_group[0];
+                    } else {
+                        return '';
                     }
-                    $item_length = strlen(str_replace([' ', '(', ')', '-', '+'], '', $matches[0][0]));
-                    if ($item_length > 12 || $item_length < 8) {
-                        return $matches[0][0];
-                    }
-                    if ($this->helper->hasAttributeExclusions($matches[0][0], $this->temp_content)) {
-                        return $matches[0][0];
-                    }
-                    if ($this->helper->isInsideScriptTag($matches[0][0], $content)) {
-                        return $matches[0][0];
-                    }
-                }
 
-                if ( isset($matches[0][0]) ) {
+                    if (is_array($first_group) && $this->helper->isTelTag($second_group) ) {
+                        return $this->encodeTelLinkV2($first_group, $content);
+                    }
+                    //symbols clearance
+                    $item_length = strlen(str_replace([' ', '(', ')', '-', '+', '.'], '', $second_group));
+                    //check length
+                    if ( $item_length > 12 || $item_length < 8 ) {
+                        return $second_group;
+                    }
+                    //check attribute exclusions
+                    if ( $this->helper->hasAttributeExclusions($second_group, $this->temp_content) ) {
+                        return $second_group;
+                    }
+                    //check if in script
+                    if ( $this->helper->isInsideScriptTag($second_group, $content) ) {
+                        return $second_group;
+                    }
+                    //do encode
                     return $this->encodeAny(
-                        $matches[0][0],
+                        $second_group,
                         $this->global_obfuscation_mode,
                         $this->global_replacing_text,
                         true
                     );
-                }
-
-                return '';
-            }, $content, -1, $count, PREG_OFFSET_CAPTURE);
+                },
+                $content,
+                -1,
+                $count,
+                PREG_OFFSET_CAPTURE
+            );
         }
 
         if ( version_compare(phpversion(), '7.4.0', '<') ) {
-            $replacing_result = preg_replace_callback($pattern, function ($matches) {
-                if ( isset($matches[0]) ) {
-                    if ($this->helper->isTelTag($matches[0]) ) {
-                        return $this->encodeTelLink($matches[0]);
+            $replacing_result = preg_replace_callback(
+                $phones_pattern,
+                function ($matches) {
+                    if ( isset($matches[0]) ) {
+                        if ( $this->helper->isTelTag($matches[0]) ) {
+                            return $this->encodeTelLink($matches[0]);
+                        }
+
+                        $item_length = strlen(str_replace([' ', '(', ')', '-', '+', '.'], '', $matches[0]));
+                        if ( $item_length > 12 || $item_length < 8 ) {
+                            return $matches[0];
+                        }
+
+                        if ( $this->helper->hasAttributeExclusions($matches[0][0], $this->temp_content) ) {
+                            return $matches[0];
+                        }
                     }
 
-                    $item_length = strlen(str_replace([' ', '(', ')', '-', '+'], '', $matches[0]));
-                    if ($item_length > 12 || $item_length < 8) {
-                        return $matches[0];
+                    if ( isset($matches[0]) ) {
+                        return $this->encodeAny(
+                            $matches[0],
+                            $this->global_obfuscation_mode,
+                            $this->global_replacing_text,
+                            true
+                        );
                     }
 
-                    if ($this->helper->hasAttributeExclusions($matches[0][0], $this->temp_content)) {
-                        return $matches[0];
-                    }
-                }
-
-                if ( isset($matches[0]) ) {
-                    return $this->encodeAny(
-                        $matches[0],
-                        $this->global_obfuscation_mode,
-                        $this->global_replacing_text,
-                        true
-                    );
-                }
-
-                return '';
-            }, $content);
+                    return '';
+                },
+                $content
+            );
         }
 
         // modify content to turn back aria-label

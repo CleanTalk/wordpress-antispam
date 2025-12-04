@@ -1761,16 +1761,19 @@ function apbct_is_amp_request()
  */
 function apbct_get_event_token($params)
 {
-    $event_token_from_request = ! empty(Post::get('ct_bot_detector_event_token'))
-        ? Post::get('ct_bot_detector_event_token')
-        : Cookie::get('ct_bot_detector_event_token');
-    $event_token_from_params = ! empty($params['event_token'])
-        ? $params['event_token']
-        : '';
+    global $ct_rest_middleware_event_token;
 
-    return  $event_token_from_params
-        ? TT::toString($event_token_from_params)
-        : TT::toString($event_token_from_request);
+    if (!empty($params['event_token'])) {
+        return TT::toString($params['event_token']);
+    }
+
+    if (isset($ct_rest_middleware_event_token) && !empty($ct_rest_middleware_event_token)) {
+        return TT::toString($ct_rest_middleware_event_token);
+    }
+
+    return !empty(Post::getString('ct_bot_detector_event_token'))
+        ? Post::getString('ct_bot_detector_event_token')
+        : Cookie::getString('ct_bot_detector_event_token');
 }
 
 /**
