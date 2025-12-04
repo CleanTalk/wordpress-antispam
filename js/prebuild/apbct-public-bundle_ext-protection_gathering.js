@@ -2928,12 +2928,28 @@ class ApbctHandler {
     catchFetchRequest() {
         setTimeout(function() {
             if (
-                document.forms.length > 0 &&
                 (
-                    Array.from(document.forms).some((form) =>
-                        form.classList.contains('metform-form-content')) ||
-                    Array.from(document.forms).some((form) =>
-                        form.classList.contains('wprm-user-ratings-modal-stars-container'))
+                    document.forms && document.forms.length > 0 &&
+                    (
+                        Array.from(document.forms).some((form) =>
+                            form.classList.contains('metform-form-content')) ||
+                        Array.from(document.forms).some((form) =>
+                            form.classList.contains('wprm-user-ratings-modal-stars-container'))
+                    )
+                ) ||
+                (
+                    document.querySelectorAll('button').length > 0 &&
+                    Array.from(document.querySelectorAll('button')).some((button) => {
+                        return button.classList.contains('add_to_cart_button') ||
+                        button.classList.contains('ajax_add_to_cart') ||
+                        button.classList.contains('single_add_to_cart_button');
+                    })
+                ) ||
+                (
+                    document.links && document.links.length > 0 &&
+                    Array.from(document.links).some((link) => {
+                        return link.classList.contains('add_to_cart_button');
+                    })
                 )
             ) {
                 window.fetch = function(...args) {
