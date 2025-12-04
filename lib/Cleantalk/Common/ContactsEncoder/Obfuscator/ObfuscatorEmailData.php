@@ -1,6 +1,6 @@
 <?php
 
-namespace Cleantalk\Antispam\EmailEncoder;
+namespace Cleantalk\Common\ContactsEncoder\Obfuscator;
 
 class ObfuscatorEmailData
 {

@@ -1,6 +1,8 @@
 <?php
 
-namespace Cleantalk\Antispam\EmailEncoder\Shortcodes;
+namespace Cleantalk\ApbctWP\ContactsEncoder\Shortcodes;
+
+use Cleantalk\Common\ContactsEncoder\Dto\Params;
 
 /**
  * Init and register shortcodes for EmailEncoder
@@ -10,6 +12,7 @@ class ShortCodesService
     public $encode;
 
     public $shortcodes_registered = false;
+
     /**
      * @return void
      */
@@ -21,9 +24,9 @@ class ShortCodesService
         }
     }
 
-    public function __construct()
+    public function __construct(Params $params)
     {
-        $this->encode = new EncodeContentSC();
+        $this->encode = new EncodeContentSC($params);
     }
 
     public function addActionsBeforeModify($hook, $priority = 1)

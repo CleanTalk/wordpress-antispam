@@ -51,25 +51,6 @@ class ApbctEventTokenTransport {
     }
 
     /**
-     * Send bot detector event token to alt cookies on problem forms
-     * @return {void}
-     */
-    setEventTokenToAltCookies() {
-        tokenCheckerIntervalId = setInterval( function() {
-            if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-                let eventToken = apbctLocalStorage.get('bot_detector_event_token');
-                if (eventToken) {
-                    ctSetAlternativeCookie(
-                        JSON.stringify({'ct_bot_detector_event_token': eventToken}),
-                        {forceAltCookies: true},
-                    );
-                    clearInterval(tokenCheckerIntervalId);
-                }
-            }
-        }, 1000);
-    }
-
-    /**
      * Restart event_token attachment if some forms load after document ready.
      * @return {void}
      */
@@ -508,7 +489,6 @@ class ApbctHandler {
      * @return {void}
      */
     detectForcedAltCookiesForms() {
-        let ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
         let elementorUltimateAddonsRegister = document.querySelectorAll('.uael-registration-form-wrapper').length > 0;
         let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
@@ -520,7 +500,6 @@ class ApbctHandler {
         let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
         let smartQuizBuilder = document.querySelectorAll('form .sqbform, .fields_reorder_enabled').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
-            ninjaFormsSign ||
             jetpackCommentsForm ||
             elementorUltimateAddonsRegister ||
             userRegistrationProForm ||
@@ -614,12 +593,28 @@ class ApbctHandler {
     catchFetchRequest() {
         setTimeout(function() {
             if (
-                document.forms.length > 0 &&
                 (
-                    Array.from(document.forms).some((form) =>
-                        form.classList.contains('metform-form-content')) ||
-                    Array.from(document.forms).some((form) =>
-                        form.classList.contains('wprm-user-ratings-modal-stars-container'))
+                    document.forms && document.forms.length > 0 &&
+                    (
+                        Array.from(document.forms).some((form) =>
+                            form.classList.contains('metform-form-content')) ||
+                        Array.from(document.forms).some((form) =>
+                            form.classList.contains('wprm-user-ratings-modal-stars-container'))
+                    )
+                ) ||
+                (
+                    document.querySelectorAll('button').length > 0 &&
+                    Array.from(document.querySelectorAll('button')).some((button) => {
+                        return button.classList.contains('add_to_cart_button') ||
+                        button.classList.contains('ajax_add_to_cart') ||
+                        button.classList.contains('single_add_to_cart_button');
+                    })
+                ) ||
+                (
+                    document.links && document.links.length > 0 &&
+                    Array.from(document.links).some((link) => {
+                        return link.classList.contains('add_to_cart_button');
+                    })
                 )
             ) {
                 window.fetch = function(...args) {
@@ -630,13 +625,14 @@ class ApbctHandler {
                         args[0] &&
                         typeof args[0].includes === 'function' &&
                         (args[0].includes('/wp-json/metform/') ||
-                        (ctPublicFunctions._rest_url && (() => {
-                            try {
-                                return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
-                            } catch (e) {
-                                return false;
-                            }
-                        })()))
+                            (ctPublicFunctions._rest_url && (() => {
+                                try {
+                                    return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
+                                } catch (e) {
+                                    return false;
+                                }
+                            })())
+                        )
                     ) {
                         if (args && args[1] && args[1].body) {
                             if (+ctPublic.settings__data__bot_detector_enabled) {
@@ -677,6 +673,32 @@ class ApbctHandler {
                             }
                         }
                     }
+
+                    // WooCommerce add to cart request, like:
+                    // /index.php?rest_route=/wc/store/v1/cart/add-item
+                    if (args && args[0] &&
+                        args[0].includes('/wc/store/v1/cart/add-item') &&
+                        args && args[1] && args[1].body
+                    ) {
+                        if (
+                            +ctPublic.settings__data__bot_detector_enabled &&
+                            +ctPublic.settings__forms__wc_add_to_cart
+                        ) {
+                            try {
+                                let bodyObj = JSON.parse(args[1].body);
+                                if (!bodyObj.hasOwnProperty('ct_bot_detector_event_token')) {
+                                    bodyObj.ct_bot_detector_event_token =
+                                        apbctLocalStorage.get('ct_bot_detector_event_token');
+                                    args[1].body = JSON.stringify(bodyObj);
+                                }
+                            } catch (e) {
+                                return false;
+                            }
+                        } else {
+                            args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
+                        }
+                    }
+
                     return defaultFetch.apply(window, args);
                 };
             }
@@ -737,6 +759,13 @@ class ApbctHandler {
                         }
                         if (settings.data.indexOf('action=bt_cc') !== -1) {
                             sourceSign.found = 'action=bt_cc';
+                            sourceSign.keepUnwrapped = true;
+                        }
+                        if (
+                            settings.data.indexOf('action=nf_ajax_submit') !== -1 &&
+                            ctPublic.data__cookies_type === 'none'
+                        ) {
+                            sourceSign.found = 'action=nf_ajax_submit';
                             sourceSign.keepUnwrapped = true;
                         }
                     }
@@ -1124,7 +1153,23 @@ function apbct_ready() {
     handler.catchWCRestRequestAsMiddleware();
 
     if (+ctPublic.settings__data__bot_detector_enabled) {
-        new ApbctEventTokenTransport().setEventTokenToAltCookies();
+        let botDetectorEventTokenStored = false;
+        window.addEventListener('botDetectorEventTokenUpdated', (event) => {
+            const botDetectorEventToken = event.detail?.eventToken;
+            if ( botDetectorEventToken && ! botDetectorEventTokenStored ) {
+                ctSetCookie([
+                    ['ct_bot_detector_event_token', botDetectorEventToken],
+                ]);
+                botDetectorEventTokenStored = true;
+                // @ToDo remove this block afret force_alt_cookies removed
+                if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
+                    ctSetAlternativeCookie(
+                        JSON.stringify({'ct_bot_detector_event_token': botDetectorEventToken}),
+                        {forceAltCookies: true},
+                    );
+                }
+            }
+        });
     }
 
     if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {

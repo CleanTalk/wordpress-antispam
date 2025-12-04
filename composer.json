@@ -16,7 +16,8 @@
         "yoast/phpunit-polyfills": "^1.0",
         "ext-dom": "*",
         "wp-cli/wp-cli-bundle": "*",
-        "mockery/mockery": "*"
+        "mockery/mockery": "*",
+        "cleantalk/contacts-encoder": "*"
     },
     "scripts": {
         "test": [
