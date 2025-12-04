@@ -1385,6 +1385,7 @@ function apbct_perfmatters_remove_from_delayed_scripts($included)
 /*
 * Add middleware to all REST routes
 */
+/** @psalm-suppress UnusedClosureParam */
 add_filter('rest_pre_dispatch', function ($result, $server, $request) {
     global $ct_rest_middleware_event_token;
 
