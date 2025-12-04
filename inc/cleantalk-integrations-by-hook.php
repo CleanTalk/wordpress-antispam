@@ -449,7 +449,7 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'WPFunnels'         => array(
-        'hook'    => 'wpfnl_gutenberg_optin_submission',
+        'hook'    => ['wpfnl_gutenberg_optin_submission','wffn_submit_custom_optin_form'],
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),

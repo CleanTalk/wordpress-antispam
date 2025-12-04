@@ -451,7 +451,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (encodedEmailNodes.length) {
         for (let i = 0; i < encodedEmailNodes.length; ++i) {
-            encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
+            const node = encodedEmailNodes[i];
+            if (
+                node.parentNode &&
+                node.parentNode.tagName === 'A' &&
+                node.parentNode.getAttribute('href')?.includes('mailto:') &&
+                node.parentNode.hasAttribute('data-original-string')
+            ) {
+                // This node was skipped from listeners
+                continue;
+            }
+            node.addEventListener('click', ctFillDecodedEmailHandler);
         }
     }
 });
@@ -1857,6 +1867,12 @@ function initParams() {
             apbct('form.wpcf7-form input[type = "email"]')
                 .on('blur', ctDebounceFuncExec(checkEmailExist, 300) );
             apbct('form.wpforms-form input[type = "email"]').on('blur', checkEmailExist);
+            apbctIntegrateDynamicEmailCheck({
+                formSelector: '.nf-form-content',
+                emailSelector: 'input[type="email"], input[type="email"].ninja-forms-field',
+                handler: checkEmailExist,
+                debounce: 300,
+            });
         }
     }
 
@@ -2370,25 +2386,6 @@ class ApbctEventTokenTransport {
     }
 
     /**
-     * Send bot detector event token to alt cookies on problem forms
-     * @return {void}
-     */
-    setEventTokenToAltCookies() {
-        tokenCheckerIntervalId = setInterval( function() {
-            if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-                let eventToken = apbctLocalStorage.get('bot_detector_event_token');
-                if (eventToken) {
-                    ctSetAlternativeCookie(
-                        JSON.stringify({'ct_bot_detector_event_token': eventToken}),
-                        {forceAltCookies: true},
-                    );
-                    clearInterval(tokenCheckerIntervalId);
-                }
-            }
-        }, 1000);
-    }
-
-    /**
      * Restart event_token attachment if some forms load after document ready.
      * @return {void}
      */
@@ -2827,7 +2824,6 @@ class ApbctHandler {
      * @return {void}
      */
     detectForcedAltCookiesForms() {
-        let ninjaFormsSign = document.querySelectorAll('#tmpl-nf-layout').length > 0;
         let elementorUltimateAddonsRegister = document.querySelectorAll('.uael-registration-form-wrapper').length > 0;
         let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
@@ -2839,7 +2835,6 @@ class ApbctHandler {
         let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
         let smartQuizBuilder = document.querySelectorAll('form .sqbform, .fields_reorder_enabled').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
-            ninjaFormsSign ||
             jetpackCommentsForm ||
             elementorUltimateAddonsRegister ||
             userRegistrationProForm ||
@@ -2876,7 +2871,7 @@ class ApbctHandler {
                 document.body.classList.contains('single-product') &&
                 typeof cwginstock !== 'undefined'
             ) ||
-            document.querySelector('div.fcal_calendar_slot_wrap') !== null // Fluent Booking Pro
+            document.querySelector('div.fluent_booking_wrap') !== null // Fluent Booking Pro
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
@@ -2932,21 +2927,47 @@ class ApbctHandler {
      */
     catchFetchRequest() {
         setTimeout(function() {
-            if (document.forms.length > 0 &&
-                Array.from(document.forms).map((form) => form.classList.contains('metform-form-content')).length > 0
+            if (
+                (
+                    document.forms && document.forms.length > 0 &&
+                    (
+                        Array.from(document.forms).some((form) =>
+                            form.classList.contains('metform-form-content')) ||
+                        Array.from(document.forms).some((form) =>
+                            form.classList.contains('wprm-user-ratings-modal-stars-container'))
+                    )
+                ) ||
+                (
+                    document.querySelectorAll('button').length > 0 &&
+                    Array.from(document.querySelectorAll('button')).some((button) => {
+                        return button.classList.contains('add_to_cart_button') ||
+                        button.classList.contains('ajax_add_to_cart') ||
+                        button.classList.contains('single_add_to_cart_button');
+                    })
+                ) ||
+                (
+                    document.links && document.links.length > 0 &&
+                    Array.from(document.links).some((link) => {
+                        return link.classList.contains('add_to_cart_button');
+                    })
+                )
             ) {
                 window.fetch = function(...args) {
-                    if (args &&
+                    // Metform block
+                    if (
+                        Array.from(document.forms).some((form) => form.classList.contains('metform-form-content')) &&
+                        args &&
                         args[0] &&
                         typeof args[0].includes === 'function' &&
                         (args[0].includes('/wp-json/metform/') ||
-                        (ctPublicFunctions._rest_url && (() => {
-                            try {
-                                return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
-                            } catch (e) {
-                                return false;
-                            }
-                        })()))
+                            (ctPublicFunctions._rest_url && (() => {
+                                try {
+                                    return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
+                                } catch (e) {
+                                    return false;
+                                }
+                            })())
+                        )
                     ) {
                         if (args && args[1] && args[1].body) {
                             if (+ctPublic.settings__data__bot_detector_enabled) {
@@ -2957,6 +2978,59 @@ class ApbctHandler {
                             } else {
                                 args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
                             }
+                        }
+                    }
+                    // WP Recipe Maker block
+                    if (
+                        Array.from(document.forms).some(
+                            (form) => form.classList.contains('wprm-user-ratings-modal-stars-container'),
+                        ) &&
+                        args &&
+                        args[0] &&
+                        typeof args[0].includes === 'function' &&
+                        args[0].includes('/wp-json/wp-recipe-maker/')
+                    ) {
+                        if (args[1] && args[1].body) {
+                            if (typeof args[1].body === 'string') {
+                                let bodyObj;
+                                try {
+                                    bodyObj = JSON.parse(args[1].body);
+                                } catch (e) {
+                                    bodyObj = {};
+                                }
+                                if (+ctPublic.settings__data__bot_detector_enabled) {
+                                    bodyObj.ct_bot_detector_event_token =
+                                        apbctLocalStorage.get('bot_detector_event_token');
+                                } else {
+                                    bodyObj.ct_no_cookie_hidden_field = getNoCookieData();
+                                }
+                                args[1].body = JSON.stringify(bodyObj);
+                            }
+                        }
+                    }
+
+                    // WooCommerce add to cart request, like:
+                    // /index.php?rest_route=/wc/store/v1/cart/add-item
+                    if (args && args[0] &&
+                        args[0].includes('/wc/store/v1/cart/add-item') &&
+                        args && args[1] && args[1].body
+                    ) {
+                        if (
+                            +ctPublic.settings__data__bot_detector_enabled &&
+                            +ctPublic.settings__forms__wc_add_to_cart
+                        ) {
+                            try {
+                                let bodyObj = JSON.parse(args[1].body);
+                                if (!bodyObj.hasOwnProperty('ct_bot_detector_event_token')) {
+                                    bodyObj.ct_bot_detector_event_token =
+                                        apbctLocalStorage.get('ct_bot_detector_event_token');
+                                    args[1].body = JSON.stringify(bodyObj);
+                                }
+                            } catch (e) {
+                                return false;
+                            }
+                        } else {
+                            args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
                         }
                     }
 
@@ -3020,6 +3094,13 @@ class ApbctHandler {
                         }
                         if (settings.data.indexOf('action=bt_cc') !== -1) {
                             sourceSign.found = 'action=bt_cc';
+                            sourceSign.keepUnwrapped = true;
+                        }
+                        if (
+                            settings.data.indexOf('action=nf_ajax_submit') !== -1 &&
+                            ctPublic.data__cookies_type === 'none'
+                        ) {
+                            sourceSign.found = 'action=nf_ajax_submit';
                             sourceSign.keepUnwrapped = true;
                         }
                     }
@@ -3407,7 +3488,23 @@ function apbct_ready() {
     handler.catchWCRestRequestAsMiddleware();
 
     if (+ctPublic.settings__data__bot_detector_enabled) {
-        new ApbctEventTokenTransport().setEventTokenToAltCookies();
+        let botDetectorEventTokenStored = false;
+        window.addEventListener('botDetectorEventTokenUpdated', (event) => {
+            const botDetectorEventToken = event.detail?.eventToken;
+            if ( botDetectorEventToken && ! botDetectorEventTokenStored ) {
+                ctSetCookie([
+                    ['ct_bot_detector_event_token', botDetectorEventToken],
+                ]);
+                botDetectorEventTokenStored = true;
+                // @ToDo remove this block afret force_alt_cookies removed
+                if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
+                    ctSetAlternativeCookie(
+                        JSON.stringify({'ct_bot_detector_event_token': botDetectorEventToken}),
+                        {forceAltCookies: true},
+                    );
+                }
+            }
+        });
     }
 
     if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {
@@ -3865,10 +3962,20 @@ window.addEventListener('load', function() {
         return;
     }
 
+    if (typeof window.ctDymnamicRenderedFormHandlerInterval === 'number') {
+        clearInterval(window.ctDymnamicRenderedFormHandlerInterval );
+    }
+
     setTimeout(function() {
         ctProtectExternal();
-        catchDynamicRenderedForm();
         catchNextendSocialLoginForm();
+        // run dynamic form catch first time
+        catchDynamicRenderedForm();
+        // run interval to rehandle form if current state is reset and has no cleantalk intervent
+        window.ctDymnamicRenderedFormHandlerInterval = setInterval(
+            catchDynamicRenderedForm,
+            2000,
+        );
         ctProtectOutsideFunctionalOnTagsType('div');
         ctProtectOutsideFunctionalOnTagsType('iframe');
     }, 2000);
@@ -4600,14 +4707,17 @@ function catchDynamicRenderedForm() {
 function catchDynamicRenderedFormHandler(forms, documentObject = document) {
     const neededFormIds = [];
     for (const form of forms) {
-        const formIdAttr = form.getAttribute('id');
-        if (formIdAttr && formIdAttr.indexOf('hsForm') !== -1) {
-            neededFormIds.push(formIdAttr);
-        }
-        if (formIdAttr && formIdAttr.indexOf('createuser') !== -1 &&
-            (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
-        ) {
-            neededFormIds.push(formIdAttr);
+        // should be checked to do not handle form again on interval
+        if ( !form.hasOwnProperty('apbct_external_onsubmit_prev') ) {
+            const formIdAttr = form.getAttribute('id');
+            if (formIdAttr && formIdAttr.indexOf('hsForm') !== -1) {
+                neededFormIds.push(formIdAttr);
+            }
+            if (formIdAttr && formIdAttr.indexOf('createuser') !== -1 &&
+                (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
+            ) {
+                neededFormIds.push(formIdAttr);
+            }
         }
     }
 
@@ -6166,8 +6276,22 @@ function ctEmailExistSetElementsPositions(inputEmail) {
     const inputWidth = inputEmail.offsetWidth;
     const envelopeWidth = inputHeight * 1.2;
     let backgroundSize;
+    let fontSizeOrWidthAfterStyle = 0;
+    let useAfterSize = false;
     try {
         let inputComputedStyle = window.getComputedStyle(inputEmail);
+
+        const targetForAfter = inputEmail.parentElement ? inputEmail.parentElement : inputEmail;
+        const afterStyle = window.getComputedStyle(targetForAfter, '::after');
+        const afterContent = afterStyle.getPropertyValue('content');
+        fontSizeOrWidthAfterStyle = afterStyle.getPropertyValue('font-size') || afterStyle.getPropertyValue('width');
+        if (
+            afterContent && afterContent !== 'none' &&
+            parseFloat(fontSizeOrWidthAfterStyle) > 0
+        ) {
+            useAfterSize = true;
+        }
+
         let inputTextSize = (
             typeof inputComputedStyle.fontSize === 'string' ?
                 inputComputedStyle.fontSize :
@@ -6180,9 +6304,13 @@ function ctEmailExistSetElementsPositions(inputEmail) {
     const envelope = document.getElementById('apbct-check_email_exist-block');
 
     if (envelope) {
+        let offsetAfterSize = 0;
+        if (useAfterSize) {
+            offsetAfterSize = parseFloat(fontSizeOrWidthAfterStyle);
+        }
         envelope.style.cssText = `
             top: ${inputRect.top}px;
-            left: ${inputRect.right - envelopeWidth}px;
+            left: ${(inputRect.right - envelopeWidth) - offsetAfterSize}px;
             height: ${inputHeight}px;
             width: ${envelopeWidth}px;
             background-size: ${backgroundSize};
@@ -6253,6 +6381,57 @@ function ctWatchFormChanges(formSelector = '', observerConfig = null, callback) 
     observer.observe(form, observerConfig);
     // you can listen what is changed reading this
     return observer;
+}
+
+/**
+ * Integrate dynamic email check to forms with dynamically added email inputs
+ * @param {*} formSelector
+ * @param {*} emailSelector
+ * @param {*} handler
+ * @param {number} debounce
+ * @param {string} attribute
+ */
+function apbctIntegrateDynamicEmailCheck({ // eslint-disable-line no-unused-vars
+    formSelector,
+    emailSelector,
+    handler,
+    debounce = 300,
+    attribute = 'data-apbct-email-exist',
+}) {
+    // Init for existing email inputs
+    document.querySelectorAll(formSelector + ' ' + emailSelector)
+        .forEach(function(input) {
+            if (!input.hasAttribute(attribute)) {
+                input.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
+                input.setAttribute(attribute, '1');
+            }
+        });
+
+    // Global MutationObserver
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+                if (node.nodeType === 1) {
+                    // If it is an email input
+                    if (node.matches && node.matches(formSelector + ' ' + emailSelector)) {
+                        if (!node.hasAttribute(attribute)) {
+                            node.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
+                            node.setAttribute(attribute, '1');
+                        }
+                    }
+                    // If there are email inputs inside the added node
+                    node.querySelectorAll &&
+                    node.querySelectorAll(emailSelector).forEach(function(input) {
+                        if (!input.hasAttribute(attribute)) {
+                            input.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
+                            input.setAttribute(attribute, '1');
+                        }
+                    });
+                }
+            });
+        });
+    });
+    observer.observe(document.body, {childList: true, subtree: true});
 }
 
 /**
@@ -6357,6 +6536,7 @@ document.addEventListener('DOMContentLoaded', function() {
     trpComments.forEach(( element, index ) => {
         // Exceptions for items that are included in the selection
         if (
+            element.className.indexOf('review') < 0 &&
             typeof pagenow == 'undefined' &&
             element.parentElement.className.indexOf('group') < 0 &&
             element.tagName != 'DIV'

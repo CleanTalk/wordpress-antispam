@@ -5,6 +5,7 @@ on: # event list
     branches:
       - dev
       - fix
+      - beta
       - master
   pull_request:
     branches:

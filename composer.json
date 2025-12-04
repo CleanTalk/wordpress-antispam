@@ -16,7 +16,8 @@
         "yoast/phpunit-polyfills": "^1.0",
         "ext-dom": "*",
         "wp-cli/wp-cli-bundle": "*",
-        "mockery/mockery": "*"
+        "mockery/mockery": "*",
+        "cleantalk/contacts-encoder": "*"
     },
     "scripts": {
         "test": [
@@ -38,7 +39,8 @@
     },
     "config": {
         "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "cleantalk/apbct-installer": true
         }
     }
 }

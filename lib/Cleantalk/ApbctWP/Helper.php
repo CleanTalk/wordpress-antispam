@@ -277,7 +277,8 @@ class Helper extends \Cleantalk\Common\Helper
             return array();
         }
 
-        return array_map('static::arrayObjectToArray', (array)$object);
+        $callable = PHP_VERSION_ID >= 80200 ? [self::class, 'arrayObjectToArray'] : 'self::arrayObjectToArray';
+        return array_map($callable, (array)$object);
     }
 
     /**

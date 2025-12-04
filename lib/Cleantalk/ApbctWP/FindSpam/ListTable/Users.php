@@ -14,10 +14,11 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
     public function __construct()
     {
+        $current_action = current_action();
         parent::__construct(array(
             'singular' => 'spam',
             'plural'   => 'spam',
-            'screen'   => str_replace('users_page_', '', current_action())
+            'screen'   => str_replace('users_page_', '', $current_action !== false ? $current_action : '')
         ));
 
         $this->bulk_actions_handler();

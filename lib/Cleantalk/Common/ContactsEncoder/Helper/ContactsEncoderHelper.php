@@ -1,11 +1,11 @@
 <?php
 
-namespace Cleantalk\Antispam\EmailEncoder;
+namespace Cleantalk\Common\ContactsEncoder\Helper;
 
 /**
  * Exclusions to use on content during modification chunks.
  */
-class EmailEncoderHelper
+class ContactsEncoderHelper
 {
     /**
      * Attribute names to skip content encoding contains them. Keep arrays of tag=>[attributes].

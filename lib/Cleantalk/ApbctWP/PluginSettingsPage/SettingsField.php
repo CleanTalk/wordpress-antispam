@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctWP\PluginSettingsPage;
 
-use Cleantalk\ApbctWP\Antispam\EmailEncoder;
+use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\Common\TT;
 
 class SettingsField
@@ -536,9 +536,9 @@ class SettingsField
                 $data['encoder_enabled_global'] = $apbct->settings['data__email_decoder'];
                 $current_user = wp_get_current_user();
                 $current_user_email = $current_user->exists() ? $current_user->user_email : 'example@example.com';
-                $emailEncoder = EmailEncoder::getInstance();
-                $data['current_user_email'] = $emailEncoder->modifyContent($current_user_email);
-                return EmailEncoder::getEncoderStatusForSettingsHat($data);
+                $contacts_encoder = apbctGetContactsEncoder();
+                $data['current_user_email'] = $contacts_encoder->modifyContent($current_user_email, true);
+                return ContactsEncoder::getEncoderStatusForSettingsHat($data);
         }
         return '';
     }

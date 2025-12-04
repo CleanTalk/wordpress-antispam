@@ -1,19 +1,171 @@
 <?php
 
-namespace Cleantalk\ApbctWP\Antispam;
+namespace Cleantalk\ApbctWP\ContactsEncoder;
 
 use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
+use Cleantalk\ApbctWP\AJAXService;
+use Cleantalk\ApbctWP\ContactsEncoder\Shortcodes\ShortCodesService;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\Common\ContactsEncoder\Dto\Params;
+use Cleantalk\ApbctWP\ContactsEncoder\Exclusions\ExclusionsService;
 use Cleantalk\Common\TT;
 use Cleantalk\Variables\Post;
 
-class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
+class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
 {
+    /**
+     * @var ShortCodesService
+     */
+    private $shortcodes;
+
+    /**
+     * @var bool
+     */
+    public $has_connection_error;
+
+    /**
+     * @var bool
+     */
+    private $privacy_policy_hook_handled = false;
+
+    /**
+     * @var string[]
+     */
+    public $decoded_contacts_array = array();
+
     /**
      * @var null|string Comment from API response
      */
     private $comment;
+
+    public function init($params)
+    {
+        parent::init($params);
+        $this->exclusions = new ExclusionsService($params);
+        $this->shortcodes = new ShortCodesService($params);
+
+        $this->shortcodes->registerAll();
+        $this->shortcodes->addActionsAfterModify('the_content', 11);
+        $this->shortcodes->addActionsAfterModify('the_title', 11);
+
+        $this->registerHookHandler();
+    }
+
+    public function runEncoding($content = '')
+    {
+        global $apbct;
+
+        $hooks_to_encode = array(
+            'the_title',
+            'the_content',
+            'the_excerpt',
+            'get_footer',
+            'get_header',
+            'get_the_excerpt',
+            'comment_text',
+            'comment_excerpt',
+            'comment_url',
+            'get_comment_author_url',
+            'get_comment_author_url_link',
+            'widget_title',
+            'widget_text',
+            'widget_content',
+            'widget_output',
+            'widget_block_content',
+            'render_block',
+        );
+
+        /** @psalm-suppress UndefinedMethod */
+        if ( $this->exclusions->doSkipBeforeModifyingHooksAdded() ) {
+            return;
+        }
+
+        // Search data to buffer
+        if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post() && !is_admin()) {
+            add_action('wp', 'apbct_buffer__start');
+            add_action('shutdown', 'apbct_buffer__end', 0);
+            add_action('shutdown', array($this, 'bufferOutput'), 2);
+            $this->shortcodes->addActionsAfterModify('shutdown', 3);
+        } else {
+            foreach ( $hooks_to_encode as $hook ) {
+                $this->shortcodes->addActionsBeforeModify($hook, 9);
+                add_filter($hook, array($this, 'modifyContent'), 10);
+            }
+        }
+
+        $this->handlePrivacyPolicyHook();
+
+        // integration with Business Directory Plugin
+        add_filter('wpbdp_form_field_display', array($this, 'modifyFormFieldDisplay'), 10, 4);
+    }
+
+    /**
+     * @param string $html
+     * @param object $field
+     * @param string $display_context
+     * @param int $post_id
+     * @return string
+     * @psalm-suppress PossiblyUnusedParam, PossiblyUnusedReturnValue
+     */
+    public function modifyFormFieldDisplay($html, $field, $display_context, $post_id)
+    {
+        if (mb_strpos($html, 'mailto:') !== false) {
+            $html = html_entity_decode($html);
+            return $this->modifyContent($html);
+        }
+
+        return $html;
+    }
+
+    /**
+     * Wrapper. Encode any string.
+     * @param $string
+     * @param string $mode
+     * @param null|string $replacing_text
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function modifyAny($string, $mode = Params::OBFUSCATION_MODE_BLUR, $replacing_text = null)
+    {
+        $encoded_string = $this->encodeAny($string, $mode, $replacing_text);
+
+        //please keep this var (do not simplify the code) for further debug
+        return $encoded_string;
+    }
+
+    /**
+     * @return void
+     */
+    private function handlePrivacyPolicyHook()
+    {
+        if ( !$this->privacy_policy_hook_handled && current_action() === 'the_title' ) {
+            add_filter('the_privacy_policy_link', function ($link) {
+                return wp_specialchars_decode($link);
+            });
+            $this->privacy_policy_hook_handled = true;
+        }
+    }
+
+    public function bufferOutput()
+    {
+        global $apbct;
+        static $already_output = false;
+        if ($already_output) {
+            return;
+        }
+        $already_output = true;
+        echo $this->modifyContent($apbct->buffer);
+    }
+
+    protected function getTooltip()
+    {
+        global $apbct;
+        return sprintf(
+            esc_html__('This contact has been encoded by %s. Click to decode. To finish the decoding make sure that JavaScript is enabled in your browser.', 'cleantalk-spam-protect'),
+            esc_html__($apbct->data['wl_brandname'])
+        );
+    }
 
     /**
      * Check if the decoding is allowed
@@ -41,7 +193,6 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
                 : stripslashes($post_event_javascript_data);
         }
 
-
         $params = array(
             'auth_key'              => $apbct->api_key,        // Access key
             'agent'                 => APBCT_AGENT,
@@ -50,7 +201,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
             'browser_sign'          => $browser_sign,          // Browser ID
             'sender_ip'             => Helper::ipGet('real', false),        // IP address
             'event_type'            => 'CONTACT_DECODING',     // 'GENERAL_BOT_CHECK' || 'CONTACT_DECODING'
-            'message_to_log'        => json_encode(array_values($this->decoded_emails_array), JSON_FORCE_OBJECT),   // Custom message
+            'message_to_log'        => json_encode(array_values($this->decoded_contacts_array), JSON_FORCE_OBJECT),   // Custom message
             'page_url'              => Post::get('post_url'),
             'sender_info'           => array(
                 'site_referrer'         => Post::get('referrer'),
@@ -90,27 +241,9 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
         return $api_response->allow === 1;
     }
 
-    /**
-     * Compile the response to pass it further
-     *
-     * @param $decoded_emails_array
-     * @param $is_allowed
-     *
-     * @return array
-     */
-    protected function compileResponse($decoded_emails_array, $is_allowed)
+    protected function getCheckRequestComment()
     {
-        $result = array();
-        foreach ( $decoded_emails_array as $encoded_email => $decoded_email ) {
-            $result[] = array(
-                'is_allowed' => $is_allowed,
-                'show_comment' => !$is_allowed,
-                'comment' => $this->comment,
-                'encoded_email' => strip_tags($encoded_email, '<a>'),
-                'decoded_email' => $is_allowed ? strip_tags($decoded_email, '<a>') : '',
-            );
-        }
-        return $result;
+        return $this->comment;
     }
 
     public static function getEncoderOptionDescription()
@@ -157,9 +290,9 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
     public static function getObfuscationModesOptionsArray()
     {
         return array(
-            array('val' => 'blur', 'label' => __('Blur effect', 'cleantalk-spam-protect'),),
-            array('val' => 'obfuscate', 'label' => __('Replace with * symbol', 'cleantalk-spam-protect'),),
-            array('val' => 'replace', 'label' => __('Replace with the custom text', 'cleantalk-spam-protect'),),
+            array('val' => Params::OBFUSCATION_MODE_BLUR, 'label' => __('Blur effect', 'cleantalk-spam-protect'),),
+            array('val' => Params::OBFUSCATION_MODE_OBFUSCATE, 'label' => __('Replace with * symbol', 'cleantalk-spam-protect'),),
+            array('val' => Params::OBFUSCATION_MODE_REPLACE, 'label' => __('Replace with the custom text', 'cleantalk-spam-protect'),),
         );
     }
 
@@ -186,6 +319,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
             <p class="apbct-icon-ok" style="padding-left: 10px">%s</p>
             <p class="apbct-icon-ok" style="padding-left: 10px">%s</p>
             <p class="apbct-icon-ok" style="padding-left: 10px">%s</p>
+            <p class="apbct-icon-ok" style="padding-left: 10px">%s</p>
         <p>%s</p>
             <p>%s</p>
         ';
@@ -193,7 +327,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
             $tmp,
             __('Enable this option to encode contact phone numbers', 'cleantalk-spam-protect'),
             __('There are a few requirements to the number format:', 'cleantalk-spam-protect'),
-            __('Should starting with "+" symbol', 'cleantalk-spam-protect'),
+            __('Should starting with "+" symbol or opening brace', 'cleantalk-spam-protect'),
             __('At least 8 digit numbers', 'cleantalk-spam-protect'),
             __('Less than 13 digit numbers', 'cleantalk-spam-protect'),
             __('Spaces, braces and dashes between digits are allowed', 'cleantalk-spam-protect'),
@@ -201,6 +335,7 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
             esc_html('+1 (234) 567-8901'),
             esc_html('+12345678901'),
             esc_html('+12 34 5678901'),
+            esc_html('(234) 567-8910'),
             __('Complied numbers in the "a" tag with "tel" property will be also encoded', 'cleantalk-spam-protect'),
             esc_html('<a href="tel:+11234567890">Call  +1 (123) 456-7890</a>')
         );
@@ -383,13 +518,13 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
         }
 
         if (!empty($data['obfuscation_mode']) && !empty($data['encoder_enabled_global'])) {
-            if ($data['obfuscation_mode'] === 'blur') {
+            if ($data['obfuscation_mode'] === Params::OBFUSCATION_MODE_BLUR) {
                 $obfuscation_mode = __('Blur', 'cleantalk_spam_protect');
             }
-            if ($data['obfuscation_mode'] === 'obfuscate') {
+            if ($data['obfuscation_mode'] === Params::OBFUSCATION_MODE_OBFUSCATE) {
                 $obfuscation_mode = __('Replace with * ', 'cleantalk_spam_protect');
             }
-            if ($data['obfuscation_mode'] === 'replace') {
+            if ($data['obfuscation_mode'] === Params::OBFUSCATION_MODE_REPLACE) {
                 $obfuscation_mode = __('Replace with text', 'cleantalk_spam_protect');
             }
             $obfuscation_mode = empty($obfuscation_mode) ? 'n/a' : '' . $obfuscation_mode . '';
@@ -418,5 +553,55 @@ class EmailEncoder extends \Cleantalk\Antispam\EmailEncoder\EmailEncoder
             $ancor_to_section,
             __('to tune the encoding.', 'cleantalk_spam_protect')
         );
+    }
+
+
+    /**
+     * Register AJAX routes to run decoding
+     * @return void
+     */
+    public function registerAjaxRoute()
+    {
+        add_action('wp_ajax_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
+        add_action('wp_ajax_nopriv_apbct_decode_email', array($this, 'ajaxDecodeEmailHandler'));
+    }
+
+    /**
+     * Ajax handler for the apbct_decode_email action
+     *
+     * @return void returns json string to the JS
+     */
+    public function ajaxDecodeEmailHandler()
+    {
+        if (! defined('REST_REQUEST') && !apbct_is_user_logged_in()) {
+            AJAXService::checkPublicNonce();
+        }
+
+        $encoded_emails_array = [];
+        $encoded_emails_json = Post::getString('encodedEmails') ? Post::getString('encodedEmails') : false;
+        if ( $encoded_emails_json ) {
+            $encoded_emails_json = str_replace('\\', '', $encoded_emails_json);
+            $encoded_emails_array = json_decode($encoded_emails_json, true);
+        }
+
+        $this->decoded_contacts_array = $this->decodeContactData($encoded_emails_array);
+        if ( $this->has_connection_error ) {
+            $response = $this->compileResponse($this->decoded_contacts_array, false);
+            wp_send_json_error($response);
+        }
+        $response = $this->compileResponse($this->decoded_contacts_array, $this->is_encode_allowed);
+        wp_send_json_success($response);
+    }
+
+    /**
+     * These hooks allow to encode custom user data using `apply_filters('apbct_encode_email_data', $data_to_encode)`
+     * @see https://cleantalk.org/help/using-shortcodes-hooks-to-encode-contact-data
+     *
+     * @return void
+     */
+    private function registerHookHandler()
+    {
+        add_filter('apbct_encode_data', [$this, 'modifyAny'], 10, 3);
+        add_filter('apbct_encode_email_data', [$this, 'modifyContent']);
     }
 }

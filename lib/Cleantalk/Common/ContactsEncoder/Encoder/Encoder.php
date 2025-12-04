@@ -1,6 +1,8 @@
 <?php
 
-namespace Cleantalk\Antispam\EmailEncoder;
+namespace Cleantalk\Common\ContactsEncoder\Encoder;
+
+use Cleantalk\Common\ContactsEncoder\Dto\DecodeAttemptResult;
 
 class Encoder
 {
@@ -15,10 +17,10 @@ class Encoder
         $this->secret_key = md5($api_key);
         $this->encrypted_string_splitter = substr($this->secret_key, 0, 3);
         $this->encryption_is_available = function_exists('openssl_encrypt') &&
-                                         function_exists('openssl_decrypt') &&
-                                         function_exists('openssl_cipher_iv_length') &&
-                                         function_exists('openssl_random_pseudo_bytes') &&
-                                         !empty($this->encrypted_string_splitter) && strlen($this->encrypted_string_splitter) === 3;
+            function_exists('openssl_decrypt') &&
+            function_exists('openssl_cipher_iv_length') &&
+            function_exists('openssl_random_pseudo_bytes') &&
+            !empty($this->encrypted_string_splitter) && strlen($this->encrypted_string_splitter) === 3;
     }
 
     /**
@@ -30,7 +32,6 @@ class Encoder
     {
         $this->use_ssl = $use_ssl;
     }
-
 
     /**
      * Encoding any string
@@ -53,14 +54,13 @@ class Encoder
             $get_last_error = isset($get_last_error['message']) ? $get_last_error['message'] : 'NO_ERROR';
             $variable = is_string($plain_string) ? $plain_string : 'TYPE_' . gettype($plain_string);
             $variable = '' === $variable ? 'EMPTY_STRING' : $variable;
-            $action = !empty(current_action()) ? current_action() : 'NO_ACTION';
             $details = sprintf(
-                '%s, last PHP error: [%s], hook: [%s], input var: [%s]',
-                esc_html($e->getMessage()),
-                esc_html($get_last_error),
-                esc_html($action),
-                esc_html($variable)
+                '%s, last PHP error: [%s], input var: [%s]',
+                htmlspecialchars($e->getMessage(), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                htmlspecialchars($get_last_error, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                htmlspecialchars($variable, ENT_QUOTES | ENT_HTML5, 'UTF-8')
             );
+            // @ToDo refactor errors handling
             $apbct->errorAdd('email_encoder', $details);
             return $plain_string;
         }
@@ -84,8 +84,9 @@ class Encoder
         if (!empty($attempts->final_string)) {
             $decoded_string = $attempts->final_string;
         } else {
-            $tmpl = __('decrypt attempts failed, ssl: %s, str_base: %s');
+            $tmpl = 'decrypt attempts failed, ssl: %s, str_base: %s';
             $tmpl = sprintf($tmpl, $attempts->ssl_error, $attempts->str_base_error);
+            // @ToDo refactor errors handling
             $apbct->errorAdd('email_encoder', $tmpl);
         }
         return htmlspecialchars_decode($decoded_string);
@@ -205,7 +206,6 @@ class Encoder
      */
     private function openSSLDecrypt($encoded_string)
     {
-        global $apbct;
         if (!is_string($encoded_string) || empty($encoded_string)) {
             throw new \Exception('Invalid or empty encoded string');
         }

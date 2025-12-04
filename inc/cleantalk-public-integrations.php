@@ -30,11 +30,15 @@ if ( class_exists('Cleantalk\Antispam\Integrations\MailChimp') ) {
 /*
  * Fluent Booking shortcode localize CT script and vars.
  */
-add_action('fluent_booking/before_calendar_event_landing_page', function () {
+add_action('fluent_booking/before_calendar_event_landing_page', 'apbct_print_public_scripts', 1);
+add_action('fluent_booking/main_landing', 'apbct_print_public_scripts', 1);
+
+function apbct_print_public_scripts()
+{
     global $apbct;
 
     $bundle_name = ApbctJsBundleResolver::getBundleName($apbct->settings) ?: 'apbct-public-bundle.min.js';
-    $js_url_wrapper = APBCT_MODERATE_URL . '/ct-bot-detector-wrapper.js' . '?' . APBCT_VERSION;
+    $js_url_wrapper = APBCT_BOT_DETECTOR_SCRIPT_URL;
     $js_url = APBCT_URL_PATH . '/js/' . $bundle_name . '?' . APBCT_VERSION;
 
     echo CtPublicFunctionsLocalize::getCode();
@@ -42,7 +46,7 @@ add_action('fluent_booking/before_calendar_event_landing_page', function () {
 
     echo '<script src="' . $js_url . '" type="application/javascript"></script>';
     echo '<script src="' . $js_url_wrapper . '" type="application/javascript"></script>';
-}, 1);
+}
 
 /**
  * Function to set validate function for CCF form
@@ -1725,6 +1729,7 @@ function apbct_form__optimizepress__testSpam($reg_flag = false)
             'sender_nickname' => isset($params['nickname']) ? $params['nickname'] : Post::get('first_name'),
             'post_info'       => array('comment_type' => 'subscribe_form_wordpress_optimizepress'),
             'sender_info'     => $sender_info,
+            'message'         => isset($params['message']) ? $params['message'] : '',
         ),
         $reg_flag
     );
@@ -1787,8 +1792,6 @@ function apbct_form__metform_subscribe__testSpam()
 function apbct_form__ninjaForms__testSpam()
 {
     global $apbct, $cleantalk_executed;
-
-    Cookie::$force_alt_cookies_global = true;
 
     if ( $cleantalk_executed ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
@@ -1881,14 +1884,11 @@ function apbct_form__ninjaForms__testSpam()
             'message'         => $message,
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
-            'post_info'       => array('comment_type' => 'contact_form_wordpress_ninja_froms'),
+            'post_info'       => array('comment_type' => 'contact_form_wordpress_ninja_forms'),
             'sender_info'   => array('sender_emails_array' => $sender_emails_array),
             'js_on'           => $checkjs,
-            'event_token'     => Cookie::get('ct_bot_detector_event_token'),
         )
     );
-
-    Cookie::$force_alt_cookies_global = false;
 
     if ( isset($base_call_result['ct_result']) ) {
         $ct_result = $base_call_result['ct_result'];
