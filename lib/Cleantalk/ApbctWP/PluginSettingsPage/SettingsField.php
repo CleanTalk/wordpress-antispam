@@ -537,7 +537,7 @@ class SettingsField
                 $current_user = wp_get_current_user();
                 $current_user_email = $current_user->exists() ? $current_user->user_email : 'example@example.com';
                 $contacts_encoder = apbctGetContactsEncoder();
-                $data['current_user_email'] = $contacts_encoder->modifyContent($current_user_email);
+                $data['current_user_email'] = $contacts_encoder->modifyContent($current_user_email, true);
                 return ContactsEncoder::getEncoderStatusForSettingsHat($data);
         }
         return '';
