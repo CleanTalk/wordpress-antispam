@@ -155,7 +155,7 @@ class Cleantalk
      *
      * @return CleantalkRequest
      */
-    private function createMsg($method, CleantalkRequest $request)
+    public function createMsg($method, CleantalkRequest $request)
     {
         switch ( $method ) {
             case 'check_message':
@@ -244,7 +244,7 @@ class Cleantalk
      *
      * @return CleantalkResponse
      */
-    private function httpRequest($msg)
+    public function httpRequest($msg)
     {
         $failed_urls = null;
         // Using current server without changing it
