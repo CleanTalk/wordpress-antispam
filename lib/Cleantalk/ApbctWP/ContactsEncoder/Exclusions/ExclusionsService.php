@@ -144,6 +144,9 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
      */
     private function byContentSigns($content)
     {
+        if (!is_string($content) || $content === '') {
+            return false;
+        }
         if ( is_array($this->content_exclusions_signs) ) {
             foreach ( array_values($this->content_exclusions_signs) as $_signs_array => $signs ) {
                 //process each of subarrays of signs
