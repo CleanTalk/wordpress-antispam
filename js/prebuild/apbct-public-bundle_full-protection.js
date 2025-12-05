@@ -5669,6 +5669,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Do not add a badge if there is one inside the element .comment-metadata
+        if (element.querySelector('.comment-metadata')) return;
+
         let trpLayout = document.createElement('div');
         trpLayout.setAttribute('class', 'apbct-real-user-badge');
 
