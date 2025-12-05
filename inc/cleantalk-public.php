@@ -1394,9 +1394,9 @@ add_filter('rest_pre_dispatch', function ($result, $server, $request) {
 
     // WooCommerce Store API checkout route with registration option enabled
     if (strpos($route, '/wc/store/v1/checkout') !== false) {
-        if (isset($params['event_token'])) {
+        if (isset($params['ct_bot_detector_event_token'])) {
             try {
-                $event_token = json_decode($params['event_token'], true);
+                $event_token = json_decode($params['ct_bot_detector_event_token'], true);
             } catch (Exception $e) {
                 $event_token = null;
             }
