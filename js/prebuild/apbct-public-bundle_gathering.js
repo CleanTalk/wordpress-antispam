@@ -2934,7 +2934,15 @@ class ApbctHandler {
                         Array.from(document.forms).some((form) =>
                             form.classList.contains('metform-form-content')) ||
                         Array.from(document.forms).some((form) =>
-                            form.classList.contains('wprm-user-ratings-modal-stars-container'))
+                            form.classList.contains('wprm-user-ratings-modal-stars-container')) ||
+                        Array.from(document.forms).some((form) => {
+                            if (form.parentElement &&
+                                form.parentElement.classList.length > 0 &&
+                                form.parentElement.classList[0].indexOf('b24-form-content') !== -1
+                            ) {
+                                return true;
+                            }
+                        })
                     )
                 ) ||
                 (
@@ -2952,7 +2960,9 @@ class ApbctHandler {
                     })
                 )
             ) {
-                window.fetch = function(...args) {
+                let preventOriginalFetch = false;
+
+                window.fetch = async function(...args) {
                     // Metform block
                     if (
                         Array.from(document.forms).some((form) => form.classList.contains('metform-form-content')) &&
@@ -3034,32 +3044,56 @@ class ApbctHandler {
                         }
                     }
 
-                    // WooCommerce add to cart request, like:
-                    // /index.php?rest_route=/wc/store/v1/cart/add-item
-                    if (args && args[0] &&
-                        args[0].includes('/wc/store/v1/cart/add-item') &&
-                        args && args[1] && args[1].body
+                    // bitrix24 EXTERNAL form
+                    if (+ctPublic.settings__forms__check_external &&
+                        args && args[0] &&
+                        args[0].includes('bitrix/services/main/ajax.php?action=crm.site.form.fill') &&
+                        args[1] && args[1].body && args[1].body instanceof FormData
                     ) {
-                        if (
-                            +ctPublic.settings__data__bot_detector_enabled &&
-                            +ctPublic.settings__forms__wc_add_to_cart
-                        ) {
-                            try {
-                                let bodyObj = JSON.parse(args[1].body);
-                                if (!bodyObj.hasOwnProperty('ct_bot_detector_event_token')) {
-                                    bodyObj.ct_bot_detector_event_token =
-                                        apbctLocalStorage.get('ct_bot_detector_event_token');
-                                    args[1].body = JSON.stringify(bodyObj);
-                                }
-                            } catch (e) {
-                                return false;
-                            }
-                        } else {
-                            args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
+                        const currentTargetForm = document.querySelector('.b24-form form');
+                        let data = {
+                            action: 'cleantalk_force_ajax_check',
+                        };
+                        for (const field of currentTargetForm.elements) {
+                            data[field.name] = field.value;
                         }
+
+                        // check form request - wrap in Promise to wait for completion
+                        await new Promise((resolve, reject) => {
+                            apbct_public_sendAJAX(
+                                data,
+                                {
+                                    async: true,
+                                    callback: function( result, data, params, obj ) {
+                                        // allowed
+                                        if ((result.apbct === undefined && result.data === undefined) ||
+                                            (result.apbct !== undefined && ! +result.apbct.blocked)
+                                        ) {
+                                            preventOriginalFetch = false;
+                                        }
+
+                                        // blocked
+                                        if ((result.apbct !== undefined && +result.apbct.blocked) ||
+                                            (result.data !== undefined && result.data.message !== undefined)
+                                        ) {
+                                            preventOriginalFetch = true;
+                                            new ApbctShowForbidden().parseBlockMessage(result);
+                                        }
+
+                                        resolve(result);
+                                    },
+                                    onErrorCallback: function( error ) {
+                                        console.log('AJAX error:', error);
+                                        reject(error);
+                                    }
+                                }
+                            );
+                        });
                     }
 
-                    return defaultFetch.apply(window, args);
+                    if (!preventOriginalFetch) {
+                        return defaultFetch.apply(window, args);
+                    }
                 };
             }
         }, 1000);
