@@ -8,9 +8,8 @@ class CleantalkExternalFormsForceAjax extends IntegrationBase
     {
         $data = ct_gfa_dto(apply_filters('apbct__filter_post', $_POST))->getArray();
 
-        if (isset($data['name']) && empty($data['nickname'])) {
-            $data['nickname'] = $data['name'];
-            unset($data['name']);
+        if (isset($data['message']['name']) && !empty($data['message']['name'])) {
+            $data['nickname'] = $data['message']['name'];
         }
 
         return $data;
