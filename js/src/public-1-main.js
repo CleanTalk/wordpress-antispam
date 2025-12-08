@@ -688,7 +688,7 @@ class ApbctHandler {
                                 let bodyObj = JSON.parse(args[1].body);
                                 if (!bodyObj.hasOwnProperty('ct_bot_detector_event_token')) {
                                     bodyObj.ct_bot_detector_event_token =
-                                        apbctLocalStorage.get('ct_bot_detector_event_token');
+                                        apbctLocalStorage.get('bot_detector_event_token');
                                     args[1].body = JSON.stringify(bodyObj);
                                 }
                             } catch (e) {
@@ -847,7 +847,8 @@ class ApbctHandler {
                 options.data.requests[0].path === '/wc/store/v1/cart/add-item'
             ) {
                 if (+ctPublic.settings__data__bot_detector_enabled) {
-                    options.data.requests[0].data.event_token = localStorage.getItem('bot_detector_event_token');
+                    let token = localStorage.getItem('bot_detector_event_token');
+                    options.data.requests[0].data.ct_bot_detector_event_token = token;
                 } else {
                     if (ctPublic.data__cookies_type === 'none') {
                         options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
@@ -858,7 +859,7 @@ class ApbctHandler {
             // checkout
             if (options.path.includes('/wc/store/v1/checkout')) {
                 if (+ctPublic.settings__data__bot_detector_enabled) {
-                    options.data.event_token = localStorage.getItem('bot_detector_event_token');
+                    options.data.ct_bot_detector_event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
                     if (ctPublic.data__cookies_type === 'none') {
                         options.data.ct_no_cookie_hidden_field = getNoCookieData();
