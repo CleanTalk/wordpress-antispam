@@ -3085,8 +3085,8 @@ class ApbctHandler {
                                     onErrorCallback: function( error ) {
                                         console.log('AJAX error:', error);
                                         reject(error);
-                                    }
-                                }
+                                    },
+                                },
                             );
                         });
                     }
