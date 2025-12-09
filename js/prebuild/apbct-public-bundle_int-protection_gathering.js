@@ -167,9 +167,6 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
                 {
                     notJson: false,
                     callback: function(result) {
-                        console.log('result');
-                        console.log(result);
-
                         // set alternative cookie to skip next pages encoding
                         ctSetCookie('apbct_email_encoder_passed', ctPublic.emailEncoderPassKey, '');
                         apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource);
@@ -292,19 +289,28 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
         }, 3000);
     } else {
         if (clickSource) {
+            let comment = 'unknown_error';
+            if (
+                result.hasOwnProperty('data') &&
+                result.data.length > 0 &&
+                typeof result.data[0] === 'object' &&
+                typeof result.data[0].comment === 'string'
+            ) {
+                comment = result.data[0].comment;
+            }
             if (result.success) {
                 resetEncodedNodes();
                 if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_blocked) {
-                    ctShowDecodeComment(ctPublicFunctions.text__ee_blocked + ': ' + result.data[0].comment);
+                    ctShowDecodeComment(ctPublicFunctions.text__ee_blocked + ': ' + comment);
                 } else {
-                    ctShowDecodeComment(ctAdminCommon.text__ee_blocked + ': ' + result.data[0].comment);
+                    ctShowDecodeComment(ctAdminCommon.text__ee_blocked + ': ' + comment);
                 }
             } else {
                 resetEncodedNodes();
                 if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_cannot_connect) {
-                    ctShowDecodeComment(ctPublicFunctions.text__ee_cannot_connect + ': ' + result.apbct.comment);
+                    ctShowDecodeComment(ctPublicFunctions.text__ee_cannot_connect + ': ' + comment);
                 } else {
-                    ctShowDecodeComment(ctAdminCommon.text__ee_cannot_connect + ': ' + result.data[0].comment);
+                    ctShowDecodeComment(ctAdminCommon.text__ee_cannot_connect + ': ' + comment);
                 }
             }
         } else {
@@ -3024,31 +3030,6 @@ class ApbctHandler {
                                 if (!bodyObj.hasOwnProperty('ct_bot_detector_event_token')) {
                                     bodyObj.ct_bot_detector_event_token =
                                         apbctLocalStorage.get('bot_detector_event_token');
-                                    args[1].body = JSON.stringify(bodyObj);
-                                }
-                            } catch (e) {
-                                return false;
-                            }
-                        } else {
-                            args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
-                        }
-                    }
-
-                    // WooCommerce add to cart request, like:
-                    // /index.php?rest_route=/wc/store/v1/cart/add-item
-                    if (args && args[0] &&
-                        args[0].includes('/wc/store/v1/cart/add-item') &&
-                        args && args[1] && args[1].body
-                    ) {
-                        if (
-                            +ctPublic.settings__data__bot_detector_enabled &&
-                            +ctPublic.settings__forms__wc_add_to_cart
-                        ) {
-                            try {
-                                let bodyObj = JSON.parse(args[1].body);
-                                if (!bodyObj.hasOwnProperty('ct_bot_detector_event_token')) {
-                                    bodyObj.ct_bot_detector_event_token =
-                                        apbctLocalStorage.get('ct_bot_detector_event_token');
                                     args[1].body = JSON.stringify(bodyObj);
                                 }
                             } catch (e) {
