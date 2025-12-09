@@ -37,6 +37,21 @@ class TestEmailEncoder extends TestCase
         $this->assertEquals($decoded_entity, $this->plain_text);
     }
 
+    public function testPlainTextDecodeError()
+    {
+        $decoded_entity = $this->contacts_encoder->encoder->decodeString('asdas121312');
+        $this->assertEmpty($decoded_entity);
+        $this->assertIsString($decoded_entity);
+        /**
+         * @var State $apbct
+         */
+        global $apbct;
+        $this->assertTrue($apbct->isHaveErrors());
+        $this->assertTrue($apbct->errorExists('email_encoder'), $this->plain_text);
+        $this->assertStringContainsString( 'decrypt attempts failed', $apbct->errors['email_encoder'][0]['error']);
+        $apbct->errorDeleteAll();
+    }
+
     public function testEncodeErrors()
     {
         /**
@@ -164,16 +179,24 @@ class TestEmailEncoder extends TestCase
             '+7 123 456 78 90',
             '+71234567890',
             '(999) 321-1233',
+            '+1.775.301.1130',
+            '+49.30.123.4567',
+            '+49.30.1234567',
         );
 
         $test_stack_skip_to = array(
             '192.168.2.1',
+            'prefix.1.775.301.1130.postfix',
+            'prefix.+1.225.201.113.postfix',
+            '+1.225.201.112ss',
+            '+1.225.201.112',
             '8.168.2.1',
             '81.234.56.78',
             '71234567890',
             '+7413033',
             '+7(413)033',
             '+7 (413) 03 3',
+            '+49.30.1.234567',
         );
 
         $regexp_for_blur = '/.+data-original-string=[\s\S]+apbct-email-encoder[\s\S]+browser\.[\"\']>[\s\S]+apbct-blur[\s\S]+\*?\*+<\/span>[\s\S]+/';
@@ -218,6 +241,14 @@ class TestEmailEncoder extends TestCase
 
         $result = $this->contacts_encoder->modifyContent($test_tel_origin);
         $this->assertEquals($test_tel_origin, $result);
+    }
+
+    public function testGetPhonesEncodingLongDescription()
+    {
+        $description = ContactsEncoder::getPhonesEncodingLongDescription();
+        $this->assertIsString($description);
+        $this->assertStringStartsWith('<', $description);
+        $this->assertStringEndsWith('>', $description);
     }
 
 }

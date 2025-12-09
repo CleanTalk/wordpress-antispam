@@ -184,7 +184,6 @@ abstract class ContactsEncoder
 
     /**
      * @param string $content
-     * @param bool $skip_exclusions
      *
      * @return string
      * @psalm-suppress PossiblyUnusedReturnValue
