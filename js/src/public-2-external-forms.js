@@ -112,6 +112,13 @@ function formIsExclusion(currentForm) {
             result = true;
         }
 
+        // bitrix24 forms exclusion, because it already protected in main.js by fetch request
+        if (currentForm.parentElement &&
+            currentForm.parentElement.classList.length > 0 &&
+            currentForm.parentElement.classList[0].indexOf('b24-form-content') !== -1) {
+            result = true;
+        }
+
         if (currentForm.getAttribute('action') !== null) {
             exclusionsByAction.forEach(function(exclusionAction) {
                 if (currentForm.getAttribute('action').indexOf(exclusionAction) !== -1) {

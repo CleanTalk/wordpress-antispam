@@ -6,7 +6,13 @@ class CleantalkExternalFormsForceAjax extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        return ct_gfa(apply_filters('apbct__filter_post', $_POST));
+        $data = ct_gfa_dto(apply_filters('apbct__filter_post', $_POST))->getArray();
+
+        if (isset($data['message']['name']) && !empty($data['message']['name'])) {
+            $data['nickname'] = $data['message']['name'];
+        }
+
+        return $data;
     }
 
     public function doBlock($message)
