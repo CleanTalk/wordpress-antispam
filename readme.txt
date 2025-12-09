@@ -414,6 +414,7 @@ Yes, it is. Please read this article,
 
 = 6.69.2  09.12.2025 =
 Fix. Contact Data Encoder. Fixed deprecation notice.
+Fix. Contact Data Encoder. Frontend. Fixed connection errors handling.
 
 = 6.69.1  08.12.2025 =
 Fix. Integrations. Update Woo add to cart check.
