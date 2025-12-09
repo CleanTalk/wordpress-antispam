@@ -1381,3 +1381,30 @@ function apbct_perfmatters_remove_from_delayed_scripts($included)
                stripos($item, 'cleantalk-spam-protect') === false;
     });
 }
+
+/*
+* Add middleware to all REST routes
+*/
+/** @psalm-suppress UnusedClosureParam */
+add_filter('rest_pre_dispatch', function ($result, $server, $request) {
+    global $ct_rest_middleware_event_token;
+
+    $route = $request->get_route();
+    $params = $request->get_params();
+
+    // WooCommerce Store API checkout route with registration option enabled
+    if (strpos($route, '/wc/store/v1/checkout') !== false) {
+        if (isset($params['ct_bot_detector_event_token'])) {
+            try {
+                $event_token = json_decode($params['ct_bot_detector_event_token'], true);
+            } catch (Exception $e) {
+                $event_token = null;
+            }
+            if ($event_token) {
+                $ct_rest_middleware_event_token = $event_token['value'];
+            }
+        }
+    }
+
+    return $result;
+}, 10, 3);

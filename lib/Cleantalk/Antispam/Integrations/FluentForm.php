@@ -16,7 +16,13 @@ class FluentForm extends IntegrationBase
          * Do not use Post:get() there - it uses sanitize_textarea and drops special symbols,
          * including whitespaces - this could concatenate parts of data in single string!
          **/
-        if ( isset($_POST['data']) && is_string($_POST['data']) ) {
+        if (
+            isset($_POST['data']) && is_string($_POST['data']) &&
+            (
+                $apbct->settings['data__protect_logged_in'] == 1 ||
+                ($apbct->settings['data__protect_logged_in'] == 0 && !is_user_logged_in())
+            )
+        ) {
             parse_str($_POST['data'], $form_data);
             foreach ($form_data as $param => $param_value) {
                 if (strpos((string)$param, 'ct_no_cookie_hidden_field') !== false || (is_string($param_value) && strpos($param_value, '_ct_no_cookie_data_') !== false)) {

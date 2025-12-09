@@ -2871,7 +2871,7 @@ class ApbctHandler {
                 document.body.classList.contains('single-product') &&
                 typeof cwginstock !== 'undefined'
             ) ||
-            document.querySelector('div.fcal_calendar_slot_wrap') !== null // Fluent Booking Pro
+            document.querySelector('div.fluent_booking_wrap') !== null // Fluent Booking Pro
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
@@ -2927,11 +2927,36 @@ class ApbctHandler {
      */
     catchFetchRequest() {
         setTimeout(function() {
-            if (document.forms.length > 0 &&
-                Array.from(document.forms).map((form) => form.classList.contains('metform-form-content')).length > 0
+            if (
+                (
+                    document.forms && document.forms.length > 0 &&
+                    (
+                        Array.from(document.forms).some((form) =>
+                            form.classList.contains('metform-form-content')) ||
+                        Array.from(document.forms).some((form) =>
+                            form.classList.contains('wprm-user-ratings-modal-stars-container'))
+                    )
+                ) ||
+                (
+                    document.querySelectorAll('button').length > 0 &&
+                    Array.from(document.querySelectorAll('button')).some((button) => {
+                        return button.classList.contains('add_to_cart_button') ||
+                        button.classList.contains('ajax_add_to_cart') ||
+                        button.classList.contains('single_add_to_cart_button');
+                    })
+                ) ||
+                (
+                    document.links && document.links.length > 0 &&
+                    Array.from(document.links).some((link) => {
+                        return link.classList.contains('add_to_cart_button');
+                    })
+                )
             ) {
                 window.fetch = function(...args) {
-                    if (args &&
+                    // Metform block
+                    if (
+                        Array.from(document.forms).some((form) => form.classList.contains('metform-form-content')) &&
+                        args &&
                         args[0] &&
                         typeof args[0].includes === 'function' &&
                         (args[0].includes('/wp-json/metform/') ||
@@ -2953,6 +2978,59 @@ class ApbctHandler {
                             } else {
                                 args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
                             }
+                        }
+                    }
+                    // WP Recipe Maker block
+                    if (
+                        Array.from(document.forms).some(
+                            (form) => form.classList.contains('wprm-user-ratings-modal-stars-container'),
+                        ) &&
+                        args &&
+                        args[0] &&
+                        typeof args[0].includes === 'function' &&
+                        args[0].includes('/wp-json/wp-recipe-maker/')
+                    ) {
+                        if (args[1] && args[1].body) {
+                            if (typeof args[1].body === 'string') {
+                                let bodyObj;
+                                try {
+                                    bodyObj = JSON.parse(args[1].body);
+                                } catch (e) {
+                                    bodyObj = {};
+                                }
+                                if (+ctPublic.settings__data__bot_detector_enabled) {
+                                    bodyObj.ct_bot_detector_event_token =
+                                        apbctLocalStorage.get('bot_detector_event_token');
+                                } else {
+                                    bodyObj.ct_no_cookie_hidden_field = getNoCookieData();
+                                }
+                                args[1].body = JSON.stringify(bodyObj);
+                            }
+                        }
+                    }
+
+                    // WooCommerce add to cart request, like:
+                    // /index.php?rest_route=/wc/store/v1/cart/add-item
+                    if (args && args[0] &&
+                        args[0].includes('/wc/store/v1/cart/add-item') &&
+                        args && args[1] && args[1].body
+                    ) {
+                        if (
+                            +ctPublic.settings__data__bot_detector_enabled &&
+                            +ctPublic.settings__forms__wc_add_to_cart
+                        ) {
+                            try {
+                                let bodyObj = JSON.parse(args[1].body);
+                                if (!bodyObj.hasOwnProperty('ct_bot_detector_event_token')) {
+                                    bodyObj.ct_bot_detector_event_token =
+                                        apbctLocalStorage.get('bot_detector_event_token');
+                                    args[1].body = JSON.stringify(bodyObj);
+                                }
+                            } catch (e) {
+                                return false;
+                            }
+                        } else {
+                            args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
                         }
                     }
 
@@ -3104,7 +3182,8 @@ class ApbctHandler {
                 options.data.requests[0].path === '/wc/store/v1/cart/add-item'
             ) {
                 if (+ctPublic.settings__data__bot_detector_enabled) {
-                    options.data.requests[0].data.event_token = localStorage.getItem('bot_detector_event_token');
+                    let token = localStorage.getItem('bot_detector_event_token');
+                    options.data.requests[0].data.ct_bot_detector_event_token = token;
                 } else {
                     if (ctPublic.data__cookies_type === 'none') {
                         options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
@@ -3115,7 +3194,7 @@ class ApbctHandler {
             // checkout
             if (options.path.includes('/wc/store/v1/checkout')) {
                 if (+ctPublic.settings__data__bot_detector_enabled) {
-                    options.data.event_token = localStorage.getItem('bot_detector_event_token');
+                    options.data.ct_bot_detector_event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
                     if (ctPublic.data__cookies_type === 'none') {
                         options.data.ct_no_cookie_hidden_field = getNoCookieData();
@@ -3909,10 +3988,20 @@ window.addEventListener('load', function() {
         return;
     }
 
+    if (typeof window.ctDymnamicRenderedFormHandlerInterval === 'number') {
+        clearInterval(window.ctDymnamicRenderedFormHandlerInterval );
+    }
+
     setTimeout(function() {
         ctProtectExternal();
-        catchDynamicRenderedForm();
         catchNextendSocialLoginForm();
+        // run dynamic form catch first time
+        catchDynamicRenderedForm();
+        // run interval to rehandle form if current state is reset and has no cleantalk intervent
+        window.ctDymnamicRenderedFormHandlerInterval = setInterval(
+            catchDynamicRenderedForm,
+            2000,
+        );
         ctProtectOutsideFunctionalOnTagsType('div');
         ctProtectOutsideFunctionalOnTagsType('iframe');
     }, 2000);
@@ -4644,14 +4733,17 @@ function catchDynamicRenderedForm() {
 function catchDynamicRenderedFormHandler(forms, documentObject = document) {
     const neededFormIds = [];
     for (const form of forms) {
-        const formIdAttr = form.getAttribute('id');
-        if (formIdAttr && formIdAttr.indexOf('hsForm') !== -1) {
-            neededFormIds.push(formIdAttr);
-        }
-        if (formIdAttr && formIdAttr.indexOf('createuser') !== -1 &&
-            (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
-        ) {
-            neededFormIds.push(formIdAttr);
+        // should be checked to do not handle form again on interval
+        if ( !form.hasOwnProperty('apbct_external_onsubmit_prev') ) {
+            const formIdAttr = form.getAttribute('id');
+            if (formIdAttr && formIdAttr.indexOf('hsForm') !== -1) {
+                neededFormIds.push(formIdAttr);
+            }
+            if (formIdAttr && formIdAttr.indexOf('createuser') !== -1 &&
+                (form.classList !== undefined && form.classList.contains('ihc-form-create-edit'))
+            ) {
+                neededFormIds.push(formIdAttr);
+            }
         }
     }
 

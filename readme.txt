@@ -2,9 +2,9 @@
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 5.6
-Stable tag: 6.68
+Stable tag: 6.69.1
 License: GPLv2
 
 Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
@@ -411,6 +411,33 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.69.1  08.12.2025 =
+Fix. Integrations. Update Woo add to cart check.
+
+= 6.69 04.12.2025 =
+New. WPRecipeMaker. Integration with WP Recipe Maker
+Upd. Code. ContactsEncoder module refactoring.
+Upd. ContactEncoder. Improve UX.
+Upd. TRP. Restart show badge on woo review page.
+Upd. WCAddToCart. Processing and adding event_token to the request
+Upd. Integrations. JS. Dynamic rendered form interval clearance on window load custom events.
+Upd. EmailEncoder. Added new format to encode phone numbers.
+Mod. CheckEmailExist. Integration of Check Email Exist with Ninja Forms
+Mod. WPRecipeMaker. Editing the blocking message
+Fix. Bot detector. Set event_token for the different cookies types fixed.
+Fix. Integration. Ninja Forms refactored - no using force_alt_cookies.
+Fix. Integration. Fluentbook. Added public scripts echoing on author landing visit.
+Fix. Integrations. JS. Run dynamic forms catching on interval.
+Fix. Woocommerce. Exclusion for WC Stripe Apple Pay frontend request.
+Fix. Integration. Brick theme ajax response fixed.
+Fix. Integration. FunnelKit. Funnel builder action added.
+Fix. WPMS. Getting and recreating personal tables on WPMS.
+Fix. OptiPress. Editing the integration in passing the message parameter
+Fix. WPRecipeMaker. Combining logic under one condition
+Fix. Helper. Correcting the error of using 'static' in string callables inside array_map since version 8.2
+Fix. FluentForm. The verification depends on the data__protect_logged_in and is_user_logged_in() options
+Github. New action to create assets from dev/fix on push event.
 
 = 6.68 13.11.2025 =
 New. Integration. Ultimate affiliate plugin (Codecanyon).
