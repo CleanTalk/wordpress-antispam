@@ -139,7 +139,7 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
 
     /**
      * Check content if it contains exclusions from exclusion list
-     * @param $content - content to check
+     * @param string $content - content to check
      * @return bool - true if exclusions found, else - false
      */
     private function byContentSigns($content)
