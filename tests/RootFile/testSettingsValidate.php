@@ -2,8 +2,6 @@
 
 use PHPUnit\Framework\TestCase;
 use Cleantalk\ApbctWP\State;
-//require_once '../bootstrap.php';
-//require_once '../../inc/cleantalk-settings.php';
 
 class ApbctSettingsTest extends TestCase
 {
