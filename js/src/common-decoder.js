@@ -167,9 +167,6 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
                 {
                     notJson: false,
                     callback: function(result) {
-                        console.log('result');
-                        console.log(result);
-
                         // set alternative cookie to skip next pages encoding
                         ctSetCookie('apbct_email_encoder_passed', ctPublic.emailEncoderPassKey, '');
                         apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource);
@@ -292,19 +289,28 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
         }, 3000);
     } else {
         if (clickSource) {
+            let comment = 'unknown_error';
+            if (
+                result.hasOwnProperty('data') &&
+                result.data.length > 0 &&
+                typeof result.data[0] === 'object' &&
+                typeof result.data[0].comment === 'string'
+            ) {
+                comment = result.data[0].comment;
+            }
             if (result.success) {
                 resetEncodedNodes();
                 if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_blocked) {
-                    ctShowDecodeComment(ctPublicFunctions.text__ee_blocked + ': ' + result.data[0].comment);
+                    ctShowDecodeComment(ctPublicFunctions.text__ee_blocked + ': ' + comment);
                 } else {
-                    ctShowDecodeComment(ctAdminCommon.text__ee_blocked + ': ' + result.data[0].comment);
+                    ctShowDecodeComment(ctAdminCommon.text__ee_blocked + ': ' + comment);
                 }
             } else {
                 resetEncodedNodes();
                 if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_cannot_connect) {
-                    ctShowDecodeComment(ctPublicFunctions.text__ee_cannot_connect + ': ' + result.apbct.comment);
+                    ctShowDecodeComment(ctPublicFunctions.text__ee_cannot_connect + ': ' + comment);
                 } else {
-                    ctShowDecodeComment(ctAdminCommon.text__ee_cannot_connect + ': ' + result.data[0].comment);
+                    ctShowDecodeComment(ctAdminCommon.text__ee_cannot_connect + ': ' + comment);
                 }
             }
         } else {
@@ -451,7 +457,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (encodedEmailNodes.length) {
         for (let i = 0; i < encodedEmailNodes.length; ++i) {
-            encodedEmailNodes[i].addEventListener('click', ctFillDecodedEmailHandler);
+            const node = encodedEmailNodes[i];
+            if (
+                node.parentNode &&
+                node.parentNode.tagName === 'A' &&
+                node.parentNode.getAttribute('href')?.includes('mailto:') &&
+                node.parentNode.hasAttribute('data-original-string')
+            ) {
+                // This node was skipped from listeners
+                continue;
+            }
+            node.addEventListener('click', ctFillDecodedEmailHandler);
         }
     }
 });

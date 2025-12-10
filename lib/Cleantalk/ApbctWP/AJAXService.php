@@ -185,8 +185,9 @@ class AJAXService
      */
     public function handleAjaxRequest($args)
     {
-        $current_hook_data = isset($this->hooks_list[current_action()])
-            ? $this->hooks_list[current_action()]
+        $current_action = current_action();
+        $current_hook_data = ($current_action !== false && isset($this->hooks_list[$current_action]))
+            ? $this->hooks_list[$current_action]
             : null;
         if ( !empty($current_hook_data) && is_array($current_hook_data) ) {
             $ajax_handler = TT::getArrayValueAsString($current_hook_data, 'ajax_handler');

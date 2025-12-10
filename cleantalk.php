@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.68.99-dev
+  Version: 6.69.100-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -934,7 +934,10 @@ function apbct_sfw__check()
 
     $sfw_tables_names = SFW::getSFWTablesNames();
 
-    if (!$sfw_tables_names) {
+    if (
+        !$sfw_tables_names ||
+        !isset($sfw_tables_names['sfw_personal_table_name'], $sfw_tables_names['sfw_common_table_name'])
+    ) {
         add_action('init', function () use ($apbct) {
             $apbct->errorAdd(
                 'sfw',
@@ -1142,28 +1145,27 @@ function apbct_sfw_update__init($delay = 0)
 
     $wp_upload_dir = wp_upload_dir();
     $base_dir = TT::getArrayValueAsString($wp_upload_dir, 'basedir');
-    $apbct->fw_stats['updating_folder'] = $base_dir . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
     //update only common tables if moderate 0
     if ( ! $apbct->moderate ) {
         $apbct->data['sfw_load_type'] = 'common';
     }
 
-    if ( $apbct->network_settings['multisite__work_mode'] == 3) {
+    if ( $apbct->network_settings['multisite__work_mode'] !== 2) {
         $apbct->data['sfw_load_type'] = 'all';
         $apbct->save('data');
     }
 
-    if (apbct_sfw_update__switch_to_direct()) {
-        return SFWUpdateHelper::directUpdate();
-    }
-
-    // Set a new update ID and an update time start
+    // Flush fw stats data
+    $apbct->fw_stats = $apbct->default_fw_stats;
     $apbct->fw_stats['calls']                        = 0;
     $apbct->fw_stats['firewall_updating_id']         = md5((string)rand(0, 100000));
     $apbct->fw_stats['firewall_updating_last_start'] = time();
-    $apbct->fw_stats['common_lists_url_id'] = '';
-    $apbct->fw_stats['personal_lists_url_id'] = '';
+    $apbct->fw_stats['updating_folder'] = $base_dir . DIRECTORY_SEPARATOR . 'cleantalk_fw_files_for_blog_' . get_current_blog_id() . DIRECTORY_SEPARATOR;
     $apbct->save('fw_stats');
+
+    if (apbct_sfw_update__switch_to_direct()) {
+        return SFWUpdateHelper::directUpdate();
+    }
 
     $apbct->sfw_update_sentinel->seekId($apbct->fw_stats['firewall_updating_id']);
 
@@ -1575,11 +1577,11 @@ function apbct_sfw_update__create_tables($direct_update = false, $return_new_tab
     $db_tables_creator->createTable($common_table_name);
     $apbct->data['sfw_common_table_name'] = $common_table_name;
     //personal table
-    $table_name_personal = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
+    $table_name_personal = $wpdb->prefix . Schema::getSchemaTablePrefix() . 'sfw_personal';
     $db_tables_creator->createTable($table_name_personal);
     $apbct->data['sfw_personal_table_name'] = $table_name_personal;
     //ua table
-    $personal_ua_bl_table_name = $apbct->db_prefix . Schema::getSchemaTablePrefix() . 'ua_bl';
+    $personal_ua_bl_table_name = $wpdb->prefix . Schema::getSchemaTablePrefix() . 'ua_bl';
     $db_tables_creator->createTable($personal_ua_bl_table_name);
     $apbct->data['sfw_personal_ua_bl_table_name'] = $personal_ua_bl_table_name;
 
@@ -1715,14 +1717,27 @@ function apbct_sfw_update__process_exclusions($direct_update = false)
 {
     global $apbct;
 
-    $db__table__data = APBCT_TBL_FIREWALL_DATA_PERSONAL . '_temp';
-    if ($apbct->data['sfw_load_type'] === 'all') {
-        $db__table__data = $apbct->data['sfw_personal_table_name'] . '_temp';
+    $table_names = SFW::getSFWTablesNames();
+    $origin_personal_table_name = $table_names && isset($table_names['sfw_personal_table_name']) && is_string($table_names['sfw_personal_table_name'])
+        ? $table_names['sfw_personal_table_name']
+        : null;
+
+    if ($origin_personal_table_name) {
+        $temp_table_name = $origin_personal_table_name . '_temp';
+    } else {
+        return array('error' => 'EXCLUSIONS: CAN NOT GET SFW TABLES NAMES');
+    }
+
+    if (!DB::getInstance()->isTableExists($temp_table_name)) {
+        SFW::createTempTables(DB::getInstance(), $origin_personal_table_name);
+        if (!DB::getInstance()->isTableExists($temp_table_name)) {
+            return array('error' => 'EXCLUSIONS: CAN NOT RECREATE TEMP PERSONAL TABLE ' . $temp_table_name);
+        }
     }
 
     $result = SFW::updateWriteToDbExclusions(
         DB::getInstance(),
-        $db__table__data
+        $temp_table_name
     );
 
     if ( ! empty($result['error']) ) {
@@ -1821,8 +1836,8 @@ function apbct_sfw_update__end_of_update__checking_data($direct_update = false)
     }
 
     if ( in_array($apbct->data['sfw_load_type'], array('all','personal'))
-        && isset($apbct->stats['sfw']['entries_personal'])
-        && ( $apbct->stats['sfw']['entries_personal'] != $apbct->fw_stats['expected_networks_count_personal'] ) ) {
+         && isset($apbct->stats['sfw']['entries_personal'])
+         && ( $apbct->stats['sfw']['entries_personal'] != $apbct->fw_stats['expected_networks_count_personal'] ) ) {
         return array(
             'error' =>
                 'The discrepancy between the amount of data received for the update and in the final table: '
@@ -2029,17 +2044,26 @@ function apbct_sfw_private_records_handler($action, $test_data = null)
         }
         unset($row);
 
+        $table_names = SFW::getSFWTablesNames();
+        $table_name = $table_names && isset($table_names['sfw_personal_table_name']) && is_string($table_names['sfw_personal_table_name'])
+            ? $table_names['sfw_personal_table_name']
+            : false;
+
+        if (!$table_name || !DB::getInstance()->isTableExists($table_name)) {
+            throw new InvalidArgumentException('internal error: sfw table does not exist');
+        }
+
         //method selection
         if ( $action === 'add' ) {
             $handler_output = SFW::privateRecordsAdd(
                 DB::getInstance(),
-                SFW::getSFWTablesNames()['sfw_personal_table_name'],
+                $table_name,
                 $metadata
             );
         } elseif ( $action === 'delete' ) {
             $handler_output = SFW::privateRecordsDelete(
                 DB::getInstance(),
-                SFW::getSFWTablesNames()['sfw_personal_table_name'],
+                $table_name,
                 $metadata
             );
         } else {
