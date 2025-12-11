@@ -22,7 +22,7 @@ abstract class ContactsEncoder
     /**
      * @var ContactsEncoderHelper
      */
-    private $helper;
+    protected $helper;
 
     /**
      * @var ExclusionsService
@@ -33,76 +33,91 @@ abstract class ContactsEncoder
      * Temporary content to use in regexp callback
      * @var string
      */
-    private $temp_content;
+    protected $temp_content;
 
     /**
-     * @var string
+     * Regular expressions parts.
      */
-    private $aria_regex = '/aria-label.?=.?[\'"].+?[\'"]/';
+    const ARIA_LABEL_PATTERN = '/aria-label.?=.?[\'"].+?[\'"]/';
+    const EMAIL_PATTERN = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}';
+    const PHONE_NUMBER = '\+\d{8,12}';
+    const PHONE_NUMBERS_PATTERNS = [
+        '(tel:' . self::PHONE_NUMBER . ')',                        // tel:+XXXXXXXXXX
+        '([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)',                       // +X XXX XXXXXXX, +X(XXX)XXXXX, etc.
+        '(\(\d{3}\)\s?\d{3}-\d{4})',                               // (XXX) XXX-XXXX, (XXX) XXX XXXX
+        '(\+\d{1,3}\.\d{1,3}\.((\d{3}\.\d{4})|\d{7})(?![\w.]))',   // +X?.XX?.XXX.XXXX
+    ];
 
     /**
-     * @var string
+     * @var string example: '/aria-label.?=.?[\'"].+?[\'"]/'
      */
-    private $global_email_pattern = '/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b))/';
+    protected $aria_regex;
 
     /**
-     * @var string
+     * @var string example: '/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b))/'
      */
-    private $global_phone_pattern = '/(tel:\+\d{8,12})|([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)/';
+    protected $global_email_pattern;
 
     /**
-     * @var string
+     * @var string example: '/(tel:\+\d{8,12})|([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)|(\(\d{3}\)\s?\d{3}-\d{4})|(\+\d{1,3}\.\d{1,3}\.((\d{3}\.\d{4})|\d{7})(?![\w.]))'/'
      */
-    private $global_mailto_pattern = '/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/';
+    protected $global_phones_pattern;
 
     /**
-     * @var string
+     * @var string example: '/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/'
      */
-    protected $plain_email_pattern = '/(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)/';
+    protected $global_mailto_pattern;
 
     /**
-     * @var string
+     * @var string example: '/(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)/'
      */
-    private $plain_email_pattern_without_capturing = '/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/';
+    protected $plain_email_pattern;
 
     /**
-     * @var string
+     * @var string example: '/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/'
+     * @ToDo Is this regular expression needed? A little different against `$plain_email_pattern`.
      */
-    private $global_tel_pattern = '/tel:(\+\d{8,12})/';
+    protected $plain_email_pattern_without_capturing;
+
+    /**
+     * @var string example: '/tel:(\+\d{8,12})/'
+     * @ToDo Is this regexp is actual and right?
+     */
+    protected $global_tel_pattern;
 
     /**
      * @var array
      */
-    private $aria_matches = array();
+    protected $aria_matches = array();
 
     /**
      * Attributes with possible email-like content to drop from the content to avoid unnecessary encoding.
      * Key is a tag we want to find, value is an attribute with email to drop.
      * @var array
      */
-    private static $attributes_to_drop = array(
+    protected static $attributes_to_drop = array(
         'a' => 'title',
     );
 
     /**
      * @var string
      */
-    private $global_obfuscation_mode;
+    protected $global_obfuscation_mode;
 
     /**
      * @var string
      */
-    private $global_replacing_text;
+    protected $global_replacing_text;
 
     /**
      * @var int|mixed
      */
-    private $do_encode_emails;
+    protected $do_encode_emails;
 
     /**
      * @var int|mixed
      */
-    private $do_encode_phones;
+    protected $do_encode_phones;
 
     /**
      * @var bool
@@ -171,10 +186,23 @@ abstract class ContactsEncoder
         $this->do_encode_emails = $params->do_encode_emails;
         $this->do_encode_phones = $params->do_encode_phones;
         $this->is_logged_in = $params->is_logged_in;
+        $this->prepareRegularExpressions();
 
         if ($this->is_logged_in) {
             $this->ignoreOpenSSLMode();
         }
+    }
+
+    private function prepareRegularExpressions()
+    {
+        $this->aria_regex = self::ARIA_LABEL_PATTERN;
+
+        $this->global_email_pattern = '/(mailto\:\b' . self::EMAIL_PATTERN . '\b)|(\b' . self::EMAIL_PATTERN . '\b)/';
+        $this->global_phones_pattern = '/' . implode('|', self::PHONE_NUMBERS_PATTERNS) . '/';
+        $this->global_mailto_pattern = '/mailto\:(' . self::EMAIL_PATTERN . ')/';
+        $this->plain_email_pattern = '/(\b' . self::EMAIL_PATTERN . '\b)/';
+        $this->plain_email_pattern_without_capturing = '/\b' . self::EMAIL_PATTERN . '/';
+        $this->global_tel_pattern = '/tel:(' . self::PHONE_NUMBER . ')/';
     }
 
     /**
@@ -326,22 +354,6 @@ abstract class ContactsEncoder
     }
 
     /**
-     * @return string
-     */
-    private function getPhonesPattern()
-    {
-        $patterns = [
-            '(tel:\+\d{8,12})',                         // tel:+XXXXXXXXXX
-            '([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)',         //
-            '(\(\d{3}\)\s?\d{3}-\d{4})',         // (XXX) XXX-XXXX, (XXX) XXX XXXX
-            '(\+\d{1,3}\.\d{1,3}\.((\d{3}\.\d{4})|\d{7})(?![\w.]))',        // +X?.XX?.XXX.XXXX
-        ];
-
-        $pattern = '/' . implode('|', $patterns) . '/' ;
-        return $pattern;
-    }
-
-    /**
      * @param string $content
      *
      * @return string
@@ -350,7 +362,7 @@ abstract class ContactsEncoder
      */
     public function modifyGlobalPhoneNumbers($content)
     {
-        $phones_pattern          = $this->getPhonesPattern();
+        $phones_pattern = $this->global_phones_pattern;
         $replacing_result = '';
 
         if ( version_compare(phpversion(), '7.4.0', '>=') ) {
@@ -576,7 +588,7 @@ abstract class ContactsEncoder
         // Get inner tag text and place it in $matches[1]
         preg_match($this->global_tel_pattern, $tel_link_str, $matches);
         if ( isset($matches[1]) ) {
-            $mailto_inner_text = preg_replace_callback('/\+\d{8,12}/', function ($matches) {
+            $mailto_inner_text = preg_replace_callback('/' . self::PHONE_NUMBER . '/', function ($matches) {
                 if (isset($matches[0])) {
                     $obfuscator = new Obfuscator();
                     return $obfuscator->processPhone($matches[0]);
@@ -608,9 +620,9 @@ abstract class ContactsEncoder
         $q_position = $position + strcspn($content, '\'"', $position);
         $tel_link_string = substr($content, $position, $q_position - $position);
         // Get inner tag text and place it in $matches[1]
-        preg_match('/tel:(\+\d{8,12})/', $tel_link_string, $matches);
+        preg_match($this->global_tel_pattern, $tel_link_string, $matches);
         if ( isset($matches[1]) ) {
-            $tel_inner_text = preg_replace_callback('/\+\d{8,12}/', function ($matches) {
+            $tel_inner_text = preg_replace_callback('/' . self::PHONE_NUMBER . '/', function ($matches) {
                 if ( isset($matches[0]) ) {
                     $obfuscator = new Obfuscator();
                     return $obfuscator->processPhone($matches[0]);
