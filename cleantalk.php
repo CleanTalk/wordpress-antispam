@@ -1504,6 +1504,14 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
 
     $results = array();
     $batch_size = 10;
+
+    /**
+     * Reduce batch size of curl multi instanced
+     */
+    if (defined('APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE') && is_int(APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE)) {
+        $batch_size = APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE;
+    }
+
     $total_urls = count($urls);
     $batches = ceil($total_urls / $batch_size);
 
