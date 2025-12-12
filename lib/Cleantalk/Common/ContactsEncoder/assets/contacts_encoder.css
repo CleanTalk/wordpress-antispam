@@ -1,0 +1,162 @@
+.apbct-popup {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    padding: 20px;
+    width: 360px;
+    margin-left: -200px;
+    background: #fff;
+    border: 1px solid;
+    border-radius: 4px;
+    z-index: 99999;
+    opacity: 1;
+}
+.apbct-popup-fade:before {
+    content: '';
+    background: #000;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.7;
+    z-index: 9999;
+}
+.apbct-blur {
+    filter: blur(5px);
+    transition: filter 2s;
+}
+.apbct-email-encoder.no-blur .apbct-blur{
+    filter: none;
+}
+.apbct-email-encoder-popup {
+    width: 30vw;
+    min-width: 400px;
+    font-size: 16px;
+}
+.apbct-email-encoder--popup-header {
+    font-size: 16px;
+    color: #333;
+}
+.apbct-email-encoder-elements_center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px !important;
+    color: black !important;
+}
+.top-margin-long {
+    margin-top: 5px;
+}
+.apbct-tooltip {
+    display: none;
+}
+.apbct-email-encoder {
+    position: relative;
+
+}
+.apbct-blur {
+    filter: blur(5px);
+    transition: filter 2s;
+}
+.apbct-email-encoder.no-blur .apbct-blur{
+    filter: none;
+}
+
+.apbct-email-encoder-select-whole-email{
+    -webkit-user-select: all; /* for Safari */
+    user-select: all;
+}
+
+.apbct-email-encoder-got-it-button {
+    all: unset;
+    margin-top: 10px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background-color: #333;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+/*Popup animation*/
+.apbct-ee-animation-wrapper {
+    display: flex;
+    height: 60px;
+    justify-content: center;
+    font-size: 16px;
+    align-items: center;
+}
+
+.apbct_dog {
+    margin: 0 5px;
+    color: transparent;
+    text-shadow: 0 0 2px #aaa;
+}
+
+.apbct_dog_one {
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+    animation-delay: 0s;
+    animation-name: apbct_dog;
+}
+.apbct_dog_two {
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+    animation-delay: .5s;
+    animation-name: apbct_dog;
+}
+.apbct_dog_three {
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+    animation-delay: 1s;
+    animation-name: apbct_dog;
+}
+
+@keyframes apbct_dog {
+    0% {
+        scale: 100%;
+        color: transparent;
+        text-shadow: 0 0 2px #aaa;
+    }
+    25% {
+        scale: 200%;
+        color:unset;
+        text-shadow: unset;
+    }
+    75% {
+        scale: 100%;
+        color: transparent;
+        text-shadow: 0 0 2px #aaa;
+    }
+    100% {
+        scale: 100%;
+        color: transparent;
+        text-shadow: 0 0 2px #aaa;
+    }
+}
+
+.apbct-email-encoder--settings_example_encoded {
+    position: relative;
+}
+
+@media screen and (max-width: 782px) {
+    .apbct-email-encoder--settings_example_encoded {
+        position: relative;
+        display: block;
+    }
+
+    .apbct-email-encoder-popup {
+        width: 20vw;
+        min-width: 200px;
+        font-size: 16px;
+        top: 20%;
+        left: 75%;
+    }
+
+    .apbct-email-encoder-elements_center {
+        flex-direction: column !important;
+        text-align: center;
+    }
+}

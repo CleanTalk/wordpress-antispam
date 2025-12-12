@@ -220,7 +220,7 @@ abstract class ContactsEncoder
     }
 
     /**
-     * @param $encoded_contacts_data
+     * @param array $encoded_contacts_data
      *
      * @return string JSON like {success: bool, data: [compiled response data]}
      * @psalm-suppress PossiblyUnusedMethod

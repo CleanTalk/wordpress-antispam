@@ -17,7 +17,8 @@
         "ext-dom": "*",
         "wp-cli/wp-cli-bundle": "*",
         "mockery/mockery": "*",
-        "cleantalk/contacts-encoder": "dev-Regular-expressions-refactored-VI"
+        "cleantalk/apbct-installer": "*",
+        "cleantalk/contacts-encoder": "*"
     },
     "scripts": {
         "test": [
