@@ -60,11 +60,11 @@ jobs:
             
             Repository: <strong>${{ github.repository }}</strong>
             PR #${{ github.event.pull_request.number }} merged by: <strong>${{ github.event.pull_request.merged_by.login }}</strong>
-            Title: ${{ github.event.pull_request.title }}
+            <br>Title: ${{ github.event.pull_request.title }}
             
-            ⚠️ Libraries may not be up-to-date.
+            <br>⚠️ Libraries may not be up-to-date.
             
-            <strong>Changed files in vendor/:</strong>
+            <br><strong>Changed files in vendor/:</strong>
             ${{ steps.check-libraries.outputs.html_list }}
             
             <a href="${{ github.event.pull_request.html_url }}">View Pull Request</a>
