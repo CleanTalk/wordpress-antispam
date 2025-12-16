@@ -1,0 +1,63 @@
+name: Check for library changes on PR Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - dev
+      - master
+
+jobs:
+  notify:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Dependencies
+        run: composer i
+
+      - name: Check for library changes
+        id: check-libraries
+        run: |
+          TARGET_BRANCH="${{ github.event.pull_request.base.ref }}"
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD -- vendor/ | grep -v '^composer\.lock$' || true)
+          
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No library changes detected in vendor/"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Library changes detected in vendor/ after merge!"
+          
+            HTML_LIST=$(echo "$CHANGED_FILES" | sed 's/^/<li>/;s/$/<\/li>/')
+            echo "html_list<<EOF" >> $GITHUB_OUTPUT
+            echo "<ul>$HTML_LIST</ul>" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send notification to Matrix
+        if: steps.check-libraries.outputs.has_changes == 'true'
+        uses: Glomberg/matrix-messenger-action@master
+        with:
+          server: ${{ secrets.MATRIX_SERVER }}
+          to: ${{ secrets.MATRIX_EXTERNSION_ROOM }}
+          token: ${{ secrets.MATRIX_USER_TOKEN }}
+          message: |
+            📦 <strong>Library Changes Detected After PR Merge!</strong>
+            
+            Repository: <strong>${{ github.repository }}</strong>
+            PR #${{ github.event.pull_request.number }} merged by: <strong>${{ github.event.pull_request.merged_by.login }}</strong>
+            Title: ${{ github.event.pull_request.title }}
+            
+            ⚠️ Libraries may not be up-to-date.
+            
+            <strong>Changed files in vendor/:</strong>
+            ${{ steps.check-libraries.outputs.html_list }}
+            
+            <a href="${{ github.event.pull_request.html_url }}">View Pull Request</a>
