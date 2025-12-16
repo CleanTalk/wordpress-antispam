@@ -699,6 +699,31 @@ class ApbctHandler {
                         }
                     }
 
+                    // WooCommerce add to cart request, like:
+                    // /index.php?rest_route=/wc/store/v1/cart/add-item
+                    if (args && args[0] &&
+                        args[0].includes('/wc/store/v1/cart/add-item') &&
+                        args && args[1] && args[1].body
+                    ) {
+                        if (
+                            +ctPublic.settings__data__bot_detector_enabled &&
+                            +ctPublic.settings__forms__wc_add_to_cart
+                        ) {
+                            try {
+                                let bodyObj = JSON.parse(args[1].body);
+                                if (!bodyObj.hasOwnProperty('ct_bot_detector_event_token')) {
+                                    bodyObj.ct_bot_detector_event_token =
+                                        apbctLocalStorage.get('ct_bot_detector_event_token');
+                                    args[1].body = JSON.stringify(bodyObj);
+                                }
+                            } catch (e) {
+                                return false;
+                            }
+                        } else {
+                            args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
+                        }
+                    }
+
                     return defaultFetch.apply(window, args);
                 };
             }
