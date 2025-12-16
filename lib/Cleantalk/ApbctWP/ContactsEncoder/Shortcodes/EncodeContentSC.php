@@ -58,8 +58,7 @@ class EncodeContentSC extends EmailEncoderShortCode
      * @param string $_tag The name of the shortcode tag.
      *
      * @return string The encoded content or the original content if the cookie is set.
-     * @psalm-suppress PossiblyUnusedReturnValue
-     * @psalm-suppress TooFewArguments
+     * @psalm-suppress PossiblyUnusedReturnValue, TooFewArguments
      * @throws \Exception
      */
     public function callback($_atts, $content, $_tag)
