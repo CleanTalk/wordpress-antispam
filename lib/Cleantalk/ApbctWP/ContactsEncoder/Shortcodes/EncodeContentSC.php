@@ -82,7 +82,7 @@ class EncodeContentSC extends EmailEncoderShortCode
             $replacing_text = null;
         }
 
-        return ContactsEncoder::getInstance()->modifyShortcodeContent($content, $mode, $replacing_text);
+        return apbctGetContactsEncoder()->modifyShortcodeContent($content, $mode, $replacing_text);
     }
 
     /**

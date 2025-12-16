@@ -150,12 +150,9 @@ abstract class ContactsEncoder
      * @throws \Exception
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public static function getInstance(Params $params = null)
+    public static function getInstance(Params $params)
     {
         if ( ! isset(static::$instance) ) {
-            if ( ! $params ) {
-                throw new \Exception('Params object not set');
-            }
             static::$instance = new static();
             static::$instance->init($params);
         }
@@ -176,7 +173,7 @@ abstract class ContactsEncoder
      *
      * @return void
      */
-    protected function init($params)
+    protected function init(Params $params)
     {
         $this->exclusions = new ExclusionsService($params);
         $this->encoder = new Encoder(md5($params->api_key));
