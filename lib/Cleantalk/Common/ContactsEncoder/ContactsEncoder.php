@@ -35,6 +35,8 @@ abstract class ContactsEncoder
      */
     protected $temp_content;
 
+    // Dummy changes for testing
+
     /**
      * Regular expressions parts.
      */
