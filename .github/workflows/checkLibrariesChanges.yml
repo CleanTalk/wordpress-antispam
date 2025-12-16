@@ -7,6 +7,9 @@ on:
       - dev
       - master
 
+env: # environment variables (available in any part of the action)
+  PHP_VERSION: 7.4
+
 jobs:
   notify:
     if: github.event.pull_request.merged == true
