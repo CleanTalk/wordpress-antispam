@@ -58,7 +58,7 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Matrix notify
+      - name: Matrix notify on failure
         if: failure()
         uses: Glomberg/matrix-messenger-action@master
         with:

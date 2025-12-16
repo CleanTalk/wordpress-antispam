@@ -121,4 +121,34 @@ class SettingsTest extends TestCase
         $this->assertIsString(apbct_settings__sanitize__exclusions(''));
         $this->assertIsString(apbct_settings__sanitize__exclusions('', 0));
     }
+
+    public function test_apbct_settings__set_fields()
+    {
+        $fields = apbct_settings__set_fields();
+        $this->assertIsArray($fields);
+
+        // Enumerate all top-level array keys
+        $expected_keys = array(
+            'main',
+            'state',
+            'different',
+            'spoilers_links',
+            'advanced_settings',
+            'forms_protection',
+            'wc',
+            'comments_and_messages',
+            'data_processing',
+            'contact_data_encoding',
+            'exclusions',
+            'admin_bar',
+            'sfw_features',
+            'misc',
+            'trusted_and_affiliate'
+        );
+
+        foreach ($expected_keys as $key) {
+            $this->assertArrayHasKey($key, $fields, "Missing key: {$key}");
+            $this->assertIsArray($fields[$key], "Key '{$key}' should be an array");
+        }
+    }
 }
