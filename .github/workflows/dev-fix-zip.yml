@@ -1,0 +1,80 @@
+name: Auto Release Zip on dev/fix push (Linux)
+
+on:
+  push:
+    branches: [dev, fix, beta]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install p7zip
+        run: sudo apt-get update && sudo apt-get install -y p7zip-full
+
+      - name: Set plugin name
+        run: echo "PLUGIN_NAME=cleantalk-spam-protect" >> $GITHUB_ENV
+
+      - name: Check if .7zignore exists
+        id: check_ignore
+        run: |
+          if [ -f ".7zignore" ]; then
+            echo "Using existing .7zignore file"
+            echo "ignore_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::.7zignore file not found, creating default one"
+            echo "ignore_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create default .7zignore if missing
+        if: steps.check_ignore.outputs.ignore_exists == 'false'
+        run: |
+          cat > .7zignore << EOF
+          node_modules/
+          vendor/
+          js/prebuild/
+          js/src/
+          css/src/
+          tests/
+          package.json
+          package-lock.json
+          gulpfile.js
+          README.md
+          LICENSE
+          psalm.xml
+          composer.json
+          composer.lock
+          .*
+          EOF
+
+      - name: Create ZIP archive with 7z
+        run: 7z a -tzip "${PLUGIN_NAME}.zip" . -xr@.7zignore
+
+      - name: Create / update GitHub Release and upload asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}-version
+          name: ${{ github.ref_name }} version
+          body: "Prebuilt version from ${{ github.ref_name }} branch"
+          draft: false
+          prerelease: true
+          files: |
+            ${{ env.PLUGIN_NAME }}.zip
+          overwrite_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up
+        run: |
+          rm -f "${PLUGIN_NAME}.zip"
+          if [ "${{ steps.check_ignore.outputs.ignore_exists }}" = "false" ]; then
+            rm -f .7zignore
+          fi
