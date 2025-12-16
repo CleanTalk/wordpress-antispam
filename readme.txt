@@ -4,7 +4,7 @@ Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
 Tested up to: 6.9
 Requires PHP: 5.6
-Stable tag: 6.69.2
+Stable tag: 6.70
 License: GPLv2
 
 Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
@@ -411,6 +411,19 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.70 18.12.2025 =
+New. Integrations. Protect Bitrix24 external forms.
+New. SFW. Update. Constant APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE. Used to reduce curl multi batch size.
+Upd. Integrations. Added precheck email for Gravity Forms.
+Upd. Contact Data Encoder. Encoder lib updated to support new formats.
+Upd. Contact Data Encoder. Added new format to encode phone numbers.
+Upd. Setting. Do not drop settings state on disabling. Uses a special list.
+Mod. FluentForm. Added the ability to connect js scripts for logged in users.
+Fix. FluentForm. The verification depends on the data__protect_logged_in and is_user_logged_in() options.
+Fix. Contact Data Encoder. Fixed shortcode flow on multiple use.
+Fix. Contact Data Encoder. PHP 8.4 notices fixed.
+Fix. The Real Person. Adding a check that excludes duplication of TRP.
 
 = 6.69.2  09.12.2025 =
 Fix. Contact Data Encoder. Fixed deprecation notice.
