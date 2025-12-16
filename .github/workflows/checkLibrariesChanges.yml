@@ -32,8 +32,7 @@ jobs:
       - name: Check for library changes
         id: check-libraries
         run: |
-          TARGET_BRANCH="${{ github.event.pull_request.base.ref }}"
-          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD -- vendor/ | grep -v '^composer\.lock$' || true)
+          CHANGED_FILES=$(git status --porcelain | grep -v '^??' | awk '{print $2}' | grep -v '^composer\.lock$' || true)
           
           if [ -z "$CHANGED_FILES" ]; then
             echo "No library changes detected in vendor/"
