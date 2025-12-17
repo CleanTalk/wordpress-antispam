@@ -295,14 +295,16 @@ class Woocommerce extends IntegrationByClassBase
                     }
                 }
 
-                if ( class_exists('\Automattic\WooCommerce\StoreApi\Exceptions\RouteException') ) {
-                    /** @psalm-suppress InvalidThrow */
-                    throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
-                        'woocommerce_store_api_checkout_order_processed',
-                        $ct_result->comment,
-                        403
-                    );
-                }
+                $response = [
+                        'code' => 'woocommerce_store_api_checkout_order_processed',
+                        'message' => $ct_result->comment,
+                        'data' => [
+                                'status' => 403
+                        ]
+                ];
+
+                http_response_code(403);
+                die(json_encode($response));
             }
         }
     }
