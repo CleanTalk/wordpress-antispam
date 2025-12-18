@@ -148,6 +148,9 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
 
         $result = '';
         foreach ($parts as $part) {
+            if (empty($part)) {
+                continue;
+            }
             // if part is email, encode it
             if (preg_match($this->plain_email_pattern, $part)) {
                 $result .= $this->encodePlainEmail($part);
