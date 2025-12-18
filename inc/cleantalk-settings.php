@@ -649,7 +649,7 @@ function apbct_settings__set_fields()
                 ),
                 'data__email_check_exist_post'        => array(
                     'title'       => __('Show email existence alert when filling in the field', 'cleantalk-spam-protect'),
-                    'description' => __('Checks the email address and shows the result as an icon in the email field before submitting the form. Works for WooCommerce checkout form, FluentForms, Contact Form 7, standard WordPress comment form and registration form.', 'cleantalk-spam-protect'),
+                    'description' => __('Checks the email address and shows the result as an icon in the email field before submitting the form. Works for WooCommerce checkout form, FluentForms, Contact Form 7, Gravity Forms, Ninja Forms, WPForms, standard WordPress comment form and registration form.', 'cleantalk-spam-protect'),
                 ),
             ),
         ),
@@ -2150,22 +2150,82 @@ function apbct_settings__field__draw($params = array())
 }
 
 /**
- * Admin callback function - Plugin parameters validator
+ * Keep alive previous state of settings if provided in the list.
  *
- * @param array $settings Array with passed settings
+ * @param array $stored_settings
+ * @param array $incoming_settings
+ * @param array $list_to_keep
  *
- * @return array Array with processed settings
- * @global \Cleantalk\ApbctWP\State $apbct
+ * @return array
  */
-function apbct_settings__validate($settings)
+function apbct_settings__keep_settings_state_values($incoming_settings, $stored_settings, $list_of_settings_to_keep)
 {
-    global $apbct;
+    foreach ($list_of_settings_to_keep as $keep_this) {
+        if (
+                !isset($incoming_settings[$keep_this]) &&
+                isset($stored_settings[$keep_this])
+        ) {
+            $incoming_settings[$keep_this] = $stored_settings[$keep_this];
+        }
+    }
+    return $incoming_settings;
+}
 
-    // If user is not allowed to manage settings. Get settings from the storage
+/**
+ * Set missed settings from default.
+ *
+ * @param array $incoming_settings
+ * @param array $default_settings
+ *
+ * @return array
+ */
+function apbct_settings__set_missed_settings($incoming_settings, $default_settings)
+{
+    // Set missing settings.
+    foreach ( $default_settings as $default_setting => $default_value ) {
+        if ( ! isset($incoming_settings[$default_setting]) ) {
+            $incoming_settings[$default_setting] = null;
+            settype($incoming_settings[$default_setting], gettype($default_value));
+        }
+    }
+    return $incoming_settings;
+}
+
+/**
+ * @param array $incoming_settings
+ * @param array $stored_network_options
+ * @param array $default_settings
+ *
+ * @return array
+ */
+function apbct_settings__set_missed_network_settings($incoming_settings, $stored_network_options, $default_settings)
+{
+    // Set missing network settings.
+    foreach ( $default_settings as $default_setting => $value ) {
+        if ( ! isset($incoming_settings[$default_setting]) ) {
+            if ( ! array_key_exists($default_setting, $stored_network_options) ) {
+                $incoming_settings[$default_setting] = $value;
+            }
+            settype($incoming_settings[$default_setting], gettype($value));
+        }
+    }
+    return $incoming_settings;
+}
+
+/**
+ * Check if the current mode can not manage settings and apply defaults from state
+ * @param array $incoming_settings
+ * @param \Cleantalk\ApbctWP\State $apbct
+ *
+ * @return array
+ */
+function apbct_settings__fill_settings_for_wpms_subsite($incoming_settings, $apbct)
+{
+    // If user is not allowed to manage settings, get settings from the storage
     if (
         ! $apbct->network_settings['multisite__allow_custom_settings'] &&
         //  Skip if templates applying for subsites is not set
-        empty($settings['multisite__use_settings_template_apply_for_current_list_sites']) &&
+        empty($incoming_settings['multisite__use_settings_template_apply_for_current_list_sites']) &&
         ! is_main_site() &&
         current_filter() === 'sanitize_option_cleantalk_settings' // Do in only if settings were saved
     ) {
@@ -2174,70 +2234,99 @@ function apbct_settings__validate($settings)
             if ( $key === 'apikey' && $apbct->allow_custom_key ) {
                 continue;
             }
-            $settings[$key] = $setting;
+            $incoming_settings[$key] = $setting;
         }
     }
+    return $incoming_settings;
+}
 
-    // Set missing settings.
-    foreach ( $apbct->default_settings as $setting => $value ) {
-        if ( ! isset($settings[$setting]) ) {
-            $settings[$setting] = null;
-            settype($settings[$setting], gettype($value));
-            if ($setting === 'data__email_decoder_obfuscation_mode') {
-                $settings[$setting] = $value;
-            }
-        }
-    }
-    unset($setting, $value);
+/**
+ * Admin callback function - Plugin parameters validator
+ *
+ * @param array $incoming_settings Array with passed settings
+ *
+ * @return array Array with incoming processed settings
+ * @global \Cleantalk\ApbctWP\State $apbct
+ */
+function apbct_settings__validate($incoming_settings)
+{
+    global $apbct;
 
-    // Set missing network settings.
+    /**
+     * -- Fill missed settings. --
+     */
+
+    // Check if the current mode can not manage settings and apply defaults from state
+    $incoming_settings = apbct_settings__fill_settings_for_wpms_subsite($incoming_settings, $apbct);
+
+    // Any of this names will be stored as previously set, even if missed in incoming settings array.
+    $list_of_settings_to_keep = array(
+        'data__email_decoder_encode_email_addresses',
+        'data__email_decoder_encode_phone_numbers',
+        'data__email_decoder_obfuscation_mode',
+        'data__email_decoder_obfuscation_custom_text',
+        'data__email_decoder_buffer',
+    );
+    $incoming_settings = apbct_settings__keep_settings_state_values(
+        $incoming_settings,
+        $apbct->settings,
+        $list_of_settings_to_keep
+    );
+
+    // Set missed settings from default.
+    $incoming_settings = apbct_settings__set_missed_settings(
+        $incoming_settings,
+        $apbct->default_settings
+    );
+
+    // Set missing network settings from default.
     $stored_network_options = get_site_option($apbct->option_prefix . '_network_settings', array());
-    foreach ( $apbct->default_network_settings as $setting => $value ) {
-        if ( ! isset($settings[$setting]) ) {
-            if ( ! array_key_exists($setting, $stored_network_options) ) {
-                $settings[$setting] = $value;
-            }
-            settype($settings[$setting], gettype($value));
-        }
-    }
-    unset($setting, $value);
+    $incoming_settings = apbct_settings__set_missed_network_settings(
+        $incoming_settings,
+        is_array($stored_network_options) ? $stored_network_options : array(),
+        $apbct->default_network_settings
+    );
+
+    /**
+     * -- SFW rules --
+     */
 
     // Actions with toggle SFW settings
     // SFW was enabled
-    if ( ! $apbct->settings['sfw__enabled'] && isset($settings['sfw__enabled']) && $settings['sfw__enabled'] ) {
+    if ( ! $apbct->settings['sfw__enabled'] && isset($incoming_settings['sfw__enabled']) && $incoming_settings['sfw__enabled'] ) {
         $cron = new Cron();
         $cron->updateTask('sfw_update', 'apbct_sfw_update__init', 86400, time() + 180);
         // SFW was disabled
-    } elseif ( $apbct->settings['sfw__enabled'] && ( isset($settings['sfw__enabled']) && ! $settings['sfw__enabled'] ) ) {
+    } elseif ( $apbct->settings['sfw__enabled'] && (isset($incoming_settings['sfw__enabled']) && ! $incoming_settings['sfw__enabled'] ) ) {
         apbct_sfw__clear();
     }
 
     //Sanitizing sfw__anti_flood__view_limit setting
-    if (isset($settings['sfw__anti_flood__view_limit'])) {
-        $settings['sfw__anti_flood__view_limit'] = floor(intval($settings['sfw__anti_flood__view_limit']));
+    if (isset($incoming_settings['sfw__anti_flood__view_limit'])) {
+        $incoming_settings['sfw__anti_flood__view_limit'] = floor(intval($incoming_settings['sfw__anti_flood__view_limit']));
     } else {
         // Set a default value or handle the case when the key doesn't exist
-        $settings['sfw__anti_flood__view_limit'] = 20; // or any other default value
+        $incoming_settings['sfw__anti_flood__view_limit'] = 20; // or any other default value
     }
 
     // Ensure the value is at least 5
-    $settings['sfw__anti_flood__view_limit'] = max(5, $settings['sfw__anti_flood__view_limit']);
+    $incoming_settings['sfw__anti_flood__view_limit'] = max(5, $incoming_settings['sfw__anti_flood__view_limit']);
 
     // Validating Access key
-    if (isset($settings['apikey'])) {
-        $settings['apikey'] = strpos($settings['apikey'], '*') === false ? $settings['apikey'] : $apbct->settings['apikey'];
+    if (isset($incoming_settings['apikey'])) {
+        $incoming_settings['apikey'] = strpos($incoming_settings['apikey'], '*') === false ? $incoming_settings['apikey'] : $apbct->settings['apikey'];
     } else {
-        $settings['apikey'] = $apbct->settings['apikey'];
+        $incoming_settings['apikey'] = $apbct->settings['apikey'];
     }
 
-    $apbct->data['key_changed'] = $settings['apikey'] !== $apbct->settings['apikey'];
+    $apbct->data['key_changed'] = $incoming_settings['apikey'] !== $apbct->settings['apikey'];
 
-    $settings['apikey'] = ! empty($settings['apikey']) ? trim($settings['apikey']) : '';
-    $settings['apikey'] = defined('CLEANTALK_ACCESS_KEY') ? CLEANTALK_ACCESS_KEY : $settings['apikey'];
-    $settings['apikey'] = ! is_main_site() && $apbct->white_label && $apbct->settings['apikey'] ? $apbct->settings['apikey'] : $settings['apikey'];
-    $settings['apikey'] = is_main_site() || $apbct->allow_custom_key || $apbct->white_label ? $settings['apikey'] : $apbct->network_settings['apikey'];
-    $settings['apikey'] = is_main_site() || ! isset($settings['multisite__white_label']) || ! $settings['multisite__white_label']
-        ? $settings['apikey']
+    $incoming_settings['apikey'] = ! empty($incoming_settings['apikey']) ? trim($incoming_settings['apikey']) : '';
+    $incoming_settings['apikey'] = defined('CLEANTALK_ACCESS_KEY') ? CLEANTALK_ACCESS_KEY : $incoming_settings['apikey'];
+    $incoming_settings['apikey'] = ! is_main_site() && $apbct->white_label && $apbct->settings['apikey'] ? $apbct->settings['apikey'] : $incoming_settings['apikey'];
+    $incoming_settings['apikey'] = is_main_site() || $apbct->allow_custom_key || $apbct->white_label ? $incoming_settings['apikey'] : $apbct->network_settings['apikey'];
+    $incoming_settings['apikey'] = is_main_site() || ! isset($incoming_settings['multisite__white_label']) || ! $incoming_settings['multisite__white_label']
+        ? $incoming_settings['apikey']
         : $apbct->settings['apikey'];
 
     // Show notice if the Access key is empty
@@ -2250,7 +2339,7 @@ function apbct_settings__validate($settings)
     }
 
     // Sanitize setting values
-    foreach ( $settings as &$setting ) {
+    foreach ( $incoming_settings as &$setting ) {
         if ( is_string($setting) ) {
             $setting = preg_replace('/[<"\'>]/', '', trim($setting));
         } // Make HTML code inactive
@@ -2259,7 +2348,7 @@ function apbct_settings__validate($settings)
     // Validate Exclusions
     // URLs
     $is_exclusions_url_like = apbct_settings__sanitize__exclusions(
-        isset($settings['exclusions__urls']) ? $settings['exclusions__urls'] : '',
+        isset($incoming_settings['exclusions__urls']) ? $incoming_settings['exclusions__urls'] : '',
         false,
         true
     );
@@ -2271,117 +2360,117 @@ function apbct_settings__validate($settings)
     }
 
     $result = apbct_settings__sanitize__exclusions(
-        isset($settings['exclusions__urls']) ? $settings['exclusions__urls'] : '',
-        isset($settings['exclusions__urls__use_regexp']) ? $settings['exclusions__urls__use_regexp'] : false,
+        isset($incoming_settings['exclusions__urls']) ? $incoming_settings['exclusions__urls'] : '',
+        isset($incoming_settings['exclusions__urls__use_regexp']) ? $incoming_settings['exclusions__urls__use_regexp'] : false,
         $apbct->data['check_exclusion_as_url']
     );
     $result === false
         ? $apbct->errorAdd(
             'exclusions_urls',
-            'is not valid: "' . (isset($settings['exclusions__urls']) ? $settings['exclusions__urls'] : '') . '"',
+            'is not valid: "' . (isset($incoming_settings['exclusions__urls']) ? $incoming_settings['exclusions__urls'] : '') . '"',
             'settings_validate'
         )
         : $apbct->errorDelete('exclusions_urls', true, 'settings_validate');
-    $settings['exclusions__urls'] = $result ? $result : '';
+    $incoming_settings['exclusions__urls'] = $result ? $result : '';
 
     // Fields
     $result = apbct_settings__sanitize__exclusions(
-        isset($settings['exclusions__fields']) ? $settings['exclusions__fields'] : '',
-        isset($settings['exclusions__fields__use_regexp']) ? $settings['exclusions__fields__use_regexp'] : false
+        isset($incoming_settings['exclusions__fields']) ? $incoming_settings['exclusions__fields'] : '',
+        isset($incoming_settings['exclusions__fields__use_regexp']) ? $incoming_settings['exclusions__fields__use_regexp'] : false
     );
     $result === false
         ? $apbct->errorAdd(
             'exclusions_fields',
-            'is not valid: "' . (isset($settings['exclusions__fields']) ? $settings['exclusions__fields'] : '') . '"',
+            'is not valid: "' . (isset($incoming_settings['exclusions__fields']) ? $incoming_settings['exclusions__fields'] : '') . '"',
             'settings_validate'
         )
         : $apbct->errorDelete('exclusions_fields', true, 'settings_validate');
-    $settings['exclusions__fields'] = $result ? $result : '';
+    $incoming_settings['exclusions__fields'] = $result ? $result : '';
 
     // Form signs exclusions
     $result = apbct_settings__sanitize__exclusions(
-        isset($settings['exclusions__form_signs']) ? $settings['exclusions__form_signs'] : '',
+        isset($incoming_settings['exclusions__form_signs']) ? $incoming_settings['exclusions__form_signs'] : '',
         true
     );
     $result === false
         ? $apbct->errorAdd(
             'exclusions_fields',
-            'is not valid: "' . (isset($settings['exclusions__form_signs']) ? $settings['exclusions__form_signs'] : '') . '"',
+            'is not valid: "' . (isset($incoming_settings['exclusions__form_signs']) ? $incoming_settings['exclusions__form_signs'] : '') . '"',
             'settings_validate'
         )
         : $apbct->errorDelete('exclusions_fields', true, 'settings_validate');
-    $settings['exclusions__form_signs'] = $result ? $result : '';
+    $incoming_settings['exclusions__form_signs'] = $result ? $result : '';
 
     //Bot detector form
     $result = apbct_settings__sanitize__exclusions(
-        isset($settings['exclusions__bot_detector__form_attributes']) ? $settings['exclusions__bot_detector__form_attributes'] : '',
+        isset($incoming_settings['exclusions__bot_detector__form_attributes']) ? $incoming_settings['exclusions__bot_detector__form_attributes'] : '',
         true
     );
     $result === false
         ? $apbct->errorAdd(
             'exclusions_fields',
-            'is not valid: "' . (isset($settings['exclusions__bot_detector__form_attributes']) ? $settings['exclusions__bot_detector__form_attributes'] : '') . '"',
+            'is not valid: "' . (isset($incoming_settings['exclusions__bot_detector__form_attributes']) ? $incoming_settings['exclusions__bot_detector__form_attributes'] : '') . '"',
             'settings_validate'
         )
         : $apbct->errorDelete('exclusions_fields', true, 'settings_validate');
-    $settings['exclusions__bot_detector__form_attributes'] = $result ? $result : '';
+    $incoming_settings['exclusions__bot_detector__form_attributes'] = $result ? $result : '';
 
     //Bot detector parent
     $result = apbct_settings__sanitize__exclusions(
-        isset($settings['exclusions__bot_detector__form_parent_attributes']) ? $settings['exclusions__bot_detector__form_parent_attributes'] : '',
+        isset($incoming_settings['exclusions__bot_detector__form_parent_attributes']) ? $incoming_settings['exclusions__bot_detector__form_parent_attributes'] : '',
         true
     );
     $result === false
         ? $apbct->errorAdd(
             'exclusions_fields',
-            'is not valid: "' . (isset($settings['exclusions__bot_detector__form_parent_attributes']) ? $settings['exclusions__bot_detector__form_parent_attributes'] : '') . '"',
+            'is not valid: "' . (isset($incoming_settings['exclusions__bot_detector__form_parent_attributes']) ? $incoming_settings['exclusions__bot_detector__form_parent_attributes'] : '') . '"',
             'settings_validate'
         )
         : $apbct->errorDelete('exclusions_fields', true, 'settings_validate');
-    $settings['exclusions__bot_detector__form_parent_attributes'] = $result ? $result : '';
+    $incoming_settings['exclusions__bot_detector__form_parent_attributes'] = $result ? $result : '';
 
     //Bot detector child
     $result = apbct_settings__sanitize__exclusions(
-        isset($settings['exclusions__bot_detector__form_children_attributes']) ? $settings['exclusions__bot_detector__form_children_attributes'] : '',
+        isset($incoming_settings['exclusions__bot_detector__form_children_attributes']) ? $incoming_settings['exclusions__bot_detector__form_children_attributes'] : '',
         true
     );
     $result === false
         ? $apbct->errorAdd(
             'exclusions_fields',
-            'is not valid: "' . (isset($settings['exclusions__bot_detector__form_children_attributes']) ? $settings['exclusions__bot_detector__form_children_attributes'] : '') . '"',
+            'is not valid: "' . (isset($incoming_settings['exclusions__bot_detector__form_children_attributes']) ? $incoming_settings['exclusions__bot_detector__form_children_attributes'] : '') . '"',
             'settings_validate'
         )
         : $apbct->errorDelete('exclusions_fields', true, 'settings_validate');
-    $settings['exclusions__bot_detector__form_children_attributes'] = $result ? $result : '';
+    $incoming_settings['exclusions__bot_detector__form_children_attributes'] = $result ? $result : '';
 
 
     $network_settings = array();
     // WPMS Logic.
     if ( APBCT_WPMS && is_main_site() ) {
         $network_settings = array(
-            'multisite__allow_custom_settings'                              => isset($settings['multisite__allow_custom_settings']) ? $settings['multisite__allow_custom_settings'] : 0,
-            'multisite__white_label'                                        => isset($settings['multisite__white_label']) ? $settings['multisite__white_label'] : 0,
-            'multisite__white_label__plugin_name'                           => isset($settings['multisite__white_label__plugin_name']) ? $settings['multisite__white_label__plugin_name'] : '',
-            'multisite__use_settings_template'                              => isset($settings['multisite__use_settings_template']) ? $settings['multisite__use_settings_template'] : 0,
-            'multisite__use_settings_template_apply_for_new'                => isset($settings['multisite__use_settings_template_apply_for_new']) ? $settings['multisite__use_settings_template_apply_for_new'] : 0,
-            'multisite__use_settings_template_apply_for_current'            => isset($settings['multisite__use_settings_template_apply_for_current']) ? $settings['multisite__use_settings_template_apply_for_current'] : 0,
-            'multisite__use_settings_template_apply_for_current_list_sites' => isset($settings['multisite__use_settings_template_apply_for_current_list_sites']) ? $settings['multisite__use_settings_template_apply_for_current_list_sites'] : 0,
+            'multisite__allow_custom_settings'                              => isset($incoming_settings['multisite__allow_custom_settings']) ? $incoming_settings['multisite__allow_custom_settings'] : 0,
+            'multisite__white_label'                                        => isset($incoming_settings['multisite__white_label']) ? $incoming_settings['multisite__white_label'] : 0,
+            'multisite__white_label__plugin_name'                           => isset($incoming_settings['multisite__white_label__plugin_name']) ? $incoming_settings['multisite__white_label__plugin_name'] : '',
+            'multisite__use_settings_template'                              => isset($incoming_settings['multisite__use_settings_template']) ? $incoming_settings['multisite__use_settings_template'] : 0,
+            'multisite__use_settings_template_apply_for_new'                => isset($incoming_settings['multisite__use_settings_template_apply_for_new']) ? $incoming_settings['multisite__use_settings_template_apply_for_new'] : 0,
+            'multisite__use_settings_template_apply_for_current'            => isset($incoming_settings['multisite__use_settings_template_apply_for_current']) ? $incoming_settings['multisite__use_settings_template_apply_for_current'] : 0,
+            'multisite__use_settings_template_apply_for_current_list_sites' => isset($incoming_settings['multisite__use_settings_template_apply_for_current_list_sites']) ? $incoming_settings['multisite__use_settings_template_apply_for_current_list_sites'] : 0,
         );
-        unset($settings['multisite__white_label'], $settings['multisite__white_label__plugin_name']);
+        unset($incoming_settings['multisite__white_label'], $incoming_settings['multisite__white_label__plugin_name']);
 
-        if ( isset($settings['multisite__hoster_api_key']) ) {
-            $network_settings['multisite__hoster_api_key'] = $settings['multisite__hoster_api_key'];
+        if ( isset($incoming_settings['multisite__hoster_api_key']) ) {
+            $network_settings['multisite__hoster_api_key'] = $incoming_settings['multisite__hoster_api_key'];
         }
 
-        if ( isset($settings['multisite__work_mode']) ) {
-            $network_settings['multisite__work_mode'] = $settings['multisite__work_mode'];
+        if ( isset($incoming_settings['multisite__work_mode']) ) {
+            $network_settings['multisite__work_mode'] = $incoming_settings['multisite__work_mode'];
         }
     }
 
     // Send connection reports
     if ( Post::get('submit') === 'ct_send_connection_report' ) {
         $apbct->getConnectionReports()->sendUnsentReports();
-        return $settings;
+        return $incoming_settings;
     }
 
     // Ajax type
@@ -2390,29 +2479,29 @@ function apbct_settings__validate($settings)
 
     if (
         $apbct->data['cookies_type'] === 'alternative' ||
-        (isset($settings['data__use_ajax']) && $settings['data__use_ajax'] == 1)
+        (isset($incoming_settings['data__use_ajax']) && $incoming_settings['data__use_ajax'] == 1)
     ) {
         if ( $available_ajax_type === false ) {
             // There is no available alt cookies types. Cookies will be disabled.
             // There is no available ajax types. AJAX js will be disabled.
-            $settings['data__set_cookies'] = 0;
-            $settings['data__use_ajax'] = 0;
+            $incoming_settings['data__set_cookies'] = 0;
+            $incoming_settings['data__use_ajax']    = 0;
         }
     }
 
     // Banner notice_email_decoder_changed
     if (
         (
-            isset($apbct->settings['data__email_decoder'], $settings['data__email_decoder']) &&
-            ((int)$apbct->settings['data__email_decoder'] !== (int)$settings['data__email_decoder'])
+                isset($apbct->settings['data__email_decoder'], $incoming_settings['data__email_decoder']) &&
+                ((int)$apbct->settings['data__email_decoder'] !== (int)$incoming_settings['data__email_decoder'])
         ) ||
         (
-            isset($apbct->settings['data__email_decoder_encode_phone_numbers'], $settings['data__email_decoder_encode_phone_numbers']) &&
-            ((int)$apbct->settings['data__email_decoder_encode_phone_numbers'] !== (int)$settings['data__email_decoder_encode_phone_numbers'])
+                isset($apbct->settings['data__email_decoder_encode_phone_numbers'], $incoming_settings['data__email_decoder_encode_phone_numbers']) &&
+                ((int)$apbct->settings['data__email_decoder_encode_phone_numbers'] !== (int)$incoming_settings['data__email_decoder_encode_phone_numbers'])
         ) ||
         (
-            isset($apbct->settings['data__email_decoder_encode_email_addresses'], $settings['data__email_decoder_encode_email_addresses']) &&
-            ((int)$apbct->settings['data__email_decoder_encode_email_addresses'] !== (int)$settings['data__email_decoder_encode_email_addresses'])
+                isset($apbct->settings['data__email_decoder_encode_email_addresses'], $incoming_settings['data__email_decoder_encode_email_addresses']) &&
+                ((int)$apbct->settings['data__email_decoder_encode_email_addresses'] !== (int)$incoming_settings['data__email_decoder_encode_email_addresses'])
         )
     ) {
         $apbct->data['notice_email_decoder_changed'] = 1;
@@ -2424,7 +2513,7 @@ function apbct_settings__validate($settings)
     if ( APBCT_WPMS ) {
         if ( is_main_site() ) {
             // Network settings
-            $network_settings['apikey'] = isset($settings['apikey']) ? $settings['apikey'] : '';
+            $network_settings['apikey'] = isset($incoming_settings['apikey']) ? $incoming_settings['apikey'] : '';
             $apbct->network_settings    = $network_settings;
             $apbct->saveNetworkSettings();
 
@@ -2438,24 +2527,24 @@ function apbct_settings__validate($settings)
                 'user_id'  => $apbct->data['user_id'],
             );
             $apbct->saveNetworkData();
-            if ( isset($settings['multisite__use_settings_template_apply_for_current_list_sites'])
-                && !empty($settings['multisite__use_settings_template_apply_for_current_list_sites']) ) {
+            if ( isset($incoming_settings['multisite__use_settings_template_apply_for_current_list_sites'])
+                && !empty($incoming_settings['multisite__use_settings_template_apply_for_current_list_sites']) ) {
                 //remove filter to avoid multiple validation
                 remove_filter('sanitize_option_cleantalk_settings', 'apbct_settings__validate');
-                apbct_update_blogs_options($settings);
+                apbct_update_blogs_options($incoming_settings);
             }
         } else {
             // compare non-main site blog key with the validating key
             $blog_settings = get_option('cleantalk_settings');
             $key_from_blog_settings = !empty($blog_settings['apikey']) ? $blog_settings['apikey'] : '';
-            if ( isset($settings['apikey']) && (trim($settings['apikey']) !== trim($key_from_blog_settings)) ) {
+            if ( isset($incoming_settings['apikey']) && (trim($incoming_settings['apikey']) !== trim($key_from_blog_settings)) ) {
                 $blog_key_changed = true;
             }
             $apbct->data['key_changed'] = empty($blog_key_changed) ? false : $blog_key_changed;
             $apbct->save('data');
         }
         if ( ! $apbct->white_label && ! is_main_site() && ! $apbct->allow_custom_key ) {
-            $settings['apikey'] = '';
+            $incoming_settings['apikey'] = '';
         }
     }
 
@@ -2466,32 +2555,32 @@ function apbct_settings__validate($settings)
 
     //email encoder obfuscation custom text validation
     if (
-            isset($settings['data__email_decoder_obfuscation_mode'])
-            && $settings['data__email_decoder_obfuscation_mode'] === Params::OBFUSCATION_MODE_REPLACE
+            isset($incoming_settings['data__email_decoder_obfuscation_mode'])
+            && $incoming_settings['data__email_decoder_obfuscation_mode'] === Params::OBFUSCATION_MODE_REPLACE
     ) {
-        if (empty($settings['data__email_decoder_obfuscation_custom_text'])) {
+        if (empty($incoming_settings['data__email_decoder_obfuscation_custom_text'])) {
             $apbct->errorDelete('email_encoder', true, 'settings_validate');
-            $settings['data__email_decoder_obfuscation_custom_text'] = ContactsEncoder::getDefaultReplacingText();
+            $incoming_settings['data__email_decoder_obfuscation_custom_text'] = ContactsEncoder::getDefaultReplacingText();
             $apbct->errorAdd(
                 'email_encoder',
                 'custom text can not be empty, default value applied.',
                 'settings_validate'
             );
         } else {
-            $settings['data__email_decoder_obfuscation_custom_text'] = sanitize_textarea_field($settings['data__email_decoder_obfuscation_custom_text']);
+            $incoming_settings['data__email_decoder_obfuscation_custom_text'] = sanitize_textarea_field($incoming_settings['data__email_decoder_obfuscation_custom_text']);
             $apbct->errorDelete('email_encoder', true, 'settings_validate');
         }
     } else {
         $apbct->errorDelete('email_encoder', true, 'settings_validate');
-        $settings['data__email_decoder_obfuscation_custom_text'] = ContactsEncoder::getDefaultReplacingText();
+        $incoming_settings['data__email_decoder_obfuscation_custom_text'] = ContactsEncoder::getDefaultReplacingText();
     }
 
     /**
      * Triggered before returning the settings
      */
-    do_action('apbct_before_returning_settings', $settings);
+    do_action('apbct_before_returning_settings', $incoming_settings);
 
-    return $settings;
+    return $incoming_settings;
 }
 
 function apbct_settings__sync($direct_call = false)

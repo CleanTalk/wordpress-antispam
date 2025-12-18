@@ -599,7 +599,15 @@ class ApbctHandler {
                         Array.from(document.forms).some((form) =>
                             form.classList.contains('metform-form-content')) ||
                         Array.from(document.forms).some((form) =>
-                            form.classList.contains('wprm-user-ratings-modal-stars-container'))
+                            form.classList.contains('wprm-user-ratings-modal-stars-container')) ||
+                        Array.from(document.forms).some((form) => {
+                            if (form.parentElement &&
+                                form.parentElement.classList.length > 0 &&
+                                form.parentElement.classList[0].indexOf('b24-form-content') !== -1
+                            ) {
+                                return true;
+                            }
+                        })
                     )
                 ) ||
                 (
@@ -617,7 +625,9 @@ class ApbctHandler {
                     })
                 )
             ) {
-                window.fetch = function(...args) {
+                let preventOriginalFetch = false;
+
+                window.fetch = async function(...args) {
                     // Metform block
                     if (
                         Array.from(document.forms).some((form) => form.classList.contains('metform-form-content')) &&
@@ -699,7 +709,56 @@ class ApbctHandler {
                         }
                     }
 
-                    return defaultFetch.apply(window, args);
+                    // bitrix24 EXTERNAL form
+                    if (+ctPublic.settings__forms__check_external &&
+                        args && args[0] &&
+                        args[0].includes('bitrix/services/main/ajax.php?action=crm.site.form.fill') &&
+                        args[1] && args[1].body && args[1].body instanceof FormData
+                    ) {
+                        const currentTargetForm = document.querySelector('.b24-form form');
+                        let data = {
+                            action: 'cleantalk_force_ajax_check',
+                        };
+                        for (const field of currentTargetForm.elements) {
+                            data[field.name] = field.value;
+                        }
+
+                        // check form request - wrap in Promise to wait for completion
+                        await new Promise((resolve, reject) => {
+                            apbct_public_sendAJAX(
+                                data,
+                                {
+                                    async: true,
+                                    callback: function( result, data, params, obj ) {
+                                        // allowed
+                                        if ((result.apbct === undefined && result.data === undefined) ||
+                                            (result.apbct !== undefined && ! +result.apbct.blocked)
+                                        ) {
+                                            preventOriginalFetch = false;
+                                        }
+
+                                        // blocked
+                                        if ((result.apbct !== undefined && +result.apbct.blocked) ||
+                                            (result.data !== undefined && result.data.message !== undefined)
+                                        ) {
+                                            preventOriginalFetch = true;
+                                            new ApbctShowForbidden().parseBlockMessage(result);
+                                        }
+
+                                        resolve(result);
+                                    },
+                                    onErrorCallback: function( error ) {
+                                        console.log('AJAX error:', error);
+                                        reject(error);
+                                    },
+                                },
+                            );
+                        });
+                    }
+
+                    if (!preventOriginalFetch) {
+                        return defaultFetch.apply(window, args);
+                    }
                 };
             }
         }, 1000);

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.69.2
+  Version: 6.70
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -603,7 +603,21 @@ add_action('mec_booking_end_form_step_2', function () {
 
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
-    if (apbct_is_plugin_active('fluentformpro/fluentformpro.php') && apbct_is_in_uri('ff_landing=')) {
+    if ( ! function_exists('is_user_logged_in') ) {
+        require_once ABSPATH . 'wp-includes/pluggable.php';
+    }
+    if (
+        apbct_is_plugin_active('fluentformpro/fluentformpro.php') &&
+        (
+            apbct_is_in_uri('ff_landing=') ||
+            (
+                // Load scripts for logged in users if constant is defined
+                is_user_logged_in() &&
+                (defined('APBCT_FF_JS_SCRIPTS_LOAD') &&
+                APBCT_FF_JS_SCRIPTS_LOAD == true)
+            )
+        )
+    ) {
         add_action('wp_head', function () {
             echo '<script data-pagespeed-no-defer="" src="'
                 . APBCT_URL_PATH
@@ -1504,6 +1518,20 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
 
     $results = array();
     $batch_size = 10;
+
+    /**
+     * Reduce batch size of curl multi instanced
+     */
+    if (defined('APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE')) {
+        if (
+            is_int(APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE) &&
+            APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE > 0 &&
+            APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE < 10
+        ) {
+            $batch_size = APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE;
+        };
+    }
+
     $total_urls = count($urls);
     $batches = ceil($total_urls / $batch_size);
 

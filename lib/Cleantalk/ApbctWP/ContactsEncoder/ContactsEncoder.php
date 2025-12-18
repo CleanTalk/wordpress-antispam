@@ -135,6 +135,34 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     }
 
     /**
+     * Modify content of shortcode.
+     * @param string $content
+     * @param string $mode
+     * @param string $replacing_text
+     * @return string
+     */
+    public function modifyShortcodeContent($content, $mode = Params::OBFUSCATION_MODE_BLUR, $replacing_text = null)
+    {
+        // split content by emails to array
+        $parts = preg_split($this->plain_email_pattern, $content, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+        $result = '';
+        foreach ($parts as $part) {
+            if (empty($part)) {
+                continue;
+            }
+            // if part is email, encode it
+            if (preg_match($this->plain_email_pattern, $part)) {
+                $result .= $this->encodePlainEmail($part);
+            } else {
+                $result .= $this->modifyAny($part, $mode, $replacing_text);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * @return void
      */
     private function handlePrivacyPolicyHook()
@@ -320,22 +348,28 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             <p class="apbct-icon-ok" style="padding-left: 10px">%s</p>
             <p class="apbct-icon-ok" style="padding-left: 10px">%s</p>
             <p class="apbct-icon-ok" style="padding-left: 10px">%s</p>
+            <p class="apbct-icon-ok" style="padding-left: 10px">%s</p>
+            <p class="apbct-icon-ok" style="padding-left: 10px">%s</p>
+            <p class="apbct-icon-ok" style="padding-left: 10px">%s</p>
         <p>%s</p>
             <p>%s</p>
         ';
         $tmp = sprintf(
-            $tmp,
+            trim($tmp),
             __('Enable this option to encode contact phone numbers', 'cleantalk-spam-protect'),
             __('There are a few requirements to the number format:', 'cleantalk-spam-protect'),
             __('Should starting with "+" symbol or opening brace', 'cleantalk-spam-protect'),
             __('At least 8 digit numbers', 'cleantalk-spam-protect'),
             __('Less than 13 digit numbers', 'cleantalk-spam-protect'),
-            __('Spaces, braces and dashes between digits are allowed', 'cleantalk-spam-protect'),
+            __('Spaces, braces, dots and dashes between digits are allowed', 'cleantalk-spam-protect'),
             __('Examples of format', 'cleantalk-spam-protect'),
             esc_html('+1 (234) 567-8901'),
             esc_html('+12345678901'),
             esc_html('+12 34 5678901'),
             esc_html('(234) 567-8910'),
+            esc_html('+49 30 1234567'),
+            esc_html('+49.30.1234567'),
+            esc_html('+1.775.333.3330'),
             __('Complied numbers in the "a" tag with "tel" property will be also encoded', 'cleantalk-spam-protect'),
             esc_html('<a href="tel:+11234567890">Call  +1 (123) 456-7890</a>')
         );

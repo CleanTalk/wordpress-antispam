@@ -1,0 +1,15 @@
+node_modules/
+vendor/
+js/prebuild/
+js/src/
+css/src/
+tests/
+package.json
+package-lock.json
+gulpfile.js
+README.md
+LICENSE
+psalm.xml
+composer.json
+composer.lock
+.*

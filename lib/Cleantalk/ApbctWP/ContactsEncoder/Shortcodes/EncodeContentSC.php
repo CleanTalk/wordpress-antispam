@@ -27,7 +27,12 @@ class EncodeContentSC extends EmailEncoderShortCode
     /**
      * @var string The wrapper used to mark content for inclusion during encoding.
      */
-    public $exclusion_wrapper = '%%APBCT_SHORT_CODE_INCLUDE_EE_#COUNT#%%';
+    public $exclusion_wrapper = '%%APBCT_SHORT_CODE_INCLUDE_EE_0%%';
+
+    /**
+     * @var int Counter for shortcode placeholders
+     */
+    private $shortcode_counter = 0;
 
     /**
      * @var ExclusionsService
@@ -53,11 +58,15 @@ class EncodeContentSC extends EmailEncoderShortCode
      * @param string $_tag The name of the shortcode tag.
      *
      * @return string The encoded content or the original content if the cookie is set.
-     * @psalm-suppress PossiblyUnusedReturnValue
+     * @psalm-suppress PossiblyUnusedReturnValue, TooFewArguments
      * @throws \Exception
      */
     public function callback($_atts, $content, $_tag)
     {
+        if (is_null($content)) {
+            return '';
+        }
+
         if ( Cookie::get('apbct_email_encoder_passed') === apbct_get_email_encoder_pass_key() ) {
             return (string)$content;
         }
@@ -73,7 +82,7 @@ class EncodeContentSC extends EmailEncoderShortCode
             $replacing_text = null;
         }
 
-        return ContactsEncoder::getInstance()->modifyAny($content, $mode, $replacing_text);
+        return apbctGetContactsEncoder()->modifyShortcodeContent($content, $mode, $replacing_text);
     }
 
     /**
@@ -96,14 +105,18 @@ class EncodeContentSC extends EmailEncoderShortCode
         // skip encoding if the content is already encoded with hook
         // Extract shortcode content to protect it from email encoding
         $shortcode_exist_pattern = sprintf('/\[%s\](.*?)\[\/%s\]/s', $this->public_name, $this->public_name);
-        $shortcode_counter = 0;
-        $content = preg_replace_callback($shortcode_exist_pattern, function ($matches) use (&$shortcode_counter) {
-            $placeholder = str_replace('#COUNT#', $shortcode_counter++, $this->exclusion_wrapper);
+        $content = preg_replace_callback($shortcode_exist_pattern, function ($matches) {
+            $placeholder = preg_replace('/EE\_\d+/', 'EE_' . (string)$this->shortcode_counter++, $this->exclusion_wrapper);
+            if (is_null($placeholder)) {
+                $placeholder = $this->exclusion_wrapper;
+            }
             if (isset($matches[0])) {
                 $this->shortcode_replacements[$placeholder] = $matches[0];
             }
+
             return $placeholder;
         }, $content);
+
         return $content;
     }
 

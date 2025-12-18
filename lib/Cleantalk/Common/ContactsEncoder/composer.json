@@ -1,11 +1,10 @@
 {
   "name": "cleantalk/contacts-encoder",
   "description": "CleanTalk ContactsEncoder class",
-  "type": "cleantalk-apbct-lib",
   "authors": [
     {
       "name": "CleanTalk Team",
-      "email": "support@cleantalk.org"
+      "email": "plugins@cleantalk.org"
     }
   ],
   "license": "GPL-3.0-or-later",
@@ -14,9 +13,6 @@
     "phpunit/phpunit": "^7.5",
     "squizlabs/php_codesniffer": "3.*",
     "phpcompatibility/php-compatibility": "@dev"
-  },
-  "require": {
-    "cleantalk/apbct-installer": "*"
   },
   "scripts": {
     "test": [
@@ -29,8 +25,7 @@
   },
   "config": {
     "allow-plugins": {
-      "dealerdirect/phpcodesniffer-composer-installer": true,
-      "cleantalk/apbct-installer": true
+      "dealerdirect/phpcodesniffer-composer-installer": true
     }
   },
   "autoload": {
