@@ -4,7 +4,7 @@ Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
 Tested up to: 6.9
 Requires PHP: 5.6
-Stable tag: 6.70
+Stable tag: 6.70.1
 License: GPLv2
 
 Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
@@ -411,6 +411,9 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.70.1 19.12.2025 =
+* Fix. Integration. Fluent forms integration fixed (fix for commit ae74511a96417b607f2b79b83ef984de7eac0588).
 
 = 6.70 18.12.2025 =
 New. Integrations. Protect Bitrix24 external forms.
