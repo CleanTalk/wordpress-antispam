@@ -210,102 +210,26 @@ class CleantalkMock
      *
      * @param $msg
      *
-     * @return CleantalkResponse
+     * @return \stdClass
      */
     private function httpRequest($msg)
     {
-        var_dump('httpRecuest', $msg->method_name);
-
         switch ($msg->method_name) {
             case 'check_message':
                 $response = new \stdClass();
                 $response->stop_words = 'stop_word';
-                $response->stop_word = 'stop_word';
+                $response->allow = 0;
+                return $response;
+
+            case 'check_newuser':
+                $response = new \stdClass();
                 $response->allow = 0;
                 return $response;
         }
 
-        return '$response';
+        return new \stdClass;
     }
 
-    /**
-     * Send JSON request to servers
-     *
-     * @param string|array $data
-     * @param string $url
-     * @param int $server_timeout
-     *
-     * @return boolean|CleantalkResponse
-     * @throws \Exception
-     */
-    private function sendRequest($data, $url, $server_timeout = 3)
-    {
-        //Cleaning from 'null' values
-        $tmp_data = array();
-        /** @psalm-suppress PossiblyInvalidIterator */
-        foreach ( $data as $key => $value ) {
-            if ( $value !== null ) {
-                $tmp_data[$key] = $value;
-            }
-        }
-        $data = $tmp_data;
-        unset($key, $value, $tmp_data);
-
-        // Convert to JSON
-        $data = json_encode($data);
-
-        if ( isset($this->api_version) ) {
-            $url .= $this->api_version;
-        }
-
-        $http = new Request();
-
-        $presets = array();
-
-        if (!empty($this->api_version) && $this->api_version === '/api3.0') {
-            if (empty($this->method_uri) || !is_string($this->method_uri)) {
-                throw new \Exception('CleanTalk: API method of version 3.0 should have specified method URI');
-            }
-            //set special preset for /api3.0
-            $presets[] = 'api3.0';
-            //add method uri if provided
-        }
-
-        //common way - left this if we need to specify method uri for 2.0
-        $url = !empty($this->method_uri) && is_string($this->method_uri)
-            ? $url . '/' . $this->method_uri
-            : $url;
-
-        $result = $http->setUrl($url)
-                       ->setData($data)
-                       ->setPresets($presets)
-                       ->setOptions(['timeout' => $server_timeout])
-                       ->request();
-
-        $errstr   = null;
-        $response = is_string($result) ? json_decode($result) : false;
-        if ( $result !== false && is_object($response) ) {
-            $response->errno  = 0;
-            $response->errstr = $errstr;
-        } else {
-            if ( isset($result['error']) ) {
-                $error = $result['error'];
-            } else if ( is_string($result) ) {
-                $error = $result;
-            } else {
-                $error = '';
-            }
-
-            $errstr = 'Unknown response from ' . $url . ': ' . $error;
-
-            $response           = null;
-            $response['errno']  = 1;
-            $response['errstr'] = $errstr;
-            $response           = json_decode(json_encode($response));
-        }
-
-        return $response;
-    }
 
      /**
      * Call check_bot API method
@@ -323,21 +247,5 @@ class CleantalkMock
         $msg = $this->createMsg('check_bot', $request);
 
         return $this->httpRequest($msg);
-    }
-
-    private function getTypeError($result)
-    {
-        if (isset($result->errstr)) {
-            switch ($result->errstr) {
-                case strpos($result->errstr, 'cURL error 28: Operation timed out after') !== false:
-                    return 'connection_timeout';
-                case strpos($result->errstr, 'getaddrinfo() thread failed to start') !== false:
-                    return 'getaddrinfo_error';
-                default:
-                    return 'unknown';
-            }
-        }
-
-        return 'unknown';
     }
 }
