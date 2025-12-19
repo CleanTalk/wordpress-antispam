@@ -603,16 +603,13 @@ add_action('mec_booking_end_form_step_2', function () {
 
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
-    if ( ! function_exists('is_user_logged_in') ) {
-        require_once ABSPATH . 'wp-includes/pluggable.php';
-    }
     if (
         apbct_is_plugin_active('fluentformpro/fluentformpro.php') &&
         (
             apbct_is_in_uri('ff_landing=') ||
             (
                 // Load scripts for logged in users if constant is defined
-                is_user_logged_in() &&
+                apbct_is_user_logged_in() &&
                 (defined('APBCT_FF_JS_SCRIPTS_LOAD') &&
                 APBCT_FF_JS_SCRIPTS_LOAD == true)
             )
