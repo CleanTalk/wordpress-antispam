@@ -5,7 +5,6 @@ use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
 use Cleantalk\ApbctWP\State;
 
-
 class CleantalkTest extends \PHPUnit\Framework\TestCase
 {
     protected $ct;
@@ -22,58 +21,58 @@ class CleantalkTest extends \PHPUnit\Framework\TestCase
 
     public function testIsAllowMessageWithMock()
     {
-        // Создаем мок объекта Cleantalk
+        // Create mock of Cleantalk object
         $ctMock = $this->getMockBuilder(Cleantalk::class)
-                       ->setMethods(['httpRequest']) // Мокаем только метод httpRequest
+                       ->setMethods(['httpRequest']) // Mock only httpRequest method
                        ->getMock();
 
-        // Настраиваем ожидаемый ответ
+        // Set expected response
         $expectedResponse = new \stdClass();
         $expectedResponse->allow = 0;
         $expectedResponse->comment = "Test comment";
         $expectedResponse->errno = 0;
         $expectedResponse->errstr = "";
 
-        // Ожидаем, что httpRequest будет вызван 1 раз с любыми параметрами
-        // и вернет наш фиктивный ответ
+        // Expect that httpRequest will be called 1 time with any parameters
+        // and return our fake response
         $ctMock->expects($this->once())
                ->method('httpRequest')
                ->willReturn(new CleantalkResponse($expectedResponse, null));
 
-        // Устанавливаем свойства для теста
+        // Set properties for test
         $ctMock->server_url = 'https://example.com';
 
-        // Выполняем тест
+        // Run test
         $this->ct_request->sender_email = 's@cleantalk.org';
         $this->ct_request->message = 'stop_word bad message';
         $result = $ctMock->isAllowMessage($this->ct_request);
 
-        // Проверяем результат
+        // Check result
         $this->assertEquals(0, $result->allow);
     }
 
-    // Альтернативный вариант с более полным контролем
+    // Alternative variant with more full control
     public function testIsAllowMessageWithFullControl()
     {
-        // Создаем мок с полным контролем над процессом
+        // Create mock with full control over the process
         $ctMock = $this->getMockBuilder(Cleantalk::class)
                        ->setMethods(['createMsg', 'httpRequest'])
                        ->getMock();
 
-        // Мокаем createMsg чтобы он возвращал ожидаемый запрос
+        // Mock createMsg to return expected request
         $expectedRequest = new CleantalkRequest();
         $expectedRequest->auth_key = $this->ct_request->auth_key;
         $expectedRequest->sender_email = 's@cleantalk.org';
         $expectedRequest->message = 'stop_word bad message';
         $expectedRequest->method_name = 'check_message';
-        // ... установите другие необходимые свойства ...
+        // ... set other necessary properties ...
 
         $ctMock->expects($this->once())
                ->method('createMsg')
                ->with('check_message', $this->isInstanceOf(CleantalkRequest::class))
                ->willReturn($expectedRequest);
 
-        // Мокаем httpRequest для возврата фиктивного ответа
+        // Mock httpRequest to return fake response
         $mockResponse = new \stdClass();
         $mockResponse->allow = 0;
         $mockResponse->comment = "Forbidden";
@@ -85,7 +84,7 @@ class CleantalkTest extends \PHPUnit\Framework\TestCase
                ->with($expectedRequest)
                ->willReturn(new CleantalkResponse($mockResponse, null));
 
-        // Выполняем тест
+        // Run test
         $this->ct_request->sender_email = 's@cleantalk.org';
         $this->ct_request->message = 'stop_word bad message';
         $result = $ctMock->isAllowMessage($this->ct_request);
@@ -96,13 +95,13 @@ class CleantalkTest extends \PHPUnit\Framework\TestCase
 
     public function testIsAllowMessageAllow()
     {
-        // Тест для разрешенного сообщения
+        // Test for allowed message
         $ctMock = $this->getMockBuilder(Cleantalk::class)
                        ->setMethods(['httpRequest'])
                        ->getMock();
 
         $expectedResponse = new \stdClass();
-        $expectedResponse->allow = 1; // Сообщение разрешено
+        $expectedResponse->allow = 1; // Message allowed
         $expectedResponse->comment = "";
         $expectedResponse->errno = 0;
         $expectedResponse->errstr = "";
