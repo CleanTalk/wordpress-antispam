@@ -927,6 +927,8 @@ function apbct_settings__set_fields()
                         . '<br>'
                         . __(' - connection status to ' . $apbct->data["wl_brandname_short"] . ' cloud during Anti-Spam request', 'cleantalk-spam-protect')
                         . $send_connection_reports__sfw_text
+                        . '<br>'
+                        . sprintf(esc_html__('The reports are to be sent to %s'), $apbct->data['wl_support_email'])
                     ),
                 'misc__async_js'                => array(
                     'type'        => 'checkbox',
