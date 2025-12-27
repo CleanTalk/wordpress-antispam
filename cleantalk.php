@@ -1560,10 +1560,12 @@ function apbct_sfw_update__download_files($urls, $direct_update = false, $batch_
                     if ($batch_size < 1) {
                         $batch_size = 1;
                     }
-                    $results = apbct_sfw_update__download_files($urls, $direct_update, $batch_size, $retry_count);
+                    $retry_results = apbct_sfw_update__download_files($urls, $direct_update, $batch_size, $retry_count);
+                    $retry_results = is_array($retry_results) ? $retry_results : array($retry_results);
+                    $results = array_merge($results, $retry_results);
+                } else {
+                    $results = array_merge($results, $http_results);
                 }
-
-                $results = array_merge($results, $http_results);
             }
 
             // to handle case if we request only one url, then Helper::httpMultiRequest returns string 'success' instead of array
