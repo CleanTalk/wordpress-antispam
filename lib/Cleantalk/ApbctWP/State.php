@@ -369,6 +369,7 @@ class State extends \Cleantalk\Common\State
         'expected_ua_count_personal'   => 0,
         'update_mode'                  => 0,
         'reason_direct_update_log'     => null,
+        'multi_request_batch_size'     => 10,
         'personal_lists_url_id' => '',
         'common_lists_url_id' => '',
         'calls' => 0,

@@ -614,6 +614,7 @@ class Helper
      * @param array $urls Array of URLs to requests
      *
      * @return array|bool
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public static function httpMultiRequest($urls, $write_to = '')
     {

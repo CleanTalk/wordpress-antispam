@@ -1497,92 +1497,13 @@ function apbct_sfw_update__get_multifiles_of_type(array $params)
 
 /**
  * Queue stage. Do load multifiles with networks on their urls.
- * @param $urls
- * @return array|array[]|bool|string|string[]
+ * @param $all_urls
+ * @return array|true
  */
-function apbct_sfw_update__download_files($urls, $direct_update = false)
+function apbct_sfw_update__download_files($all_urls, $direct_update = false)
 {
-    global $apbct;
-
-    sleep(3);
-
-    if ( ! is_writable($apbct->fw_stats['updating_folder']) ) {
-        return array('error' => 'SFW update folder is not writable.');
-    }
-
-    //Reset keys
-    $urls          = array_values(array_unique($urls));
-
-    $results = array();
-    $batch_size = 10;
-
-    /**
-     * Reduce batch size of curl multi instanced
-     */
-    if (defined('APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE')) {
-        if (
-            is_int(APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE) &&
-            APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE > 0 &&
-            APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE < 10
-        ) {
-            $batch_size = APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE;
-        };
-    }
-
-    $total_urls = count($urls);
-    $batches = ceil($total_urls / $batch_size);
-
-    for ($i = 0; $i < $batches; $i++) {
-        $batch_urls = array_slice($urls, $i * $batch_size, $batch_size);
-        if (!empty($batch_urls)) {
-            $http_results = Helper::httpMultiRequest($batch_urls, $apbct->fw_stats['updating_folder']);
-            if (is_array($http_results)) {
-                $results = array_merge($results, $http_results);
-            }
-            // to handle case if we request only one url, then Helper::httpMultiRequest returns string 'success' instead of array
-            if (count($batch_urls) === 1 && $http_results === 'success') {
-                $results = array_merge($results, $batch_urls);
-            }
-        }
-    }
-
-    $results       = TT::toArray($results);
-    $count_urls    = count($urls);
-    $count_results = count($results);
-
-    if ( empty($results['error']) && ($count_urls === $count_results) ) {
-        if ( $direct_update ) {
-            return true;
-        }
-        $download_again = array();
-        $results        = array_values($results);
-        for ( $i = 0; $i < $count_results; $i++ ) {
-            if ( $results[$i] === 'error' ) {
-                $download_again[] = $urls[$i];
-            }
-        }
-
-        if ( count($download_again) !== 0 ) {
-            return array(
-                'error'       => 'Files download not completed.',
-                'update_args' => array(
-                    'args' => $download_again
-                )
-            );
-        }
-
-        return array(
-            'next_stage' => array(
-                'name' => 'apbct_sfw_update__create_tables'
-            )
-        );
-    }
-
-    if ( ! empty($results['error']) ) {
-        return $results;
-    }
-
-    return array('error' => 'Files download not completed.');
+    $downloader = new \Cleantalk\ApbctWP\Firewall\SFWFilesDownloader();
+    return $downloader->downloadFiles($all_urls, $direct_update);
 }
 
 /**
