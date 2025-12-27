@@ -299,4 +299,14 @@ class Helper extends \Cleantalk\Common\Helper
             return false;
         }
     }
+
+    /**
+     * Get filename from url
+     * @param string $url
+     * @return string
+     */
+    public static function getFilenameFromUrl($url)
+    {
+        return pathinfo($url, PATHINFO_FILENAME);
+    }
 }

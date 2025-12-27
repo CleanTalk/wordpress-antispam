@@ -1500,9 +1500,13 @@ function apbct_sfw_update__get_multifiles_of_type(array $params)
  * @param $urls
  * @return array|array[]|bool|string|string[]
  */
-function apbct_sfw_update__download_files($urls, $direct_update = false)
+function apbct_sfw_update__download_files($urls, $direct_update = false, $batch_size = 10, $retry_count = 1)
 {
     global $apbct;
+
+    if ($retry_count > 3) {
+        return array('error' => 'SFW update: retry count is greater than 3.');
+    }
 
     sleep(3);
 
@@ -1511,10 +1515,10 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
     }
 
     //Reset keys
-    $urls          = array_values(array_unique($urls));
+    $urls = array_values(array_unique($urls));
 
     $results = array();
-    $batch_size = 10;
+    $batch_size_const = 10;
 
     /**
      * Reduce batch size of curl multi instanced
@@ -1525,9 +1529,10 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
             APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE > 0 &&
             APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE < 10
         ) {
-            $batch_size = APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE;
+            $batch_size_const = APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE;
         };
     }
+    $batch_size = $batch_size_const > $batch_size ? $batch_size : $batch_size_const;
 
     $total_urls = count($urls);
     $batches = ceil($total_urls / $batch_size);
@@ -1536,9 +1541,31 @@ function apbct_sfw_update__download_files($urls, $direct_update = false)
         $batch_urls = array_slice($urls, $i * $batch_size, $batch_size);
         if (!empty($batch_urls)) {
             $http_results = Helper::httpMultiRequest($batch_urls, $apbct->fw_stats['updating_folder']);
+
+            $is_success = true;
             if (is_array($http_results)) {
+                foreach ($http_results as $url => $result) {
+                    $filepath = $apbct->fw_stats['updating_folder'] . Helper::getFilenameFromUrl($url) . '.gz';
+                    if ($result !== 'success' ||
+                        !file_exists($filepath) ||
+                        filesize($filepath) === 0
+                    ) {
+                        $is_success = false;
+                        break;
+                    }
+                }
+                if (!$is_success) {
+                    $retry_count++;
+                    $batch_size = ceil($batch_size / 2);
+                    if ($batch_size < 1) {
+                        $batch_size = 1;
+                    }
+                    $results = apbct_sfw_update__download_files($urls, $direct_update, $batch_size, $retry_count);
+                }
+
                 $results = array_merge($results, $http_results);
             }
+
             // to handle case if we request only one url, then Helper::httpMultiRequest returns string 'success' instead of array
             if (count($batch_urls) === 1 && $http_results === 'success') {
                 $results = array_merge($results, $batch_urls);
