@@ -16,7 +16,6 @@ class SfwUpdateDownloadTest extends TestCase
 
         $apbct = new \Cleantalk\ApbctWP\State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
 
-        $apbct->api_key = getenv("CLEANTALK_TEST_API_KEY");
         $apbct->data['key_is_ok'] = 1;
         $directory = sys_get_temp_dir() . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR;
         $apbct->fw_stats['updating_folder'] = $directory;
