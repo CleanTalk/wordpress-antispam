@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\ApbctWP\CleantalkRealPerson;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Cookie;
@@ -259,6 +260,7 @@ class CleantalkPreprocessComment extends IntegrationBase
             } else {
                 $this->setCommentPreStatusAndModifyEmail('not_approved');
             }
+            $this->addActionSetTRPHash();
             return;
         }
 
@@ -271,6 +273,7 @@ class CleantalkPreprocessComment extends IntegrationBase
                 !$is_allowed_because_of_inactive_license
             ) {
                 $this->setCommentPreStatusAndModifyEmail('approved');
+                $this->addActionSetTRPHash();
             } else {
                 // moderation disabled - standard WP check
                 if (
@@ -280,6 +283,7 @@ class CleantalkPreprocessComment extends IntegrationBase
                 } else {
                     $this->setCommentPreStatusAndModifyEmail('not_approved');
                 }
+                // thi is the only case when we do not set TRP hash!
             }
         } else {
             //not new author - standard WP check
@@ -290,7 +294,16 @@ class CleantalkPreprocessComment extends IntegrationBase
             } else {
                 $this->setCommentPreStatusAndModifyEmail('not_approved');
             }
+            $this->addActionSetTRPHash();
         }
+    }
+
+    /**
+     * TRP hash should be set anyway if Cleantalk processed.
+     */
+    private function addActionSetTRPHash()
+    {
+        add_action('comment_post', array(CleantalkRealPerson::class, 'setTRPHash'), 999, 2);
     }
 
     public function doBlock($message)
@@ -536,24 +549,20 @@ class CleantalkPreprocessComment extends IntegrationBase
         return $check_result;
     }
 
+    /**
+     * @param $status
+     *
+     * @return void
+     */
     private function setCommentPreStatusAndModifyEmail($status)
     {
         if ($status !== 'approved' && $status !== 'not_approved') {
             return;
         }
-        if ( $status === 'approved' ) {
-            add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
-
-            // Always set hash for auto-moderated (approved) comments if cleantalk_allowed_moderation is enabled
-            if (
-                !empty($this->apbct->settings['cleantalk_allowed_moderation']) &&
-                $this->apbct->settings['cleantalk_allowed_moderation'] == '1'
-            ) {
-                add_action('comment_post', 'ct_set_real_user_badge_automod_hash', 999, 2);
-            }
-        } else {
-            add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
-        }
+        $pre_comment_approved_callback_function = $status === 'approved'
+            ? 'ct_set_approved'
+            : 'ct_set_not_approved';
+        add_filter('pre_comment_approved', $pre_comment_approved_callback_function, 999, 2);
 
         // Modify the email notification
         add_filter(
