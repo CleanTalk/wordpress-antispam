@@ -43,7 +43,6 @@ class CleantalkRealPerson
         }
 
         // Logic for show TRP badge
-        $show_trp = false;
         $the_real_person = !empty($apbct->settings['comments__the_real_person']) && $apbct->settings['comments__the_real_person'] == '1';
         $show_trp = $the_real_person && self::isTRPHashExist($comment_id) && $comment->comment_author;
 

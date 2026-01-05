@@ -6,6 +6,7 @@ use Cleantalk\Common\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
+use Cleantalk\ApbctWP\ApbctJsBundleResolver;
 
 /**
  * Class AntiFlood
@@ -224,7 +225,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
                 CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page_antiflood.html'
             );
 
-            $js_url = APBCT_URL_PATH . '/js/apbct-public-bundle.min.js?' . APBCT_VERSION;
+            $js_url = ApbctJsBundleResolver::getFullScriptURI($apbct->settings);
 
             $net_count = $apbct->stats['sfw']['entries'];
 
