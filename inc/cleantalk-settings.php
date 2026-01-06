@@ -2954,11 +2954,11 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false, $url
 
             if ( ! empty($sanitized_exclusion) ) {
                 if ( $regexp ) {
-                    if ( ! Validate::isRegexp($exclusion) ) {
+                    if ( ! Validate::isRegexp($sanitized_exclusion) ) {
                         return false;
                     }
                 } elseif ( $urls ) {
-                    if ( ! Validate::isUrl($exclusion) ) {
+                    if ( ! Validate::isUrl($sanitized_exclusion) ) {
                         return false;
                     }
                 }
