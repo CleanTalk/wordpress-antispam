@@ -218,7 +218,7 @@ class CleantalkPreprocessComment extends IntegrationBase
     {
         $wp_comment_moderation_enabled = get_option('comment_moderation') === '1';
         $wp_auto_approve_for_user_who_has_approved_comment = get_option('comment_previously_approved') === '1';
-        $clentalk_option_skip_moderation_for_first_comment = get_option('cleantalk_allowed_moderation', 1) == 1;
+        $cleantalk_option_skip_moderation_for_first_comment = self::firstCommentAutoModEnabled();
         $is_allowed_because_of_inactive_license = false;
 
         $args            = array(
@@ -251,7 +251,7 @@ class CleantalkPreprocessComment extends IntegrationBase
         // if anu of options is disabled - standard WP recheck and exit
         if (
             !$wp_auto_approve_for_user_who_has_approved_comment ||
-            !$clentalk_option_skip_moderation_for_first_comment
+            !$cleantalk_option_skip_moderation_for_first_comment
         ) {
             if (
                 $this->rerunWPcheckCommentFunction()
@@ -571,5 +571,14 @@ class CleantalkPreprocessComment extends IntegrationBase
             100,
             2
         ); // Add two blacklist links: by email and IP
+    }
+
+    /**
+     * @return bool
+     */
+    public static function firstCommentAutoModEnabled()
+    {
+        global $apbct;
+        return !empty($apbct->settings['cleantalk_allowed_moderation']) && $apbct->settings['cleantalk_allowed_moderation'] == '1';
     }
 }

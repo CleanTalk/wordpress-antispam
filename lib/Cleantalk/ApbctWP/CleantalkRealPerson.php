@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\Antispam\Integrations\CleantalkPreprocessComment;
+
 class CleantalkRealPerson
 {
     public static $meta_hash_name__old = 'ct_real_user_badge_hash';
@@ -53,22 +55,13 @@ class CleantalkRealPerson
     }
 
     /**
-     * @return bool
-     */
-    private static function isAutomodEnabled()
-    {
-        global $apbct;
-        return !empty($apbct->settings['cleantalk_allowed_moderation']) && $apbct->settings['cleantalk_allowed_moderation'] == '1';
-    }
-
-    /**
      * Check if TRP hash is saved for comment ID. Autodetect if cleantalk_allowed_moderation is enabled.
      * @param int|string $comment_id
      * @return bool
      */
     public static function isTRPHashExist($comment_id)
     {
-        if (self::isAutomodEnabled()) {
+        if (CleantalkPreprocessComment::firstCommentAutoModEnabled()) {
             // Only for auto-moderated
             $trp_hash = get_comment_meta((int)$comment_id, self::$meta_hash_name__automod, true);
         } else {
@@ -89,7 +82,7 @@ class CleantalkRealPerson
     {
         $hash = ct_hash();
         if ( ! empty($hash) ) {
-            if (self::isAutomodEnabled()) {
+            if (CleantalkPreprocessComment::firstCommentAutoModEnabled()) {
                 update_comment_meta((int)$comment_id, self::$meta_hash_name__automod, $hash);
             } else {
                 update_comment_meta((int)$comment_id, self::$meta_hash_name__old, $hash);
