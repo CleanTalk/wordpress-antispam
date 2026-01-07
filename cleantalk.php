@@ -1122,13 +1122,10 @@ function apbct_sfw_update__init($delay = 0)
         return false;
     }
 
-    // The Access key is empty
-    if ( ! $apbct->api_key && ! $apbct->ip_license ) {
-        return array('error' => 'SFW UPDATE INIT: KEY_IS_EMPTY');
-    }
+    $requirements_check = apply_filters('apbct_sfw_update__check_requirements', apbct_sfw_update__check_requirements());
 
-    if ( ! $apbct->data['key_is_ok'] ) {
-        return array('error' => 'SFW UPDATE INIT: KEY_IS_NOT_VALID');
+    if (true !== $requirements_check) {
+        return array('error' => $requirements_check);
     }
 
     // Get update period for server
@@ -1211,6 +1208,38 @@ function apbct_sfw_update__init($delay = 0)
         ),
         array('async')
     );
+}
+
+/**
+ * Precheck server requirements before SFW update started.
+ * @return string|true True if check passed, first error string otherwise.
+ */
+function apbct_sfw_update__check_requirements()
+{
+    global $apbct;
+    $result = true;
+    try {
+        // The Access key is empty
+        if ( ! $apbct->api_key && ! $apbct->ip_license ) {
+            throw new \Exception('KEY_IS_EMPTY');
+        }
+
+        if ( ! $apbct->data['key_is_ok'] ) {
+            throw new \Exception('KEY_IS_NOT_VALID');
+        }
+
+        $requirements_checker = new Cleantalk\ApbctWP\ServerRequirementsChecker\ServerRequirementsChecker();
+
+        $curl_multi_ok = $requirements_checker->getRequiredParameterValue('curl_multi_funcs_array');
+
+        if (!$curl_multi_ok) {
+            throw new \Exception('CURL MULTI FUNCTIONS NOT AVAILABLE');
+        }
+    } catch (\Exception $e) {
+        $result = 'SFW UPDATE INIT: ' . $e->getMessage();
+    }
+
+    return $result;
 }
 
 /**
