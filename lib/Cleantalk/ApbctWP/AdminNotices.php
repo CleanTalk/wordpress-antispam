@@ -423,7 +423,7 @@ class AdminNotices
         if (!empty($warnings)) {
             $link = LinkConstructor::buildCleanTalkLink(
                 'notice_server_requirements',
-                'help/system-requirements-for-anti-spam-and-security '
+                'help/system-requirements-for-anti-spam-and-security'
             );
 
             $body = __('Some server settings are incompatible', 'cleantalk-spam-protect') . ': ';
