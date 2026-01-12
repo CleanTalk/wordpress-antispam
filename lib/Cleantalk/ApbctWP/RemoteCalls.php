@@ -147,6 +147,29 @@ class RemoteCalls
     }
 
     /**
+     * Update license
+     *
+     * @return string
+     */
+    public static function action__update_license() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        if ( ! headers_sent() ) {
+            header("Content-Type: application/json");
+        }
+
+        if (function_exists('apbct_settings__sync')) {
+            require_once APBCT_DIR_PATH . 'inc/cleantalk-settings.php';
+        }
+
+        $result = apbct_settings__sync(true);
+        if ( ! empty($result['error']) ) {
+            die(json_encode(['ERROR' => json_encode($result['error'])]));
+        }
+
+        die(json_encode(['OK' => true]));
+    }
+
+    /**
      * Close renew banner
      *
      * @return string
