@@ -745,15 +745,6 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
     }
 
     /**
-     * Adding FAQ node
-     */
-    $faq_title_node = apbct__admin_bar__get_title_for_faq();
-
-    if ( $faq_title_node ) {
-        $wp_admin_bar->add_node($faq_title_node);
-    }
-
-    /**
      * Link to project manager
      */
     $project_manager_title_node = apbct__admin_bar__get_title_for_project_manager();
@@ -768,6 +759,15 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
                 $wp_admin_bar->add_node($gf2db_invite_to_install_title);
             }
         }
+    }
+
+    /**
+     * Adding FAQ node
+     */
+    $faq_title_node = apbct__admin_bar__get_title_for_faq();
+
+    if ( $faq_title_node ) {
+        $wp_admin_bar->add_node($faq_title_node);
     }
 }
 
