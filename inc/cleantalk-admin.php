@@ -785,7 +785,7 @@ function apbct__admin_bar__get_title_for_project_manager()
         return false;
     }
 
-    $title = '<span><a>' . __('Project Manager', 'cleantalk-spam-protect') . '</a></span>';
+    $title = '<span><a>' . __('Project management', 'cleantalk-spam-protect') . '</a></span>';
 
     return array(
         'parent' => 'cleantalk_admin_bar__parent_node',
@@ -803,7 +803,7 @@ function apbct__admin_bar__get_title_for_project_manager()
  */
 function apbct__admin_bar__add_gf2db_title()
 {
-    if (!is_plugin_active('gf-doboard-addon/cleantalk-doboard-add-on-for-gravity-forms.php')) {
+    if (!is_plugin_active('cleantalk-doboard-add-on-for-gravity-forms/cleantalk-doboard-add-on-for-gravity-forms.php')) {
         return false;
     }
 
@@ -830,7 +830,7 @@ function apbct__admin_bar__add_gf2db_title()
  */
 function apbct__admin_bar__get_title_for_gf2db_invite_to_install()
 {
-    if (is_plugin_active('gf-doboard-addon/cleantalk-doboard-add-on-for-gravity-forms.php')) {
+    if (is_plugin_active('cleantalk-doboard-add-on-for-gravity-forms/cleantalk-doboard-add-on-for-gravity-forms.php')) {
         return false;
     }
 
