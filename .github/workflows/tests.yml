@@ -1,7 +1,7 @@
 name: PHPUnit, PHPCS, Psalm
 
 on: # event list
-  push: # on push to each of these branches
+  push:
     branches:
       - dev
       - fix
@@ -11,8 +11,9 @@ on: # event list
     branches:
       - dev
       - master
+      - beta
 
-env: # environment variables (available in any part of the action)
+env:
   PHP_VERSION: 7.4
 
 jobs:
@@ -28,36 +29,52 @@ jobs:
       DB_PASSWORD: root
 
     steps:
+      # Checkout
+      - name: Code Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   #
+
+      # install PHP
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, intl, mysqli, xdebug
 
+      # Run Composer
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-interaction
+
+      # Run MySQL
       - name: Run MySQL server
         run: sudo systemctl start mysql
 
-      - name: Code Checkout
-        uses: actions/checkout@v4
-
-      - name: Make the script files executable
+      # WP Run
+      - name: Make WP setup script executable
         run: chmod +x ./tests/wp-test-setup.sh
 
       - name: Install WP develop
         run: ./tests/wp-test-setup.sh wordpress_test root root localhost latest
 
-      - name: Install Dependencies
-        run: composer i
-
+      # Run PHPUnit с coverage
       - name: Running tests
         env:
           CLEANTALK_TEST_API_KEY: ${{ secrets.CLEANTALK_TEST_API_KEY }}
         run: composer test
 
+      # Load coverage на Codecov
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
+        with:
+          files: coverage.clover
+          fail_ci_if_error: true
+          flags: unittests
+          verbose: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+      # Matrix
       - name: Matrix notify on failure
         if: failure()
         uses: Glomberg/matrix-messenger-action@master

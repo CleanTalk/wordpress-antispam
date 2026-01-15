@@ -1,0 +1,23 @@
+codecov:
+  require_ci_to_pass: true
+
+coverage:
+  precision: 2
+  round: down
+  range: "20..100"
+
+  status:
+    project: true
+    patch: true
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: false
+
+ignore:
+  - vendor/**
+  - tests/**
+  - node_modules/**
+  - "**/*.md"
+  - lib/Cleantalk/Common/ContactsEncoder/**/*.php

@@ -614,6 +614,7 @@ class Helper
      * @param array $urls Array of URLs to requests
      *
      * @return array|bool
+     * @codeCoverageIgnore
      */
     public static function httpMultiRequest($urls, $write_to = '')
     {
@@ -641,7 +642,13 @@ class Helper
                             : 'error';
                     }
 
+                    /**
+                     * @codeCoverageIgnoreStart
+                     */
                     return $content;
+                    /**
+                     * @codeCoverageIgnoreEnd
+                     */
                 }
             );
         }

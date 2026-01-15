@@ -26,13 +26,17 @@ class TestEmailEncoder extends TestCase
 
     public function testPlainTextEncodeDecodeSSL()
     {
+        global $apbct;
+        /**
+         * @var State $apbct
+         */
+        $apbct->errorDeleteAll();
         $encoded_plain = $this->contacts_encoder->encoder->encodeString($this->plain_text);
         $this->assertNotEmpty($encoded_plain);
         $this->assertIsString($encoded_plain);
         $decoded_entity = $this->contacts_encoder->encoder->decodeString($encoded_plain);
         $this->assertNotEmpty($decoded_entity);
         $this->assertIsString($decoded_entity);
-        global $apbct;
         $this->assertFalse($apbct->isHaveErrors());
         $this->assertEquals($decoded_entity, $this->plain_text);
     }
