@@ -29,6 +29,7 @@ use Cleantalk\ApbctWP\Firewall\AntiFlood;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\Promotions\GF2DBPromotion;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 use Cleantalk\ApbctWP\RequestParameters\SubmitTimeHandler;
@@ -271,6 +272,10 @@ apbct_update_actions();
 
 add_action('init', function () {
     global $apbct;
+
+    //promotions
+    $promotion_gf2db = new GF2DBPromotion();
+    $promotion_gf2db->init();
 
     // Self cron
     $ct_cron = Cron::getInstance();
