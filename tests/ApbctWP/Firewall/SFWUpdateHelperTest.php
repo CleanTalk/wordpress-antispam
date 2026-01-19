@@ -15,7 +15,7 @@ class SFWUpdateHelperTest extends TestCase
         global $apbct;
         $this->apbctBackup = $apbct;
 
-        // Setup mock for $apbct global
+        // Setup mock $apbct global
         $apbct = new \stdClass();
         $apbct->fw_stats['multi_request_batch_size'] = 10;
     }
