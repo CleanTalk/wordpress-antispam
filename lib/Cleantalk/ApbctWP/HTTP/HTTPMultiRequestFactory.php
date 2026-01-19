@@ -313,7 +313,7 @@ class HTTPMultiRequestFactory
                     $file_name = $write_to_dir . self::getFilenameFromUrl($single_contract->url);
 
                     // Write content to file
-                    $write_result = file_put_contents($file_name, $single_contract->content);
+                    $write_result = $this->writeFile($file_name, $single_contract->content);
 
                     // Check for write failure
                     if (false === $write_result) {
@@ -345,5 +345,16 @@ class HTTPMultiRequestFactory
     private static function getFilenameFromUrl($url)
     {
         return pathinfo($url, PATHINFO_FILENAME) . '.' . pathinfo($url, PATHINFO_EXTENSION);
+    }
+
+    /**
+     * Wrapper for file_put_contents.
+     * @param $filename
+     * @param $data
+     * @return false|int
+     */
+    public function writeFile($filename, $data)
+    {
+        return @file_put_contents($filename, $data);
     }
 }

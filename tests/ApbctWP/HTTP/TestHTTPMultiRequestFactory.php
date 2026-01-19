@@ -533,4 +533,30 @@ class TestHTTPMultiRequestFactory extends TestCase
         $this->assertInstanceOf(HTTPMultiRequestFactory::class, $result);
         $this->assertSame($fabric, $result);
     }
+
+    /**
+     * @test
+     */
+    public function testWriteSuccessURLsContentHandlesFileWriteFailure()
+    {
+        $fabric = $this->getMockBuilder(HTTPMultiRequestFactory::class)
+            ->setMethods(['writeFile'])
+            ->getMock();
+
+        // Mock writeFile to return false (simulating write failure)
+        $fabric->expects($this->once())
+            ->method('writeFile')
+            ->willReturn(false);
+
+        $contract1 = new HTTPRequestContract('https://example.com/file1.gz');
+        $contract1->success = true;
+        $contract1->content = 'content1';
+
+        $fabric->contracts = [$contract1];
+
+        $result = $fabric->writeSuccessURLsContent($this->testFolder);
+
+        $this->assertIsString($result);
+        $this->assertStringContainsString('CAN NOT WRITE TO FILE', $result);
+    }
 }
