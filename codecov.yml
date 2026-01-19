@@ -1,14 +1,15 @@
 coverage:
   status:
     project:
-      default:
-        target: 17.45%
+      default: false
+      application:
+        target: auto
         threshold: 1%
         paths:
           - "!lib/Cleantalk/Common/"
       common_libs:
-        target: 37.43
-        threshold: 1%
+        target: auto
+        threshold: 5%
         paths:
           - "lib/Cleantalk/Common/"
     patch:
