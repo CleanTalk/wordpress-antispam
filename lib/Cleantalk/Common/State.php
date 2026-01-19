@@ -34,6 +34,7 @@ abstract class State
         $this->setOptions();
         $this->setDefinitions();
         $this->init();
+        $this->test();
     }
 
     /**
@@ -66,8 +67,12 @@ abstract class State
      */
     abstract public function deleteOption($option_name, $use_prefix = false);
 
+    /**
+     * @return true
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function test()
     {
-        return 'false';
+        return true;
     }
 }

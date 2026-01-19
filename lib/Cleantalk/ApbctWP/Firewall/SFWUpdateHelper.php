@@ -383,6 +383,7 @@ class SFWUpdateHelper
 
     public static function removeUpdFolder($dir_name)
     {
+        self::test();
         if ( is_dir($dir_name) ) {
             $files = glob($dir_name . '/*');
 
@@ -580,6 +581,10 @@ class SFWUpdateHelper
         self::test();
     }
 
+    /**
+     * @return null
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public static function test()
     {
         return null;
