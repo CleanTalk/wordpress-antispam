@@ -19,7 +19,7 @@ class TestRequirementsChecker extends TestCase
                         case 'allow_url_fopen': return true;
                         case 'memory_limit': return '256M';
                         case 'max_execution_time': return '30';
-                        case 'curl_multi_exec': return true;
+                        case 'curl_multi_funcs_array': return true;
                         default: return null;
                     }
                 });
@@ -42,7 +42,7 @@ class TestRequirementsChecker extends TestCase
                         case 'allow_url_fopen': return true;
                         case 'memory_limit': return '-1'; // unlimited memory
                         case 'max_execution_time': return '0'; // unlimited time
-                        case 'curl_multi_exec': return true;
+                        case 'curl_multi_funcs_array': return true;
                         default: return null;
                     }
                 });
@@ -65,7 +65,7 @@ class TestRequirementsChecker extends TestCase
                         case 'allow_url_fopen': return true;
                         case 'memory_limit': return '64M'; // low memory
                         case 'max_execution_time': return '60';
-                        case 'curl_multi_exec': return true;
+                        case 'curl_multi_funcs_array': return true;
                         default: return null;
                     }
                 });
@@ -91,7 +91,7 @@ class TestRequirementsChecker extends TestCase
                         case 'allow_url_fopen': return true;
                         case 'memory_limit': return '256M';
                         case 'max_execution_time': return '10'; // low execution time
-                        case 'curl_multi_exec': return true;
+                        case 'curl_multi_funcs_array': return true;
                         default: return null;
                     }
                 });
@@ -117,7 +117,7 @@ class TestRequirementsChecker extends TestCase
                         case 'allow_url_fopen': return true;
                         case 'memory_limit': return '256M';
                         case 'max_execution_time': return '60';
-                        case 'curl_multi_exec': return true;
+                        case 'curl_multi_funcs_array': return true;
                         default: return null;
                     }
                 });
@@ -142,7 +142,7 @@ class TestRequirementsChecker extends TestCase
                         case 'allow_url_fopen': return false; // no allow_url_fopen
                         case 'memory_limit': return '256M';
                         case 'max_execution_time': return '60';
-                        case 'curl_multi_exec': return true;
+                        case 'curl_multi_funcs_array': return true;
                         default: return null;
                     }
                 });
@@ -168,15 +168,17 @@ class TestRequirementsChecker extends TestCase
                         case 'allow_url_fopen': return true;
                         case 'memory_limit': return '256M';
                         case 'max_execution_time': return '60';
-                        case 'curl_multi_exec': return false; // no curl_multi_exec
+                        case 'curl_multi_funcs_array': return false; // no curl_multi_exec
                         default: return null;
                     }
                 });
 
         $warnings = $checker->checkRequirements();
 
-        $this->assertNotEmpty($warnings, 'Warnings should be returned for missing curl_multi_exec.');
-        $this->assertStringContainsString("function 'curl_multi_exec' is not available", $warnings[0]);
+        $this->assertNotEmpty($warnings, 'Warnings should be returned for missing curl_multi_funcs_array.');
+        $this->assertStringContainsString("At least one", $warnings[0]);
+        $this->assertStringContainsString("curl_multi_exec", $warnings[0]);
+        $this->assertStringContainsString("curl_multi_init", $warnings[0]);
     }
 
     public function testCheckRequirementsWithMultipleIssues()
@@ -193,7 +195,7 @@ class TestRequirementsChecker extends TestCase
                         case 'allow_url_fopen': return false;
                         case 'memory_limit': return '64M';
                         case 'max_execution_time': return '10';
-                        case 'curl_multi_exec': return false;
+                        case 'curl_multi_funcs_array': return false;
                         default: return null;
                     }
                 });
@@ -272,50 +274,50 @@ class TestRequirementsChecker extends TestCase
     public function testGetRequiredParameterValueCurlMultiExec()
     {
         $checker = $this->getMockBuilder(ServerRequirementsChecker::class)
-                        ->setMethods(['isFunctionExists', 'isCallable'])
+                        ->setMethods(['functionsExist', 'functionsCallable'])
                         ->getMock();
 
-        $checker->method('isFunctionExists')
-                ->with('curl_multi_exec')
+        $checker->method('functionsExist')
+                ->with($checker->curl_multi_funcs_array)
                 ->willReturn(true);
 
-        $checker->method('isCallable')
-                ->with('curl_multi_exec')
+        $checker->method('functionsCallable')
+                ->with($checker->curl_multi_funcs_array)
                 ->willReturn(true);
 
-        $result = $checker->getRequiredParameterValue('curl_multi_exec');
+        $result = $checker->getRequiredParameterValue('curl_multi_funcs_array');
         $this->assertTrue($result);
     }
 
     public function testGetRequiredParameterValueCurlMultiExecNotCallable()
     {
         $checker = $this->getMockBuilder(ServerRequirementsChecker::class)
-                        ->setMethods(['isFunctionExists', 'isCallable'])
+                        ->setMethods(['functionsExist', 'functionsCallable'])
                         ->getMock();
 
-        $checker->method('isFunctionExists')
-                ->with('curl_multi_exec')
+        $checker->method('functionsExist')
+                ->with($checker->curl_multi_funcs_array)
                 ->willReturn(true);
 
-        $checker->method('isCallable')
-                ->with('curl_multi_exec')
+        $checker->method('functionsCallable')
+                ->with($checker->curl_multi_funcs_array)
                 ->willReturn(false);
 
-        $result = $checker->getRequiredParameterValue('curl_multi_exec');
+        $result = $checker->getRequiredParameterValue('curl_multi_funcs_array');
         $this->assertFalse($result);
     }
 
     public function testGetRequiredParameterValueCurlMultiExecNotExists()
     {
         $checker = $this->getMockBuilder(ServerRequirementsChecker::class)
-                        ->setMethods(['isFunctionExists'])
+                        ->setMethods(['functionsExist'])
                         ->getMock();
 
-        $checker->method('isFunctionExists')
-                ->with('curl_multi_exec')
+        $checker->method('functionsExist')
+                ->with($checker->curl_multi_funcs_array)
                 ->willReturn(false);
 
-        $result = $checker->getRequiredParameterValue('curl_multi_exec');
+        $result = $checker->getRequiredParameterValue('curl_multi_funcs_array');
         $this->assertFalse($result);
     }
 

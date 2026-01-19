@@ -116,6 +116,13 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_medium' => 'badge',
             'utm_content' => 'renew_checkers',
         ),
+        'cleantalk-bbpress-spam-scanner' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'admin_panel',
+            'utm_medium' => 'badge',
+            'utm_content' => 'cleantalk-bbpress-spam-scanner',
+        ),
         'renew_top_info' => array(
             'utm_id' => '',
             'utm_term' => '',
