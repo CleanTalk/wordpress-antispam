@@ -22,7 +22,7 @@
     },
     "scripts": {
         "test": [
-            "vendor/bin/phpunit --configuration tests/phpunit.xml --coverage-clover=coverage.xml",
+            "vendor/bin/phpunit --configuration tests/phpunit.xml --coverage-clover=coverage.xml"
         ],
         "psalm_l1": [
             "vendor/bin/psalm --no-cache --config=psalm.xml"
