@@ -584,6 +584,7 @@ class SFWUpdateHelper
     /**
      * @return null
      * @psalm-suppress PossiblyUnusedMethod
+     * @psalm-suppress PossiblyUnusedReturnValue
      */
     public static function test()
     {

@@ -70,6 +70,7 @@ abstract class State
     /**
      * @return true
      * @psalm-suppress PossiblyUnusedMethod
+     * @psalm-suppress PossiblyUnusedReturnValue
      */
     public function test()
     {
