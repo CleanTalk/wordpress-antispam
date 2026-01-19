@@ -577,5 +577,11 @@ class SFWUpdateHelper
          * Create SFW table if not exists
          */
         apbct_sfw_update__create_tables();
+        self::test();
+    }
+
+    public static function test()
+    {
+        return null;
     }
 }

@@ -30,7 +30,7 @@ abstract class State
     public function __construct($option_prefix, $options = array('settings'))
     {
         $this->option_prefix = $option_prefix;
-        $this->options       = $options;
+        $this->options = $options;
         $this->setOptions();
         $this->setDefinitions();
         $this->init();
@@ -65,4 +65,9 @@ abstract class State
      * @psalm-suppress PossiblyUnusedMethod
      */
     abstract public function deleteOption($option_name, $use_prefix = false);
+
+    public function test()
+    {
+        return 'false';
+    }
 }
