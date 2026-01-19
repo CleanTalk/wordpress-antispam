@@ -74,6 +74,6 @@ abstract class State
      */
     public function test()
     {
-        return true;
+        return true ? null : false;
     }
 }

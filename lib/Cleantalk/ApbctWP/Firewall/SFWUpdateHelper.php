@@ -588,6 +588,6 @@ class SFWUpdateHelper
      */
     public static function test()
     {
-        return null;
+        return true ? null : false;
     }
 }
