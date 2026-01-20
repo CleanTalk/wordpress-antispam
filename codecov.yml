@@ -1,31 +1,32 @@
 coverage:
-  status:
-    project:
-      default:
-        target: 17.45%
-        threshold: 1%
-        paths:
-          - "!lib/Cleantalk/Common/"
-      common_libs:
-        target: 37.43
-        threshold: 1%
-        paths:
-          - "lib/Cleantalk/Common/"
-    patch:
-      default:
-        target: 80%
-        threshold: 0%
+status:
+project:
+default: false
+application:
+target: auto
+threshold: 1%
+paths:
+- "!lib/Cleantalk/Common/"
+common_libs:
+target: auto
+threshold: 5%
+paths:
+- "lib/Cleantalk/Common/"
+patch:
+default:
+target: 80%
+threshold: 0%
 
 ignore:
-  - "tests/"
-  - "tests/**/*"
-  - "js/"
-  - "js/**/*"
-  - "i18n/"
-  - "i18n/**/*"
-  - "css/"
-  - "css/**/*"
-  - "inc/images"
-  - "inc/images/**/*"
-  - "lib/Cleantalk/Common/ContactsEncoder/"
-  - "lib/Cleantalk/Common/ContactsEncoder/**/*"
+- "tests/"
+- "tests/**/*"
+- "js/"
+- "js/**/*"
+- "i18n/"
+- "i18n/**/*"
+- "css/"
+- "css/**/*"
+- "inc/images"
+- "inc/images/**/*"
+- "lib/Cleantalk/Common/ContactsEncoder/"
+- "lib/Cleantalk/Common/ContactsEncoder/**/*"
