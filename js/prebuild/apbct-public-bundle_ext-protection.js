@@ -4378,7 +4378,6 @@ function apbctProcessExternalFormKlaviyo(form, iterator, documentObject) {
     if (!btn) {
         return;
     }
-    btn.disabled = true;
 
     const forceAction = document.createElement('input');
     forceAction.name = 'action';

@@ -54,6 +54,7 @@ class State extends \Cleantalk\Common\State
         'forms__contact_forms_test'                => 1,
         'forms__flamingo_save_spam'                => 1,
         'forms__gravityforms_save_spam'            => 1,
+        'forms__gravity_promotion_gf2db'           => 1,
         'forms__general_contact_forms_test'        => 1, // Anti-Spam test for unsupported and untested contact forms
         'forms__wc_checkout_test'                  => 1, // WooCommerce checkout default test
         'forms__wc_register_from_order'            => 1, // Woocommerce registration during checkout
@@ -133,7 +134,6 @@ class State extends \Cleantalk\Common\State
         'trusted_and_affiliate__footer'            => 0,
         'trusted_and_affiliate__under_forms'       => 0,
         'trusted_and_affiliate__add_id'            => 0,
-
     );
 
     /**
@@ -407,7 +407,7 @@ class State extends \Cleantalk\Common\State
       */
     public $ajax_service;
 
-    /**
+     /**
      * Create vars list. Use all the vars that has 'default_' in theirs name.
      * @return bool
      */

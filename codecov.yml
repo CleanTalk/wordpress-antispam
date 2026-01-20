@@ -1,0 +1,34 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+      application:
+        target: auto
+        threshold: 1%
+        paths:
+          - "!lib/Cleantalk/Common/"
+      common_libs:
+        target: auto
+        threshold: 5%
+        paths:
+          - "lib/Cleantalk/Common/"
+    patch:
+      default:
+        target: 80%
+        threshold: 0%
+
+ignore:
+  - "tests/"
+  - "tests/**/*"
+  - "js/"
+  - "js/**/*"
+  - "i18n/"
+  - "i18n/**/*"
+  - "css/"
+  - "css/**/*"
+  - "inc/images"
+  - "inc/images/**/*"
+  - "lib/Cleantalk/Common/ContactsEncoder/"
+  - "lib/Cleantalk/Common/ContactsEncoder/**/*"
