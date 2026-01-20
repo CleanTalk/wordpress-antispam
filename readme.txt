@@ -412,7 +412,7 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
-= 6.70.1 19.12.2025 =
+= 6.71 22.01.2026 =
 * Fix. Integration. Woocommerce (checkout by REST) integration fixed.
 * Fix. Integration. Fluent forms integration fixed
 * Fix. Integration. Klaviyo (external forms) integration fixed.
