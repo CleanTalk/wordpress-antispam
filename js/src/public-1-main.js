@@ -591,177 +591,258 @@ class ApbctHandler {
      * @return {void}
      */
     catchFetchRequest() {
-        setTimeout(function() {
-            if (
-                (
-                    document.forms && document.forms.length > 0 &&
-                    (
-                        Array.from(document.forms).some((form) =>
-                            form.classList.contains('metform-form-content')) ||
-                        Array.from(document.forms).some((form) =>
-                            form.classList.contains('wprm-user-ratings-modal-stars-container')) ||
-                        Array.from(document.forms).some((form) => {
-                            if (form.parentElement &&
-                                form.parentElement.classList.length > 0 &&
-                                form.parentElement.classList[0].indexOf('b24-form-content') !== -1
+        const apbctShadowRootFormsConfig = {
+            'mailchimp': {
+                selector: '.mcforms-wrapper',
+                urlPattern: 'mcf-integrations-mcmktg.mlchmpcompprduse2.iks2.a.intuit.com/gateway/receive',
+                externalForm: true,
+                action: 'cleantalk_force_mailchimp_shadowroot_check',
+            },
+        };
+
+        let preventOriginalFetch = false;
+
+        /**
+         * Check ShadowRoot form request via CleanTalk AJAX
+         * @param {string} formKey - The form key from config (e.g., 'mailchimp')
+         * @param {object} config - The form config object with action, selector, etc.
+         * @param {string} bodyText - The request body as string
+         * @return {Promise<boolean>} - true = block, false = allow
+         */
+        async function apbctCheckShadowRootRequest(formKey, config, bodyText) {
+            return new Promise((resolve) => {
+                // Prepare data for AJAX request
+                let data = {
+                    action: config.action,
+                };
+
+                // Parse bodyText and add form fields
+                try {
+                    const bodyObj = JSON.parse(bodyText);
+                    for (const [key, value] of Object.entries(bodyObj)) {
+                        data[key] = value;
+                    }
+                } catch (e) {
+                    // If parsing fails, send raw body
+                    data.raw_body = bodyText;
+                }
+
+                // Add event token or no_cookie data
+                if (+ctPublic.settings__data__bot_detector_enabled) {
+                    const eventToken = new ApbctHandler().toolGetEventToken();
+                    if (eventToken) {
+                        data.ct_bot_detector_event_token = eventToken;
+                    }
+                } else {
+                    data.ct_no_cookie_hidden_field = getNoCookieData();
+                }
+
+                apbct_public_sendAJAX(
+                    data,
+                    {
+                        async: true,
+                        callback: function(result) {
+                            // Allowed
+                            if (
+                                (result.apbct === undefined && result.data === undefined) ||
+                                (result.apbct !== undefined && !+result.apbct.blocked)
                             ) {
-                                return true;
+                                resolve(false); // false = allow
+                                return;
                             }
-                        })
-                    )
-                ) ||
-                (
-                    document.querySelectorAll('button').length > 0 &&
-                    Array.from(document.querySelectorAll('button')).some((button) => {
-                        return button.classList.contains('add_to_cart_button') ||
-                        button.classList.contains('ajax_add_to_cart') ||
-                        button.classList.contains('single_add_to_cart_button');
-                    })
-                ) ||
-                (
-                    document.links && document.links.length > 0 &&
-                    Array.from(document.links).some((link) => {
-                        return link.classList.contains('add_to_cart_button');
-                    })
+
+                            // Blocked
+                            if (
+                                (result.apbct !== undefined && +result.apbct.blocked) ||
+                                (result.data !== undefined && result.data.message !== undefined)
+                            ) {
+                                new ApbctShowForbidden().parseBlockMessage(result);
+                                resolve(true); // true = block
+                                return;
+                            }
+
+                            // Default: allow
+                            resolve(false);
+                        },
+                        onErrorCallback: function(error) {
+                            console.log('APBCT ShadowRoot check error:', error);
+                            // On error, allow the request to proceed
+                            resolve(false);
+                        },
+                    },
+                );
+            });
+        }
+
+        window.fetch = async function(...args) {
+            // Reset flag for each new request
+            //preventOriginalFetch = false;
+            let url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
+
+            // === ShadowRoot forms ===
+            for (const [formKey, config] of Object.entries(apbctShadowRootFormsConfig)) {
+                if (
+                    (!config.externalForm || +ctPublic.settings__forms__check_external) &&
+                    document.querySelectorAll(config.selector).length > 0 &&
+                    url && url.includes(config.urlPattern)
+                ) {
+                    // Get request body
+                    let body = args[1] && args[1].body;
+                    let bodyText = '';
+                    if (body instanceof FormData) {
+                        let obj = {};
+                        for (let [key, value] of body.entries()) obj[key] = value;
+                        bodyText = JSON.stringify(obj);
+                    } else if (typeof body === 'string') {
+                        bodyText = body;
+                    }
+
+                    const shouldBlock = await apbctCheckShadowRootRequest(formKey, config, bodyText);
+                    if (shouldBlock) {
+                        // Return a "blank" response that never completes
+                        return new Promise(() => {});
+                    }
+                    // If not blocking — continue to the original fetch
+                }
+            }
+
+            // === Metform ===
+            if (
+                document.querySelectorAll('form.metform-form-content').length > 0 &&
+                args && args[0] &&
+                typeof args[0].includes === 'function' &&
+                (args[0].includes('/wp-json/metform/') ||
+                    (ctPublicFunctions._rest_url && (() => {
+                        try {
+                            return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
+                        } catch (e) {
+                            return false;
+                        }
+                    })())
                 )
             ) {
-                let preventOriginalFetch = false;
-
-                window.fetch = async function(...args) {
-                    // Metform block
-                    if (
-                        Array.from(document.forms).some((form) => form.classList.contains('metform-form-content')) &&
-                        args &&
-                        args[0] &&
-                        typeof args[0].includes === 'function' &&
-                        (args[0].includes('/wp-json/metform/') ||
-                            (ctPublicFunctions._rest_url && (() => {
-                                try {
-                                    return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
-                                } catch (e) {
-                                    return false;
-                                }
-                            })())
-                        )
-                    ) {
-                        if (args && args[1] && args[1].body) {
-                            if (+ctPublic.settings__data__bot_detector_enabled) {
-                                args[1].body.append(
-                                    'ct_bot_detector_event_token',
-                                    apbctLocalStorage.get('bot_detector_event_token'),
-                                );
-                            } else {
-                                args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
-                            }
-                        }
+                if (args && args[1] && args[1].body) {
+                    if (+ctPublic.settings__data__bot_detector_enabled) {
+                        args[1].body.append(
+                            'ct_bot_detector_event_token',
+                            apbctLocalStorage.get('bot_detector_event_token'),
+                        );
+                    } else {
+                        args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
                     }
-                    // WP Recipe Maker block
-                    if (
-                        Array.from(document.forms).some(
-                            (form) => form.classList.contains('wprm-user-ratings-modal-stars-container'),
-                        ) &&
-                        args &&
-                        args[0] &&
-                        typeof args[0].includes === 'function' &&
-                        args[0].includes('/wp-json/wp-recipe-maker/')
-                    ) {
-                        if (args[1] && args[1].body) {
-                            if (typeof args[1].body === 'string') {
-                                let bodyObj;
-                                try {
-                                    bodyObj = JSON.parse(args[1].body);
-                                } catch (e) {
-                                    bodyObj = {};
-                                }
-                                if (+ctPublic.settings__data__bot_detector_enabled) {
-                                    bodyObj.ct_bot_detector_event_token =
-                                        apbctLocalStorage.get('bot_detector_event_token');
-                                } else {
-                                    bodyObj.ct_no_cookie_hidden_field = getNoCookieData();
-                                }
-                                args[1].body = JSON.stringify(bodyObj);
-                            }
-                        }
-                    }
-
-                    // WooCommerce add to cart request, like:
-                    // /index.php?rest_route=/wc/store/v1/cart/add-item
-                    if (args && args[0] &&
-                        args[0].includes('/wc/store/v1/cart/add-item') &&
-                        args && args[1] && args[1].body
-                    ) {
-                        if (
-                            +ctPublic.settings__data__bot_detector_enabled &&
-                            +ctPublic.settings__forms__wc_add_to_cart
-                        ) {
-                            try {
-                                let bodyObj = JSON.parse(args[1].body);
-                                if (!bodyObj.hasOwnProperty('ct_bot_detector_event_token')) {
-                                    bodyObj.ct_bot_detector_event_token =
-                                        apbctLocalStorage.get('bot_detector_event_token');
-                                    args[1].body = JSON.stringify(bodyObj);
-                                }
-                            } catch (e) {
-                                return false;
-                            }
-                        } else {
-                            args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
-                        }
-                    }
-
-                    // bitrix24 EXTERNAL form
-                    if (+ctPublic.settings__forms__check_external &&
-                        args && args[0] &&
-                        args[0].includes('bitrix/services/main/ajax.php?action=crm.site.form.fill') &&
-                        args[1] && args[1].body && args[1].body instanceof FormData
-                    ) {
-                        const currentTargetForm = document.querySelector('.b24-form form');
-                        let data = {
-                            action: 'cleantalk_force_ajax_check',
-                        };
-                        for (const field of currentTargetForm.elements) {
-                            data[field.name] = field.value;
-                        }
-
-                        // check form request - wrap in Promise to wait for completion
-                        await new Promise((resolve, reject) => {
-                            apbct_public_sendAJAX(
-                                data,
-                                {
-                                    async: true,
-                                    callback: function( result, data, params, obj ) {
-                                        // allowed
-                                        if ((result.apbct === undefined && result.data === undefined) ||
-                                            (result.apbct !== undefined && ! +result.apbct.blocked)
-                                        ) {
-                                            preventOriginalFetch = false;
-                                        }
-
-                                        // blocked
-                                        if ((result.apbct !== undefined && +result.apbct.blocked) ||
-                                            (result.data !== undefined && result.data.message !== undefined)
-                                        ) {
-                                            preventOriginalFetch = true;
-                                            new ApbctShowForbidden().parseBlockMessage(result);
-                                        }
-
-                                        resolve(result);
-                                    },
-                                    onErrorCallback: function( error ) {
-                                        console.log('AJAX error:', error);
-                                        reject(error);
-                                    },
-                                },
-                            );
-                        });
-                    }
-
-                    if (!preventOriginalFetch) {
-                        return defaultFetch.apply(window, args);
-                    }
-                };
+                }
             }
-        }, 1000);
+
+            // === WP Recipe Maker ===
+            if (
+                document.querySelectorAll('form.wprm-user-ratings-modal-stars-container').length > 0 &&
+                args && args[0] &&
+                typeof args[0].includes === 'function' &&
+                args[0].includes('/wp-json/wp-recipe-maker/')
+            ) {
+                if (args[1] && args[1].body) {
+                    if (typeof args[1].body === 'string') {
+                        let bodyObj;
+                        try {
+                            bodyObj = JSON.parse(args[1].body);
+                        } catch (e) {
+                            bodyObj = {};
+                        }
+                        if (+ctPublic.settings__data__bot_detector_enabled) {
+                            bodyObj.ct_bot_detector_event_token =
+                                apbctLocalStorage.get('bot_detector_event_token');
+                        } else {
+                            bodyObj.ct_no_cookie_hidden_field = getNoCookieData();
+                        }
+                        args[1].body = JSON.stringify(bodyObj);
+                    }
+                }
+            }
+
+            // === WooCommerce add to cart ===
+            if (
+                (
+                    document.querySelectorAll(
+                        'button.add_to_cart_button, button.ajax_add_to_cart, button.single_add_to_cart_button',
+                    ).length > 0 ||
+                    document.querySelectorAll('a.add_to_cart_button').length > 0
+                ) &&
+                args && args[0] &&
+                args[0].includes('/wc/store/v1/cart/add-item') &&
+                args && args[1] && args[1].body
+            ) {
+                if (
+                    +ctPublic.settings__data__bot_detector_enabled &&
+                    +ctPublic.settings__forms__wc_add_to_cart
+                ) {
+                    try {
+                        let bodyObj = JSON.parse(args[1].body);
+                        if (!bodyObj.hasOwnProperty('ct_bot_detector_event_token')) {
+                            bodyObj.ct_bot_detector_event_token =
+                                apbctLocalStorage.get('bot_detector_event_token');
+                            args[1].body = JSON.stringify(bodyObj);
+                        }
+                    } catch (e) {
+                        return false;
+                    }
+                } else {
+                    args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
+                }
+            }
+
+            // === Bitrix24 external form ===
+            if (
+                +ctPublic.settings__forms__check_external &&
+                document.querySelectorAll('.b24-form').length > 0 &&
+                args && args[0] &&
+                args[0].includes('bitrix/services/main/ajax.php?action=crm.site.form.fill') &&
+                args[1] && args[1].body && args[1].body instanceof FormData
+            ) {
+                const currentTargetForm = document.querySelector('.b24-form form');
+                let data = {
+                    action: 'cleantalk_force_ajax_check',
+                };
+                for (const field of currentTargetForm.elements) {
+                    data[field.name] = field.value;
+                }
+
+                // check form request - wrap in Promise to wait for completion
+                await new Promise((resolve, reject) => {
+                    apbct_public_sendAJAX(
+                        data,
+                        {
+                            async: true,
+                            callback: function( result, data, params, obj ) {
+                                // allowed
+                                if ((result.apbct === undefined && result.data === undefined) ||
+                                    (result.apbct !== undefined && ! +result.apbct.blocked)
+                                ) {
+                                    preventOriginalFetch = false;
+                                }
+
+                                // blocked
+                                if ((result.apbct !== undefined && +result.apbct.blocked) ||
+                                    (result.data !== undefined && result.data.message !== undefined)
+                                ) {
+                                    preventOriginalFetch = true;
+                                    new ApbctShowForbidden().parseBlockMessage(result);
+                                }
+
+                                resolve(result);
+                            },
+                            onErrorCallback: function( error ) {
+                                console.log('AJAX error:', error);
+                                reject(error);
+                            },
+                        },
+                    );
+                });
+            }
+
+            if (!preventOriginalFetch) {
+                return defaultFetch.apply(window, args);
+            }
+        };
     }
 
     /**
