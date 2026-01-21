@@ -676,7 +676,7 @@ class ApbctHandler {
 
         window.fetch = async function(...args) {
             // Reset flag for each new request
-            //preventOriginalFetch = false;
+            preventOriginalFetch = false;
             let url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
 
             // === ShadowRoot forms ===
