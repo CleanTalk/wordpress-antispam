@@ -21,11 +21,6 @@ $apbct_active_integrations = array(
         'setting' => 'forms__check_external',
         'ajax'    => true
     ),
-    'MailChimpShadowRoot'         => array(
-        'hook'    => 'cleantalk_force_mailchimp_shadowroot_check',
-        'setting' => 'forms__check_external',
-        'ajax'    => true
-    ),
     'CleantalkPreprocessComment'         => array(
         'hook'    => 'preprocess_comment',
         'setting' => 'forms__comments_test',
@@ -339,9 +334,14 @@ $apbct_active_integrations = array(
     ),
     // Mail chimp integration works with ajax and POST via the same hook
     'MailChimp' => array(
-        'hook'    => array('mc4wp_form_errors', 'cleantalk_force_mailchimp_shadowroot_check'),
+        'hook'    => 'mc4wp_form_errors',
         'setting' => 'forms__registrations_test',
         'ajax' => false
+    ),
+    'MailChimpShadowRoot'         => array(
+        'hook'    => 'cleantalk_force_mailchimp_shadowroot_check',
+        'setting' => 'forms__check_external',
+        'ajax'    => true
     ),
     'BloomForms' => array(
         'hook'    => 'bloom_subscribe',
