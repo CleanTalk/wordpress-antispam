@@ -37,6 +37,8 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
         array('class', 'elementor-swiper', 'elementor-testimonial', 'swiper-pagination'),
         // ics-calendar
         array('ics_calendar'),
+        // WooCommerce block order confirmation create account form
+        array('class', 'wc-block-order-confirmation-create-account-form'),
     );
 
     public function doReturnContentBeforeModify($content)
