@@ -868,8 +868,13 @@ class ApbctHandler {
      */
     catchWCRestRequestAsMiddleware() {
         const ctPinDataToRequest = (options, next) => {
-            if (typeof options !== 'object' || options === null ||
-                !options.hasOwnProperty('data') || !options.hasOwnProperty('path')
+            if (
+                typeof options !== 'object' ||
+                options === null ||
+                !options.hasOwnProperty('data') ||
+                typeof options.data === 'undefined' ||
+                !options.hasOwnProperty('path') ||
+                typeof options.path === 'undefined'
             ) {
                 return next(options);
             }
