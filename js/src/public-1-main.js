@@ -781,6 +781,7 @@ class ApbctHandler {
                     let sourceSign = {
                         'found': false,
                         'keepUnwrapped': false,
+                        'attachVisibleFieldsData': false,
                     };
                     // settings data is string (important!)
                     if ( typeof settings.data === 'string' ) {
@@ -821,11 +822,11 @@ class ApbctHandler {
                             sourceSign.keepUnwrapped = true;
                         }
                         if (
-                            settings.data.indexOf('action=nf_ajax_submit') !== -1 &&
-                            ctPublic.data__cookies_type === 'none'
+                            settings.data.indexOf('action=nf_ajax_submit') !== -1
                         ) {
                             sourceSign.found = 'action=nf_ajax_submit';
                             sourceSign.keepUnwrapped = true;
+                            sourceSign.attachVisibleFieldsData = true;
                         }
                     }
                     if ( typeof settings.url === 'string' ) {
@@ -837,6 +838,7 @@ class ApbctHandler {
                     if (sourceSign.found !== false) {
                         let eventToken = '';
                         let noCookieData = '';
+                        let visibleFieldsString = '';
                         if (+ctPublic.settings__data__bot_detector_enabled) {
                             const token = new ApbctHandler().toolGetEventToken();
                             if (token) {
@@ -855,7 +857,26 @@ class ApbctHandler {
                             }
                         }
 
-                        settings.data = noCookieData + eventToken + settings.data;
+                        if (sourceSign.attachVisibleFieldsData) {
+                            visibleFieldsSearchResult = false;
+
+                            if (sourceSign.found === 'action=nf_ajax_submit') {
+                                const extractor = new ApbctNinjaFormsVisibleFields();
+                                visibleFieldsSearchResult = extractor.extract(settings.data);
+                            }
+
+                            if (typeof visibleFieldsSearchResult === 'string') {
+                                let encoded = null;
+                                try {
+                                    encoded = encodeURIComponent(visibleFieldsSearchResult);
+                                    visibleFieldsString = 'apbct_visible_fields=' + encoded + '&';
+                                } catch (e) {
+                                    // do nothing
+                                }
+                            }
+                        }
+
+                        settings.data = noCookieData + eventToken + visibleFieldsString + settings.data;
                     }
                 },
             });
@@ -1145,6 +1166,102 @@ class ApbctShowForbidden {
         }
     }
 }
+
+/**
+ * Class for Ninja from visible fields extract
+ */
+class ApbctNinjaFormsVisibleFields {
+    /**
+     * Extracts visible fields string from Ninja Forms
+     * @param {string} ajaxData - AJAX form data
+     * @return {string|false} Visible fields value or false if not found
+     */
+    extract(ajaxData) {
+        if (!ajaxData || typeof ajaxData !== 'string') {
+            return false;
+        }
+
+        try {
+            ajaxData = decodeURIComponent(ajaxData);
+        } catch (e) {
+            return false;
+        }
+
+        const forms = document.querySelectorAll('form');
+        const formIdFromAjax = this.getIdFromAjax(ajaxData);
+        if (!formIdFromAjax) return false;
+
+        for (let form of forms) {
+            const nfContainer = this.findParentContainer(form);
+            if (!nfContainer) {
+                continue;
+            }
+
+            const formIdFromHtml = this.getIdFromHTML(nfContainer);
+            if (formIdFromHtml !== formIdFromAjax) {
+                continue;
+            }
+
+            const visibleFields = nfContainer.querySelector('input[id^=apbct_visible_fields_]');
+            if (visibleFields?.value) {
+                return visibleFields.value;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Extracts form ID from AJAX data using multiple regex patterns
+     * @param {string} ajaxData - Decoded AJAX data string
+     * @return {number|null} Form ID or null if not found
+     */
+    getIdFromAjax(ajaxData) {
+        // Test all patterns without global flag for reliable matching
+        const regexes = [
+            /"id"\s*:\s*"?(\d+)"/, // {"id":"2"} or {"id":2}
+            /form_id\s*[:\s]*"?(\d+)"/,
+            /nf-form-(\d+)/,
+            /"id":(\d+)/, // Fallback for simple cases
+        ];
+
+        for (let regex of regexes) {
+            const match = ajaxData.match(regex);
+            if (match && match[1]) {
+                return parseInt(match[1]);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Finds nearest Ninja Forms container by traversing up the DOM
+     * @param {HTMLElement} form - Form element to start search from
+     * @return {HTMLElement|null} Ninja Forms container or null
+     */
+    findParentContainer(form) {
+        let el = form;
+        while (el && el !== document.body) {
+            if (el.id && /^nf-form-\d+-cont$/.test(el.id)) {
+                return el;
+            }
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    /**
+     * Extracts form ID from HTML container ID attribute
+     * @param {HTMLElement} container - Ninja Forms container element
+     * @return {number|null} Form ID or null if not found
+     */
+    getIdFromHTML(container) {
+        const match = container.id.match(/^nf-form-(\d+)-cont$/);
+        return match ? parseInt(match[1]) : null;
+    }
+}
+
 
 /**
  * Ready function
