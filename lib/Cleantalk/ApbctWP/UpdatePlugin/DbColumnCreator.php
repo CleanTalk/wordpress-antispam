@@ -127,32 +127,34 @@ class DbColumnCreator
         if (is_string($schema_indexes_raw) && !empty($schema_indexes_raw)) {
             // Parse index definitions from string like: "PRIMARY KEY (`id`), INDEX (  `network` ,  `mask` ), INDEX ( `status` )"
             preg_match_all('/(?:PRIMARY\s+KEY|INDEX)\s*\([^)]+\)/i', $schema_indexes_raw, $matches);
-            foreach ($matches[0] as $match) {
-                // Extract column names from index definition
-                if (preg_match('/\(([^)]+)\)/', $match, $col_match)) {
-                    $columns_raw = trim($col_match[1]);
-                    $columns = preg_split('/\s*,\s*/', $columns_raw);
-                    // Normalize column names
-                    $normalized_columns = array();
-                    foreach ($columns as $col) {
-                        $normalized_columns[] = trim($col, '` ');
-                    }
-                    
-                    // Skip PRIMARY KEY as it should already exist if table has primary key
-                    if (stripos($match, 'PRIMARY') !== false) {
-                        continue;
-                    }
-                    
-                    if (!empty($normalized_columns)) {
-                        $index_name = $normalized_columns[0];
-                        
-                        $normalized_def = 'INDEX (' . implode(',', array_map(function($col) {
-                            return '`' . $col . '`';
-                        }, $normalized_columns)) . ')';
-                        
-                        // Use first column as index name
-                        $schema_indexes[$index_name] = $normalized_def;
-                        $schema_index_names[] = $index_name;
+            if (isset($matches[0]) && !empty($matches[0])) {
+                foreach ($matches[0] as $match) {
+                    // Extract column names from index definition
+                    if (preg_match('/\(([^)]+)\)/', $match, $col_match) && isset($col_match[1])) {
+                        $columns_raw = trim($col_match[1]);
+                        $columns = preg_split('/\s*,\s*/', $columns_raw);
+                        // Normalize column names
+                        $normalized_columns = array();
+                        foreach ($columns as $col) {
+                            $normalized_columns[] = trim($col, '` ');
+                        }
+
+                        // Skip PRIMARY KEY as it should already exist if table has primary key
+                        if (stripos($match, 'PRIMARY') !== false) {
+                            continue;
+                        }
+
+                        if (!empty($normalized_columns)) {
+                            $index_name = $normalized_columns[0];
+
+                            $normalized_def = 'INDEX (' . implode(',', array_map(function ($col) {
+                                return '`' . $col . '`';
+                            }, $normalized_columns)) . ')';
+
+                            // Use first column as index name
+                            $schema_indexes[$index_name] = $normalized_def;
+                            $schema_index_names[] = $index_name;
+                        }
                     }
                 }
             }
@@ -201,7 +203,7 @@ class DbColumnCreator
         $schema_index_definitions = array();
         foreach ($schema_indexes as $index_name => $index_def) {
             // Extract columns from schema definition
-            if (preg_match('/\(([^)]+)\)/', $index_def, $col_match)) {
+            if (preg_match('/\(([^)]+)\)/', $index_def, $col_match) && isset($col_match[1])) {
                 $columns = preg_split('/\s*,\s*/', trim($col_match[1], '` '));
                 // Normalize: trim and create comma-separated string
                 $normalized_columns = array();
@@ -217,8 +219,8 @@ class DbColumnCreator
         foreach ($schema_index_names as $index_name) {
             if (in_array($index_name, $db_indexes)) {
                 // Index exists in both - compare definitions
-                $schema_def = isset($schema_index_definitions[$index_name]) ? $schema_index_definitions[$index_name] : '';
-                $db_def = isset($db_index_definitions[$index_name]) ? $db_index_definitions[$index_name] : '';
+                $schema_def = isset($schema_index_definitions[$index_name]) && is_string($schema_index_definitions[$index_name]) ? $schema_index_definitions[$index_name] : '';
+                $db_def = isset($db_index_definitions[$index_name]) && is_string($db_index_definitions[$index_name]) ? $db_index_definitions[$index_name] : '';
                 // Compare normalized definitions (case-insensitive)
                 if (strtolower($schema_def) !== strtolower($db_def)) {
                     $indexes_to_update[] = $index_name;
@@ -245,7 +247,7 @@ class DbColumnCreator
                 // Recreate with new definition
                 if (isset($schema_indexes[$index_name])) {
                     $index_def = $schema_indexes[$index_name];
-                    if (preg_match('/\(([^)]+)\)/', $index_def, $col_match)) {
+                    if (preg_match('/\(([^)]+)\)/', $index_def, $col_match) && isset($col_match[1])) {
                         $columns = trim($col_match[1]);
                         $sql = "ALTER TABLE `$this->dbTableName` ADD INDEX `$index_name` ($columns)";
                         $result = $wpdb->query($sql);
@@ -253,7 +255,6 @@ class DbColumnCreator
                             $errors[] = "Failed to recreate index `$index_name`.\nQuery: $wpdb->last_query\nError: $wpdb->last_error";
                         } else {
                             $this->dbTableChanged = true;
-                            $indexes_updated++;
                         }
                     }
                 }
@@ -264,7 +265,7 @@ class DbColumnCreator
         $schema_index_names_lower = array_map('strtolower', $schema_index_names);
         $db_indexes_lower = array_map('strtolower', $db_indexes);
         $diff_indexes_lower = array_diff($schema_index_names_lower, $db_indexes_lower);
-        
+
         if (!empty($diff_indexes_lower)) {
             // Map back to original case for schema lookup
             $diff_indexes = array();
@@ -274,7 +275,7 @@ class DbColumnCreator
                     $diff_indexes[] = $schema_index_names[$original_key];
                 }
             }
-            
+
             // Add indexes to DB
             foreach ($diff_indexes as $diff_index_name) {
                 // Get the full index definition from schema
@@ -282,7 +283,7 @@ class DbColumnCreator
                     $index_def = $schema_indexes[$diff_index_name];
                     // Create proper SQL: ALTER TABLE `table` ADD INDEX `name` (`column`)
                     // Parse the index definition to extract columns
-                    if (preg_match('/\(([^)]+)\)/', $index_def, $col_match)) {
+                    if (preg_match('/\(([^)]+)\)/', $index_def, $col_match) && isset($col_match[1])) {
                         $columns = trim($col_match[1]);
                         $sql = "ALTER TABLE `$this->dbTableName` ADD INDEX `$diff_index_name` ($columns)";
                         $result = $wpdb->query($sql);
@@ -290,7 +291,6 @@ class DbColumnCreator
                             $errors[] = "Failed to add index `$diff_index_name`.\nQuery: $wpdb->last_query\nError: $wpdb->last_error";
                         } else {
                             $this->dbTableChanged = true;
-                            $indexes_added++;
                         }
                     } else {
                         $errors[] = "Could not parse index definition for `$diff_index_name`: $index_def";
@@ -304,7 +304,6 @@ class DbColumnCreator
                             $errors[] = "Failed to add index `$diff_index_name`.\nQuery: $wpdb->last_query\nError: $wpdb->last_error";
                         } else {
                             $this->dbTableChanged = true;
-                            $indexes_added++;
                         }
                     } else {
                         $errors[] = "Index `$diff_index_name` not found in schema definitions and column doesn't exist for fallback creation.";
@@ -330,7 +329,6 @@ class DbColumnCreator
                     $errors[] = "Failed to drop index `$excess_index_name`.\nQuery: $wpdb->last_query\nError: $wpdb->last_error";
                 } else {
                     $this->dbTableChanged = true;
-                    $indexes_deleted++;
                 }
             }
         }
