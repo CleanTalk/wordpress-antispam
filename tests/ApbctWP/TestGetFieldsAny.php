@@ -13,6 +13,7 @@ if( file_exists( 'inc/cleantalk-common.php' ) ) {
 use Cleantalk\ApbctWP\DTO\GetFieldsAnyDTO;
 use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\State;
+use Cleantalk\ApbctWP\Variables\Post;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -195,5 +196,139 @@ class TestGetFieldsAny extends TestCase {
         $this->assertInstanceOf(GetFieldsAnyDTO::class, $result);
         $this->assertNotEmpty($result->emails_array);
         $this->assertEquals($expected, $result->emails_array);
+    }
+
+    public function testGetVisibleFieldsData_empty()
+    {
+        $result = GetFieldsAny::getVisibleFieldsData();
+        $this->assertEmpty( $result );
+    }
+
+    public function testGetVisibleFieldsData_customArray()
+    {
+        $custom_array = array (
+            '__fluent_form_embded_post_id' => '111',
+            '_fluentform_1_fluentformnonce' => 'e7c5739c9f',
+            '_wp_http_referer' => '/ff-contact/',
+            'names' =>
+                array (
+                    'first_name' => 'Alex',
+                    'last_name' => 'Gull',
+                ),
+            'email' => 's@cleantalk.org',
+            'subject' => 'asd',
+            'message' => 'asd',
+            'apbct_visible_fields' => 'eyIwIjp7InZpc2libGVfZmllbGRzIjoibmFtZXNbZmlyc3RfbmFtZV0gbmFtZXNbbGFzdF9uYW1lXSBlbWFpbCBzdWJqZWN0IG1lc3NhZ2UiLCJ2aXNpYmxlX2ZpZWxkc19jb3VudCI6NSwiaW52aXNpYmxlX2ZpZWxkcyI6Il9fZmx1ZW50X2Zvcm1fZW1iZGVkX3Bvc3RfaWQgX2ZsdWVudGZvcm1fMV9mbHVlbnRmb3Jtbm9uY2UgX3dwX2h0dHBfcmVmZXJlciBjdF9ib3RfZGV0ZWN0b3JfZXZlbnRfdG9rZW4iLCJpbnZpc2libGVfZmllbGRzX2NvdW50Ijo0fX0=',
+        );
+        $result = GetFieldsAny::getVisibleFieldsData($custom_array);
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('visible_fields', $result);
+        $this->assertEquals('names[first_name] names[last_name] email subject message', $result['visible_fields']);
+    }
+
+    public function testGetVisibleFieldsData_customArrayIgnoreCompare()
+    {
+        $custom_array = array (
+            '__fluent_form_embded_post_id' => '111',
+            '_fluentform_1_fluentformnonce' => 'e7c5739c9f',
+            '_wp_http_referer' => '/ff-contact/',
+            'names' =>
+                array (
+                    'first_name' => 'Alex',
+                    'last_name' => 'Gull',
+                ),
+            'email' => 's@cleantalk.org',
+            'subject' => 'asd',
+            'message' => 'asd',
+            'apbct_visible_fields' => 'eyIwIjp7InZpc2libGVfZmllbGRzIjoibmFtZXNbZmlyc3RfbmFtZV0gbmFtZXNbbGFzdF9uYW1lXSBlbWFpbCBzdWJqZWN0IG1lc3NhZ2UiLCJ2aXNpYmxlX2ZpZWxkc19jb3VudCI6NSwiaW52aXNpYmxlX2ZpZWxkcyI6Il9fZmx1ZW50X2Zvcm1fZW1iZGVkX3Bvc3RfaWQgX2ZsdWVudGZvcm1fMV9mbHVlbnRmb3Jtbm9uY2UgX3dwX2h0dHBfcmVmZXJlciBjdF9ib3RfZGV0ZWN0b3JfZXZlbnRfdG9rZW4iLCJpbnZpc2libGVfZmllbGRzX2NvdW50Ijo0fX0=',
+        );
+        $result = GetFieldsAny::getVisibleFieldsData($custom_array, true);
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('visible_fields', $result);
+        $this->assertEquals('names[first_name] names[last_name] email subject message', $result['visible_fields']);
+    }
+
+    public function testGetVisibleFieldsData_fromPost_positive()
+    {
+        Post::getInstance()->variables = [];
+
+        $_POST = array (
+        '__fluent_form_embded_post_id' => '111',
+        '_fluentform_1_fluentformnonce' => 'e7c5739c9f',
+        '_wp_http_referer' => '/ff-contact/',
+        'names' =>
+            array (
+                'first_name' => 'Alex',
+                'last_name' => 'Gull',
+            ),
+        'email' => 's@cleantalk.org',
+        'subject' => 'asd',
+        'message' => 'asd',
+            'apbct_visible_fields' => 'eyIwIjp7InZpc2libGVfZmllbGRzIjoibmFtZXNbZmlyc3RfbmFtZV0gbmFtZXNbbGFzdF9uYW1lXSBlbWFpbCBzdWJqZWN0IG1lc3NhZ2UiLCJ2aXNpYmxlX2ZpZWxkc19jb3VudCI6NSwiaW52aXNpYmxlX2ZpZWxkcyI6Il9fZmx1ZW50X2Zvcm1fZW1iZGVkX3Bvc3RfaWQgX2ZsdWVudGZvcm1fMV9mbHVlbnRmb3Jtbm9uY2UgX3dwX2h0dHBfcmVmZXJlciBjdF9ib3RfZGV0ZWN0b3JfZXZlbnRfdG9rZW4iLCJpbnZpc2libGVfZmllbGRzX2NvdW50Ijo0fX0=',
+        );
+        $result = GetFieldsAny::getVisibleFieldsData();
+        $this->assertIsArray($result);
+        $this->assertArrayHasKey('visible_fields', $result);
+        $this->assertEquals('names[first_name] names[last_name] email subject message', $result['visible_fields']);
+    }
+
+    public function testGetVisibleFieldsData_fromPost_negative()
+    {
+        Post::getInstance()->variables = [];
+        $_POST = array (
+            '__fluent_form_embded_post_id' => '111',
+            '_fluentform_1_fluentformnonce' => 'e7c5739c9f',
+            '_wp_http_referer' => '/ff-contact/',
+            'names' =>
+                array (
+                    'first_name' => 'Alex',
+                    'last_name' => 'Gull',
+                ),
+            'email' => 's@cleantalk.org',
+            'subject' => 'asd',
+            'message' => 'asd',
+            //'apbct_visible_fields' => 'eyIwIjp7InZpc2libGVfZmllbGRzIjoibmFtZXNbZmlyc3RfbmFtZV0gbmFtZXNbbGFzdF9uYW1lXSBlbWFpbCBzdWJqZWN0IG1lc3NhZ2UiLCJ2aXNpYmxlX2ZpZWxkc19jb3VudCI6NSwiaW52aXNpYmxlX2ZpZWxkcyI6Il9fZmx1ZW50X2Zvcm1fZW1iZGVkX3Bvc3RfaWQgX2ZsdWVudGZvcm1fMV9mbHVlbnRmb3Jtbm9uY2UgX3dwX2h0dHBfcmVmZXJlciBjdF9ib3RfZGV0ZWN0b3JfZXZlbnRfdG9rZW4iLCJpbnZpc2libGVfZmllbGRzX2NvdW50Ijo0fX0=',
+        );
+        $result = GetFieldsAny::getVisibleFieldsData();
+        $this->assertIsArray($result);
+        $this->assertArrayNotHasKey('visible_fields', $result);
+
+        Post::getInstance()->variables = [];
+        $_POST = array (
+            '__fluent_form_embded_post_id' => '111',
+            '_fluentform_1_fluentformnonce' => 'e7c5739c9f',
+            '_wp_http_referer' => '/ff-contact/',
+            'names' =>
+                array (
+                    'first_name' => 'Alex',
+                    'last_name' => 'Gull',
+                ),
+            'email' => 's@cleantalk.org',
+            'subject' => 'asd',
+            'message' => 'asd',
+            'apbct_visible_fields' => '',
+        );
+        $result = GetFieldsAny::getVisibleFieldsData();
+        $this->assertIsArray($result);
+        $this->assertArrayNotHasKey('visible_fields', $result);
+
+        Post::getInstance()->variables = [];
+        $_POST = array (
+            '__fluent_form_embded_post_id' => '111',
+            '_fluentform_1_fluentformnonce' => 'e7c5739c9f',
+            '_wp_http_referer' => '/ff-contact/',
+//            'names' =>
+//                array (
+//                    'first_name' => 'Alex',
+//                    'last_name' => 'Gull',
+//                ),
+//            'email' => 's@cleantalk.org',
+//            'subject' => 'asd',
+//            'message' => 'asd',
+            'apbct_visible_fields' => 'eyIwIjp7InZpc2libGVfZmllbGRzIjoibmFtZXNbZmlyc3RfbmFtZV0gbmFtZXNbbGFzdF9uYW1lXSBlbWFpbCBzdWJqZWN0IG1lc3NhZ2UiLCJ2aXNpYmxlX2ZpZWxkc19jb3VudCI6NSwiaW52aXNpYmxlX2ZpZWxkcyI6Il9fZmx1ZW50X2Zvcm1fZW1iZGVkX3Bvc3RfaWQgX2ZsdWVudGZvcm1fMV9mbHVlbnRmb3Jtbm9uY2UgX3dwX2h0dHBfcmVmZXJlciBjdF9ib3RfZGV0ZWN0b3JfZXZlbnRfdG9rZW4iLCJpbnZpc2libGVfZmllbGRzX2NvdW50Ijo0fX0',
+        );
+        $result = GetFieldsAny::getVisibleFieldsData();
+        $this->assertIsArray($result);
+        $this->assertArrayNotHasKey('visible_fields', $result);
     }
 }
