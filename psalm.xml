@@ -11,7 +11,7 @@
         ensureArrayIntOffsetsExist="true"
         allowNamedArgumentCalls="false"
         hoistConstants="true"
-        phpVersion="5.6"
+        phpVersion="7.2"
         hideExternalErrors="true"
         xsi:schemaLocation="https://getpsalm.org/schema/config config.xsd"
         limitMethodComplexity="true"

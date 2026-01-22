@@ -478,6 +478,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'BitForm' => array(
+        'hook'    => 'bitform_filter_form_validation',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_active_integrations) {

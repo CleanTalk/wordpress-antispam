@@ -12,6 +12,12 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
 {
     /**
      * Keep arrays of exclusion signs in the array
+     *
+     * Each exclusion's array must contain two or more elements.
+     * The content checking by all inner array elements existence.
+     *
+     * It the exclusion set will contain only one element, this will trigger false-positive exclusion verdict.
+     *
      * @var array
      */
     private $content_exclusions_signs = array(
@@ -26,7 +32,7 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
         // Stylish Cost Calculator
         array('scc-form-field-item'),
         // Exclusion of maps from leaflet
-        array('leaflet'),
+        array('leaflet', 'leaflet-map', 'map-wrap'),
         // prevent broking elementor swiper gallery
         array('class', 'elementor-swiper', 'elementor-testimonial', 'swiper-pagination'),
         // ics-calendar
