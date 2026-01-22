@@ -39,7 +39,8 @@ abstract class ContactsEncoder
      * Regular expressions parts.
      */
     const ARIA_LABEL_PATTERN = '/aria-label.?=.?[\'"].+?[\'"]/';
-    const EMAIL_PATTERN = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}';
+    const EMAIL_PATTERN = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b';
+    const EMAIL_PATTERN_DOMAIN_CATCHING = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b)';
     const PHONE_NUMBER = '\+\d{8,12}';
     const PHONE_NUMBERS_PATTERNS = [
         '(tel:' . self::PHONE_NUMBER . ')',                        // tel:+XXXXXXXXXX
@@ -194,7 +195,7 @@ abstract class ContactsEncoder
     {
         $this->aria_regex = self::ARIA_LABEL_PATTERN;
 
-        $this->global_email_pattern = '/(mailto\:\b' . self::EMAIL_PATTERN . '\b)|(\b' . self::EMAIL_PATTERN . '\b)/';
+        $this->global_email_pattern = '/(mailto\:\b' . self::EMAIL_PATTERN . ')|(\b' . self::EMAIL_PATTERN_DOMAIN_CATCHING . ')/';
         $this->global_phones_pattern = '/' . implode('|', self::PHONE_NUMBERS_PATTERNS) . '/';
         $this->global_mailto_pattern = '/mailto\:(' . self::EMAIL_PATTERN . ')/';
         $this->plain_email_pattern = '/(\b' . self::EMAIL_PATTERN . '\b)/';

@@ -35,4 +35,15 @@ class ApbctJsBundleResolver
 
         return $script;
     }
+
+    /**
+     * Return full URI for JS script
+     * @param array|\ArrayObject $settings
+     *
+     * @return string
+     */
+    public static function getFullScriptURI($settings)
+    {
+        return APBCT_URL_PATH . '/js/' . self::getBundleName($settings) . '?' . APBCT_VERSION;
+    }
 }

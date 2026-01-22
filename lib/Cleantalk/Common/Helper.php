@@ -890,7 +890,7 @@ class Helper
         $buffer = explode("\n", $buffer);
         $buffer = self::bufferTrimAndClearFromEmptyLines($buffer);
         foreach ($buffer as &$line) {
-            $line = str_getcsv($line, ',', '\'');
+            $line = str_getcsv($line, ',', '\'', "\0");
         }
 
         return $buffer;
@@ -940,7 +940,7 @@ class Helper
     {
         $line = trim(static::bufferCsvPopLine($csv));
         $line = strpos($line, '\'') === 0
-            ? str_getcsv($line, ',', '\'')
+            ? str_getcsv($line, ',', '\'', "\0")
             : explode(',', $line);
         if ($map) {
             $line = array_combine($map, $line);
