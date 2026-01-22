@@ -3231,8 +3231,13 @@ class ApbctHandler {
      */
     catchWCRestRequestAsMiddleware() {
         const ctPinDataToRequest = (options, next) => {
-            if (typeof options !== 'object' || options === null ||
-                !options.hasOwnProperty('data') || !options.hasOwnProperty('path')
+            if (
+                typeof options !== 'object' ||
+                options === null ||
+                !options.hasOwnProperty('data') ||
+                typeof options.data === 'undefined' ||
+                !options.hasOwnProperty('path') ||
+                typeof options.path === 'undefined'
             ) {
                 return next(options);
             }
@@ -3948,6 +3953,13 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
 
     // Deleting form to prevent submit event
     const prev = currentForm.previousSibling;
+
+    // Exclude div.ml-form-recaptcha from cloning - will insert original into cloned form
+    const recaptchaDiv = currentForm.querySelector('div.ml-form-recaptcha');
+    if (recaptchaDiv) {
+        recaptchaDiv.remove();
+    }
+
     const formHtml = currentForm.outerHTML;
     const formOriginal = currentForm;
     const formContent = currentForm.querySelectorAll('input, textarea, select');
@@ -3960,6 +3972,16 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     placeholder.innerHTML = formHtml;
     const clonedForm = placeholder.firstElementChild;
     prev.after(clonedForm);
+
+    // Insert original recaptcha div into cloned form
+    if (recaptchaDiv) {
+        const formContentDiv = clonedForm.querySelector('div.ml-form-formContent');
+        if (formContentDiv) {
+            formContentDiv.after(recaptchaDiv);
+        } else {
+            clonedForm.appendChild(recaptchaDiv);
+        }
+    }
 
     if (formContent && formContent.length > 0) {
         formContent.forEach(function(content) {
@@ -4778,6 +4800,18 @@ function sendAjaxCheckingFormData(form) {
                     apbctReplaceInputsValuesFromOtherForm(formNew, formOriginal);
 
                     prev.after( formOriginal );
+
+                    // Copy recaptcha div from cloned form to original form
+                    const recaptchaDivFromCloned = formNew.querySelector('div.ml-form-recaptcha');
+                    if (recaptchaDivFromCloned) {
+                        const recaptchaClone = recaptchaDivFromCloned.cloneNode(true);
+                        const formContentDivOriginal = formOriginal.querySelector('div.ml-form-formContent');
+                        if (formContentDivOriginal) {
+                            formContentDivOriginal.after(recaptchaClone);
+                        } else {
+                            formOriginal.appendChild(recaptchaClone);
+                        }
+                    }
 
                     // Clear visible_fields input
                     for (const el of formOriginal.querySelectorAll('input[name="apbct_visible_fields"]')) {

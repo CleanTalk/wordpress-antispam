@@ -335,6 +335,16 @@ class WcSpamOrdersListTable extends CleantalkListTable
             <p>Please do backup of WordPress database before delete any orders!</p>
             <p>Results are based on the decision of our spam checking system and do not give a complete guarantee that
                 these orders are spam.</p>
+            <?php
+            if ($this->apbct->settings['data__wc_store_blocked_orders'] != 1) {
+                echo '<p style="color: red;">'
+                . __(
+                    'To store WooCommerce spam orders, enable the "Store blocked WooCommerce orders" option in CleanTalk settings.',
+                    'cleantalk-spam-protect'
+                )
+                . '</p>';
+            }
+            ?>
         </div>
         <?php
     }
