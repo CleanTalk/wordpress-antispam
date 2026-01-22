@@ -52,6 +52,11 @@ class NinjaForms extends IntegrationBase
             $form_data = json_decode(stripslashes(Post::getString('formData')), true);
         }
 
+        if (empty($form_data)) {
+            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+            return null;
+        }
+
         if ( $gfa_dto->nickname === '' || $gfa_dto->email === '' ) {
             $form_data = json_decode(Post::getString('formData'), true);
             if ( empty($form_data) ) {
@@ -173,7 +178,7 @@ class NinjaForms extends IntegrationBase
      * @throws \Exception
      * @psalm-suppress UndefinedClass
      */
-    private function getGFANew(): GetFieldsAnyDTO
+    public function getGFANew(): GetFieldsAnyDTO
     {
         $form_data = json_decode(Post::getString('formData'), true);
         if ( ! $form_data ) {
@@ -243,7 +248,7 @@ class NinjaForms extends IntegrationBase
     /**
      * @return GetFieldsAnyDTO
      */
-    private function getGFAOld(): GetFieldsAnyDTO
+    public function getGFAOld(): GetFieldsAnyDTO
     {
         /**
          * Filter for POST
@@ -277,7 +282,7 @@ class NinjaForms extends IntegrationBase
      * @param array $nf_form_fields
      * @return GetFieldsAnyDTO
      */
-    private function updateEmailNicknameFromNFService(GetFieldsAnyDTO $gfa_dto, array $nf_form_fields): GetFieldsAnyDTO
+    public function updateEmailNicknameFromNFService(GetFieldsAnyDTO $gfa_dto, array $nf_form_fields): GetFieldsAnyDTO
     {
         if ( function_exists('Ninja_Forms') && !empty($nf_form_fields) ) {
             /** @psalm-suppress UndefinedFunction */

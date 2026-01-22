@@ -491,6 +491,7 @@ class GetFieldsAny
      */
     public static function getVisibleFieldsData(array $custom_input_array = [], bool $skip_comparing = false): array
     {
+        $skip_comparing = !empty($custom_input_array) && $skip_comparing;
         // get from Cookies::
         $from_cookies = Cookie::getVisibleFields();
         // get from Post:: and base64 decode the value
