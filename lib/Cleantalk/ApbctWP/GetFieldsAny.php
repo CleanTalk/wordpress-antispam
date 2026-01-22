@@ -469,7 +469,7 @@ class GetFieldsAny
     private function getVisibleFields(): array
     {
         // Visible fields processing
-        $visible_fields = self::getVisibleFieldsData($this->input_array);
+        $visible_fields = self::getVisibleFieldsData();
 
         return isset($visible_fields['visible_fields']) &&
             is_string($visible_fields['visible_fields']) ? explode(' ', $visible_fields['visible_fields']) : array();
@@ -484,11 +484,12 @@ class GetFieldsAny
      * <li>'invisible_fields_count' => (int)3</li>
      * </ul>
      * Empty array if nothing found.
-     * todo gull: can not find any logic for invisible fields or inputs, so far as for visible inputs
+     *
      * @param array $custom_input_array array of custom form data
+     * @param bool $skip_comparing Do skip comparing provided request fields with present in apbct_visible_fields collection. Useful for integrations.
      * @return array|string[]
      */
-    public static function getVisibleFieldsData(array $custom_input_array = array()): array
+    public static function getVisibleFieldsData(array $custom_input_array = [], bool $skip_comparing = false): array
     {
         // get from Cookies::
         $from_cookies = Cookie::getVisibleFields();
@@ -506,9 +507,10 @@ class GetFieldsAny
 
         if ( ! empty($current_fields_collection)) {
             // get all available fields to compare with $current_fields_collection
-            $post_fields_to_check = $custom_input_array ?: self::getAvailablePOSTFieldsForCurrentRequest($from_post);
+            $post_fields_to_check = $custom_input_array ?: self::getAvailablePOSTFieldsForCurrentRequest();
             // comparing
             foreach ($current_fields_collection as $current_fields) {
+                // todo gull: can not find any logic for invisible fields or inputs, so far as for visible inputs
                 // prepare data
                 $count = isset($current_fields['visible_fields_count']) && is_scalar(
                     $current_fields['visible_fields_count']
@@ -526,7 +528,7 @@ class GetFieldsAny
                     // parse string to get fields array
                     $fields_array = explode(' ', $fields_string);
                     // if is intersected with current post fields - that's it
-                    if (count(array_intersect(array_keys($post_fields_to_check), $fields_array)) > 0) {
+                    if ($skip_comparing || count(array_intersect(array_keys($post_fields_to_check), $fields_array)) > 0) {
                         $result = ! empty($current_fields) && is_array($current_fields) ? $current_fields : array();
                     }
                 }
@@ -574,7 +576,7 @@ class GetFieldsAny
      *
      * @return array
      */
-    private static function getAvailablePOSTFieldsForCurrentRequest($custom_input_array = array())
+    private static function getAvailablePOSTFieldsForCurrentRequest()
     {
         //Formidable fields
         if ( isset($_POST['item_meta']) && is_array($_POST['item_meta']) ) {
@@ -586,10 +588,8 @@ class GetFieldsAny
             return $fields;
         }
 
-        $source = empty($custom_input_array) ? $_POST : $custom_input_array;
-
         // Foreach by $_POST and convert nested array to the inline variable like variable[nested_variable][nested_nested_variable]
-        $fields = static::convertNestedArrayToString($source);
+        $fields = static::convertNestedArrayToString($_POST);
 
         // @ToDo we have to implement a logic to find form fields (fields names, fields count) in serialized/nested/encoded items. not only $_POST.
         return $fields;
