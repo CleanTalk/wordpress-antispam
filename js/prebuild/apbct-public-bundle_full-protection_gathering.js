@@ -3125,8 +3125,6 @@ class ApbctHandler {
                         'keepUnwrapped': false,
                         'attachVisibleFieldsData': false,
                     };
-                    console.table('settings',settings)
-                    console.table('settings.data',settings.data)
                     // settings data is string (important!)
                     if ( typeof settings.data === 'string' ) {
                         if (settings.data.indexOf('action=fl_builder_subscribe_form_submit') !== -1) {
@@ -3203,15 +3201,10 @@ class ApbctHandler {
                         }
 
                         if (sourceSign.attachVisibleFieldsData) {
-                            visibleFieldsSearchResult = false;
+                            let visibleFieldsSearchResult = false;
 
-                            if (sourceSign.found === 'action=nf_ajax_submit') {
-                                const extractor = new ApbctNinjaFormsVisibleFields();
-                                visibleFieldsSearchResult = extractor.extract(settings.data);
-                            }
-
-                            if (sourceSign.found === 'action=mailpoet') {
-                                const extractor = new ApbctMailpoetVisibleFields();
+                            const extractor = ApbctVisibleFieldsExtractor.createExtractor(sourceSign.found);
+                            if (extractor) { // Check if extractor was created
                                 visibleFieldsSearchResult = extractor.extract(settings.data);
                             }
 
@@ -3527,6 +3520,21 @@ class ApbctShowForbidden {
  */
 class ApbctVisibleFieldsExtractor {
     /**
+     * Factory method to create appropriate extractor instance
+     * @param {string} sourceSignAction - Action identifier
+     * @return {ApbctVisibleFieldsExtractor|null}
+     */
+    static createExtractor(sourceSignAction) {
+        switch (sourceSignAction) {
+        case 'action=nf_ajax_submit':
+            return new ApbctNinjaFormsVisibleFields();
+        case 'action=mailpoet':
+            return new ApbctMailpoetVisibleFields();
+        default:
+            return null;
+        }
+    }
+    /**
      * Extracts visible fields string from form AJAX data
      * @param {string} ajaxData - AJAX form data
      * @return {string|false} Visible fields value or false if not found
@@ -3574,7 +3582,8 @@ class ApbctVisibleFieldsExtractor {
      * @return {number|null} Form ID or null if not found
      */
     getIdFromAjax(ajaxData) {
-        throw new Error('getIdFromAjax must be implemented by child class');
+        console.warn('getIdFromAjax must be implemented by child class');
+        return null;
     }
 
     /**
@@ -3583,7 +3592,8 @@ class ApbctVisibleFieldsExtractor {
      * @return {HTMLElement|null} Container element or null
      */
     findParentContainer(form) {
-        throw new Error('findParentContainer must be implemented by child class');
+        console.warn('findParentContainer must be implemented by child class');
+        return null;
     }
 
     /**
@@ -3592,7 +3602,8 @@ class ApbctVisibleFieldsExtractor {
      * @return {number|null} Form ID or null if not found
      */
     getIdFromHTML(container) {
-        throw new Error('getIdFromHTML must be implemented by child class');
+        console.warn('getIdFromHTML must be implemented by child class');
+        return null;
     }
 }
 
@@ -3600,6 +3611,9 @@ class ApbctVisibleFieldsExtractor {
  * Ninja Forms specific implementation
  */
 class ApbctNinjaFormsVisibleFields extends ApbctVisibleFieldsExtractor {
+    /**
+     * @inheritDoc
+     */
     getIdFromAjax(ajaxData) {
         const regexes = [
             /"id"\s*:\s*"?(\d+)"/, // {"id":"2"} or {"id":2}
@@ -3618,6 +3632,9 @@ class ApbctNinjaFormsVisibleFields extends ApbctVisibleFieldsExtractor {
         return null;
     }
 
+    /**
+     * @inheritDoc
+     */
     findParentContainer(form) {
         let el = form;
         while (el && el !== document.body) {
@@ -3629,6 +3646,9 @@ class ApbctNinjaFormsVisibleFields extends ApbctVisibleFieldsExtractor {
         return null;
     }
 
+    /**
+     * @inheritDoc
+     */
     getIdFromHTML(container) {
         const match = container.id.match(/^nf-form-(\d+)-cont$/);
         return match ? parseInt(match[1], 10) : null;
@@ -3639,6 +3659,9 @@ class ApbctNinjaFormsVisibleFields extends ApbctVisibleFieldsExtractor {
  * Mailpoet specific implementation
  */
 class ApbctMailpoetVisibleFields extends ApbctVisibleFieldsExtractor {
+    /**
+     * @inheritDoc
+     */
     getIdFromAjax(ajaxData) {
         const regexes = [
             /form_id\s*[:\s]*"?(\d+)"/,
@@ -3656,11 +3679,17 @@ class ApbctMailpoetVisibleFields extends ApbctVisibleFieldsExtractor {
         return null;
     }
 
+    /**
+     * @inheritDoc
+     */
     findParentContainer(form) {
         // Mailpoet uses the form itself as container
         return form;
     }
 
+    /**
+     * @inheritDoc
+     */
     getIdFromHTML(container) {
         if (!container.action) {
             return null;
@@ -3679,7 +3708,6 @@ class ApbctMailpoetVisibleFields extends ApbctVisibleFieldsExtractor {
         return parseInt(hiddenFieldWithID.value, 10);
     }
 }
-
 
 /**
  * Ready function
