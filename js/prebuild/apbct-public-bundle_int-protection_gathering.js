@@ -3125,6 +3125,8 @@ class ApbctHandler {
                         'keepUnwrapped': false,
                         'attachVisibleFieldsData': false,
                     };
+                    console.table('settings',settings)
+                    console.table('settings.data',settings.data)
                     // settings data is string (important!)
                     if ( typeof settings.data === 'string' ) {
                         if (settings.data.indexOf('action=fl_builder_subscribe_form_submit') !== -1) {
@@ -3136,6 +3138,7 @@ class ApbctHandler {
 
                         if (settings.data.indexOf('action=mailpoet') !== -1) {
                             sourceSign.found = 'action=mailpoet';
+                            sourceSign.attachVisibleFieldsData = true;
                         }
 
                         if (
@@ -3204,6 +3207,11 @@ class ApbctHandler {
 
                             if (sourceSign.found === 'action=nf_ajax_submit') {
                                 const extractor = new ApbctNinjaFormsVisibleFields();
+                                visibleFieldsSearchResult = extractor.extract(settings.data);
+                            }
+
+                            if (sourceSign.found === 'action=mailpoet') {
+                                const extractor = new ApbctMailpoetVisibleFields();
                                 visibleFieldsSearchResult = extractor.extract(settings.data);
                             }
 
@@ -3515,11 +3523,11 @@ class ApbctShowForbidden {
 }
 
 /**
- * Class for Ninja from visible fields extract
+ * Base class for extracting visible fields from form plugins
  */
-class ApbctNinjaFormsVisibleFields {
+class ApbctVisibleFieldsExtractor {
     /**
-     * Extracts visible fields string from Ninja Forms
+     * Extracts visible fields string from form AJAX data
      * @param {string} ajaxData - AJAX form data
      * @return {string|false} Visible fields value or false if not found
      */
@@ -3536,20 +3544,22 @@ class ApbctNinjaFormsVisibleFields {
 
         const forms = document.querySelectorAll('form');
         const formIdFromAjax = this.getIdFromAjax(ajaxData);
-        if (!formIdFromAjax) return false;
+        if (!formIdFromAjax) {
+            return false;
+        }
 
         for (let form of forms) {
-            const nfContainer = this.findParentContainer(form);
-            if (!nfContainer) {
+            const container = this.findParentContainer(form);
+            if (!container) {
                 continue;
             }
 
-            const formIdFromHtml = this.getIdFromHTML(nfContainer);
+            const formIdFromHtml = this.getIdFromHTML(container);
             if (formIdFromHtml !== formIdFromAjax) {
                 continue;
             }
 
-            const visibleFields = nfContainer.querySelector('input[id^=apbct_visible_fields_]');
+            const visibleFields = container.querySelector('input[id^=apbct_visible_fields_]');
             if (visibleFields?.value) {
                 return visibleFields.value;
             }
@@ -3559,12 +3569,38 @@ class ApbctNinjaFormsVisibleFields {
     }
 
     /**
-     * Extracts form ID from AJAX data using multiple regex patterns
+     * Override in child classes to define specific extraction patterns
      * @param {string} ajaxData - Decoded AJAX data string
      * @return {number|null} Form ID or null if not found
      */
     getIdFromAjax(ajaxData) {
-        // Test all patterns without global flag for reliable matching
+        throw new Error('getIdFromAjax must be implemented by child class');
+    }
+
+    /**
+     * Override in child classes to define container search logic
+     * @param {HTMLElement} form - Form element to start search from
+     * @return {HTMLElement|null} Container element or null
+     */
+    findParentContainer(form) {
+        throw new Error('findParentContainer must be implemented by child class');
+    }
+
+    /**
+     * Override in child classes to define ID extraction from HTML
+     * @param {HTMLElement} container - Container element
+     * @return {number|null} Form ID or null if not found
+     */
+    getIdFromHTML(container) {
+        throw new Error('getIdFromHTML must be implemented by child class');
+    }
+}
+
+/**
+ * Ninja Forms specific implementation
+ */
+class ApbctNinjaFormsVisibleFields extends ApbctVisibleFieldsExtractor {
+    getIdFromAjax(ajaxData) {
         const regexes = [
             /"id"\s*:\s*"?(\d+)"/, // {"id":"2"} or {"id":2}
             /form_id\s*[:\s]*"?(\d+)"/,
@@ -3575,18 +3611,13 @@ class ApbctNinjaFormsVisibleFields {
         for (let regex of regexes) {
             const match = ajaxData.match(regex);
             if (match && match[1]) {
-                return parseInt(match[1]);
+                return parseInt(match[1], 10);
             }
         }
 
         return null;
     }
 
-    /**
-     * Finds nearest Ninja Forms container by traversing up the DOM
-     * @param {HTMLElement} form - Form element to start search from
-     * @return {HTMLElement|null} Ninja Forms container or null
-     */
     findParentContainer(form) {
         let el = form;
         while (el && el !== document.body) {
@@ -3598,14 +3629,54 @@ class ApbctNinjaFormsVisibleFields {
         return null;
     }
 
-    /**
-     * Extracts form ID from HTML container ID attribute
-     * @param {HTMLElement} container - Ninja Forms container element
-     * @return {number|null} Form ID or null if not found
-     */
     getIdFromHTML(container) {
         const match = container.id.match(/^nf-form-(\d+)-cont$/);
-        return match ? parseInt(match[1]) : null;
+        return match ? parseInt(match[1], 10) : null;
+    }
+}
+
+/**
+ * Mailpoet specific implementation
+ */
+class ApbctMailpoetVisibleFields extends ApbctVisibleFieldsExtractor {
+    getIdFromAjax(ajaxData) {
+        const regexes = [
+            /form_id\s*[:\s]*"?(\d+)"/,
+            /data\[form_id\]=(\d+)/,
+            /form_id=(\d+)/,
+        ];
+
+        for (let regex of regexes) {
+            const match = ajaxData.match(regex);
+            if (match && match[1]) {
+                return parseInt(match[1], 10);
+            }
+        }
+
+        return null;
+    }
+
+    findParentContainer(form) {
+        // Mailpoet uses the form itself as container
+        return form;
+    }
+
+    getIdFromHTML(container) {
+        if (!container.action) {
+            return null;
+        }
+
+        const formMatch = container.action.match(/mailpoet_subscription_form/);
+        if (!formMatch) {
+            return null;
+        }
+
+        const hiddenFieldWithID = container.querySelector('input[type="hidden"][name="data[form_id]"]');
+        if (!hiddenFieldWithID || !hiddenFieldWithID.value) {
+            return null;
+        }
+
+        return parseInt(hiddenFieldWithID.value, 10);
     }
 }
 
