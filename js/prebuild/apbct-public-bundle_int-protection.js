@@ -2818,7 +2818,7 @@ class ApbctHandler {
     cronFormsHandler(cronStartTimeout = 2000) {
         setTimeout(function() {
             setInterval(function() {
-                if (!+ctPublic.settings__data__bot_detector_enabled) {
+                if (!+ctPublic.settings__data__bot_detector_enabled && typeof ApbctGatheringData !== 'undefined') {
                     new ApbctGatheringData().restartFieldsListening();
                 }
                 new ApbctEventTokenTransport().restartBotDetectorEventTokenAttach();
@@ -3504,7 +3504,7 @@ function apbct_ready() {
     handler.detectForcedAltCookiesForms();
 
     // Gathering data when bot detector is disabled
-    if (!+ctPublic.settings__data__bot_detector_enabled) {
+    if (!+ctPublic.settings__data__bot_detector_enabled && typeof ApbctGatheringData !== 'undefined') {
         const gatheringData = new ApbctGatheringData();
         gatheringData.setSessionId();
         gatheringData.writeReferrersToSessionStorage();

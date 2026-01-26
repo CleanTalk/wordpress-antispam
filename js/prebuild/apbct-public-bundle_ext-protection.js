@@ -2818,7 +2818,7 @@ class ApbctHandler {
     cronFormsHandler(cronStartTimeout = 2000) {
         setTimeout(function() {
             setInterval(function() {
-                if (!+ctPublic.settings__data__bot_detector_enabled) {
+                if (!+ctPublic.settings__data__bot_detector_enabled && typeof ApbctGatheringData !== 'undefined') {
                     new ApbctGatheringData().restartFieldsListening();
                 }
                 new ApbctEventTokenTransport().restartBotDetectorEventTokenAttach();
@@ -3504,7 +3504,7 @@ function apbct_ready() {
     handler.detectForcedAltCookiesForms();
 
     // Gathering data when bot detector is disabled
-    if (!+ctPublic.settings__data__bot_detector_enabled) {
+    if (!+ctPublic.settings__data__bot_detector_enabled && typeof ApbctGatheringData !== 'undefined') {
         const gatheringData = new ApbctGatheringData();
         gatheringData.setSessionId();
         gatheringData.writeReferrersToSessionStorage();
@@ -3675,7 +3675,7 @@ function ctProtectExternal() {
     // Trying to process external form into an iframe
     apbctProcessIframes();
     // if form is still not processed by fields listening, do it here
-    if (ctPublic.settings__data__bot_detector_enabled != 1) {
+    if (ctPublic.settings__data__bot_detector_enabled != 1 && typeof ApbctGatheringData !== 'undefined') {
         new ApbctGatheringData().startFieldsListening();
     }
 }
