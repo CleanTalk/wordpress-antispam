@@ -18,7 +18,8 @@ class GF2DBPromotion extends Promotion
     {
         $gravity_active = apbct_is_plugin_active('gravityforms/gravityforms.php');
         $gf2db_active = apbct_is_plugin_active('cleantalk-doboard-add-on-for-gravity-forms/cleantalk-doboard-add-on-for-gravity-forms.php');
-        return $gravity_active && !$gf2db_active;
+        //return $gravity_active && !$gf2db_active;
+        return false;
     }
 
     /**
