@@ -435,6 +435,8 @@ function apbct_exclusions_check__url()
          */
         // case for admin-ajax routes, may contain get params(!)
         $is_admin_ajax_like = stripos(Server::getString('REQUEST_URI'), '/wp-admin/admin-ajax.php') === 0;
+        // case for woocommerce-ajax routes, may contain get params(!)
+        $is_wc_ajax_like = stripos(Server::getString('REQUEST_URI'), '/?wc-ajax=') === 0;
         // case for wp-json paths
         $is_wp_json_like = stripos(Server::getString('REQUEST_URI'), '/wp-json/') === 0;
         // case for rest paths
@@ -446,6 +448,7 @@ function apbct_exclusions_check__url()
             Server::getString('HTTP_REFERER')  &&
             (
                 $is_admin_ajax_like ||
+                $is_wc_ajax_like ||
                 $is_wp_json_like ||
                 $is_rest_only_path
             )
