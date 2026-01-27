@@ -578,4 +578,29 @@ class SFWUpdateHelper
          */
         apbct_sfw_update__create_tables();
     }
+
+    public static function getSFWFilesBatchSize()
+    {
+        global $apbct;
+        $work_batch_size = 10;
+
+        /**
+         * Reduce batch size of curl multi instanced
+         */
+        if (defined('APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE')) {
+            if (
+                is_int(APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE) &&
+                APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE > 1 &&
+                APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE < 10
+            ) {
+                $work_batch_size = APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE;
+            };
+        }
+
+        $work_batch_size = !empty($apbct->fw_stats['multi_request_batch_size'])
+            ? TT::toInt($apbct->fw_stats['multi_request_batch_size'], $work_batch_size)
+            : $work_batch_size;
+
+        return $work_batch_size;
+    }
 }
