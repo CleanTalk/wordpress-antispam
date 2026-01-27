@@ -2,7 +2,7 @@ name: Check for library changes on PR Merge
 
 on:
   pull_request:
-    types: [closed]
+    types: [synchronize, opened, reopened, ready_for_review]
     branches:
       - dev
       - master
@@ -12,7 +12,6 @@ env: # environment variables (available in any part of the action)
 
 jobs:
   notify:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-22.04
 
     steps:
@@ -37,15 +36,16 @@ jobs:
           if [ -z "$CHANGED_FILES" ]; then
             echo "No library changes detected in vendor/"
             echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "status=success" >> $GITHUB_OUTPUT
           else
-            echo "Library changes detected in vendor/ after merge!"
+            echo "❌ Library changes detected in vendor/:"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "status=failure" >> $GITHUB_OUTPUT
           
             HTML_LIST=$(echo "$CHANGED_FILES" | sed 's/^/<li>/;s/$/<\/li>/')
             echo "html_list<<EOF" >> $GITHUB_OUTPUT
             echo "<ul>$HTML_LIST</ul>" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
-          
-            echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Send notification to Matrix
