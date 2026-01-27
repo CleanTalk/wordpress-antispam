@@ -79,6 +79,7 @@ function ctProtectExternal() {
 function formIsExclusion(currentForm) {
     const exclusionsById = [
         'give-form', // give form exclusion because of direct integration
+        'give-next-gen', // give form exclusion because of direct integration
         'frmCalc', // nobletitle-calc
         'ihf-contact-request-form',
         'wpforms', // integration with wpforms
