@@ -13,6 +13,7 @@ class GF2DBPromotion extends Promotion
 
     /**
      * @inheritDoc
+     * @psalm-suppress UnusedVariable
      */
     public function couldPerformActions()
     {
