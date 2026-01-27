@@ -595,7 +595,7 @@ class ApbctHandler {
             try {
                 // Give next gen iframe
                 const foundIframe = Array.from(document.querySelectorAll('iframe')).find(
-                    iframe => iframe.src?.includes('givewp-route')
+                    (iframe) => iframe.src?.includes('givewp-route'),
                 );
 
                 if (!foundIframe) {
@@ -628,7 +628,7 @@ class ApbctHandler {
                                 if (+ctPublic.settings__data__bot_detector_enabled) {
                                     args[1].body.append(
                                         'ct_bot_detector_event_token',
-                                        apbctLocalStorage.get('bot_detector_event_token')
+                                        apbctLocalStorage.get('bot_detector_event_token'),
                                     );
                                 } else {
                                     args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
