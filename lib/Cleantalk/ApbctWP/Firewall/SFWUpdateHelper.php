@@ -383,6 +383,7 @@ class SFWUpdateHelper
 
     public static function removeUpdFolder($dir_name)
     {
+        self::test();
         if ( is_dir($dir_name) ) {
             $files = glob($dir_name . '/*');
 
@@ -577,5 +578,17 @@ class SFWUpdateHelper
          * Create SFW table if not exists
          */
         apbct_sfw_update__create_tables();
+        self::test();
+    }
+
+    /**
+     * @return null
+     * @psalm-suppress PossiblyUnusedMethod
+     * @psalm-suppress PossiblyUnusedReturnValue
+     */
+    public static function test()
+    {
+        $a = true;
+        return true ? null : false;
     }
 }

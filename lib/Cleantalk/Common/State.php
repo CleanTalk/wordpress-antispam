@@ -30,10 +30,11 @@ abstract class State
     public function __construct($option_prefix, $options = array('settings'))
     {
         $this->option_prefix = $option_prefix;
-        $this->options       = $options;
+        $this->options = $options;
         $this->setOptions();
         $this->setDefinitions();
         $this->init();
+        $this->test();
     }
 
     /**
@@ -65,4 +66,14 @@ abstract class State
      * @psalm-suppress PossiblyUnusedMethod
      */
     abstract public function deleteOption($option_name, $use_prefix = false);
+
+    /**
+     * @return true
+     * @psalm-suppress PossiblyUnusedMethod
+     * @psalm-suppress PossiblyUnusedReturnValue
+     */
+    public function test()
+    {
+        return true ? null : false;
+    }
 }
