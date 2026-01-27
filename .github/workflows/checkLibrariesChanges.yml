@@ -50,7 +50,7 @@ jobs:
           fi
 
       - name: Send notification to Matrix
-        if: steps.check-libraries.outputs.has_changes == 'true'
+        if: failure() && steps.check-libraries.outputs.has_changes == 'true'
         uses: Glomberg/matrix-messenger-action@master
         with:
           server: ${{ secrets.MATRIX_SERVER }}
