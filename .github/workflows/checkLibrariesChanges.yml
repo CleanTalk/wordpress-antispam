@@ -46,6 +46,7 @@ jobs:
             echo "html_list<<EOF" >> $GITHUB_OUTPUT
             echo "<ul>$HTML_LIST</ul>" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
+            exit 1
           fi
 
       - name: Send notification to Matrix
