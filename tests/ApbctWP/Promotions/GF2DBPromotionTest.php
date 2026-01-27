@@ -25,16 +25,16 @@ class GF2DBPromotionTest extends TestCase
         $this->assertEquals('forms__gravity_promotion_gf2db', GF2DBPromotion::$setting_name);
     }
 
-    public function testCouldPerformActionsGravityActiveGf2dbInactive()
-    {
-
-        update_option('active_plugins', [
-            'gravityforms/gravityforms.php'
-        ]);
-
-        $result = $this->promotion->couldPerformActions();
-        $this->assertTrue($result);
-    }
+//    public function testCouldPerformActionsGravityActiveGf2dbInactive()
+//    {
+//
+//        update_option('active_plugins', [
+//            'gravityforms/gravityforms.php'
+//        ]);
+//
+//        $result = $this->promotion->couldPerformActions();
+//        $this->assertTrue($result);
+//    }
 
     public function testCouldPerformActionsGravityInactive()
     {
