@@ -2,8 +2,7 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\ApbctWP\Variables\Post;
-use Cleantalk\Common\TT;
+use Cleantalk\ApbctWP\GetFieldsAny;
 
 class FluentForm extends IntegrationBase
 {
@@ -44,9 +43,12 @@ class FluentForm extends IntegrationBase
              */
             $input_array = apply_filters('apbct__filter_post', $form_data);
 
-            $gfa_checked_data = ct_get_fields_any($input_array);
+            $gfa_checked_data = ct_gfa_dto($input_array)->getArray();
 
             $gfa_checked_data['event_token'] = $event_token;
+
+            $fields_visibility_data = GetFieldsAny::getVisibleFieldsData($input_array);
+            $this->setVisibleFieldsData($fields_visibility_data);
 
             if (isset($gfa_checked_data['message'], $gfa_checked_data['message']['apbct_visible_fields'])) {
                 unset($gfa_checked_data['message']['apbct_visible_fields']);

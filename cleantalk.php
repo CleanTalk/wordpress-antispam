@@ -545,13 +545,6 @@ if (!empty($_POST) &&
     apbct_leakyPaywall_request_test();
 }
 
-add_action('wp_ajax_nopriv_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
-add_action('wp_ajax_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
-add_action('wp_ajax_nopriv_nf_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
-add_action('wp_ajax_nf_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
-add_action('ninja_forms_process', 'apbct_form__ninjaForms__testSpam', 1); // Depricated ?
-add_action('ninja_forms_display_after_form', 'apbct_form__ninjaForms__addField', 1000, 10);
-
 // SeedProd Coming Soon Page Pro integration
 add_action('wp_ajax_seed_cspv5_subscribe_callback', 'apbct_form__seedprod_coming_soon__testSpam', 1);
 add_action('wp_ajax_nopriv_seed_cspv5_subscribe_callback', 'apbct_form__seedprod_coming_soon__testSpam', 1);
