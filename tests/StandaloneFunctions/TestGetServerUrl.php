@@ -9,7 +9,7 @@ class TestGetServerUrl extends PHPUnit\Framework\TestCase
     private $correct_urls;
     private $incorrect_urls;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->correct_urls = array(
             'moderate.cleantalk.org',

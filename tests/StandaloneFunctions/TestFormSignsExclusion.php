@@ -6,7 +6,7 @@ class TestFormSignsExclusion extends PHPUnit\Framework\TestCase
 {
     private $test_form_data;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->test_form_data = array(
             'action' => 'test_action',

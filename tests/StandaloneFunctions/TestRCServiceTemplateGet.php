@@ -10,7 +10,7 @@ class TestRCServiceTemplateGet extends PHPUnit\Framework\TestCase
     private $api_key;
     private $expected_result;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->template_id = '1234';
         $this->api_response_empty = array();
