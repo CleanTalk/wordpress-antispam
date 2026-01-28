@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 class TestSFWUpdateSentinel extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         global $apbct;
         $this->db = DB::getInstance();

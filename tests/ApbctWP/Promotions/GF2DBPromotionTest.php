@@ -8,14 +8,14 @@ class GF2DBPromotionTest extends TestCase
     private $promotion;
     private $active_plugins;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->promotion = new GF2DBPromotion();
         $this->promotion->init();
         $this->active_plugins = get_option('active_plugins', array());
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         update_option('active_plugins', $this->active_plugins);
     }
