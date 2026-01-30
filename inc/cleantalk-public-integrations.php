@@ -164,9 +164,10 @@ function ct_woocommerce_wishlist_check($args)
         }
     }
 
-    //If the IP is a Google bot
-    $hostname = gethostbyaddr(TT::toString(Server::get('REMOTE_ADDR')));
-    if ( ! strpos($hostname, 'googlebot.com') ) {
+    //If the IP is a Google bot (with FCrDNS verification to prevent PTR spoofing)
+    $client_ip = TT::toString(Server::get('REMOTE_ADDR'));
+    $verified_hostname = \Cleantalk\Common\Helper::ipResolve($client_ip);
+    if ( ! $verified_hostname || strpos($verified_hostname, 'googlebot.com') === false ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return $args;
