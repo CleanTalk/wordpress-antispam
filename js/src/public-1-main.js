@@ -882,6 +882,10 @@ class ApbctHandler {
                             sourceSign.found = 'action=bt_cc';
                             sourceSign.keepUnwrapped = true;
                         }
+                        if (settings.data.indexOf('action=wpr_form_builder_email') !== -1) {
+                            sourceSign.found = 'action=wpr_form_builder_email';
+                            sourceSign.keepUnwrapped = true;
+                        }
                         if (
                             settings.data.indexOf('action=nf_ajax_submit') !== -1 &&
                             ctPublic.data__cookies_type === 'none'
