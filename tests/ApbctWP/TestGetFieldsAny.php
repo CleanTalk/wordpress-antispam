@@ -37,7 +37,7 @@ class TestGetFieldsAny extends TestCase {
 	 */
 	private $gfa;
 
-	public function setUp()
+	public function setUp(): void
 	{
 		$this->post = array (
 			'_wpcf7' => '100',
