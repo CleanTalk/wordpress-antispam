@@ -180,6 +180,33 @@ class DbColumnCreatorIndexesIntegrationTest extends TestCase
     }
 
     /**
+     * Test when index name is different from column name but column exists
+     */
+    public function testCustomIndexNameWithExistingColumn()
+    {
+        // Arrange: create a test table
+        $tableName = self::$tablePrefix . 'test_custom_index';
+        $this->createTestTableForFallback($tableName);
+
+        // Schema with custom index name (different from column)
+        $schemaIndexes = ['my_custom_status_idx']; // Custom name, not column name
+
+        $dbColumnNames = ['id', 'status', 'name'];
+
+        // Act
+        $this->dbColumnCreator = new DbColumnCreator($tableName);
+        $errors = $this->executeUpdateIndexes($schemaIndexes, $dbColumnNames);
+
+        // Assert: Should fail because 'my_custom_status_idx' is not a column name
+        $this->assertNotEmpty($errors, "Should have error when index name doesn't match any column");
+        $this->assertStringContainsString(
+            "not found in schema definitions and column doesn't exist for fallback creation",
+            $errors[0]
+        );
+    }
+
+
+    /**
      * DataProvider: all tables from Schema
      */
     public function tableSchemaProvider()
@@ -349,6 +376,22 @@ class DbColumnCreatorIndexesIntegrationTest extends TestCase
         $schemas = Schema::getStructureSchemas();
         foreach (array_keys($schemas) as $tableKey) {
             $tableName = self::$tablePrefix . $tableKey;
+            $wpdb->query("DROP TABLE IF EXISTS `{$tableName}`");
+        }
+
+        // Clean up all test tables
+        $testTables = [
+            'test_fallback',
+            'test_fallback_error',
+            'test_array_names',
+            'test_mixed',
+            'test_custom_index',
+            'test_no_definition',
+            'test_column_no_def',
+            'test_similar'
+        ];
+        foreach ($testTables as $testTable) {
+            $tableName = self::$tablePrefix . $testTable;
             $wpdb->query("DROP TABLE IF EXISTS `{$tableName}`");
         }
 
