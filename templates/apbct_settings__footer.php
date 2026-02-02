@@ -42,7 +42,8 @@ function apbct_settings__footer()
         )],
     ];
     $block2_links = [
-        ['text' => 'Security plugin by CleanTalk', 'url' => admin_url('plugin-install.php') . '?s=spbct&tab=search&type=term']
+        ['text' => 'Security plugin by CleanTalk', 'url' => admin_url('plugin-install.php') . '?s=spbct&tab=search&type=term'],
+        ['text' => esc_html__('Forms to CRM / Gravity Add-On'), 'url' => admin_url('plugin-install.php') . '?s=cleantalk-doboard-add-on-for-gravity-forms&tab=search&type=term'],
     ];
 
     ?>

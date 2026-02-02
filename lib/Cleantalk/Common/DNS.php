@@ -114,7 +114,9 @@ class DNS
             $file = @fsockopen($host, 443, $errno, $errstr, static::$max_server_timeout / 1000);
         } else {
             $http = new Request();
-            $host = 'https://' . gethostbyaddr($host);
+            // Use FCrDNS-verified hostname, or IP directly if verification fails
+            $verified_host = Helper::ipResolve($host);
+            $host = 'https://' . ($verified_host ?: $host);
             $file = $http->setUrl($host)
                 ->setOptions(['timeout' => static::$max_server_timeout / 1000])
                 ->setPresets('get_code get')

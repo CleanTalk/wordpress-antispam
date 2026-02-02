@@ -5,6 +5,7 @@ namespace Cleantalk\Antispam\Integrations;
 abstract class IntegrationBase
 {
     public $base_call_result;
+    public $visible_fields_data;
 
     /**
      * Legacy old way to collect data.
@@ -65,5 +66,17 @@ abstract class IntegrationBase
     public function doFinalActions($argument)
     {
         return $argument;
+    }
+
+    public function getVisibleFieldsData()
+    {
+        return $this->visible_fields_data;
+    }
+
+    public function setVisibleFieldsData($visible_fields_data)
+    {
+        if (!empty($visible_fields_data['visible_fields'])) {
+            $this->visible_fields_data = $visible_fields_data;
+        }
     }
 }

@@ -10,7 +10,7 @@
     ],
     "require-dev": {
         "vimeo/psalm": "^4.8",
-        "phpunit/phpunit": "^7.5",
+        "phpunit/phpunit": "^8.5.52",
         "squizlabs/php_codesniffer": "*",
         "phpcompatibility/php-compatibility": "@dev",
         "yoast/phpunit-polyfills": "^1.0",

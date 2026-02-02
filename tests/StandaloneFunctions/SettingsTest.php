@@ -11,7 +11,7 @@ class SettingsTest extends TestCase
      */
     private $errors;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->errors = array(
             'sfw_update' => array(
