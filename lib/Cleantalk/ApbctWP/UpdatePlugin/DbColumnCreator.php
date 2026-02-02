@@ -99,7 +99,9 @@ class DbColumnCreator
         }
 
         // Update indexes
-        $this->updateIndexes($schema_table_structure[$table_key]['__indexes'], $db_column_names, $errors);
+        if ( isset($schema_table_structure[$table_key]['__indexes']) ) {
+            $this->updateIndexes($schema_table_structure[$table_key]['__indexes'], $db_column_names, $errors);
+        }
 
         // Logging errors
         if (!empty($errors)) {
