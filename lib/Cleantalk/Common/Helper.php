@@ -528,22 +528,43 @@ class Helper
     }
 
     /**
-     * Get URL form IP
+     * Resolve IP to hostname with FCrDNS (Forward-Confirmed reverse DNS) verification.
+     * Protects against PTR spoofing by verifying the hostname resolves back to the same IP.
      *
-     * @param $ip
+     * @param string $ip IP address to resolve
      *
-     * @return string
+     * @return string|false Verified hostname or false on failure
      */
     public static function ipResolve($ip)
     {
-        if (self::ipValidate($ip)) {
-            $url = gethostbyaddr($ip);
-            if ($url) {
-                return $url;
-            }
+        // Validate IP first
+        if (!self::ipValidate($ip)) {
+            return false;
         }
 
-        return $ip;
+        // Reverse DNS lookup (PTR record)
+        $hostname = gethostbyaddr($ip);
+
+        // If gethostbyaddr returns the IP itself, it means no PTR record exists
+        if (!$hostname || $hostname === $ip) {
+            return false;
+        }
+
+        // Forward DNS lookup (A/AAAA records) - verify the hostname points back to the IP
+        $forward_ips = gethostbynamel($hostname);
+
+        // If forward lookup fails, we can't verify
+        if (!$forward_ips) {
+            return false;
+        }
+
+        // Check if the original IP is in the list of IPs the hostname resolves to
+        if (in_array($ip, $forward_ips, true)) {
+            return $hostname;
+        }
+
+        // FCrDNS verification failed - possible PTR spoofing attempt
+        return false;
     }
 
     /**
@@ -890,7 +911,7 @@ class Helper
         $buffer = explode("\n", $buffer);
         $buffer = self::bufferTrimAndClearFromEmptyLines($buffer);
         foreach ($buffer as &$line) {
-            $line = str_getcsv($line, ',', '\'');
+            $line = str_getcsv($line, ',', '\'', "\0");
         }
 
         return $buffer;
@@ -940,7 +961,7 @@ class Helper
     {
         $line = trim(static::bufferCsvPopLine($csv));
         $line = strpos($line, '\'') === 0
-            ? str_getcsv($line, ',', '\'')
+            ? str_getcsv($line, ',', '\'', "\0")
             : explode(',', $line);
         if ($map) {
             $line = array_combine($map, $line);

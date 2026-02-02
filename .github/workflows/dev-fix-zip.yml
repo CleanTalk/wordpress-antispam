@@ -17,8 +17,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install p7zip
-        run: sudo apt-get update && sudo apt-get install -y p7zip-full
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y p7zip-full rsync
 
       - name: Set plugin name
         run: echo "PLUGIN_NAME=cleantalk-spam-protect" >> $GITHUB_ENV
@@ -55,8 +55,15 @@ jobs:
           .*
           EOF
 
-      - name: Create ZIP archive with 7z
-        run: 7z a -tzip "${PLUGIN_NAME}.zip" . -xr@.7zignore
+      - name: Prepare plugin directory
+        run: |
+          mkdir "${PLUGIN_NAME}"
+          rsync -a ./ "${PLUGIN_NAME}/" \
+            --exclude-from=.7zignore \
+            --exclude="${PLUGIN_NAME}"
+
+      - name: Create ZIP archive
+        run: 7z a -tzip "${PLUGIN_NAME}.zip" "${PLUGIN_NAME}"
 
       - name: Create / update GitHub Release and upload asset
         uses: softprops/action-gh-release@v2
@@ -74,6 +81,7 @@ jobs:
 
       - name: Clean up
         run: |
+          rm -rf "${PLUGIN_NAME}"
           rm -f "${PLUGIN_NAME}.zip"
           if [ "${{ steps.check_ignore.outputs.ignore_exists }}" = "false" ]; then
             rm -f .7zignore

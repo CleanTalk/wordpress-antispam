@@ -112,11 +112,11 @@ function skip_for_ct_contact_form_validate()
         '12' => apbct_is_in_referer('/wp-admin/'),
         // task 9405 - prevent Forminator forms direct attacks
         '13' => apbct_is_in_uri('/login/') && Post::get('action') !== 'forminator_submit_form_custom-forms',
-        '14' => apbct_is_in_uri('/my-account/edit-account/'),
+        '14' => (apbct_is_in_uri('/my-account/edit-account/') && (int)$apbct->settings['data__protect_logged_in'] === 1),
         // WooCommerce edit account page
-        '15' => apbct_is_in_uri('/my-account/edit-address/'),
+        '15' => (apbct_is_in_uri('/my-account/edit-address/') && (int)$apbct->settings['data__protect_logged_in'] === 1),
         // WooCommerce edit account page
-        '16' => (isset($_POST['action']) && $_POST['action'] === 'save_account_details'),
+        '16' => (isset($_POST['action']) && $_POST['action'] === 'save_account_details' && (int)$apbct->settings['data__protect_logged_in'] === 1),
         // WooCommerce edit account action
         '17' => apbct_is_in_uri('/peepsoajax/profilefieldsajax.validate_register'),
         '18' => (isset($_GET['ptype']) && $_GET['ptype'] === 'login'),
