@@ -154,6 +154,32 @@ class DbColumnCreatorIndexesIntegrationTest extends TestCase
     }
 
     /**
+     * Test fallback index creation when only index name is provided in schema
+     */
+    public function testFallbackIndexCreationFromColumnName()
+    {
+        // Arrange: create a test table
+        $tableName = self::$tablePrefix . 'test_fallback';
+        $this->createTestTableForFallback($tableName);
+
+        // Schema with only index names (no definitions)
+        $schemaIndexes = ['status']; // Just index name, no definition
+
+        $dbColumnNames = ['id', 'status', 'name'];
+
+        // Act
+        $this->dbColumnCreator = new DbColumnCreator($tableName);
+        $errors = $this->executeUpdateIndexes($schemaIndexes, $dbColumnNames);
+
+        // Assert
+        $this->assertEmpty($errors, "Should create index using column name as fallback");
+
+        $actualIndexes = $this->getTableIndexes($tableName);
+        $this->assertArrayHasKey('status', $actualIndexes);
+        $this->assertEquals(['status'], $actualIndexes['status']);
+    }
+
+    /**
      * DataProvider: all tables from Schema
      */
     public function tableSchemaProvider()
@@ -184,6 +210,26 @@ class DbColumnCreatorIndexesIntegrationTest extends TestCase
 
         // Use DbTablesCreator to create table with correct schema
         $this->dbTablesCreator->createTable($tableName);
+    }
+
+    /**
+     * Create test table for fallback tests
+     */
+    private function createTestTableForFallback($tableName)
+    {
+        global $wpdb;
+
+        // Drop if exists
+        $wpdb->query("DROP TABLE IF EXISTS `{$tableName}`");
+
+        // Create simple test table
+        $sql = "CREATE TABLE `{$tableName}` (
+        `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        `status` VARCHAR(50),
+        `name` VARCHAR(100)
+    )";
+
+        $wpdb->query($sql);
     }
 
     /**
