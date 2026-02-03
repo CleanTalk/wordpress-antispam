@@ -9,7 +9,7 @@ class SFWUpdateHelperTest extends TestCase
 {
     private $apbctBackup;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         global $apbct;
@@ -20,7 +20,7 @@ class SFWUpdateHelperTest extends TestCase
         $apbct->fw_stats['multi_request_batch_size'] = 10;
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
         global $apbct;

@@ -13,7 +13,7 @@ class TestSFWFilesDownloader extends TestCase
     private $apbctBackup;
     private $testFolder;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         global $apbct;
@@ -30,7 +30,7 @@ class TestSFWFilesDownloader extends TestCase
         $apbct->save = function($key) {};
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
         global $apbct;
