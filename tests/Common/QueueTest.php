@@ -5,7 +5,7 @@ use PHPUnit\Framework\TestCase;
 
 class QueueTest extends TestCase {
 
-	public function setUp()
+	public function setUp(): void
 	{
 		update_option('cleantalk_sfw_update_queue', array() );
 	}

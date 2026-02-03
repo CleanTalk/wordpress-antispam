@@ -23,7 +23,7 @@ class CronTest extends PHPUnit\Framework\TestCase
 	    ),
     );
 
-    protected function setUp()
+    protected function setUp(): void
     {
         update_option('cleantalk_cron', $this->tasks);
         $this->cron_object = new \Cleantalk\ApbctWP\Cron();

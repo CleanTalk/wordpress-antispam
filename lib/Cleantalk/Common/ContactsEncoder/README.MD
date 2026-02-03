@@ -27,11 +27,12 @@ use Cleantalk\Common\ContactsEncoder\ContactsEncoder as BaseEncoder;
 
 class YourPlatformContactsEncoder extends BaseEncoder
 {
-// REQUIRED: Add request validation
-protected function checkRequest()
-{
-return $this->validateUserRequest(); // Your validation logic
-}
+    // REQUIRED: Add request validation
+    protected function checkRequest()
+    {
+        // Anti-Spam protection for $_POST here
+        return true;
+    }
 
     // OPTIONAL: Customize messages
     protected function getTooltip()
@@ -74,13 +75,13 @@ echo $protectedHtml;
 
 ```javascript
 const encoderConfig = {
-// REQUIRED: AJAX endpoint
-decodeContactsRequest: (encodedNodes) => {
-return fetch('/your-ajax-endpoint', {
-method: 'POST',
-body: encodedNodes
-}).then(r => r.json());
-},
+    // REQUIRED: AJAX endpoint
+    decodeContactsRequest: (encodedNodes) => {
+        return fetch('/your-ajax-endpoint', {
+            method: 'POST',
+            body: encodedNodes
+        }).then(r => r.json());
+    },
 
     // OPTIONAL: Custom texts
     texts: {
@@ -99,6 +100,6 @@ body: encodedNodes
 
 ```javascript
 document.addEventListener('DOMContentLoaded', () => {
-new ContactsEncoder(encoderConfig);
+    new ContactsEncoder(encoderConfig);
 });
 ```

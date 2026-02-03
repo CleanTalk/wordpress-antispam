@@ -16,7 +16,7 @@ class TestConnectionReports extends TestCase
     private $ct_response;
     private $default_params;
 
-    public function setUp()
+    public function setUp(): void
     {
         global $apbct;
         $this->db = DB::getInstance();
