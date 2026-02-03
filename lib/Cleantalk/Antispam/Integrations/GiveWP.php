@@ -33,7 +33,11 @@ class GiveWP extends IntegrationBase
                 $email = Post::getString('email');
             }
 
-            return ct_get_fields_any($input_array, $email, $nickname);
+            //multipage form exclusion, first page of donation amount does not provide email data
+            $gfa_dto = ct_gfa_dto($input_array, $email, $nickname);
+            if (!empty($gfa_dto->email)) {
+                return $gfa_dto->getArray();
+            }
         }
 
         return null;
