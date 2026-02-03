@@ -479,7 +479,8 @@ class Cleantalk
             $file = @fsockopen($host, 443, $errno, $errstr, $this->max_server_timeout / 1000);
         } else {
             $http = new Request();
-            $host = 'https://' . gethostbyaddr($host);
+            $verified_host = Helper::ipResolve($host);
+            $host = 'https://' . ($verified_host ?: $host);
             $file = $http->setUrl($host)
                 ->setOptions(['timeout' => $this->max_server_timeout / 1000])
                 ->setPresets('get_code get')

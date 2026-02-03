@@ -12,6 +12,12 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
 {
     /**
      * Keep arrays of exclusion signs in the array
+     *
+     * Each exclusion's array must contain two or more elements.
+     * The content checking by all inner array elements existence.
+     *
+     * It the exclusion set will contain only one element, this will trigger false-positive exclusion verdict.
+     *
      * @var array
      */
     private $content_exclusions_signs = array(
@@ -26,11 +32,13 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
         // Stylish Cost Calculator
         array('scc-form-field-item'),
         // Exclusion of maps from leaflet
-        array('leaflet'),
+        array('leaflet', 'leaflet-map', 'map-wrap'),
         // prevent broking elementor swiper gallery
         array('class', 'elementor-swiper', 'elementor-testimonial', 'swiper-pagination'),
         // ics-calendar
         array('ics_calendar'),
+        // WooCommerce block order confirmation create account form
+        array('class', 'wc-block-order-confirmation-create-account-form'),
     );
 
     public function doReturnContentBeforeModify($content)
@@ -114,27 +122,57 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
     /**
      * Skip encoder run on hooks.
      *
-     * 1. Applies filter "apbct_hook_skip_email_encoder_on_url_list" to get modified list of URI chunks that needs to skip.
+     * Applies filter "apbct_skip_email_encoder_on_uri_chunk_list" to get list of URI patterns to skip.
+     * Each pattern can be:
+     * - A simple string (e.g., 'details') - matched as substring
+     * - A regex pattern (e.g., '^/$' for homepage) - matched as regex if contains special chars
+     *
      * @return bool
      */
     private function byUrlOnHooks()
     {
-        $skip_encode = false;
-        $url_chunk_list = array();
+        $url_patterns = apply_filters('apbct_skip_email_encoder_on_uri_chunk_list', array());
 
-        // Apply filter "apbct_hook_skip_email_encoder_on_url_list" to get the URI chunk list.
-        $url_chunk_list = apply_filters('apbct_skip_email_encoder_on_uri_chunk_list', $url_chunk_list);
+        if (empty($url_patterns) || !is_array($url_patterns)) {
+            return false;
+        }
 
-        if ( !empty($url_chunk_list) && is_array($url_chunk_list) ) {
-            foreach ($url_chunk_list as $chunk) {
-                if (is_string($chunk) && strpos(TT::toString(Server::get('REQUEST_URI')), $chunk) !== false) {
-                    $skip_encode = true;
-                    break;
-                }
+        $request_uri = TT::toString(Server::get('REQUEST_URI'));
+
+        foreach ($url_patterns as $pattern) {
+            if (is_string($pattern) && $this->isUriMatchPattern($pattern, $request_uri)) {
+                return true;
             }
         }
 
-        return $skip_encode;
+        return false;
+    }
+
+    /**
+     * Check if URI matches the given pattern.
+     *
+     * @param string $pattern - simple string, special keyword or regex pattern
+     * @param string $uri - REQUEST_URI to check
+     * @return bool
+     */
+    private function isUriMatchPattern($pattern, $uri)
+    {
+        // Special keyword for homepage
+        if ($pattern === '__HOME__') {
+            return $uri === '/' || $uri === '';
+        }
+
+        // Check if pattern contains regex special characters
+        $is_regex = (bool) preg_match('/[\^$.|?*+()\[\]{}]/', $pattern);
+
+        if (!$is_regex) {
+            // Simple substring match (faster)
+            return strpos($uri, $pattern) !== false;
+        }
+
+        // Regex match: escape delimiter
+        $safe_pattern = str_replace('/', '\/', $pattern);
+        return (bool) @preg_match('/' . $safe_pattern . '/u', $uri);
     }
 
     /**

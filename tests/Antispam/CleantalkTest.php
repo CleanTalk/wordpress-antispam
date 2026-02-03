@@ -10,7 +10,7 @@ class CleantalkTest extends \PHPUnit\Framework\TestCase
     protected $ct;
     protected $ct_request;
 
-    public function setUp()
+    public function setUp(): void
     {
         global $apbct;
         $apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));

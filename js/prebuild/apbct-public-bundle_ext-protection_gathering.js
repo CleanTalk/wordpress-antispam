@@ -3204,6 +3204,7 @@ class ApbctHandler {
                     let sourceSign = {
                         'found': false,
                         'keepUnwrapped': false,
+                        'attachVisibleFieldsData': false,
                     };
                     // settings data is string (important!)
                     if ( typeof settings.data === 'string' ) {
@@ -3216,6 +3217,7 @@ class ApbctHandler {
 
                         if (settings.data.indexOf('action=mailpoet') !== -1) {
                             sourceSign.found = 'action=mailpoet';
+                            sourceSign.attachVisibleFieldsData = true;
                         }
 
                         if (
@@ -3244,11 +3246,11 @@ class ApbctHandler {
                             sourceSign.keepUnwrapped = true;
                         }
                         if (
-                            settings.data.indexOf('action=nf_ajax_submit') !== -1 &&
-                            ctPublic.data__cookies_type === 'none'
+                            settings.data.indexOf('action=nf_ajax_submit') !== -1
                         ) {
                             sourceSign.found = 'action=nf_ajax_submit';
                             sourceSign.keepUnwrapped = true;
+                            sourceSign.attachVisibleFieldsData = true;
                         }
                     }
                     if ( typeof settings.url === 'string' ) {
@@ -3260,6 +3262,7 @@ class ApbctHandler {
                     if (sourceSign.found !== false) {
                         let eventToken = '';
                         let noCookieData = '';
+                        let visibleFieldsString = '';
                         if (+ctPublic.settings__data__bot_detector_enabled) {
                             const token = new ApbctHandler().toolGetEventToken();
                             if (token) {
@@ -3278,7 +3281,26 @@ class ApbctHandler {
                             }
                         }
 
-                        settings.data = noCookieData + eventToken + settings.data;
+                        if (sourceSign.attachVisibleFieldsData) {
+                            let visibleFieldsSearchResult = false;
+
+                            const extractor = ApbctVisibleFieldsExtractor.createExtractor(sourceSign.found);
+                            if (extractor) { // Check if extractor was created
+                                visibleFieldsSearchResult = extractor.extract(settings.data);
+                            }
+
+                            if (typeof visibleFieldsSearchResult === 'string') {
+                                let encoded = null;
+                                try {
+                                    encoded = encodeURIComponent(visibleFieldsSearchResult);
+                                    visibleFieldsString = 'apbct_visible_fields=' + encoded + '&';
+                                } catch (e) {
+                                    // do nothing
+                                }
+                            }
+                        }
+
+                        settings.data = noCookieData + eventToken + visibleFieldsString + settings.data;
                     }
                 },
             });
@@ -3291,8 +3313,13 @@ class ApbctHandler {
      */
     catchWCRestRequestAsMiddleware() {
         const ctPinDataToRequest = (options, next) => {
-            if (typeof options !== 'object' || options === null ||
-                !options.hasOwnProperty('data') || !options.hasOwnProperty('path')
+            if (
+                typeof options !== 'object' ||
+                options === null ||
+                !options.hasOwnProperty('data') ||
+                typeof options.data === 'undefined' ||
+                !options.hasOwnProperty('path') ||
+                typeof options.path === 'undefined'
             ) {
                 return next(options);
             }
@@ -3566,6 +3593,200 @@ class ApbctShowForbidden {
                 }
             }
         }
+    }
+}
+
+/**
+ * Base class for extracting visible fields from form plugins
+ */
+class ApbctVisibleFieldsExtractor {
+    /**
+     * Factory method to create appropriate extractor instance
+     * @param {string} sourceSignAction - Action identifier
+     * @return {ApbctVisibleFieldsExtractor|null}
+     */
+    static createExtractor(sourceSignAction) {
+        switch (sourceSignAction) {
+        case 'action=nf_ajax_submit':
+            return new ApbctNinjaFormsVisibleFields();
+        case 'action=mailpoet':
+            return new ApbctMailpoetVisibleFields();
+        default:
+            return null;
+        }
+    }
+    /**
+     * Extracts visible fields string from form AJAX data
+     * @param {string} ajaxData - AJAX form data
+     * @return {string|false} Visible fields value or false if not found
+     */
+    extract(ajaxData) {
+        if (!ajaxData || typeof ajaxData !== 'string') {
+            return false;
+        }
+
+        try {
+            ajaxData = decodeURIComponent(ajaxData);
+        } catch (e) {
+            return false;
+        }
+
+        const forms = document.querySelectorAll('form');
+        const formIdFromAjax = this.getIdFromAjax(ajaxData);
+        if (!formIdFromAjax) {
+            return false;
+        }
+
+        for (let form of forms) {
+            const container = this.findParentContainer(form);
+            if (!container) {
+                continue;
+            }
+
+            const formIdFromHtml = this.getIdFromHTML(container);
+            if (formIdFromHtml !== formIdFromAjax) {
+                continue;
+            }
+
+            const visibleFields = container.querySelector('input[id^=apbct_visible_fields_]');
+            if (visibleFields?.value) {
+                return visibleFields.value;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Override in child classes to define specific extraction patterns
+     * @param {string} ajaxData - Decoded AJAX data string
+     * @return {number|null} Form ID or null if not found
+     */
+    getIdFromAjax(ajaxData) {
+        console.warn('getIdFromAjax must be implemented by child class');
+        return null;
+    }
+
+    /**
+     * Override in child classes to define container search logic
+     * @param {HTMLElement} form - Form element to start search from
+     * @return {HTMLElement|null} Container element or null
+     */
+    findParentContainer(form) {
+        console.warn('findParentContainer must be implemented by child class');
+        return null;
+    }
+
+    /**
+     * Override in child classes to define ID extraction from HTML
+     * @param {HTMLElement} container - Container element
+     * @return {number|null} Form ID or null if not found
+     */
+    getIdFromHTML(container) {
+        console.warn('getIdFromHTML must be implemented by child class');
+        return null;
+    }
+}
+
+/**
+ * Ninja Forms specific implementation
+ */
+class ApbctNinjaFormsVisibleFields extends ApbctVisibleFieldsExtractor {
+    /**
+     * @inheritDoc
+     */
+    getIdFromAjax(ajaxData) {
+        const regexes = [
+            /"id"\s*:\s*"?(\d+)"/, // {"id":"2"} or {"id":2}
+            /form_id\s*[:\s]*"?(\d+)"/,
+            /nf-form-(\d+)/,
+            /"id":(\d+)/, // Fallback for simple cases
+        ];
+
+        for (let regex of regexes) {
+            const match = ajaxData.match(regex);
+            if (match && match[1]) {
+                return parseInt(match[1], 10);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    findParentContainer(form) {
+        let el = form;
+        while (el && el !== document.body) {
+            if (el.id && /^nf-form-\d+-cont$/.test(el.id)) {
+                return el;
+            }
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    getIdFromHTML(container) {
+        const match = container.id.match(/^nf-form-(\d+)-cont$/);
+        return match ? parseInt(match[1], 10) : null;
+    }
+}
+
+/**
+ * Mailpoet specific implementation
+ */
+class ApbctMailpoetVisibleFields extends ApbctVisibleFieldsExtractor {
+    /**
+     * @inheritDoc
+     */
+    getIdFromAjax(ajaxData) {
+        const regexes = [
+            /form_id\s*[:\s]*"?(\d+)"/,
+            /data\[form_id\]=(\d+)/,
+            /form_id=(\d+)/,
+        ];
+
+        for (let regex of regexes) {
+            const match = ajaxData.match(regex);
+            if (match && match[1]) {
+                return parseInt(match[1], 10);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    findParentContainer(form) {
+        // Mailpoet uses the form itself as container
+        return form;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    getIdFromHTML(container) {
+        if (!container.action) {
+            return null;
+        }
+
+        const formMatch = container.action.match(/mailpoet_subscription_form/);
+        if (!formMatch) {
+            return null;
+        }
+
+        const hiddenFieldWithID = container.querySelector('input[type="hidden"][name="data[form_id]"]');
+        if (!hiddenFieldWithID || !hiddenFieldWithID.value) {
+            return null;
+        }
+
+        return parseInt(hiddenFieldWithID.value, 10);
     }
 }
 
@@ -3912,6 +4133,13 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
 
     // Deleting form to prevent submit event
     const prev = currentForm.previousSibling;
+
+    // Exclude div.ml-form-recaptcha from cloning - will insert original into cloned form
+    const recaptchaDiv = currentForm.querySelector('div.ml-form-recaptcha');
+    if (recaptchaDiv) {
+        recaptchaDiv.remove();
+    }
+
     const formHtml = currentForm.outerHTML;
     const formOriginal = currentForm;
     const formContent = currentForm.querySelectorAll('input, textarea, select');
@@ -3924,6 +4152,16 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     placeholder.innerHTML = formHtml;
     const clonedForm = placeholder.firstElementChild;
     prev.after(clonedForm);
+
+    // Insert original recaptcha div into cloned form
+    if (recaptchaDiv) {
+        const formContentDiv = clonedForm.querySelector('div.ml-form-formContent');
+        if (formContentDiv) {
+            formContentDiv.after(recaptchaDiv);
+        } else {
+            clonedForm.appendChild(recaptchaDiv);
+        }
+    }
 
     if (formContent && formContent.length > 0) {
         formContent.forEach(function(content) {
@@ -4742,6 +4980,18 @@ function sendAjaxCheckingFormData(form) {
                     apbctReplaceInputsValuesFromOtherForm(formNew, formOriginal);
 
                     prev.after( formOriginal );
+
+                    // Copy recaptcha div from cloned form to original form
+                    const recaptchaDivFromCloned = formNew.querySelector('div.ml-form-recaptcha');
+                    if (recaptchaDivFromCloned) {
+                        const recaptchaClone = recaptchaDivFromCloned.cloneNode(true);
+                        const formContentDivOriginal = formOriginal.querySelector('div.ml-form-formContent');
+                        if (formContentDivOriginal) {
+                            formContentDivOriginal.after(recaptchaClone);
+                        } else {
+                            formOriginal.appendChild(recaptchaClone);
+                        }
+                    }
 
                     // Clear visible_fields input
                     for (const el of formOriginal.querySelectorAll('input[name="apbct_visible_fields"]')) {

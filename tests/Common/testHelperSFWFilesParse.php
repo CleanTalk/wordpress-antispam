@@ -7,7 +7,7 @@ use PHPUnit;
 
 class testHelperSFWFilesParse extends PHPUnit\Framework\TestCase
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->api_responses = array(
             'null' => [

@@ -56,11 +56,14 @@ class RemoteCalls
             'netserv3.cleantalk.org',
             'netserv4.cleantalk.org',
         ];
-
+        // Resolve IP of the client making the request and verify hostname from it to be in the list of RC servers hostnames
+        $client_ip = Helper::ipGet('remote_addr');
+        $verified_hostname = $client_ip ? \Cleantalk\Common\Helper::ipResolve($client_ip) : false;
         $is_noc_request = ! $apbct->key_is_ok &&
             Request::get('spbc_remote_call_action') &&
             in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct')) &&
-            in_array(Helper::ipResolve(Helper::ipGet('remote_addr')), $rc_servers, true);
+            $verified_hostname !== false &&
+            in_array($verified_hostname, $rc_servers, true);
 
         // no token needs for this action, at least for now
         // todo Probably we still need to validate this, consult with analytics team

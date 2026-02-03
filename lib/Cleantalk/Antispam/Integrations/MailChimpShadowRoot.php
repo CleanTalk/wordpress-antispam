@@ -22,11 +22,6 @@ class MailChimpShadowRoot extends IntegrationBase
 
             $data = ct_gfa_dto($input_array)->getArray();
 
-            // Handle event token from bot detector
-            if (isset($data['ct_bot_detector_event_token'])) {
-                $data['event_token'] = $data['ct_bot_detector_event_token'];
-            }
-
             return $data;
         }
 
