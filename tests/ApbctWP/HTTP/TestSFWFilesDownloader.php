@@ -53,6 +53,18 @@ class TestSFWFilesDownloader extends TestCase
     /**
      * @test
      */
+    public function testThrowsExceptionWhenInvalidServicePassed()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Service must be an instance of');
+
+        // Pass an invalid object (not HTTPMultiRequestService)
+        new SFWFilesDownloader(new \stdClass());
+    }
+
+    /**
+     * @test
+     */
     public function testReturnsErrorWhenFolderNotWritable()
     {
         global $apbct;
