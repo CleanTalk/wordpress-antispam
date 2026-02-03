@@ -380,7 +380,7 @@ class State extends \Cleantalk\Common\State
     private $connection_reports;
 
     /**
-     * @var ConnectionReports
+     * @var JsErrorsReport
      */
     private $js_errors_report;
 

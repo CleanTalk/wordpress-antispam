@@ -2,7 +2,7 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
-use Cleantalk\ApbctWP\HTTP\HTTPMultiRequestFactory;
+use Cleantalk\ApbctWP\HTTP\HTTPMultiRequestService;
 use Cleantalk\Common\TT;
 
 /**
@@ -14,11 +14,11 @@ use Cleantalk\Common\TT;
 class SFWFilesDownloader
 {
     /**
-     * HTTP multi-request fabric instance
+     * HTTP multi-request service instance
      *
-     * @var HTTPMultiRequestFactory
+     * @var HTTPMultiRequestService
      */
-    private $http_multi_request_factory;
+    private $http_multi_request_service;
 
     /**
      * @var string
@@ -33,12 +33,20 @@ class SFWFilesDownloader
     /**
      * SFWFilesDownloader constructor
      *
-     * @param HTTPMultiRequestFactory|null $factory Optional. Custom fabric instance for dependency injection.
+     * @param HTTPMultiRequestService|null $service Optional. Custom service instance for dependency injection.
+     * @throws \InvalidArgumentException If service is not an instance of HTTPMultiRequestService
      */
-    public function __construct($factory = null)
+    public function __construct($service = null)
     {
         $this->deafult_error_prefix = basename(__CLASS__) . ': ';
-        $this->http_multi_request_factory = $factory ?: new HTTPMultiRequestFactory();
+
+        if ($service !== null && !$service instanceof HTTPMultiRequestService) {
+            throw new \InvalidArgumentException(
+                'Service must be an instance of ' . HTTPMultiRequestService::class
+            );
+        }
+
+        $this->http_multi_request_service = $service ?: new HTTPMultiRequestService();
     }
 
     /**
@@ -95,7 +103,7 @@ class SFWFilesDownloader
 
             if (!empty($current_batch_urls)) {
                 // Execute multi-request for current batch
-                $multi_request_contract = $this->http_multi_request_factory->setMultiContract($current_batch_urls);
+                $multi_request_contract = $this->http_multi_request_service->setMultiContract($current_batch_urls);
 
                 // Critical error: contract processing failed, stop update immediately
                 if (!$multi_request_contract->process_done) {
@@ -105,7 +113,7 @@ class SFWFilesDownloader
 
                 // Handle failed downloads in this batch
                 if (!empty($multi_request_contract->getFailedURLs())) {
-                    // Reduce batch size for retry if fabric suggests it
+                    // Reduce batch size for retry if service suggests it
                     if ($multi_request_contract->suggest_batch_reduce_to) {
                         $on_repeat_batch_size = min($on_repeat_batch_size, $multi_request_contract->suggest_batch_reduce_to);
                     }

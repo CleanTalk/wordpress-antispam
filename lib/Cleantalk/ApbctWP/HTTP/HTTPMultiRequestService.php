@@ -5,16 +5,16 @@ namespace Cleantalk\ApbctWP\HTTP;
 use Cleantalk\Common\HTTP\Request as CommonRequest;
 
 /**
- * Class HTTPMultiRequestFactory
+ * Class HTTPMultiRequestService
  *
- * Factory for managing multiple HTTP requests with contract-based approach.
+ * Service for managing multiple HTTP requests with contract-based approach.
  * Handles batch HTTP requests, validates responses, tracks success/failure states,
  * and provides file writing capabilities for downloaded content.
  *
  * @package Cleantalk\ApbctWP\HTTP
  * @since 1.0.0
  */
-class HTTPMultiRequestFactory
+class HTTPMultiRequestService
 {
     /**
      * Array of HTTP request contracts
@@ -48,7 +48,7 @@ class HTTPMultiRequestFactory
     /**
      * Initializes and executes multi-request contract for given URLs
      *
-     * Resets factory state, prepares contracts for each URL, executes HTTP requests,
+     * Resets service state, prepares contracts for each URL, executes HTTP requests,
      * and fills contracts with response data. This is the main entry point for batch processing.
      *
      * @param array $urls List of URLs to process
@@ -57,7 +57,7 @@ class HTTPMultiRequestFactory
      */
     public function setMultiContract($urls)
     {
-        // Reset factory state for new batch
+        // Reset service state for new batch
         $this->process_done = false;
         $this->suggest_batch_reduce_to = false;
         $this->contracts = [];
@@ -196,7 +196,11 @@ class HTTPMultiRequestFactory
     }
 
     /**
-     * Sends HTTP requests to multiple URLs using CommonRequest
+     * Sends HTTP requests to multiple URLs using CommonRequest (cURL)
+     *
+     * Uses CommonRequest directly (bypassing WP HTTP API) to ensure per-URL
+     * error tracking is available. This enables adaptive batch size reduction
+     * when individual downloads fail.
      *
      * @param array $urls Array of URLs to request
      *

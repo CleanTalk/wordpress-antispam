@@ -3,7 +3,7 @@
 namespace Cleantalk\ApbctWP\Tests\Firewall;
 
 use Cleantalk\ApbctWP\Firewall\SFWFilesDownloader;
-use Cleantalk\ApbctWP\HTTP\HTTPMultiRequestFactory;
+use Cleantalk\ApbctWP\HTTP\HTTPMultiRequestService;
 use Cleantalk\ApbctWP\HTTP\HTTPRequestContract;
 use PHPUnit\Framework\TestCase;
 use Cleantalk\ApbctWP\State;
@@ -58,7 +58,7 @@ class TestSFWFilesDownloader extends TestCase
         global $apbct;
         $apbct->fw_stats['updating_folder'] = '/nonexistent/path/';
 
-        $mockFabric = $this->getMockBuilder(HTTPMultiRequestFactory::class)
+        $mockFabric = $this->getMockBuilder(HTTPMultiRequestService::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -76,7 +76,7 @@ class TestSFWFilesDownloader extends TestCase
      */
     public function testReturnsErrorWhenUrlsNotArray()
     {
-        $mockFabric = $this->getMockBuilder(HTTPMultiRequestFactory::class)
+        $mockFabric = $this->getMockBuilder(HTTPMultiRequestService::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -93,7 +93,7 @@ class TestSFWFilesDownloader extends TestCase
      */
     public function testReturnsSuccessStageWhenEmptyUrlsArray()
     {
-        $mockFabric = $this->getMockBuilder(HTTPMultiRequestFactory::class)
+        $mockFabric = $this->getMockBuilder(HTTPMultiRequestService::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -110,7 +110,7 @@ class TestSFWFilesDownloader extends TestCase
      */
     public function testReturnsTrueWhenEmptyUrlsAndDirectUpdateTrue()
     {
-        $mockFabric = $this->getMockBuilder(HTTPMultiRequestFactory::class)
+        $mockFabric = $this->getMockBuilder(HTTPMultiRequestService::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -127,7 +127,7 @@ class TestSFWFilesDownloader extends TestCase
     {
         $urls = ['https://example.com/file1.gz'];
 
-        $mockFabric = $this->getMockBuilder(HTTPMultiRequestFactory::class)
+        $mockFabric = $this->getMockBuilder(HTTPMultiRequestService::class)
             ->disableOriginalConstructor()
             ->setMethods(['setMultiContract'])
             ->getMock();
@@ -163,7 +163,7 @@ class TestSFWFilesDownloader extends TestCase
             'https://example.com/file3.gz'
         ];
 
-        $mockFabric = $this->getMockBuilder(HTTPMultiRequestFactory::class)
+        $mockFabric = $this->getMockBuilder(HTTPMultiRequestService::class)
             ->disableOriginalConstructor()
             ->setMethods(['setMultiContract', 'getFailedURLs', 'writeSuccessURLsContent'])
             ->getMock();
@@ -199,7 +199,7 @@ class TestSFWFilesDownloader extends TestCase
     {
         $urls = ['https://example.com/file1.gz'];
 
-        $mockFabric = $this->getMockBuilder(HTTPMultiRequestFactory::class)
+        $mockFabric = $this->getMockBuilder(HTTPMultiRequestService::class)
             ->disableOriginalConstructor()
             ->setMethods(['setMultiContract', 'getFailedURLs', 'writeSuccessURLsContent'])
             ->getMock();
@@ -235,7 +235,7 @@ class TestSFWFilesDownloader extends TestCase
             'https://example.com/file2.gz'
         ];
 
-        $mockFabric = $this->getMockBuilder(HTTPMultiRequestFactory::class)
+        $mockFabric = $this->getMockBuilder(HTTPMultiRequestService::class)
             ->disableOriginalConstructor()
             ->setMethods(['setMultiContract', 'getFailedURLs', 'writeSuccessURLsContent'])
             ->getMock();
@@ -280,7 +280,7 @@ class TestSFWFilesDownloader extends TestCase
         $callCount = 0;
         $receivedBatches = [];
 
-        $mockFabric = $this->getMockBuilder(HTTPMultiRequestFactory::class)
+        $mockFabric = $this->getMockBuilder(HTTPMultiRequestService::class)
             ->disableOriginalConstructor()
             ->setMethods(['setMultiContract', 'getFailedURLs', 'writeSuccessURLsContent'])
             ->getMock();
@@ -325,7 +325,7 @@ class TestSFWFilesDownloader extends TestCase
 
         $callCount = 0;
 
-        $mockFabric = $this->getMockBuilder(HTTPMultiRequestFactory::class)
+        $mockFabric = $this->getMockBuilder(HTTPMultiRequestService::class)
             ->disableOriginalConstructor()
             ->setMethods(['setMultiContract', 'getFailedURLs', 'writeSuccessURLsContent'])
             ->getMock();
@@ -371,7 +371,7 @@ class TestSFWFilesDownloader extends TestCase
             'https://example.com/file2.gz'
         ];
 
-        $mockFabric = $this->getMockBuilder(HTTPMultiRequestFactory::class)
+        $mockFabric = $this->getMockBuilder(HTTPMultiRequestService::class)
             ->disableOriginalConstructor()
             ->setMethods(['setMultiContract', 'getFailedURLs', 'writeSuccessURLsContent', 'getContractsErrors'])
             ->getMock();
@@ -413,7 +413,7 @@ class TestSFWFilesDownloader extends TestCase
 
         $receivedUrls = null;
 
-        $mockFabric = $this->getMockBuilder(HTTPMultiRequestFactory::class)
+        $mockFabric = $this->getMockBuilder(HTTPMultiRequestService::class)
             ->disableOriginalConstructor()
             ->setMethods(['setMultiContract', 'getFailedURLs', 'writeSuccessURLsContent'])
             ->getMock();
