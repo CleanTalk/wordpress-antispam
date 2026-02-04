@@ -1807,6 +1807,184 @@ if (!Object.prototype.hasOwn) {
 }
 
 /**
+ * Callbacks for ShadowRoot integrations
+ */
+const ApbctShadowRootCallbacks = {
+    /**
+     * Mailchimp block callback - clears localStorage by mcforms mask
+     * @param {object} result
+     */
+    mailchimpBlock: function(result) {
+        try {
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key && key.indexOf('mcforms') !== -1) {
+                    localStorage.removeItem(key);
+                }
+            }
+        } catch (e) {
+            console.warn('Error clearing localStorage by mcforms mask:', e);
+        }
+    },
+
+    // /**
+    //  * Next integration block callback
+    //  * @param {object} result
+    //  */
+    // nextIntegrationBlock: function(result) {
+    //     // Custom logic
+    // },
+};
+/**
+ * Config for ShadowRoot integrations
+ */
+const ApbctShadowRootConfig = {
+    'mailchimp': {
+        selector: '.mcforms-wrapper',
+        urlPattern: 'mcf-integrations-mcmktg.mlchmpcompprduse2.iks2.a.intuit.com/gateway/receive',
+        externalForm: true,
+        action: 'cleantalk_force_mailchimp_shadowroot_check',
+        callbackAllow: false,
+        callbackBlock: ApbctShadowRootCallbacks.mailchimpBlock,
+    },
+};
+/**
+ * Class for handling ShadowRoot forms
+ */
+class ApbctShadowRootProtection {
+    constructor() {
+        this.config = ApbctShadowRootConfig;
+    }
+
+    /**
+     * Find matching config for URL
+     * @param {string} url
+     * @return {object|null} { formKey, config } or null
+     */
+    findMatchingConfig(url) {
+        for (const [formKey, config] of Object.entries(this.config)) {
+            // Shadowroot can send both external and internal requests
+            // If the form is external, then we check whether the setting is enabled.
+            if (
+                (!config.externalForm || +ctPublic.settings__forms__check_external) && 
+                document.querySelectorAll(config.selector).length > 0 &&
+                url && url.includes(config.urlPattern)
+            ) {
+                return {formKey, config};
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Check ShadowRoot form request via CleanTalk AJAX
+     * @param {string} formKey
+     * @param {object} config
+     * @param {string} bodyText
+     * @return {Promise<boolean>} true = block, false = allow
+     */
+    async checkRequest(formKey, config, bodyText) {
+        return new Promise((resolve) => {
+            let data = {
+                action: config.action,
+            };
+
+            try {
+                const bodyObj = JSON.parse(bodyText);
+                for (const [key, value] of Object.entries(bodyObj)) {
+                    data[key] = value;
+                }
+            } catch (e) {
+                data.raw_body = bodyText;
+            }
+
+            if (+ctPublic.settings__data__bot_detector_enabled) {
+                const eventToken = new ApbctHandler().toolGetEventToken();
+                if (eventToken) {
+                    data.ct_bot_detector_event_token = eventToken;
+                }
+            } else {
+                data.ct_no_cookie_hidden_field = getNoCookieData();
+            }
+
+            apbct_public_sendAJAX(data, {
+                async: true,
+                callback: (result) => {
+                    // Allowed
+                    if (
+                        (result.apbct === undefined && result.data === undefined) ||
+                        (result.apbct !== undefined && !+result.apbct.blocked)
+                    ) {
+                        if (typeof config.callbackAllow === 'function') {
+                            config.callbackAllow(result);
+                        }
+                        resolve(false);
+                        return;
+                    }
+
+                    // Blocked
+                    if (
+                        (result.apbct !== undefined && +result.apbct.blocked) ||
+                        (result.data !== undefined && result.data.message !== undefined)
+                    ) {
+                        new ApbctShowForbidden().parseBlockMessage(result);
+                        if (typeof config.callbackBlock === 'function') {
+                            config.callbackBlock(result);
+                        }
+                        resolve(true);
+                        return;
+                    }
+
+                    resolve(false);
+                },
+                onErrorCallback: (error) => {
+                    console.log('APBCT ShadowRoot check error:', error);
+                    resolve(false);
+                },
+            });
+        });
+    }
+
+    /**
+     * Extract body text from fetch args
+     * @param {array} args
+     * @return {string}
+     */
+    extractBodyText(args) {
+        let body = args[1] && args[1].body;
+        let bodyText = '';
+
+        if (body instanceof FormData) {
+            let obj = {};
+            for (let [key, value] of body.entries()) {
+                obj[key] = value;
+            }
+            bodyText = JSON.stringify(obj);
+        } else if (typeof body === 'string') {
+            bodyText = body;
+        }
+
+        return bodyText;
+    }
+
+    /**
+     * Process fetch request for ShadowRoot forms
+     * @param {array} args - fetch arguments
+     * @return {Promise<boolean|null>} true = block, false = allow, null = not matched
+     */
+    async processFetch(args) {
+        const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || '');
+        const match = this.findMatchingConfig(url);
+
+        if (!match) {
+            return null;
+        }
+
+        const bodyText = this.extractBodyText(args);
+        return await this.checkRequest(match.formKey, match.config, bodyText);
+    }
+}
+/**
  * Set init params
  */
 // eslint-disable-next-line no-unused-vars,require-jsdoc
@@ -2995,88 +3173,8 @@ class ApbctHandler {
      * @return {void}
      */
     catchFetchRequest() {
-        const apbctShadowRootFormsConfig = {
-            'mailchimp': {
-                selector: '.mcforms-wrapper',
-                urlPattern: 'mcf-integrations-mcmktg.mlchmpcompprduse2.iks2.a.intuit.com/gateway/receive',
-                externalForm: true,
-                action: 'cleantalk_force_mailchimp_shadowroot_check',
-            },
-        };
-
+        const shadowRootProtection = new ApbctShadowRootProtection();
         let preventOriginalFetch = false;
-
-        /**
-         * Check ShadowRoot form request via CleanTalk AJAX
-         * @param {string} formKey - The form key from config (e.g., 'mailchimp')
-         * @param {object} config - The form config object with action, selector, etc.
-         * @param {string} bodyText - The request body as string
-         * @return {Promise<boolean>} - true = block, false = allow
-         */
-        async function apbctCheckShadowRootRequest(formKey, config, bodyText) {
-            return new Promise((resolve) => {
-                // Prepare data for AJAX request
-                let data = {
-                    action: config.action,
-                };
-
-                // Parse bodyText and add form fields
-                try {
-                    const bodyObj = JSON.parse(bodyText);
-                    for (const [key, value] of Object.entries(bodyObj)) {
-                        data[key] = value;
-                    }
-                } catch (e) {
-                    // If parsing fails, send raw body
-                    data.raw_body = bodyText;
-                }
-
-                // Add event token or no_cookie data
-                if (+ctPublic.settings__data__bot_detector_enabled) {
-                    const eventToken = new ApbctHandler().toolGetEventToken();
-                    if (eventToken) {
-                        data.ct_bot_detector_event_token = eventToken;
-                    }
-                } else {
-                    data.ct_no_cookie_hidden_field = getNoCookieData();
-                }
-
-                apbct_public_sendAJAX(
-                    data,
-                    {
-                        async: true,
-                        callback: function(result) {
-                            // Allowed
-                            if (
-                                (result.apbct === undefined && result.data === undefined) ||
-                                (result.apbct !== undefined && !+result.apbct.blocked)
-                            ) {
-                                resolve(false); // false = allow
-                                return;
-                            }
-
-                            // Blocked
-                            if (
-                                (result.apbct !== undefined && +result.apbct.blocked) ||
-                                (result.data !== undefined && result.data.message !== undefined)
-                            ) {
-                                new ApbctShowForbidden().parseBlockMessage(result);
-                                resolve(true); // true = block
-                                return;
-                            }
-
-                            // Default: allow
-                            resolve(false);
-                        },
-                        onErrorCallback: function(error) {
-                            console.log('APBCT ShadowRoot check error:', error);
-                            // On error, allow the request to proceed
-                            resolve(false);
-                        },
-                    },
-                );
-            });
-        }
 
         /**
          * Select key/value pair depending on botDetectorEnabled flag
@@ -3136,30 +3234,10 @@ class ApbctHandler {
             let url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
 
             // === ShadowRoot forms ===
-            for (const [formKey, config] of Object.entries(apbctShadowRootFormsConfig)) {
-                if (
-                    (!config.externalForm || +ctPublic.settings__forms__check_external) &&
-                    document.querySelectorAll(config.selector).length > 0 &&
-                    url && url.includes(config.urlPattern)
-                ) {
-                    // Get request body
-                    let body = args[1] && args[1].body;
-                    let bodyText = '';
-                    if (body instanceof FormData) {
-                        let obj = {};
-                        for (let [key, value] of body.entries()) obj[key] = value;
-                        bodyText = JSON.stringify(obj);
-                    } else if (typeof body === 'string') {
-                        bodyText = body;
-                    }
-
-                    const shouldBlock = await apbctCheckShadowRootRequest(formKey, config, bodyText);
-                    if (shouldBlock) {
-                        // Return a "blank" response that never completes
-                        return new Promise(() => {});
-                    }
-                    // If not blocking — continue to the original fetch
-                }
+            const shadowRootResult = await shadowRootProtection.processFetch(args);
+            if (shadowRootResult === true) {
+                // Return a "blank" response that never completes
+                return new Promise(() => {});
             }
 
             // === Metform ===
