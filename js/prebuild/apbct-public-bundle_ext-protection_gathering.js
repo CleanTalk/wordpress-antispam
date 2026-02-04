@@ -3231,8 +3231,6 @@ class ApbctHandler {
                 return defaultFetch.apply(window, args);
             }
 
-            let url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
-
             // === ShadowRoot forms ===
             const shadowRootResult = await shadowRootProtection.processFetch(args);
             if (shadowRootResult === true) {
