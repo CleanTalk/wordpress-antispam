@@ -430,6 +430,8 @@ Yes, it is. Please read this article,
 * Upd. Footer. Footer promo link added. (#729)
 * Fix. Integrations. WooCommerce. Stripe express checkout address normalize excluded.
 * Fix. Integrations. Paid Membership Pro. Login form excluded.
+* Upd. Updater. Add index update mechanism. (#721)
+
 
 = 6.71.1 26.01.2026 =
 * Fix. Promotion. GF2DB promo setting and message reverted.
