@@ -1691,6 +1691,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'woo-abandoned-cart-recovery';
         }
+
+        //unknown wc plugin from https://app.doboard.com/1/task/41205
+        if (
+            apbct_is_plugin_active('abandoned-cart-capture/abandoned-cart-capture.php') &&
+            Post::equal('action', 'acc_save_data')
+        ) {
+            return 'abandoned-cart-capture';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
