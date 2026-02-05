@@ -6373,6 +6373,7 @@ function ctCheckInternalIsExcludedForm(action) {
         'wp-login.php', // WordPress login page
         'wp-comments-post.php', // WordPress Comments Form
         'admin-ajax.php', // WordPress ajax
+        'admin-post.php', // WordPress ajax too (Used in MailPoet -_-)
     ];
 
     return ctInternalScriptExclusions.some((item) => {
