@@ -3,3 +3,4 @@
 /lib/
 composer.lock
 package-lock.json
+/tests/.phpunit.result.cache
