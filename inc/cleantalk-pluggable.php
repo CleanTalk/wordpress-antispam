@@ -1675,6 +1675,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'spoki_abandoned_card_for_woocommerce';
         }
+
+        //https://wordpress.org/plugins/woocommerce-abandoned-cart/
+        if (
+            apbct_is_plugin_active('woocommerce-abandoned-cart\woocommerce-ac.php') &&
+            Post::equal('action', 'save_data')
+        ) {
+            return 'woocommerce-abandoned-cart';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
