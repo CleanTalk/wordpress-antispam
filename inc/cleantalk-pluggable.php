@@ -1683,6 +1683,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'woocommerce-abandoned-cart';
         }
+
+        //https://wordpress.org/plugins/woo-abandoned-cart-recovery/
+        if (
+            apbct_is_plugin_active('woo-abandoned-cart-recovery/woo-abandoned-cart-recovery.php') &&
+            Post::equal('action', 'wacv_get_info ')
+        ) {
+            return 'woo-abandoned-cart-recovery';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
