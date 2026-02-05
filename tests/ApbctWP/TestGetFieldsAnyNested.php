@@ -18,7 +18,7 @@ class TestGetFieldsAnyNested extends TestCase {
 	 */
 	private $gfa;
 
-	public function setUp()
+	public function setUp(): void
 	{
         // Elementor Forms Pro request example
         $this->post = array(
@@ -42,7 +42,7 @@ class TestGetFieldsAnyNested extends TestCase {
 
 		$this->gfa = new GetFieldsAny($this->post);
 	}
-    public function tearDown()
+    protected function tearDown(): void
     {
         unset($_POST);
     }

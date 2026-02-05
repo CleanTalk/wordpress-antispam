@@ -75,6 +75,13 @@ class WcSpamOrdersListTable extends CleantalkListTable
         );
 
         foreach ( $wc_spam_orders_to_show as $wc_spam_order ) {
+            if (
+                !is_string($wc_spam_order->order_details) ||
+                !is_string($wc_spam_order->customer_details)
+            ) {
+                continue;
+            }
+
             $actions = array(
                 'restore'  => '<a class="apbct-restore-spam-order-button" data-spam-order-id="' . $wc_spam_order->id . '">' . esc_html__('Restore', 'cleantalk-spam-protect') . '</a>',
                 'delete'  => sprintf(
@@ -187,19 +194,32 @@ class WcSpamOrdersListTable extends CleantalkListTable
     /********************************************************/
 
     /**
-     * @param $order_details
+     * @param string $order_details
      *
-     * @return string
+     * @return string Product - quantity. Error string on decoding error.
      *
      * @psalm-suppress UndefinedFunction
      */
     private function renderOrderDetailsColumn($order_details)
     {
-        $order_details = array_values(json_decode($order_details, true));
+        $order_details = json_decode($order_details, true);
+
+        if (!is_array($order_details)) {
+            return '<b>Product details decoding error.</b><br>';
+        }
+
+        $order_details = array_values($order_details);
+
         $result        = '';
 
         foreach ( $order_details as $order_detail ) {
-            $result .= "<b>" . wc_get_product($order_detail['product_id'])->get_title() . "</b>";
+            $product_title = 'Unavailable product';
+            if (function_exists('wc_get_product') && class_exists('\WC_Product')) {
+                $wc_product = wc_get_product($order_detail['product_id']);
+                $wc_product_class = '\WC_Product';
+                $product_title = $wc_product instanceof $wc_product_class ? $wc_product->get_title() : '';
+            }
+            $result .= "<b>" . $product_title . "</b>";
             $result .= " - ";
             $result .= $order_detail['quantity'];
             $result .= "<br>";
@@ -208,16 +228,25 @@ class WcSpamOrdersListTable extends CleantalkListTable
         return $result;
     }
 
+    /**
+     * @param string $customer_details
+     * @return string
+     */
     private function renderCustomerDetailsColumn($customer_details)
     {
         $customer_details = json_decode($customer_details, true);
+
+        if (!is_array($customer_details)) {
+            return '<b>Customer details decoding error.</b><br>';
+        }
+
         $result           = '';
 
-        $result .= "<b>" . (isset($customer_details["billing_first_name"]) ? $customer_details["billing_first_name"] : '') . "</b>";
+        $result .= "<b>" . ($customer_details["billing_first_name"] ?? '') . "</b>";
         $result .= "<br>";
-        $result .= "<b>" . (isset($customer_details["billing_last_name"]) ? $customer_details["billing_last_name"] : '') . "</b>";
+        $result .= "<b>" . ($customer_details["billing_last_name"] ?? '') . "</b>";
         $result .= "<br>";
-        $result .= "<b>" . (isset($customer_details["billing_email"]) ? $customer_details["billing_email"] : '') . "</b>";
+        $result .= "<b>" . ($customer_details["billing_email"] ?? '') . "</b>";
 
         return $result;
     }
@@ -258,11 +287,16 @@ class WcSpamOrdersListTable extends CleantalkListTable
         return $result;
     }
 
+    /**
+     * @return array
+     */
     private function getWcSpamOrders()
     {
         global $wpdb;
 
-        return $wpdb->get_results('SELECT * FROM ' . APBCT_TBL_WC_SPAM_ORDERS, OBJECT);
+        $result = $wpdb->get_results('SELECT * FROM ' . APBCT_TBL_WC_SPAM_ORDERS, OBJECT);
+
+        return is_array($result) ? $result : array();
     }
 
     private function getWcSpamOrder($id)
@@ -335,6 +369,16 @@ class WcSpamOrdersListTable extends CleantalkListTable
             <p>Please do backup of WordPress database before delete any orders!</p>
             <p>Results are based on the decision of our spam checking system and do not give a complete guarantee that
                 these orders are spam.</p>
+            <?php
+            if ($this->apbct->settings['data__wc_store_blocked_orders'] != 1) {
+                echo '<p style="color: red;">'
+                . __(
+                    'To store WooCommerce spam orders, enable the "Store blocked WooCommerce orders" option in CleanTalk settings.',
+                    'cleantalk-spam-protect'
+                )
+                . '</p>';
+            }
+            ?>
         </div>
         <?php
     }

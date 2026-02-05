@@ -4,7 +4,7 @@ Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
 Tested up to: 6.9
 Requires PHP: 7.2
-Stable tag: 6.71.1
+Stable tag: 6.72
 License: GPLv2
 
 Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
@@ -411,6 +411,28 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.72 05.02.2026 =
+* Upd. WooCommSpamOrders. Added a hint for the disabled option to save spam orders.
+* Fix. Integrations. Fluent Forms. Visible fields collection fixed.
+* Fix. Integrations. Skip encoding for woo registration button. (#722)
+* Upd. Integration. Mailpoet. Visible fields gathering.
+* Upd. Visible fields extractor. Static method to get a new extractor.
+* Fix. Integration. Exclusions for WC requests fixed.
+* Fix. Integrations. GiveWP multi-page form. Exclude requests without email.
+* Fix. Integrations. GiveWP. Skip external forms check.
+* Fix. Integrations. GiveWP. Bot detector token. Intercept iframe fetch to add field if available.
+* Fix. Integrations. Fixed fetch request fields assignment (NoCookie|EventToken)
+* Fix. Woocommerce. Stored oreders. Fixed code error.
+* Mod. ContentEncoder. The ability to exclude the main page by hook
+* Fix. Code. Getting cleantalk addresses fixed.
+* Fix. Integrations. Add event token in jQuery catching for forms of "wpr_form_builder_email" action.
+* Upd. Footer. Footer promo link added. (#729)
+* Fix. Integrations. WooCommerce. Stripe express checkout address normalize excluded.
+* Fix. Integrations. Paid Membership Pro. Login form excluded.
+* Upd. Updater. Add index update mechanism. (#721)
+* Fix. Skip Elementor login widget request for WooCommerce checkout.
+* Fix. Integration. Mailpoet integration fixed.
 
 = 6.71.1 26.01.2026 =
 * Fix. Promotion. GF2DB promo setting and message reverted.

@@ -1,7 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\Sanitize;
-use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
@@ -20,7 +20,7 @@ function ct_contact_form_validate()
 
     $do_skip = skip_for_ct_contact_form_validate();
     if ( $do_skip ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__ . ', ON KEY ' . $do_skip, $_POST);
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . 'SKIP_FOR_CT_CONTACT_FORM_VALIDATE' . ', ON KEY ' . $do_skip, $_POST);
         return null;
     }
 
@@ -63,9 +63,15 @@ function ct_contact_form_validate()
             $apbct->settings['forms__wc_checkout_test'] != 1 &&
             !empty($_POST['payment_request_type']) &&
             $_POST['payment_request_type'] === 'apple_pay'
+        ) ||
+        (
+            // Stripe express checkout address normalize
+            Get::getString('wc-ajax') === 'wc_stripe_normalize_address' &&
+            apbct_is_plugin_active('woocommerce-gateway-stripe/woocommerce-gateway-stripe.php') &&
+            1 == check_ajax_referer('wc-stripe-express-checkout-normalize-address', 'security', false)
         )
     ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . 'WOOCOMMERCE_SERVICES', $_POST);
 
         return null;
     }

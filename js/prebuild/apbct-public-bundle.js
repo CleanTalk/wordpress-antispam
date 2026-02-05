@@ -2818,7 +2818,7 @@ class ApbctHandler {
     cronFormsHandler(cronStartTimeout = 2000) {
         setTimeout(function() {
             setInterval(function() {
-                if (!+ctPublic.settings__data__bot_detector_enabled) {
+                if (!+ctPublic.settings__data__bot_detector_enabled && typeof ApbctGatheringData !== 'undefined') {
                     new ApbctGatheringData().restartFieldsListening();
                 }
                 new ApbctEventTokenTransport().restartBotDetectorEventTokenAttach();
@@ -2929,6 +2929,68 @@ class ApbctHandler {
     }
 
     /**
+     * Catch Iframe fetch request
+     * @return {void}
+     */
+    catchIframeFetchRequest() {
+        setTimeout(function() {
+            try {
+                // Give next gen iframe
+                const foundIframe = Array.from(document.querySelectorAll('iframe')).find(
+                    (iframe) => iframe.src?.includes('givewp-route'),
+                );
+
+                if (!foundIframe) {
+                    return;
+                }
+
+                // Cross origin access check
+                let contentWindow;
+                try {
+                    contentWindow = foundIframe.contentWindow;
+                    if (!contentWindow || !contentWindow.fetch) {
+                        return;
+                    }
+                } catch (securityError) {
+                    // access denied
+                    return;
+                }
+
+                // Save original iframe fetch
+                const originalIframeFetch = contentWindow.fetch;
+
+                // Intercept and add fields to body
+                contentWindow.fetch = async function(...args) {
+                    try {
+                        // is body and boddy has append func
+                        if (args && args[1] && args[1].body) {
+                            if (
+                                args[1].body instanceof FormData || (typeof args[1].body.append === 'function')
+                            ) {
+                                if (+ctPublic.settings__data__bot_detector_enabled) {
+                                    args[1].body.append(
+                                        'ct_bot_detector_event_token',
+                                        apbctLocalStorage.get('bot_detector_event_token'),
+                                    );
+                                } else {
+                                    args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        // do nothing due fields add error
+                    }
+
+                    // run origin fetch
+                    return originalIframeFetch.apply(contentWindow, args);
+                };
+            } catch (error) {
+                // do nothing on unexpected error
+            }
+        }, 1000);
+    }
+
+    /**
      * Catch fetch request
      * @return {void}
      */
@@ -2967,95 +3029,127 @@ class ApbctHandler {
                     })
                 )
             ) {
+                /**
+                 * Select key/value pair depending on botDetectorEnabled flag
+                 * @param {bool} botDetectorEnabled
+                 * @return {{key: string, value: string}|false} False on empty gained data.
+                 */
+                const selectFieldsData = function(botDetectorEnabled) {
+                    const result = {
+                        'key': null,
+                        'value': null,
+                    };
+                    if (botDetectorEnabled) {
+                        result.key = 'ct_bot_detector_event_token';
+                        result.value = apbctLocalStorage.get('bot_detector_event_token');
+                    } else {
+                        result.key = 'ct_no_cookie_hidden_field';
+                        result.value = getNoCookieData();
+                    };
+                    return result.key && result.value ? result : false;
+                };
+
+                /**
+                 *
+                 * @param {string} body Fetch request data body.
+                 * @param {object|bool} fieldPair Key value to inject.
+                 * @return {string} Modified body.
+                 */
+                const attachFieldsToBody = function(body, fieldPair = false) {
+                    if (fieldPair) {
+                        if (body instanceof FormData || typeof body.append === 'function') {
+                            body.append(fieldPair.key, fieldPair.value);
+                        } else {
+                            let bodyObj = JSON.parse(body);
+                            if (!bodyObj.hasOwnProperty(fieldPair.key)) {
+                                bodyObj[fieldPair.key] = fieldPair.value;
+                                body = JSON.stringify(bodyObj);
+                            }
+                        }
+                    }
+                    return body;
+                };
+
                 let preventOriginalFetch = false;
 
                 window.fetch = async function(...args) {
+                    // if no data set provided - exit
+                    if (
+                        !args ||
+                        !args[0] ||
+                        !args[1] ||
+                        !args[1].body
+                    ) {
+                        return defaultFetch.apply(window, args);
+                    }
+
                     // Metform block
                     if (
                         Array.from(document.forms).some((form) => form.classList.contains('metform-form-content')) &&
-                        args &&
-                        args[0] &&
                         typeof args[0].includes === 'function' &&
                         (args[0].includes('/wp-json/metform/') ||
                             (ctPublicFunctions._rest_url && (() => {
                                 try {
                                     return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
                                 } catch (e) {
-                                    return false;
+                                    return defaultFetch.apply(window, args);
                                 }
                             })())
                         )
                     ) {
-                        if (args && args[1] && args[1].body) {
-                            if (+ctPublic.settings__data__bot_detector_enabled) {
-                                args[1].body.append(
-                                    'ct_bot_detector_event_token',
-                                    apbctLocalStorage.get('bot_detector_event_token'),
-                                );
-                            } else {
-                                args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
-                            }
+                        try {
+                            args[1].body = attachFieldsToBody(
+                                args[1].body,
+                                selectFieldsData(+ctPublic.settings__data__bot_detector_enabled),
+                            );
+                        } catch (e) {
+                            return defaultFetch.apply(window, args);
                         }
                     }
+
                     // WP Recipe Maker block
                     if (
                         Array.from(document.forms).some(
                             (form) => form.classList.contains('wprm-user-ratings-modal-stars-container'),
                         ) &&
-                        args &&
-                        args[0] &&
                         typeof args[0].includes === 'function' &&
                         args[0].includes('/wp-json/wp-recipe-maker/')
                     ) {
-                        if (args[1] && args[1].body) {
-                            if (typeof args[1].body === 'string') {
-                                let bodyObj;
-                                try {
-                                    bodyObj = JSON.parse(args[1].body);
-                                } catch (e) {
-                                    bodyObj = {};
-                                }
-                                if (+ctPublic.settings__data__bot_detector_enabled) {
-                                    bodyObj.ct_bot_detector_event_token =
-                                        apbctLocalStorage.get('bot_detector_event_token');
-                                } else {
-                                    bodyObj.ct_no_cookie_hidden_field = getNoCookieData();
-                                }
-                                args[1].body = JSON.stringify(bodyObj);
-                            }
+                        try {
+                            args[1].body = attachFieldsToBody(
+                                args[1].body,
+                                selectFieldsData(+ctPublic.settings__data__bot_detector_enabled),
+                            );
+                        } catch (e) {
+                            return defaultFetch.apply(window, args);
                         }
                     }
 
                     // WooCommerce add to cart request, like:
                     // /index.php?rest_route=/wc/store/v1/cart/add-item
-                    if (args && args[0] &&
-                        args[0].includes('/wc/store/v1/cart/add-item') &&
-                        args && args[1] && args[1].body
+                    if (
+                        typeof args[0].includes === 'function' &&
+                        args[0].includes('/wc/store/v1/cart/add-item')
                     ) {
-                        if (
-                            +ctPublic.settings__data__bot_detector_enabled &&
-                            +ctPublic.settings__forms__wc_add_to_cart
-                        ) {
-                            try {
-                                let bodyObj = JSON.parse(args[1].body);
-                                if (!bodyObj.hasOwnProperty('ct_bot_detector_event_token')) {
-                                    bodyObj.ct_bot_detector_event_token =
-                                        apbctLocalStorage.get('bot_detector_event_token');
-                                    args[1].body = JSON.stringify(bodyObj);
-                                }
-                            } catch (e) {
-                                return false;
+                        try {
+                            if (
+                                +ctPublic.settings__forms__wc_add_to_cart
+                            ) {
+                                args[1].body = attachFieldsToBody(
+                                    args[1].body,
+                                    selectFieldsData(+ctPublic.settings__data__bot_detector_enabled),
+                                );
                             }
-                        } else {
-                            args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
+                        } catch (e) {
+                            return defaultFetch.apply(window, args);
                         }
                     }
 
                     // bitrix24 EXTERNAL form
                     if (+ctPublic.settings__forms__check_external &&
-                        args && args[0] &&
+                        typeof args[0].includes === 'function' &&
                         args[0].includes('bitrix/services/main/ajax.php?action=crm.site.form.fill') &&
-                        args[1] && args[1].body && args[1].body instanceof FormData
+                        args[1].body instanceof FormData
                     ) {
                         const currentTargetForm = document.querySelector('.b24-form form');
                         let data = {
@@ -3123,6 +3217,7 @@ class ApbctHandler {
                     let sourceSign = {
                         'found': false,
                         'keepUnwrapped': false,
+                        'attachVisibleFieldsData': false,
                     };
                     // settings data is string (important!)
                     if ( typeof settings.data === 'string' ) {
@@ -3135,6 +3230,7 @@ class ApbctHandler {
 
                         if (settings.data.indexOf('action=mailpoet') !== -1) {
                             sourceSign.found = 'action=mailpoet';
+                            sourceSign.attachVisibleFieldsData = true;
                         }
 
                         if (
@@ -3162,12 +3258,16 @@ class ApbctHandler {
                             sourceSign.found = 'action=bt_cc';
                             sourceSign.keepUnwrapped = true;
                         }
+                        if (settings.data.indexOf('action=wpr_form_builder_email') !== -1) {
+                            sourceSign.found = 'action=wpr_form_builder_email';
+                            sourceSign.keepUnwrapped = true;
+                        }
                         if (
-                            settings.data.indexOf('action=nf_ajax_submit') !== -1 &&
-                            ctPublic.data__cookies_type === 'none'
+                            settings.data.indexOf('action=nf_ajax_submit') !== -1
                         ) {
                             sourceSign.found = 'action=nf_ajax_submit';
                             sourceSign.keepUnwrapped = true;
+                            sourceSign.attachVisibleFieldsData = true;
                         }
                     }
                     if ( typeof settings.url === 'string' ) {
@@ -3179,6 +3279,7 @@ class ApbctHandler {
                     if (sourceSign.found !== false) {
                         let eventToken = '';
                         let noCookieData = '';
+                        let visibleFieldsString = '';
                         if (+ctPublic.settings__data__bot_detector_enabled) {
                             const token = new ApbctHandler().toolGetEventToken();
                             if (token) {
@@ -3197,7 +3298,26 @@ class ApbctHandler {
                             }
                         }
 
-                        settings.data = noCookieData + eventToken + settings.data;
+                        if (sourceSign.attachVisibleFieldsData) {
+                            let visibleFieldsSearchResult = false;
+
+                            const extractor = ApbctVisibleFieldsExtractor.createExtractor(sourceSign.found);
+                            if (extractor) { // Check if extractor was created
+                                visibleFieldsSearchResult = extractor.extract(settings.data);
+                            }
+
+                            if (typeof visibleFieldsSearchResult === 'string') {
+                                let encoded = null;
+                                try {
+                                    encoded = encodeURIComponent(visibleFieldsSearchResult);
+                                    visibleFieldsString = 'apbct_visible_fields=' + encoded + '&';
+                                } catch (e) {
+                                    // do nothing
+                                }
+                            }
+                        }
+
+                        settings.data = noCookieData + eventToken + visibleFieldsString + settings.data;
                     }
                 },
             });
@@ -3494,6 +3614,200 @@ class ApbctShowForbidden {
 }
 
 /**
+ * Base class for extracting visible fields from form plugins
+ */
+class ApbctVisibleFieldsExtractor {
+    /**
+     * Factory method to create appropriate extractor instance
+     * @param {string} sourceSignAction - Action identifier
+     * @return {ApbctVisibleFieldsExtractor|null}
+     */
+    static createExtractor(sourceSignAction) {
+        switch (sourceSignAction) {
+        case 'action=nf_ajax_submit':
+            return new ApbctNinjaFormsVisibleFields();
+        case 'action=mailpoet':
+            return new ApbctMailpoetVisibleFields();
+        default:
+            return null;
+        }
+    }
+    /**
+     * Extracts visible fields string from form AJAX data
+     * @param {string} ajaxData - AJAX form data
+     * @return {string|false} Visible fields value or false if not found
+     */
+    extract(ajaxData) {
+        if (!ajaxData || typeof ajaxData !== 'string') {
+            return false;
+        }
+
+        try {
+            ajaxData = decodeURIComponent(ajaxData);
+        } catch (e) {
+            return false;
+        }
+
+        const forms = document.querySelectorAll('form');
+        const formIdFromAjax = this.getIdFromAjax(ajaxData);
+        if (!formIdFromAjax) {
+            return false;
+        }
+
+        for (let form of forms) {
+            const container = this.findParentContainer(form);
+            if (!container) {
+                continue;
+            }
+
+            const formIdFromHtml = this.getIdFromHTML(container);
+            if (formIdFromHtml !== formIdFromAjax) {
+                continue;
+            }
+
+            const visibleFields = container.querySelector('input[id^=apbct_visible_fields_]');
+            if (visibleFields?.value) {
+                return visibleFields.value;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Override in child classes to define specific extraction patterns
+     * @param {string} ajaxData - Decoded AJAX data string
+     * @return {number|null} Form ID or null if not found
+     */
+    getIdFromAjax(ajaxData) {
+        console.warn('getIdFromAjax must be implemented by child class');
+        return null;
+    }
+
+    /**
+     * Override in child classes to define container search logic
+     * @param {HTMLElement} form - Form element to start search from
+     * @return {HTMLElement|null} Container element or null
+     */
+    findParentContainer(form) {
+        console.warn('findParentContainer must be implemented by child class');
+        return null;
+    }
+
+    /**
+     * Override in child classes to define ID extraction from HTML
+     * @param {HTMLElement} container - Container element
+     * @return {number|null} Form ID or null if not found
+     */
+    getIdFromHTML(container) {
+        console.warn('getIdFromHTML must be implemented by child class');
+        return null;
+    }
+}
+
+/**
+ * Ninja Forms specific implementation
+ */
+class ApbctNinjaFormsVisibleFields extends ApbctVisibleFieldsExtractor {
+    /**
+     * @inheritDoc
+     */
+    getIdFromAjax(ajaxData) {
+        const regexes = [
+            /"id"\s*:\s*"?(\d+)"/, // {"id":"2"} or {"id":2}
+            /form_id\s*[:\s]*"?(\d+)"/,
+            /nf-form-(\d+)/,
+            /"id":(\d+)/, // Fallback for simple cases
+        ];
+
+        for (let regex of regexes) {
+            const match = ajaxData.match(regex);
+            if (match && match[1]) {
+                return parseInt(match[1], 10);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    findParentContainer(form) {
+        let el = form;
+        while (el && el !== document.body) {
+            if (el.id && /^nf-form-\d+-cont$/.test(el.id)) {
+                return el;
+            }
+            el = el.parentElement;
+        }
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    getIdFromHTML(container) {
+        const match = container.id.match(/^nf-form-(\d+)-cont$/);
+        return match ? parseInt(match[1], 10) : null;
+    }
+}
+
+/**
+ * Mailpoet specific implementation
+ */
+class ApbctMailpoetVisibleFields extends ApbctVisibleFieldsExtractor {
+    /**
+     * @inheritDoc
+     */
+    getIdFromAjax(ajaxData) {
+        const regexes = [
+            /form_id\s*[:\s]*"?(\d+)"/,
+            /data\[form_id\]=(\d+)/,
+            /form_id=(\d+)/,
+        ];
+
+        for (let regex of regexes) {
+            const match = ajaxData.match(regex);
+            if (match && match[1]) {
+                return parseInt(match[1], 10);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    findParentContainer(form) {
+        // Mailpoet uses the form itself as container
+        return form;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    getIdFromHTML(container) {
+        if (!container.action) {
+            return null;
+        }
+
+        const formMatch = container.action.match(/mailpoet_subscription_form/);
+        if (!formMatch) {
+            return null;
+        }
+
+        const hiddenFieldWithID = container.querySelector('input[type="hidden"][name="data[form_id]"]');
+        if (!hiddenFieldWithID || !hiddenFieldWithID.value) {
+            return null;
+        }
+
+        return parseInt(hiddenFieldWithID.value, 10);
+    }
+}
+
+/**
  * Ready function
  */
 // eslint-disable-next-line camelcase,require-jsdoc
@@ -3504,7 +3818,7 @@ function apbct_ready() {
     handler.detectForcedAltCookiesForms();
 
     // Gathering data when bot detector is disabled
-    if (!+ctPublic.settings__data__bot_detector_enabled) {
+    if (!+ctPublic.settings__data__bot_detector_enabled && typeof ApbctGatheringData !== 'undefined') {
         const gatheringData = new ApbctGatheringData();
         gatheringData.setSessionId();
         gatheringData.writeReferrersToSessionStorage();
@@ -3556,6 +3870,7 @@ function apbct_ready() {
 
     handler.catchXmlHttpRequest();
     handler.catchFetchRequest();
+    handler.catchIframeFetchRequest();
     handler.catchJqueryAjax();
     handler.catchWCRestRequestAsMiddleware();
 

@@ -17,7 +17,7 @@ class TestEmailEncoder extends TestCase
 
     private $plain_text = 'This is a plain text';
 
-    public function setUp()
+    public function setUp(): void
     {
         global $apbct;
         $apbct->api_key         = 'testapikey';
