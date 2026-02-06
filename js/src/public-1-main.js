@@ -899,8 +899,7 @@ class ApbctHandler {
                             sourceSign.keepUnwrapped = true;
                         }
                         if (
-                            settings.data.indexOf('action=nf_ajax_submit') !== -1 &&
-                            ctPublic.data__cookies_type === 'none'
+                            settings.data.indexOf('action=nf_ajax_submit') !== -1
                         ) {
                             sourceSign.found = 'action=nf_ajax_submit';
                             sourceSign.keepUnwrapped = true;
