@@ -84,10 +84,12 @@ class DbColumnCreatorIndexesIntegrationTest extends TestCase
 
         // Change indexes to incorrect ones
         $this->dropAllNonPrimaryIndexes($tableName);
-        $firstColumn = $this->getFirstNonIdColumn($schema);
-        if ($firstColumn) {
+
+        // FIX: Find a non-TEXT column to create index on (to avoid key length issue)
+        $firstNonTextColumn = $this->getFirstNonTextColumn($tableName, $schema);
+        if ($firstNonTextColumn) {
             global $wpdb;
-            $wpdb->query("ALTER TABLE `{$tableName}` ADD INDEX `wrong_single_idx` (`{$firstColumn}`)");
+            $wpdb->query("ALTER TABLE `{$tableName}` ADD INDEX `wrong_single_idx` (`{$firstNonTextColumn}`)");
         }
 
         // Act
@@ -124,10 +126,29 @@ class DbColumnCreatorIndexesIntegrationTest extends TestCase
         // Add extra indexes
         global $wpdb;
         $columns = array_keys($schema);
+        $nonTextColumnAdded = false;
+
+        // FIX: Try to add index on non-TEXT columns first
         foreach ($columns as $column) {
             if ($column !== 'id' && $column !== '__indexes' && $column !== '__createkey') {
-                $wpdb->query("ALTER TABLE `{$tableName}` ADD INDEX `excess_{$column}_idx` (`{$column}`)");
-                break;
+                // Check if this is a TEXT column by looking at the schema definition
+                $isTextColumn = $this->isTextColumn($schema[$column]);
+                if (!$isTextColumn) {
+                    $wpdb->query("ALTER TABLE `{$tableName}` ADD INDEX `excess_{$column}_idx` (`{$column}`)");
+                    $nonTextColumnAdded = true;
+                    break;
+                }
+            }
+        }
+
+        // FIX: If all columns are TEXT, add index with key length
+        if (!$nonTextColumnAdded) {
+            foreach ($columns as $column) {
+                if ($column !== 'id' && $column !== '__indexes' && $column !== '__createkey') {
+                    // Add key length for TEXT columns
+                    $wpdb->query("ALTER TABLE `{$tableName}` ADD INDEX `excess_{$column}_idx` (`{$column}`(50))");
+                    break;
+                }
             }
         }
 
@@ -351,6 +372,53 @@ class DbColumnCreatorIndexesIntegrationTest extends TestCase
                 return $column;
             }
         }
+        return null;
+    }
+
+    /**
+     * NEW: Check if column is TEXT/BLOB type
+     */
+    private function isTextColumn($columnDefinition)
+    {
+        $definition = strtoupper($columnDefinition);
+        return strpos($definition, 'TEXT') !== false ||
+            strpos($definition, 'BLOB') !== false ||
+            strpos($definition, 'LONGTEXT') !== false ||
+            strpos($definition, 'MEDIUMTEXT') !== false ||
+            strpos($definition, 'TINYTEXT') !== false;
+    }
+
+    /**
+     * NEW: Get first non-TEXT column from table
+     */
+    private function getFirstNonTextColumn($tableName, $schema)
+    {
+        global $wpdb;
+
+        // Get column information from database
+        $columnsInfo = $wpdb->get_results("DESCRIBE `{$tableName}`", ARRAY_A);
+
+        foreach ($columnsInfo as $columnInfo) {
+            $columnName = $columnInfo['Field'];
+            $columnType = strtoupper($columnInfo['Type']);
+
+            // Skip id and special columns
+            if ($columnName === 'id' ||
+                $columnName === '__indexes' ||
+                $columnName === '__createkey') {
+                continue;
+            }
+
+            // Check if column is not TEXT/BLOB
+            if (strpos($columnType, 'TEXT') === false &&
+                strpos($columnType, 'BLOB') === false &&
+                strpos($columnType, 'LONGTEXT') === false &&
+                strpos($columnType, 'MEDIUMTEXT') === false &&
+                strpos($columnType, 'TINYTEXT') === false) {
+                return $columnName;
+            }
+        }
+
         return null;
     }
 
