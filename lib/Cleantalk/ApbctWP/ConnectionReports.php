@@ -430,7 +430,7 @@ class ConnectionReports
             return false;
         }
 
-        $to = $apbct->data['wl_support_email'];
+        $to = 'pluginreports@cleantalk.org';
         $subject = "Connection report for " . TT::toString(Server::get('HTTP_HOST'));
 
         $message = $this->prepareEmailContent($selection, $is_cron_task);

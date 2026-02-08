@@ -87,7 +87,7 @@ class SFWUpdateSentinel
             return false;
         }
 
-        $to = $apbct->data['wl_support_email'];
+        $to = 'pluginreports@cleantalk.org';
         $subject = "SFW failed updates report for " . TT::toString(Server::get('HTTP_HOST'));
         $message = '
             <html lang="en">
