@@ -489,7 +489,6 @@ class ApbctHandler {
      * @return {void}
      */
     detectForcedAltCookiesForms() {
-        let elementorUltimateAddonsRegister = document.querySelectorAll('.uael-registration-form-wrapper').length > 0;
         let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
         let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
@@ -501,7 +500,6 @@ class ApbctHandler {
         let smartQuizBuilder = document.querySelectorAll('form .sqbform, .fields_reorder_enabled').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
             jetpackCommentsForm ||
-            elementorUltimateAddonsRegister ||
             userRegistrationProForm ||
             etPbDiviSubscriptionForm ||
             fluentBookingApp ||
@@ -904,6 +902,13 @@ class ApbctHandler {
                             sourceSign.found = 'action=nf_ajax_submit';
                             sourceSign.keepUnwrapped = true;
                             sourceSign.attachVisibleFieldsData = true;
+                        }
+                        if (
+                            settings.data.indexOf('action=uael_register_user') !== -1 &&
+                            ctPublic.data__cookies_type === 'none'
+                        ) {
+                            sourceSign.found = 'action=uael_register_user';
+                            sourceSign.keepUnwrapped = true;
                         }
                     }
                     if ( typeof settings.url === 'string' ) {
