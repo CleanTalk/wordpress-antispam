@@ -22,6 +22,17 @@ class MailChimpShadowRoot extends IntegrationBase
 
             $data = ct_gfa_dto($input_array)->getArray();
 
+            // Clean message field - keep only keys containing "message", remove everything else
+            if (isset($data['message']) && is_array($data['message'])) {
+                $filtered_message = array();
+                foreach ($data['message'] as $key => $value) {
+                    if (stripos($key, 'message') !== false) {
+                        $filtered_message[$key] = $value;
+                    }
+                }
+                $data['message'] = !empty($filtered_message) ? implode(' ', $filtered_message) : '';
+            }
+
             return $data;
         }
 
