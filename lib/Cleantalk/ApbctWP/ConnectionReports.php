@@ -118,7 +118,7 @@ class ConnectionReports
             return;
         }
 
-        $sql = "SELECT * FROM " . $this->cr_table_name . " ORDER BY date;";
+        $sql = "SELECT *, FROM_UNIXTIME(date) AS date, FROM_UNIXTIME(sent_on) AS sent_on FROM " . $this->cr_table_name . " ORDER BY date;";
         $this->reports_data = TT::toArray($this->db->fetchAll($sql));
         $this->reports_data_dirty = false;
         $this->unsent_reports_cache = null; // Invalidate cache
