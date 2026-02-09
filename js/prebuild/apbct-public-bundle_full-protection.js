@@ -2840,7 +2840,6 @@ class ApbctHandler {
         let bloomPopup = document.querySelectorAll('div[class^="et_bloom_form_container"]').length > 0;
         let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
         let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
-        let smartQuizBuilder = document.querySelectorAll('form .sqbform, .fields_reorder_enabled').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
             jetpackCommentsForm ||
             elementorUltimateAddonsRegister ||
@@ -2849,8 +2848,7 @@ class ApbctHandler {
             fluentBookingApp ||
             pafeFormsFormElementor ||
             bloomPopup ||
-            otterForm ||
-            smartQuizBuilder;
+            otterForm;
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
@@ -3268,6 +3266,12 @@ class ApbctHandler {
                             sourceSign.found = 'action=nf_ajax_submit';
                             sourceSign.keepUnwrapped = true;
                             sourceSign.attachVisibleFieldsData = true;
+                        }
+                        if (
+                            settings.data.indexOf('action=SQBSubmitQuizAjax') !== -1
+                        ) {
+                            sourceSign.found = 'action=SQBSubmitQuizAjax';
+                            sourceSign.keepUnwrapped = true;
                         }
                     }
                     if ( typeof settings.url === 'string' ) {
