@@ -9,7 +9,7 @@ class TestApbctCron extends TestCase {
 
 	protected $tasks;
 
-	public function setUp()
+	public function setUp(): void
 	{
 
 		$this->tasks = array(

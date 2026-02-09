@@ -66,7 +66,7 @@ function ctProtectExternal() {
     // Trying to process external form into an iframe
     apbctProcessIframes();
     // if form is still not processed by fields listening, do it here
-    if (ctPublic.settings__data__bot_detector_enabled != 1) {
+    if (ctPublic.settings__data__bot_detector_enabled != 1 && typeof ApbctGatheringData !== 'undefined') {
         new ApbctGatheringData().startFieldsListening();
     }
 }
@@ -79,6 +79,7 @@ function ctProtectExternal() {
 function formIsExclusion(currentForm) {
     const exclusionsById = [
         'give-form', // give form exclusion because of direct integration
+        'give-next-gen', // give form exclusion because of direct integration
         'frmCalc', // nobletitle-calc
         'ihf-contact-request-form',
         'wpforms', // integration with wpforms

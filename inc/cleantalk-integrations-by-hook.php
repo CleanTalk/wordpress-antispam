@@ -483,6 +483,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
+    'NinjaForms' => array(
+        'hook'    => ['ninja_forms_ajax_submit', 'nf_ajax_submit', 'forms_process', 'ninja_forms_display_after_form'],
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_active_integrations) {

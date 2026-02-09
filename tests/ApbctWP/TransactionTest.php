@@ -9,7 +9,7 @@ class TransactionTest extends TestCase
 {
     private $transaction_instance;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->transaction_instance = Transaction::get('updater');
     }

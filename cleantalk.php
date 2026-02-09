@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.71.99-dev
+  Version: 6.72.99-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -29,7 +29,6 @@ use Cleantalk\ApbctWP\Firewall\AntiFlood;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\Helper;
-use Cleantalk\ApbctWP\Promotions\GF2DBPromotion;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 use Cleantalk\ApbctWP\RequestParameters\SubmitTimeHandler;
@@ -272,10 +271,6 @@ apbct_update_actions();
 
 add_action('init', function () {
     global $apbct;
-
-    //promotions
-    $promotion_gf2db = new GF2DBPromotion();
-    $promotion_gf2db->init();
 
     // Self cron
     $ct_cron = Cron::getInstance();
@@ -544,13 +539,6 @@ if (!empty($_POST) &&
 ) {
     apbct_leakyPaywall_request_test();
 }
-
-add_action('wp_ajax_nopriv_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
-add_action('wp_ajax_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
-add_action('wp_ajax_nopriv_nf_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
-add_action('wp_ajax_nf_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
-add_action('ninja_forms_process', 'apbct_form__ninjaForms__testSpam', 1); // Depricated ?
-add_action('ninja_forms_display_after_form', 'apbct_form__ninjaForms__addField', 1000, 10);
 
 // SeedProd Coming Soon Page Pro integration
 add_action('wp_ajax_seed_cspv5_subscribe_callback', 'apbct_form__seedprod_coming_soon__testSpam', 1);

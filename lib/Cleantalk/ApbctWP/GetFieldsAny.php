@@ -466,7 +466,7 @@ class GetFieldsAny
      *
      * @return array
      */
-    private function getVisibleFields()
+    private function getVisibleFields(): array
     {
         // Visible fields processing
         $visible_fields = self::getVisibleFieldsData();
@@ -484,22 +484,34 @@ class GetFieldsAny
      * <li>'invisible_fields_count' => (int)3</li>
      * </ul>
      * Empty array if nothing found.
+     *
+     * @param array $custom_input_array array of custom form data
+     * @param bool $skip_comparing Do skip comparing provided request fields with present in apbct_visible_fields collection. Useful for integrations.
      * @return array|string[]
      */
-    public static function getVisibleFieldsData()
+    public static function getVisibleFieldsData(array $custom_input_array = [], bool $skip_comparing = false): array
     {
+        $skip_comparing = !empty($custom_input_array) && $skip_comparing;
         // get from Cookies::
         $from_cookies = Cookie::getVisibleFields();
         // get from Post:: and base64 decode the value
-        $from_post = @base64_decode(Post::getString('apbct_visible_fields'));
+        $global_post_source = Post::getString('apbct_visible_fields');
+        // get from custom input array
+        $input_array_source = TT::getArrayValueAsString($custom_input_array, 'apbct_visible_fields');
+
+        $from_post = !empty($input_array_source) ? $input_array_source : $global_post_source;
+        $from_post = @base64_decode($from_post);
 
         $current_fields_collection = self::getFieldsDataForCurrentRequest($from_cookies, $from_post);
 
+        $result = array();
+
         if ( ! empty($current_fields_collection)) {
             // get all available fields to compare with $current_fields_collection
-            $post_fields_to_check = self::getAvailablePOSTFieldsForCurrentRequest();
+            $post_fields_to_check = $custom_input_array ?: self::getAvailablePOSTFieldsForCurrentRequest();
             // comparing
             foreach ($current_fields_collection as $current_fields) {
+                // todo gull: can not find any logic for invisible fields or inputs, so far as for visible inputs
                 // prepare data
                 $count = isset($current_fields['visible_fields_count']) && is_scalar(
                     $current_fields['visible_fields_count']
@@ -514,51 +526,17 @@ class GetFieldsAny
 
                 // if necessary data is available
                 if ( isset($fields_string, $count) ) {
-                    //fluent forms chunk
-                    if (
-                        isset($post_fields_to_check['data'], $post_fields_to_check['action']) &&
-                        $post_fields_to_check['action'] === 'fluentform_submit'
-                    ) {
-                        $fluent_forms_out = array();
-                        $fluent_forms_fields = is_string($post_fields_to_check['data']) ? urldecode($post_fields_to_check['data']) : '';
-                        parse_str($fluent_forms_fields, $fluent_forms_fields_array);
-                        $fields_array = explode(' ', $fields_string);
-                        foreach ( $fields_array as $visible_field_slug ) {
-                            if ( strpos($visible_field_slug, '[') ) {
-                                $vfs_array_like_string = str_replace(array('[', ']'), ' ', $visible_field_slug);
-                                $vfs_array = explode(' ', trim($vfs_array_like_string));
-                                if (
-                                    isset(
-                                        $vfs_array[0],
-                                        $vfs_array[1]
-                                    ) &&
-                                    isset(
-                                        $fluent_forms_fields_array[$vfs_array[0]],
-                                        $fluent_forms_fields_array[$vfs_array[0]][$vfs_array[1]]
-                                    )
-                                ) {
-                                    $fluent_forms_out['visible_fields'][] = $visible_field_slug;
-                                }
-                            } else {
-                                if ( isset($fluent_forms_fields_array[$visible_field_slug]) ) {
-                                    $fluent_forms_out['visible_fields'][] = $visible_field_slug;
-                                }
-                            }
-                        }
-                        return $fluent_forms_out;
-                    }
-
                     // parse string to get fields array
                     $fields_array = explode(' ', $fields_string);
-                    // if is intersected with current post fields - that`s it
-                    if (count(array_intersect(array_keys($post_fields_to_check), $fields_array)) > 0) {
-                        return ! empty($current_fields) && is_array($current_fields) ? $current_fields : array();
+                    // if is intersected with current post fields - that's it
+                    if ($skip_comparing || count(array_intersect(array_keys($post_fields_to_check), $fields_array)) > 0) {
+                        $result = ! empty($current_fields) && is_array($current_fields) ? $current_fields : array();
                     }
                 }
             }
         }
 
-        return array();
+        return $result;
     }
 
     /**

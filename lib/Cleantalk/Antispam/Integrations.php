@@ -138,6 +138,10 @@ class Integrations
                         if ( ! empty($data['emails_array']) ) {
                             $sender_info['sender_emails_array'] = $data['emails_array'];
                         }
+                        $integration_fvd = $integration->getVisibleFieldsData();
+                        if ( ! empty($integration_fvd['visible_fields']) ) {
+                            $sender_info['apbct_visible_fields'] = $integration_fvd['visible_fields'];
+                        }
                         // common case
                         $base_call_data = array(
                             'message'         => ! empty($data['message']) ? json_encode($data['message']) : '',
