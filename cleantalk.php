@@ -2096,6 +2096,11 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
         $plugin = Get::get('plugin') ? Get::get('plugin') : '';
     }
 
+    $allowed_plugin = 'security-malware-firewall/security-malware-firewall.php';
+    if ( !empty($plugin) && TT::toString($plugin) !== $allowed_plugin ) {
+        die('FAIL ' . json_encode(array('error' => 'PLUGIN_NOT_ALLOWED')));
+    }
+
     if ( !empty($plugin) ) {
         $plugin = TT::toString($plugin);
         if ( preg_match('/[a-zA-Z-\d]+[\/\\][a-zA-Z-\d]+\.php/', $plugin) ) {
@@ -2159,6 +2164,12 @@ function apbct_rc__activate_plugin($plugin)
         $plugin = Get::get('plugin') ? TT::toString(Get::get('plugin')) : null;
     }
 
+    // Only allow activation of Security by CleanTalk plugin via remote call
+    $allowed_plugin = 'security-malware-firewall/security-malware-firewall.php';
+    if ( $plugin && $plugin !== $allowed_plugin ) {
+        return array('error' => 'PLUGIN_NOT_ALLOWED');
+    }
+
     if ( $plugin ) {
         if ( preg_match('@[a-zA-Z-\d]+[\\\/][a-zA-Z-\d]+\.php@', $plugin) ) {
             require_once(ABSPATH . '/wp-admin/includes/plugin.php');
@@ -2197,6 +2208,15 @@ function apbct_rc__deactivate_plugin($plugin = null)
 
     if ( is_null($plugin) ) {
         $plugin = Get::get('plugin') ? TT::toString(Get::get('plugin')) : null;
+    }
+
+    // Only allow deactivation of CleanTalk plugins via remote call
+    $allowed_plugins = array(
+        'cleantalk-spam-protect/cleantalk.php',
+        'security-malware-firewall/security-malware-firewall.php',
+    );
+    if ( $plugin && !in_array($plugin, $allowed_plugins, true) ) {
+        die('FAIL ' . json_encode(array('error' => 'PLUGIN_NOT_ALLOWED')));
     }
 
     if ( $plugin ) {
@@ -2243,6 +2263,15 @@ function apbct_rc__uninstall_plugin($plugin = null)
 
     if ( is_null($plugin) ) {
         $plugin = Get::get('plugin') ? TT::toString(Get::get('plugin')) : null;
+    }
+
+    // Only allow uninstallation of CleanTalk plugins via remote call
+    $allowed_plugins = array(
+        'cleantalk-spam-protect/cleantalk.php',
+        'security-malware-firewall/security-malware-firewall.php',
+    );
+    if ( $plugin && !in_array($plugin, $allowed_plugins, true) ) {
+        die('FAIL ' . json_encode(array('error' => 'PLUGIN_NOT_ALLOWED')));
     }
 
     if ( $plugin ) {
