@@ -2729,7 +2729,7 @@ function apbct_settings__get_key_auto($direct_call = false)
 
     global $apbct;
 
-    if(!current_user_can('activate_plugins')) {
+    if (!current_user_can('activate_plugins')) {
         $out = array(
             'success' => false,
             'message' => __('You do not have sufficient permissions to access this page.', 'cleantalk-spam-protect'),
@@ -3001,7 +3001,7 @@ function apbct_settings__get__long_description()
     global $apbct;
     AJAXService::checkAdminNonce();
 
-    if(!current_user_can('activate_plugins')) {
+    if (!current_user_can('activate_plugins')) {
         $out = array(
             'success' => false,
             'message' => __('You do not have sufficient permissions to access this page.', 'cleantalk-spam-protect'),
@@ -3176,7 +3176,7 @@ function apbct_settings__check_renew_banner()
 
     AJAXService::checkAdminNonce();
 
-    if(!current_user_can('activate_plugins')) {
+    if (!current_user_can('activate_plugins')) {
         $out = array(
             'success' => false,
             'close_renew_banner' => false,

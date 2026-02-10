@@ -1551,7 +1551,7 @@ function apbct_action_adjust_change()
 {
     AJAXService::checkAdminNonce();
 
-    if(!current_user_can('activate_plugins')) {
+    if (!current_user_can('activate_plugins')) {
         wp_send_json_error('Permission denied');
     }
 
