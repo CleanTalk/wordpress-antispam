@@ -451,8 +451,6 @@ class ConnectionReports
      */
     private function prepareEmailContent(array $selection, $is_cron_task = false)
     {
-        global $apbct;
-
         $stat_since = isset($this->reports_count['stat_since']) ? $this->reports_count['stat_since'] : '';
         $total = isset($this->reports_count['total']) ? $this->reports_count['total'] : '';
         $positive = isset($this->reports_count['positive']) ? $this->reports_count['positive'] : '';
@@ -490,31 +488,10 @@ class ConnectionReports
         }
 
         $message .= '</table><br>';
-        $message .= $this->prepareRemoteCallLink($apbct);
         $message .= '<br>' . ($is_cron_task ? 'This is a cron task.' : 'This is a manual task.') . '<br>';
         $message .= '</body></html>';
 
         return $message;
-    }
-
-    /**
-     * Prepare remote call link for email
-     * @param mixed $apbct
-     * @return string
-     */
-    private function prepareRemoteCallLink($apbct)
-    {
-        $show_connection_reports_link =
-            (substr(get_option('home'), -1) === '/' ? get_option('home') : get_option('home') . '/')
-            . '?'
-            . http_build_query([
-                                   'plugin_name' => 'apbct',
-                                   'spbc_remote_call_token' => md5($apbct->api_key),
-                                   'spbc_remote_call_action' => 'debug',
-                                   'show_only' => 'connection_reports',
-                               ]);
-
-        return '<a href="' . $show_connection_reports_link . '" target="_blank">Show connection reports with remote call</a>';
     }
 
     /**
