@@ -357,7 +357,7 @@ class ConnectionReports
 
         return '<tr style="color:' . $color . '">'
                . '<td>' . Escape::escHtml((int)$key + 1) . '.</td>'
-               . '<td>' . Escape::escHtml(date('m-d-y H:i:s', $report_date)) . '</td>'
+               . '<td>' . Escape::escHtml($report_date) . '</td>'
                . '<td>' . Escape::escUrl($report_page_url) . '</td>'
                . '<td>' . Escape::escHtml($report_lib_report) . '</td>'
                . '<td>' . Escape::escHtml($report_failed_work_urls) . '</td>'
@@ -479,7 +479,7 @@ class ConnectionReports
         foreach ($selection as $report) {
             $message .= '<tr>'
                         . '<td>' . (++$counter) . '.</td>'
-                        . '<td>' . TT::toString(date('m-d-y H:i:s', $report['date'])) . '</td>'
+                        . '<td>' . TT::toString($report['date']) . '</td>'
                         . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
                         . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
                         . '<td>' . Escape::escHtml($report['failed_work_urls']) . '</td>'
