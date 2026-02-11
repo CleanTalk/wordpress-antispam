@@ -1676,7 +1676,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'spoki_abandoned_card_for_woocommerce';
         }
 
-        //https://wordpress.org/plugins/woocommerce-abandoned-cart/
+        //UNIT OK https://wordpress.org/plugins/woocommerce-abandoned-cart/
         if (
             apbct_is_plugin_active('woocommerce-abandoned-cart\woocommerce-ac.php') &&
             Post::equal('action', 'save_data')
@@ -1684,7 +1684,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'woocommerce-abandoned-cart';
         }
 
-        //https://wordpress.org/plugins/woo-abandoned-cart-recovery/
+        //UNIT OK https://wordpress.org/plugins/woo-abandoned-cart-recovery/
         if (
             apbct_is_plugin_active('woo-abandoned-cart-recovery/woo-abandoned-cart-recovery.php') &&
             Post::equal('action', 'wacv_get_info ')
@@ -1692,12 +1692,20 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'woo-abandoned-cart-recovery';
         }
 
-        //unknown wc plugin from https://app.doboard.com/1/task/41205
+        //UNIT OK unknown wc plugin from https://app.doboard.com/1/task/41205
         if (
             apbct_is_plugin_active('abandoned-cart-capture/abandoned-cart-capture.php') &&
             Post::equal('action', 'acc_save_data')
         ) {
             return 'abandoned-cart-capture';
+        }
+
+        //UNIT OK https://wordpress.org/plugins/wp-multi-step-checkout/ multipage request
+        if (
+            apbct_is_plugin_active('wp-multi-step-checkout/wp-multi-step-checkout.php') &&
+            Post::equal('action', 'wpms_checkout_errors')
+        ) {
+            return 'wp-multi-step-checkout';
         }
     } else {
         /*****************************************/
