@@ -32,6 +32,11 @@ class TestSettingsCapabilityCheck extends TestCase
      */
     private $settingsFilePath;
 
+    /**
+     * @var string Path to the admin file
+     */
+    private $adminFilePath;
+
     public static function setUpBeforeClass(): void
     {
         // Create a subscriber user (no activate_plugins capability)
@@ -73,6 +78,7 @@ class TestSettingsCapabilityCheck extends TestCase
         $this->apbctBackup = $apbct;
         $apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
         $this->settingsFilePath = CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php';
+        $this->adminFilePath = CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-admin.php';
     }
 
     protected function tearDown(): void
@@ -167,10 +173,11 @@ class TestSettingsCapabilityCheck extends TestCase
      *
      * @param string $functionName Function name to check
      * @param string $message Assertion message
+     * @param string|null $filePath Optional file path (defaults to settings file)
      */
-    private function assertFunctionHasCapabilityCheck($functionName, $message)
+    private function assertFunctionHasCapabilityCheck($functionName, $message, $filePath = null)
     {
-        $fileContent = file_get_contents($this->settingsFilePath);
+        $fileContent = file_get_contents($filePath ?? $this->settingsFilePath);
 
         // Find the function definition
         $pattern = '/function\s+' . preg_quote($functionName, '/') . '\s*\([^)]*\)\s*\{/';
@@ -189,6 +196,7 @@ class TestSettingsCapabilityCheck extends TestCase
         // Check that it returns/dies on failure
         $hasProperHandling = strpos($functionBody, 'die(') !== false
             || strpos($functionBody, 'wp_die(') !== false
+            || strpos($functionBody, 'wp_send_json_error') !== false
             || strpos($functionBody, 'return') !== false;
 
         $this->assertTrue(
@@ -293,5 +301,41 @@ class TestSettingsCapabilityCheck extends TestCase
         );
 
         wp_delete_user($editor_id);
+    }
+
+    /**
+     * Test that apbct_action__create_support_user contains capability check
+     */
+    public function testCreateSupportUserHasCapabilityCheck()
+    {
+        $this->assertFunctionHasCapabilityCheck(
+            'apbct_action__create_support_user',
+            'apbct_action__create_support_user should contain current_user_can(\'activate_plugins\') check',
+            $this->adminFilePath
+        );
+    }
+
+    /**
+     * Test that apbct_action_adjust_reverse contains capability check
+     */
+    public function testAdjustReverseHasCapabilityCheck()
+    {
+        $this->assertFunctionHasCapabilityCheck(
+            'apbct_action_adjust_reverse',
+            'apbct_action_adjust_reverse should contain current_user_can(\'activate_plugins\') check',
+            $this->adminFilePath
+        );
+    }
+
+    /**
+     * Test that apbct_action_adjust_change contains capability check
+     */
+    public function testAdjustChangeHasCapabilityCheck()
+    {
+        $this->assertFunctionHasCapabilityCheck(
+            'apbct_action_adjust_change',
+            'apbct_action_adjust_change should contain current_user_can(\'activate_plugins\') check',
+            $this->adminFilePath
+        );
     }
 }
