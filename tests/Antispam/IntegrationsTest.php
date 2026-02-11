@@ -14,7 +14,7 @@ class IntegrationsTest extends TestCase {
 
 	private $method;
 
-	public function setUp()
+	public function setUp(): void
 	{
 		$available_integrations = array(
 			'ContactBank'          => array( 'hook' => 'contact_bank_frontend_ajax_call', 'ajax' => true ),

@@ -13,6 +13,13 @@ class PaidMembershipPro extends IntegrationBase
      */
     public function getDataForChecking($argument)
     {
+        /**
+         * Login form exclusion
+         */
+        if (Post::getString('pmpro_login_form_used') == 1) {
+            return null;
+        }
+
         $this->is_spammer = $argument;
 
         /**
