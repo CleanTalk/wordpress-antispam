@@ -162,7 +162,6 @@ function ctSetCookie( cookies, value, expires ) {
 
         // Using alternative cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && !skipAlt ) {
-        console.log(cookies);
         ctSetAlternativeCookie(cookies);
     }
 }
