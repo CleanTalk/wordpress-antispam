@@ -5,9 +5,6 @@ use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use PHPUnit\Framework\TestCase;
 
-require_once CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php';
-require_once CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-admin.php';
-
 /**
  * Tests for capability checks in settings AJAX handlers.
  * Verifies that functions properly check current_user_can('activate_plugins').
