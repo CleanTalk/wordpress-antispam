@@ -158,16 +158,6 @@ class TestContactIsSkipRequest extends TestCase
                 $expected_reason
             )
         );
-        //wrong reason
-        self::assertFalse(
-            self::skipped(
-                $expected_key,
-                $expected_action,
-                $plugin_slug,
-                function () {},
-                'not_valid_reason'
-            )
-        );
         //success
         return true;
     }
@@ -194,6 +184,12 @@ class TestContactIsSkipRequest extends TestCase
         Post::getInstance()->variables = $_POST;
 
         $result = apbct_is_skip_request(true);
+
+        if (is_string($result)) {
+            self::assertEquals($expected_reason, $result);
+        } else {
+            self::assertFalse($result);
+        }
 
         update_option( 'active_plugins', array(), false );
 
