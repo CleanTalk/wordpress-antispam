@@ -3881,7 +3881,7 @@ async function apbct_ready() {
         if ( ! basePath ) {
             // We are here because NO any cleantalk bundle script are in frontend: Todo nothing
         } else {
-            const gatheringScriptName = 'src/public-2-gathering-data.js';
+            const gatheringScriptName = 'public-2-gathering-data.min.js';
             const gatheringFullPath = basePath + gatheringScriptName;
             gatheringLoaded = await apbctImportScript(gatheringFullPath);
         }
