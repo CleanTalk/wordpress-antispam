@@ -4016,8 +4016,8 @@ async function apbctImportScript(scriptAbsolutePath) {
         };
 
         script.onerror = function () {
-            // Failed to load Gathering data script from `fullPath`
-            reject(new Error('Script loading failed: ' + fullPath));
+            // Failed to load Gathering data script from `scriptAbsolutePath`
+            reject(new Error('Script loading failed: ' + scriptAbsolutePath));
         };
 
         document.head.appendChild(script);
