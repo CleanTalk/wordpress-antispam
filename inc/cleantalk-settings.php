@@ -2735,7 +2735,7 @@ function apbct_settings__get_key_auto($direct_call = false)
             'message' => __('You do not have sufficient permissions to access this page.', 'cleantalk-spam-protect'),
 
         );
-        die(json_encode($out));
+        wp_die(json_encode($out));
     }
 
     $website        = parse_url(get_option('home'), PHP_URL_HOST) . parse_url(get_option('home'), PHP_URL_PATH);
@@ -2839,7 +2839,7 @@ function apbct_settings__get_key_auto($direct_call = false)
     if ( $direct_call ) {
         return $result;
     } else {
-        die(json_encode($out));
+        wp_die(json_encode($out));
     }
 }
 
@@ -3006,7 +3006,7 @@ function apbct_settings__get__long_description()
             'success' => false,
             'message' => __('You do not have sufficient permissions to access this page.', 'cleantalk-spam-protect'),
         );
-        die(json_encode($out));
+        wp_die(json_encode($out));
     }
 
     $setting_id = TT::toString(Post::get('setting_id', null, 'word'));
@@ -3164,9 +3164,9 @@ function apbct_settings__get__long_description()
             $utm = '?utm_source=apbct_hint_' . esc_attr($setting_id) . '&utm_medium=WordPress&utm_campaign=ABPCT_Settings';
         }
         $descriptions[$setting_id]['desc'] = str_replace('{utm_mark}', $utm, $descriptions[$setting_id]['desc']);
-        die(json_encode($descriptions[$setting_id]));
+        wp_die(json_encode($descriptions[$setting_id]));
     } else {
-        die(json_encode(['error' => 'Invalid setting ID']));
+        wp_die(json_encode(['error' => 'Invalid setting ID']));
     }
 }
 
@@ -3182,10 +3182,10 @@ function apbct_settings__check_renew_banner()
             'close_renew_banner' => false,
             'message' => __('You do not have sufficient permissions to access this page.', 'cleantalk-spam-protect'),
         );
-        die(json_encode($out));
+        wp_die(json_encode($out));
     }
 
-    die(
+    wp_die(
         json_encode(
             array('close_renew_banner' => ($apbct->data['notice_trial'] == 0 && $apbct->data['notice_renew'] == 0) ? true : false)
         )

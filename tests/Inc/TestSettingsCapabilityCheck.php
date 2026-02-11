@@ -1,14 +1,20 @@
 <?php
-namespace Inc;
 
 use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use PHPUnit\Framework\TestCase;
 
+require_once CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php';
+require_once CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-admin.php';
+
 /**
  * Tests for capability checks in settings AJAX handlers.
  * Verifies that functions properly check current_user_can('activate_plugins').
+ *
+ * Tests verify:
+ * 1. Functions deny access to users without activate_plugins capability
+ * 2. Source code contains required checks (static analysis)
  */
 class TestSettingsCapabilityCheck extends TestCase
 {
@@ -79,6 +85,20 @@ class TestSettingsCapabilityCheck extends TestCase
         $apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
         $this->settingsFilePath = CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php';
         $this->adminFilePath = CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-admin.php';
+
+        // Set up wp_die handler to throw an exception
+        add_filter('wp_die_handler', function() {
+            return function($message) {
+                throw new WPDieException($message);
+            };
+        });
+
+        // Also handle AJAX die
+        add_filter('wp_die_ajax_handler', function() {
+            return function($message) {
+                throw new WPDieException($message);
+            };
+        });
     }
 
     protected function tearDown(): void
@@ -94,46 +114,152 @@ class TestSettingsCapabilityCheck extends TestCase
         Request::getInstance()->variables = [];
         $_POST = [];
         $_REQUEST = [];
+
+        // Remove filters
+        remove_all_filters('wp_die_handler');
+        remove_all_filters('wp_die_ajax_handler');
     }
 
-    /**
-     * Test that administrator has activate_plugins capability
-     */
-    public function testAdminHasActivatePluginsCapability()
-    {
-        wp_set_current_user(self::$admin_id);
-
-        $this->assertTrue(
-            current_user_can('activate_plugins'),
-            'Administrator should have activate_plugins capability'
-        );
-    }
+    // ==================== Real Function Call Tests ====================
+    // These tests call functions directly and verify they deny access
 
     /**
-     * Test that subscriber does NOT have activate_plugins capability
+     * Test apbct_settings__check_renew_banner denies access for subscriber
      */
-    public function testSubscriberDoesNotHaveActivatePluginsCapability()
+    public function testCheckRenewBannerDeniesAccessForSubscriber()
     {
         wp_set_current_user(self::$subscriber_id);
 
-        $this->assertFalse(
-            current_user_can('activate_plugins'),
-            'Subscriber should NOT have activate_plugins capability'
+        // Create valid nonce for ct_secret_nonce (admin nonce) while logged in as subscriber
+        $nonce = wp_create_nonce('ct_secret_nonce');
+        $_REQUEST['_wpnonce'] = $nonce;
+        $_POST['_wpnonce'] = $nonce;
+        Post::getInstance()->variables['_wpnonce'] = $nonce;
+        Request::getInstance()->variables['_wpnonce'] = $nonce;
+
+        $output = null;
+
+        try {
+            ob_start();
+            apbct_settings__check_renew_banner();
+            $output = ob_get_clean();
+        } catch (WPDieException $e) {
+            $output = ob_get_clean();
+            $output .= $e->getMessage();
+        }
+
+        $this->assertNotEmpty($output);
+        $result = json_decode($output, true);
+
+        $this->assertIsArray($result, 'Output should be valid JSON');
+        $this->assertArrayHasKey('success', $result);
+        $this->assertFalse($result['success'], 'Should return success=false for unauthorized access');
+    }
+
+    /**
+     * Test apbct_settings__get__long_description denies access for subscriber
+     */
+    public function testGetLongDescriptionDeniesAccessForSubscriber()
+    {
+        wp_set_current_user(self::$subscriber_id);
+
+        // Create valid nonce for ct_secret_nonce (admin nonce) while logged in as subscriber
+        $nonce = wp_create_nonce('ct_secret_nonce');
+        $_REQUEST['_wpnonce'] = $nonce;
+        $_POST['_wpnonce'] = $nonce;
+        Post::getInstance()->variables['_wpnonce'] = $nonce;
+        Request::getInstance()->variables['_wpnonce'] = $nonce;
+
+        $output = null;
+
+        try {
+            ob_start();
+            apbct_settings__get__long_description();
+            $output = ob_get_clean();
+        } catch (WPDieException $e) {
+            $output = ob_get_clean();
+            $output .= $e->getMessage();
+        }
+
+        $this->assertNotEmpty($output);
+        $result = json_decode($output, true);
+
+        $this->assertIsArray($result, 'Output should be valid JSON');
+        $this->assertArrayHasKey('success', $result);
+        $this->assertFalse($result['success'], 'Should return success=false for unauthorized access');
+    }
+
+    /**
+     * Test apbct_settings__get_key_auto denies access for subscriber
+     */
+    public function testGetKeyAutoDeniesAccessForSubscriber()
+    {
+        wp_set_current_user(self::$subscriber_id);
+
+        // Create valid nonce for ct_secret_nonce (admin nonce) while logged in as subscriber
+        $nonce = wp_create_nonce('ct_secret_nonce');
+        $_REQUEST['_wpnonce'] = $nonce;
+        $_POST['_wpnonce'] = $nonce;
+        Post::getInstance()->variables['_wpnonce'] = $nonce;
+        Request::getInstance()->variables['_wpnonce'] = $nonce;
+
+        $output = null;
+
+        try {
+            ob_start();
+            apbct_settings__get_key_auto();
+            $output = ob_get_clean();
+        } catch (WPDieException $e) {
+            $output = ob_get_clean();
+            $output .= $e->getMessage();
+        }
+
+        $this->assertNotEmpty($output);
+        $result = json_decode($output, true);
+
+        $this->assertIsArray($result, 'Output should be valid JSON');
+        $this->assertArrayHasKey('success', $result);
+        $this->assertFalse($result['success'], 'Should return success=false for unauthorized access');
+    }
+
+    /**
+     * Test apbct_action__create_support_user denies access for subscriber
+     * Note: Uses wp_send_json_error which is harder to test, verified via static analysis below
+     */
+    public function testCreateSupportUserDeniesAccessForSubscriberStatic()
+    {
+        $this->assertFunctionHasCapabilityCheck(
+            'apbct_action__create_support_user',
+            $this->adminFilePath
         );
     }
 
     /**
-     * Test that anonymous user does NOT have activate_plugins capability
+     * Test apbct_action_adjust_change denies access for subscriber
+     * Note: Uses wp_send_json_error which is harder to test, verified via static analysis below
      */
-    public function testAnonymousDoesNotHaveActivatePluginsCapability()
+    public function testAdjustChangeDeniesAccessForSubscriberStatic()
     {
-        wp_set_current_user(0);
-
-        $this->assertFalse(
-            current_user_can('activate_plugins'),
-            'Anonymous user should NOT have activate_plugins capability'
+        $this->assertFunctionHasCapabilityCheck(
+            'apbct_action_adjust_change',
+            $this->adminFilePath
         );
     }
+
+    /**
+     * Test apbct_action_adjust_reverse denies access for subscriber
+     * Note: Uses wp_send_json_error which is harder to test, verified via static analysis below
+     */
+    public function testAdjustReverseDeniesAccessForSubscriberStatic()
+    {
+        $this->assertFunctionHasCapabilityCheck(
+            'apbct_action_adjust_reverse',
+            $this->adminFilePath
+        );
+    }
+
+    // ==================== Source Code Verification Tests ====================
+    // These tests verify that the required capability checks exist in source code
 
     /**
      * Test that apbct_settings__check_renew_banner contains capability check
@@ -142,7 +268,7 @@ class TestSettingsCapabilityCheck extends TestCase
     {
         $this->assertFunctionHasCapabilityCheck(
             'apbct_settings__check_renew_banner',
-            'apbct_settings__check_renew_banner should contain current_user_can(\'activate_plugins\') check'
+            $this->settingsFilePath
         );
     }
 
@@ -153,7 +279,7 @@ class TestSettingsCapabilityCheck extends TestCase
     {
         $this->assertFunctionHasCapabilityCheck(
             'apbct_settings__get__long_description',
-            'apbct_settings__get__long_description should contain current_user_can(\'activate_plugins\') check'
+            $this->settingsFilePath
         );
     }
 
@@ -164,24 +290,19 @@ class TestSettingsCapabilityCheck extends TestCase
     {
         $this->assertFunctionHasCapabilityCheck(
             'apbct_settings__get_key_auto',
-            'apbct_settings__get_key_auto should contain current_user_can(\'activate_plugins\') check'
+            $this->settingsFilePath
         );
     }
 
     /**
-     * Helper method to check if a function contains capability check
+     * Helper method to check if a function contains capability check in source code
      *
      * @param string $functionName Function name to check
-     * @param string $message Assertion message
-     * @param string|null $filePath Optional file path (defaults to settings file)
+     * @param string $filePath Path to the source file
      */
-    private function assertFunctionHasCapabilityCheck($functionName, $message, $filePath = null)
+    private function assertFunctionHasCapabilityCheck($functionName, $filePath)
     {
-        $fileContent = file_get_contents($filePath ?? $this->settingsFilePath);
-
-        // Find the function definition
-        $pattern = '/function\s+' . preg_quote($functionName, '/') . '\s*\([^)]*\)\s*\{/';
-        $this->assertRegExp($pattern, $fileContent, "Function $functionName should exist");
+        $fileContent = file_get_contents($filePath);
 
         // Extract function body
         $functionBody = $this->extractFunctionBody($fileContent, $functionName);
@@ -191,17 +312,19 @@ class TestSettingsCapabilityCheck extends TestCase
         $hasCapabilityCheck = strpos($functionBody, "current_user_can('activate_plugins')") !== false
             || strpos($functionBody, 'current_user_can("activate_plugins")') !== false;
 
-        $this->assertTrue($hasCapabilityCheck, $message);
+        $this->assertTrue(
+            $hasCapabilityCheck,
+            "$functionName should contain current_user_can('activate_plugins') check"
+        );
 
         // Check that it returns/dies on failure
         $hasProperHandling = strpos($functionBody, 'die(') !== false
             || strpos($functionBody, 'wp_die(') !== false
-            || strpos($functionBody, 'wp_send_json_error') !== false
-            || strpos($functionBody, 'return') !== false;
+            || strpos($functionBody, 'wp_send_json_error') !== false;
 
         $this->assertTrue(
             $hasProperHandling,
-            "$functionName should terminate or return on capability check failure"
+            "$functionName should terminate on capability check failure"
         );
     }
 
@@ -245,97 +368,5 @@ class TestSettingsCapabilityCheck extends TestCase
         }
 
         return $functionBody;
-    }
-
-    /**
-     * Test capability check logic works correctly for subscriber
-     * This verifies that when a subscriber makes the check, it returns false
-     */
-    public function testCapabilityCheckLogicForSubscriber()
-    {
-        wp_set_current_user(self::$subscriber_id);
-
-        // Simulate the check that is in the functions
-        $hasCapability = current_user_can('activate_plugins');
-
-        $this->assertFalse(
-            $hasCapability,
-            'Capability check should return false for subscriber, blocking access'
-        );
-    }
-
-    /**
-     * Test capability check logic works correctly for admin
-     * This verifies that when an admin makes the check, it returns true
-     */
-    public function testCapabilityCheckLogicForAdmin()
-    {
-        wp_set_current_user(self::$admin_id);
-
-        // Simulate the check that is in the functions
-        $hasCapability = current_user_can('activate_plugins');
-
-        $this->assertTrue(
-            $hasCapability,
-            'Capability check should return true for admin, allowing access'
-        );
-    }
-
-    /**
-     * Test that editor role does NOT have activate_plugins capability
-     */
-    public function testEditorDoesNotHaveActivatePluginsCapability()
-    {
-        $editor_id = wp_insert_user([
-            'user_login' => 'test_editor_' . wp_generate_password(6, false),
-            'user_pass'  => wp_generate_password(),
-            'user_email' => 'editor_' . wp_generate_password(6, false) . '@test.com',
-            'role'       => 'editor',
-        ]);
-
-        wp_set_current_user($editor_id);
-
-        $this->assertFalse(
-            current_user_can('activate_plugins'),
-            'Editor should NOT have activate_plugins capability'
-        );
-
-        wp_delete_user($editor_id);
-    }
-
-    /**
-     * Test that apbct_action__create_support_user contains capability check
-     */
-    public function testCreateSupportUserHasCapabilityCheck()
-    {
-        $this->assertFunctionHasCapabilityCheck(
-            'apbct_action__create_support_user',
-            'apbct_action__create_support_user should contain current_user_can(\'activate_plugins\') check',
-            $this->adminFilePath
-        );
-    }
-
-    /**
-     * Test that apbct_action_adjust_reverse contains capability check
-     */
-    public function testAdjustReverseHasCapabilityCheck()
-    {
-        $this->assertFunctionHasCapabilityCheck(
-            'apbct_action_adjust_reverse',
-            'apbct_action_adjust_reverse should contain current_user_can(\'activate_plugins\') check',
-            $this->adminFilePath
-        );
-    }
-
-    /**
-     * Test that apbct_action_adjust_change contains capability check
-     */
-    public function testAdjustChangeHasCapabilityCheck()
-    {
-        $this->assertFunctionHasCapabilityCheck(
-            'apbct_action_adjust_change',
-            'apbct_action_adjust_change should contain current_user_can(\'activate_plugins\') check',
-            $this->adminFilePath
-        );
     }
 }
