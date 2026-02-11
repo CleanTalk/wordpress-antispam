@@ -2609,6 +2609,7 @@ class ApbctEventTokenTransport {
 class ApbctAttachData {
     /**
      * Attach hidden fields to forms
+     * @param {bool} gatheringLoaded
      * @return {void}
      */
     attachHiddenFieldsToForms(gatheringLoaded) {
@@ -3993,6 +3994,11 @@ function getApbctBasePath() {
     return null; // cleantalk's scripts not found :(
 }
 
+/**
+ * Load any script into the DOM (i.e. `import()`)
+ * @param {string} scriptAbsolutePath
+ * @return {Promise<*|boolean>}
+ */
 async function apbctImportScript(scriptAbsolutePath) {
     // Check it this scripti already is in DOM
     const normalizedPath = scriptAbsolutePath.replace(/\/$/, ''); // Replace ending slashes
@@ -4010,18 +4016,18 @@ async function apbctImportScript(scriptAbsolutePath) {
         script.src = scriptAbsolutePath;
         script.async = true;
 
-        script.onload = function () {
+        script.onload = function() {
             // Gathering data script loaded successfully
             resolve(true);
         };
 
-        script.onerror = function () {
+        script.onerror = function() {
             // Failed to load Gathering data script from `scriptAbsolutePath`
             reject(new Error('Script loading failed: ' + scriptAbsolutePath));
         };
 
         document.head.appendChild(script);
-    }).catch(error => {
+    }).catch((error) => {
         // Gathering data script loading failed, continuing without it
         return false;
     });
@@ -4038,9 +4044,9 @@ async function apbct_ready() {
     let gatheringLoaded = false;
 
     if (
-        +ctPublic.settings__data__bot_detector_enabled // If Bot-Detector is active
-        && !apbctLocalStorage.get('bot_detector_event_token') // and no `event_token` generated
-        && typeof ApbctGatheringData === 'undefined' // and no `gathering` loaded yet
+        +ctPublic.settings__data__bot_detector_enabled && // If Bot-Detector is active
+        !apbctLocalStorage.get('bot_detector_event_token') && // and no `event_token` generated
+        typeof ApbctGatheringData === 'undefined' // and no `gathering` loaded yet
     ) {
         const basePath = getApbctBasePath();
         if ( ! basePath ) {
@@ -4056,7 +4062,10 @@ async function apbct_ready() {
     handler.detectForcedAltCookiesForms();
 
     // Gathering data when bot detector is disabled
-    if ((!+ctPublic.settings__data__bot_detector_enabled || gatheringLoaded ) && typeof ApbctGatheringData !== 'undefined') {
+    if (
+        ( ! +ctPublic.settings__data__bot_detector_enabled || gatheringLoaded ) &&
+        typeof ApbctGatheringData !== 'undefined'
+    ) {
         const gatheringData = new ApbctGatheringData();
         gatheringData.setSessionId();
         gatheringData.writeReferrersToSessionStorage();
@@ -4074,7 +4083,7 @@ async function apbct_ready() {
         }
     }
 
-    setTimeout(function () {
+    setTimeout(function() {
         // Attach data when bot detector is enabled
         if (+ctPublic.settings__data__bot_detector_enabled) {
             const eventTokenTransport = new ApbctEventTokenTransport();
