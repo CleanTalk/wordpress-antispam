@@ -1561,7 +1561,7 @@ async function apbct_ready() {
     // Always call initParams to set cookies and parameters
     if (typeof initParams === 'function') {
         try {
-            initParams();
+            initParams(gatheringLoaded);
         } catch (e) {
             console.log('initParams error:', e);
         }
