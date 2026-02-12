@@ -82,7 +82,7 @@ function initParams(gatheringLoaded) {
     }
 
     if (gatheringLoaded) {
-        initCookies.push(['ct_gatheringLoaded', gatheringLoaded]);
+        initCookies.push(['ct_gathering_loaded', gatheringLoaded]);
     }
 
     ctSetCookie(initCookies);

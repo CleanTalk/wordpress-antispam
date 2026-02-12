@@ -2068,7 +2068,7 @@ function initParams(gatheringLoaded) {
     }
 
     if (gatheringLoaded) {
-        initCookies.push(['ct_gatheringLoaded', gatheringLoaded]);
+        initCookies.push(['ct_gathering_loaded', gatheringLoaded]);
     }
 
     ctSetCookie(initCookies);
@@ -4044,6 +4044,7 @@ async function apbct_ready() {
     let gatheringLoaded = false;
 
     if (
+        apbctLocalStorage.get('apbct_existing_visitor') && // Not for the first hit
         +ctPublic.settings__data__bot_detector_enabled && // If Bot-Detector is active
         !apbctLocalStorage.get('bot_detector_event_token') && // and no `event_token` generated
         typeof ApbctGatheringData === 'undefined' // and no `gathering` loaded yet
@@ -4144,6 +4145,8 @@ async function apbct_ready() {
     if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {
         handler.toolForAntiCrawlerCheckDuringBotDetector();
     }
+
+    apbctLocalStorage.set('apbct_existing_visitor', 1);
 }
 
 if (ctPublic.data__key_is_ok) {
