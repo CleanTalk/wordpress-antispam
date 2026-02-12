@@ -1551,6 +1551,10 @@ function apbct_action_adjust_change()
 {
     AJAXService::checkAdminNonce();
 
+    if (!current_user_can('activate_plugins')) {
+        wp_send_json_error('Permission denied');
+    }
+
     if (in_array(Post::get('adjust'), array_keys(AdjustToEnvironmentHandler::SET_OF_ADJUST))) {
         try {
             $adjust = Post::getString('adjust');
@@ -1570,6 +1574,10 @@ function apbct_action_adjust_reverse()
 {
     AJAXService::checkAdminNonce();
 
+    if (!current_user_can('activate_plugins')) {
+        wp_send_json_error('Permission denied');
+    }
+
     if (in_array(Post::getString('adjust'), array_keys(AdjustToEnvironmentHandler::SET_OF_ADJUST))) {
         $adjust = Post::getString('adjust');
         try {
@@ -1586,6 +1594,10 @@ function apbct_action_adjust_reverse()
 
 function apbct_action__create_support_user()
 {
+    if (!current_user_can('activate_plugins')) {
+        wp_send_json_error('Permission denied');
+    }
+
     $support_user = new SupportUser();
     $result = $support_user->ajaxProcess();
     wp_send_json($result);
