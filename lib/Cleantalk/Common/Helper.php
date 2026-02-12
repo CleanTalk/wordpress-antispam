@@ -558,7 +558,7 @@ class Helper
         $records = @dns_get_record($hostname, $record_type);
 
         // If forward lookup fails, we can't verify
-        if (!$records || !is_array($records)) {
+        if (empty($records)) {
             return false;
         }
 
@@ -575,7 +575,6 @@ class Helper
         }
 
         // Check if the original IP is in the list of IPs the hostname resolves to
-        // For IPv6, normalize both for comparison
         if ($ip_version === 'v6') {
             $normalized_ip = self::ipV6Normalize($ip);
             foreach ($forward_ips as $forward_ip) {
