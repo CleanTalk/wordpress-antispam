@@ -219,9 +219,9 @@ class WcSpamOrdersListTable extends CleantalkListTable
                 $wc_product_class = '\WC_Product';
                 $product_title = $wc_product instanceof $wc_product_class ? $wc_product->get_title() : '';
             }
-            $result .= "<b>" . $product_title . "</b>";
+            $result .= "<b>" . esc_html($product_title) . "</b>";
             $result .= " - ";
-            $result .= $order_detail['quantity'];
+            $result .= esc_html($order_detail['quantity']);
             $result .= "<br>";
         }
 
@@ -242,11 +242,11 @@ class WcSpamOrdersListTable extends CleantalkListTable
 
         $result           = '';
 
-        $result .= "<b>" . ($customer_details["billing_first_name"] ?? '') . "</b>";
+        $result .= "<b>" . esc_html($customer_details["billing_first_name"] ?? '') . "</b>";
         $result .= "<br>";
-        $result .= "<b>" . ($customer_details["billing_last_name"] ?? '') . "</b>";
+        $result .= "<b>" . esc_html($customer_details["billing_last_name"] ?? '') . "</b>";
         $result .= "<br>";
-        $result .= "<b>" . ($customer_details["billing_email"] ?? '') . "</b>";
+        $result .= "<b>" . esc_html($customer_details["billing_email"] ?? '') . "</b>";
 
         return $result;
     }
