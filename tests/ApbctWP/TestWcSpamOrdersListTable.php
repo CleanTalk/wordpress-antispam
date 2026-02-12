@@ -78,7 +78,7 @@ class TestWcSpamOrdersListTable extends TestCase
     public function testRenderOrderDetailsColumnEscapesHtmlInQuantity()
     {
         $orderDetails = json_encode([
-            ['product_id' => 1, 'quantity' => '<script>alert("xss")</script>'],
+            ['product_id' => 1, 'quantity' => '<script>alert("test")</script>'],
         ]);
 
         $result = $this->renderOrderDetailsColumn->invoke($this->instance, $orderDetails);
@@ -134,7 +134,7 @@ class TestWcSpamOrdersListTable extends TestCase
     public function testRenderCustomerDetailsColumnEscapesHtml()
     {
         $customerDetails = json_encode([
-            'billing_first_name' => '<script>alert("xss")</script>',
+            'billing_first_name' => '<script>alert("test")</script>',
             'billing_last_name' => '<img onerror="alert(1)" src="">',
             'billing_email' => '"><script>alert("email")</script>',
         ]);
