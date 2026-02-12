@@ -107,6 +107,15 @@ class TestContactIsSkipRequest extends TestCase
             'wp-multi-step-checkout'
         ));
     }
+    public function testSkip__woocommerceSendinblueNewsletterSubscription()
+    {
+        $this->assertTrue(self::checkSkipMutations(
+            'action',
+            'the_ajax_hook',
+            'woocommerce-sendinblue-newsletter-subscription/woocommerce-sendinblue.php',
+            'woocommerce-sendinblue-newsletter-subscription'
+        ));
+    }
 
     /**
      * Check if skipped on all data complied, and every case if not.

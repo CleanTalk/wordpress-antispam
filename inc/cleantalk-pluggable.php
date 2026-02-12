@@ -783,6 +783,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'WS Form submit service request';
         }
 
+        // UNIT OK https://wordpress.org/plugins/woocommerce-sendinblue-newsletter-subscription/
+        if (
+            apbct_is_plugin_active('woocommerce-sendinblue-newsletter-subscription/woocommerce-sendinblue.php') &&
+            Post::getString('action') === 'the_ajax_hook'
+        ) {
+            return 'woocommerce-sendinblue-newsletter-subscription';
+        }
+
         // Paid Memberships Pro - Login Form
         if (
             apbct_is_plugin_active('paid-memberships-pro/paid-memberships-pro.php') &&
