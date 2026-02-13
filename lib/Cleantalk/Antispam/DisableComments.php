@@ -203,9 +203,9 @@ class DisableComments
     public function filterGutenbergBlocks($_hook)
     {
         if ( $this->isCurrentTypeToDisable() ) {
-            ApbctEnqueue::getInstance()->js('apbct-individual-disable-comments.js');
+            ApbctEnqueue::getInstance()->js('cleantalk-individual-disable-comments.js');
             wp_localize_script(
-                'apbct-individual-disable-comments-js',
+                'cleantalk-individual-disable-comments-js',
                 'apbctDisableComments',
                 array(
                     'disabled_blocks' => array('core/latest-comments'),
