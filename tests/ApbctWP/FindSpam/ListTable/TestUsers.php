@@ -22,6 +22,8 @@ class TestUsers extends TestCase
 
     protected function setUp(): void
     {
+        global $apbct;
+        
         $reflection = new \ReflectionClass(Users::class);
         $this->instance = $reflection->newInstanceWithoutConstructor();
 
@@ -34,10 +36,16 @@ class TestUsers extends TestCase
             ->getMock();
         $ipKeeper->method('getIP')->willReturn(null);
 
-        $this->instance->apbct = (object)[
+        // Set both instance property and global variable
+        $apbct = (object)[
             'white_label'      => true,
             'login_ip_keeper'  => $ipKeeper,
         ];
+        
+        // Use reflection to set the protected property
+        $apbctProperty = $reflection->getProperty('apbct');
+        $apbctProperty->setAccessible(true);
+        $apbctProperty->setValue($this->instance, $apbct);
     }
 
     /**
@@ -92,13 +100,25 @@ class TestUsers extends TestCase
      */
     public function testColumnCtUsernameShowsIpWhenKeeperReturnsIp(): void
     {
+        global $apbct;
+        
         $_GET['page'] = 'ct_check_users';
 
         $ipKeeper = $this->getMockBuilder(\stdClass::class)
             ->addMethods(['getIP'])
             ->getMock();
         $ipKeeper->method('getIP')->with(99)->willReturn('192.168.1.1');
-        $this->instance->apbct->login_ip_keeper = $ipKeeper;
+        
+        // Update global apbct
+        $apbct->login_ip_keeper = $ipKeeper;
+        
+        // Update instance apbct using reflection
+        $reflection = new \ReflectionClass(Users::class);
+        $apbctProperty = $reflection->getProperty('apbct');
+        $apbctProperty->setAccessible(true);
+        $instanceApbct = $apbctProperty->getValue($this->instance);
+        $instanceApbct->login_ip_keeper = $ipKeeper;
+        $apbctProperty->setValue($this->instance, $instanceApbct);
 
         $user = (object)[
             'ID'          => 99,
