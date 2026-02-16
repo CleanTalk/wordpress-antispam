@@ -51,7 +51,7 @@ class ApbctSettingsTest extends TestCase
         $apbct->saveSettings();
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         global $apbct;
         $apbct = $this->saved_state;

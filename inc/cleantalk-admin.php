@@ -353,8 +353,6 @@ function apbct_admin__init()
 
         add_filter('cleantalk_admin_bar__parent_node__before', 'apbct_admin__admin_bar__prepare_counters');
         add_filter('cleantalk_admin_bar__add_icon_to_parent_node', 'apbct_admin__admin_bar__prepare_counters');
-        // Temporary disable the icon
-        //add_filter( 'cleantalk_admin_bar__parent_node__before', 'apbct_admin__admin_bar__add_parent_icon', 10, 1 );
         add_filter('cleantalk_admin_bar__parent_node__after', 'apbct_admin__admin_bar__add_counter', 10, 1);
 
         add_action('admin_bar_menu', 'apbct_admin__admin_bar__add_child_nodes', 1000);
@@ -677,6 +675,9 @@ function apbct_admin__badge__get_premium($placement = null)
             'top_info' => array(
                 'prefix' => __('Make it right!', 'cleantalk-spam-protect') . ' ',
                 'utm_set' => 'renew_top_info'),
+            'cleantalk-bbpress-spam-scanner' => array(
+                'prefix' => __('Make it right!', 'cleantalk-spam-protect') . ' ',
+                'utm_set' => 'cleantalk-bbpress-spam-scanner'),
             'plugins_listing' => array(
                 'prefix' => '',
                 'utm_set' => 'renew_plugins_listing'),
@@ -747,6 +748,23 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
     }
 
     /**
+     * Link to project manager
+     */
+    $project_manager_title_node = apbct__admin_bar__get_title_for_project_manager();
+    if ( $project_manager_title_node ) {
+        $wp_admin_bar->add_node($project_manager_title_node);
+        $gf2db_title_node = apbct__admin_bar__add_gf2db_title();
+        if ($gf2db_title_node) {
+            $wp_admin_bar->add_node($gf2db_title_node);
+        } else {
+            $gf2db_invite_to_install_title = apbct__admin_bar__get_title_for_gf2db_invite_to_install();
+            if ($gf2db_invite_to_install_title) {
+                $wp_admin_bar->add_node($gf2db_invite_to_install_title);
+            }
+        }
+    }
+
+    /**
      * Adding FAQ node
      */
     $faq_title_node = apbct__admin_bar__get_title_for_faq();
@@ -754,6 +772,86 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
     if ( $faq_title_node ) {
         $wp_admin_bar->add_node($faq_title_node);
     }
+}
+
+/**
+ * Gets the title for the project manager admin bar node.
+ *
+ * This function constructs the title for the project manager admin bar node based on various conditions.
+ * The title includes a link to the project manager.
+ *
+ * @return array|false The node data for the project manager admin bar node, or false if the project manager admin bar is not enabled.
+ */
+function apbct__admin_bar__get_title_for_project_manager()
+{
+    if (!is_plugin_active('gravityforms/gravityforms.php')) {
+        return false;
+    }
+
+    $title = '<span><a>' . __('Project management', 'cleantalk-spam-protect') . '</a></span>';
+
+    return array(
+        'parent' => 'cleantalk_admin_bar__parent_node',
+        'id' => 'project_manager__parent_node',
+        'title' => $title,
+    );
+}
+
+/**
+ * Adds the title for the Gravity Forms to doBoard / Settings admin bar node.
+ *
+ * This function constructs the title for the Gravity Forms to doBoard / Settings admin bar node based on various conditions.
+ * The title includes a link to the Gravity Forms to doBoard / Settings.
+ *
+ */
+function apbct__admin_bar__add_gf2db_title()
+{
+    if (!is_plugin_active('cleantalk-doboard-add-on-for-gravity-forms/cleantalk-doboard-add-on-for-gravity-forms.php')) {
+        return false;
+    }
+
+    $title = sprintf(
+        '<a href="%s" target="_blank">%s</a>',
+        admin_url('admin.php?page=gf_settings&subview=cleantalk-doboard-add-on-for-gravity-forms'),
+        esc_html__('Gravity Forms to doBoard / Settings', 'cleantalk-spam-protect')
+    );
+
+    return array(
+        'parent' => 'project_manager__parent_node',
+        'id' => 'gf2db_title',
+        'title' => $title,
+    );
+}
+
+/**
+ * Gets the title for the "Gravity Forms to doBoard" Add-On invite to install admin bar node.
+ *
+ * This function constructs the title for the "Gravity Forms to doBoard" Add-On invite to install admin bar node based on various conditions.
+ * The title includes a link to the "Gravity Forms to doBoard" Add-On invite to install.
+ *
+ * @return array|false The node data for the "Gravity Forms to doBoard" Add-On invite to install admin bar node, or false if the "Gravity Forms to doBoard" Add-On invite to install admin bar node is not enabled.
+ */
+function apbct__admin_bar__get_title_for_gf2db_invite_to_install()
+{
+    if (is_plugin_active('cleantalk-doboard-add-on-for-gravity-forms/cleantalk-doboard-add-on-for-gravity-forms.php')) {
+        return false;
+    }
+
+    $title = sprintf(
+        '<a href="%s" target="_blank" title="%s">%s</a>',
+        admin_url('plugin-install.php?s=GF2DB&tab=search&type=term'),
+        esc_html__(
+            'Organize and track all messages from your site. Gravity Forms, upgraded with project management.',
+            'cleantalk-spam-protect'
+        ),
+        esc_html__('Install "Gravity Forms to doBoard" Add-On', 'cleantalk-spam-protect')
+    );
+
+    return array(
+        'parent' => 'project_manager__parent_node',
+        'id' => 'gf2db_invite_to_install_title',
+        'title' => $title,
+    );
 }
 
 /**

@@ -947,11 +947,20 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
              is_admin() ) {
             return 'w2dc_skipped';
         }
-        if ( (apbct_is_plugin_active('elementor/elementor.php') || apbct_is_plugin_active('elementor-pro/elementor-pro.php')) &&
-             TT::toString(Post::get('actions_save_builder_action')) === 'save_builder' &&
-             is_admin() ) {
+
+        // Elementor actions and widgets
+        if (
+            (apbct_is_plugin_active('elementor/elementor.php') || apbct_is_plugin_active('elementor-pro/elementor-pro.php')) &&
+            (
+                // elementor builder action
+                (Post::getString('actions_save_builder_action') === 'save_builder' && is_admin()) ||
+                // elementor login widget WooCommerce for checkout
+                (Post::getString('action') === 'elementor_woocommerce_checkout_login_user')
+            )
+        ) {
             return 'elementor_skip';
         }
+
         // Enfold theme saving settings
         if ( apbct_is_theme_active('Enfold') &&
              TT::toString(Post::get('action')) === 'avia_ajax_save_options_page' ) {

@@ -928,6 +928,8 @@ function apbct_settings__set_fields()
                         . '<br>'
                         . __(' - connection status to ' . $apbct->data["wl_brandname_short"] . ' cloud during Anti-Spam request', 'cleantalk-spam-protect')
                         . $send_connection_reports__sfw_text
+                        . '<br>'
+                        . sprintf(esc_html__('The reports are to be sent to %s'), $apbct->data['wl_support_email'])
                     ),
                 'misc__async_js'                => array(
                     'type'        => 'checkbox',
@@ -981,7 +983,6 @@ function apbct_settings__set_fields()
                     'title'       => __('Complete deactivation', 'cleantalk-spam-protect'),
                     'description' => __('Leave no trace in the system after deactivation.', 'cleantalk-spam-protect'),
                 ),
-
             ),
         ),
 
@@ -2960,11 +2961,11 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false, $url
 
             if ( ! empty($sanitized_exclusion) ) {
                 if ( $regexp ) {
-                    if ( ! Validate::isRegexp($exclusion) ) {
+                    if ( ! Validate::isRegexp($sanitized_exclusion) ) {
                         return false;
                     }
                 } elseif ( $urls ) {
-                    if ( ! Validate::isUrl($exclusion) ) {
+                    if ( ! Validate::isUrl($sanitized_exclusion) ) {
                         return false;
                     }
                 }

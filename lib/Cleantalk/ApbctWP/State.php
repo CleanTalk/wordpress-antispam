@@ -133,7 +133,6 @@ class State extends \Cleantalk\Common\State
         'trusted_and_affiliate__footer'            => 0,
         'trusted_and_affiliate__under_forms'       => 0,
         'trusted_and_affiliate__add_id'            => 0,
-
     );
 
     /**
@@ -407,7 +406,7 @@ class State extends \Cleantalk\Common\State
       */
     public $ajax_service;
 
-    /**
+     /**
      * Create vars list. Use all the vars that has 'default_' in theirs name.
      * @return bool
      */

@@ -371,7 +371,7 @@ class SummaryAndSupportRenderer
 
         foreach ($requirement_items as $key => $item) {
             $value = $requirements_data[$key];
-            if ($key === 'curl_support' || $key === 'allow_url_fopen' || $key === 'curl_multi_exec') {
+            if ($key === 'curl_support' || $key === 'allow_url_fopen' || $key === 'curl_multi_funcs_array') {
                 $value = $value ? __('enabled', 'cleantalk-spam-protect') : __('disabled', 'cleantalk-spam-protect');
             }
             $label = sprintf(__($item['label'], 'cleantalk-spam-protect'), $value);

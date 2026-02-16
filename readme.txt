@@ -3,8 +3,8 @@ Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
 Tested up to: 6.9
-Requires PHP: 5.6
-Stable tag: 6.70.1
+Requires PHP: 7.2
+Stable tag: 6.72
 License: GPLv2
 
 Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
@@ -411,6 +411,55 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.72 05.02.2026 =
+* Upd. WooCommSpamOrders. Added a hint for the disabled option to save spam orders.
+* Fix. Integrations. Fluent Forms. Visible fields collection fixed.
+* Fix. Integrations. Skip encoding for woo registration button. (#722)
+* Upd. Integration. Mailpoet. Visible fields gathering.
+* Upd. Visible fields extractor. Static method to get a new extractor.
+* Fix. Integration. Exclusions for WC requests fixed.
+* Fix. Integrations. GiveWP multi-page form. Exclude requests without email.
+* Fix. Integrations. GiveWP. Skip external forms check.
+* Fix. Integrations. GiveWP. Bot detector token. Intercept iframe fetch to add field if available.
+* Fix. Integrations. Fixed fetch request fields assignment (NoCookie|EventToken)
+* Fix. Woocommerce. Stored oreders. Fixed code error.
+* Mod. ContentEncoder. The ability to exclude the main page by hook
+* Fix. Code. Getting cleantalk addresses fixed.
+* Fix. Integrations. Add event token in jQuery catching for forms of "wpr_form_builder_email" action.
+* Upd. Footer. Footer promo link added. (#729)
+* Fix. Integrations. WooCommerce. Stripe express checkout address normalize excluded.
+* Fix. Integrations. Paid Membership Pro. Login form excluded.
+* Upd. Updater. Add index update mechanism. (#721)
+* Fix. Skip Elementor login widget request for WooCommerce checkout.
+* Fix. Integration. Mailpoet integration fixed.
+
+= 6.71.1 26.01.2026 =
+* Fix. Promotion. GF2DB promo setting and message reverted.
+
+= 6.71 22.01.2026 =
+* Fix. Integration. Woocommerce (checkout by REST) integration fixed.
+* Fix. Integration. Fluent forms integration fixed
+* Fix. Integration. Klaviyo (external forms) integration fixed.
+* Upd. PHPUnit. testIsAllowMessage/User refactored
+* Fix. Settings. Description for Send connection reports fixed.
+* Fix. Contacts Encoder. Exclusions fixed.
+* Fix. Contacts Encoder. Regex pattern for emails fixed.
+* Upd. Links. UTM preset for bbPress spam scanner added.
+* Fix. Fetch request catching. Fixed case with empty GET requests from pojo-accessebility plugin.
+* Fix. SFW pages. Fixed bundle name with resolver.
+* Fix. Common. Helper. PHP 8.4. Function str_getcsv() escape argument added
+* Fix. Workflow. Make the zip with subfolder instead of zip-root.
+* Fix. Exclusions by URL. Fixed validation and URL gain for ajax requests.
+* Upd. Requirements Checker. Modified curl_multi_exec to curl_multi array of functions.
+* Upd. SFW update. Do not start update if curl multi funcs are not available.
+* Fix. Integrations. Excluded recaptcha from cloning and ensured it is reinserted into the origin form during processing.
+* Fix. Integrations. Update condition to skip check of account update for logged in users.
+* New. Promotions. GF2DB.
+* New. Settings. Added RC to init settings update.
+* New. Integration. Bit Form integration implemented.
+* Upd. Code. PHP compatibility increased to 7.2.
+* New. Settings. Added project management menu item.
 
 = 6.70.1 19.12.2025 =
 * Fix. Integration. Fluent forms integration fixed (fix for commit ae74511a96417b607f2b79b83ef984de7eac0588).

@@ -66,7 +66,7 @@ function ctProtectExternal() {
     // Trying to process external form into an iframe
     apbctProcessIframes();
     // if form is still not processed by fields listening, do it here
-    if (ctPublic.settings__data__bot_detector_enabled != 1) {
+    if (ctPublic.settings__data__bot_detector_enabled != 1 && typeof ApbctGatheringData !== 'undefined') {
         new ApbctGatheringData().startFieldsListening();
     }
 }
@@ -79,6 +79,7 @@ function ctProtectExternal() {
 function formIsExclusion(currentForm) {
     const exclusionsById = [
         'give-form', // give form exclusion because of direct integration
+        'give-next-gen', // give form exclusion because of direct integration
         'frmCalc', // nobletitle-calc
         'ihf-contact-request-form',
         'wpforms', // integration with wpforms
@@ -227,6 +228,13 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
 
     // Deleting form to prevent submit event
     const prev = currentForm.previousSibling;
+
+    // Exclude div.ml-form-recaptcha from cloning - will insert original into cloned form
+    const recaptchaDiv = currentForm.querySelector('div.ml-form-recaptcha');
+    if (recaptchaDiv) {
+        recaptchaDiv.remove();
+    }
+
     const formHtml = currentForm.outerHTML;
     const formOriginal = currentForm;
     const formContent = currentForm.querySelectorAll('input, textarea, select');
@@ -239,6 +247,16 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
     placeholder.innerHTML = formHtml;
     const clonedForm = placeholder.firstElementChild;
     prev.after(clonedForm);
+
+    // Insert original recaptcha div into cloned form
+    if (recaptchaDiv) {
+        const formContentDiv = clonedForm.querySelector('div.ml-form-formContent');
+        if (formContentDiv) {
+            formContentDiv.after(recaptchaDiv);
+        } else {
+            clonedForm.appendChild(recaptchaDiv);
+        }
+    }
 
     if (formContent && formContent.length > 0) {
         formContent.forEach(function(content) {
@@ -752,7 +770,6 @@ function apbctProcessExternalFormKlaviyo(form, iterator, documentObject) {
     if (!btn) {
         return;
     }
-    btn.disabled = true;
 
     const forceAction = document.createElement('input');
     forceAction.name = 'action';
@@ -1058,6 +1075,18 @@ function sendAjaxCheckingFormData(form) {
                     apbctReplaceInputsValuesFromOtherForm(formNew, formOriginal);
 
                     prev.after( formOriginal );
+
+                    // Copy recaptcha div from cloned form to original form
+                    const recaptchaDivFromCloned = formNew.querySelector('div.ml-form-recaptcha');
+                    if (recaptchaDivFromCloned) {
+                        const recaptchaClone = recaptchaDivFromCloned.cloneNode(true);
+                        const formContentDivOriginal = formOriginal.querySelector('div.ml-form-formContent');
+                        if (formContentDivOriginal) {
+                            formContentDivOriginal.after(recaptchaClone);
+                        } else {
+                            formOriginal.appendChild(recaptchaClone);
+                        }
+                    }
 
                     // Clear visible_fields input
                     for (const el of formOriginal.querySelectorAll('input[name="apbct_visible_fields"]')) {

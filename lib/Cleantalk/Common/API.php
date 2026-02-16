@@ -32,6 +32,7 @@ class API
      * @return array|bool
      *
      * @psalm-suppress PossiblyUnusedMethod
+     * @codeCoverageIgnore
      */
     public static function methodGet2sBlacklistsDb($api_key, $out = null, $version = '1_0', $common_lists = null)
     {

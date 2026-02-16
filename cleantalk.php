@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.70.99-fix
+  Version: 6.72.99-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -539,13 +539,6 @@ if (!empty($_POST) &&
 ) {
     apbct_leakyPaywall_request_test();
 }
-
-add_action('wp_ajax_nopriv_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
-add_action('wp_ajax_ninja_forms_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
-add_action('wp_ajax_nopriv_nf_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
-add_action('wp_ajax_nf_ajax_submit', 'apbct_form__ninjaForms__testSpam', 1);
-add_action('ninja_forms_process', 'apbct_form__ninjaForms__testSpam', 1); // Depricated ?
-add_action('ninja_forms_display_after_form', 'apbct_form__ninjaForms__addField', 1000, 10);
 
 // SeedProd Coming Soon Page Pro integration
 add_action('wp_ajax_seed_cspv5_subscribe_callback', 'apbct_form__seedprod_coming_soon__testSpam', 1);
@@ -1122,13 +1115,10 @@ function apbct_sfw_update__init($delay = 0)
         return false;
     }
 
-    // The Access key is empty
-    if ( ! $apbct->api_key && ! $apbct->ip_license ) {
-        return array('error' => 'SFW UPDATE INIT: KEY_IS_EMPTY');
-    }
+    $requirements_check = apply_filters('apbct_sfw_update__check_requirements', apbct_sfw_update__check_requirements());
 
-    if ( ! $apbct->data['key_is_ok'] ) {
-        return array('error' => 'SFW UPDATE INIT: KEY_IS_NOT_VALID');
+    if (true !== $requirements_check) {
+        return array('error' => $requirements_check);
     }
 
     // Get update period for server
@@ -1211,6 +1201,38 @@ function apbct_sfw_update__init($delay = 0)
         ),
         array('async')
     );
+}
+
+/**
+ * Precheck server requirements before SFW update started.
+ * @return string|true True if check passed, first error string otherwise.
+ */
+function apbct_sfw_update__check_requirements()
+{
+    global $apbct;
+    $result = true;
+    try {
+        // The Access key is empty
+        if ( ! $apbct->api_key && ! $apbct->ip_license ) {
+            throw new \Exception('KEY_IS_EMPTY');
+        }
+
+        if ( ! $apbct->data['key_is_ok'] ) {
+            throw new \Exception('KEY_IS_NOT_VALID');
+        }
+
+        $requirements_checker = new Cleantalk\ApbctWP\ServerRequirementsChecker\ServerRequirementsChecker();
+
+        $curl_multi_ok = $requirements_checker->getRequiredParameterValue('curl_multi_funcs_array');
+
+        if (!$curl_multi_ok) {
+            throw new \Exception('CURL MULTI FUNCTIONS NOT AVAILABLE');
+        }
+    } catch (\Exception $e) {
+        $result = 'SFW UPDATE INIT: ' . $e->getMessage();
+    }
+
+    return $result;
 }
 
 /**
