@@ -3022,7 +3022,6 @@ class ApbctHandler {
         let bloomPopup = document.querySelectorAll('div[class^="et_bloom_form_container"]').length > 0;
         let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
         let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
-        let smartQuizBuilder = document.querySelectorAll('form .sqbform, .fields_reorder_enabled').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
             jetpackCommentsForm ||
             userRegistrationProForm ||
@@ -3030,8 +3029,7 @@ class ApbctHandler {
             fluentBookingApp ||
             pafeFormsFormElementor ||
             bloomPopup ||
-            otterForm ||
-            smartQuizBuilder;
+            otterForm;
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
@@ -3079,7 +3077,10 @@ class ApbctHandler {
                 if (isNeedToAddCleantalkDataCheckString) {
                     let addidionalCleantalkData = '';
 
-                    if (!(+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token'))) {
+                    if (!(
+                        +ctPublic.settings__data__bot_detector_enabled &&
+                        apbctLocalStorage.get('bot_detector_event_token')
+                    )) {
                         let noCookieData = getNoCookieData();
                         addidionalCleantalkData += '&' + 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData;
                     } else {
@@ -3093,7 +3094,10 @@ class ApbctHandler {
                 }
 
                 if (isNeedToAddCleantalkDataCheckFormData) {
-                    if (!(+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token'))) {
+                    if (!(
+                        +ctPublic.settings__data__bot_detector_enabled &&
+                        apbctLocalStorage.get('bot_detector_event_token')
+                    )) {
                         let noCookieData = getNoCookieData();
                         body.append('ct_no_cookie_hidden_field', noCookieData);
                     } else {
@@ -3148,7 +3152,10 @@ class ApbctHandler {
                             if (
                                 args[1].body instanceof FormData || (typeof args[1].body.append === 'function')
                             ) {
-                                if (+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token')) {
+                                if (
+                                    +ctPublic.settings__data__bot_detector_enabled &&
+                                    apbctLocalStorage.get('bot_detector_event_token')
+                                ) {
                                     args[1].body.append(
                                         'ct_bot_detector_event_token',
                                         apbctLocalStorage.get('bot_detector_event_token'),
@@ -3435,6 +3442,12 @@ class ApbctHandler {
                             sourceSign.found = 'action=uael_register_user';
                             sourceSign.keepUnwrapped = true;
                         }
+                        if (
+                            settings.data.indexOf('action=SQBSubmitQuizAjax') !== -1
+                        ) {
+                            sourceSign.found = 'action=SQBSubmitQuizAjax';
+                            sourceSign.keepUnwrapped = true;
+                        }
                     }
                     if ( typeof settings.url === 'string' ) {
                         if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {
@@ -3446,7 +3459,10 @@ class ApbctHandler {
                         let eventToken = '';
                         let noCookieData = '';
                         let visibleFieldsString = '';
-                        if (+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token')) {
+                        if (
+                            +ctPublic.settings__data__bot_detector_enabled &&
+                            apbctLocalStorage.get('bot_detector_event_token')
+                        ) {
                             const token = new ApbctHandler().toolGetEventToken();
                             if (token) {
                                 if (sourceSign.keepUnwrapped) {
@@ -3513,7 +3529,10 @@ class ApbctHandler {
                 options.data.requests[0].hasOwnProperty('path') &&
                 options.data.requests[0].path === '/wc/store/v1/cart/add-item'
             ) {
-                if (+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token')) {
+                if (
+                    +ctPublic.settings__data__bot_detector_enabled &&
+                    apbctLocalStorage.get('bot_detector_event_token')
+                ) {
                     let token = localStorage.getItem('bot_detector_event_token');
                     options.data.requests[0].data.ct_bot_detector_event_token = token;
                 } else {
@@ -3525,7 +3544,10 @@ class ApbctHandler {
 
             // checkout
             if (options.path.includes('/wc/store/v1/checkout')) {
-                if (+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token')) {
+                if (
+                    +ctPublic.settings__data__bot_detector_enabled &&
+                    apbctLocalStorage.get('bot_detector_event_token')
+                ) {
                     options.data.ct_bot_detector_event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
                     if (ctPublic.data__cookies_type === 'none') {
