@@ -85,13 +85,14 @@ class ApbctEventTokenTransport {
 class ApbctAttachData {
     /**
      * Attach hidden fields to forms
+     * @param {bool} gatheringLoaded
      * @return {void}
      */
-    attachHiddenFieldsToForms() {
+    attachHiddenFieldsToForms(gatheringLoaded) {
         if (typeof ctPublic.force_alt_cookies == 'undefined' ||
             (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
         ) {
-            if (!+ctPublic.settings__data__bot_detector_enabled) {
+            if (!+ctPublic.settings__data__bot_detector_enabled || gatheringLoaded) {
                 ctNoCookieAttachHiddenFieldsToForms();
                 document.addEventListener('gform_page_loaded', ctNoCookieAttachHiddenFieldsToForms);
             }
@@ -554,7 +555,10 @@ class ApbctHandler {
                 if (isNeedToAddCleantalkDataCheckString) {
                     let addidionalCleantalkData = '';
 
-                    if (!+ctPublic.settings__data__bot_detector_enabled) {
+                    if (!(
+                        +ctPublic.settings__data__bot_detector_enabled &&
+                        apbctLocalStorage.get('bot_detector_event_token')
+                    )) {
                         let noCookieData = getNoCookieData();
                         addidionalCleantalkData += '&' + 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData;
                     } else {
@@ -568,7 +572,10 @@ class ApbctHandler {
                 }
 
                 if (isNeedToAddCleantalkDataCheckFormData) {
-                    if (!+ctPublic.settings__data__bot_detector_enabled) {
+                    if (!(
+                        +ctPublic.settings__data__bot_detector_enabled &&
+                        apbctLocalStorage.get('bot_detector_event_token')
+                    )) {
                         let noCookieData = getNoCookieData();
                         body.append('ct_no_cookie_hidden_field', noCookieData);
                     } else {
@@ -623,7 +630,10 @@ class ApbctHandler {
                             if (
                                 args[1].body instanceof FormData || (typeof args[1].body.append === 'function')
                             ) {
-                                if (+ctPublic.settings__data__bot_detector_enabled) {
+                                if (
+                                    +ctPublic.settings__data__bot_detector_enabled &&
+                                    apbctLocalStorage.get('bot_detector_event_token')
+                                ) {
                                     args[1].body.append(
                                         'ct_bot_detector_event_token',
                                         apbctLocalStorage.get('bot_detector_event_token'),
@@ -921,7 +931,10 @@ class ApbctHandler {
                         let eventToken = '';
                         let noCookieData = '';
                         let visibleFieldsString = '';
-                        if (+ctPublic.settings__data__bot_detector_enabled) {
+                        if (
+                            +ctPublic.settings__data__bot_detector_enabled &&
+                            apbctLocalStorage.get('bot_detector_event_token')
+                        ) {
                             const token = new ApbctHandler().toolGetEventToken();
                             if (token) {
                                 if (sourceSign.keepUnwrapped) {
@@ -988,7 +1001,10 @@ class ApbctHandler {
                 options.data.requests[0].hasOwnProperty('path') &&
                 options.data.requests[0].path === '/wc/store/v1/cart/add-item'
             ) {
-                if (+ctPublic.settings__data__bot_detector_enabled) {
+                if (
+                    +ctPublic.settings__data__bot_detector_enabled &&
+                    apbctLocalStorage.get('bot_detector_event_token')
+                ) {
                     let token = localStorage.getItem('bot_detector_event_token');
                     options.data.requests[0].data.ct_bot_detector_event_token = token;
                 } else {
@@ -1000,7 +1016,10 @@ class ApbctHandler {
 
             // checkout
             if (options.path.includes('/wc/store/v1/checkout')) {
-                if (+ctPublic.settings__data__bot_detector_enabled) {
+                if (
+                    +ctPublic.settings__data__bot_detector_enabled &&
+                    apbctLocalStorage.get('bot_detector_event_token')
+                ) {
                     options.data.ct_bot_detector_event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
                     if (ctPublic.data__cookies_type === 'none') {
@@ -1449,17 +1468,99 @@ class ApbctMailpoetVisibleFields extends ApbctVisibleFieldsExtractor {
 }
 
 /**
+ * Additional function to calculate realpath of cleantalk's scripts
+ * @return {*|null}
+ */
+function getApbctBasePath() {
+    // Find apbct-public-bundle in scripts names
+    const scripts = document.getElementsByTagName('script');
+
+    for (let script of scripts) {
+        if (script.src && script.src.includes('apbct-public-bundle')) {
+            // Get path from `src` js
+            const match = script.src.match(/^(.*\/js\/)/);
+            if (match && match[1]) {
+                return match[1]; // Path exists, return this
+            }
+        }
+    }
+
+    return null; // cleantalk's scripts not found :(
+}
+
+/**
+ * Load any script into the DOM (i.e. `import()`)
+ * @param {string} scriptAbsolutePath
+ * @return {Promise<*|boolean>}
+ */
+async function apbctImportScript(scriptAbsolutePath) {
+    // Check it this scripti already is in DOM
+    const normalizedPath = scriptAbsolutePath.replace(/\/$/, ''); // Replace ending slashes
+    const scripts = document.querySelectorAll('script[src]');
+    for (const script of scripts) {
+        const scriptSrc = script.src.replace(/\/$/, '');
+        if (scriptSrc === normalizedPath) {
+            // Script already loaded, skipping
+            return true;
+        }
+    }
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+
+        script.src = scriptAbsolutePath;
+        script.async = true;
+
+        script.onload = function() {
+            // Gathering data script loaded successfully
+            resolve(true);
+        };
+
+        script.onerror = function() {
+            // Failed to load Gathering data script from `scriptAbsolutePath`
+            reject(new Error('Script loading failed: ' + scriptAbsolutePath));
+        };
+
+        document.head.appendChild(script);
+    }).catch((error) => {
+        // Gathering data script loading failed, continuing without it
+        return false;
+    });
+}
+
+/**
  * Ready function
  */
 // eslint-disable-next-line camelcase,require-jsdoc
-function apbct_ready() {
+async function apbct_ready() {
     new ApbctShowForbidden().prepareBlockForAjaxForms();
+
+    // Try to get gathering if no worked bot-detector
+    let gatheringLoaded = false;
+
+    if (
+        apbctLocalStorage.get('apbct_existing_visitor') && // Not for the first hit
+        +ctPublic.settings__data__bot_detector_enabled && // If Bot-Detector is active
+        !apbctLocalStorage.get('bot_detector_event_token') && // and no `event_token` generated
+        typeof ApbctGatheringData === 'undefined' // and no `gathering` loaded yet
+    ) {
+        const basePath = getApbctBasePath();
+        if ( ! basePath ) {
+            // We are here because NO any cleantalk bundle script are in frontend: Todo nothing
+        } else {
+            const gatheringScriptName = 'public-2-gathering-data.min.js';
+            const gatheringFullPath = basePath + gatheringScriptName;
+            gatheringLoaded = await apbctImportScript(gatheringFullPath);
+        }
+    }
 
     const handler = new ApbctHandler();
     handler.detectForcedAltCookiesForms();
 
     // Gathering data when bot detector is disabled
-    if (!+ctPublic.settings__data__bot_detector_enabled && typeof ApbctGatheringData !== 'undefined') {
+    if (
+        ( ! +ctPublic.settings__data__bot_detector_enabled || gatheringLoaded ) &&
+        typeof ApbctGatheringData !== 'undefined'
+    ) {
         const gatheringData = new ApbctGatheringData();
         gatheringData.setSessionId();
         gatheringData.writeReferrersToSessionStorage();
@@ -1471,7 +1572,7 @@ function apbct_ready() {
     // Always call initParams to set cookies and parameters
     if (typeof initParams === 'function') {
         try {
-            initParams();
+            initParams(gatheringLoaded);
         } catch (e) {
             console.log('initParams error:', e);
         }
@@ -1487,9 +1588,9 @@ function apbct_ready() {
 
         const attachData = new ApbctAttachData();
 
-        // Attach data when bot detector is disabled
-        if (!+ctPublic.settings__data__bot_detector_enabled) {
-            attachData.attachHiddenFieldsToForms();
+        // Attach data when bot detector is disabled or blocked
+        if (!+ctPublic.settings__data__bot_detector_enabled || gatheringLoaded) {
+            attachData.attachHiddenFieldsToForms(gatheringLoaded);
         }
 
         for (let i = 0; i < document.forms.length; i++) {
@@ -1519,7 +1620,7 @@ function apbct_ready() {
         let botDetectorEventTokenStored = false;
         window.addEventListener('botDetectorEventTokenUpdated', (event) => {
             const botDetectorEventToken = event.detail?.eventToken;
-            if ( botDetectorEventToken && ! botDetectorEventTokenStored ) {
+            if (botDetectorEventToken && !botDetectorEventTokenStored) {
                 ctSetCookie([
                     ['ct_bot_detector_event_token', botDetectorEventToken],
                 ]);
@@ -1538,6 +1639,8 @@ function apbct_ready() {
     if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {
         handler.toolForAntiCrawlerCheckDuringBotDetector();
     }
+
+    apbctLocalStorage.set('apbct_existing_visitor', 1);
 }
 
 if (ctPublic.data__key_is_ok) {

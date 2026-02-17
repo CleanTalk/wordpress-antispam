@@ -684,6 +684,7 @@ function apbct_get_sender_info()
         'bot_detector_prepared_form_exclusions' => apbct__bot_detector_get_prepared_exclusion(),
         'bot_detector_frontend_data_log' => apbct__bot_detector_get_fd_log(),
         'submit_time_calculation_enabled' => SubmitTimeHandler::isCalculationDisabled() ? 0 : 1,
+        'ct_gathering_loaded' => Cookie::getBool('ct_gathering_loaded'),
     );
 
     // Unset cookies_enabled from sender_info if cookies_type === none
