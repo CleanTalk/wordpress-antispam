@@ -960,14 +960,14 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     {
         // Cast it to array for simple input
         $table_names = (array)$table_names;
-        
+
         $rename_pairs = array();
         $tables_to_drop = array();
-        
+
         foreach ($table_names as $table_name) {
             $table_name_temp = $table_name . '_temp';
             $table_name_old = $table_name . '_old';
-            
+
             // Check temp table exists
             if (!$db->isTableExists($table_name_temp)) {
                 return array('error' => 'ATOMIC RENAME: TEMP TABLE NOT EXISTS: ' . $table_name_temp);
@@ -998,7 +998,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         // Execute atomic rename
         if (!empty($rename_pairs)) {
             $query = 'RENAME TABLE ' . implode(', ', $rename_pairs) . ';';
-            
+
             if ($db->execute($query) === false) {
                 return array(
                     'error' => 'ATOMIC RENAME: FAILED: ' . $query . ' DB Error: ' . $db->getLastError()
