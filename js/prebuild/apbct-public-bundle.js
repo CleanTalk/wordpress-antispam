@@ -3079,7 +3079,7 @@ class ApbctHandler {
                 if (isNeedToAddCleantalkDataCheckString) {
                     let addidionalCleantalkData = '';
 
-                    if (!+ctPublic.settings__data__bot_detector_enabled) {
+                    if (!(+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token'))) {
                         let noCookieData = getNoCookieData();
                         addidionalCleantalkData += '&' + 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData;
                     } else {
@@ -3093,7 +3093,7 @@ class ApbctHandler {
                 }
 
                 if (isNeedToAddCleantalkDataCheckFormData) {
-                    if (!+ctPublic.settings__data__bot_detector_enabled) {
+                    if (!(+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token'))) {
                         let noCookieData = getNoCookieData();
                         body.append('ct_no_cookie_hidden_field', noCookieData);
                     } else {
@@ -3148,7 +3148,7 @@ class ApbctHandler {
                             if (
                                 args[1].body instanceof FormData || (typeof args[1].body.append === 'function')
                             ) {
-                                if (+ctPublic.settings__data__bot_detector_enabled) {
+                                if (+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token')) {
                                     args[1].body.append(
                                         'ct_bot_detector_event_token',
                                         apbctLocalStorage.get('bot_detector_event_token'),
@@ -3446,7 +3446,7 @@ class ApbctHandler {
                         let eventToken = '';
                         let noCookieData = '';
                         let visibleFieldsString = '';
-                        if (+ctPublic.settings__data__bot_detector_enabled) {
+                        if (+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token')) {
                             const token = new ApbctHandler().toolGetEventToken();
                             if (token) {
                                 if (sourceSign.keepUnwrapped) {
@@ -3513,7 +3513,7 @@ class ApbctHandler {
                 options.data.requests[0].hasOwnProperty('path') &&
                 options.data.requests[0].path === '/wc/store/v1/cart/add-item'
             ) {
-                if (+ctPublic.settings__data__bot_detector_enabled) {
+                if (+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token')) {
                     let token = localStorage.getItem('bot_detector_event_token');
                     options.data.requests[0].data.ct_bot_detector_event_token = token;
                 } else {
@@ -3525,7 +3525,7 @@ class ApbctHandler {
 
             // checkout
             if (options.path.includes('/wc/store/v1/checkout')) {
-                if (+ctPublic.settings__data__bot_detector_enabled) {
+                if (+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token')) {
                     options.data.ct_bot_detector_event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
                     if (ctPublic.data__cookies_type === 'none') {
