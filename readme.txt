@@ -412,6 +412,35 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
+= 6.73 19.02.2026 =
+* Upd. Code. SFW Update. HTTP multi request refactored.
+* New. ShadowrootProtection. Implementation of form protection in Shadowroot elements, integration with Mailchimp shadowroot
+* Mod. ShadowrootPrt. Architectural changes in logic, the addition of situational callbacks
+* Fix. CurlMulti. Editing implementation comments
+* Fix. Integration. Ninja forms. Filter NF common fields before processing.
+* Fix. Exclusions. "woocommerce-abandoned-cart"
+* Fix. Exclusions. "woo-abandoned-cart-recovery"
+* Fix. Exclusions. "abandoned-cart-capture"
+* Fix. Code. Returned the lost code during the merge
+* Fix. FluentForm. Vendor integration compliance fixed.
+* Upd. Integrations. Elementor UltimateAddons Register integration handler to use ajax middleware.
+* Fix. IntegMailChimp. Clearing all fields except for the field whose name contains message
+* Fix. Code. Edit Remote Calls
+* Fix. AdminActions. Checking permissions for Actions
+* Upd. Exclusions. Ajax. Plugin "wp-multi-step-checkout".
+* Fix. Exclusions. Ajax. Plugin "woo-abandoned-cart-recovery". Fixed condition.
+* Code. Unit tests for apbct_is_skip_request() refactored.
+* Fix. Code. Escaping woocommerce order data
+* Upd. Exclusions. Ajax. Plugin "woocommerce-sendinblue-newsletter-subscription"
+* Fix. Remote Calls. Skip check if no sign of RC action provided in Request.
+* Fix. Exclusion. Added path invoice4u/v1/callback.
+* Fix. Contact Encoder. Every hook that has actions BEFORE modify now have actions AFTER.
+* Fix. Enqueue. Script individual-disable-comments.js renamed to cleantalk-individual-disable-comments.js
+* Upd. CommentsCheck. Improve statement.
+* Upd. JS parameters. Gathering dynamic lod implemented.
+* Fix. Connection reports. Email for reports fixed.
+* Fix. Integration. SmartQuizBuilder integration fixed. 
+
 = 6.72 05.02.2026 =
 * Upd. WooCommSpamOrders. Added a hint for the disabled option to save spam orders.
 * Fix. Integrations. Fluent Forms. Visible fields collection fixed.
