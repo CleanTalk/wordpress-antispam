@@ -87,7 +87,7 @@ class SFWUpdateSentinel
             return false;
         }
 
-        $to = $apbct->data['wl_support_email'];
+        $to = 'pluginreports@cleantalk.org';
         $subject = "SFW failed updates report for " . TT::toString(Server::get('HTTP_HOST'));
         $message = '
             <html lang="en">
@@ -151,19 +151,8 @@ class SFWUpdateSentinel
 
         $last_fw_stats_html .= '</table>';
 
-
-        $show_connection_reports_link =
-            substr(get_option('home'), -1) === '/' ? get_option('home') : get_option('home') . '/'
-                . '?'
-                . http_build_query([
-                    'plugin_name' => 'apbct',
-                    'spbc_remote_call_token' => md5($apbct->api_key),
-                    'spbc_remote_call_action' => 'debug',
-                    'show_only' => 'connection_reports',
-                ]);
         $message .= '<p>Last FW stats:</p>';
         $message .= '<p>' . $last_fw_stats_html . '</p>';
-        $message .= '<a href="' . $show_connection_reports_link . '" target="_blank">Show connection reports with remote call</a>';
         $message .= '<br>';
 
         $message .= '<p>This report is sent by cron task on: ' . current_time('m-d-y H:i:s') . '</p>';

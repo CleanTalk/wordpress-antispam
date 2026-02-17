@@ -2,7 +2,7 @@
  * Set init params
  */
 // eslint-disable-next-line no-unused-vars,require-jsdoc
-function initParams() {
+function initParams(gatheringLoaded) {
     const ctDate = new Date();
     const headless = navigator.webdriver;
     const screenInfo = (
@@ -79,6 +79,10 @@ function initParams() {
         initCookies.push(['ct_checkjs', apbctLocalStorage.get('ct_checkjs')]);
     } else {
         initCookies.push(['ct_checkjs', 0]);
+    }
+
+    if (gatheringLoaded) {
+        initCookies.push(['ct_gathering_loaded', gatheringLoaded]);
     }
 
     ctSetCookie(initCookies);

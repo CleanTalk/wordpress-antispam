@@ -724,13 +724,15 @@ function apbctSettingsShowDescription(label, settingId) {
         {
             spinner: obj.children('img'),
             callback: function(result, data, params, obj) {
-                obj.empty()
-                    .append('<div class=\'apbct_long_desc__angle\'></div>')
-                    .append('<i class=\'apbct_long_desc__cancel apbct-icon-cancel\'></i>')
-                    .append('<h3 class=\'apbct_long_desc__title\'>'+result.title+'</h3>')
-                    .append('<p>'+result.desc+'</p>');
+                if (result && result.title && result.desc) {
+                    obj.empty()
+                        .append('<div class=\'apbct_long_desc__angle\'></div>')
+                        .append('<i class=\'apbct_long_desc__cancel apbct-icon-cancel\'></i>')
+                        .append('<h3 class=\'apbct_long_desc__title\'>'+result.title+'</h3>')
+                        .append('<p>'+result.desc+'</p>');
 
-                jQuery(document).on('click', removeDescFunc);
+                    jQuery(document).on('click', removeDescFunc);
+                }
             },
         },
         obj,

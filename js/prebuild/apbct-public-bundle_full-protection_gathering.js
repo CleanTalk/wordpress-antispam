@@ -1807,10 +1807,188 @@ if (!Object.prototype.hasOwn) {
 }
 
 /**
+ * Callbacks for ShadowRoot integrations
+ */
+const ApbctShadowRootCallbacks = {
+    /**
+     * Mailchimp block callback - clears localStorage by mcforms mask
+     * @param {object} result
+     */
+    mailchimpBlock: function(result) {
+        try {
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key && key.indexOf('mcforms') !== -1) {
+                    localStorage.removeItem(key);
+                }
+            }
+        } catch (e) {
+            console.warn('Error clearing localStorage by mcforms mask:', e);
+        }
+    },
+
+    // /**
+    //  * Next integration block callback
+    //  * @param {object} result
+    //  */
+    // nextIntegrationBlock: function(result) {
+    //     // Custom logic
+    // },
+};
+/**
+ * Config for ShadowRoot integrations
+ */
+const ApbctShadowRootConfig = {
+    'mailchimp': {
+        selector: '.mcforms-wrapper',
+        urlPattern: 'mcf-integrations-mcmktg.mlchmpcompprduse2.iks2.a.intuit.com/gateway/receive',
+        externalForm: true,
+        action: 'cleantalk_force_mailchimp_shadowroot_check',
+        callbackAllow: false,
+        callbackBlock: ApbctShadowRootCallbacks.mailchimpBlock,
+    },
+};
+/**
+ * Class for handling ShadowRoot forms
+ */
+class ApbctShadowRootProtection {
+    constructor() {
+        this.config = ApbctShadowRootConfig;
+    }
+
+    /**
+     * Find matching config for URL
+     * @param {string} url
+     * @return {object|null} { formKey, config } or null
+     */
+    findMatchingConfig(url) {
+        for (const [formKey, config] of Object.entries(this.config)) {
+            // Shadowroot can send both external and internal requests
+            // If the form is external, then we check whether the setting is enabled.
+            if (
+                (!config.externalForm || +ctPublic.settings__forms__check_external) && 
+                document.querySelectorAll(config.selector).length > 0 &&
+                url && url.includes(config.urlPattern)
+            ) {
+                return {formKey, config};
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Check ShadowRoot form request via CleanTalk AJAX
+     * @param {string} formKey
+     * @param {object} config
+     * @param {string} bodyText
+     * @return {Promise<boolean>} true = block, false = allow
+     */
+    async checkRequest(formKey, config, bodyText) {
+        return new Promise((resolve) => {
+            let data = {
+                action: config.action,
+            };
+
+            try {
+                const bodyObj = JSON.parse(bodyText);
+                for (const [key, value] of Object.entries(bodyObj)) {
+                    data[key] = value;
+                }
+            } catch (e) {
+                data.raw_body = bodyText;
+            }
+
+            if (+ctPublic.settings__data__bot_detector_enabled) {
+                const eventToken = new ApbctHandler().toolGetEventToken();
+                if (eventToken) {
+                    data.ct_bot_detector_event_token = eventToken;
+                }
+            } else {
+                data.ct_no_cookie_hidden_field = getNoCookieData();
+            }
+
+            apbct_public_sendAJAX(data, {
+                async: true,
+                callback: (result) => {
+                    // Allowed
+                    if (
+                        (result.apbct === undefined && result.data === undefined) ||
+                        (result.apbct !== undefined && !+result.apbct.blocked)
+                    ) {
+                        if (typeof config.callbackAllow === 'function') {
+                            config.callbackAllow(result);
+                        }
+                        resolve(false);
+                        return;
+                    }
+
+                    // Blocked
+                    if (
+                        (result.apbct !== undefined && +result.apbct.blocked) ||
+                        (result.data !== undefined && result.data.message !== undefined)
+                    ) {
+                        new ApbctShowForbidden().parseBlockMessage(result);
+                        if (typeof config.callbackBlock === 'function') {
+                            config.callbackBlock(result);
+                        }
+                        resolve(true);
+                        return;
+                    }
+
+                    resolve(false);
+                },
+                onErrorCallback: (error) => {
+                    console.log('APBCT ShadowRoot check error:', error);
+                    resolve(false);
+                },
+            });
+        });
+    }
+
+    /**
+     * Extract body text from fetch args
+     * @param {array} args
+     * @return {string}
+     */
+    extractBodyText(args) {
+        let body = args[1] && args[1].body;
+        let bodyText = '';
+
+        if (body instanceof FormData) {
+            let obj = {};
+            for (let [key, value] of body.entries()) {
+                obj[key] = value;
+            }
+            bodyText = JSON.stringify(obj);
+        } else if (typeof body === 'string') {
+            bodyText = body;
+        }
+
+        return bodyText;
+    }
+
+    /**
+     * Process fetch request for ShadowRoot forms
+     * @param {array} args - fetch arguments
+     * @return {Promise<boolean|null>} true = block, false = allow, null = not matched
+     */
+    async processFetch(args) {
+        const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || '');
+        const match = this.findMatchingConfig(url);
+
+        if (!match) {
+            return null;
+        }
+
+        const bodyText = this.extractBodyText(args);
+        return await this.checkRequest(match.formKey, match.config, bodyText);
+    }
+}
+/**
  * Set init params
  */
 // eslint-disable-next-line no-unused-vars,require-jsdoc
-function initParams() {
+function initParams(gatheringLoaded) {
     const ctDate = new Date();
     const headless = navigator.webdriver;
     const screenInfo = (
@@ -1887,6 +2065,10 @@ function initParams() {
         initCookies.push(['ct_checkjs', apbctLocalStorage.get('ct_checkjs')]);
     } else {
         initCookies.push(['ct_checkjs', 0]);
+    }
+
+    if (gatheringLoaded) {
+        initCookies.push(['ct_gathering_loaded', gatheringLoaded]);
     }
 
     ctSetCookie(initCookies);
@@ -2427,13 +2609,14 @@ class ApbctEventTokenTransport {
 class ApbctAttachData {
     /**
      * Attach hidden fields to forms
+     * @param {bool} gatheringLoaded
      * @return {void}
      */
-    attachHiddenFieldsToForms() {
+    attachHiddenFieldsToForms(gatheringLoaded) {
         if (typeof ctPublic.force_alt_cookies == 'undefined' ||
             (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
         ) {
-            if (!+ctPublic.settings__data__bot_detector_enabled) {
+            if (!+ctPublic.settings__data__bot_detector_enabled || gatheringLoaded) {
                 ctNoCookieAttachHiddenFieldsToForms();
                 document.addEventListener('gform_page_loaded', ctNoCookieAttachHiddenFieldsToForms);
             }
@@ -2831,7 +3014,6 @@ class ApbctHandler {
      * @return {void}
      */
     detectForcedAltCookiesForms() {
-        let elementorUltimateAddonsRegister = document.querySelectorAll('.uael-registration-form-wrapper').length > 0;
         let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
         let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
@@ -2840,15 +3022,16 @@ class ApbctHandler {
         let bloomPopup = document.querySelectorAll('div[class^="et_bloom_form_container"]').length > 0;
         let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
         let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
+        let smartQuizBuilder = document.querySelectorAll('form .sqbform, .fields_reorder_enabled').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
             jetpackCommentsForm ||
-            elementorUltimateAddonsRegister ||
             userRegistrationProForm ||
             etPbDiviSubscriptionForm ||
             fluentBookingApp ||
             pafeFormsFormElementor ||
             bloomPopup ||
-            otterForm;
+            otterForm ||
+            smartQuizBuilder;
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
@@ -2896,7 +3079,7 @@ class ApbctHandler {
                 if (isNeedToAddCleantalkDataCheckString) {
                     let addidionalCleantalkData = '';
 
-                    if (!+ctPublic.settings__data__bot_detector_enabled) {
+                    if (!(+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token'))) {
                         let noCookieData = getNoCookieData();
                         addidionalCleantalkData += '&' + 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData;
                     } else {
@@ -2910,7 +3093,7 @@ class ApbctHandler {
                 }
 
                 if (isNeedToAddCleantalkDataCheckFormData) {
-                    if (!+ctPublic.settings__data__bot_detector_enabled) {
+                    if (!(+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token'))) {
                         let noCookieData = getNoCookieData();
                         body.append('ct_no_cookie_hidden_field', noCookieData);
                     } else {
@@ -2965,7 +3148,7 @@ class ApbctHandler {
                             if (
                                 args[1].body instanceof FormData || (typeof args[1].body.append === 'function')
                             ) {
-                                if (+ctPublic.settings__data__bot_detector_enabled) {
+                                if (+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token')) {
                                     args[1].body.append(
                                         'ct_bot_detector_event_token',
                                         apbctLocalStorage.get('bot_detector_event_token'),
@@ -2993,209 +3176,187 @@ class ApbctHandler {
      * @return {void}
      */
     catchFetchRequest() {
-        setTimeout(function() {
+        const shadowRootProtection = new ApbctShadowRootProtection();
+        let preventOriginalFetch = false;
+
+        /**
+         * Select key/value pair depending on botDetectorEnabled flag
+         * @param {bool} botDetectorEnabled
+         * @return {{key: string, value: string}|false} False on empty gained data.
+         */
+        const selectFieldsData = function(botDetectorEnabled) {
+            const result = {
+                'key': null,
+                'value': null,
+            };
+            if (botDetectorEnabled) {
+                result.key = 'ct_bot_detector_event_token';
+                result.value = apbctLocalStorage.get('bot_detector_event_token');
+            } else {
+                result.key = 'ct_no_cookie_hidden_field';
+                result.value = getNoCookieData();
+            };
+            return result.key && result.value ? result : false;
+        };
+
+        /**
+         *
+         * @param {string} body Fetch request data body.
+         * @param {object|bool} fieldPair Key value to inject.
+         * @return {string} Modified body.
+         */
+        const attachFieldsToBody = function(body, fieldPair = false) {
+            if (fieldPair) {
+                if (body instanceof FormData || typeof body.append === 'function') {
+                    body.append(fieldPair.key, fieldPair.value);
+                } else {
+                    let bodyObj = JSON.parse(body);
+                    if (!bodyObj.hasOwnProperty(fieldPair.key)) {
+                        bodyObj[fieldPair.key] = fieldPair.value;
+                        body = JSON.stringify(bodyObj);
+                    }
+                }
+            }
+            return body;
+        };
+
+        window.fetch = async function(...args) {
+            // Reset flag for each new request
+            preventOriginalFetch = false;
+
+            // if no data set provided - exit
             if (
-                (
-                    document.forms && document.forms.length > 0 &&
-                    (
-                        Array.from(document.forms).some((form) =>
-                            form.classList.contains('metform-form-content')) ||
-                        Array.from(document.forms).some((form) =>
-                            form.classList.contains('wprm-user-ratings-modal-stars-container')) ||
-                        Array.from(document.forms).some((form) => {
-                            if (form.parentElement &&
-                                form.parentElement.classList.length > 0 &&
-                                form.parentElement.classList[0].indexOf('b24-form-content') !== -1
-                            ) {
-                                return true;
-                            }
-                        })
-                    )
-                ) ||
-                (
-                    document.querySelectorAll('button').length > 0 &&
-                    Array.from(document.querySelectorAll('button')).some((button) => {
-                        return button.classList.contains('add_to_cart_button') ||
-                        button.classList.contains('ajax_add_to_cart') ||
-                        button.classList.contains('single_add_to_cart_button');
-                    })
-                ) ||
-                (
-                    document.links && document.links.length > 0 &&
-                    Array.from(document.links).some((link) => {
-                        return link.classList.contains('add_to_cart_button');
-                    })
+                !args ||
+                !args[0] ||
+                !args[1] ||
+                !args[1].body
+            ) {
+                return defaultFetch.apply(window, args);
+            }
+
+            // === ShadowRoot forms ===
+            const shadowRootResult = await shadowRootProtection.processFetch(args);
+            if (shadowRootResult === true) {
+                // Return a "blank" response that never completes
+                return new Promise(() => {});
+            }
+
+            // === Metform ===
+            if (
+                document.querySelectorAll('form.metform-form-content').length > 0 &&
+                typeof args[0].includes === 'function' &&
+                (args[0].includes('/wp-json/metform/') ||
+                    (ctPublicFunctions._rest_url && (() => {
+                        try {
+                            return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
+                        } catch (e) {
+                            return defaultFetch.apply(window, args);
+                        }
+                    })())
                 )
             ) {
-                /**
-                 * Select key/value pair depending on botDetectorEnabled flag
-                 * @param {bool} botDetectorEnabled
-                 * @return {{key: string, value: string}|false} False on empty gained data.
-                 */
-                const selectFieldsData = function(botDetectorEnabled) {
-                    const result = {
-                        'key': null,
-                        'value': null,
-                    };
-                    if (botDetectorEnabled) {
-                        result.key = 'ct_bot_detector_event_token';
-                        result.value = apbctLocalStorage.get('bot_detector_event_token');
-                    } else {
-                        result.key = 'ct_no_cookie_hidden_field';
-                        result.value = getNoCookieData();
-                    };
-                    return result.key && result.value ? result : false;
-                };
-
-                /**
-                 *
-                 * @param {string} body Fetch request data body.
-                 * @param {object|bool} fieldPair Key value to inject.
-                 * @return {string} Modified body.
-                 */
-                const attachFieldsToBody = function(body, fieldPair = false) {
-                    if (fieldPair) {
-                        if (body instanceof FormData || typeof body.append === 'function') {
-                            body.append(fieldPair.key, fieldPair.value);
-                        } else {
-                            let bodyObj = JSON.parse(body);
-                            if (!bodyObj.hasOwnProperty(fieldPair.key)) {
-                                bodyObj[fieldPair.key] = fieldPair.value;
-                                body = JSON.stringify(bodyObj);
-                            }
-                        }
-                    }
-                    return body;
-                };
-
-                let preventOriginalFetch = false;
-
-                window.fetch = async function(...args) {
-                    // if no data set provided - exit
-                    if (
-                        !args ||
-                        !args[0] ||
-                        !args[1] ||
-                        !args[1].body
-                    ) {
-                        return defaultFetch.apply(window, args);
-                    }
-
-                    // Metform block
-                    if (
-                        Array.from(document.forms).some((form) => form.classList.contains('metform-form-content')) &&
-                        typeof args[0].includes === 'function' &&
-                        (args[0].includes('/wp-json/metform/') ||
-                            (ctPublicFunctions._rest_url && (() => {
-                                try {
-                                    return args[0].includes(new URL(ctPublicFunctions._rest_url).pathname + 'metform/');
-                                } catch (e) {
-                                    return defaultFetch.apply(window, args);
-                                }
-                            })())
-                        )
-                    ) {
-                        try {
-                            args[1].body = attachFieldsToBody(
-                                args[1].body,
-                                selectFieldsData(+ctPublic.settings__data__bot_detector_enabled),
-                            );
-                        } catch (e) {
-                            return defaultFetch.apply(window, args);
-                        }
-                    }
-
-                    // WP Recipe Maker block
-                    if (
-                        Array.from(document.forms).some(
-                            (form) => form.classList.contains('wprm-user-ratings-modal-stars-container'),
-                        ) &&
-                        typeof args[0].includes === 'function' &&
-                        args[0].includes('/wp-json/wp-recipe-maker/')
-                    ) {
-                        try {
-                            args[1].body = attachFieldsToBody(
-                                args[1].body,
-                                selectFieldsData(+ctPublic.settings__data__bot_detector_enabled),
-                            );
-                        } catch (e) {
-                            return defaultFetch.apply(window, args);
-                        }
-                    }
-
-                    // WooCommerce add to cart request, like:
-                    // /index.php?rest_route=/wc/store/v1/cart/add-item
-                    if (
-                        typeof args[0].includes === 'function' &&
-                        args[0].includes('/wc/store/v1/cart/add-item')
-                    ) {
-                        try {
-                            if (
-                                +ctPublic.settings__forms__wc_add_to_cart
-                            ) {
-                                args[1].body = attachFieldsToBody(
-                                    args[1].body,
-                                    selectFieldsData(+ctPublic.settings__data__bot_detector_enabled),
-                                );
-                            }
-                        } catch (e) {
-                            return defaultFetch.apply(window, args);
-                        }
-                    }
-
-                    // bitrix24 EXTERNAL form
-                    if (+ctPublic.settings__forms__check_external &&
-                        typeof args[0].includes === 'function' &&
-                        args[0].includes('bitrix/services/main/ajax.php?action=crm.site.form.fill') &&
-                        args[1].body instanceof FormData
-                    ) {
-                        const currentTargetForm = document.querySelector('.b24-form form');
-                        let data = {
-                            action: 'cleantalk_force_ajax_check',
-                        };
-                        for (const field of currentTargetForm.elements) {
-                            data[field.name] = field.value;
-                        }
-
-                        // check form request - wrap in Promise to wait for completion
-                        await new Promise((resolve, reject) => {
-                            apbct_public_sendAJAX(
-                                data,
-                                {
-                                    async: true,
-                                    callback: function( result, data, params, obj ) {
-                                        // allowed
-                                        if ((result.apbct === undefined && result.data === undefined) ||
-                                            (result.apbct !== undefined && ! +result.apbct.blocked)
-                                        ) {
-                                            preventOriginalFetch = false;
-                                        }
-
-                                        // blocked
-                                        if ((result.apbct !== undefined && +result.apbct.blocked) ||
-                                            (result.data !== undefined && result.data.message !== undefined)
-                                        ) {
-                                            preventOriginalFetch = true;
-                                            new ApbctShowForbidden().parseBlockMessage(result);
-                                        }
-
-                                        resolve(result);
-                                    },
-                                    onErrorCallback: function( error ) {
-                                        console.log('AJAX error:', error);
-                                        reject(error);
-                                    },
-                                },
-                            );
-                        });
-                    }
-
-                    if (!preventOriginalFetch) {
-                        return defaultFetch.apply(window, args);
-                    }
-                };
+                try {
+                    args[1].body = attachFieldsToBody(
+                        args[1].body,
+                        selectFieldsData(+ctPublic.settings__data__bot_detector_enabled),
+                    );
+                } catch (e) {
+                    return defaultFetch.apply(window, args);
+                }
             }
-        }, 1000);
+
+            // === WP Recipe Maker ===
+            if (
+                document.querySelectorAll('form.wprm-user-ratings-modal-stars-container').length > 0 &&
+                typeof args[0].includes === 'function' &&
+                args[0].includes('/wp-json/wp-recipe-maker/')
+            ) {
+                try {
+                    args[1].body = attachFieldsToBody(
+                        args[1].body,
+                        selectFieldsData(+ctPublic.settings__data__bot_detector_enabled),
+                    );
+                } catch (e) {
+                    return defaultFetch.apply(window, args);
+                }
+            }
+
+            // === WooCommerce add to cart ===
+            if (
+                (
+                    document.querySelectorAll(
+                        'button.add_to_cart_button, button.ajax_add_to_cart, button.single_add_to_cart_button',
+                    ).length > 0 ||
+                    document.querySelectorAll('a.add_to_cart_button').length > 0
+                ) &&
+                args[0].includes('/wc/store/v1/cart/add-item')
+            ) {
+                try {
+                    if (
+                        +ctPublic.settings__forms__wc_add_to_cart
+                    ) {
+                        args[1].body = attachFieldsToBody(
+                            args[1].body,
+                            selectFieldsData(+ctPublic.settings__data__bot_detector_enabled),
+                        );
+                    }
+                } catch (e) {
+                    return defaultFetch.apply(window, args);
+                }
+            }
+
+            // === Bitrix24 external form ===
+            if (
+                +ctPublic.settings__forms__check_external &&
+                document.querySelectorAll('.b24-form').length > 0 &&
+                args[0].includes('bitrix/services/main/ajax.php?action=crm.site.form.fill') &&
+                args[1].body instanceof FormData
+            ) {
+                const currentTargetForm = document.querySelector('.b24-form form');
+                let data = {
+                    action: 'cleantalk_force_ajax_check',
+                };
+                for (const field of currentTargetForm.elements) {
+                    data[field.name] = field.value;
+                }
+
+                // check form request - wrap in Promise to wait for completion
+                await new Promise((resolve, reject) => {
+                    apbct_public_sendAJAX(
+                        data,
+                        {
+                            async: true,
+                            callback: function( result, data, params, obj ) {
+                                // allowed
+                                if ((result.apbct === undefined && result.data === undefined) ||
+                                    (result.apbct !== undefined && ! +result.apbct.blocked)
+                                ) {
+                                    preventOriginalFetch = false;
+                                }
+
+                                // blocked
+                                if ((result.apbct !== undefined && +result.apbct.blocked) ||
+                                    (result.data !== undefined && result.data.message !== undefined)
+                                ) {
+                                    preventOriginalFetch = true;
+                                    new ApbctShowForbidden().parseBlockMessage(result);
+                                }
+
+                                resolve(result);
+                            },
+                            onErrorCallback: function( error ) {
+                                console.log('AJAX error:', error);
+                                reject(error);
+                            },
+                        },
+                    );
+                });
+            }
+
+            if (!preventOriginalFetch) {
+                return defaultFetch.apply(window, args);
+            }
+        };
     }
 
     /**
@@ -3268,9 +3429,10 @@ class ApbctHandler {
                             sourceSign.attachVisibleFieldsData = true;
                         }
                         if (
-                            settings.data.indexOf('action=SQBSubmitQuizAjax') !== -1
+                            settings.data.indexOf('action=uael_register_user') !== -1 &&
+                            ctPublic.data__cookies_type === 'none'
                         ) {
-                            sourceSign.found = 'action=SQBSubmitQuizAjax';
+                            sourceSign.found = 'action=uael_register_user';
                             sourceSign.keepUnwrapped = true;
                         }
                     }
@@ -3284,7 +3446,7 @@ class ApbctHandler {
                         let eventToken = '';
                         let noCookieData = '';
                         let visibleFieldsString = '';
-                        if (+ctPublic.settings__data__bot_detector_enabled) {
+                        if (+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token')) {
                             const token = new ApbctHandler().toolGetEventToken();
                             if (token) {
                                 if (sourceSign.keepUnwrapped) {
@@ -3351,7 +3513,7 @@ class ApbctHandler {
                 options.data.requests[0].hasOwnProperty('path') &&
                 options.data.requests[0].path === '/wc/store/v1/cart/add-item'
             ) {
-                if (+ctPublic.settings__data__bot_detector_enabled) {
+                if (+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token')) {
                     let token = localStorage.getItem('bot_detector_event_token');
                     options.data.requests[0].data.ct_bot_detector_event_token = token;
                 } else {
@@ -3363,7 +3525,7 @@ class ApbctHandler {
 
             // checkout
             if (options.path.includes('/wc/store/v1/checkout')) {
-                if (+ctPublic.settings__data__bot_detector_enabled) {
+                if (+ctPublic.settings__data__bot_detector_enabled && apbctLocalStorage.get('bot_detector_event_token')) {
                     options.data.ct_bot_detector_event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
                     if (ctPublic.data__cookies_type === 'none') {
@@ -3812,17 +3974,99 @@ class ApbctMailpoetVisibleFields extends ApbctVisibleFieldsExtractor {
 }
 
 /**
+ * Additional function to calculate realpath of cleantalk's scripts
+ * @return {*|null}
+ */
+function getApbctBasePath() {
+    // Find apbct-public-bundle in scripts names
+    const scripts = document.getElementsByTagName('script');
+
+    for (let script of scripts) {
+        if (script.src && script.src.includes('apbct-public-bundle')) {
+            // Get path from `src` js
+            const match = script.src.match(/^(.*\/js\/)/);
+            if (match && match[1]) {
+                return match[1]; // Path exists, return this
+            }
+        }
+    }
+
+    return null; // cleantalk's scripts not found :(
+}
+
+/**
+ * Load any script into the DOM (i.e. `import()`)
+ * @param {string} scriptAbsolutePath
+ * @return {Promise<*|boolean>}
+ */
+async function apbctImportScript(scriptAbsolutePath) {
+    // Check it this scripti already is in DOM
+    const normalizedPath = scriptAbsolutePath.replace(/\/$/, ''); // Replace ending slashes
+    const scripts = document.querySelectorAll('script[src]');
+    for (const script of scripts) {
+        const scriptSrc = script.src.replace(/\/$/, '');
+        if (scriptSrc === normalizedPath) {
+            // Script already loaded, skipping
+            return true;
+        }
+    }
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+
+        script.src = scriptAbsolutePath;
+        script.async = true;
+
+        script.onload = function() {
+            // Gathering data script loaded successfully
+            resolve(true);
+        };
+
+        script.onerror = function() {
+            // Failed to load Gathering data script from `scriptAbsolutePath`
+            reject(new Error('Script loading failed: ' + scriptAbsolutePath));
+        };
+
+        document.head.appendChild(script);
+    }).catch((error) => {
+        // Gathering data script loading failed, continuing without it
+        return false;
+    });
+}
+
+/**
  * Ready function
  */
 // eslint-disable-next-line camelcase,require-jsdoc
-function apbct_ready() {
+async function apbct_ready() {
     new ApbctShowForbidden().prepareBlockForAjaxForms();
+
+    // Try to get gathering if no worked bot-detector
+    let gatheringLoaded = false;
+
+    if (
+        apbctLocalStorage.get('apbct_existing_visitor') && // Not for the first hit
+        +ctPublic.settings__data__bot_detector_enabled && // If Bot-Detector is active
+        !apbctLocalStorage.get('bot_detector_event_token') && // and no `event_token` generated
+        typeof ApbctGatheringData === 'undefined' // and no `gathering` loaded yet
+    ) {
+        const basePath = getApbctBasePath();
+        if ( ! basePath ) {
+            // We are here because NO any cleantalk bundle script are in frontend: Todo nothing
+        } else {
+            const gatheringScriptName = 'public-2-gathering-data.min.js';
+            const gatheringFullPath = basePath + gatheringScriptName;
+            gatheringLoaded = await apbctImportScript(gatheringFullPath);
+        }
+    }
 
     const handler = new ApbctHandler();
     handler.detectForcedAltCookiesForms();
 
     // Gathering data when bot detector is disabled
-    if (!+ctPublic.settings__data__bot_detector_enabled && typeof ApbctGatheringData !== 'undefined') {
+    if (
+        ( ! +ctPublic.settings__data__bot_detector_enabled || gatheringLoaded ) &&
+        typeof ApbctGatheringData !== 'undefined'
+    ) {
         const gatheringData = new ApbctGatheringData();
         gatheringData.setSessionId();
         gatheringData.writeReferrersToSessionStorage();
@@ -3834,7 +4078,7 @@ function apbct_ready() {
     // Always call initParams to set cookies and parameters
     if (typeof initParams === 'function') {
         try {
-            initParams();
+            initParams(gatheringLoaded);
         } catch (e) {
             console.log('initParams error:', e);
         }
@@ -3850,9 +4094,9 @@ function apbct_ready() {
 
         const attachData = new ApbctAttachData();
 
-        // Attach data when bot detector is disabled
-        if (!+ctPublic.settings__data__bot_detector_enabled) {
-            attachData.attachHiddenFieldsToForms();
+        // Attach data when bot detector is disabled or blocked
+        if (!+ctPublic.settings__data__bot_detector_enabled || gatheringLoaded) {
+            attachData.attachHiddenFieldsToForms(gatheringLoaded);
         }
 
         for (let i = 0; i < document.forms.length; i++) {
@@ -3882,7 +4126,7 @@ function apbct_ready() {
         let botDetectorEventTokenStored = false;
         window.addEventListener('botDetectorEventTokenUpdated', (event) => {
             const botDetectorEventToken = event.detail?.eventToken;
-            if ( botDetectorEventToken && ! botDetectorEventTokenStored ) {
+            if (botDetectorEventToken && !botDetectorEventTokenStored) {
                 ctSetCookie([
                     ['ct_bot_detector_event_token', botDetectorEventToken],
                 ]);
@@ -3901,6 +4145,8 @@ function apbct_ready() {
     if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {
         handler.toolForAntiCrawlerCheckDuringBotDetector();
     }
+
+    apbctLocalStorage.set('apbct_existing_visitor', 1);
 }
 
 if (ctPublic.data__key_is_ok) {

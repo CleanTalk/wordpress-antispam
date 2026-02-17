@@ -34,6 +34,7 @@ class AltSessions
         'apbct_antiflood_passed' => 'int',
         'ct_sfw_pass_key' => 'string',
         'ct_sfw_passed' => 'int',
+        'ct_gathering_loaded' => 'bool',
     ];
 
     public static function getID()
