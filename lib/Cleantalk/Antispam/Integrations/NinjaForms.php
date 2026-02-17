@@ -184,18 +184,27 @@ class NinjaForms extends IntegrationBase
         if ( ! $form_data ) {
             $form_data = json_decode(stripslashes(TT::toString(Post::get('formData'))), true);
         }
-        if ( ! isset($form_data['fields']) ) {
+
+        if ( ! isset($form_data['fields'])) {
             throw new \Exception('No form data is provided');
         }
+
+        $form_id = $form_data['id'] ?? null;
+        if ( ! $form_id ) {
+            throw new \Exception('No form id provided');
+        }
+
         if ( ! function_exists('Ninja_Forms') ) {
             throw new \Exception('No `Ninja_Forms` class exists');
         }
-        $nf_form_info = Ninja_Forms()->form();
+
+        $nf_form_info = Ninja_Forms()->form($form_id);
+
         if (!class_exists('\NF_Abstracts_ModelFactory') || ! ($nf_form_info instanceof \NF_Abstracts_ModelFactory) ) {
             throw new \Exception('Getting NF form failed');
         }
         $nf_form_fields_info = $nf_form_info->get_fields();
-        if ( ! is_array($nf_form_fields_info) && count($nf_form_fields_info) === 0 ) {
+        if ( ! is_array($nf_form_fields_info) || count($nf_form_fields_info) === 0 ) {
             throw new \Exception('No fields are provided');
         }
         $nf_form_fields_info_array = [];
