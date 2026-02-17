@@ -293,6 +293,11 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         foreach ( $ids as $id ) {
             $user_id = (int)sanitize_key($id);
 
+            // Only act on users that were marked as spam by CleanTalk
+            if ( ! delete_user_meta($user_id, 'ct_marked_as_spam') ) {
+                continue;
+            }
+
             //Send feedback
             $hash = get_user_meta($user_id, 'ct_hash', true);
             if ( $hash ) {

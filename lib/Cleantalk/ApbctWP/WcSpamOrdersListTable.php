@@ -322,10 +322,13 @@ class WcSpamOrdersListTable extends CleantalkListTable
         global $wpdb;
 
         $ids_sql_prepare = [];
-
         foreach ( $ids as $id ) {
             $id                = sanitize_key($id);
             $ids_sql_prepare[] = "'$id'";
+        }
+
+        if ( empty($ids_sql_prepare) ) {
+            return;
         }
 
         $ids_sql_prepare = implode(',', $ids_sql_prepare);

@@ -304,7 +304,10 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
     {
         if ( ! empty($ids) ) {
             foreach ( $ids as $id ) {
-                delete_comment_meta((int)$id, 'ct_marked_as_spam');
+                // Only act on comments that were marked as spam by CleanTalk
+                if ( ! delete_comment_meta((int)$id, 'ct_marked_as_spam') ) {
+                    continue;
+                }
                 $comment = get_comment((int)$id);
                 if (is_int($comment) || $comment instanceof \WP_Comment) {
                     wp_trash_comment($comment);
@@ -317,7 +320,10 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
     {
         if ( ! empty($ids) ) {
             foreach ( $ids as $id ) {
-                delete_comment_meta((int)$id, 'ct_marked_as_spam');
+                // Only act on comments that were marked as spam by CleanTalk
+                if ( ! delete_comment_meta((int)$id, 'ct_marked_as_spam') ) {
+                    continue;
+                }
                 $comment = get_comment((int)$id);
                 if (is_int($comment) || $comment instanceof \WP_Comment) {
                     wp_spam_comment($comment);
