@@ -137,25 +137,26 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
         $page = htmlspecialchars(addslashes(TT::toString(Get::get('page'))));
 
+        $approve_url = wp_nonce_url(
+            admin_url('edit-comments.php?page=' . $page . '&action=approve&spam=' . $id),
+            'apbct_ct_check_spam_row',
+            '_wpnonce'
+        );
+        $spam_url = wp_nonce_url(
+            admin_url('edit-comments.php?page=' . $page . '&action=spam&spam=' . $id),
+            'apbct_ct_check_spam_row',
+            '_wpnonce'
+        );
+        $trash_url = wp_nonce_url(
+            admin_url('edit-comments.php?page=' . $page . '&action=trash&spam=' . $id),
+            'apbct_ct_check_spam_row',
+            '_wpnonce'
+        );
+
         $actions = array(
-            'approve' => sprintf(
-                '<span class="approve"><a href="?page=%s&action=%s&spam=%s">Approve</a></span>',
-                $page,
-                'approve',
-                $id
-            ),
-            'spam'    => sprintf(
-                '<span class="spam"><a href="?page=%s&action=%s&spam=%s">Spam</a></span>',
-                $page,
-                'spam',
-                $id
-            ),
-            'trash'   => sprintf(
-                '<a href="?page=%s&action=%s&spam=%s">Trash</a>',
-                $page,
-                'trash',
-                $id
-            ),
+            'approve' => '<span class="approve"><a href="' . esc_url($approve_url) . '">Approve</a></span>',
+            'spam'    => '<span class="spam"><a href="' . esc_url($spam_url) . '">Spam</a></span>',
+            'trash'   => '<a href="' . esc_url($trash_url) . '">Trash</a>',
         );
 
         return sprintf('%1$s %2$s', $column_content, $this->row_actions($actions));
@@ -255,6 +256,14 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
             return;
         }
 
+        if ( ! wp_verify_nonce(Get::getString('_wpnonce'), 'apbct_ct_check_spam_row') ) {
+            wp_die(esc_html__('Security check failed. Please try again.', 'cleantalk-spam-protect'), 403);
+        }
+
+        if ( ! current_user_can('moderate_comments') ) {
+            wp_die(esc_html__('You do not have sufficient permissions to perform this action.', 'cleantalk-spam-protect'), 403);
+        }
+
         if ( Get::get('action') === 'approve' ) {
             $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT);
             $this->approveSpam($id);
@@ -295,7 +304,10 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
     {
         if ( ! empty($ids) ) {
             foreach ( $ids as $id ) {
-                delete_comment_meta((int)$id, 'ct_marked_as_spam');
+                // Only act on comments that were marked as spam by CleanTalk
+                if ( ! delete_comment_meta((int)$id, 'ct_marked_as_spam') ) {
+                    continue;
+                }
                 $comment = get_comment((int)$id);
                 if (is_int($comment) || $comment instanceof \WP_Comment) {
                     wp_trash_comment($comment);
@@ -308,7 +320,10 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
     {
         if ( ! empty($ids) ) {
             foreach ( $ids as $id ) {
-                delete_comment_meta((int)$id, 'ct_marked_as_spam');
+                // Only act on comments that were marked as spam by CleanTalk
+                if ( ! delete_comment_meta((int)$id, 'ct_marked_as_spam') ) {
+                    continue;
+                }
                 $comment = get_comment((int)$id);
                 if (is_int($comment) || $comment instanceof \WP_Comment) {
                     wp_spam_comment($comment);
