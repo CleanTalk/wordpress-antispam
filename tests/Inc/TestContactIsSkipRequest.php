@@ -117,6 +117,16 @@ class TestContactIsSkipRequest extends TestCase
         ));
     }
 
+    public function testSkip__woocommerce__cartRecovery()
+    {
+        $this->assertTrue(self::checkSkipMutations(
+            'action',
+            'crfw_record_cart',
+            'cart-recovery/cart-recovery-for-wordpress.php',
+            'cart-recovery'
+        ));
+    }
+
     /**
      * Check if skipped on all data complied, and every case if not.
      * @param string $expected_key expected POST key

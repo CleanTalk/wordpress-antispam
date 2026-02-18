@@ -1715,6 +1715,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'wp-multi-step-checkout';
         }
+
+        //UNIT OK https://wordpress.org/plugins/cart-recovery/
+        if (
+            apbct_is_plugin_active('cart-recovery/cart-recovery-for-wordpress.php') &&
+            Post::equal('action', 'crfw_record_cart')
+        ) {
+            return 'cart-recovery';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
