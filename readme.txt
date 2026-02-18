@@ -439,7 +439,8 @@ Yes, it is. Please read this article,
 * Upd. CommentsCheck. Improve statement.
 * Upd. JS parameters. Gathering dynamic lod implemented.
 * Fix. Connection reports. Email for reports fixed.
-* Fix. Integration. SmartQuizBuilder integration fixed. 
+* Fix. Integration. SmartQuizBuilder integration fixed.
+* Fix. ContentEncoder. Editing the data type in the 3rd str_replace argument
 
 = 6.72 05.02.2026 =
 * Upd. WooCommSpamOrders. Added a hint for the disabled option to save spam orders.
