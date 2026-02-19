@@ -3,6 +3,7 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\GetFieldsAny;
+use Cleantalk\Common\TT;
 
 class FluentForm extends IntegrationBase
 {
@@ -10,6 +11,13 @@ class FluentForm extends IntegrationBase
     {
         global $apbct;
         $event_token = '';
+
+        $probably_skip_due_vendor = $this->skipDueVendorIntegration();
+
+        if ($probably_skip_due_vendor) {
+            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . TT::toString($probably_skip_due_vendor), $_POST);
+            return null;
+        }
 
         /**
          * Do not use Post:get() there - it uses sanitize_textarea and drops special symbols,
@@ -72,5 +80,37 @@ class FluentForm extends IntegrationBase
             ),
             422
         );
+    }
+
+    /**
+     * Detect if vendor integration is active
+     * @return false|string
+     */
+    public function skipDueVendorIntegration()
+    {
+        /*
+         * This is global flag set up if vendor integration already executed
+         */
+        global $fluentformCleantalkExecuted;
+
+        // if flag is set and true - already executed, skip
+        if ( isset($fluentformCleantalkExecuted) ) {
+            if (true === $fluentformCleantalkExecuted) {
+                return 'FLUENTFORM_VENDOR_ACTIVE_INTEGRATION_EXECUTED';
+            }
+        } else {
+            // if flag is not set, check state  of cleantalk integration,
+            // this is useful if hooks order changed or global flag changed
+            $vendor_integration_option = get_option('_fluentform_cleantalk_details', []);
+            $vendor_integration_active = (
+                is_array($vendor_integration_option) &&
+                isset($vendor_integration_option['status']) &&
+                true === $vendor_integration_option['status']
+            );
+            if ($vendor_integration_active) {
+                return 'FLUENTFORM_VENDOR_ACTIVE_INTEGRATION_FOUND';
+            }
+        }
+        return false;
     }
 }

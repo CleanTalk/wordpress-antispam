@@ -928,7 +928,7 @@ function apbct_settings__set_fields()
                         . __(' - connection status to ' . $apbct->data["wl_brandname_short"] . ' cloud during Anti-Spam request', 'cleantalk-spam-protect')
                         . $send_connection_reports__sfw_text
                         . '<br>'
-                        . sprintf(esc_html__('The reports are to be sent to %s'), $apbct->data['wl_support_email'])
+                        . sprintf(esc_html__('The reports are to be sent to %s'), 'pluginreports@cleantalk.org')
                     ),
                 'misc__async_js'                => array(
                     'type'        => 'checkbox',
@@ -2592,6 +2592,15 @@ function apbct_settings__sync($direct_call = false)
 
     global $apbct;
 
+    if (!current_user_can('activate_plugins')) {
+        $out = array(
+            'success' => false,
+            'reload'  => false,
+            'message' => __('You do not have sufficient permissions to access this page.', 'cleantalk-spam-protect'),
+        );
+        die(json_encode($out));
+    }
+
     //Clearing all errors
     $apbct->errorDeleteAll(true);
 
@@ -2719,6 +2728,15 @@ function apbct_settings__get_key_auto($direct_call = false)
     }
 
     global $apbct;
+
+    if (!current_user_can('activate_plugins')) {
+        $out = array(
+            'success' => false,
+            'message' => __('You do not have sufficient permissions to access this page.', 'cleantalk-spam-protect'),
+
+        );
+        die(json_encode($out));
+    }
 
     $website        = parse_url(get_option('home'), PHP_URL_HOST) . parse_url(get_option('home'), PHP_URL_PATH);
     $platform       = 'wordpress';
@@ -2983,6 +3001,14 @@ function apbct_settings__get__long_description()
     global $apbct;
     AJAXService::checkAdminNonce();
 
+    if (!current_user_can('activate_plugins')) {
+        $out = array(
+            'success' => false,
+            'message' => __('You do not have sufficient permissions to access this page.', 'cleantalk-spam-protect'),
+        );
+        die(json_encode($out));
+    }
+
     $setting_id = TT::toString(Post::get('setting_id', null, 'word'));
 
     $link_exclusion_by_form_signs = LinkConstructor::buildCleanTalkLink(
@@ -3149,6 +3175,15 @@ function apbct_settings__check_renew_banner()
     global $apbct;
 
     AJAXService::checkAdminNonce();
+
+    if (!current_user_can('activate_plugins')) {
+        $out = array(
+            'success' => false,
+            'close_renew_banner' => false,
+            'message' => __('You do not have sufficient permissions to access this page.', 'cleantalk-spam-protect'),
+        );
+        die(json_encode($out));
+    }
 
     die(
         json_encode(

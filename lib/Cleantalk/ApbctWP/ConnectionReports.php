@@ -118,7 +118,7 @@ class ConnectionReports
             return;
         }
 
-        $sql = "SELECT * FROM " . $this->cr_table_name . " ORDER BY date;";
+        $sql = "SELECT *, FROM_UNIXTIME(date) AS date, FROM_UNIXTIME(sent_on) AS sent_on FROM " . $this->cr_table_name . " ORDER BY date;";
         $this->reports_data = TT::toArray($this->db->fetchAll($sql));
         $this->reports_data_dirty = false;
         $this->unsent_reports_cache = null; // Invalidate cache
@@ -357,7 +357,7 @@ class ConnectionReports
 
         return '<tr style="color:' . $color . '">'
                . '<td>' . Escape::escHtml((int)$key + 1) . '.</td>'
-               . '<td>' . Escape::escHtml(date('m-d-y H:i:s', $report_date)) . '</td>'
+               . '<td>' . Escape::escHtml($report_date) . '</td>'
                . '<td>' . Escape::escUrl($report_page_url) . '</td>'
                . '<td>' . Escape::escHtml($report_lib_report) . '</td>'
                . '<td>' . Escape::escHtml($report_failed_work_urls) . '</td>'
@@ -430,7 +430,7 @@ class ConnectionReports
             return false;
         }
 
-        $to = $apbct->data['wl_support_email'];
+        $to = 'pluginreports@cleantalk.org';
         $subject = "Connection report for " . TT::toString(Server::get('HTTP_HOST'));
 
         $message = $this->prepareEmailContent($selection, $is_cron_task);
@@ -451,8 +451,6 @@ class ConnectionReports
      */
     private function prepareEmailContent(array $selection, $is_cron_task = false)
     {
-        global $apbct;
-
         $stat_since = isset($this->reports_count['stat_since']) ? $this->reports_count['stat_since'] : '';
         $total = isset($this->reports_count['total']) ? $this->reports_count['total'] : '';
         $positive = isset($this->reports_count['positive']) ? $this->reports_count['positive'] : '';
@@ -481,7 +479,7 @@ class ConnectionReports
         foreach ($selection as $report) {
             $message .= '<tr>'
                         . '<td>' . (++$counter) . '.</td>'
-                        . '<td>' . TT::toString(date('m-d-y H:i:s', $report['date'])) . '</td>'
+                        . '<td>' . TT::toString($report['date']) . '</td>'
                         . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
                         . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
                         . '<td>' . Escape::escHtml($report['failed_work_urls']) . '</td>'
@@ -490,31 +488,10 @@ class ConnectionReports
         }
 
         $message .= '</table><br>';
-        $message .= $this->prepareRemoteCallLink($apbct);
         $message .= '<br>' . ($is_cron_task ? 'This is a cron task.' : 'This is a manual task.') . '<br>';
         $message .= '</body></html>';
 
         return $message;
-    }
-
-    /**
-     * Prepare remote call link for email
-     * @param mixed $apbct
-     * @return string
-     */
-    private function prepareRemoteCallLink($apbct)
-    {
-        $show_connection_reports_link =
-            (substr(get_option('home'), -1) === '/' ? get_option('home') : get_option('home') . '/')
-            . '?'
-            . http_build_query([
-                                   'plugin_name' => 'apbct',
-                                   'spbc_remote_call_token' => md5($apbct->api_key),
-                                   'spbc_remote_call_action' => 'debug',
-                                   'show_only' => 'connection_reports',
-                               ]);
-
-        return '<a href="' . $show_connection_reports_link . '" target="_blank">Show connection reports with remote call</a>';
     }
 
     /**
