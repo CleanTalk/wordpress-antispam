@@ -2,21 +2,16 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\ApbctWP\Variables\Server;
-
-/**
- * Probably deprecated, try BuddyBossAppRestApiByRoute
- */
-class BuddyBossAppRestAPI extends IntegrationBase
+class BuddyBossAppRestApiByRoute extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
         if (
-            apbct_is_plugin_active('buddyboss-app/buddyboss-app.php') &&
-            Server::getString('REQUEST_URI') === '/wp-json/buddyboss-app/v1/signup'
+            apbct_is_plugin_active('buddyboss-app/buddyboss-app.php')
         ) {
             return ct_gfa(apply_filters('apbct__filter_post', $_POST));
         }
+        return null;
     }
 
     public function doBlock($message)
