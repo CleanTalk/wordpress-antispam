@@ -1647,6 +1647,10 @@ async function apbct_ready() {
     apbctLocalStorage.set('apbct_existing_visitor', 1);
 }
 
+const defaultFetch = window.fetch;
+const defaultSend = XMLHttpRequest.prototype.send;
+let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
+
 if (ctPublic.data__key_is_ok) {
     if (document.readyState !== 'loading') {
         apbct_ready();
@@ -1659,11 +1663,6 @@ if (ctPublic.data__key_is_ok) {
         ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true);
     }
 }
-
-const defaultFetch = window.fetch;
-const defaultSend = XMLHttpRequest.prototype.send;
-
-let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 
 /**
  * Run cron jobs
