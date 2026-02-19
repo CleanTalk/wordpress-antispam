@@ -82,14 +82,14 @@ class WcSpamOrdersListTable extends CleantalkListTable
                 continue;
             }
 
+            $delete_url = wp_nonce_url(
+                admin_url('admin.php?page=' . Get::getString('page') . '&action=delete&spam=' . $wc_spam_order->id),
+                'apbct_wc_spam_orders_row',
+                '_wpnonce'
+            );
             $actions = array(
-                'restore'  => '<a class="apbct-restore-spam-order-button" data-spam-order-id="' . $wc_spam_order->id . '">' . esc_html__('Restore', 'cleantalk-spam-protect') . '</a>',
-                'delete'  => sprintf(
-                    '<a onclick="return confirm(\'' . esc_html__('Are you sure?', 'cleantalk-spam-protect') . '\')" href="?page=%s&action=%s&spam=%s">Delete</a>',
-                    htmlspecialchars(addslashes(Get::getString('page'))),
-                    'delete',
-                    $wc_spam_order->id
-                ),
+                'restore' => '<a class="apbct-restore-spam-order-button" data-spam-order-id="' . $wc_spam_order->id . '">' . esc_html__('Restore', 'cleantalk-spam-protect') . '</a>',
+                'delete'  => '<a onclick="return confirm(\'' . esc_attr(esc_html__('Are you sure?', 'cleantalk-spam-protect')) . '\')" href="' . esc_url($delete_url) . '">Delete</a>',
                 /*'approve' => sprintf(
                     '<a href="?page=%s&action=%s&spam=%s">Approve</a>',
                     htmlspecialchars(addslashes(Get::get('page'))),
@@ -176,6 +176,14 @@ class WcSpamOrdersListTable extends CleantalkListTable
             return;
         }
 
+        if ( ! wp_verify_nonce(Get::getString('_wpnonce'), 'apbct_wc_spam_orders_row') ) {
+            wp_die(esc_html__('Security check failed. Please try again.', 'cleantalk-spam-protect'), 403);
+        }
+
+        if ( ! current_user_can('activate_plugins') ) {
+            wp_die(esc_html__('You do not have sufficient permissions to perform this action.', 'cleantalk-spam-protect'), 403);
+        }
+
         if ( Get::get('action') === 'delete' ) {
             $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_ENCODED, FILTER_FLAG_STRIP_HIGH);
             $this->removeSpam(array($id));
@@ -219,9 +227,9 @@ class WcSpamOrdersListTable extends CleantalkListTable
                 $wc_product_class = '\WC_Product';
                 $product_title = $wc_product instanceof $wc_product_class ? $wc_product->get_title() : '';
             }
-            $result .= "<b>" . $product_title . "</b>";
+            $result .= "<b>" . esc_html($product_title) . "</b>";
             $result .= " - ";
-            $result .= $order_detail['quantity'];
+            $result .= esc_html($order_detail['quantity']);
             $result .= "<br>";
         }
 
@@ -242,11 +250,11 @@ class WcSpamOrdersListTable extends CleantalkListTable
 
         $result           = '';
 
-        $result .= "<b>" . ($customer_details["billing_first_name"] ?? '') . "</b>";
+        $result .= "<b>" . esc_html($customer_details["billing_first_name"] ?? '') . "</b>";
         $result .= "<br>";
-        $result .= "<b>" . ($customer_details["billing_last_name"] ?? '') . "</b>";
+        $result .= "<b>" . esc_html($customer_details["billing_last_name"] ?? '') . "</b>";
         $result .= "<br>";
-        $result .= "<b>" . ($customer_details["billing_email"] ?? '') . "</b>";
+        $result .= "<b>" . esc_html($customer_details["billing_email"] ?? '') . "</b>";
 
         return $result;
     }
@@ -314,10 +322,13 @@ class WcSpamOrdersListTable extends CleantalkListTable
         global $wpdb;
 
         $ids_sql_prepare = [];
-
         foreach ( $ids as $id ) {
             $id                = sanitize_key($id);
             $ids_sql_prepare[] = "'$id'";
+        }
+
+        if ( empty($ids_sql_prepare) ) {
+            return;
         }
 
         $ids_sql_prepare = implode(',', $ids_sql_prepare);
