@@ -3185,6 +3185,7 @@ class ApbctHandler {
     catchFetchRequest() {
         const shadowRootProtection = new ApbctShadowRootProtection();
         let preventOriginalFetch = false;
+        const defaultFetch = window.fetch;
 
         /**
          * Select key/value pair depending on botDetectorEnabled flag
@@ -4184,7 +4185,6 @@ if (ctPublic.data__key_is_ok) {
     }
 }
 
-const defaultFetch = window.fetch;
 const defaultSend = XMLHttpRequest.prototype.send;
 
 let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
