@@ -6,46 +6,56 @@ use Cleantalk\ApbctWP\Variables\Cookie;
 
 class OtterBlocksForm extends IntegrationBase
 {
-    private $form_data_request;
+    //private $form_data_request;
 
     /**
      * @inheritDoc
      */
     public function getDataForChecking($argument)
     {
-        $this->form_data_request = $argument;
-        Cookie::$force_alt_cookies_global = true;
+        // Try to decode the form_data JSON
+        $form_data_json = isset($argument['form_data']) ? $argument['form_data'] : '';
+        $form_data_obj = json_decode($form_data_json);
+        file_put_contents(__DIR__."/umitest", print_r([__FILE__.' '.__LINE__, $_POST], true).PHP_EOL, FILE_APPEND | LOCK_EX);
 
-        /**
-         * @psalm-suppress UndefinedClass
-         */
+        $result = [];
         if (
-            class_exists('\ThemeIsle\GutenbergBlocks\Integration\Form_Data_Request') &&
-            $argument instanceof \ThemeIsle\GutenbergBlocks\Integration\Form_Data_Request &&
-            method_exists($this->form_data_request, 'get_fields')
+            is_object($form_data_obj) &&
+            isset($form_data_obj->payload) &&
+            isset($form_data_obj->payload->formInputsData) &&
+            is_array($form_data_obj->payload->formInputsData)
         ) {
-            $fields = $this->form_data_request->get_fields();
-            if (
-                isset($fields) &&
-                is_array($fields)
-            ) {
-                $form_data = [];
-                foreach ( $fields as $input_info ) {
-                    if ( isset($input_info['id'], $input_info['value']) ) {
-                        $form_data[] = [
-                            $input_info['id'] => $input_info['value']
-                        ];
-                    }
+            foreach ($form_data_obj->payload->formInputsData as $input) {
+                if (!isset($input->label) || !isset($input->value)) {
+                    continue;
                 }
-                if ( count($form_data) ) {
-                    $gfa_result = ct_gfa($form_data);
-                    $event_token = Cookie::get('ct_bot_detector_event_token');
-                    if ( $event_token ) {
-                        $gfa_result['event_token'] = $event_token;
-                    }
-                    return $gfa_result;
+                switch (mb_strtolower($input->label)) {
+                    case 'name':
+                        $result['name'] = $input->value;
+                        break;
+                    case 'email':
+                        $result['email'] = $input->value;
+                        break;
+                    case 'message':
+                        $result['message'] = $input->value;
+                        break;
                 }
             }
+        }
+
+        // Fallback: if not found, return original argument
+        file_put_contents(__DIR__."/umitest", print_r([__FILE__.' '.__LINE__, ct_gfa_dto(
+            apply_filters('apbct__filter_post', $result), 
+            isset($result['email']) ? $result['email'] : '',
+            isset($result['name']) ? $result['name'] : '',
+        )->getArray()], true).PHP_EOL, FILE_APPEND | LOCK_EX);
+
+        if (count($result) > 0) {
+            return ct_gfa_dto(
+                apply_filters('apbct__filter_post', $result), 
+                isset($result['email']) ? $result['email'] : '',
+                isset($result['name']) ? $result['name'] : '',
+            )->getArray();
         }
         return $argument;
     }
@@ -56,8 +66,23 @@ class OtterBlocksForm extends IntegrationBase
      */
     public function doBlock($message)
     {
-        if ( method_exists($this->form_data_request, 'set_error') ) {
-            $this->form_data_request->set_error('110', $message);
-        }
+        die(
+            json_encode(
+                array(
+                    'apbct' => array(
+                        'blocked'     => true,
+                        'comment'     => $message,
+                        'stop_script' => 1,
+                        'integration' => 'OtterBlocksForm'
+                    )
+                )
+            )
+        );
+        /* wp_send_json_error(
+            array(
+                'message' => $message
+            )
+        );
+        die(); */
     }
 }

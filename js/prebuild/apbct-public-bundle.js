@@ -3021,15 +3021,15 @@ class ApbctHandler {
         let fluentBookingApp = document.querySelectorAll('div[class^="fluent_booking_app"]').length > 0;
         let bloomPopup = document.querySelectorAll('div[class^="et_bloom_form_container"]').length > 0;
         let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
-        let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
+        //let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
             jetpackCommentsForm ||
             userRegistrationProForm ||
             etPbDiviSubscriptionForm ||
             fluentBookingApp ||
             pafeFormsFormElementor ||
-            bloomPopup ||
-            otterForm;
+            bloomPopup;
+            //otterForm;
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
@@ -3185,7 +3185,7 @@ class ApbctHandler {
     catchFetchRequest() {
         const shadowRootProtection = new ApbctShadowRootProtection();
         let preventOriginalFetch = false;
-
+        const defaultFetch = window.fetch;
         /**
          * Select key/value pair depending on botDetectorEnabled flag
          * @param {bool} botDetectorEnabled
@@ -3393,7 +3393,10 @@ class ApbctHandler {
                         if (settings.data.indexOf('twt_cc_signup') !== -1) {
                             sourceSign.found = 'twt_cc_signup';
                         }
-
+                        if (settings.data.indexOf('otter-form') !== -1) {
+                            sourceSign.found = 'otter-form';
+                            sourceSign.keepUnwrapped = true;
+                        }
                         if (settings.data.indexOf('action=mailpoet') !== -1) {
                             sourceSign.found = 'action=mailpoet';
                             sourceSign.attachVisibleFieldsData = true;
@@ -4184,7 +4187,7 @@ if (ctPublic.data__key_is_ok) {
     }
 }
 
-const defaultFetch = window.fetch;
+
 const defaultSend = XMLHttpRequest.prototype.send;
 
 let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars

@@ -10,7 +10,12 @@ $apbct_active_rest_integrations = array(
         'rest_route'    => '/wp-recipe-maker/v1/user-rating/',
         'setting' => 'forms__contact_forms_test',
         'rest'       => true,
-    )
+    ),
+    'OtterBlocksForm'         => array(
+        'rest_route'    => '/otter/v1/form/frontend',
+        'setting' => 'forms__contact_forms_test',
+        'rest'       => true,
+    ),
 );
 
 add_filter('rest_pre_dispatch', function ($result, $_, $request) use ($apbct_active_rest_integrations) {

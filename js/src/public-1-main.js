@@ -497,15 +497,15 @@ class ApbctHandler {
         let fluentBookingApp = document.querySelectorAll('div[class^="fluent_booking_app"]').length > 0;
         let bloomPopup = document.querySelectorAll('div[class^="et_bloom_form_container"]').length > 0;
         let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
-        let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
+        //let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
             jetpackCommentsForm ||
             userRegistrationProForm ||
             etPbDiviSubscriptionForm ||
             fluentBookingApp ||
             pafeFormsFormElementor ||
-            bloomPopup ||
-            otterForm;
+            bloomPopup;
+            //otterForm;
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
@@ -869,7 +869,6 @@ class ApbctHandler {
                         if (settings.data.indexOf('twt_cc_signup') !== -1) {
                             sourceSign.found = 'twt_cc_signup';
                         }
-
                         if (settings.data.indexOf('action=mailpoet') !== -1) {
                             sourceSign.found = 'action=mailpoet';
                             sourceSign.attachVisibleFieldsData = true;

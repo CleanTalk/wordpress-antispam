@@ -12,6 +12,8 @@ class ApbctShadowRootProtection {
      * @return {object|null} { formKey, config } or null
      */
     findMatchingConfig(url) {
+        console.log(url);
+        
         for (const [formKey, config] of Object.entries(this.config)) {
             // Shadowroot can send both external and internal requests
             // If the form is external, then we check whether the setting is enabled.
