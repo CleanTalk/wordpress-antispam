@@ -1862,6 +1862,8 @@ class ApbctShadowRootProtection {
      * @return {object|null} { formKey, config } or null
      */
     findMatchingConfig(url) {
+        console.log(url);
+        
         for (const [formKey, config] of Object.entries(this.config)) {
             // Shadowroot can send both external and internal requests
             // If the form is external, then we check whether the setting is enabled.
@@ -3393,10 +3395,6 @@ class ApbctHandler {
                         if (settings.data.indexOf('twt_cc_signup') !== -1) {
                             sourceSign.found = 'twt_cc_signup';
                         }
-                        if (settings.data.indexOf('otter-form') !== -1) {
-                            sourceSign.found = 'otter-form';
-                            sourceSign.keepUnwrapped = true;
-                        }
                         if (settings.data.indexOf('action=mailpoet') !== -1) {
                             sourceSign.found = 'action=mailpoet';
                             sourceSign.attachVisibleFieldsData = true;
@@ -4174,6 +4172,10 @@ async function apbct_ready() {
     apbctLocalStorage.set('apbct_existing_visitor', 1);
 }
 
+const defaultFetch = window.fetch;
+const defaultSend = XMLHttpRequest.prototype.send;
+let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
+
 if (ctPublic.data__key_is_ok) {
     if (document.readyState !== 'loading') {
         apbct_ready();
@@ -4186,11 +4188,6 @@ if (ctPublic.data__key_is_ok) {
         ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true);
     }
 }
-
-const defaultFetch = window.fetch;
-const defaultSend = XMLHttpRequest.prototype.send;
-
-let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 
 /**
  * Run cron jobs
