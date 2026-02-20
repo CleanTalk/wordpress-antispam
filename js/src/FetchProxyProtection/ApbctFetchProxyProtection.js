@@ -1,9 +1,9 @@
 /**
- * Class for handling ShadowRoot forms
+ * Class for handling FetchProxy forms
  */
-class ApbctShadowRootProtection {
+class ApbctFetchProxyProtection {
     constructor() {
-        this.config = ApbctShadowRootConfig;
+        this.config = ApbctFetchProxyConfig;
     }
 
     /**
@@ -12,10 +12,8 @@ class ApbctShadowRootProtection {
      * @return {object|null} { formKey, config } or null
      */
     findMatchingConfig(url) {
-        console.log(url);
-        
         for (const [formKey, config] of Object.entries(this.config)) {
-            // Shadowroot can send both external and internal requests
+            // FetchProxy can send both external and internal requests
             // If the form is external, then we check whether the setting is enabled.
             if (
                 (!config.externalForm || +ctPublic.settings__forms__check_external) && 
@@ -29,7 +27,7 @@ class ApbctShadowRootProtection {
     }
 
     /**
-     * Check ShadowRoot form request via CleanTalk AJAX
+     * Check FetchProxy form request via CleanTalk AJAX
      * @param {string} formKey
      * @param {object} config
      * @param {string} bodyText
@@ -90,7 +88,7 @@ class ApbctShadowRootProtection {
                     resolve(false);
                 },
                 onErrorCallback: (error) => {
-                    console.log('APBCT ShadowRoot check error:', error);
+                    console.log('APBCT FetchProxy check error:', error);
                     resolve(false);
                 },
             });
@@ -120,7 +118,7 @@ class ApbctShadowRootProtection {
     }
 
     /**
-     * Process fetch request for ShadowRoot forms
+     * Process fetch request for FetchProxy forms
      * @param {array} args - fetch arguments
      * @return {Promise<boolean|null>} true = block, false = allow, null = not matched
      */

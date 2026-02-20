@@ -497,7 +497,6 @@ class ApbctHandler {
         let fluentBookingApp = document.querySelectorAll('div[class^="fluent_booking_app"]').length > 0;
         let bloomPopup = document.querySelectorAll('div[class^="et_bloom_form_container"]').length > 0;
         let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
-        //let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
             jetpackCommentsForm ||
             userRegistrationProForm ||
@@ -505,7 +504,6 @@ class ApbctHandler {
             fluentBookingApp ||
             pafeFormsFormElementor ||
             bloomPopup;
-            //otterForm;
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
@@ -659,7 +657,7 @@ class ApbctHandler {
      * @return {void}
      */
     catchFetchRequest() {
-        const shadowRootProtection = new ApbctShadowRootProtection();
+        const fetchProxyProtection = new ApbctFetchProxyProtection();
         let preventOriginalFetch = false;
 
         /**
@@ -717,9 +715,9 @@ class ApbctHandler {
                 return defaultFetch.apply(window, args);
             }
 
-            // === ShadowRoot forms ===
-            const shadowRootResult = await shadowRootProtection.processFetch(args);
-            if (shadowRootResult === true) {
+            // === FetchProxy forms ===
+            const fetchProxyResult = await fetchProxyProtection.processFetch(args);
+            if (fetchProxyResult === true) {
                 // Return a "blank" response that never completes
                 return new Promise(() => {});
             }

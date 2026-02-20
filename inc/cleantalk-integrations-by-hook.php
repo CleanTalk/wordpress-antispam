@@ -343,6 +343,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__check_external',
         'ajax'    => true
     ),
+    'OtterBlocksForm'         => array(
+        'hook'    => 'cleantalk_force_otterform_check',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
     'BloomForms' => array(
         'hook'    => 'bloom_subscribe',
         'setting' => 'forms__contact_forms_test',

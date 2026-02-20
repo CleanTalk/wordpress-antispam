@@ -1,7 +1,7 @@
 /**
- * Callbacks for ShadowRoot integrations
+ * Callbacks for FetchProxy integrations
  */
-const ApbctShadowRootCallbacks = {
+const ApbctFetchProxyCallbacks = {
     /**
      * Mailchimp block callback - clears localStorage by mcforms mask
      * @param {object} result

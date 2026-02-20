@@ -1807,9 +1807,9 @@ if (!Object.prototype.hasOwn) {
 }
 
 /**
- * Callbacks for ShadowRoot integrations
+ * Callbacks for FetchProxy integrations
  */
-const ApbctShadowRootCallbacks = {
+const ApbctFetchProxyCallbacks = {
     /**
      * Mailchimp block callback - clears localStorage by mcforms mask
      * @param {object} result
@@ -1836,24 +1836,32 @@ const ApbctShadowRootCallbacks = {
     // },
 };
 /**
- * Config for ShadowRoot integrations
+ * Config for FetchProxy integrations
  */
-const ApbctShadowRootConfig = {
+const ApbctFetchProxyConfig = {
     'mailchimp': {
         selector: '.mcforms-wrapper',
         urlPattern: 'mcf-integrations-mcmktg.mlchmpcompprduse2.iks2.a.intuit.com/gateway/receive',
         externalForm: true,
         action: 'cleantalk_force_mailchimp_shadowroot_check',
         callbackAllow: false,
-        callbackBlock: ApbctShadowRootCallbacks.mailchimpBlock,
+        callbackBlock: ApbctFetchProxyCallbacks.mailchimpBlock,
+    },
+    'otterform': {
+        selector: '.otter-form__container',
+        urlPattern: 'otter/v1/form/frontend',
+        externalForm: false,
+        action: 'cleantalk_force_otterform_check',
+        callbackAllow: false,
+        callbackBlock: false,
     },
 };
 /**
- * Class for handling ShadowRoot forms
+ * Class for handling FetchProxy forms
  */
-class ApbctShadowRootProtection {
+class ApbctFetchProxyProtection {
     constructor() {
-        this.config = ApbctShadowRootConfig;
+        this.config = ApbctFetchProxyConfig;
     }
 
     /**
@@ -1862,10 +1870,8 @@ class ApbctShadowRootProtection {
      * @return {object|null} { formKey, config } or null
      */
     findMatchingConfig(url) {
-        console.log(url);
-        
         for (const [formKey, config] of Object.entries(this.config)) {
-            // Shadowroot can send both external and internal requests
+            // FetchProxy can send both external and internal requests
             // If the form is external, then we check whether the setting is enabled.
             if (
                 (!config.externalForm || +ctPublic.settings__forms__check_external) && 
@@ -1879,7 +1885,7 @@ class ApbctShadowRootProtection {
     }
 
     /**
-     * Check ShadowRoot form request via CleanTalk AJAX
+     * Check FetchProxy form request via CleanTalk AJAX
      * @param {string} formKey
      * @param {object} config
      * @param {string} bodyText
@@ -1940,7 +1946,7 @@ class ApbctShadowRootProtection {
                     resolve(false);
                 },
                 onErrorCallback: (error) => {
-                    console.log('APBCT ShadowRoot check error:', error);
+                    console.log('APBCT FetchProxy check error:', error);
                     resolve(false);
                 },
             });
@@ -1970,7 +1976,7 @@ class ApbctShadowRootProtection {
     }
 
     /**
-     * Process fetch request for ShadowRoot forms
+     * Process fetch request for FetchProxy forms
      * @param {array} args - fetch arguments
      * @return {Promise<boolean|null>} true = block, false = allow, null = not matched
      */
@@ -3185,7 +3191,7 @@ class ApbctHandler {
      * @return {void}
      */
     catchFetchRequest() {
-        const shadowRootProtection = new ApbctShadowRootProtection();
+        const fetchProxyProtection = new ApbctFetchProxyProtection();
         let preventOriginalFetch = false;
 
         /**
@@ -3243,9 +3249,9 @@ class ApbctHandler {
                 return defaultFetch.apply(window, args);
             }
 
-            // === ShadowRoot forms ===
-            const shadowRootResult = await shadowRootProtection.processFetch(args);
-            if (shadowRootResult === true) {
+            // === FetchProxy forms ===
+            const fetchProxyResult = await fetchProxyProtection.processFetch(args);
+            if (fetchProxyResult === true) {
                 // Return a "blank" response that never completes
                 return new Promise(() => {});
             }
