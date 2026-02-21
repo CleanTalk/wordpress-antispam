@@ -63,6 +63,7 @@ function apbct_settings_add_page()
         global $apbct;
 
         $filtered = ($value === '1' || $value === 1) ? '1' : '0';
+        //sync discussion and plugin settings
         if ($old_value !== $filtered) {
             $apbct->settings['cleantalk_allowed_moderation'] = $filtered;
             $apbct->saveSettings();
@@ -2102,7 +2103,7 @@ function apbct_discussion_settings__field__moderation()
                 name="cleantalk_allowed_moderation" 
                 id="cleantalk_allowed_moderation" 
                 value="1" ' .
-                checked('1', $apbct->settings['cleantalk_allowed_moderation'], false) .
+                checked('1', TT::toString($apbct->settings['cleantalk_allowed_moderation'], '0'), false) .
                 '/> ';
     $output .= esc_html__('Skip manual approving for the very first comment if a comment has been allowed by CleanTalk Anti-Spam protection.', 'cleantalk-spam-protect');
     $output .= '</label>';
@@ -2574,6 +2575,11 @@ function apbct_settings__validate($incoming_settings)
     } else {
         $apbct->errorDelete('email_encoder', true, 'settings_validate');
         $incoming_settings['data__email_decoder_obfuscation_custom_text'] = ContactsEncoder::getDefaultReplacingText();
+    }
+
+    //sync discussion and plugin settings
+    if (isset($incoming_settings['cleantalk_allowed_moderation'])) {
+        update_option('cleantalk_allowed_moderation', TT::toString($incoming_settings['cleantalk_allowed_moderation'], '0'));
     }
 
     /**

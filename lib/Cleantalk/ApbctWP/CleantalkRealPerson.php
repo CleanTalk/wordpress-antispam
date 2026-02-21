@@ -2,8 +2,12 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\Antispam\Integrations\CleantalkPreprocessComment;
+
 class CleantalkRealPerson
 {
+    public static $meta_hash_name__old = 'ct_real_user_badge_hash';
+    public static $meta_hash_name__automod = 'ct_real_user_badge_automod_hash';
     public static function getLocalizingData()
     {
         /** @psalm-suppress PossiblyUndefinedVariable */
@@ -41,23 +45,48 @@ class CleantalkRealPerson
         }
 
         // Logic for show TRP badge
-        $show_trp = false;
         $the_real_person = !empty($apbct->settings['comments__the_real_person']) && $apbct->settings['comments__the_real_person'] == '1';
-        $allowed_moderation = !empty($apbct->settings['cleantalk_allowed_moderation']) && $apbct->settings['cleantalk_allowed_moderation'] == '1';
-
-        if ($the_real_person && $allowed_moderation) {
-            // Only for auto-moderated
-            $automod_hash = get_comment_meta((int)$comment_id, 'ct_real_user_badge_automod_hash', true);
-            $show_trp = $automod_hash && $comment->comment_author;
-        } elseif ($the_real_person && !$allowed_moderation) {
-            // Only for old
-            $old_hash = get_comment_meta((int)$comment_id, 'ct_real_user_badge_hash', true);
-            $show_trp = $old_hash && $comment->comment_author;
-        }
+        $show_trp = $the_real_person && self::isTRPHashExist($comment_id) && $comment->comment_author;
 
         if ($show_trp || $show_trp_on_roles) {
             $classes[] = 'apbct-trp';
         }
         return $classes;
+    }
+
+    /**
+     * Check if TRP hash is saved for comment ID. Autodetect if cleantalk_allowed_moderation is enabled.
+     * @param int|string $comment_id
+     * @return bool
+     */
+    public static function isTRPHashExist($comment_id)
+    {
+        if (CleantalkPreprocessComment::firstCommentAutoModEnabled()) {
+            // Only for auto-moderated
+            $trp_hash = get_comment_meta((int)$comment_id, self::$meta_hash_name__automod, true);
+        } else {
+            // Only for old
+            $trp_hash = get_comment_meta((int)$comment_id, self::$meta_hash_name__old, true);
+        }
+
+        return !empty($trp_hash);
+    }
+
+    /**
+     * Save TRP hash for comment ID. Autodetect if cleantalk_allowed_moderation is enabled.
+     * @param int|string $comment_id
+     *
+     * @return void
+     */
+    public static function setTRPHash($comment_id)
+    {
+        $hash = ct_hash();
+        if ( ! empty($hash) ) {
+            if (CleantalkPreprocessComment::firstCommentAutoModEnabled()) {
+                update_comment_meta((int)$comment_id, self::$meta_hash_name__automod, $hash);
+            } else {
+                update_comment_meta((int)$comment_id, self::$meta_hash_name__old, $hash);
+            }
+        }
     }
 }
