@@ -58,7 +58,7 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Wait for Codecov status
+      - name: Wait for Codecov patch status
         uses: actions/github-script@v7
         id: codecov_check
         with:
@@ -71,8 +71,8 @@ jobs:
               return new Promise(resolve => setTimeout(resolve, ms));
             }
 
-            for (let i = 0; i < 20; i++) {
-              const { data } = await github.repos.getCombinedStatusForRef({
+            for (let i = 0; i < 30; i++) {
+              const { data } = await github.rest.repos.getCombinedStatusForRef({
                 owner,
                 repo,
                 ref,
@@ -83,11 +83,13 @@ jobs:
               );
 
               if (codecov) {
+                core.info(`Codecov state: ${codecov.state}`);
                 core.setOutput("state", codecov.state);
                 return;
               }
 
-              await wait(10000); // ждём 10 сек
+              core.info("Codecov status not ready yet...");
+              await wait(10000);
             }
 
             core.setOutput("state", "not_found");

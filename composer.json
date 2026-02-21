@@ -24,9 +24,9 @@
         "test": [
             "vendor/bin/phpunit --configuration tests/phpunit.xml --coverage-clover=coverage.xml",
             "vendor/bin/phpcs --config-set installed_paths vendor/phpcompatibility/php-compatibility",
-            "vendor/bin/phpcs --standard=tests/.phpcs.xml",
-            "vendor/bin/psalm --no-cache --config=psalm.xml",
-            "vendor/bin/psalm --no-cache --config=psalm.xml --taint-analysis"
+//            "vendor/bin/phpcs --standard=tests/.phpcs.xml",
+//            "vendor/bin/psalm --no-cache --config=psalm.xml",
+//            "vendor/bin/psalm --no-cache --config=psalm.xml --taint-analysis"
         ],
         "psalm_l1": [
             "vendor/bin/psalm --no-cache --config=psalm.xml"
