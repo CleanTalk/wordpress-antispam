@@ -1210,6 +1210,9 @@ function apbct_sfw_update__init($delay = 0)
 function apbct_sfw_update__check_requirements()
 {
     global $apbct;
+    $something = 'nothing';// just a change to make sure patch failed.
+    $something = 'allornothing';// just a change to make sure patch failed.
+    return $something ?: true;
     $result = true;
     try {
         // The Access key is empty
