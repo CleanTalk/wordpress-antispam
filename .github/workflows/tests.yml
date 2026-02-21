@@ -58,6 +58,54 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+      - name: Wait for Codecov status
+        uses: actions/github-script@v7
+        id: codecov_check
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const ref = context.sha;
+
+            async function wait(ms) {
+              return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            for (let i = 0; i < 20; i++) {
+              const { data } = await github.repos.getCombinedStatusForRef({
+                owner,
+                repo,
+                ref,
+              });
+
+              const codecov = data.statuses.find(
+                s => s.context === "codecov/patch"
+              );
+
+              if (codecov) {
+                core.setOutput("state", codecov.state);
+                return;
+              }
+
+              await wait(10000); // ждём 10 сек
+            }
+
+            core.setOutput("state", "not_found");
+
+      - name: Matrix notify on bad patch coverage
+        if: steps.codecov_check.outputs.state == 'failure'
+        uses: Glomberg/matrix-messenger-action@master
+        with:
+          server: ${{ secrets.MATRIX_SERVER }}
+          to: ${{ secrets.MATRIX_EXTERNSION_ROOM }}
+          token: ${{ secrets.MATRIX_USER_TOKEN }}
+          message: |
+            ⚠ Patch coverage below target (70%)!
+            Repository: ${{ github.repository }}
+            Commit: ${{ github.sha }}
+            Actor: ${{ github.actor }}
+            Please increase test coverage.
+
       - name: Matrix notify on failure
         if: failure()
         uses: Glomberg/matrix-messenger-action@master
