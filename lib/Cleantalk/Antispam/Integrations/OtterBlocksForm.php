@@ -2,50 +2,64 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\ApbctWP\Variables\Cookie;
-
 class OtterBlocksForm extends IntegrationBase
 {
-    private $form_data_request;
-
     /**
      * @inheritDoc
      */
     public function getDataForChecking($argument)
     {
-        $this->form_data_request = $argument;
-        Cookie::$force_alt_cookies_global = true;
+        $form_data_json = '';
+        if (isset($argument['form_data'])) {
+             $form_data_json = $argument['form_data'];
+        } elseif (isset($_POST['form_data']) && is_string($_POST['form_data'])) {
+            $form_data_json = stripslashes($_POST['form_data']);
+        }
 
-        /**
-         * @psalm-suppress UndefinedClass
-         */
+        $form_data_obj = json_decode($form_data_json);
+        $result = [];
         if (
-            class_exists('\ThemeIsle\GutenbergBlocks\Integration\Form_Data_Request') &&
-            $argument instanceof \ThemeIsle\GutenbergBlocks\Integration\Form_Data_Request &&
-            method_exists($this->form_data_request, 'get_fields')
+            is_object($form_data_obj) &&
+            isset($form_data_obj->payload) &&
+            isset($form_data_obj->payload->formInputsData) &&
+            is_array($form_data_obj->payload->formInputsData)
         ) {
-            $fields = $this->form_data_request->get_fields();
-            if (
-                isset($fields) &&
-                is_array($fields)
-            ) {
-                $form_data = [];
-                foreach ( $fields as $input_info ) {
-                    if ( isset($input_info['id'], $input_info['value']) ) {
-                        $form_data[] = [
-                            $input_info['id'] => $input_info['value']
-                        ];
-                    }
+            foreach ($form_data_obj->payload->formInputsData as $input) {
+                if (!isset($input->label) || !isset($input->value)) {
+                    continue;
                 }
-                if ( count($form_data) ) {
-                    $gfa_result = ct_gfa($form_data);
-                    $event_token = Cookie::get('ct_bot_detector_event_token');
-                    if ( $event_token ) {
-                        $gfa_result['event_token'] = $event_token;
-                    }
-                    return $gfa_result;
+                switch (mb_strtolower($input->label)) {
+                    case 'name':
+                        $result['name'] = $input->value;
+                        break;
+                    case 'email':
+                        $result['email'] = $input->value;
+                        break;
+                    case 'message':
+                        if (is_array($input->value)) {
+                            if (isset($input->value['message'])) {
+                                $result['message'] = $input->value['message'];
+                            } else {
+                                $result['message'] = $input->value;
+                            }
+                        } else {
+                            $result['message'] = $input->value;
+                        }
+                        break;
                 }
             }
+        }
+
+        if (count($result) > 0) {
+            $dto = ct_gfa_dto(
+                apply_filters('apbct__filter_post', $result),
+                isset($result['email']) ? $result['email'] : '',
+                isset($result['name']) ? $result['name'] : ''
+            )->getArray();
+            if (isset($dto['message']) && is_array($dto['message']) && isset($dto['message']['message'])) {
+                $dto['message'] = $dto['message']['message'];
+            }
+            return $dto;
         }
         return $argument;
     }
@@ -56,8 +70,14 @@ class OtterBlocksForm extends IntegrationBase
      */
     public function doBlock($message)
     {
-        if ( method_exists($this->form_data_request, 'set_error') ) {
-            $this->form_data_request->set_error('110', $message);
-        }
+        echo json_encode(
+            array(
+                'apbct' => array(
+                    'blocked'     => true,
+                    'comment'     => $message,
+                )
+            )
+        );
+        die();
     }
 }

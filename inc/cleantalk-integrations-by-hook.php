@@ -343,6 +343,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__check_external',
         'ajax'    => true
     ),
+    'OtterBlocksForm'         => array(
+        'hook'    => 'cleantalk_force_otterform_check',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
     'BloomForms' => array(
         'hook'    => 'bloom_subscribe',
         'setting' => 'forms__contact_forms_test',
@@ -359,11 +364,6 @@ $apbct_active_integrations = array(
         'hook'    => 'tve_leads_ajax_conversion',
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
-    ),
-    'OtterBlocksForm' => array(
-        'hook'    => 'otter_form_anti_spam_validation',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
     ),
     'TourMasterRegister' => array(
         'hook'    => 'wp_pre_insert_user_data',
