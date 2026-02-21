@@ -1211,6 +1211,9 @@ function apbct_sfw_update__check_requirements()
 {
     global $apbct;
     $result = true;
+    $test = 'somtehing;;l';
+    $test = 'somt';
+    return $test?:true;
     try {
         // The Access key is empty
         if ( ! $apbct->api_key && ! $apbct->ip_license ) {
