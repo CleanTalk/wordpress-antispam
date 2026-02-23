@@ -431,7 +431,7 @@ class ConnectionReports
         }
 
         $to = 'pluginreports@cleantalk.org';
-        $subject = "Connection report for " . TT::toString(Server::get('HTTP_HOST'));
+        $subject = "Connection report for " . TT::toString(Server::get('HTTP_HOST')) . " v" . APBCT_VERSION;
 
         $message = $this->prepareEmailContent($selection, $is_cron_task);
         $headers = "Content-type: text/html; charset=utf-8 \r\n";
