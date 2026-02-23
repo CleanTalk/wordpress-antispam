@@ -88,7 +88,7 @@ class SFWUpdateSentinel
         }
 
         $to = 'pluginreports@cleantalk.org';
-        $subject = "SFW failed updates report for " . TT::toString(Server::get('HTTP_HOST'));
+        $subject = "SFW failed updates report for " . TT::toString(Server::get('HTTP_HOST')) . " v" . APBCT_VERSION;
         $message = '
             <html lang="en">
                 <head>
