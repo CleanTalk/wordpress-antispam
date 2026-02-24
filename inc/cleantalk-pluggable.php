@@ -1724,6 +1724,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'cart-recovery';
         }
+
+        //UNIT OK https://wordpress.org/plugins/invoicing/
+        if (
+            apbct_is_plugin_active('invoicing/invoicing.php') &&
+            Post::equal('action', 'wpinv_payment_form_refresh_prices')
+        ) {
+            return 'invoicing';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */

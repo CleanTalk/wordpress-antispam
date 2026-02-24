@@ -127,6 +127,16 @@ class TestContactIsSkipRequest extends TestCase
         ));
     }
 
+    public function testSkip__woocommerce__invoicing()
+    {
+        $this->assertTrue(self::checkSkipMutations(
+            'action',
+            'wpinv_payment_form_refresh_prices',
+            'invoicing/invoicing.php',
+            'invoicing'
+        ));
+    }
+
     /**
      * Check if skipped on all data complied, and every case if not.
      * @param string $expected_key expected POST key
