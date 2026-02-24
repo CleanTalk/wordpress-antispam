@@ -2113,17 +2113,9 @@ function apbct_form__gravityForms__addField($form_string, $form)
  */
 function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
 {
-    global $apbct, $cleantalk_executed, $ct_gform_is_spam, $ct_gform_response;
+    global $apbct, $ct_gform_is_spam, $ct_gform_response;
 
-    if (
-        $is_spam ||
-        $apbct->settings['forms__contact_forms_test'] == 0 ||
-        ($apbct->settings['data__protect_logged_in'] != 1 && apbct_is_user_logged_in()) || // Skip processing for logged in users.
-        apbct_exclusions_check__url() ||
-        $cleantalk_executed // Return unchanged result if the submission was already tested.
-    ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
+    if (apbct_form__gravityForms__isSkippedRequest($is_spam)) {
         return $is_spam;
     }
 
@@ -2252,6 +2244,54 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
     }
 
     return $is_spam;
+}
+
+/**
+ * Check if Gravity forms request should be skipped
+ *
+ * @param bool $is_spam
+ *
+ * @return bool
+ */
+function apbct_form__gravityForms__isSkippedRequest($is_spam)
+{
+    global $cleantalk_executed, $apbct;
+
+    $data = [
+        '_POST' => $_POST,
+        '_GET' => $_GET,
+        'SERVER_URI' => Server::getString('REQUEST_URI'),
+        'HTTP_REFERER' => Server::getString('HTTP_REFERER'),
+        '$is_spam' => $is_spam,
+        '$cleantalk_executed' => $cleantalk_executed,
+    ];
+
+    if ( $is_spam ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . 'ALREADY SET BY GRAVITY AS SPAM', $data);
+        return true;
+    }
+
+    if ( $apbct->settings['forms__contact_forms_test'] == 0 ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . 'CONTACT FORM TEST DISABLED', $data);
+        return true;
+    }
+
+    if ( ($apbct->settings['data__protect_logged_in'] != 1 && apbct_is_user_logged_in()) ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . 'USER IS LOGGED IN', $data);
+        return true;
+    }
+
+    if ( apbct_exclusions_check__url() ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . 'URL EXCLUSION FOUND', $data);
+        return true;
+    }
+
+    if ( $cleantalk_executed ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . 'CLEANTALK IS ALREADY EXECUTED', $data);
+        return true;
+    }
+
+    return false;
 }
 
 function apbct_form__gravityForms__showResponse($confirmation, $form, $_entry, $_ajax)
