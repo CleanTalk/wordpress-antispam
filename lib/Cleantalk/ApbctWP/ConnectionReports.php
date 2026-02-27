@@ -429,7 +429,7 @@ class ConnectionReports
         }
 
         $to = 'pluginreports@cleantalk.org';
-        $subject = "CleanTalk Service Report: Connection v" . APBCT_VERSION . " for " . TT::toString(Server::get('HTTP_HOST')) ;
+        $subject = "CleanTalk Service Report: Connection v" . APBCT_VERSION . " for " . Server::getString('HTTP_HOST') ;
 
         $message = $this->prepareEmailContent($selection, $is_cron_task);
         $headers = "Content-type: text/html; charset=utf-8 \r\n";
@@ -449,6 +449,7 @@ class ConnectionReports
      */
     private function prepareEmailContent(array $selection, $is_cron_task = false)
     {
+        global $apbct;
         $stat_since = isset($this->reports_count['stat_since']) ? $this->reports_count['stat_since'] : '';
         $total = isset($this->reports_count['total']) ? $this->reports_count['total'] : '';
         $positive = isset($this->reports_count['positive']) ? $this->reports_count['positive'] : '';
@@ -487,6 +488,7 @@ class ConnectionReports
 
         $message .= '</table><br>';
         $message .= '<br>' . ($is_cron_task ? 'This is a cron task.' : 'This is a manual task.') . '<br>';
+        $message .= '<br>Site service_id: ' . $apbct->data['service_id'] . '<br>';
         $message .= '</body></html>';
 
         return $message;

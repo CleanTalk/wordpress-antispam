@@ -88,7 +88,7 @@ class SFWUpdateSentinel
         }
 
         $to = 'pluginreports@cleantalk.org';
-        $subject = "SFW failed updates report for " . TT::toString(Server::get('HTTP_HOST')) . " v" . APBCT_VERSION;
+        $subject = "CleanTalk Service Report: SFW v" . APBCT_VERSION . " for " . Server::getString('HTTP_HOST');
         $message = '
             <html lang="en">
                 <head>
@@ -166,6 +166,8 @@ class SFWUpdateSentinel
         } else {
             $message .= '<p>There is no previous SFW failed update report.</p>';
         }
+
+        $message .= '<br>Site service_id: ' . $apbct->data['service_id'] . '<br>';
 
         $message .= '</body></html>';
 
