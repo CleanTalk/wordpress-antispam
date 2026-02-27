@@ -171,7 +171,7 @@ class TestRCServiceTemplateGet extends PHPUnit\Framework\TestCase
         $result = apbct_rc__service_template_set('1234',
             apbct_validate_api_response__service_template_get('1234',$this->api_response),
             $this->api_key);
-        $this->assertEquals($result,'{"OK":"Settings updated"}');
+        $this->assertEquals('{"OK":"Settings updated"}', $result);
     }
 
     public function testBadRequest()

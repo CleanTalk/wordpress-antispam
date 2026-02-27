@@ -2,8 +2,6 @@
 
 namespace Cleantalk\ApbctWP\RequestParameters;
 
-use Cleantalk\ApbctWP\Variables\Cookie;
-
 /**
  * Class SubmitTimeHandler
  *
@@ -80,6 +78,8 @@ final class SubmitTimeHandler
         global $apbct;
 
         // Return the value of the bot detector setting
-        return (bool)$apbct->settings['data__bot_detector_enabled'] && Cookie::getBool('ct_gathering_loaded') ? false : true;
+        return $apbct->settings['data__bot_detector_enabled']
+            ? !RequestParameters::get('ct_gathering_loaded')
+            : false;
     }
 }
