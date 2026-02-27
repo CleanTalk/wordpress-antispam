@@ -422,8 +422,6 @@ class ConnectionReports
      */
     private function sendEmail(array $unsent_reports_ids, $is_cron_task = false)
     {
-        global $apbct;
-
         $selection = $this->getReportsDataByIds($unsent_reports_ids);
 
         if (empty($selection)) {
@@ -431,7 +429,7 @@ class ConnectionReports
         }
 
         $to = 'pluginreports@cleantalk.org';
-        $subject = "Connection report for " . TT::toString(Server::get('HTTP_HOST')) . " v" . APBCT_VERSION;
+        $subject = "CleanTalk Service Report: Connection v" . APBCT_VERSION . " for " . TT::toString(Server::get('HTTP_HOST')) ;
 
         $message = $this->prepareEmailContent($selection, $is_cron_task);
         $headers = "Content-type: text/html; charset=utf-8 \r\n";
