@@ -31,9 +31,13 @@ class RemoteCalls
      */
     public static function check()
     {
-        return Request::get('spbc_remote_call_token')
-            ? self::checkWithToken()
-            : self::checkWithoutToken();
+        //do not check token logic if no RC action sign found
+        if ( Request::getString('spbc_remote_call_action') ) {
+            return Request::getString('spbc_remote_call_token')
+                ? self::checkWithToken()
+                : self::checkWithoutToken();
+        }
+        return false;
     }
 
     public static function checkWithToken()
@@ -107,7 +111,7 @@ class RemoteCalls
                 // Check Access key
                 if (
                     (self::checkToken($token)) ||
-                    (self::checkWithoutToken() && self::isAllowedWithoutToken($action))
+                    (self::isAllowedWithoutToken($action) && self::checkWithoutToken())
                 ) {
                     // Flag to let plugin know that Remote Call is running.
                     $apbct->rc_running = true;

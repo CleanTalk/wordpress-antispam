@@ -497,15 +497,13 @@ class ApbctHandler {
         let fluentBookingApp = document.querySelectorAll('div[class^="fluent_booking_app"]').length > 0;
         let bloomPopup = document.querySelectorAll('div[class^="et_bloom_form_container"]').length > 0;
         let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
-        let otterForm = document.querySelectorAll('div [class*="otter-form"]').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
             jetpackCommentsForm ||
             userRegistrationProForm ||
             etPbDiviSubscriptionForm ||
             fluentBookingApp ||
             pafeFormsFormElementor ||
-            bloomPopup ||
-            otterForm;
+            bloomPopup;
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
@@ -659,7 +657,7 @@ class ApbctHandler {
      * @return {void}
      */
     catchFetchRequest() {
-        const shadowRootProtection = new ApbctShadowRootProtection();
+        const fetchProxyProtection = new ApbctFetchProxyProtection();
         let preventOriginalFetch = false;
 
         /**
@@ -717,9 +715,9 @@ class ApbctHandler {
                 return defaultFetch.apply(window, args);
             }
 
-            // === ShadowRoot forms ===
-            const shadowRootResult = await shadowRootProtection.processFetch(args);
-            if (shadowRootResult === true) {
+            // === FetchProxy forms ===
+            const fetchProxyResult = await fetchProxyProtection.processFetch(args);
+            if (fetchProxyResult === true) {
                 // Return a "blank" response that never completes
                 return new Promise(() => {});
             }
@@ -869,7 +867,6 @@ class ApbctHandler {
                         if (settings.data.indexOf('twt_cc_signup') !== -1) {
                             sourceSign.found = 'twt_cc_signup';
                         }
-
                         if (settings.data.indexOf('action=mailpoet') !== -1) {
                             sourceSign.found = 'action=mailpoet';
                             sourceSign.attachVisibleFieldsData = true;
@@ -1647,6 +1644,10 @@ async function apbct_ready() {
     apbctLocalStorage.set('apbct_existing_visitor', 1);
 }
 
+const defaultFetch = window.fetch;
+const defaultSend = XMLHttpRequest.prototype.send;
+let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
+
 if (ctPublic.data__key_is_ok) {
     if (document.readyState !== 'loading') {
         apbct_ready();
@@ -1659,11 +1660,6 @@ if (ctPublic.data__key_is_ok) {
         ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true);
     }
 }
-
-const defaultFetch = window.fetch;
-const defaultSend = XMLHttpRequest.prototype.send;
-
-let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 
 /**
  * Run cron jobs
