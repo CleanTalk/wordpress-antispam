@@ -19,10 +19,10 @@ class HivePressRegistration extends IntegrationBase
             return null;
         }
 
-        $data['email'] = $argument['email'];
-        $data['register'] = true;
-
-        return $data;
+        return [
+            'email' => $argument['email'],
+            'register' => true
+        ];
     }
 
     /**
