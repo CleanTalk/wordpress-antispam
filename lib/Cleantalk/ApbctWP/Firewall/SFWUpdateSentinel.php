@@ -2,11 +2,16 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
+use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\TextPlate;
 use Cleantalk\Common\TT;
 
 class SFWUpdateSentinel
 {
+    use TextPlate;
+
     /**
      * @var array
      */
@@ -14,11 +19,11 @@ class SFWUpdateSentinel
     /**
      * @var array
      */
-    private $last_fw_stats = array();    /**
+    private $last_fw_stats = array();
+    /**
      * @var int
      */
     private $number_of_failed_updates_to_check;
-
     /**
      * @var int
      */
@@ -59,7 +64,7 @@ class SFWUpdateSentinel
      * @param string $id firewall_updating_id
      * @return bool
      */
-    private function hasIdAdded($id)
+    public function hasIdAdded($id)
     {
         return isset($this->sentinel_ids[$id]);
     }
@@ -68,7 +73,7 @@ class SFWUpdateSentinel
      * Return list of seeking ids.
      * @return array
      */
-    private function getSeekingIdsList()
+    public function getSeekingIdsList()
     {
         $this->getSentinelData();
         return $this->sentinel_ids;
@@ -76,119 +81,191 @@ class SFWUpdateSentinel
 
     /**
      * Send email with seeking id failed and last fw_stats
+     * @param array $ids_list
      */
-    private function sendSentinelEmail()
+    public function sendSentinelEmail(array $ids_list)
+    {
+        $this->getSentinelData();
+        $from_email = ct_get_admin_email();
+        $to_email = 'pluginreports@cleantalk.org';
+        $subject = self::textPlateRender('CleanTalk Service Report: SFW v{{version}} for {{host}}', [
+            'host' => Server::getString('HTTP_HOST'),
+            'version' => APBCT_VERSION,
+        ]);
+        $message = $this->prepareEmailContent($ids_list);
+        $headers = self::textPlateRender("Content-type: text/html; charset=utf-8\r\nFrom: {{mail}}", [
+            'mail' => $from_email,
+        ]);
+        $sent = @wp_mail($to_email, $subject, $message, $headers);
+        $this->updateSentinelStats($sent);
+    }
+
+    /**
+     * Prepare content of email.
+     * @param array $idsList
+     * @return string
+     */
+    public function prepareEmailContent(array $idsList): string
+    {
+        /**
+         * @var State $apbct
+         */
+        global $apbct;
+
+        // HTML
+        $template = '
+            <html lang="en">
+            <head>
+                <title>CleanTalk SFW Report</title>
+                <style>
+                    table { background: #eee; border: 1px solid #000; }
+                    td, th { background: #eee; border: 1px solid #000; }
+                    pre {background: #eee; border: 1px solid #000; }
+                </style>
+            </head>
+            <body>
+                <p>There were {{failed_count}} unsuccessful SFW updates in a row:</p>
+                <p>Negative report:</p>
+                <table>
+                    <tr><th>&nbsp;</th><th>FW update ID</th><th>Started date</th></tr>
+                    {{failed_rows}}
+                </table>
+            
+                <p>Last FW stats:</p>
+                <table>{{fw_stats}}</table>
+                
+                <p>Last queue details</p>
+                <pre>{{queue}}</pre>
+                
+                <p>Remote SFW worker call test:{{test_rc_result}}</p>
+                <p>Key is OK:{{key_is_ok}}</p>
+                <p>License:{{license_status}}</p>
+            
+                <p>This report is sent by cron task on: {{current_time}}</p>
+                <div>{{prev_report}}</div>
+                <p>Site service_id: {{service_id}}</p>
+            </body>
+            </html>
+        ';
+
+        //test RC
+        $test_rc_result = Helper::httpRequestRcToHostTest(
+            'sfw_update__worker',
+            array(
+                'spbc_remote_call_token' => md5(TT::toString($apbct->api_key)),
+                'spbc_remote_call_action' => 'sfw_update__worker',
+                'plugin_name' => 'apbct'
+            )
+        );
+        $test_rc_result = substr(
+            TT::toString($test_rc_result, 'INVALID RC RESULT'),
+            0,
+            300
+        );
+
+        //license is active
+        $license_status = $apbct->data['moderate'] ? 'ACTIVE' : '<b>INACTIVE</b>';
+
+        //key is ok
+        $key_is_ok = $apbct->data['key_is_ok'] ? 'TRUE' : '<b>FALSE</b>';
+
+        return self::textPlateRender($template, [
+            'failed_count' => (string)count($idsList),
+            'failed_rows'  => $this->getFailedUpdatesHTML($idsList),
+            'fw_stats'     => $this->getFWStatsHTML(),
+            'queue'     => $this->getQueueJSONPretty(),
+            'test_rc_result' => $test_rc_result,
+            'license_status' => $license_status,
+            'key_is_ok' => $key_is_ok,
+            'current_time' => current_time('m-d-y H:i:s'),
+            'prev_report'  => $this->getPrevReportHTML($apbct->data),
+            'service_id'   => TT::toString($apbct->data['service_id']),
+        ]);
+    }
+
+    /**
+     * Get failed updates HTML chunk.
+     * @param array $idsList
+     * @return string
+     */
+    public function getFailedUpdatesHTML($idsList)
+    {
+        $failedRowsHtml = '';
+        $counter = 0;
+        foreach ($idsList as $id => $data) {
+            $date = date('m-d-y H:i:s', TT::getArrayValueAsInt($data, 'started')) ?: 'Unknown date';
+            $failedRowsHtml .= self::textPlateRender(
+                '<tr><td>{{index}}.</td><td>{{id}}</td><td>{{date}}</td></tr>',
+                [
+                    'index' => (string)($counter + 1),
+                    'id'    => (string)$id,
+                    'date'  => $date,
+                ]
+            );
+        }
+        return $failedRowsHtml;
+    }
+
+    /**
+     * Get Firewall Stats HTML chunk.
+     * @return string
+     */
+    public function getFWStatsHTML()
+    {
+        $fwStatsHtml = '';
+        foreach ($this->last_fw_stats as $key => $value) {
+            if ($key === 'updating_folder' && !empty($value)) {
+                preg_match('/^(.*?)[\/\\\]wp-content.*$/', $value, $matches);
+                if (!empty($matches[1])) {
+                    $value = str_replace($matches[1], '', $value);
+                }
+            }
+            $fwStatsHtml .= self::textPlateRender(
+                '<tr><td>{{key}}:</td><td>{{value}}</td></tr>',
+                [
+                    'key'   => $key,
+                    'value' => !is_array($value) && !empty($value) ? (string)$value : 'No data',
+                ]
+            );
+        }
+        return $fwStatsHtml;
+    }
+
+    /**
+     * Get previous reports HTML chunk.
+     * @return string
+     */
+    public function getPrevReportHTML($apbct_data)
+    {
+        $prevDate = !empty($apbct_data['sentinel_data']['prev_sent_try']['date'])
+            ? date('m-d-y H:i:s', $apbct_data['sentinel_data']['prev_sent_try']['date'])
+            : 'unknown date';
+        return !empty($prevDate)
+            ? "<p>Previous SFW failed update report was sent on {$prevDate}</p>"
+            : '<p>There is no previous SFW failed update report.</p>';
+    }
+
+    /**
+     * Get JSON pretty string to show queue status.
+     * @return string
+     */
+    public function getQueueJSONPretty()
+    {
+        $queue = get_option('cleantalk_sfw_update_queue');
+        $queue = is_array($queue) ? $queue : array('Last queue not found or invalid.');
+        $queue = json_encode($queue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $queue !== false ? $queue : 'Can not construct queue JSON.';
+    }
+
+    public function updateSentinelStats($sent)
     {
         global $apbct;
 
-        $ids_list = $this->getSeekingIdsList();
-
-        if ( empty($ids_list) ) {
-            return false;
-        }
-
-        $to = 'pluginreports@cleantalk.org';
-        $subject = "CleanTalk Service Report: SFW v" . APBCT_VERSION . " for " . Server::getString('HTTP_HOST');
-        $message = '
-            <html lang="en">
-                <head>
-                    <title></title>
-                    <style type="text/css">
-                    table {
-                        background: #eee; 
-                        border: 1px solid #000; 
-                    }
-                    td, th {
-                        background: #eee; 
-                        border: 1px solid #000; 
-                    }
-                    </style>
-                </head>
-                <body>
-                    <p>
-                    There were ' . count($ids_list) . ' unsuccesful SFW updates in a row: 
-                    </p>
-                    <p>Negative report:</p>
-                    <table><tr>
-                    <th>&nbsp;</th>
-                    <th><b>FW update ID</b></th>
-                    <th><b>Started date</b></th>
-              </tr>
-              ';
-        $counter = 0;
-
-        foreach ( $ids_list as $_id => $data ) {
-            $date = date('m-d-y H:i:s', TT::getArrayValueAsInt($data, 'started'));
-            $date = is_string($date) ? $date : 'Unknown date';
-            $message .= '<tr>'
-                . '<td>' . (++$counter) . '.</td>'
-                . '<td>' . $_id . '</td>'
-                . '<td>' . $date . '</td>'
-                . '</tr>';
-        }
-
-        $message .= '</table>';
-        $message .= '<br>';
-
-        $last_fw_stats_html = '<table>';
-
-        foreach ( $this->last_fw_stats as $row_key => $value ) {
-            $last_fw_stats_html .= '<tr><td> ' . esc_html($row_key) . ': </td>';
-            //clear root path
-            if ( $row_key === 'updating_folder' && !empty($value) ) {
-                preg_match('/^(.*?)[\/\\\]wp-content.*$/', $value, $to_delete);
-                if ( !empty($to_delete[1]) ) {
-                    $value = str_replace($to_delete[1], "", $value);
-                }
-            }
-            if ( !is_array($value) && !empty($value) ) {
-                $last_fw_stats_html .= '<td>' . esc_html($value) . '</td>';
-            } else {
-                $last_fw_stats_html .= '<td>No data</td>';
-            }
-            $last_fw_stats_html .= '</tr>';
-        }
-
-        $last_fw_stats_html .= '</table>';
-
-        $message .= '<p>Last FW stats:</p>';
-        $message .= '<p>' . $last_fw_stats_html . '</p>';
-        $message .= '<br>';
-
-        $message .= '<p>This report is sent by cron task on: ' . current_time('m-d-y H:i:s') . '</p>';
-
-        $prev_date = !empty($apbct->data['sentinel_data']['prev_sent_try']['date'])
-            ? date('m-d-y H:i:s', $apbct->data['sentinel_data']['prev_sent_try']['date'])
-            : '';
-
-        if ( !empty($prev_date) ) {
-            $message .= '<p>Previous SFW failed update report were sent on '  . $prev_date . '</p>';
-        } else {
-            $message .= '<p>There is no previous SFW failed update report.</p>';
-        }
-
-        $message .= '<br>Site service_id: ' . $apbct->data['service_id'] . '<br>';
-
-        $message .= '</body></html>';
-
-        $headers = "Content-type: text/html; charset=utf-8 \r\n";
-        $headers .= 'From: ' . ct_get_admin_email();
-
-        $sent = false;
-
-        /** @psalm-suppress UnusedFunctionCall */
-        if ( wp_mail($to, $subject, $message, $headers) ) {
-            $sent = true;
-        }
-
-        $apbct->data['sentinel_data']['prev_sent_try'] = !empty($apbct->data['sentinel_data']['last_sent_try'])
-            ? $apbct->data['sentinel_data']['last_sent_try']
-            : false;
-
-        $apbct->data['sentinel_data']['last_sent_try'] = array(
-            'date' => current_time('timestamp'),
-            'success' => $sent
-        );
+        $apbct->data['sentinel_data']['prev_sent_try'] = $apbct->data['sentinel_data']['last_sent_try'] ?? false;
+        $apbct->data['sentinel_data']['last_sent_try'] = [
+            'date'    => current_time('timestamp'),
+            'success' => $sent,
+        ];
         $apbct->saveData();
     }
 
@@ -196,7 +273,7 @@ class SFWUpdateSentinel
      * Check if there are a number of unfinished firewall_updating_id on seek.
      * @return bool
      */
-    private function hasNumberOfFailedUpdates($number)
+    public function hasNumberOfFailedUpdates($number)
     {
         if ( count($this->sentinel_ids) >= $number ) {
             return true;
@@ -213,9 +290,13 @@ class SFWUpdateSentinel
         global $apbct;
         $this->getSentinelData();
         if ( $this->hasNumberOfFailedUpdates($this->number_of_failed_updates_to_check) ) {
-            if ( isset($apbct->settings['misc__send_connection_reports'])
-                && $apbct->settings['misc__send_connection_reports'] == 1 ) {
-                $this->sendSentinelEmail();
+            $ids_list = $this->getSeekingIdsList();
+            if (
+                !empty($ids_list) &&
+                isset($apbct->settings['misc__send_connection_reports']) &&
+                $apbct->settings['misc__send_connection_reports'] == 1
+            ) {
+                $this->sendSentinelEmail($ids_list);
             }
             //Clear and waiting for next unsucces FW updates
             $this->clearSentinelData();
