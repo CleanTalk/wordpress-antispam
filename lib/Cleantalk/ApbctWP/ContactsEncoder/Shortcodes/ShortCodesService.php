@@ -11,6 +11,8 @@ class ShortCodesService
 {
     public $encode;
 
+    public $shortcode_to_exclude;
+
     public $shortcodes_registered = false;
 
     /**
@@ -20,6 +22,7 @@ class ShortCodesService
     {
         if (!$this->shortcodes_registered) {
             $this->encode->register();
+            $this->shortcode_to_exclude->register();
             $this->shortcodes_registered = true;
         }
     }
@@ -27,6 +30,7 @@ class ShortCodesService
     public function __construct(Params $params)
     {
         $this->encode = new EncodeContentSC($params);
+        $this->shortcode_to_exclude = new ExcludedEncodeContentSC();
     }
 
     public function addActionsBeforeModify($hook, $priority = 1)
