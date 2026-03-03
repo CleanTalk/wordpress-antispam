@@ -590,6 +590,21 @@ class Helper
     }
 
     /**
+     * Is host resolves like CleanTalk server.
+     * @param $ip
+     * @return false|string
+     */
+    public static function isCleanTalkServer($ip)
+    {
+        $pattern = '/^(api|apix[0-9]+|moderate|moderate[0-9]+)\.cleantalk\.(org|ru)$/';
+        $validated_host = self::ipResolve($ip);
+        if ($validated_host && preg_match($pattern, $validated_host)) {
+            return $validated_host;
+        }
+        return false;
+    }
+
+    /**
      * Resolve DNS to IP
      *
      * @param      $host

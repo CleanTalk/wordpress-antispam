@@ -322,7 +322,7 @@ class Cleantalk
 
         // Loop until find work server
         foreach ( $servers as $server ) {
-            $dns = Helper::ipResolve($server['ip']);
+            $dns = Helper::isCleanTalkServer($server['ip']);
             if ( ! $dns ) {
                 continue;
             }
@@ -363,7 +363,7 @@ class Cleantalk
 
         // Loop until find work server
         foreach ( $servers as $server ) {
-            $dns = Helper::ipResolve($server['ip']);
+            $dns = Helper::isCleanTalkServer($server['ip']);
             if ( ! $dns ) {
                 continue;
             }
