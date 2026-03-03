@@ -20,5 +20,8 @@
     "gulp-sourcemap": "^1.0.1",
     "gulp-sourcemaps": "^2.6.5",
     "gulp-uglify": "^3.0.2"
+  },
+  "dependencies": {
+    "gulp-clean-css": "^4.3.0"
   }
 }

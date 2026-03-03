@@ -4,7 +4,7 @@ var gulp       = require('gulp'),
     sourcemaps = require('gulp-sourcemaps'),
     uglify     = require('gulp-uglify'),
     rename     = require('gulp-rename'),
-    cssmin     = require('gulp-cssmin'),
+    cleanCSS   = require('gulp-clean-css'),
     concat     = require('gulp-concat'),
     babel      = require('gulp-babel');
 
@@ -13,7 +13,7 @@ var gulp       = require('gulp'),
  */
 gulp.task('compress-css', function () {
     return gulp.src('css/src/*.css')
-        .pipe(cssmin())
+        .pipe(cleanCSS())
         .pipe(rename({suffix: '.min'}))
         .pipe(gulp.dest('css'));
 });
