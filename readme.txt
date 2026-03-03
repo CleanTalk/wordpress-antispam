@@ -412,6 +412,23 @@ Yes, it is. Please read this article,
 
 == Changelog ==
 
+= 6.74 05.03.2026 =
+* Mod. SFW. Atomic approach to updating SFW
+* Upd. Exclusions. Ajax. Plugin "cart-recovery".
+* Fix. Code. JS loading by defer fixed.
+* Mod. OtterForms. Changing integration from a hook to a route
+* Mod. OtterForms. Changing the integration, renaming the request interception method
+* Upd. Connection reports. Email subject updated.
+* Fix. JS. catchFetchRequest. Origin fetch definitions.
+* Upd. Exclusions. Ajax. Plugin "invoicing".
+* Upd. Gravity Forms. Skipped request extended log.
+* Fix. Translate. Fixed msgids.
+* Upd. Connection reports. Email title edited.
+* Upd. Connection reports. Service id added.
+* Fix. SubmitTime. Calculation of the submit time when enabling the gathering script
+* Upd. SFW updates sentinel. Updated report.
+* Upd. Settings. Updated RC to init settings update.
+
 = 6.73.1 19.02.2026 =
 * Fix. Code. JS loading by `defer` fixed.
 
