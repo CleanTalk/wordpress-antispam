@@ -12,7 +12,7 @@ namespace Cleantalk\ApbctWP\RequestParameters;
 final class SubmitTimeHandler
 {
     const DEFAULT_VALUE = null; // Default value to return when calculation is disabled or invalid
-    const REQUEST_PARAM_NAME = 'ct_ps_timestamp'; // Name of the request parameter for the timestamp
+    const REQUEST_PARAM_NAME = 'apbct_timestamp'; // Name of the request parameter for the timestamp
 
     /**
      * Retrieves the time difference between the current time and the timestamp
@@ -51,11 +51,6 @@ final class SubmitTimeHandler
      */
     final public static function setToRequest($current_timestamp, &$cookie_test_value)
     {
-        // Check if calculation is disabled globally
-        if (self::isCalculationDisabled()) {
-            return;
-        }
-
         // Set the timestamp in the request
         RequestParameters::set(self::REQUEST_PARAM_NAME, (string)$current_timestamp, true);
 
