@@ -16,6 +16,11 @@ $apbct_active_rest_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'rest'       => true,
     ),
+    'HivePressRegistration'         => array(
+        'rest_route'    => '/hivepress/v1/users',
+        'setting' => 'forms__registrations_test',
+        'rest'       => true,
+    ),
 );
 
 add_filter('rest_pre_dispatch', function ($result, $_, $request) use ($apbct_active_rest_integrations) {
