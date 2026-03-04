@@ -428,6 +428,7 @@ Yes, it is. Please read this article,
 * Fix. SubmitTime. Calculation of the submit time when enabling the gathering script
 * Upd. SFW updates sentinel. Updated report.
 * Upd. Settings. Updated RC to init settings update.
+* Fix. SubmitTime. Editing the creation of a timestamp
 
 = 6.73.1 19.02.2026 =
 * Fix. Code. JS loading by `defer` fixed.
