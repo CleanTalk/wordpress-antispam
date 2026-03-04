@@ -56,6 +56,15 @@
     gap: 1px;
 }
 
+.apbct-real-user-popup-content_row * {
+    color: grey;
+    font-style: italic;
+}
+.apbct-real-user-popup-content_row strong {
+    color: initial;
+    font-style: initial;
+}
+
 .apbct-real-user-popup-img {
     align-self: start;
     margin: 0!important;
