@@ -189,15 +189,10 @@ class SFWUpdateHelper
         global $apbct;
 
         if ( $sfw_load_type === 'all' ) {
-            //common table delete
-            $result_deletion = SFW::dataTablesDelete(DB::getInstance(), $apbct->data['sfw_common_table_name']);
-            if ( !empty($result_deletion['error']) ) {
-                throw new \Exception('SFW_COMMON_TABLE_DELETION_ERROR');
-            }
-            //common table rename
-            $result_renaming = SFW::renameDataTablesFromTempToMain(DB::getInstance(), $apbct->data['sfw_common_table_name']);
-            if ( !empty($result_renaming['error']) ) {
-                throw new \Exception('SFW_COMMON_TABLE_RENAME_ERROR');
+            //common table delete and rename in one transaction
+            $result = SFW::replaceDataTablesAtomically(DB::getInstance(), $apbct->data['sfw_common_table_name']);
+            if ( !empty($result['error']) ) {
+                throw new \Exception('SFW_COMMON_TABLE_ATOMIC_RENAME_ERROR: ' . $result['error']);
             }
 
             //personal table delete
@@ -222,15 +217,10 @@ class SFWUpdateHelper
                 throw new \Exception('SFW_PERSONAL_TABLE_RENAME_ERROR');
             }
         } elseif ( $sfw_load_type === 'common' ) {
-            //common table delete
-            $result_deletion = SFW::dataTablesDelete(DB::getInstance(), $apbct->data['sfw_common_table_name']);
-            if ( !empty($result_deletion['error']) ) {
-                throw new \Exception('SFW_COMMON_TABLE_DELETION_ERROR');
-            }
-            //common table rename
-            $result_renaming = SFW::renameDataTablesFromTempToMain(DB::getInstance(), $apbct->data['sfw_common_table_name']);
-            if ( !empty($result_renaming['error']) ) {
-                throw new \Exception('SFW_COMMON_TABLE_RENAME_ERROR');
+             //common table delete and rename in one transaction
+            $result = SFW::replaceDataTablesAtomically(DB::getInstance(), $apbct->data['sfw_common_table_name']);
+            if ( !empty($result['error']) ) {
+                throw new \Exception('SFW_COMMON_TABLE_ATOMIC_RENAME_ERROR: ' . $result['error']);
             }
         }
     }
