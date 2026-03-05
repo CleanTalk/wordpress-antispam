@@ -3387,9 +3387,9 @@ class ApbctHandler {
                 jQuery.ajaxSetup({
                     beforeSend: function(xhr, settings) {
                         const handler = new ApbctHandler();
-                        const sourceSign = handler.searchSignsForInjection(settings, 'ajaxSetup');
+                        const sourceSign = handler.searchSignsForJQAjaxInjection(settings, 'ajaxSetup');
                         if (sourceSign.found !== false) {
-                            settings.data = handler.injectCleantalkDataToAjaxString(sourceSign, settings.data);
+                            settings.data = handler.injectCleantalkDataToJQAjaxString(sourceSign, settings.data);
                         }
                     },
                 });
@@ -3399,9 +3399,9 @@ class ApbctHandler {
             if ( typeof jQuery.ajaxPrefilter === 'function' ) {
                 jQuery.ajaxPrefilter(function(options, originalOptions, jqXHR) {
                     const handler = new ApbctHandler();
-                    const sourceSign = handler.searchSignsForInjection(options, 'ajaxPrefilter');
+                    const sourceSign = handler.searchSignsForJQAjaxInjection(options, 'ajaxPrefilter');
                     if (sourceSign.found !== false) {
-                        options.data = handler.injectCleantalkDataToAjaxString(sourceSign, options.data);
+                        options.data = handler.injectCleantalkDataToJQAjaxString(sourceSign, options.data);
                     }
                 });
             }
@@ -3414,7 +3414,7 @@ class ApbctHandler {
      * @param {string} catchOn Function should be catched on.
      * @return {{found: boolean, keepUnwrapped: boolean, attachVisibleFieldsData: boolean}}
      */
-    searchSignsForInjection(ajaxObject, catchOn = 'ajaxSetup') {
+    searchSignsForJQAjaxInjection(ajaxObject, catchOn = 'ajaxSetup') {
         let sourceSign = {
             'found': false,
             'keepUnwrapped': false,
@@ -3512,7 +3512,7 @@ class ApbctHandler {
      * @param {string} ajaxDataString Original data string from ajax object.
      * @return {string}
      */
-    injectCleantalkDataToAjaxString(sourceSign, ajaxDataString) {
+    injectCleantalkDataToJQAjaxString(sourceSign, ajaxDataString) {
         // something wrong with incoming data
         if (typeof sourceSign !== 'object' || typeof ajaxDataString !== 'string') {
             return ajaxDataString;
