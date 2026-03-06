@@ -495,15 +495,13 @@ class ApbctHandler {
         let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
         let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
         let fluentBookingApp = document.querySelectorAll('div[class^="fluent_booking_app"]').length > 0;
-        let bloomPopup = document.querySelectorAll('div[class^="et_bloom_form_container"]').length > 0;
         let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
             jetpackCommentsForm ||
             userRegistrationProForm ||
             etPbDiviSubscriptionForm ||
             fluentBookingApp ||
-            pafeFormsFormElementor ||
-            bloomPopup;
+            pafeFormsFormElementor;
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
@@ -913,132 +911,186 @@ class ApbctHandler {
      * @return {void}
      */
     catchJqueryAjax() {
-        if ( typeof jQuery !== 'undefined' && typeof jQuery.ajaxSetup === 'function') {
-            jQuery.ajaxSetup({
-                beforeSend: function(xhr, settings) {
-                    let sourceSign = {
-                        'found': false,
-                        'keepUnwrapped': false,
-                        'attachVisibleFieldsData': false,
-                    };
-                    // settings data is string (important!)
-                    if ( typeof settings.data === 'string' ) {
-                        if (settings.data.indexOf('action=fl_builder_subscribe_form_submit') !== -1) {
-                            sourceSign.found = 'fl_builder_subscribe_form_submit';
+        if ( typeof jQuery !== 'undefined') {
+            // this code run on base ajax rules - so do not work due scripts use it's own ajax object injections
+            if ( typeof jQuery.ajaxSetup === 'function' ) {
+                jQuery.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        const handler = new ApbctHandler();
+                        const sourceSign = handler.searchSignsForJQAjaxInjection(settings, 'ajaxSetup');
+                        if (sourceSign.found !== false) {
+                            settings.data = handler.injectCleantalkDataToJQAjaxString(sourceSign, settings.data);
                         }
-                        if (settings.data.indexOf('twt_cc_signup') !== -1) {
-                            sourceSign.found = 'twt_cc_signup';
-                        }
-                        if (settings.data.indexOf('action=mailpoet') !== -1) {
-                            sourceSign.found = 'action=mailpoet';
-                            sourceSign.attachVisibleFieldsData = true;
-                        }
-
-                        if (
-                            settings.data.indexOf('action=user_registration') !== -1 &&
-                            settings.data.indexOf('ur_frontend_form_nonce') !== -1
-                        ) {
-                            sourceSign.found = 'action=user_registration';
-                        }
-
-                        if (settings.data.indexOf('action=happyforms_message') !== -1) {
-                            sourceSign.found = 'action=happyforms_message';
-                        }
-
-                        if (settings.data.indexOf('action=new_activity_comment') !== -1) {
-                            sourceSign.found = 'action=new_activity_comment';
-                        }
-                        if (settings.data.indexOf('action=wwlc_create_user') !== -1) {
-                            sourceSign.found = 'action=wwlc_create_user';
-                        }
-                        if (settings.data.indexOf('action=drplus_signup') !== -1) {
-                            sourceSign.found = 'action=drplus_signup';
-                            sourceSign.keepUnwrapped = true;
-                        }
-                        if (settings.data.indexOf('action=bt_cc') !== -1) {
-                            sourceSign.found = 'action=bt_cc';
-                            sourceSign.keepUnwrapped = true;
-                        }
-                        if (settings.data.indexOf('action=wpr_form_builder_email') !== -1) {
-                            sourceSign.found = 'action=wpr_form_builder_email';
-                            sourceSign.keepUnwrapped = true;
-                        }
-                        if (
-                            settings.data.indexOf('action=nf_ajax_submit') !== -1
-                        ) {
-                            sourceSign.found = 'action=nf_ajax_submit';
-                            sourceSign.keepUnwrapped = true;
-                            sourceSign.attachVisibleFieldsData = true;
-                        }
-                        if (
-                            settings.data.indexOf('action=uael_register_user') !== -1 &&
-                            ctPublic.data__cookies_type === 'none'
-                        ) {
-                            sourceSign.found = 'action=uael_register_user';
-                            sourceSign.keepUnwrapped = true;
-                        }
-                        if (
-                            settings.data.indexOf('action=SQBSubmitQuizAjax') !== -1
-                        ) {
-                            sourceSign.found = 'action=SQBSubmitQuizAjax';
-                            sourceSign.keepUnwrapped = true;
-                        }
-                    }
-                    if ( typeof settings.url === 'string' ) {
-                        if (settings.url.indexOf('wc-ajax=add_to_cart') !== -1) {
-                            sourceSign.found = 'wc-ajax=add_to_cart';
-                        }
-                    }
-
+                    },
+                });
+            }
+            // this code run on ANY ajax on ANY script queue status
+            // todo Probably move all ajaxSetup actions to ajaxPrefilter
+            if ( typeof jQuery.ajaxPrefilter === 'function' ) {
+                jQuery.ajaxPrefilter(function(options, originalOptions, jqXHR) {
+                    const handler = new ApbctHandler();
+                    const sourceSign = handler.searchSignsForJQAjaxInjection(options, 'ajaxPrefilter');
                     if (sourceSign.found !== false) {
-                        let eventToken = '';
-                        let noCookieData = '';
-                        let visibleFieldsString = '';
-                        if (
-                            +ctPublic.settings__data__bot_detector_enabled &&
-                            apbctLocalStorage.get('bot_detector_event_token')
-                        ) {
-                            const token = new ApbctHandler().toolGetEventToken();
-                            if (token) {
-                                if (sourceSign.keepUnwrapped) {
-                                    eventToken = 'ct_bot_detector_event_token=' + token + '&';
-                                } else {
-                                    eventToken = 'data%5Bct_bot_detector_event_token%5D=' + token + '&';
-                                }
-                            }
-                        } else {
-                            noCookieData = getNoCookieData();
-                            if (sourceSign.keepUnwrapped) {
-                                noCookieData = 'ct_no_cookie_hidden_field=' + noCookieData + '&';
-                            } else {
-                                noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
-                            }
-                        }
-
-                        if (sourceSign.attachVisibleFieldsData) {
-                            let visibleFieldsSearchResult = false;
-
-                            const extractor = ApbctVisibleFieldsExtractor.createExtractor(sourceSign.found);
-                            if (extractor) { // Check if extractor was created
-                                visibleFieldsSearchResult = extractor.extract(settings.data);
-                            }
-
-                            if (typeof visibleFieldsSearchResult === 'string') {
-                                let encoded = null;
-                                try {
-                                    encoded = encodeURIComponent(visibleFieldsSearchResult);
-                                    visibleFieldsString = 'apbct_visible_fields=' + encoded + '&';
-                                } catch (e) {
-                                    // do nothing
-                                }
-                            }
-                        }
-
-                        settings.data = noCookieData + eventToken + visibleFieldsString + settings.data;
+                        options.data = handler.injectCleantalkDataToJQAjaxString(sourceSign, options.data);
                     }
-                },
-            });
+                });
+            }
         }
+    }
+
+    /**
+     * Search for sign within AJAX data to do inject CleanTalk data.
+     * @param {object} ajaxObject Ajax object.
+     * @param {string} catchOn Function should be catched on.
+     * @return {{found: boolean, keepUnwrapped: boolean, attachVisibleFieldsData: boolean}}
+     */
+    searchSignsForJQAjaxInjection(ajaxObject, catchOn = 'ajaxSetup') {
+        let sourceSign = {
+            'found': false,
+            'keepUnwrapped': false,
+            'attachVisibleFieldsData': false,
+        };
+        // on ajaxSetup
+        if (catchOn === 'ajaxSetup') {
+            // settings data is string (important!)
+            if ( typeof ajaxObject.data === 'string' ) {
+                if (ajaxObject.data.indexOf('action=fl_builder_subscribe_form_submit') !== -1) {
+                    sourceSign.found = 'fl_builder_subscribe_form_submit';
+                }
+                if (ajaxObject.data.indexOf('twt_cc_signup') !== -1) {
+                    sourceSign.found = 'twt_cc_signup';
+                }
+                if (ajaxObject.data.indexOf('action=mailpoet') !== -1) {
+                    sourceSign.found = 'action=mailpoet';
+                    sourceSign.attachVisibleFieldsData = true;
+                }
+
+                if (
+                    ajaxObject.data.indexOf('action=user_registration') !== -1 &&
+                    ajaxObject.data.indexOf('ur_frontend_form_nonce') !== -1
+                ) {
+                    sourceSign.found = 'action=user_registration';
+                }
+
+                if (ajaxObject.data.indexOf('action=happyforms_message') !== -1) {
+                    sourceSign.found = 'action=happyforms_message';
+                }
+
+                if (ajaxObject.data.indexOf('action=new_activity_comment') !== -1) {
+                    sourceSign.found = 'action=new_activity_comment';
+                }
+                if (ajaxObject.data.indexOf('action=wwlc_create_user') !== -1) {
+                    sourceSign.found = 'action=wwlc_create_user';
+                }
+                if (ajaxObject.data.indexOf('action=drplus_signup') !== -1) {
+                    sourceSign.found = 'action=drplus_signup';
+                    sourceSign.keepUnwrapped = true;
+                }
+                if (ajaxObject.data.indexOf('action=bt_cc') !== -1) {
+                    sourceSign.found = 'action=bt_cc';
+                    sourceSign.keepUnwrapped = true;
+                }
+                if (ajaxObject.data.indexOf('action=wpr_form_builder_email') !== -1) {
+                    sourceSign.found = 'action=wpr_form_builder_email';
+                    sourceSign.keepUnwrapped = true;
+                }
+                if (
+                    ajaxObject.data.indexOf('action=nf_ajax_submit') !== -1
+                ) {
+                    sourceSign.found = 'action=nf_ajax_submit';
+                    sourceSign.keepUnwrapped = true;
+                    sourceSign.attachVisibleFieldsData = true;
+                }
+                if (
+                    ajaxObject.data.indexOf('action=uael_register_user') !== -1 &&
+                    ctPublic.data__cookies_type === 'none'
+                ) {
+                    sourceSign.found = 'action=uael_register_user';
+                    sourceSign.keepUnwrapped = true;
+                }
+                if (
+                    ajaxObject.data.indexOf('action=SQBSubmitQuizAjax') !== -1
+                ) {
+                    sourceSign.found = 'action=SQBSubmitQuizAjax';
+                    sourceSign.keepUnwrapped = true;
+                }
+            }
+            // wooocommerce add to cart is based on URL
+            if ( typeof ajaxObject.url === 'string' ) {
+                if (ajaxObject.url.indexOf('wc-ajax=add_to_cart') !== -1) {
+                    sourceSign.found = 'wc-ajax=add_to_cart';
+                }
+            }
+        }
+
+        // on ajaxPrefilter
+        if (catchOn === 'ajaxPrefilter') {
+            if (typeof ajaxObject.data === 'string') {
+                if (ajaxObject.data.indexOf('action=bloom_subscribe') !== -1) {
+                    sourceSign.found = 'action=bloom_subscribe';
+                    sourceSign.keepUnwrapped = true;
+                }
+            }
+        }
+
+        return sourceSign;
+    }
+
+    /**
+     * Injecting CleanTalk data to ajax data string.
+     * @param {object} sourceSign Object of found sign to intercept.
+     * @param {string} ajaxDataString Original data string from ajax object.
+     * @return {string}
+     */
+    injectCleantalkDataToJQAjaxString(sourceSign, ajaxDataString) {
+        // something wrong with incoming data
+        if (typeof sourceSign !== 'object' || typeof ajaxDataString !== 'string') {
+            return ajaxDataString;
+        }
+        let eventToken = '';
+        let noCookieData = '';
+        let visibleFieldsString = '';
+        if (
+            +ctPublic.settings__data__bot_detector_enabled &&
+            apbctLocalStorage.get('bot_detector_event_token')
+        ) {
+            const token = new ApbctHandler().toolGetEventToken();
+            if (token) {
+                if (sourceSign.keepUnwrapped) {
+                    eventToken = 'ct_bot_detector_event_token=' + token + '&';
+                } else {
+                    eventToken = 'data%5Bct_bot_detector_event_token%5D=' + token + '&';
+                }
+            }
+        } else {
+            noCookieData = getNoCookieData();
+            if (sourceSign.keepUnwrapped) {
+                noCookieData = 'ct_no_cookie_hidden_field=' + noCookieData + '&';
+            } else {
+                noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+            }
+        }
+
+        if (sourceSign.attachVisibleFieldsData) {
+            let visibleFieldsSearchResult = false;
+
+            const extractor = ApbctVisibleFieldsExtractor.createExtractor(sourceSign.found);
+            if (extractor) { // Check if extractor was created
+                visibleFieldsSearchResult = extractor.extract(ajaxDataString);
+            }
+
+            if (typeof visibleFieldsSearchResult === 'string') {
+                let encoded = null;
+                try {
+                    encoded = encodeURIComponent(visibleFieldsSearchResult);
+                    visibleFieldsString = 'apbct_visible_fields=' + encoded + '&';
+                } catch (e) {
+                    // do nothing
+                }
+            }
+        }
+
+        return noCookieData + eventToken + visibleFieldsString + ajaxDataString;
     }
 
     /**
