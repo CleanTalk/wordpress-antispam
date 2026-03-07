@@ -6,6 +6,7 @@ use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\State;
 use Cleantalk\Common\TT;
 
 class SFWUpdateHelper
@@ -592,5 +593,47 @@ class SFWUpdateHelper
             : $work_batch_size;
 
         return $work_batch_size;
+    }
+
+    /**
+     * @param State $apbct
+     * @return bool
+     */
+    public static function SFWDataOutdated($apbct)
+    {
+        if (isset($apbct->stats['sfw']['last_update_time'], $apbct->stats['sfw']['update_period'])) {
+            return (TT::toInt($apbct->stats['sfw']['last_update_time']) + (TT::toInt($apbct->stats['sfw']['update_period']) * 3)) < time();
+        }
+        return false;
+    }
+
+    /**
+     * Chek if SFW in update mode.
+     * @param State $apbct
+     * @return bool
+     */
+    public static function SFWUpdateModeEnabled($apbct)
+    {
+        return isset($apbct->fw_stats['update_mode']) && TT::toInt($apbct->fw_stats['update_mode']) === 1;
+    }
+
+    /**
+     * Handle outdated error. Uses 'misc__send_connection_reports' settings to manage.
+     * @param State $apbct
+     * @return void
+     */
+    public static function processSFWOutdatedError($apbct)
+    {
+        $show_error = $apbct->settings['misc__send_connection_reports']; // business decision
+        add_action('init', function () use ($apbct, $show_error) {
+            $apbct->errorToggle(
+                $show_error,
+                'sfw_outdated',
+                esc_html__(
+                    'SpamFireWall database is outdated. Please, try to synchronize with the cloud.',
+                    'cleantalk-spam-protect'
+                )
+            );
+        });
     }
 }

@@ -910,25 +910,13 @@ function apbct_sfw__check()
     }
 
     // update mode - skip checking
-    if ( isset($apbct->fw_stats['update_mode']) && $apbct->fw_stats['update_mode'] === 1 ) {
+    if ( SFWUpdateHelper::SFWUpdateModeEnabled($apbct)) {
         return;
     }
 
-    // Checking if database was outdated
-    $is_sfw_outdated = $apbct->stats['sfw']['last_update_time'] + $apbct->stats['sfw']['update_period'] * 3 < time();
-
-    add_action('init', function () use ($apbct, $is_sfw_outdated) {
-        $apbct->errorToggle(
-            $is_sfw_outdated,
-            'sfw_outdated',
-            esc_html__(
-                'SpamFireWall database is outdated. Please, try to synchronize with the cloud.',
-                'cleantalk-spam-protect'
-            )
-        );
-    });
-
-    if ( $is_sfw_outdated ) {
+    // sfw is outdated - skip checking
+    if ( SFWUpdateHelper::SFWDataOutdated($apbct) ) {
+        SFWUpdateHelper::processSFWOutdatedError($apbct);
         return;
     }
 

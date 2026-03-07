@@ -5,6 +5,7 @@ namespace Cleantalk\ApbctWP;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Common\TextPlateStatic;
 use Cleantalk\Common\TT;
 
 class ConnectionReports
@@ -422,13 +423,14 @@ class ConnectionReports
      */
     private function sendEmail(array $unsent_reports_ids, $is_cron_task = false)
     {
+        global $apbct;
         $selection = $this->getReportsDataByIds($unsent_reports_ids);
 
         if (empty($selection)) {
             return false;
         }
 
-        $to = 'pluginreports@cleantalk.org';
+        $to = $apbct->data['email_for_reports'];
         $subject = "CleanTalk Service Report: Connection v" . APBCT_VERSION . " for " . Server::getString('HTTP_HOST') ;
 
         $message = $this->prepareEmailContent($selection, $is_cron_task);
@@ -541,5 +543,41 @@ class ConnectionReports
     {
         $this->db->execute("TRUNCATE TABLE " . $this->cr_table_name);
         $this->markReportsDataDirty();
+    }
+
+    /**
+     * Get option description
+     * @param bool $sfw_enabled
+     * @param string $brand_name
+     * @return string
+     */
+    public static function getOptionDescription($sfw_enabled, $brand_name, $email)
+    {
+        $send_connection_reports__sfw_text = '';
+        $sfw_outdated_message = '';
+        if ($sfw_enabled) {
+            $send_connection_reports__sfw_text = '<br>' . __('- status of SpamFireWall database updating process', 'cleantalk-spam-protect');
+            $sfw_outdated_message = '<br>' . __('Also, if enabled, a notification will appear in the plugin settings informing you that the SpamFireWall database is outdated.', 'cleantalk-spam-protect');
+        }
+        return TextPlateStatic::render(
+            '{{first_row}}<br>{{second_row}}<br>{{list_1}}{{list_2}}{{sfw_outdated_message}}',
+            array(
+                'first_row' => __("Checking this box you allow plugin to send the information about your connection.", 'cleantalk-spam-protect'),
+                'second_row' => esc_html__(
+                    sprintf(
+                        'These reports are to be sent to %s and could contain',
+                        $email
+                    )
+                ),
+                'list_1' => esc_html__(
+                    sprintf(
+                        '- connection status to %s cloud during Anti-Spam request',
+                        TT::toString($brand_name, __('service', 'cleantalk-spam-protect'))
+                    )
+                ),
+                'list_2' => $send_connection_reports__sfw_text,
+                'sfw_outdated_message' => $sfw_outdated_message,
+            )
+        );
     }
 }
