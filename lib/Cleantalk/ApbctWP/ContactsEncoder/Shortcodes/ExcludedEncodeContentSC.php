@@ -48,7 +48,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     {
         global $apbct;
 
-        if ( ! $apbct->settings['data__email_decoder_buffer'] && current_action() !== 'the_title' ) {
+        if ( ! $apbct->settings['data__email_decoder_buffer'] && $this->getCurrentAction() !== 'the_title' ) {
             return $content;
         }
 
@@ -71,6 +71,12 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         if ( $apbct->settings['data__email_decoder_buffer'] ) {
             $apbct->buffer = $result;
         }
+
         return $result;
+    }
+
+    protected function getCurrentAction()
+    {
+        return function_exists('current_action') ? current_action() : null;
     }
 }
