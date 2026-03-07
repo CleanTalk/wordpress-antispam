@@ -618,6 +618,8 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
         }, 100);
     }
 
+    SFWUpdateHelper::processSFWOutdatedError($apbct);
+
     // SpamFireWall check
     if ( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
          $apbct->settings['sfw__enabled'] == 1 &&
@@ -916,7 +918,6 @@ function apbct_sfw__check()
 
     // sfw is outdated - skip checking
     if ( SFWUpdateHelper::SFWDataOutdated($apbct) ) {
-        SFWUpdateHelper::processSFWOutdatedError($apbct);
         return;
     }
 

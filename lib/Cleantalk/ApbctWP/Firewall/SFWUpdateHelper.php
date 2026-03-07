@@ -624,7 +624,11 @@ class SFWUpdateHelper
      */
     public static function processSFWOutdatedError($apbct)
     {
-        $show_error = $apbct->settings['misc__send_connection_reports']; // business decision
+        $show_error =
+            $apbct->settings['sfw__enabled'] &&
+            self::SFWDataOutdated($apbct) &&
+            $apbct->settings['misc__send_connection_reports']; // business decision
+
         add_action('init', function () use ($apbct, $show_error) {
             $apbct->errorToggle(
                 $show_error,
