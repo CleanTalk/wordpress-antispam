@@ -11,6 +11,8 @@ class ShortCodesService
 {
     public $encode;
 
+    public $shortcode_to_exclude;
+
     public $shortcodes_registered = false;
 
     /**
@@ -18,8 +20,14 @@ class ShortCodesService
      */
     public function registerAll()
     {
+        global $apbct;
+
         if (!$this->shortcodes_registered) {
             $this->encode->register();
+            if ( ! $apbct->settings['data__email_decoder_buffer'] ) {
+                // If buffer is active, Do not run wordpress shortcode replacement - encoder do it itself here `ExcludedEncodeContentSC::changeContentAfterEncoderModify`
+                $this->shortcode_to_exclude->register();
+            }
             $this->shortcodes_registered = true;
         }
     }
@@ -27,6 +35,7 @@ class ShortCodesService
     public function __construct(Params $params)
     {
         $this->encode = new EncodeContentSC($params);
+        $this->shortcode_to_exclude = new ExcludedEncodeContentSC();
     }
 
     public function addActionsBeforeModify($hook, $priority = 1)
@@ -37,5 +46,6 @@ class ShortCodesService
     public function addActionsAfterModify($hook, $priority = 999)
     {
         add_filter($hook, array($this->encode, 'changeContentAfterEncoderModify'), $priority);
+        add_filter($hook, array($this->shortcode_to_exclude, 'changeContentAfterEncoderModify'), $priority);
     }
 }
