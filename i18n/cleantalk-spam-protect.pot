@@ -2015,13 +2015,12 @@ msgid ""
 "the domain is not specified, the current domain will be used \n"
 msgstr ""
 
-#: inc/cleantalk-common.php:716
-msgid ""
-"The email doesn`t exist, double check the address. Anti-Spam by CleanTalk."
+#: inc/cleantalk-common.php:778
+msgid "The email doesn`t exist, double check the address."
 msgstr ""
 
-#: inc/cleantalk-common.php:718
-msgid "The email exists and is good to use! Anti-Spam by CleanTalk"
+#: inc/cleantalk-common.php:780
+msgid "The email exists and is good to use!"
 msgstr ""
 
 #: inc/cleantalk-wpcli.php:37

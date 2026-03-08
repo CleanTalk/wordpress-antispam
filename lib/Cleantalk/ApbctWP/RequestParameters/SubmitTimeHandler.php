@@ -51,11 +51,6 @@ final class SubmitTimeHandler
      */
     final public static function setToRequest($current_timestamp, &$cookie_test_value)
     {
-        // Check if calculation is disabled globally
-        if (self::isCalculationDisabled()) {
-            return;
-        }
-
         // Set the timestamp in the request
         RequestParameters::set(self::REQUEST_PARAM_NAME, (string)$current_timestamp, true);
 
