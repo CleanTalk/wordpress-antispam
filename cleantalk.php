@@ -476,10 +476,11 @@ if (
 }
 
 // Memberpress integration
+// MemberPress sends mepr_process_signup_form='Y' or '1' — both must trigger the check
 if (
     !empty($_POST) &&
     apbct_is_plugin_active('memberpress/memberpress.php') &&
-    Post::hasString('mepr_process_signup_form', '1') &&
+    Post::getString('mepr_process_signup_form') &&
     (int)$apbct->settings['forms__registrations_test'] === 1
 ) {
     apbct_memberpress_signup_request_test();
