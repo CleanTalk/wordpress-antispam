@@ -15,13 +15,14 @@ class JsErrorsReport
      */
     public function sendEmail($is_cron_task = false)
     {
+        global $apbct;
         $data = $this->getData();
 
         if (empty($data)) {
             return false;
         }
 
-        $to = "pluginreports@cleantalk.org";
+        $to = $apbct->data['email_for_reports'];
         $subject = "JS errors report for " . TT::toString(Server::get('HTTP_HOST'));
         $message = '
             <html lang="en">
