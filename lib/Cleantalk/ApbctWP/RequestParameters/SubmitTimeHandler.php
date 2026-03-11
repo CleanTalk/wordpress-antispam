@@ -12,7 +12,7 @@ namespace Cleantalk\ApbctWP\RequestParameters;
 final class SubmitTimeHandler
 {
     const DEFAULT_VALUE = null; // Default value to return when calculation is disabled or invalid
-    const REQUEST_PARAM_NAME = 'ct_ps_timestamp'; // Name of the request parameter for the timestamp
+    const REQUEST_PARAM_NAME = 'apbct_timestamp'; // Name of the request parameter for the timestamp
 
     /**
      * Retrieves the time difference between the current time and the timestamp

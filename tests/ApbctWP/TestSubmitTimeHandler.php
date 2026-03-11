@@ -19,7 +19,7 @@ class TestSubmitTimeHandler extends TestCase
     }
 
 
-    public function testSetToRequestModifiesArrayRegardlessOfCalculationDisabled()
+    public function testSetToRequestDoesNotModifyWhenCalculationDisabled()
     {
         global $apbct;
         $apbct = (object) [
@@ -28,12 +28,9 @@ class TestSubmitTimeHandler extends TestCase
         ];
 
         $cookie_test_value = [];
-        $timestamp = time();
-        SubmitTimeHandler::setToRequest($timestamp, $cookie_test_value);
+        SubmitTimeHandler::setToRequest(time(), $cookie_test_value);
 
-        $this->assertNotEmpty($cookie_test_value);
-        $this->assertContains('ct_ps_timestamp', $cookie_test_value['cookies_names']);
-        $this->assertEquals((string)$timestamp, $cookie_test_value['check_value']);
+        $this->assertEmpty($cookie_test_value);
     }
 
     public function testIsCalculationDisabledReturnsTrueWhenBotDetectorEnabled()
