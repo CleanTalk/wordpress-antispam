@@ -38,10 +38,3 @@ require_once dirname( dirname( __FILE__ ) ) . '/lib/cleantalk-php-patch.php';
 require_once dirname( dirname( __FILE__ ) ) . '/vendor/wp-cli/wp-cli/php/class-wp-cli.php';
 require_once dirname( dirname( __FILE__ ) ) . '/vendor/wp-cli/wp-cli/php/utils.php';
 
-//Specific includes for TravisCI
-if( getenv( 'TRAVISCI' ) === 'psalm' ) {
-	$wp_admin_dir = dirname( __FILE__, 5 );
-	require_once $wp_admin_dir . '/wp-admin/includes/class-wp-upgrader.php';
-	require_once $wp_admin_dir . '/wp-admin/includes/class-plugin-upgrader.php';
-}
-
