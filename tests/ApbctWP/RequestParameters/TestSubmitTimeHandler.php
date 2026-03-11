@@ -1,5 +1,7 @@
 <?php
 
+namespace ApbctWP\RequestParameters;
+
 use Cleantalk\ApbctWP\RequestParameters\SubmitTimeHandler;
 use PHPUnit\Framework\TestCase;
 
@@ -8,9 +10,9 @@ class TestSubmitTimeHandler extends TestCase
     public function testGetFromRequestReturnsNullWhenCalculationDisabled()
     {
         global $apbct;
-        $apbct = (object) [
+        $apbct = (object)[
             'settings' => ['data__bot_detector_enabled' => true],
-            'data' => ['cookies_type' => 'alternative']
+            'data'     => ['cookies_type' => 'alternative']
         ];
 
         $result = SubmitTimeHandler::getFromRequest();
@@ -22,9 +24,9 @@ class TestSubmitTimeHandler extends TestCase
     public function testSetToRequestDoesNotModifyWhenCalculationDisabled()
     {
         global $apbct;
-        $apbct = (object) [
+        $apbct = (object)[
             'settings' => ['data__bot_detector_enabled' => true],
-            'data' => ['cookies_type' => 'alternative']
+            'data'     => ['cookies_type' => 'alternative']
         ];
 
         $cookie_test_value = [];
@@ -36,9 +38,9 @@ class TestSubmitTimeHandler extends TestCase
     public function testIsCalculationDisabledReturnsTrueWhenBotDetectorEnabled()
     {
         global $apbct;
-        $apbct = (object) [
+        $apbct = (object)[
             'settings' => ['data__bot_detector_enabled' => true],
-            'data' => ['cookies_type' => 'alternative']
+            'data'     => ['cookies_type' => 'alternative']
         ];
 
         $result = SubmitTimeHandler::isCalculationDisabled();
@@ -49,7 +51,7 @@ class TestSubmitTimeHandler extends TestCase
     public function testIsCalculationDisabledReturnsFalseWhenBotDetectorDisabled()
     {
         global $apbct;
-        $apbct = (object) ['settings' => ['data__bot_detector_enabled' => false]];
+        $apbct = (object)['settings' => ['data__bot_detector_enabled' => false]];
 
         $result = SubmitTimeHandler::isCalculationDisabled();
 
