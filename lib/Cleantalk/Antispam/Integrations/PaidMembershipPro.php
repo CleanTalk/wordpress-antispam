@@ -3,6 +3,7 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Server;
 
 class PaidMembershipPro extends IntegrationBase
 {
@@ -14,9 +15,17 @@ class PaidMembershipPro extends IntegrationBase
     public function getDataForChecking($argument)
     {
         /**
-         * Login form exclusion
+         * Login form exclusion - skip PMPro's own login form
          */
         if (Post::getString('pmpro_login_form_used') == 1) {
+            return null;
+        }
+
+        /**
+         * Exclude default WordPress login (wp-login.php) - PMPro hooks into wp_authenticate
+         * but we only want to check PMPro registration/membership forms, not standard WP login
+         */
+        if (Server::hasString('REQUEST_URI', 'wp-login.php')) {
             return null;
         }
 
