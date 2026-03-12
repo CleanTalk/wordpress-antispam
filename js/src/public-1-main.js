@@ -1337,27 +1337,36 @@ class ApbctShowForbidden {
                         document.querySelectorAll('iframe').forEach((f) => {
                             try {
                                 if (f.contentDocument) docs.push(f.contentDocument);
-                            } catch (e) { /* same-origin only */ }
+                            } catch (e) {
+                                /* same-origin only */
+                            }
                         });
-                    } catch (e) { /* ignore */ }
+                    } catch (e) {
+                        /* ignore */
+                    }
                     for (const doc of docs) {
                         const elfsightContainer = doc.querySelector('[class*="elfsight-app"]');
                         if (elfsightContainer) {
                             const submitBtn =
                                 elfsightContainer.querySelector('button[type="submit"]') ||
                                 Array.from(elfsightContainer.querySelectorAll('button, [role="button"]'))
-                                    .find((btn) => btn.textContent.trim() === 'Submit' || btn.getAttribute('aria-label') === 'Submit');
+                                    .find((btn) =>
+                                        btn.textContent.trim() === 'Submit' ||
+                                        btn.getAttribute('aria-label') === 'Submit');
                             if (submitBtn) {
                                 submitBtn.disabled = false;
                                 submitBtn.removeAttribute('aria-busy');
                             }
                             const loaders = elfsightContainer.querySelectorAll('[class*="Loader__Spinner"]');
-                            loaders.forEach((el) => { el.style.display = 'none'; });
+                            loaders.forEach((el) => {
+                                el.style.display = 'none';
+                            });
                             let errEl = elfsightContainer.querySelector('.apbct-elfsight-forbidden-msg');
                             if (!errEl) {
                                 errEl = doc.createElement('div');
                                 errEl.className = 'apbct-elfsight-forbidden-msg';
-                                errEl.style.cssText = 'margin-top:12px;padding:10px;color:#c0392b;font-size:14px;line-height:1.4;';
+                                errEl.style.cssText =
+                                    'margin-top:12px;padding:10px;color:#c0392b;font-size:14px;line-height:1.4;';
                                 if (submitBtn) {
                                     submitBtn.insertAdjacentElement('afterend', errEl);
                                 } else {
