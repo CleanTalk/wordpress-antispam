@@ -268,4 +268,53 @@ class TestRemoteCalls extends TestCase
         $this->assertTrue($method->invoke(null, 'post_api_key'));
         $this->assertFalse($method->invoke(null, 'update_license'));
     }
+
+    /** @test */
+    public function itHasMaxDelayConstant()
+    {
+        $this->assertEquals(10, RemoteCalls::MAX_DELAY);
+    }
+
+    /** @test */
+    public function itHasAllowedActionsWithDelayWhitelist()
+    {
+        $reflection = new ReflectionClass(RemoteCalls::class);
+        $property = $reflection->getProperty('allowedActionsWithDelay');
+        $property->setAccessible(true);
+
+        $allowedActions = $property->getValue();
+
+        $this->assertIsArray($allowedActions);
+        $this->assertContains('sfw_update__worker', $allowedActions);
+    }
+
+    /** @test */
+    public function itDoesNotAllowDelayForNonWhitelistedActions()
+    {
+        $reflection = new ReflectionClass(RemoteCalls::class);
+        $property = $reflection->getProperty('allowedActionsWithDelay');
+        $property->setAccessible(true);
+
+        $allowedActions = $property->getValue();
+
+        // These actions should NOT be in the whitelist
+        $this->assertNotContains('get_fresh_wpnonce', $allowedActions);
+        $this->assertNotContains('debug', $allowedActions);
+        $this->assertNotContains('post_api_key', $allowedActions);
+        $this->assertNotContains('license_update', $allowedActions);
+    }
+
+    /** @test */
+    public function itOnlyAllowsSfwUpdateWorkerForDelay()
+    {
+        $reflection = new ReflectionClass(RemoteCalls::class);
+        $property = $reflection->getProperty('allowedActionsWithDelay');
+        $property->setAccessible(true);
+
+        $allowedActions = $property->getValue();
+
+        // Only sfw_update__worker should be allowed
+        $this->assertCount(1, $allowedActions);
+        $this->assertEquals(['sfw_update__worker'], $allowedActions);
+    }
 }
