@@ -1757,13 +1757,13 @@ async function apbct_ready() {
 const defaultSend = XMLHttpRequest.prototype.send;
 let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 
-if (ctPublic.data__key_is_ok) {
-    if (document.readyState !== 'loading') {
-        apbct_ready();
-    } else {
-        apbct_attach_event_handler(document, 'DOMContentLoaded', apbct_ready);
-    }
+if (document.readyState !== 'loading') {
+    apbct_ready();
+} else {
+    apbct_attach_event_handler(document, 'DOMContentLoaded', apbct_ready);
+}
 
+if (ctPublic.data__key_is_ok) {
     apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
     if (ctPublic.data__cookies_type === 'native') {
         ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true);
