@@ -4193,6 +4193,11 @@ async function apbctImportScript(scriptAbsolutePath) {
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 async function apbct_ready() {
+    apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
+    if (ctPublic.data__cookies_type === 'native') {
+        ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true);
+    }
+
     new ApbctShowForbidden().prepareBlockForAjaxForms();
 
     // Try to get gathering if no worked bot-detector
@@ -4311,13 +4316,6 @@ if (document.readyState !== 'loading') {
     apbct_ready();
 } else {
     apbct_attach_event_handler(document, 'DOMContentLoaded', apbct_ready);
-}
-
-if (ctPublic.data__key_is_ok) {
-    apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
-    if (ctPublic.data__cookies_type === 'native') {
-        ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true);
-    }
 }
 
 /**
