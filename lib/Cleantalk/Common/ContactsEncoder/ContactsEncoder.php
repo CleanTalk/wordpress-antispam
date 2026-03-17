@@ -90,6 +90,7 @@ abstract class ContactsEncoder
 
     /**
      * @var array
+     * @psalm-suppress PossiblyUnusedProperty
      */
     protected $aria_matches = array();
 
