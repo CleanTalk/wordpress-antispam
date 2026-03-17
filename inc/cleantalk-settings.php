@@ -577,6 +577,7 @@ function apbct_settings__set_fields()
                                 : esc_html__('disabled', 'cleantalk-spam-protect')
                         );
                     },
+                    'long_description' => true,
                     'display'    => apbct__is_bot_detector_enabled(),
                 ),
                 'exclusions__bot_detector' => array(
@@ -3159,6 +3160,12 @@ function apbct_settings__get__long_description()
         'data__email_decoder' => array(
             'title' => __('Contact data encoding', 'cleantalk-spam-protect'),
             'desc'  => ContactsEncoder::getEmailEncoderCommonLongDescription(),
+        ),
+        'bot_detector_state' => array(
+            'title' => esc_html__('JavaScript library (Bot Detector)', 'cleantalk-spam-protect'),
+            'desc' => esc_html__('The state of this option is now controlled by a constant', 'cleantalk-spam-protect')
+                . ' '
+                . '`APBCT_SERVICE__BOT_DETECTOR_ENABLED`'
         ),
     );
 

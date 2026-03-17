@@ -96,6 +96,7 @@ class SummaryAndSupportRenderer
             %s
             %s
             %s
+            %s
             </div>
         ';
 
@@ -106,6 +107,7 @@ class SummaryAndSupportRenderer
             $this->renderLastSfwBlock(),
             $this->renderSfwUpdate(),
             $this->renderSfwLogs(),
+            $this->renderBotDetectorState(),
             $this->renderPluginVersion()
         );
 
@@ -287,6 +289,18 @@ class SummaryAndSupportRenderer
         return $this->wrapListItem($html);
     }
 
+    public function renderBotDetectorState()
+    {
+        return $this->wrapListItem(
+            sprintf(
+                esc_html__('JavaScript library (Bot Detector) is %s', 'cleantalk-spam-protect'),
+                apbct__is_bot_detector_enabled()
+                    ? esc_html__('enabled', 'cleantalk-spam-protect')
+                    : esc_html__('disabled', 'cleantalk-spam-protect')
+            )
+            . '<i setting="bot_detector_state" class="apbct_settings-long_description---show apbct-icon-help-circled"></i>'
+        );
+    }
 
     /**
      * Renders the current plugin version.
