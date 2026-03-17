@@ -1857,7 +1857,6 @@ function apbct__bot_detector_get_fired_exclusions()
  */
 function apbct__bot_detector_get_fd_log()
 {
-    global $apbct;
     $result = array(
         'plugin_status' => 'OK',
         'error_msg' => '',
@@ -1940,7 +1939,7 @@ function apbct__is_bot_detector_enabled()
     global $apbct;
 
     // Constant is preferred
-    if ( $apbct->service_constants->bot_detector_enabled->isDefined() ) {
+    if ( isset($apbct->service_constants->bot_detector_enabled) && $apbct->service_constants->bot_detector_enabled->isDefined() ) {
         return (bool) $apbct->service_constants->bot_detector_enabled->getValue();
     }
     // Check by $apbct->data

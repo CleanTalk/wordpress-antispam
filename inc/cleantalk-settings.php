@@ -569,7 +569,7 @@ function apbct_settings__set_fields()
                 ),
                 //bot detector
                 'bot_detector_state' => array(
-                    'callback' => function() {
+                    'callback' => function () {
                         printf(
                             esc_html__('JavaScript library (Bot Detector) is %s', 'cleantalk-spam-protect'),
                             apbct__is_bot_detector_enabled()

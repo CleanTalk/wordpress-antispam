@@ -1382,7 +1382,7 @@ function apbct_update_to_6_76_0()
 {
     global $apbct;
 
-    if( isset($apbct->settings['data__bot_detector_enabled']) ) {
+    if ( isset($apbct->settings['data__bot_detector_enabled']) ) {
         $bot_detector_state = $apbct->settings['data__bot_detector_enabled'];
         $apbct->data['bot_detector_enabled'] = $bot_detector_state;
         $apbct->saveData();

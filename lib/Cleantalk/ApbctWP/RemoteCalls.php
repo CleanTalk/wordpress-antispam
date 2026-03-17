@@ -531,7 +531,6 @@ class RemoteCalls
             'data__use_static_js_key' => 'Use static keys for JavaScript check',
             'data__general_postdata_test' => 'Check all post data',
             'data__set_cookies' => 'Set cookies',
-            'data__bot_detector_enabled' => 'Use JavaScript library',
             'exclusions__bot_detector' => 'JavaScript Library Exclusions',
             'exclusions__bot_detector__form_attributes' => 'Exclude any forms that has attribute matches',
             'exclusions__bot_detector__form_children_attributes' => 'Exclude any forms that includes a child element with attribute matches',

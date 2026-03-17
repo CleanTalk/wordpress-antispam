@@ -29,7 +29,7 @@ class ApbctJsBundleResolver
             $script = 'apbct-public-bundle.min.js';
         }
 
-        if (isset($settings['data__bot_detector_enabled']) && $settings['data__bot_detector_enabled'] != '1') {
+        if ( ! apbct__is_bot_detector_enabled() ) {
             $script = str_replace('.min.js', '_gathering.min.js', $script);
         }
 
