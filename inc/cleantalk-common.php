@@ -1929,3 +1929,24 @@ function apbct__bot_detector_get_custom_exclusion_from_settings()
     }
     return $exclusions;
 }
+
+/**
+ * Check if Bot-Detector is enabled/disabled
+ *
+ * @return bool
+ */
+function apbct__is_bot_detector_enabled()
+{
+    global $apbct;
+
+    // Constant is preferred
+    if ( $apbct->service_constants->bot_detector_enabled->isDefined() ) {
+        return (bool) $apbct->service_constants->bot_detector_enabled->getValue();
+    }
+    // Check by $apbct->data
+    if ( isset($apbct->data['bot_detector_enabled']) ) {
+        return (bool) $apbct->data['bot_detector_enabled'];
+    }
+    // By default - enabled
+    return true;
+}
