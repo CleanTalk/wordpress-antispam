@@ -18,4 +18,13 @@ const ApbctFetchProxyConfig = {
         callbackAllow: false,
         callbackBlock: false,
     },
+    'elfsight': {
+        selector: '[class*="elfsight-app"]',
+        urlPattern: 'data.elfsight.com/public/resources/form-submissions',
+        externalForm: true,
+        action: 'cleantalk_force_elfsight_check',
+        payloadKey: 'elfsight_payload',
+        callbackAllow: false,
+        callbackBlock: false,
+    },
 };

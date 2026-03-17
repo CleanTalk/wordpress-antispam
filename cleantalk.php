@@ -4,7 +4,11 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
+<<<<<<< HEAD
   Version: 6.74.99-dev
+=======
+  Version: 6.74.99-fix
+>>>>>>> d3fe94f5ebed5e09360dcc47d3fd5823350ecb98
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -476,10 +480,11 @@ if (
 }
 
 // Memberpress integration
+// MemberPress sends mepr_process_signup_form='Y' or '1' — both must trigger the check
 if (
     !empty($_POST) &&
     apbct_is_plugin_active('memberpress/memberpress.php') &&
-    Post::hasString('mepr_process_signup_form', '1') &&
+    Post::getString('mepr_process_signup_form') &&
     (int)$apbct->settings['forms__registrations_test'] === 1
 ) {
     apbct_memberpress_signup_request_test();
