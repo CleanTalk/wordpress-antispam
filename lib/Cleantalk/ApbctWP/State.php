@@ -84,7 +84,6 @@ class State extends \Cleantalk\Common\State
         'data__use_static_js_key'                  => -1,
         'data__general_postdata_test'              => 0, //CAPD
         'data__set_cookies'                        => 3, // Cookies type: 0 - Off / 1 - Native cookies / 2 - Alt cookies / 3 - Auto
-        'data__bot_detector_enabled'               => 1,
         'data__pixel'                              => '3',
         'data__email_check_before_post'            => 1,
         'data__email_check_exist_post'            => 1,
