@@ -1872,7 +1872,7 @@ function apbct__bot_detector_get_fd_log()
     }
 
     try {
-        if ( TT::toString($apbct->settings['data__bot_detector_enabled']) === '0') {
+        if ( ! apbct__is_bot_detector_enabled() ) {
             throw new \Exception('bot detector library usage is disabled');
         }
         // Retrieve bot detector frontend data log from Alt Sessions

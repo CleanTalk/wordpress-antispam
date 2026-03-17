@@ -48,7 +48,7 @@ class ApbctFetchProxyProtection {
                 data.raw_body = bodyText;
             }
 
-            if (+ctPublic.settings__data__bot_detector_enabled) {
+            if (+ctPublic.bot_detector_enabled) {
                 const eventToken = new ApbctHandler().toolGetEventToken();
                 if (eventToken) {
                     data.ct_bot_detector_event_token = eventToken;

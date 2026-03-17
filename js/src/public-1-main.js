@@ -92,7 +92,7 @@ class ApbctAttachData {
         if (typeof ctPublic.force_alt_cookies == 'undefined' ||
             (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
         ) {
-            if (!+ctPublic.settings__data__bot_detector_enabled || gatheringLoaded) {
+            if (!+ctPublic.bot_detector_enabled || gatheringLoaded) {
                 ctNoCookieAttachHiddenFieldsToForms();
                 document.addEventListener('gform_page_loaded', ctNoCookieAttachHiddenFieldsToForms);
             }
@@ -162,7 +162,7 @@ class ApbctAttachData {
             event.target.action && event.target.action.toString().indexOf('mailpoet_subscription_form') !== -1
         ) {
             window.XMLHttpRequest.prototype.send = function(data) {
-                if (!+ctPublic.settings__data__bot_detector_enabled) {
+                if (!+ctPublic.bot_detector_enabled) {
                     const noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + getNoCookieData() + '&';
                     defaultSend.call(this, noCookieData + data);
                 } else {
@@ -477,7 +477,7 @@ class ApbctHandler {
     cronFormsHandler(cronStartTimeout = 2000) {
         setTimeout(function() {
             setInterval(function() {
-                if (!+ctPublic.settings__data__bot_detector_enabled && typeof ApbctGatheringData !== 'undefined') {
+                if (!+ctPublic.bot_detector_enabled && typeof ApbctGatheringData !== 'undefined') {
                     new ApbctGatheringData().restartFieldsListening();
                 }
                 new ApbctEventTokenTransport().restartBotDetectorEventTokenAttach();
@@ -550,7 +550,7 @@ class ApbctHandler {
                     let addidionalCleantalkData = '';
 
                     if (!(
-                        +ctPublic.settings__data__bot_detector_enabled &&
+                        +ctPublic.bot_detector_enabled &&
                         apbctLocalStorage.get('bot_detector_event_token')
                     )) {
                         let noCookieData = getNoCookieData();
@@ -567,7 +567,7 @@ class ApbctHandler {
 
                 if (isNeedToAddCleantalkDataCheckFormData) {
                     if (!(
-                        +ctPublic.settings__data__bot_detector_enabled &&
+                        +ctPublic.bot_detector_enabled &&
                         apbctLocalStorage.get('bot_detector_event_token')
                     )) {
                         let noCookieData = getNoCookieData();
@@ -625,7 +625,7 @@ class ApbctHandler {
                                 args[1].body instanceof FormData || (typeof args[1].body.append === 'function')
                             ) {
                                 if (
-                                    +ctPublic.settings__data__bot_detector_enabled &&
+                                    +ctPublic.bot_detector_enabled &&
                                     apbctLocalStorage.get('bot_detector_event_token')
                                 ) {
                                     args[1].body.append(
@@ -785,7 +785,7 @@ class ApbctHandler {
                     try {
                         args[1].body = attachFieldsToBody(
                             args[1].body,
-                            selectFieldsData(+ctPublic.settings__data__bot_detector_enabled),
+                            selectFieldsData(+ctPublic.bot_detector_enabled),
                         );
                     } catch (e) {
                         // Continue even if error
@@ -801,7 +801,7 @@ class ApbctHandler {
                     try {
                         args[1].body = attachFieldsToBody(
                             args[1].body,
-                            selectFieldsData(+ctPublic.settings__data__bot_detector_enabled),
+                            selectFieldsData(+ctPublic.bot_detector_enabled),
                         );
                     } catch (e) {
                         // Continue even if error
@@ -822,7 +822,7 @@ class ApbctHandler {
                         if (+ctPublic.settings__forms__wc_add_to_cart) {
                             args[1].body = attachFieldsToBody(
                                 args[1].body,
-                                selectFieldsData(+ctPublic.settings__data__bot_detector_enabled),
+                                selectFieldsData(+ctPublic.bot_detector_enabled),
                             );
                         }
                     } catch (e) {
@@ -1051,7 +1051,7 @@ class ApbctHandler {
         let noCookieData = '';
         let visibleFieldsString = '';
         if (
-            +ctPublic.settings__data__bot_detector_enabled &&
+            +ctPublic.bot_detector_enabled &&
             apbctLocalStorage.get('bot_detector_event_token')
         ) {
             const token = new ApbctHandler().toolGetEventToken();
@@ -1117,7 +1117,7 @@ class ApbctHandler {
                 options.data.requests[0].path === '/wc/store/v1/cart/add-item'
             ) {
                 if (
-                    +ctPublic.settings__data__bot_detector_enabled &&
+                    +ctPublic.bot_detector_enabled &&
                     apbctLocalStorage.get('bot_detector_event_token')
                 ) {
                     let token = localStorage.getItem('bot_detector_event_token');
@@ -1132,7 +1132,7 @@ class ApbctHandler {
             // checkout
             if (options.path.includes('/wc/store/v1/checkout')) {
                 if (
-                    +ctPublic.settings__data__bot_detector_enabled &&
+                    +ctPublic.bot_detector_enabled &&
                     apbctLocalStorage.get('bot_detector_event_token')
                 ) {
                     options.data.ct_bot_detector_event_token = localStorage.getItem('bot_detector_event_token');
@@ -1654,7 +1654,7 @@ async function apbct_ready() {
 
     if (
         apbctLocalStorage.get('apbct_existing_visitor') && // Not for the first hit
-        +ctPublic.settings__data__bot_detector_enabled && // If Bot-Detector is active
+        +ctPublic.bot_detector_enabled && // If Bot-Detector is active
         !apbctLocalStorage.get('bot_detector_event_token') && // and no `event_token` generated
         typeof ApbctGatheringData === 'undefined' // and no `gathering` loaded yet
     ) {
@@ -1673,7 +1673,7 @@ async function apbct_ready() {
 
     // Gathering data when bot detector is disabled
     if (
-        ( ! +ctPublic.settings__data__bot_detector_enabled || gatheringLoaded ) &&
+        ( ! +ctPublic.bot_detector_enabled || gatheringLoaded ) &&
         typeof ApbctGatheringData !== 'undefined'
     ) {
         const gatheringData = new ApbctGatheringData();
@@ -1695,7 +1695,7 @@ async function apbct_ready() {
 
     setTimeout(function() {
         // Attach data when bot detector is enabled
-        if (+ctPublic.settings__data__bot_detector_enabled) {
+        if (+ctPublic.bot_detector_enabled) {
             const eventTokenTransport = new ApbctEventTokenTransport();
             eventTokenTransport.attachEventTokenToMultipageGravityForms();
             eventTokenTransport.attachEventTokenToWoocommerceGetRequestAddToCart();
@@ -1704,7 +1704,7 @@ async function apbct_ready() {
         const attachData = new ApbctAttachData();
 
         // Attach data when bot detector is disabled or blocked
-        if (!+ctPublic.settings__data__bot_detector_enabled || gatheringLoaded) {
+        if (!+ctPublic.bot_detector_enabled || gatheringLoaded) {
             attachData.attachHiddenFieldsToForms(gatheringLoaded);
         }
 
@@ -1731,7 +1731,7 @@ async function apbct_ready() {
     handler.catchJqueryAjax();
     handler.catchWCRestRequestAsMiddleware();
 
-    if (+ctPublic.settings__data__bot_detector_enabled) {
+    if (+ctPublic.bot_detector_enabled) {
         let botDetectorEventTokenStored = false;
         window.addEventListener('botDetectorEventTokenUpdated', (event) => {
             const botDetectorEventToken = event.detail?.eventToken;
@@ -1751,7 +1751,7 @@ async function apbct_ready() {
         });
     }
 
-    if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {
+    if (ctPublic.settings__sfw__anti_crawler && +ctPublic.bot_detector_enabled) {
         handler.toolForAntiCrawlerCheckDuringBotDetector();
     }
 

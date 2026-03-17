@@ -643,7 +643,7 @@ function getJavascriptClientData(commonCookies = []) { // eslint-disable-line no
  * @return {bool}
  */
 function ctIsDrawPixel() {
-    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+    if (ctPublic.pixel__setting == '3' && +ctPublic.bot_detector_enabled) {
         return false;
     }
 
@@ -657,7 +657,7 @@ function ctIsDrawPixel() {
  * @return {bool}
  */
 function ctSetPixelImg(pixelUrl) {
-    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+    if (ctPublic.pixel__setting == '3' && +ctPublic.bot_detector_enabled) {
         return false;
     }
     ctSetCookie('apbct_pixel_url', pixelUrl);
@@ -679,7 +679,7 @@ function ctSetPixelImg(pixelUrl) {
  * @return {bool}
  */
 function ctSetPixelImgFromLocalstorage(pixelUrl) {
-    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+    if (ctPublic.pixel__setting == '3' && +ctPublic.bot_detector_enabled) {
         return false;
     }
     if ( ctIsDrawPixel() ) {
@@ -701,7 +701,7 @@ function ctSetPixelImgFromLocalstorage(pixelUrl) {
  */
 // eslint-disable-next-line no-unused-vars, require-jsdoc
 function ctGetPixelUrl() {
-    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+    if (ctPublic.pixel__setting == '3' && +ctPublic.bot_detector_enabled) {
         return false;
     }
 

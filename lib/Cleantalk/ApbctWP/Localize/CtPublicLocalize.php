@@ -20,7 +20,7 @@ class CtPublicLocalize
             'settings__forms__force_protection' => $apbct->settings['forms__force_protection'],
             'settings__forms__search_test'    => $apbct->settings['forms__search_test'],
             'settings__forms__wc_add_to_cart'    => $apbct->settings['forms__wc_add_to_cart'],
-            'settings__data__bot_detector_enabled' => $apbct->settings['data__bot_detector_enabled'],
+            'bot_detector_enabled'            => apbct__is_bot_detector_enabled(),
             'settings__sfw__anti_crawler'     => $apbct->settings['sfw__anti_crawler'],
             'blog_home'                       => get_home_url() . '/',
             'pixel__setting'                  => $apbct->settings['data__pixel'],
