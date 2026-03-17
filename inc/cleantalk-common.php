@@ -1857,7 +1857,6 @@ function apbct__bot_detector_get_fired_exclusions()
  */
 function apbct__bot_detector_get_fd_log()
 {
-    global $apbct;
     $result = array(
         'plugin_status' => 'OK',
         'error_msg' => '',
@@ -1872,7 +1871,7 @@ function apbct__bot_detector_get_fd_log()
     }
 
     try {
-        if ( TT::toString($apbct->settings['data__bot_detector_enabled']) === '0') {
+        if ( ! apbct__is_bot_detector_enabled() ) {
             throw new \Exception('bot detector library usage is disabled');
         }
         // Retrieve bot detector frontend data log from Alt Sessions
@@ -1928,4 +1927,25 @@ function apbct__bot_detector_get_custom_exclusion_from_settings()
         }
     }
     return $exclusions;
+}
+
+/**
+ * Check if Bot-Detector is enabled/disabled
+ *
+ * @return bool
+ */
+function apbct__is_bot_detector_enabled()
+{
+    global $apbct;
+
+    // Constant is preferred
+    if ( isset($apbct->service_constants->bot_detector_enabled) && $apbct->service_constants->bot_detector_enabled->isDefined() ) {
+        return (bool) $apbct->service_constants->bot_detector_enabled->getValue();
+    }
+    // Check by $apbct->data
+    if ( isset($apbct->data['bot_detector_enabled']) ) {
+        return (bool) $apbct->data['bot_detector_enabled'];
+    }
+    // By default - enabled
+    return true;
 }

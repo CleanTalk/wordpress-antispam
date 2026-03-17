@@ -111,7 +111,7 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
             referrer: document.referrer,
             encodedEmails: '',
         };
-        if (ctPublic.settings__data__bot_detector_enabled == 1) {
+        if (+ctPublic.bot_detector_enabled) {
             data.event_token = apbctLocalStorage.get('bot_detector_event_token');
         } else {
             data.event_javascript_data = getJavascriptClientData();
