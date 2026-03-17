@@ -926,6 +926,9 @@ abstract class ContactsEncoder
      */
     private function replaceAriaLabelWithPlaceholder($matches)
     {
+        if (!isset($matches[0])) {
+            return '';
+        }
         $original = $matches[0];
         $placeholder = 'ct_temp_aria_' . $this->aria_index++;
         $this->aria_placeholders[$placeholder] = $original;
