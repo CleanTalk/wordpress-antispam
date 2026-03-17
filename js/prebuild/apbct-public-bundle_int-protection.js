@@ -3027,13 +3027,11 @@ class ApbctHandler {
         let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
         let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
         let fluentBookingApp = document.querySelectorAll('div[class^="fluent_booking_app"]').length > 0;
-        let pafeFormsFormElementor = document.querySelectorAll('div[class*="pafe-form"]').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
             jetpackCommentsForm ||
             userRegistrationProForm ||
             etPbDiviSubscriptionForm ||
-            fluentBookingApp ||
-            pafeFormsFormElementor;
+            fluentBookingApp;
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
@@ -3459,11 +3457,19 @@ class ApbctHandler {
             // this code run on ANY ajax on ANY script queue status
             // todo Probably move all ajaxSetup actions to ajaxPrefilter
             if ( typeof jQuery.ajaxPrefilter === 'function' ) {
-                jQuery.ajaxPrefilter(function(options, originalOptions, jqXHR) {
+                jQuery.ajaxPrefilter(function(options, originalOptions, jqXHR) {                    
                     const handler = new ApbctHandler();
                     const sourceSign = handler.searchSignsForJQAjaxInjection(options, 'ajaxPrefilter');
                     if (sourceSign.found !== false) {
-                        options.data = handler.injectCleantalkDataToJQAjaxString(sourceSign, options.data);
+                        if (typeof options.data === 'string') {
+                            options.data = handler.injectCleantalkDataToJQAjaxString(sourceSign, options.data);
+                        }
+                        if (
+                            typeof options.data === 'object' &&
+                            typeof options.data.append === 'function'
+                        ) {
+                            options.data = handler.injectCleantalkDataToJQAjaxFormData(sourceSign, options.data);
+                        }
                     }
                 });
             }
@@ -3563,9 +3569,89 @@ class ApbctHandler {
                     sourceSign.keepUnwrapped = true;
                 }
             }
+
+            if (typeof ajaxObject.data === 'object' && typeof ajaxObject.data.get === 'function') {
+                if (ajaxObject.data.get('action') === 'pafe_ajax_form_builder') {
+                    sourceSign.found = 'action=pafe_ajax_form_builder';
+                    sourceSign.keepUnwrapped = true;
+                }
+            }
         }
 
         return sourceSign;
+    }
+
+    /**
+     * Injecting CleanTalk data to ajax data FormData object.
+     * @param {object} sourceSign
+     * @param {object} ajaxDataFormData
+     * @return {object}
+     */
+    injectCleantalkDataToJQAjaxFormData(sourceSign, ajaxDataFormData) {
+        if (typeof sourceSign !== 'object' || typeof ajaxDataFormData !== 'object' || !(ajaxDataFormData instanceof FormData)) {
+            return ajaxDataFormData;
+        }
+
+        // Event token
+        if (
+            +ctPublic.settings__data__bot_detector_enabled &&
+            apbctLocalStorage.get('bot_detector_event_token')
+        ) {
+            const token = this.toolGetEventToken();
+            if (token) {
+                if (sourceSign.keepUnwrapped) {
+                    ajaxDataFormData.append('ct_bot_detector_event_token', token);
+                } else {
+                    ajaxDataFormData.append('data[ct_bot_detector_event_token]', token);
+                }
+            }
+        } else {
+            // No cookie data
+            let noCookieData = getNoCookieData();
+            if (sourceSign.keepUnwrapped) {
+                ajaxDataFormData.append('ct_no_cookie_hidden_field', noCookieData);
+            } else {
+                ajaxDataFormData.append('data[ct_no_cookie_hidden_field]', noCookieData);
+            }
+        }
+
+        // Visible fields
+        if (sourceSign.attachVisibleFieldsData) {
+            let visibleFieldsSearchResult = false;
+            const extractor = ApbctVisibleFieldsExtractor.createExtractor(sourceSign.found);
+            if (extractor) {
+                // Try to find form_id in FormData to find form container and
+                // collect visible fields only inside it
+                let formId = null;
+                for (let pair of ajaxDataFormData.entries()) {
+                    if (pair[0] === 'form_id' || pair[0] === 'data[form_id]') {
+                        formId = pair[1];
+                        break;
+                    }
+                }
+                let container = null;
+                if (formId) {
+                    // First, try to find by id
+                    container = document.getElementById(formId);
+                    // If not found, try to find by data-id
+                    if (!container) {
+                        container = document.querySelector('[data-id="' + formId + '"]');
+                    }
+                }
+                if (container) {
+                    // Collect all input, select, textarea inside the container
+                    const fields = container.querySelectorAll('input, select, textarea');
+                    // Use collectVisibleFields, passing an object with elements
+                    const visibleFieldsObj = new ApbctAttachData().collectVisibleFields({ elements: fields });
+                    visibleFieldsSearchResult = JSON.stringify(visibleFieldsObj);
+                }
+            }
+            if (typeof visibleFieldsSearchResult === 'string' && visibleFieldsSearchResult.length > 0) {
+                ajaxDataFormData.append('apbct_visible_fields', visibleFieldsSearchResult);
+            }
+        }
+
+        return ajaxDataFormData;
     }
 
     /**
@@ -3582,6 +3668,7 @@ class ApbctHandler {
         let eventToken = '';
         let noCookieData = '';
         let visibleFieldsString = '';
+
         if (
             +ctPublic.settings__data__bot_detector_enabled &&
             apbctLocalStorage.get('bot_detector_event_token')
