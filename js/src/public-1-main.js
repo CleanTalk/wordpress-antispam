@@ -810,7 +810,7 @@ class ApbctHandler {
                     }
                 }
 
-                // === WooCommerce add to cart ===
+                // === WooCommerce add to cart (direct add-item URL) ===
                 if (
                     (
                         document.querySelectorAll(
@@ -826,6 +826,34 @@ class ApbctHandler {
                                 args[1].body,
                                 selectFieldsData(+ctPublic.settings__data__bot_detector_enabled),
                             );
+                        }
+                    } catch (e) {
+                        // Continue even if error
+                    }
+                }
+
+                // === WooCommerce add to cart (batch API - /wc/store/v1/batch) ===
+                if (
+                    +ctPublic.settings__forms__wc_add_to_cart &&
+                    (
+                        document.querySelectorAll(
+                            'button.add_to_cart_button, button.ajax_add_to_cart, button.single_add_to_cart_button',
+                        ).length > 0 ||
+                        document.querySelectorAll('a.add_to_cart_button').length > 0
+                    ) &&
+                    args[0].includes('/wc/store/v1/batch') &&
+                    typeof args[1].body === 'string'
+                ) {
+                    try {
+                        const batchPayload = JSON.parse(args[1].body);
+                        if (batchPayload.requests && Array.isArray(batchPayload.requests)) {
+                            const fieldPair = selectFieldsData(+ctPublic.settings__data__bot_detector_enabled);
+                            for (const req of batchPayload.requests) {
+                                if (req.path === '/wc/store/v1/cart/add-item' && req.body && fieldPair && fieldPair.key) {
+                                    req.body[fieldPair.key] = fieldPair.value;
+                                }
+                            }
+                            args[1].body = JSON.stringify(batchPayload);
                         }
                     } catch (e) {
                         // Continue even if error
@@ -1058,21 +1086,21 @@ class ApbctHandler {
                 return next(options);
             }
 
-            // add to cart
+            // add to cart (batch uses body not data for request payload)
             if (options.data.hasOwnProperty('requests') &&
                 options.data.requests.length > 0 &&
                 options.data.requests[0].hasOwnProperty('path') &&
                 options.data.requests[0].path === '/wc/store/v1/cart/add-item'
             ) {
+                const reqBody = options.data.requests[0].body || (options.data.requests[0].body = {});
                 if (
                     +ctPublic.settings__data__bot_detector_enabled &&
                     apbctLocalStorage.get('bot_detector_event_token')
                 ) {
-                    let token = localStorage.getItem('bot_detector_event_token');
-                    options.data.requests[0].data.ct_bot_detector_event_token = token;
+                    reqBody.ct_bot_detector_event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
                     if (ctPublic.data__cookies_type === 'none') {
-                        options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+                        reqBody.ct_no_cookie_hidden_field = getNoCookieData();
                     }
                 }
             }
