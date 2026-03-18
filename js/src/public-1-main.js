@@ -849,7 +849,8 @@ class ApbctHandler {
                         if (batchPayload.requests && Array.isArray(batchPayload.requests)) {
                             const fieldPair = selectFieldsData(+ctPublic.settings__data__bot_detector_enabled);
                             for (const req of batchPayload.requests) {
-                                if (req.path === '/wc/store/v1/cart/add-item' && req.body && fieldPair && fieldPair.key) {
+                                const isAddItem = req.path === '/wc/store/v1/cart/add-item';
+                                if (isAddItem && req.body && fieldPair && fieldPair.key) {
                                     req.body[fieldPair.key] = fieldPair.value;
                                 }
                             }
