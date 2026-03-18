@@ -426,6 +426,8 @@ Yes, it is. Please read this article,
 * Fix. RemoteCalls. Changes to the RC functionality
 * Upd. Settings. Improved copability.
 * Fix. Contacts Encoder. Shortcode for exclude encoding.
+* Upd. BotDetector. Update load strategy.
+* Upd. BotDetector. Update load strategy for fluent booking and fluent form.
 
 = 6.74 05.03.2026 =
 * Mod. SFW. Atomic approach to updating SFW
