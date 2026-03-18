@@ -615,7 +615,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
                 . '/js/apbct-public-bundle.min.js'
                 . '?ver=' . APBCT_VERSION . '" id="ct_public_functions-js"></script>';
             echo '<script src="' . APBCT_BOT_DETECTOR_SCRIPT_URL . '?ver='
-                . APBCT_VERSION . '" id="ct_bot_detector-js"></script>';
+                . APBCT_VERSION . '" async id="ct_bot_detector-js" data-wp-strategy="async"></script>';
         }, 100);
     }
 

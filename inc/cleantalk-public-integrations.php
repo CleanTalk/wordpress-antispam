@@ -44,7 +44,7 @@ function apbct_print_public_scripts()
     echo CtPublicLocalize::getCode();
 
     echo '<script src="' . $js_url . '" type="application/javascript"></script>';
-    echo '<script src="' . $js_url_wrapper . '" type="application/javascript"></script>';
+    echo '<script src="' . $js_url_wrapper . '" async data-wp-strategy="async" type="application/javascript"></script>';
 }
 
 /**
