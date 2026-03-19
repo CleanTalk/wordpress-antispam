@@ -160,20 +160,10 @@ class RemoteCalls
      */
     public static function action__license_update() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if ( ! headers_sent() ) {
-            header("Content-Type: application/json");
-        }
+        $cron = new Cron();
+        $cron->updateTask('check_account_status', 'ct_account_status_check', 86400, time() + 3600);
 
-        if ( ! function_exists('apbct_settings__sync') ) {
-            require_once APBCT_DIR_PATH . 'inc/cleantalk-settings.php';
-        }
-
-        $result = apbct_settings__sync(true);
-        if ( ! empty($result['error']) ) {
-            die(json_encode(['ERROR' => json_encode($result['error'])]));
-        }
-
-        die(json_encode(['OK' => true]));
+        wp_send_json(['OK' => true]);
     }
 
     /**
