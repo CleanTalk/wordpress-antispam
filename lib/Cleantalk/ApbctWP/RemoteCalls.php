@@ -173,7 +173,7 @@ class RemoteCalls
     /**
      * Update license
      *
-     * @return string
+     * @return void
      */
     public static function action__license_update() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
