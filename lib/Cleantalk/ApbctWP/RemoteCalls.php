@@ -13,6 +13,18 @@ class RemoteCalls
 {
     const COOLDOWN = 10;
 
+    /**
+     * Maximum allowed delay in seconds for remote calls
+     */
+    const MAX_DELAY = 10;
+
+    /**
+     * List of remote call actions that are allowed to use delay parameter
+     */
+    private static $allowedActionsWithDelay = [
+        'sfw_update__worker',
+    ];
+
     private static $allowedActionsWithoutToken = [
         'get_fresh_wpnonce',
         'post_api_key',
@@ -119,10 +131,15 @@ class RemoteCalls
                     $action = 'action__' . $action;
 
                     if ( method_exists(__CLASS__, $action) ) {
-                        // Delay before perform action;
-                        if ( Request::get('delay') ) {
+                        // Delay before perform action - only for whitelisted actions
+                        $current_action = strtolower(Request::getString('spbc_remote_call_action'));
+                        if (
+                            Request::get('delay') &&
+                            in_array($current_action, self::$allowedActionsWithDelay, true)
+                        ) {
                             $delay = Request::getInt('delay');
                             $delay = max($delay, 0);
+                            $delay = min($delay, self::MAX_DELAY);
                             sleep($delay);
                             $params = $_REQUEST;
                             unset($params['delay']);
