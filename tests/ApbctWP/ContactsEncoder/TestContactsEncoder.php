@@ -251,4 +251,32 @@ class TestEmailEncoder extends TestCase
         $this->assertStringEndsWith('>', $description);
     }
 
+    public function testModifyBuffer()
+    {
+        global $apbct;
+        $test_string = 'test string with email test@example.com';
+        $apbct->buffer = $test_string;
+
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertNotEquals($apbct->buffer, $test_string);
+    }
+
+    public function testBufferOutput()
+    {
+        global $apbct;
+        ob_start();
+        $apbct->buffer = $this->plain_text;
+
+        $this->contacts_encoder->bufferOutput();
+        $output = ob_get_clean();
+
+        $this->assertEquals($this->plain_text, $output);
+    }
+
+    public function tearDown() : void
+    {
+        global $apbct;
+        $apbct->buffer = '';
+    }
 }

@@ -1982,6 +1982,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'AsgarosForum';
         }
+
+        // Plugin Name: HivePress
+        if (
+            apbct_is_plugin_active('hivepress/hivepress.php') &&
+            (apbct_is_in_uri('/hivepress/v1/listings/') || apbct_is_in_uri('/hivepress/v1/users'))
+        ) {
+            return 'Plugin Name: HivePress skip REST route checking';
+        }
     }
 
     // WP Fusion Abandoned Cart Addon

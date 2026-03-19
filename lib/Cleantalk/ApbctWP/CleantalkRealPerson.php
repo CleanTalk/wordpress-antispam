@@ -10,7 +10,10 @@ class CleantalkRealPerson
         $localize_array['theRealPerson'] = [
             'phrases' => [
                 'trpHeading' => esc_html__('The Real Person Badge!', 'cleantalk-spam-protect'),
-                'trpContent1' => esc_html__('The commenter acts as a real person and verified as not a bot.', 'cleantalk-spam-protect'),
+                'trpContent1' =>
+                    esc_html__('Verified as a real person and not a bot.', 'cleantalk-spam-protect') .
+                    ' ' .
+                    esc_html__('The comment was approved without pre-moderation.', 'cleantalk-spam-protect'),
                 'trpContent2' => esc_html__(' Anti-Spam by CleanTalk', 'cleantalk-spam-protect'),
                 'trpContentLearnMore' => esc_html__('Learn more', 'cleantalk-spam-protect'),
             ],

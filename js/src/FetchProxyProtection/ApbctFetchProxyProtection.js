@@ -8,17 +8,22 @@ class ApbctFetchProxyProtection {
 
     /**
      * Find matching config for URL
-     * @param {string} url
+     * @param {string|URL} url
      * @return {object|null} { formKey, config } or null
      */
     findMatchingConfig(url) {
+        const urlStr = typeof url === 'string'
+            ? url
+            : (url != null && typeof url.href === 'string' ? url.href : '');
+
         for (const [formKey, config] of Object.entries(this.config)) {
             // FetchProxy can send both external and internal requests
             // If the form is external, then we check whether the setting is enabled.
             if (
-                (!config.externalForm || +ctPublic.settings__forms__check_external) && 
+                (!config.externalForm || +ctPublic.settings__forms__check_external) &&
                 document.querySelectorAll(config.selector).length > 0 &&
-                url && url.includes(config.urlPattern)
+                urlStr &&
+                urlStr.includes(config.urlPattern)
             ) {
                 return {formKey, config};
             }
@@ -41,8 +46,12 @@ class ApbctFetchProxyProtection {
 
             try {
                 const bodyObj = JSON.parse(bodyText);
-                for (const [key, value] of Object.entries(bodyObj)) {
-                    data[key] = value;
+                if (config.payloadKey) {
+                    data[config.payloadKey] = bodyText;
+                } else {
+                    for (const [key, value] of Object.entries(bodyObj)) {
+                        data[key] = value;
+                    }
                 }
             } catch (e) {
                 data.raw_body = bodyText;

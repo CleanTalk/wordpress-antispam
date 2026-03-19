@@ -44,7 +44,7 @@ function apbct_print_public_scripts()
     echo CtPublicLocalize::getCode();
 
     echo '<script src="' . $js_url . '" type="application/javascript"></script>';
-    echo '<script src="' . $js_url_wrapper . '" type="application/javascript"></script>';
+    echo '<script src="' . $js_url_wrapper . '" async data-wp-strategy="async" type="application/javascript"></script>';
 }
 
 /**
@@ -2115,7 +2115,7 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
 {
     global $apbct, $ct_gform_is_spam, $ct_gform_response;
 
-    if (apbct_form__gravityForms__isSkippedRequest($is_spam)) {
+    if (apbct_form__gravityForms__isSkippedRequest()) {
         return $is_spam;
     }
 
@@ -2253,7 +2253,7 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
  *
  * @return bool
  */
-function apbct_form__gravityForms__isSkippedRequest($is_spam)
+function apbct_form__gravityForms__isSkippedRequest()
 {
     global $cleantalk_executed, $apbct;
 
@@ -2262,14 +2262,8 @@ function apbct_form__gravityForms__isSkippedRequest($is_spam)
         '_GET' => $_GET,
         'SERVER_URI' => Server::getString('REQUEST_URI'),
         'HTTP_REFERER' => Server::getString('HTTP_REFERER'),
-        '$is_spam' => $is_spam,
         '$cleantalk_executed' => $cleantalk_executed,
     ];
-
-    if ( $is_spam ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . 'ALREADY SET BY GRAVITY AS SPAM', $data);
-        return true;
-    }
 
     if ( $apbct->settings['forms__contact_forms_test'] == 0 ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . 'CONTACT FORM TEST DISABLED', $data);

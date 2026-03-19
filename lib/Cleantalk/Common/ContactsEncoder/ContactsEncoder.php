@@ -37,8 +37,10 @@ abstract class ContactsEncoder
 
     /**
      * Regular expressions parts.
+     * Use backreference \1 so apostrophes (e.g. "Follow iBlogyou's account") inside
+     * double-quoted values don't incorrectly terminate the match.
      */
-    const ARIA_LABEL_PATTERN = '/aria-label.?=.?[\'"].+?[\'"]/';
+    const ARIA_LABEL_PATTERN = '/aria-label\s*=\s*(["\'])(?:(?!\1).)*\1/';
     const EMAIL_PATTERN = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b';
     const EMAIL_PATTERN_DOMAIN_CATCHING = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b)';
     const PHONE_NUMBER = '\+\d{8,12}';
@@ -88,8 +90,19 @@ abstract class ContactsEncoder
 
     /**
      * @var array
+     * @psalm-suppress PossiblyUnusedProperty
      */
     protected $aria_matches = array();
+
+    /**
+     * @var array Placeholder => original aria-label for restore
+     */
+    protected $aria_placeholders = array();
+
+    /**
+     * @var int Counter for unique aria-label placeholders
+     */
+    protected $aria_index = 0;
 
     /**
      * Attributes with possible email-like content to drop from the content to avoid unnecessary encoding.
@@ -882,6 +895,7 @@ abstract class ContactsEncoder
 
     /**
      * Modify content to skip aria-label cases correctly.
+     * Protects aria-label attributes from email encoding.
      * @param string $content
      * @param bool $reverse
      *
@@ -891,18 +905,33 @@ abstract class ContactsEncoder
     {
         if ( !$reverse ) {
             $this->aria_matches = array();
-            //save match
-            preg_match($this->aria_regex, $content, $this->aria_matches);
-            if (empty($this->aria_matches)) {
-                return $content;
-            }
-            //replace with temp
-            return preg_replace($this->aria_regex, 'ct_temp_aria', $content);
+            $this->aria_placeholders = array();
+            $this->aria_index = 0;
+            return preg_replace_callback($this->aria_regex, array($this, 'replaceAriaLabelWithPlaceholder'), $content);
         }
-        if ( !empty($this->aria_matches[0]) ) {
-            //replace temp with match
-            return preg_replace('/ct_temp_aria/', $this->aria_matches[0], $content);
+        if ( !empty($this->aria_placeholders) ) {
+            foreach ($this->aria_placeholders as $placeholder => $original) {
+                $content = str_replace($placeholder, $original, $content);
+            }
+            $this->aria_placeholders = array();
+            $this->aria_index = 0;
         }
         return $content;
+    }
+
+    /**
+     * Callback for handleAriaLabelContent to replace each aria-label with a unique placeholder.
+     * @param array $matches
+     * @return string
+     */
+    private function replaceAriaLabelWithPlaceholder($matches)
+    {
+        if (!isset($matches[0])) {
+            return '';
+        }
+        $original = $matches[0];
+        $placeholder = 'ct_temp_aria_' . $this->aria_index++;
+        $this->aria_placeholders[$placeholder] = $original;
+        return $placeholder;
     }
 }
