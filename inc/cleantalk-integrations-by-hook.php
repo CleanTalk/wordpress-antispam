@@ -348,6 +348,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'ElfsightForm'            => array(
+        'hook'    => 'cleantalk_force_elfsight_check',
+        'setting' => 'forms__check_external',
+        'ajax'    => true
+    ),
     'BloomForms' => array(
         'hook'    => 'bloom_subscribe',
         'setting' => 'forms__contact_forms_test',

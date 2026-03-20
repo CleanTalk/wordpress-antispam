@@ -4,7 +4,7 @@ Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
 Tested up to: 6.9
 Requires PHP: 7.2
-Stable tag: 6.74
+Stable tag: 6.75
 License: GPLv2
 
 Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
@@ -411,6 +411,23 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.75 19.03.2026 =
+* Upd. JS. catchJqueryAjax. Refactored to also use ajaxPrefilter. Bloomform now skip using force alt-sessions.
+* Upd. ContactEncoder. Improve aria labels protect.
+* Upd. Integration. HivePress forms protection improved.
+* Upd. Settings. SFW outdated message refactored.
+* Upd. Settings. Error. Fixed case when SFW outdated error is not removable.
+* Upd. TRP. TRP popup text and styles updated.
+* Fix. Integrations. Improve statement to protect memberpress.
+* Fix. Integrations. Improved membershippro processing statement.
+* Fix. Integration. Gravity forms integration fixed.
+* Add. Integrations. Added Elfsight compability.
+* Fix. RemoteCalls. Changes to the RC functionality
+* Upd. Settings. Improved copability.
+* Fix. Contacts Encoder. Shortcode for exclude encoding.
+* Upd. BotDetector. Update load strategy.
+* Upd. BotDetector. Update load strategy for fluent booking and fluent form.
 
 = 6.74 05.03.2026 =
 * Mod. SFW. Atomic approach to updating SFW

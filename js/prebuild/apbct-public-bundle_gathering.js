@@ -1855,6 +1855,15 @@ const ApbctFetchProxyConfig = {
         callbackAllow: false,
         callbackBlock: false,
     },
+    'elfsight': {
+        selector: '[class*="elfsight-app"]',
+        urlPattern: 'data.elfsight.com/public/resources/form-submissions',
+        externalForm: true,
+        action: 'cleantalk_force_elfsight_check',
+        payloadKey: 'elfsight_payload',
+        callbackAllow: false,
+        callbackBlock: false,
+    },
 };
 /**
  * Class for handling FetchProxy forms
@@ -1866,17 +1875,22 @@ class ApbctFetchProxyProtection {
 
     /**
      * Find matching config for URL
-     * @param {string} url
+     * @param {string|URL} url
      * @return {object|null} { formKey, config } or null
      */
     findMatchingConfig(url) {
+        const urlStr = typeof url === 'string'
+            ? url
+            : (url != null && typeof url.href === 'string' ? url.href : '');
+
         for (const [formKey, config] of Object.entries(this.config)) {
             // FetchProxy can send both external and internal requests
             // If the form is external, then we check whether the setting is enabled.
             if (
-                (!config.externalForm || +ctPublic.settings__forms__check_external) && 
+                (!config.externalForm || +ctPublic.settings__forms__check_external) &&
                 document.querySelectorAll(config.selector).length > 0 &&
-                url && url.includes(config.urlPattern)
+                urlStr &&
+                urlStr.includes(config.urlPattern)
             ) {
                 return {formKey, config};
             }
@@ -1899,8 +1913,12 @@ class ApbctFetchProxyProtection {
 
             try {
                 const bodyObj = JSON.parse(bodyText);
-                for (const [key, value] of Object.entries(bodyObj)) {
-                    data[key] = value;
+                if (config.payloadKey) {
+                    data[config.payloadKey] = bodyText;
+                } else {
+                    for (const [key, value] of Object.entries(bodyObj)) {
+                        data[key] = value;
+                    }
                 }
             } catch (e) {
                 data.raw_body = bodyText;
@@ -3294,8 +3312,8 @@ class ApbctHandler {
                 // === Apbct FetchProxy forms ===
                 const fetchProxyResult = await fetchProxyProtection.processFetch(args);
                 if (fetchProxyResult === true) {
-                    // Return a "blank" response that never completes
-                    return new Promise(() => {});
+                    // Reject so form's error handler runs and stops the loading spinner
+                    return Promise.reject(new Error('Forbidden'));
                 }
 
                 // === Metform ===
@@ -3457,7 +3475,7 @@ class ApbctHandler {
             // this code run on ANY ajax on ANY script queue status
             // todo Probably move all ajaxSetup actions to ajaxPrefilter
             if ( typeof jQuery.ajaxPrefilter === 'function' ) {
-                jQuery.ajaxPrefilter(function(options, originalOptions, jqXHR) {                    
+                jQuery.ajaxPrefilter(function(options, originalOptions, jqXHR) {
                     const handler = new ApbctHandler();
                     const sourceSign = handler.searchSignsForJQAjaxInjection(options, 'ajaxPrefilter');
                     if (sourceSign.found !== false) {
@@ -3588,67 +3606,79 @@ class ApbctHandler {
      * @return {object}
      */
     injectCleantalkDataToJQAjaxFormData(sourceSign, ajaxDataFormData) {
-        if (typeof sourceSign !== 'object' || typeof ajaxDataFormData !== 'object' || !(ajaxDataFormData instanceof FormData)) {
+        if (
+            typeof sourceSign !== 'object' ||
+            typeof ajaxDataFormData !== 'object' ||
+            !(ajaxDataFormData instanceof FormData)
+        ) {
             return ajaxDataFormData;
         }
 
-        // Event token
-        if (
-            +ctPublic.settings__data__bot_detector_enabled &&
-            apbctLocalStorage.get('bot_detector_event_token')
-        ) {
-            const token = this.toolGetEventToken();
-            if (token) {
-                if (sourceSign.keepUnwrapped) {
-                    ajaxDataFormData.append('ct_bot_detector_event_token', token);
-                } else {
-                    ajaxDataFormData.append('data[ct_bot_detector_event_token]', token);
+        try {
+            // Event token
+            if (
+                +ctPublic.settings__data__bot_detector_enabled &&
+                apbctLocalStorage.get('bot_detector_event_token')
+            ) {
+                const token = this.toolGetEventToken();
+                if (token) {
+                    if (sourceSign.keepUnwrapped) {
+                        ajaxDataFormData.append('ct_bot_detector_event_token', token);
+                    } else {
+                        ajaxDataFormData.append('data[ct_bot_detector_event_token]', token);
+                    }
                 }
-            }
-        } else {
-            // No cookie data
-            let noCookieData = getNoCookieData();
-            if (sourceSign.keepUnwrapped) {
-                ajaxDataFormData.append('ct_no_cookie_hidden_field', noCookieData);
             } else {
-                ajaxDataFormData.append('data[ct_no_cookie_hidden_field]', noCookieData);
+                // No cookie data
+                let noCookieData = getNoCookieData();
+                if (noCookieData) {
+                    if (sourceSign.keepUnwrapped) {
+                        ajaxDataFormData.append('ct_no_cookie_hidden_field', noCookieData);
+                    } else {
+                        ajaxDataFormData.append('data[ct_no_cookie_hidden_field]', noCookieData);
+                    }
+                }
             }
-        }
 
-        // Visible fields
-        if (sourceSign.attachVisibleFieldsData) {
-            let visibleFieldsSearchResult = false;
-            const extractor = ApbctVisibleFieldsExtractor.createExtractor(sourceSign.found);
-            if (extractor) {
-                // Try to find form_id in FormData to find form container and
-                // collect visible fields only inside it
-                let formId = null;
-                for (let pair of ajaxDataFormData.entries()) {
-                    if (pair[0] === 'form_id' || pair[0] === 'data[form_id]') {
-                        formId = pair[1];
-                        break;
+            // Visible fields
+            if (sourceSign.attachVisibleFieldsData) {
+                let visibleFieldsSearchResult = false;
+                const extractor = ApbctVisibleFieldsExtractor.createExtractor(sourceSign.found);
+                if (extractor) {
+                    // Try to find form_id in FormData to find form container and
+                    // collect visible fields only inside it
+                    let formId = null;
+                    for (let pair of ajaxDataFormData.entries()) {
+                        if (pair[0] === 'form_id' || pair[0] === 'data[form_id]') {
+                            formId = pair[1];
+                            break;
+                        }
+                    }
+                    let container = null;
+                    if (formId && typeof formId === 'string') {
+                        // Sanitize formId to prevent selector injection
+                        const sanitizedFormId = formId.replace(/["\\]/g, '');
+                        // First, try to find by id
+                        container = document.getElementById(sanitizedFormId);
+                        // If not found, try to find by data-id
+                        if (!container) {
+                            container = document.querySelector('[data-id="' + sanitizedFormId + '"]');
+                        }
+                    }
+                    if (container) {
+                        // Collect all input, select, textarea inside the container
+                        const fields = container.querySelectorAll('input, select, textarea');
+                        // Use collectVisibleFields, passing an object with elements
+                        const visibleFieldsObj = new ApbctAttachData().collectVisibleFields({elements: fields});
+                        visibleFieldsSearchResult = JSON.stringify(visibleFieldsObj);
                     }
                 }
-                let container = null;
-                if (formId) {
-                    // First, try to find by id
-                    container = document.getElementById(formId);
-                    // If not found, try to find by data-id
-                    if (!container) {
-                        container = document.querySelector('[data-id="' + formId + '"]');
-                    }
-                }
-                if (container) {
-                    // Collect all input, select, textarea inside the container
-                    const fields = container.querySelectorAll('input, select, textarea');
-                    // Use collectVisibleFields, passing an object with elements
-                    const visibleFieldsObj = new ApbctAttachData().collectVisibleFields({ elements: fields });
-                    visibleFieldsSearchResult = JSON.stringify(visibleFieldsObj);
+                if (typeof visibleFieldsSearchResult === 'string' && visibleFieldsSearchResult.length > 0) {
+                    ajaxDataFormData.append('apbct_visible_fields', visibleFieldsSearchResult);
                 }
             }
-            if (typeof visibleFieldsSearchResult === 'string' && visibleFieldsSearchResult.length > 0) {
-                ajaxDataFormData.append('apbct_visible_fields', visibleFieldsSearchResult);
-            }
+        } catch (e) {
+            // Silently fail to not break the original request
         }
 
         return ajaxDataFormData;
@@ -4002,6 +4032,54 @@ class ApbctShowForbidden {
                         successMessage.style.display = 'none';
                     }
                 }
+                if (response.integration && response.integration === 'ElfsightForm') {
+                    const docs = [document];
+                    try {
+                        document.querySelectorAll('iframe').forEach((f) => {
+                            try {
+                                if (f.contentDocument) docs.push(f.contentDocument);
+                            } catch (e) {
+                                /* same-origin only */
+                            }
+                        });
+                    } catch (e) {
+                        /* ignore */
+                    }
+                    for (const doc of docs) {
+                        const elfsightContainer = doc.querySelector('[class*="elfsight-app"]');
+                        if (elfsightContainer) {
+                            const submitBtn =
+                                elfsightContainer.querySelector('button[type="submit"]') ||
+                                Array.from(elfsightContainer.querySelectorAll('button, [role="button"]'))
+                                    .find((btn) =>
+                                        btn.textContent.trim() === 'Submit' ||
+                                        btn.getAttribute('aria-label') === 'Submit');
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.removeAttribute('aria-busy');
+                            }
+                            const loaders = elfsightContainer.querySelectorAll('[class*="Loader__Spinner"]');
+                            loaders.forEach((el) => {
+                                el.style.display = 'none';
+                            });
+                            let errEl = elfsightContainer.querySelector('.apbct-elfsight-forbidden-msg');
+                            if (!errEl) {
+                                errEl = doc.createElement('div');
+                                errEl.className = 'apbct-elfsight-forbidden-msg';
+                                errEl.style.cssText =
+                                    'margin-top:12px;padding:10px;color:#c0392b;font-size:14px;line-height:1.4;';
+                                if (submitBtn) {
+                                    submitBtn.insertAdjacentElement('afterend', errEl);
+                                } else {
+                                    elfsightContainer.appendChild(errEl);
+                                }
+                            }
+                            errEl.textContent = msg;
+                            errEl.style.display = '';
+                            break;
+                        }
+                    }
+                }
             }
         }
     }
@@ -4266,6 +4344,11 @@ async function apbctImportScript(scriptAbsolutePath) {
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 async function apbct_ready() {
+    apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
+    if (ctPublic.data__cookies_type === 'native') {
+        ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true);
+    }
+
     new ApbctShowForbidden().prepareBlockForAjaxForms();
 
     // Try to get gathering if no worked bot-detector
@@ -4380,17 +4463,10 @@ async function apbct_ready() {
 const defaultSend = XMLHttpRequest.prototype.send;
 let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 
-if (ctPublic.data__key_is_ok) {
-    if (document.readyState !== 'loading') {
-        apbct_ready();
-    } else {
-        apbct_attach_event_handler(document, 'DOMContentLoaded', apbct_ready);
-    }
-
-    apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
-    if (ctPublic.data__cookies_type === 'native') {
-        ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true);
-    }
+if (document.readyState !== 'loading') {
+    apbct_ready();
+} else {
+    apbct_attach_event_handler(document, 'DOMContentLoaded', apbct_ready);
 }
 
 /**
