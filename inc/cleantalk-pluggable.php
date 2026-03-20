@@ -1429,7 +1429,11 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
                 apbct_is_plugin_active('piotnet-addons-for-elementor-pro/piotnet-addons-for-elementor-pro.php') ||
                 apbct_is_plugin_active('piotnet-addons-for-elementor/piotnet-addons-for-elementor.php')
             ) &&
-            Post::get('action') === 'pafe_ajax_form_builder_preview_submission' ) {
+            (
+                Post::get('action') === 'pafe_ajax_form_builder_preview_submission' ||
+                Post::get('action') === 'pafe_ajax_form_builder'
+            )
+        ) {
             return 'PAFE';
         }
 
