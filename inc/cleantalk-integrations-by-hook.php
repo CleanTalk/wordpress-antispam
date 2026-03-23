@@ -226,7 +226,7 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'PiotnetAddonsForElementorPro' => array(
-        'hook'    => array('pafe_ajax_form_builder'),
+        'hook'    => 'pafe_ajax_form_builder',
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
