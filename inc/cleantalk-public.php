@@ -378,6 +378,36 @@ function apbct_init()
     }
 }
 
+/**
+ * SiteGround Speed Optimizer: register sgo_bypass_query_params filter.
+ */
+function apbct_sgo_optimizer__register_bypass_query_params()
+{
+    if ( ! defined('SG_OPTIMIZER_VERSION') ) {
+        return;
+    }
+    add_filter('sgo_bypass_query_params', 'apbct_sgo_bypass_query_params', 10, 1);
+}
+
+/**
+ * Adds apbct_no_cache to SG Optimizer bypass list.
+ *
+ * @param string[] $bypass_query_params
+ *
+ * @return string[]
+ */
+function apbct_sgo_bypass_query_params($bypass_query_params)
+{
+    if ( ! is_array($bypass_query_params) ) {
+        $bypass_query_params = array();
+    }
+    if ( ! in_array('apbct_no_cache', $bypass_query_params, true) ) {
+        $bypass_query_params[] = 'apbct_no_cache';
+    }
+
+    return $bypass_query_params;
+}
+
 function apbct_buffer__start()
 {
     ob_start();
