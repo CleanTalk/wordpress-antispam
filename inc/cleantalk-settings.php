@@ -3158,9 +3158,11 @@ function apbct_settings__get__long_description()
         ),
         'bot_detector_state' => array(
             'title' => esc_html__('JavaScript library (Bot Detector)', 'cleantalk-spam-protect'),
-            'desc' => esc_html__('The state of this option is now controlled by a constant', 'cleantalk-spam-protect')
-                . ' '
-                . '`APBCT_SERVICE__BOT_DETECTOR_ENABLED`'
+            'desc' => esc_html__("The Bot Detector is a JavaScript library that runs in the visitor's browser and collects behavioral signals to distinguish real users from bots.", 'cleantalk-spam-protect')
+                . '<br><br>' . esc_html__("This data is sent to the CleanTalk cloud along with each spam check request, significantly improving detection accuracy for spam on any website forms.", 'cleantalk-spam-protect')
+                . '<br><br>' . esc_html__("Disabling the Bot Detector will reduce anti-spam effectiveness.", 'cleantalk-spam-protect')
+                . '<br>' . esc_html__("It can only be disabled by adding the following constant to your wp-config.php: define('APBCT_SERVICE__BOT_DETECTOR_ENABLED', false);", 'cleantalk-spam-protect')
+                . '<br>' . esc_html__("We do not recommend disabling this functionality.", 'cleantalk-spam-protect')
         ),
     );
 
