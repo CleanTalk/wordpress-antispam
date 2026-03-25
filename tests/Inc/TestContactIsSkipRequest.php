@@ -137,6 +137,46 @@ class TestContactIsSkipRequest extends TestCase
         ));
     }
 
+    public function testSkip__pafe_pro_preview_submission()
+    {
+        $this->assertTrue(self::checkSkipMutations(
+            'action',
+            'pafe_ajax_form_builder_preview_submission',
+            'piotnet-addons-for-elementor-pro/piotnet-addons-for-elementor-pro.php',
+            'PAFE'
+        ));
+    }
+
+    public function testSkip__pafe_pro_form_builder()
+    {
+        $this->assertTrue(self::checkSkipMutations(
+            'action',
+            'pafe_ajax_form_builder',
+            'piotnet-addons-for-elementor-pro/piotnet-addons-for-elementor-pro.php',
+            'PAFE'
+        ));
+    }
+
+    public function testSkip__pafe_free_preview_submission()
+    {
+        $this->assertTrue(self::checkSkipMutations(
+            'action',
+            'pafe_ajax_form_builder_preview_submission',
+            'piotnet-addons-for-elementor/piotnet-addons-for-elementor.php',
+            'PAFE'
+        ));
+    }
+
+    public function testSkip__pafe_free_form_builder()
+    {
+        $this->assertTrue(self::checkSkipMutations(
+            'action',
+            'pafe_ajax_form_builder',
+            'piotnet-addons-for-elementor/piotnet-addons-for-elementor.php',
+            'PAFE'
+        ));
+    }
+
     /**
      * Check if skipped on all data complied, and every case if not.
      * @param string $expected_key expected POST key

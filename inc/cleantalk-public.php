@@ -1254,7 +1254,7 @@ function apbct_enqueue_and_localize_public_scripts()
             APBCT_VERSION,
             array(
                 'in_footer' => $in_footer,
-                'strategy' => 'defer'
+                'strategy' => 'async'
             )
         );
     }

@@ -127,10 +127,6 @@ function apbct_settings__set_fields()
         }
     }
 
-    $send_connection_reports__sfw_text = $apbct->settings['sfw__enabled']
-        ? '<br>' . __(' - status of SpamFireWall database updating process', 'cleantalk-spam-protect')
-        : '';
-
     $fields = array(
 
         'main' => array(
@@ -929,13 +925,12 @@ function apbct_settings__set_fields()
                 'misc__send_connection_reports' => array(
                     'type'        => 'checkbox',
                     'title'       => __('Send connection reports', 'cleantalk-spam-protect'),
-                    'description' => __("Checking this box you allow plugin to send the information about your connection. These reports could contain next info:", 'cleantalk-spam-protect')
-                        . '<br>'
-                        . __(' - connection status to ' . $apbct->data["wl_brandname_short"] . ' cloud during Anti-Spam request', 'cleantalk-spam-protect')
-                        . $send_connection_reports__sfw_text
-                        . '<br>'
-                        . sprintf(esc_html__('The reports are to be sent to %s'), 'pluginreports@cleantalk.org')
+                    'description' => \Cleantalk\ApbctWP\ConnectionReports::getOptionDescription(
+                        (bool)$apbct->settings['sfw__enabled'],
+                        $apbct->data['wl_brandname_short'],
+                        $apbct->data['email_for_reports']
                     ),
+                ),
                 'misc__async_js'                => array(
                     'type'        => 'checkbox',
                     'title'       => __('Async JavaScript loading', 'cleantalk-spam-protect'),

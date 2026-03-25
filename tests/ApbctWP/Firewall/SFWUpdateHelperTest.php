@@ -3,7 +3,9 @@
 namespace Cleantalk\ApbctWP\Tests\Firewall;
 
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
+use Cleantalk\ApbctWP\State;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 class SFWUpdateHelperTest extends TestCase
 {
@@ -81,6 +83,107 @@ class SFWUpdateHelperTest extends TestCase
         $batchSize = SFWUpdateHelper::getSFWFilesBatchSize();
 
         $this->assertEquals(3, $batchSize);
+    }
+
+    public function testSFWDataOutdated()
+    {
+        $apbct = new StdClass();
+        $apbct->stats = ['sfw' => [
+            'last_update_time' => time() - (10002*3),
+            'update_period' => 10000,
+        ]];
+        $this->assertTrue(SFWUpdateHelper::SFWDataOutdated($apbct));
+        $apbct->stats = ['sfw' => [
+            'last_update_time' => time() - (9999*3),
+            'update_period' => 10000,
+        ]];
+        $this->assertFalse(SFWUpdateHelper::SFWDataOutdated($apbct));
+    }
+
+    public function testSFWUpdateModeEnabled()
+    {
+        $apbct = new StdClass();
+        $apbct->fw_stats = ['update_mode' => 1];
+        $this->assertTrue(SFWUpdateHelper::SFWUpdateModeEnabled($apbct));
+        $apbct->fw_stats = ['update_mode' => '1'];
+        $this->assertTrue(SFWUpdateHelper::SFWUpdateModeEnabled($apbct));
+        $apbct->fw_stats = ['update_mode' => true];
+        $this->assertTrue(SFWUpdateHelper::SFWUpdateModeEnabled($apbct));
+
+        $apbct->fw_stats = ['update_mode' => 0];
+        $this->assertFalse(SFWUpdateHelper::SFWUpdateModeEnabled($apbct));
+        $apbct->fw_stats = ['update_mode' => '0'];
+        $this->assertFalse(SFWUpdateHelper::SFWUpdateModeEnabled($apbct));
+        $apbct->fw_stats = ['update_mode' => false];
+        $this->assertFalse(SFWUpdateHelper::SFWUpdateModeEnabled($apbct));
+    }
+
+    public function testProcessSFWOutdatedErrorHasError()
+    {
+        global $apbct;
+        $apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
+        $apbct->stats = ['sfw' => [
+            'last_update_time' => time() - (10002*3),
+            'update_period' => 10000,
+        ]];
+        $apbct->settings['misc__send_connection_reports'] = 1;
+        $apbct->settings['sfw__enabled'] = 1;
+        SFWUpdateHelper::processSFWOutdatedError($apbct);
+        add_action('init', function () use ($apbct) {
+            $this->assertTrue($apbct->errorExists('sfw_outdated'));
+        }, 999);
+        do_action('init');
+    }
+
+    public function testProcessSFWOutdatedErrorNoErrorOnSettingDisabled()
+    {
+        global $apbct;
+        $apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
+        $apbct->stats = ['sfw' => [
+            'last_update_time' => time() - (10002*3),
+            'update_period' => 10000,
+        ]];
+        $apbct->settings['sfw__enabled'] = 1;
+        $apbct->settings['misc__send_connection_reports'] = 0;
+        SFWUpdateHelper::processSFWOutdatedError($apbct);
+        add_action('init', function () use ($apbct) {
+            $this->assertFalse($apbct->errorExists('sfw_outdated'));
+        }, 999);
+        do_action('init');
+    }
+
+    public function testProcessSFWOutdatedErrorNoErrorOnUpdated()
+    {
+        global $apbct;
+        $apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
+        $apbct->stats = ['sfw' => [
+            'last_update_time' => time() - (9999*3),
+            'update_period' => 10000,
+        ]];
+        $apbct->settings['sfw__enabled'] = 1;
+        $apbct->settings['misc__send_connection_reports'] = 1;
+        SFWUpdateHelper::processSFWOutdatedError($apbct);
+        add_action('init', function () use ($apbct) {
+            $this->assertFalse($apbct->errorExists('sfw_outdated'));
+        }, 999);
+        do_action('init');
+    }
+
+    public function testProcessSFWOutdatedErrorNoErrorSFWDisabled()
+    {
+        global $apbct;
+        $apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
+        $apbct->stats = ['sfw' => [
+            'last_update_time' => time() - (10002*3),
+            'update_period' => 10000,
+        ]];
+        $apbct->settings['sfw__enabled'] = 0;
+        $apbct->settings['misc__send_connection_reports'] = 1;
+        SFWUpdateHelper::processSFWOutdatedError($apbct);
+        add_action('init', function () use ($apbct) {
+            $this->assertFalse($apbct->errorExists('sfw_outdated'));
+        }, 999);
+        do_action('init');
     }
 }
 

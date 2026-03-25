@@ -238,7 +238,10 @@ class State extends \Cleantalk\Common\State
         'wl_support_email'   => 'support@cleantalk.org',
 
         //IP keeper data
-        'ip_keeper_data'     => array()
+        'ip_keeper_data'     => array(),
+
+        //Connection reports email address
+        'email_for_reports' => 'pluginreports@cleantalk.org',
     );
 
     /**

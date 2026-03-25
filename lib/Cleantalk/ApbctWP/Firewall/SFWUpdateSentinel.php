@@ -85,9 +85,10 @@ class SFWUpdateSentinel
      */
     public function sendSentinelEmail(array $ids_list)
     {
+        global $apbct;
         $this->getSentinelData();
         $from_email = ct_get_admin_email();
-        $to_email = 'pluginreports@cleantalk.org';
+        $to_email = $apbct->data['email_for_reports'];
         $subject = self::textPlateRender('CleanTalk Service Report: SFW v{{version}} for {{host}}', [
             'host' => Server::getString('HTTP_HOST'),
             'version' => APBCT_VERSION,
