@@ -3044,12 +3044,10 @@ class ApbctHandler {
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
         let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
         let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
-        let fluentBookingApp = document.querySelectorAll('div[class^="fluent_booking_app"]').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
             jetpackCommentsForm ||
             userRegistrationProForm ||
-            etPbDiviSubscriptionForm ||
-            fluentBookingApp;
+            etPbDiviSubscriptionForm;
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
@@ -3077,7 +3075,8 @@ class ApbctHandler {
                 document.body.classList.contains('single-product') &&
                 typeof cwginstock !== 'undefined'
             ) ||
-            document.querySelector('div.fluent_booking_wrap') !== null // Fluent Booking Pro
+            document.querySelector('div.fluent_booking_wrap') !== null || // Fluent Booking Pro
+            document.querySelector('div.fcal_calendar_slot_wrap ') !== null // Fluent Booking / Calendar Pro
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
