@@ -4378,113 +4378,205 @@ async function apbct_ready() {
 
     new ApbctShowForbidden().prepareBlockForAjaxForms();
 
-    // Try to get gathering if no worked bot-detector
-    let gatheringLoaded = false;
-
-    if (
-        apbctLocalStorage.get('apbct_existing_visitor') && // Not for the first hit
-        +ctPublic.settings__data__bot_detector_enabled && // If Bot-Detector is active
-        !apbctLocalStorage.get('bot_detector_event_token') && // and no `event_token` generated
-        typeof ApbctGatheringData === 'undefined' // and no `gathering` loaded yet
-    ) {
-        const basePath = getApbctBasePath();
-        if ( ! basePath ) {
-            // We are here because NO any cleantalk bundle script are in frontend: Todo nothing
-        } else {
-            const gatheringScriptName = 'public-2-gathering-data.min.js';
-            const gatheringFullPath = basePath + gatheringScriptName;
-            gatheringLoaded = await apbctImportScript(gatheringFullPath);
-        }
+    window.ctPreGathering = {
+        'wrapper': {'exist': false, 'deadline': 500},
+        'script': {'exist': false, 'deadline': 2000},
+        'token': {'exist': false, 'deadline': 3000},
+        'started': Date.now(),
+        'decision_deadline': 3100,
+        'botd_disabled': !+ctPublic.settings__data__bot_detector_enabled,
+        'interval_descriptor': null,
     }
 
-    const handler = new ApbctHandler();
-    handler.detectForcedAltCookiesForms();
-
-    // Gathering data when bot detector is disabled
-    if (
-        ( ! +ctPublic.settings__data__bot_detector_enabled || gatheringLoaded ) &&
-        typeof ApbctGatheringData !== 'undefined'
-    ) {
-        const gatheringData = new ApbctGatheringData();
-        gatheringData.setSessionId();
-        gatheringData.writeReferrersToSessionStorage();
-        gatheringData.setCookiesType();
-        gatheringData.startFieldsListening();
-        gatheringData.listenAutocomplete();
-        gatheringData.gatheringTypoData();
+    const refershPreGathering = function()
+    {
+        window.ctPreGathering.wrapper.exist = document.getElementById('ct_bot_detector-js') !== null;
+        window.ctPreGathering.script.exist = Boolean(Array.from(document.querySelectorAll('script')).find(script => {
+            const src = script.getAttribute('src');
+            return src && src.match(/ct-bot-detector\.min\.js/);
+        }));
+        window.ctPreGathering.token.exist = Boolean(apbctLocalStorage.get('bot_detector_event_token'));
     }
-    // Always call initParams to set cookies and parameters
-    if (typeof initParams === 'function') {
-        try {
-            initParams(gatheringLoaded);
-        } catch (e) {
-            console.log('initParams error:', e);
+    const preGatheringIntervalHandler = function()
+    {
+        refershPreGathering();
+
+        const timeGone = Date.now() - window.ctPreGathering.started;
+
+        // bot detector disbaled - run normal mode immediately
+        if (window.ctPreGathering.botd_disabled) {
+            console.table('Bot detector disabled. Load normal mode.',)
+            clearInterval(window.ctPreGathering.interval_descriptor);
+            runScripts(false);
+            return;
         }
+
+        // wait for wrapper deadline
+        if (
+            (timeGone >= window.ctPreGathering.wrapper.deadline) &&
+            !ctPreGathering.wrapper.exist
+        ) {
+            console.table('No wrapper loaded! Load gathering..',)
+            clearInterval(window.ctPreGathering.interval_descriptor);
+            runScripts(true);
+            return;
+        }
+        // wait for script deadline
+        if (
+            (timeGone >= window.ctPreGathering.script.deadline) &&
+            !window.ctPreGathering.script.exist
+        ) {
+            console.table('No script loaded! Load gathering..',)
+            clearInterval(window.ctPreGathering.interval_descriptor);
+            runScripts(true);
+            return;
+        }
+        // wait for token deadline
+        if (
+            (timeGone >= window.ctPreGathering.token.deadline) &&
+            !window.ctPreGathering.token.exist
+        ) {
+            console.table('Token deadline! Load gathering..',)
+            clearInterval(window.ctPreGathering.interval_descriptor);
+            runScripts(true);
+            return;
+        }
+
+        // wait for decision deadline
+        if (
+            (timeGone >= window.ctPreGathering.decision_deadline)
+        ) {
+            console.table('Decision deadline. Interval stopped.',)
+            if (!window.ctPreGathering.token.exist) {
+                console.table('Load gathering on next refresh',)
+                apbctLocalStorage.set('apbct_existing_visitor', 1)
+                runScripts(false);
+            } else {
+                console.table('Use normal mode',)
+                runScripts(false);
+            }
+            clearInterval(window.ctPreGathering.interval_descriptor);
+            return;
+        }
+
+        // waiting..
     }
+    const runScripts = async function (useGathering)
+    {
+        // Try to get gathering if no worked bot-detector
+        let gatheringLoaded = false;
 
-    setTimeout(function() {
-        // Attach data when bot detector is enabled
-        if (+ctPublic.settings__data__bot_detector_enabled) {
-            const eventTokenTransport = new ApbctEventTokenTransport();
-            eventTokenTransport.attachEventTokenToMultipageGravityForms();
-            eventTokenTransport.attachEventTokenToWoocommerceGetRequestAddToCart();
+        if (
+            useGathering &&
+            typeof ApbctGatheringData === 'undefined' // and no `gathering` loaded yet
+        ) {
+            const basePath = getApbctBasePath();
+            if ( ! basePath ) {
+                // We are here because NO any cleantalk bundle script are in frontend: Todo nothing
+            } else {
+                const gatheringScriptName = 'public-2-gathering-data.min.js';
+                const gatheringFullPath = basePath + gatheringScriptName;
+                gatheringLoaded = await apbctImportScript(gatheringFullPath);
+            }
         }
 
-        const attachData = new ApbctAttachData();
+        const handler = new ApbctHandler();
+        handler.detectForcedAltCookiesForms();
 
-        // Attach data when bot detector is disabled or blocked
-        if (!+ctPublic.settings__data__bot_detector_enabled || gatheringLoaded) {
-            attachData.attachHiddenFieldsToForms(gatheringLoaded);
+        // Gathering data when bot detector is disabled
+        if (
+            ( ! +ctPublic.settings__data__bot_detector_enabled || gatheringLoaded ) &&
+            typeof ApbctGatheringData !== 'undefined'
+        ) {
+            const gatheringData = new ApbctGatheringData();
+            gatheringData.setSessionId();
+            gatheringData.writeReferrersToSessionStorage();
+            gatheringData.setCookiesType();
+            gatheringData.startFieldsListening();
+            gatheringData.listenAutocomplete();
+            gatheringData.gatheringTypoData();
+        }
+        // Always call initParams to set cookies and parameters
+        if (typeof initParams === 'function') {
+            try {
+                initParams(gatheringLoaded);
+            } catch (e) {
+                console.log('initParams error:', e);
+            }
         }
 
-        for (let i = 0; i < document.forms.length; i++) {
-            const form = document.forms[i];
-
-            if (handler.excludeForm(form)) {
-                continue;
+        setTimeout(function() {
+            // Attach data when bot detector is enabled
+            if (+ctPublic.settings__data__bot_detector_enabled) {
+                const eventTokenTransport = new ApbctEventTokenTransport();
+                eventTokenTransport.attachEventTokenToMultipageGravityForms();
+                eventTokenTransport.attachEventTokenToWoocommerceGetRequestAddToCart();
             }
 
-            attachData.attachVisibleFieldsToForm(form, i);
+            const attachData = new ApbctAttachData();
 
-            handler.catchMain(form, i);
-        }
-    }, 1000);
+            // Attach data when bot detector is disabled or blocked
+            if (!+ctPublic.settings__data__bot_detector_enabled || gatheringLoaded) {
+                attachData.attachHiddenFieldsToForms(gatheringLoaded);
+            }
 
-    if (+ctPublic.settings__forms__search_test === 1) {
-        handler.searchFormMiddleware();
-    }
+            for (let i = 0; i < document.forms.length; i++) {
+                const form = document.forms[i];
 
-    handler.catchXmlHttpRequest();
-    handler.catchFetchRequest();
-    handler.catchIframeFetchRequest();
-    handler.catchJqueryAjax();
-    handler.catchWCRestRequestAsMiddleware();
-
-    if (+ctPublic.settings__data__bot_detector_enabled) {
-        let botDetectorEventTokenStored = false;
-        window.addEventListener('botDetectorEventTokenUpdated', (event) => {
-            const botDetectorEventToken = event.detail?.eventToken;
-            if (botDetectorEventToken && !botDetectorEventTokenStored) {
-                ctSetCookie([
-                    ['ct_bot_detector_event_token', botDetectorEventToken],
-                ]);
-                botDetectorEventTokenStored = true;
-                // @ToDo remove this block afret force_alt_cookies removed
-                if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-                    ctSetAlternativeCookie(
-                        JSON.stringify({'ct_bot_detector_event_token': botDetectorEventToken}),
-                        {forceAltCookies: true},
-                    );
+                if (handler.excludeForm(form)) {
+                    continue;
                 }
+
+                attachData.attachVisibleFieldsToForm(form, i);
+
+                handler.catchMain(form, i);
             }
-        });
+        }, 1000);
+
+        if (+ctPublic.settings__forms__search_test === 1) {
+            handler.searchFormMiddleware();
+        }
+
+        handler.catchXmlHttpRequest();
+        handler.catchFetchRequest();
+        handler.catchIframeFetchRequest();
+        handler.catchJqueryAjax();
+        handler.catchWCRestRequestAsMiddleware();
+
+        if (+ctPublic.settings__data__bot_detector_enabled) {
+            let botDetectorEventTokenStored = false;
+            window.addEventListener('botDetectorEventTokenUpdated', (event) => {
+                const botDetectorEventToken = event.detail?.eventToken;
+                if (botDetectorEventToken && !botDetectorEventTokenStored) {
+                    ctSetCookie([
+                        ['ct_bot_detector_event_token', botDetectorEventToken],
+                    ]);
+                    botDetectorEventTokenStored = true;
+                    // @ToDo remove this block afret force_alt_cookies removed
+                    if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
+                        ctSetAlternativeCookie(
+                            JSON.stringify({'ct_bot_detector_event_token': botDetectorEventToken}),
+                            {forceAltCookies: true},
+                        );
+                    }
+                }
+            });
+        }
+
+        if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {
+            handler.toolForAntiCrawlerCheckDuringBotDetector();
+        }
+
+        apbctLocalStorage.set('apbct_existing_visitor', 1);
     }
 
-    if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {
-        handler.toolForAntiCrawlerCheckDuringBotDetector();
-    }
+    window.ctPreGathering.interval_descriptor = setInterval(
+        function () {
+            preGatheringIntervalHandler();
+            // waiting..
+        }, 100
+    );
 
-    apbctLocalStorage.set('apbct_existing_visitor', 1);
 }
 
 const defaultSend = XMLHttpRequest.prototype.send;
