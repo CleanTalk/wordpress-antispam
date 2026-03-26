@@ -224,7 +224,7 @@ class AltSessions
                     $cookies_array[$name] = (bool)$value;
                     break;
                 case 'string':
-                    $cookies_array[$name] = (string)$value;
+                    $cookies_array[$name] = is_array($value) ? wp_json_encode($value) : (string)$value;
                     break;
                 case 'json':
                     if ( ! is_string($value) || json_decode($value) === null ) {
