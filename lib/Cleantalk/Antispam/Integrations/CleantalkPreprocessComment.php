@@ -445,10 +445,7 @@ class CleantalkPreprocessComment extends IntegrationBase
             return __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__;
         }
 
-        $comment_type = isset($this->wp_comment['comment_type']) ? $this->wp_comment['comment_type'] : '';
-        if ( $comment_type === '' ) {
-            $comment_type = 'comment';
-        }
+        $comment_type = isset($this->wp_comment['comment_type']) ? $this->wp_comment['comment_type'] : 'comment';
 
         // Pingbacks and trackbacks are link notifications, not visitor form comments — no cloud check.
         if ( in_array($comment_type, array('pingback', 'trackback'), true) ) {
