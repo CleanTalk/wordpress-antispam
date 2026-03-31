@@ -445,37 +445,41 @@ class CleantalkPreprocessComment extends IntegrationBase
             return __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__;
         }
 
-        //do not hadle trackbacks on exclusions
-        if ($this->wp_comment['comment_type'] !== 'trackback') {
-            /**
-             * Process main ruleset
-             */
-            if (
-                apbct_is_user_enable() === false ||
-                $this->apbct->settings['forms__comments_test'] == 0 ||
-                $ct_comment_done ||
-                (isset($_SERVER['HTTP_REFERER']) && stripos($_SERVER['HTTP_REFERER'], 'page=wysija_campaigns&action=editTemplate') !== false) ||
-                (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/wp-admin/') !== false)
-            ) {
-                return __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__;
-            }
+        $comment_type = isset($this->wp_comment['comment_type']) ? $this->wp_comment['comment_type'] : 'comment';
 
-            /**
-             * Check if wordpress integrated words/chars blacklists.
-             */
-            $wordpress_own_string_blacklists_result = apbct_wp_blacklist_check(
-                $this->wp_comment['comment_author'],
-                $this->wp_comment['comment_author_email'],
-                $this->wp_comment['comment_author_url'],
-                $this->wp_comment['comment_content'],
-                Server::get('REMOTE_ADDR'),
-                Server::get('HTTP_USER_AGENT')
-            );
+        // Pingbacks and trackbacks are link notifications, not visitor form comments — no cloud check.
+        if ( in_array($comment_type, array('pingback', 'trackback'), true) ) {
+            return __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__;
+        }
 
-            // Go out if author in local blacklists, already stopped
-            if ( $wordpress_own_string_blacklists_result === true ) {
-                return __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__;
-            }
+        /**
+         * Process main ruleset
+         */
+        if (
+            apbct_is_user_enable() === false ||
+            $this->apbct->settings['forms__comments_test'] == 0 ||
+            $ct_comment_done ||
+            (isset($_SERVER['HTTP_REFERER']) && stripos($_SERVER['HTTP_REFERER'], 'page=wysija_campaigns&action=editTemplate') !== false) ||
+            (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/wp-admin/') !== false)
+        ) {
+            return __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__;
+        }
+
+        /**
+         * Check if wordpress integrated words/chars blacklists.
+         */
+        $wordpress_own_string_blacklists_result = apbct_wp_blacklist_check(
+            $this->wp_comment['comment_author'],
+            $this->wp_comment['comment_author_email'],
+            $this->wp_comment['comment_author_url'],
+            $this->wp_comment['comment_content'],
+            Server::get('REMOTE_ADDR'),
+            Server::get('HTTP_USER_AGENT')
+        );
+
+        // Go out if author in local blacklists, already stopped
+        if ( $wordpress_own_string_blacklists_result === true ) {
+            return __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__;
         }
 
         return false;
