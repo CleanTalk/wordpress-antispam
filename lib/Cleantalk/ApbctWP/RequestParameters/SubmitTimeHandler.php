@@ -70,10 +70,8 @@ final class SubmitTimeHandler
      */
     final public static function isCalculationDisabled()
     {
-        global $apbct;
-
         // Return the value of the bot detector setting
-        return $apbct->settings['data__bot_detector_enabled']
+        return apbct__is_bot_detector_enabled()
             ? !RequestParameters::get('ct_gathering_loaded')
             : false;
     }
