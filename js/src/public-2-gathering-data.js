@@ -841,34 +841,3 @@ function apbctCancelAutocomplete(element) {
         bubbles: true, cancelable: false, detail: null,
     }));
 }
-
-/**
- * ctNoCookieAttachHiddenFieldsToForms
- */
-function ctNoCookieAttachHiddenFieldsToForms() {
-    if (ctPublic.data__cookies_type !== 'none') {
-        return;
-    }
-
-    let forms = ctGetPageForms();
-
-    if (forms) {
-        for ( let i = 0; i < forms.length; i++ ) {
-            if ( new ApbctHandler().checkHiddenFieldsExclusions(document.forms[i], 'no_cookie') ) {
-                continue;
-            }
-
-            // ignore forms with get method @todo We need to think about this
-            if (document.forms[i].getAttribute('method') === null ||
-                document.forms[i].getAttribute('method').toLowerCase() === 'post') {
-                // remove old sets
-                let fields = forms[i].querySelectorAll('.ct_no_cookie_hidden_field');
-                for ( let j = 0; j < fields.length; j++ ) {
-                    fields[j].outerHTML = '';
-                }
-                // add new set
-                document.forms[i].append(new ApbctAttachData().constructNoCookieHiddenField());
-            }
-        }
-    }
-}

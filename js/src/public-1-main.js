@@ -1794,9 +1794,8 @@ async function apbctImportScript(scriptAbsolutePath) {
 // eslint-disable-next-line camelcase,require-jsdoc
 async function apbct_ready() {
     apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
-    if (ctPublic.data__cookies_type === 'native') {
-        ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true);
-    }
+    ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true);
+
 
     new ApbctShowForbidden().prepareBlockForAjaxForms();
 
