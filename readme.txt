@@ -2,9 +2,9 @@
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.75
+Stable tag: 6.76
 License: GPLv2
 
 Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
@@ -411,6 +411,15 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.76 02.04.2026 =
+* Mod. ForceAltCookies. Removed the use of force alt cookies for integration with piotnet-addons-for-elementor
+* Upd. Integrations. Improve FluentBooking flow to attach meta data to request.
+* Upd. Settings. Updated flow to check pingback.
+* Upd. Settings. Bot Detector setting - bot-detector setting removed.
+* Fix. Code. Unit tests fixed: TestFluentForms, TestNinjaForms.
+* Fix. JS. Gathering. Passing js_on independent of gathering loaded.
+* Fix. Integrations. QuForm. Fixed js_on param gathering.
 
 = 6.75 19.03.2026 =
 * Upd. JS. catchJqueryAjax. Refactored to also use ajaxPrefilter. Bloomform now skip using force alt-sessions.
