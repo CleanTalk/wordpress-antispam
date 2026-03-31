@@ -193,7 +193,9 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
         // Misc
         'auth_key'        => $apbct->api_key,
-        'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ? 1 : apbct_js_test(TT::toString(Post::get('ct_checkjs'))),
+        'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::getString('ct_checkjs')), true)
+            ? 1
+            : apbct_js_test(Post::getString('ct_checkjs')),
 
         'agent'       => APBCT_AGENT,
         'sender_info' => $sender_info,

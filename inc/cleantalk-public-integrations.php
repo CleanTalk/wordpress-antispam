@@ -1870,19 +1870,16 @@ function ct_quform_post_validate($result, $form)
      * Filter for POST
      */
     $input_array = apply_filters('apbct__filter_post', $form->getValues());
-
     $ct_temp_msg_data = ct_get_fields_any($input_array);
     $sender_email = isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '';
     $sender_emails_array = isset($ct_temp_msg_data['emails_array']) ? $ct_temp_msg_data['emails_array'] : '';
 
-    $checkjs          = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
     $base_call_result = apbct_base_call(
         array(
             'message'      => $form->getValues(),
             'sender_email' => $sender_email,
             'post_info'    => array('comment_type' => $comment_type),
             'sender_info'     => array('sender_emails_array' => $sender_emails_array),
-            'js_on'        => $checkjs,
         )
     );
 
