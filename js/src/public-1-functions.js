@@ -389,10 +389,12 @@ let apbctLocalStorage = {
                 const json = JSON.parse(storageValue);
                 if ( json.hasOwnProperty(property) ) {
                     try {
-                        // if property can be parsed as JSON - do it
-                        return JSON.parse( json[property] );
+                        const parsed = JSON.parse( json[property] );
+                        if ( parsed !== null && typeof parsed === 'object' ) {
+                            return json[property].toString();
+                        }
+                        return parsed;
                     } catch (e) {
-                        // if not - return string of value
                         return json[property].toString();
                     }
                 } else {
