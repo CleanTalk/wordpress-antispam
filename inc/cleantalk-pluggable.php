@@ -1406,6 +1406,13 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         }
 
         if (
+            apbct_is_plugin_active('booking/wpdev-booking.php') &&
+            (Post::getString('action') === 'WPBC_AJX_BOOKING__CREATE')
+        ) {
+            return 'WP BookingCalendar service action';
+        }
+
+        if (
             (
                 apbct_is_plugin_active('pixelyoursite/pixelyoursite.php') ||
                 apbct_is_plugin_active('pixelyoursite-pro/pixelyoursite-pro.php')

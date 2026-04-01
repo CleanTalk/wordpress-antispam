@@ -3563,6 +3563,11 @@ class ApbctHandler {
                 if (ajaxObject.data.indexOf('action=wwlc_create_user') !== -1) {
                     sourceSign.found = 'action=wwlc_create_user';
                 }
+                if (ajaxObject.data.indexOf('action=WPBC_AJX_BOOKING__CREATE') !== -1) {
+                    sourceSign.found = 'action=WPBC_AJX_BOOKING__CREATE';
+                    sourceSign.keepUnwrapped = true;
+                    sourceSign.attachVisibleFieldsData = true;
+                }
                 if (ajaxObject.data.indexOf('action=drplus_signup') !== -1) {
                     sourceSign.found = 'action=drplus_signup';
                     sourceSign.keepUnwrapped = true;
