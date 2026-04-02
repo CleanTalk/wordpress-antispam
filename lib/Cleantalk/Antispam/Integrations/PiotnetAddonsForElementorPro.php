@@ -10,7 +10,6 @@ class PiotnetAddonsForElementorPro extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        Cookie::$force_alt_cookies_global = true;
         $nickname = '';
         $email = '';
         if ( Post::get('fields') ) {

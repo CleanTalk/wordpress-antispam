@@ -20,6 +20,13 @@ class ServiceConstants
      */
     public $set_ajax_route_type;
 
+    /**
+     * Is BotDetector enabled/disabled
+     * @var ApbctConstant
+     * @psalm-suppress PossiblyUnusedProperty
+     */
+    public $bot_detector_enabled;
+
     public function __construct()
     {
         $this->disable_empty_email_exception = new ApbctConstant(
@@ -41,6 +48,10 @@ class ServiceConstants
                 'APBCT_SET_AJAX_ROUTE_TYPE',
             ),
             'Provides AJAX route type'
+        );
+        $this->bot_detector_enabled = new ApbctConstant(
+            array('APBCT_SERVICE__BOT_DETECTOR_ENABLED'),
+            'Allows to set Bot-Detector enabled/disabled'
         );
 //        $accepted_constants = array(
 //            // needs to be refactored

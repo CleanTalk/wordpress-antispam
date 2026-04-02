@@ -938,6 +938,11 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         $checkjs        = $checkjs_cookie ?: $checkjs_post;
     }
 
+    // BuddyBoss Platform use rest api for registration from phone app
+    if ( apbct_is_plugin_active('buddyboss-app/buddyboss-app.php') && apbct_is_in_uri('/wp-json/buddyboss-app/v1/signup') ) {
+        $checkjs = Post::getString('checkjs') === 'true' ? 1 : 0;
+    }
+
     $sender_info = array(
         'post_checkjs_passed'   => $checkjs_post,
         'cookie_checkjs_passed' => $checkjs_cookie,
@@ -1047,6 +1052,10 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 
         if ( $buddypress === true ) {
             $bp->signup->errors['signup_username'] = $ct_result->comment;
+        }
+
+        if (apbct_is_plugin_active('buddyboss-app/buddyboss-app.php') && apbct_is_in_uri('/wp-json/buddyboss-app/v1/signup')) {
+            wp_send_json_error(['success' => false, 'message' => $ct_result->comment]);
         }
 
         if ( $facebook ) {
@@ -1870,19 +1879,16 @@ function ct_quform_post_validate($result, $form)
      * Filter for POST
      */
     $input_array = apply_filters('apbct__filter_post', $form->getValues());
-
     $ct_temp_msg_data = ct_get_fields_any($input_array);
     $sender_email = isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '';
     $sender_emails_array = isset($ct_temp_msg_data['emails_array']) ? $ct_temp_msg_data['emails_array'] : '';
 
-    $checkjs          = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
     $base_call_result = apbct_base_call(
         array(
             'message'      => $form->getValues(),
             'sender_email' => $sender_email,
             'post_info'    => array('comment_type' => $comment_type),
             'sender_info'     => array('sender_emails_array' => $sender_emails_array),
-            'js_on'        => $checkjs,
         )
     );
 
