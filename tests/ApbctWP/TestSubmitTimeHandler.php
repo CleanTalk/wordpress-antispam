@@ -9,8 +9,10 @@ class TestSubmitTimeHandler extends TestCase
     {
         global $apbct;
         $apbct = (object) [
-            'settings' => ['data__bot_detector_enabled' => true],
-            'data' => ['cookies_type' => 'alternative']
+            'data' => [
+                'cookies_type' => 'alternative',
+                'bot_detector_enabled' => true
+            ]
         ];
 
         $result = SubmitTimeHandler::getFromRequest();
@@ -23,8 +25,10 @@ class TestSubmitTimeHandler extends TestCase
     {
         global $apbct;
         $apbct = (object) [
-            'settings' => ['data__bot_detector_enabled' => true],
-            'data' => ['cookies_type' => 'alternative']
+            'data' => [
+                'cookies_type' => 'alternative',
+                'bot_detector_enabled' => true
+            ]
         ];
 
         $cookie_test_value = [];
@@ -40,8 +44,10 @@ class TestSubmitTimeHandler extends TestCase
     {
         global $apbct;
         $apbct = (object) [
-            'settings' => ['data__bot_detector_enabled' => true],
-            'data' => ['cookies_type' => 'alternative']
+            'data' => [
+                'cookies_type' => 'alternative',
+                'bot_detector_enabled' => true
+            ]
         ];
 
         $result = SubmitTimeHandler::isCalculationDisabled();
@@ -52,7 +58,7 @@ class TestSubmitTimeHandler extends TestCase
     public function testIsCalculationDisabledReturnsFalseWhenBotDetectorDisabled()
     {
         global $apbct;
-        $apbct = (object) ['settings' => ['data__bot_detector_enabled' => false]];
+        $apbct = (object) ['data' => ['bot_detector_enabled' => false]];
 
         $result = SubmitTimeHandler::isCalculationDisabled();
 
