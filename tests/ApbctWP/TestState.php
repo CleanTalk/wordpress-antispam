@@ -22,6 +22,7 @@ class TestApbctState extends TestCase
         update_option( 'cleantalk_errors', array( 'error_type' => 'Error text' ) );
         $apbct = new State( 'cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats') );
         $this->assertTrue( $apbct->isHaveErrors() );
+        delete_option('cleantalk_errors');
     }
 
     public function testIsHaveErrors_emptyErrors()
@@ -29,6 +30,7 @@ class TestApbctState extends TestCase
         update_option( 'cleantalk_errors', array() );
         $apbct = new State( 'cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats') );
         $this->assertFalse( $apbct->isHaveErrors() );
+        delete_option('cleantalk_errors');
     }
 
     public function testIsHaveErrors_emptyInnerErrors()
@@ -36,6 +38,7 @@ class TestApbctState extends TestCase
         update_option( 'cleantalk_errors', array( 'error_type' => array() ) );
         $apbct = new State( 'cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats') );
         $this->assertFalse( $apbct->isHaveErrors() );
+        delete_option('cleantalk_errors');
     }
 
     public function testIsHaveErrors_filledInnerErrors()
@@ -43,6 +46,20 @@ class TestApbctState extends TestCase
         update_option( 'cleantalk_errors', array( 'error_type' => array( 'error_text' => 'Error text' ) ) );
         $apbct = new State( 'cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats') );
         $this->assertTrue( $apbct->isHaveErrors() );
+        delete_option('cleantalk_errors');
+    }
+
+    public function testErrorsArrayFromState()
+    {
+        $apbct = new State('cleantalk', array('errors'));
+
+        $apbct->errorAdd('api', 'error');
+
+        $errors_from_state = (array) $apbct->errors;
+
+        $this->assertArrayHasKey('api', $errors_from_state);
+        $this->assertArrayHasKey('error', $errors_from_state['api'][0]);
+        $this->assertArrayHasKey('error_time', $errors_from_state['api'][0]);
     }
 
     //UpdateVars section
@@ -58,6 +75,7 @@ class TestApbctState extends TestCase
         apbct_run_update_actions('6.1','6.2');
         $db_result = get_option('cleantalk_remote_calls')['post_api_key'];
         $this->assertEquals(array ('last_call' => 0,), $db_result);
+        delete_option('cleantalk_remote_calls');
     }
 
     public function testAutoSaveVars__settings(){
@@ -71,6 +89,7 @@ class TestApbctState extends TestCase
         apbct_run_update_actions('6.1','6.2');
         $db_result = get_option('cleantalk_settings')['forms__registrations_test'];
         $this->assertEquals(1, $db_result);
+        delete_option('cleantalk_settings');
     }
 
     public function testAutoSaveVars__data(){
@@ -84,6 +103,7 @@ class TestApbctState extends TestCase
         apbct_run_update_actions('6.1','6.2');
         $db_result = get_option('cleantalk_data')['js_key_lifetime'];
         $this->assertEquals(86400, $db_result);
+        delete_option('cleantalk_data');
     }
 
     public function testAutoSaveVars__network_settings(){
@@ -97,6 +117,7 @@ class TestApbctState extends TestCase
         apbct_run_update_actions('6.1','6.2');
         $db_result = get_option('cleantalk_network_settings')['multisite__white_label__plugin_name'];
         $this->assertEquals('Anti-Spam by CleanTalk', $db_result);
+        delete_option('network_settings');
     }
 
     public function testAutoSaveVars__network_data(){
@@ -110,6 +131,7 @@ class TestApbctState extends TestCase
         apbct_run_update_actions('6.1','6.2');
         $db_result = get_option('cleantalk_network_data')['moderate'];
         $this->assertEquals(0, $db_result);
+        delete_option('cleantalk_network_data');
     }
 
     public function testAutoSaveVars__stats(){
@@ -161,6 +183,7 @@ class TestApbctState extends TestCase
         $this->assertEquals(14400, $db_result);
         $db_result = get_option('cleantalk_stats')['sfw']['sending_logs__timestamp'];
         $this->assertEquals(10000, $db_result);
+        delete_option('cleantalk_stats');
 
     }
 
@@ -175,6 +198,7 @@ class TestApbctState extends TestCase
         apbct_run_update_actions('6.1','6.2');
         $db_result = get_option('cleantalk_fw_stats')['firewall_updating_id'];
         $this->assertEquals(null, $db_result);
+        delete_option('cleantalk_fw_stats');
     }
 
     public function testAutoSaveVars__fw_stats_await_exception_without_var_updater(){
@@ -191,5 +215,6 @@ class TestApbctState extends TestCase
         //await udefined index
         $this->expectException(Notice::class);
         $db_result = get_option('cleantalk_fw_stats')['firewall_updating_id'];
+        delete_option('cleantalk_fw_stats');
     }
 }
