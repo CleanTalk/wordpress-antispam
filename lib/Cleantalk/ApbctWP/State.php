@@ -652,8 +652,10 @@ class State extends \Cleantalk\Common\State
             // Get stats from main blog
             switch_to_blog(get_main_site_id());
             $main_blog_stats = get_option($this->option_prefix . '_stats');
+            $main_blog_errors = get_option($this->option_prefix . '_errors');
             restore_current_blog();
             $this->stats = $main_blog_stats;
+            $this->errors = $main_blog_errors;
             $this->api_key     = $this->network_settings['apikey'];
             $this->key_is_ok   = $this->network_data['key_is_ok'];
             $this->user_token  = $this->network_data['user_token'];
