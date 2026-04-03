@@ -649,7 +649,7 @@ class State extends \Cleantalk\Common\State
 
         // Network with Mutual Access key
         if ( ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2 ) {
-            // Get stats from main blog
+            // Get stats and errors from main blog
             switch_to_blog(get_main_site_id());
             $main_blog_stats = get_option($this->option_prefix . '_stats');
             $main_blog_errors = get_option($this->option_prefix . '_errors');
