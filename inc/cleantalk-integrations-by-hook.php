@@ -291,6 +291,13 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'BookingCalendar' => array(
+        'hook'    => [
+            'WPBC_AJX_BOOKING__CREATE',
+        ],
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
     'JobstackThemeRegistration' => array(
         'hook'    => 'wp_loaded',
         'setting' => 'forms__registrations_test',
