@@ -219,7 +219,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
 
         $event_javascript_data = '';
         $event_token = '';
-        if ($apbct->settings['data__bot_detector_enabled'] == 1) {
+        if ( apbct__is_bot_detector_enabled() ) {
             $event_token = Post::getString('event_token');
         } else {
             $post_event_javascript_data = TT::toString(Post::get('event_javascript_data'));

@@ -723,6 +723,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             'fl_builder_subscribe_form_submit', // FLBuilderForms has direct integration
             'tutor_pro_social_authentication', // Tutor Pro social authentication, we trust a third-party service
             'drplus_login', // Doctor Plus theme login
+            'fluent_cal_schedule_meeting', // Fluent Booking has direct integration
         );
 
         // Skip test if
@@ -1436,7 +1437,11 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
                 apbct_is_plugin_active('piotnet-addons-for-elementor-pro/piotnet-addons-for-elementor-pro.php') ||
                 apbct_is_plugin_active('piotnet-addons-for-elementor/piotnet-addons-for-elementor.php')
             ) &&
-            Post::get('action') === 'pafe_ajax_form_builder_preview_submission' ) {
+            (
+                Post::get('action') === 'pafe_ajax_form_builder_preview_submission' ||
+                Post::get('action') === 'pafe_ajax_form_builder'
+            )
+        ) {
             return 'PAFE';
         }
 

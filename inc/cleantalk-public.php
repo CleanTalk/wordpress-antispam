@@ -32,7 +32,7 @@ function apbct_init()
         $apbct->settings['data__pixel'] &&
         empty($apbct->pixel_url) &&
         !(
-            $apbct->settings['data__bot_detector_enabled'] === '1' &&
+            apbct__is_bot_detector_enabled() &&
             $apbct->settings['data__pixel'] === '3'
         )
     ) {
@@ -570,7 +570,7 @@ function apbct_hook__wp_footer()
         (
             $apbct->settings['data__pixel'] === '3' &&
             ! apbct_is_cache_plugins_exists() &&
-            $apbct->settings['data__bot_detector_enabled'] !== '1'
+            ! apbct__is_bot_detector_enabled()
         )
     ) {
         echo '<img alt="Cleantalk Pixel" title="Cleantalk Pixel" id="apbct_pixel" style="display: none;" src="' . Escape::escUrl($apbct->pixel_url) . '">';
@@ -1275,7 +1275,7 @@ function apbct_enqueue_and_localize_public_scripts()
     ApbctEnqueue::getInstance()->js($bundle_name, array(), $in_footer);
 
     // Bot detector
-    if ( $apbct->settings['data__bot_detector_enabled'] && ! apbct_bot_detector_scripts_exclusion()) {
+    if ( apbct__is_bot_detector_enabled() && ! apbct_bot_detector_scripts_exclusion()) {
         // Attention! Skip old enqueue way for external script.
         wp_enqueue_script(
             'ct_bot_detector',
