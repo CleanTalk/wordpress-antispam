@@ -173,24 +173,14 @@ class RemoteCalls
     /**
      * Update license
      *
-     * @return string
+     * @return void
      */
     public static function action__license_update() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if ( ! headers_sent() ) {
-            header("Content-Type: application/json");
-        }
+        $cron = new Cron();
+        $cron->updateTask('check_account_status', 'ct_account_status_check', 86400, time() + 3600);
 
-        if ( ! function_exists('apbct_settings__sync') ) {
-            require_once APBCT_DIR_PATH . 'inc/cleantalk-settings.php';
-        }
-
-        $result = apbct_settings__sync(true);
-        if ( ! empty($result['error']) ) {
-            die(json_encode(['ERROR' => json_encode($result['error'])]));
-        }
-
-        die(json_encode(['OK' => true]));
+        wp_send_json(['OK' => true]);
     }
 
     /**
@@ -531,7 +521,6 @@ class RemoteCalls
             'data__use_static_js_key' => 'Use static keys for JavaScript check',
             'data__general_postdata_test' => 'Check all post data',
             'data__set_cookies' => 'Set cookies',
-            'data__bot_detector_enabled' => 'Use JavaScript library',
             'exclusions__bot_detector' => 'JavaScript Library Exclusions',
             'exclusions__bot_detector__form_attributes' => 'Exclude any forms that has attribute matches',
             'exclusions__bot_detector__form_children_attributes' => 'Exclude any forms that includes a child element with attribute matches',
