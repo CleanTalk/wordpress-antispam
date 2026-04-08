@@ -11,6 +11,7 @@ on: # event list
     branches:
       - dev
       - master
+      - '**'
 
 env: # environment variables (available in any part of the action)
   PHP_VERSION: 7.4
