@@ -13,12 +13,17 @@ class TestCleantalkPreprocessComment extends TestCase
      * @var mixed
      */
     private $savedCurrentUser;
+    /**
+     * @var string
+     */
+    private $savedDisallowedKeys;
 
     protected function setUp(): void
     {
         parent::setUp();
         global $current_user;
         $this->savedCurrentUser = isset($current_user) ? $current_user : null;
+        $this->savedDisallowedKeys = (string) get_option('disallowed_keys', '');
     }
 
     protected function tearDown(): void
@@ -28,7 +33,21 @@ class TestCleantalkPreprocessComment extends TestCase
         if (function_exists('wp_set_current_user')) {
             wp_set_current_user(0);
         }
+        update_option('disallowed_keys', $this->savedDisallowedKeys);
         parent::tearDown();
+    }
+
+    /**
+     * @return \stdClass
+     */
+    private function makeSubscriberUser()
+    {
+        $subscriber = new \stdClass();
+        $subscriber->ID = 91234;
+        $subscriber->roles = array('subscriber');
+        $subscriber->caps = array('subscriber' => true);
+
+        return $subscriber;
     }
 
     /**
@@ -117,10 +136,7 @@ class TestCleantalkPreprocessComment extends TestCase
     public function testDoSkipReasonDefaultsMissingCommentTypeToComment(): void
     {
         global $current_user;
-        $subscriber = new \stdClass();
-        $subscriber->ID = 91234;
-        $subscriber->roles = array('subscriber');
-        $subscriber->caps = array('subscriber' => true);
+        $subscriber = $this->makeSubscriberUser();
         $current_user = $subscriber;
 
         $apbct = (object) array(
@@ -131,6 +147,90 @@ class TestCleantalkPreprocessComment extends TestCase
 
         $wp_comment = array(
             'comment_post_ID' => 1,
+        );
+
+        $result = $this->invokeDoSkipReason($wp_comment, $subscriber, false, $apbct);
+
+        $this->assertNotFalse($result);
+        $this->assertStringContainsString('doSkipReason', $result);
+    }
+
+    public function testDoSkipReasonSkipsWhenCommentAlreadyHandled(): void
+    {
+        global $current_user;
+        $subscriber = $this->makeSubscriberUser();
+        $current_user = $subscriber;
+
+        $apbct = (object) array(
+            'settings' => array(
+                'forms__comments_test' => 1,
+            ),
+        );
+
+        $wp_comment = array(
+            'comment_type' => 'comment',
+            'comment_post_ID' => 1,
+            'comment_author' => 'John',
+            'comment_author_email' => 'john@example.com',
+            'comment_author_url' => 'https://example.com',
+            'comment_content' => 'Regular text',
+        );
+
+        $result = $this->invokeDoSkipReason($wp_comment, $subscriber, true, $apbct);
+
+        $this->assertNotFalse($result);
+        $this->assertStringContainsString('doSkipReason', $result);
+    }
+
+    public function testDoSkipReasonReturnsFalseForRegularCommentWithoutBlacklistedContent(): void
+    {
+        global $current_user;
+        $subscriber = $this->makeSubscriberUser();
+        $current_user = $subscriber;
+
+        update_option('disallowed_keys', 'forbidden-keyword-that-is-not-used');
+
+        $apbct = (object) array(
+            'settings' => array(
+                'forms__comments_test' => 1,
+            ),
+        );
+
+        $wp_comment = array(
+            'comment_type' => 'comment',
+            'comment_post_ID' => 1,
+            'comment_author' => 'John',
+            'comment_author_email' => 'john@example.com',
+            'comment_author_url' => 'https://example.com',
+            'comment_content' => 'Absolutely clean content',
+        );
+
+        $result = $this->invokeDoSkipReason($wp_comment, $subscriber, false, $apbct);
+
+        $this->assertFalse($result);
+    }
+
+    public function testDoSkipReasonSkipsWhenWordPressBlacklistMatches(): void
+    {
+        global $current_user;
+        $subscriber = $this->makeSubscriberUser();
+        $current_user = $subscriber;
+
+        update_option('disallowed_keys', 'blacklisted-fragment');
+
+        $apbct = (object) array(
+            'settings' => array(
+                'forms__comments_test' => 1,
+            ),
+        );
+
+        $wp_comment = array(
+            'comment_type' => 'comment',
+            'comment_post_ID' => 1,
+            'comment_author' => 'John',
+            'comment_author_email' => 'john@example.com',
+            'comment_author_url' => 'https://example.com',
+            'comment_content' => 'Message contains blacklisted-fragment inside',
         );
 
         $result = $this->invokeDoSkipReason($wp_comment, $subscriber, false, $apbct);
