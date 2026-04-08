@@ -139,3 +139,4 @@ class TestCleantalkPreprocessComment extends TestCase
         $this->assertStringContainsString('doSkipReason', $result);
     }
 }
+
