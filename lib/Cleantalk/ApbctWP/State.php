@@ -648,7 +648,7 @@ class State extends \Cleantalk\Common\State
         $this->stats['no_cookie_data_taken'] = null;
 
         // Network with Mutual Access key
-        if ( ! $this->isMainSite() && $this->getWpmsMode() == 2 ) {
+        if ( ! $this->isMainSite() && $this->getWpmsMode() === 2 ) {
             // Get stats and errors from main blog
 
             $this->switchToMainBlog();
@@ -1052,23 +1052,23 @@ class State extends \Cleantalk\Common\State
         return $this->js_errors_report;
     }
 
-     protected function isMainSite()
-     {
-         return is_main_site();
-     }
+    protected function isMainSite()
+    {
+        return is_main_site();
+    }
 
-     protected function getWpmsMode()
-     {
-         return $this->network_settings['multisite__work_mode'];
-     }
+    protected function getWpmsMode()
+    {
+        return (int) $this->network_settings['multisite__work_mode'];
+    }
 
-     protected function switchToMainBlog()
-     {
-         switch_to_blog(get_main_site_id());
-     }
+    protected function switchToMainBlog()
+    {
+        switch_to_blog(get_main_site_id());
+    }
 
-     protected function switchToCurrentBlog()
-     {
-         restore_current_blog();
-     }
- }
+    protected function switchToCurrentBlog()
+    {
+        restore_current_blog();
+    }
+}
