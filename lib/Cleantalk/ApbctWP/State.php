@@ -1061,15 +1061,15 @@ class State extends \Cleantalk\Common\State
         return $this->js_errors_report;
     }
 
-    protected function isMainSite()
-    {
-        return is_main_site();
-    }
+     protected function isMainSite()
+     {
+         return is_main_site();
+     }
 
-    protected function getWpmsMode()
-    {
-        return $this->network_settings['multisite__work_mode'];
-    }
+     protected function getWpmsMode()
+     {
+         return $this->network_settings['multisite__work_mode'];
+     }
 
      protected function switchToMainBlog()
      {
