@@ -1460,6 +1460,11 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
      */
     $input_array = apply_filters('apbct__filter_post', $_POST);
 
+    $honeypot_params = array();
+    if ( isset($input_array['apbct__email_id__wp_contact_form_7']) ) {
+        $honeypot_params['honeypot_field'] = ($input_array['apbct__email_id__wp_contact_form_7'] === '') ? 1 : 0;
+    }
+
     $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '';
@@ -1472,21 +1477,24 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
     }
 
     $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'js_on'           => $checkjs,
-            'post_info'       => array('comment_type' => 'contact_form_wordpress_cf7'),
-            'sender_info'     => array(
-                'form_validation' => ! isset($apbct->validation_error)
-                    ? null
-                    : json_encode(array(
-                        'validation_notice' => $apbct->validation_error,
-                        'page_url'          => TT::toString(Server::get('HTTP_HOST')) . TT::toString(Server::get('REQUEST_URI')),
-                    )),
-                'sender_emails_array' => $sender_emails_array,
+        array_merge(
+            array(
+                'message'         => $message,
+                'sender_email'    => $sender_email,
+                'sender_nickname' => $sender_nickname,
+                'js_on'           => $checkjs,
+                'post_info'       => array('comment_type' => 'contact_form_wordpress_cf7'),
+                'sender_info'     => array(
+                    'form_validation' => ! isset($apbct->validation_error)
+                        ? null
+                        : json_encode(array(
+                            'validation_notice' => $apbct->validation_error,
+                            'page_url'          => TT::toString(Server::get('HTTP_HOST')) . TT::toString(Server::get('REQUEST_URI')),
+                        )),
+                    'sender_emails_array' => $sender_emails_array,
+                ),
             ),
+            $honeypot_params
         )
     );
 
