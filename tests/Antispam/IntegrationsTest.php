@@ -29,7 +29,7 @@ class IntegrationsTest extends TestCase {
 		);
 		$class = new \ReflectionClass( '\Cleantalk\Antispam\Integrations' );
 		$this->method = $class->getMethod('getCurrentIntegrationTriggered');
-		$this->method->setAccessible(true);
+        $this->method->setAccessible(true);
 		$this->integrations = $class->newInstanceWithoutConstructor();
 		$property = $class->getProperty('integrations');
 		$property->setAccessible(true);
@@ -49,7 +49,17 @@ class IntegrationsTest extends TestCase {
 	public function testGet_current_integration_triggered_array() {
 		// parameter is array
 		$this->assertEquals( 'Wpdiscuz', $this->method->invoke( $this->integrations, 'wpdAddComment' ) );
-
 	}
 
+    public function testNativeCommentType()
+    {
+        $integration = new TestIntegration();
+        $integration->getDataForChecking(null);
+        $this->assertEmpty($integration->custom_comment_type);
+    }
+}
+
+class TestIntegration extends \Cleantalk\Antispam\Integrations\IntegrationBase {
+    public function getDataForChecking($argument) {}
+    public function doBlock($message) {}
 }
