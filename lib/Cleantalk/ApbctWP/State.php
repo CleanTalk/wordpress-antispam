@@ -618,8 +618,6 @@ class State extends \Cleantalk\Common\State
 
     protected function init()
     {
-        error_log(var_export('init()', true));
-
         $this->ajax_service = new AJAXService();
         // Standalone or main site
         $this->api_key        = $this->settings['apikey'];
@@ -649,9 +647,6 @@ class State extends \Cleantalk\Common\State
         //clear no_cookie_data_taken
         $this->stats['no_cookie_data_taken'] = null;
 
-        error_log(var_export($this->isMainSite(), true));
-        error_log(var_export($this->getWpmsMode(), true));
-
         // Network with Mutual Access key
         if ( ! $this->isMainSite() && $this->getWpmsMode() == 2 ) {
             // Get stats and errors from main blog
@@ -659,10 +654,6 @@ class State extends \Cleantalk\Common\State
             $this->switchToMainBlog();
             $main_blog_stats = get_option($this->option_prefix . '_stats');
             $main_blog_errors = get_option($this->option_prefix . '_errors');
-
-            error_log(var_export($main_blog_stats, true));
-            error_log(var_export($main_blog_errors, true));
-
             $this->switchToCurrentBlog();
 
             $this->stats = $main_blog_stats;
