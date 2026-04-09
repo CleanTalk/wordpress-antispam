@@ -6,6 +6,7 @@ abstract class IntegrationBase
 {
     public $base_call_result;
     public $visible_fields_data;
+    public $custom_comment_type;
 
     /**
      * Legacy old way to collect data.

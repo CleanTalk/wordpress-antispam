@@ -150,7 +150,7 @@ class Integrations
                             'sender_info'     => $sender_info,
                             'event_token' => ! empty($data['event_token']) ? $data['event_token'] : '',
                             'post_info'       => array(
-                                'comment_type' => 'contact_form_wordpress_' . strtolower($current_integration),
+                                'comment_type' => 'contact_form_wordpress_' . strtolower($integration->custom_comment_type ?? $current_integration),
                                 'post_url'     => Server::get('HTTP_REFERER'),
                                 // Page URL must be an previous page
                             ),

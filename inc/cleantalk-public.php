@@ -287,9 +287,6 @@ function apbct_init()
         apbct_form__piratesForm__testSpam();
     }
 
-    // QForms integration
-    add_filter('quform_post_validate', 'ct_quform_post_validate', 10, 2);
-
     // Ultimate Members
     if ( class_exists('UM') ) {
         add_action('um_main_register_fields', 'ct_register_form', 100); // Add hidden fileds
