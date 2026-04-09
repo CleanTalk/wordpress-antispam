@@ -482,10 +482,10 @@ class State extends \Cleantalk\Common\State
     {
         global $wpdb;
 
-        $db_prefix = is_multisite() && is_main_site() ? $wpdb->base_prefix : $wpdb->prefix;
+        $db_prefix = is_multisite() && $this->isMainSite() ? $wpdb->base_prefix : $wpdb->prefix;
         // Use tables from main site on wpms_mode=2
         $fw_db_prefix =
-            is_multisite() && ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2
+            is_multisite() && ! $this->isMainSite() && $this->getWpmsMode() == 2
                 ? $wpdb->base_prefix
                 : $db_prefix;
 
@@ -648,12 +648,16 @@ class State extends \Cleantalk\Common\State
         $this->stats['no_cookie_data_taken'] = null;
 
         // Network with Mutual Access key
-        if ( ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2 ) {
-            // Get stats from main blog
-            switch_to_blog(get_main_site_id());
+        if ( ! $this->isMainSite() && $this->getWpmsMode() === 2 ) {
+            // Get stats and errors from main blog
+
+            $this->switchToMainBlog();
             $main_blog_stats = get_option($this->option_prefix . '_stats');
-            restore_current_blog();
+            $main_blog_errors = get_option($this->option_prefix . '_errors');
+            $this->switchToCurrentBlog();
+
             $this->stats = $main_blog_stats;
+            $this->errors = $main_blog_errors;
             $this->api_key     = $this->network_settings['apikey'];
             $this->key_is_ok   = $this->network_data['key_is_ok'];
             $this->user_token  = $this->network_data['user_token'];
@@ -1046,5 +1050,25 @@ class State extends \Cleantalk\Common\State
         }
 
         return $this->js_errors_report;
+    }
+
+    protected function isMainSite()
+    {
+        return is_main_site();
+    }
+
+    protected function getWpmsMode()
+    {
+        return (int) $this->network_settings['multisite__work_mode'];
+    }
+
+    protected function switchToMainBlog()
+    {
+        switch_to_blog(get_main_site_id());
+    }
+
+    protected function switchToCurrentBlog()
+    {
+        restore_current_blog();
     }
 }
