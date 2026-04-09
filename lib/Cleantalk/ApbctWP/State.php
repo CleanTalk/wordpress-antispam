@@ -482,10 +482,10 @@ class State extends \Cleantalk\Common\State
     {
         global $wpdb;
 
-        $db_prefix = is_multisite() && is_main_site() ? $wpdb->base_prefix : $wpdb->prefix;
+        $db_prefix = is_multisite() && $this->isMainSite() ? $wpdb->base_prefix : $wpdb->prefix;
         // Use tables from main site on wpms_mode=2
         $fw_db_prefix =
-            is_multisite() && ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2
+            is_multisite() && ! $this->isMainSite() && $this->getWpmsMode() == 2
                 ? $wpdb->base_prefix
                 : $db_prefix;
 
@@ -618,6 +618,8 @@ class State extends \Cleantalk\Common\State
 
     protected function init()
     {
+        error_log(var_export('init()', true));
+
         $this->ajax_service = new AJAXService();
         // Standalone or main site
         $this->api_key        = $this->settings['apikey'];
@@ -647,13 +649,22 @@ class State extends \Cleantalk\Common\State
         //clear no_cookie_data_taken
         $this->stats['no_cookie_data_taken'] = null;
 
+        error_log(var_export($this->isMainSite(), true));
+        error_log(var_export($this->getWpmsMode(), true));
+
         // Network with Mutual Access key
-        if ( ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2 ) {
+        if ( ! $this->isMainSite() && $this->getWpmsMode() == 2 ) {
             // Get stats and errors from main blog
-            switch_to_blog(get_main_site_id());
+
+            $this->switchToMainBlog();
             $main_blog_stats = get_option($this->option_prefix . '_stats');
             $main_blog_errors = get_option($this->option_prefix . '_errors');
-            restore_current_blog();
+
+            error_log(var_export($main_blog_stats, true));
+            error_log(var_export($main_blog_errors, true));
+
+            $this->switchToCurrentBlog();
+
             $this->stats = $main_blog_stats;
             $this->errors = $main_blog_errors;
             $this->api_key     = $this->network_settings['apikey'];
@@ -1049,4 +1060,24 @@ class State extends \Cleantalk\Common\State
 
         return $this->js_errors_report;
     }
-}
+
+    protected function isMainSite()
+    {
+        return is_main_site();
+    }
+
+    protected function getWpmsMode()
+    {
+        return $this->network_settings['multisite__work_mode'];
+    }
+
+     protected function switchToMainBlog()
+     {
+         switch_to_blog(get_main_site_id());
+     }
+
+     protected function switchToCurrentBlog()
+     {
+         restore_current_blog();
+     }
+ }

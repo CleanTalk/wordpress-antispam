@@ -4,6 +4,8 @@ use Cleantalk\ApbctWP\State;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Error\Notice;
 
+require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-updater.php');
+
 class TestApbctState extends TestCase
 {
 
@@ -51,7 +53,7 @@ class TestApbctState extends TestCase
 
     public function testErrorsArrayFromState()
     {
-        $apbct = new State('cleantalk', array('errors'));
+        $apbct = new State('cleantalk', array('settings', 'errors'));
 
         $apbct->errorAdd('api', 'error');
 
@@ -60,6 +62,8 @@ class TestApbctState extends TestCase
         $this->assertArrayHasKey('api', $errors_from_state);
         $this->assertArrayHasKey('error', $errors_from_state['api'][0]);
         $this->assertArrayHasKey('error_time', $errors_from_state['api'][0]);
+
+        delete_option('cleantalk_errors');
     }
 
     //UpdateVars section
@@ -216,5 +220,32 @@ class TestApbctState extends TestCase
         $this->expectException(Notice::class);
         $db_result = get_option('cleantalk_fw_stats')['firewall_updating_id'];
         delete_option('cleantalk_fw_stats');
+    }
+
+    public function testInit()
+    {
+        $apbct = new class ('cleantalk', array('settings', 'errors')) extends State {
+            protected function isMainSite()
+            {
+                return false;
+            }
+            protected function getWpmsMode()
+            {
+                return 2;
+            }
+            protected function switchToMainBlog(){}
+            protected function switchToCurrentBlog(){}
+
+        };
+
+        $apbct->errorAdd('api', 'error');
+
+        $errors_from_state = (array) $apbct->errors;
+
+        $this->assertArrayHasKey('api', $errors_from_state);
+        $this->assertArrayHasKey('error', $errors_from_state['api'][0]);
+        $this->assertArrayHasKey('error_time', $errors_from_state['api'][0]);
+
+        delete_option('cleantalk_errors');
     }
 }
