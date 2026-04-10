@@ -111,7 +111,7 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
             referrer: document.referrer,
             encodedEmails: '',
         };
-        if (ctPublic.settings__data__bot_detector_enabled == 1) {
+        if (+ctPublic.bot_detector_enabled) {
             data.event_token = apbctLocalStorage.get('bot_detector_event_token');
         } else {
             data.event_javascript_data = getJavascriptClientData();
@@ -1924,7 +1924,7 @@ class ApbctFetchProxyProtection {
                 data.raw_body = bodyText;
             }
 
-            if (+ctPublic.settings__data__bot_detector_enabled) {
+            if (+ctPublic.bot_detector_enabled) {
                 const eventToken = new ApbctHandler().toolGetEventToken();
                 if (eventToken) {
                     data.ct_bot_detector_event_token = eventToken;
@@ -2010,6 +2010,7 @@ class ApbctFetchProxyProtection {
         return await this.checkRequest(match.formKey, match.config, bodyText);
     }
 }
+
 /**
  * Set init params
  */
@@ -2671,7 +2672,7 @@ class ApbctAttachData {
         if (typeof ctPublic.force_alt_cookies == 'undefined' ||
             (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
         ) {
-            if (!+ctPublic.settings__data__bot_detector_enabled || gatheringLoaded) {
+            if (!+ctPublic.bot_detector_enabled || gatheringLoaded) {
                 ctNoCookieAttachHiddenFieldsToForms();
                 document.addEventListener('gform_page_loaded', ctNoCookieAttachHiddenFieldsToForms);
             }
@@ -2741,7 +2742,7 @@ class ApbctAttachData {
             event.target.action && event.target.action.toString().indexOf('mailpoet_subscription_form') !== -1
         ) {
             window.XMLHttpRequest.prototype.send = function(data) {
-                if (!+ctPublic.settings__data__bot_detector_enabled) {
+                if (!+ctPublic.bot_detector_enabled) {
                     const noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + getNoCookieData() + '&';
                     defaultSend.call(this, noCookieData + data);
                 } else {
@@ -3056,7 +3057,7 @@ class ApbctHandler {
     cronFormsHandler(cronStartTimeout = 2000) {
         setTimeout(function() {
             setInterval(function() {
-                if (!+ctPublic.settings__data__bot_detector_enabled && typeof ApbctGatheringData !== 'undefined') {
+                if (!+ctPublic.bot_detector_enabled && typeof ApbctGatheringData !== 'undefined') {
                     new ApbctGatheringData().restartFieldsListening();
                 }
                 new ApbctEventTokenTransport().restartBotDetectorEventTokenAttach();
@@ -3126,7 +3127,7 @@ class ApbctHandler {
                     let addidionalCleantalkData = '';
 
                     if (!(
-                        +ctPublic.settings__data__bot_detector_enabled &&
+                        +ctPublic.bot_detector_enabled &&
                         apbctLocalStorage.get('bot_detector_event_token')
                     )) {
                         let noCookieData = getNoCookieData();
@@ -3143,7 +3144,7 @@ class ApbctHandler {
 
                 if (isNeedToAddCleantalkDataCheckFormData) {
                     if (!(
-                        +ctPublic.settings__data__bot_detector_enabled &&
+                        +ctPublic.bot_detector_enabled &&
                         apbctLocalStorage.get('bot_detector_event_token')
                     )) {
                         let noCookieData = getNoCookieData();
@@ -3201,7 +3202,7 @@ class ApbctHandler {
                                 args[1].body instanceof FormData || (typeof args[1].body.append === 'function')
                             ) {
                                 if (
-                                    +ctPublic.settings__data__bot_detector_enabled &&
+                                    +ctPublic.bot_detector_enabled &&
                                     apbctLocalStorage.get('bot_detector_event_token')
                                 ) {
                                     args[1].body.append(
@@ -3361,7 +3362,7 @@ class ApbctHandler {
                     try {
                         args[1].body = attachFieldsToBody(
                             args[1].body,
-                            selectFieldsData(+ctPublic.settings__data__bot_detector_enabled),
+                            selectFieldsData(+ctPublic.bot_detector_enabled),
                         );
                     } catch (e) {
                         // Continue even if error
@@ -3377,14 +3378,14 @@ class ApbctHandler {
                     try {
                         args[1].body = attachFieldsToBody(
                             args[1].body,
-                            selectFieldsData(+ctPublic.settings__data__bot_detector_enabled),
+                            selectFieldsData(+ctPublic.bot_detector_enabled),
                         );
                     } catch (e) {
                         // Continue even if error
                     }
                 }
 
-                // === WooCommerce add to cart ===
+                // === WooCommerce add to cart (direct add-item URL) ===
                 if (
                     (
                         document.querySelectorAll(
@@ -3398,8 +3399,37 @@ class ApbctHandler {
                         if (+ctPublic.settings__forms__wc_add_to_cart) {
                             args[1].body = attachFieldsToBody(
                                 args[1].body,
-                                selectFieldsData(+ctPublic.settings__data__bot_detector_enabled),
+                                selectFieldsData(+ctPublic.bot_detector_enabled),
                             );
+                        }
+                    } catch (e) {
+                        // Continue even if error
+                    }
+                }
+
+                // === WooCommerce add to cart (batch API - /wc/store/v1/batch) ===
+                if (
+                    +ctPublic.settings__forms__wc_add_to_cart &&
+                    (
+                        document.querySelectorAll(
+                            'button.add_to_cart_button, button.ajax_add_to_cart, button.single_add_to_cart_button',
+                        ).length > 0 ||
+                        document.querySelectorAll('a.add_to_cart_button').length > 0
+                    ) &&
+                    args[0].includes('/wc/store/v1/batch') &&
+                    typeof args[1].body === 'string'
+                ) {
+                    try {
+                        const batchPayload = JSON.parse(args[1].body);
+                        if (batchPayload.requests && Array.isArray(batchPayload.requests)) {
+                            const fieldPair = selectFieldsData(+ctPublic.settings__data__bot_detector_enabled);
+                            for (const req of batchPayload.requests) {
+                                const isAddItem = req.path === '/wc/store/v1/cart/add-item';
+                                if (isAddItem && req.body && fieldPair && fieldPair.key) {
+                                    req.body[fieldPair.key] = fieldPair.value;
+                                }
+                            }
+                            args[1].body = JSON.stringify(batchPayload);
                         }
                     } catch (e) {
                         // Continue even if error
@@ -3728,7 +3758,7 @@ class ApbctHandler {
         let visibleFieldsString = '';
 
         if (
-            +ctPublic.settings__data__bot_detector_enabled &&
+            +ctPublic.bot_detector_enabled &&
             apbctLocalStorage.get('bot_detector_event_token')
         ) {
             const token = new ApbctHandler().toolGetEventToken();
@@ -3787,21 +3817,21 @@ class ApbctHandler {
                 return next(options);
             }
 
-            // add to cart
+            // add to cart (batch uses body not data for request payload)
             if (options.data.hasOwnProperty('requests') &&
                 options.data.requests.length > 0 &&
                 options.data.requests[0].hasOwnProperty('path') &&
                 options.data.requests[0].path === '/wc/store/v1/cart/add-item'
             ) {
+                const reqBody = options.data.requests[0].body || (options.data.requests[0].body = {});
                 if (
-                    +ctPublic.settings__data__bot_detector_enabled &&
+                    +ctPublic.bot_detector_enabled &&
                     apbctLocalStorage.get('bot_detector_event_token')
                 ) {
-                    let token = localStorage.getItem('bot_detector_event_token');
-                    options.data.requests[0].data.ct_bot_detector_event_token = token;
+                    reqBody.ct_bot_detector_event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
                     if (ctPublic.data__cookies_type === 'none') {
-                        options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+                        reqBody.ct_no_cookie_hidden_field = getNoCookieData();
                     }
                 }
             }
@@ -3809,7 +3839,7 @@ class ApbctHandler {
             // checkout
             if (options.path.includes('/wc/store/v1/checkout')) {
                 if (
-                    +ctPublic.settings__data__bot_detector_enabled &&
+                    +ctPublic.bot_detector_enabled &&
                     apbctLocalStorage.get('bot_detector_event_token')
                 ) {
                     options.data.ct_bot_detector_event_token = localStorage.getItem('bot_detector_event_token');
@@ -4383,7 +4413,7 @@ async function apbct_ready() {
 
     if (
         apbctLocalStorage.get('apbct_existing_visitor') && // Not for the first hit
-        +ctPublic.settings__data__bot_detector_enabled && // If Bot-Detector is active
+        +ctPublic.bot_detector_enabled && // If Bot-Detector is active
         !apbctLocalStorage.get('bot_detector_event_token') && // and no `event_token` generated
         typeof ApbctGatheringData === 'undefined' // and no `gathering` loaded yet
     ) {
@@ -4402,7 +4432,7 @@ async function apbct_ready() {
 
     // Gathering data when bot detector is disabled
     if (
-        ( ! +ctPublic.settings__data__bot_detector_enabled || gatheringLoaded ) &&
+        ( ! +ctPublic.bot_detector_enabled || gatheringLoaded ) &&
         typeof ApbctGatheringData !== 'undefined'
     ) {
         const gatheringData = new ApbctGatheringData();
@@ -4424,7 +4454,7 @@ async function apbct_ready() {
 
     setTimeout(function() {
         // Attach data when bot detector is enabled
-        if (+ctPublic.settings__data__bot_detector_enabled) {
+        if (+ctPublic.bot_detector_enabled) {
             const eventTokenTransport = new ApbctEventTokenTransport();
             eventTokenTransport.attachEventTokenToMultipageGravityForms();
             eventTokenTransport.attachEventTokenToWoocommerceGetRequestAddToCart();
@@ -4433,7 +4463,7 @@ async function apbct_ready() {
         const attachData = new ApbctAttachData();
 
         // Attach data when bot detector is disabled or blocked
-        if (!+ctPublic.settings__data__bot_detector_enabled || gatheringLoaded) {
+        if (!+ctPublic.bot_detector_enabled || gatheringLoaded) {
             attachData.attachHiddenFieldsToForms(gatheringLoaded);
         }
 
@@ -4460,7 +4490,7 @@ async function apbct_ready() {
     handler.catchJqueryAjax();
     handler.catchWCRestRequestAsMiddleware();
 
-    if (+ctPublic.settings__data__bot_detector_enabled) {
+    if (+ctPublic.bot_detector_enabled) {
         let botDetectorEventTokenStored = false;
         window.addEventListener('botDetectorEventTokenUpdated', (event) => {
             const botDetectorEventToken = event.detail?.eventToken;
@@ -4480,7 +4510,7 @@ async function apbct_ready() {
         });
     }
 
-    if (ctPublic.settings__sfw__anti_crawler && +ctPublic.settings__data__bot_detector_enabled) {
+    if (ctPublic.settings__sfw__anti_crawler && +ctPublic.bot_detector_enabled) {
         handler.toolForAntiCrawlerCheckDuringBotDetector();
     }
 
@@ -5146,7 +5176,7 @@ function getJavascriptClientData(commonCookies = []) { // eslint-disable-line no
  * @return {bool}
  */
 function ctIsDrawPixel() {
-    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+    if (ctPublic.pixel__setting == '3' && +ctPublic.bot_detector_enabled) {
         return false;
     }
 
@@ -5160,7 +5190,7 @@ function ctIsDrawPixel() {
  * @return {bool}
  */
 function ctSetPixelImg(pixelUrl) {
-    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+    if (ctPublic.pixel__setting == '3' && +ctPublic.bot_detector_enabled) {
         return false;
     }
     ctSetCookie('apbct_pixel_url', pixelUrl);
@@ -5182,7 +5212,7 @@ function ctSetPixelImg(pixelUrl) {
  * @return {bool}
  */
 function ctSetPixelImgFromLocalstorage(pixelUrl) {
-    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+    if (ctPublic.pixel__setting == '3' && +ctPublic.bot_detector_enabled) {
         return false;
     }
     if ( ctIsDrawPixel() ) {
@@ -5204,7 +5234,7 @@ function ctSetPixelImgFromLocalstorage(pixelUrl) {
  */
 // eslint-disable-next-line no-unused-vars, require-jsdoc
 function ctGetPixelUrl() {
-    if (ctPublic.pixel__setting == '3' && ctPublic.settings__data__bot_detector_enabled == '1') {
+    if (ctPublic.pixel__setting == '3' && +ctPublic.bot_detector_enabled) {
         return false;
     }
 
@@ -5350,8 +5380,8 @@ let botDetectorLogEventTypesCollected = [];
 
 // bot_detector frontend_data log alt session saving cron
 if (
-    ctPublicFunctions.hasOwnProperty('data__bot_detector_enabled') &&
-    ctPublicFunctions.data__bot_detector_enabled == 1 &&
+    ctPublicFunctions.hasOwnProperty('bot_detector_enabled') &&
+    +ctPublicFunctions.bot_detector_enabled &&
     ctPublicFunctions.hasOwnProperty('data__frontend_data_log_enabled') &&
     ctPublicFunctions.data__frontend_data_log_enabled == 1
 ) {

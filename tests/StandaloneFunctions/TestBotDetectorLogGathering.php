@@ -11,7 +11,7 @@ class TestBotDetectorLogGathering extends TestCase
     public function test_returnsFrontendDataLog()
     {
         global $apbct;
-        $apbct->settings['data__bot_detector_enabled'] = '1';
+        $apbct->data['bot_detector_enabled'] = '1';
         AltSessions::set('ct_bot_detector_frontend_data_log', json_encode(['log' => 'data']));
 
         $result = apbct__bot_detector_get_fd_log();
@@ -27,7 +27,7 @@ class TestBotDetectorLogGathering extends TestCase
     public function test_returnsErrorWhenDisabled()
     {
         global $apbct;
-        $apbct->settings['data__bot_detector_enabled'] = '0';
+        $apbct->data['bot_detector_enabled'] = '0';
 
         $result = apbct__bot_detector_get_fd_log();
         $expected = json_encode([
@@ -42,7 +42,7 @@ class TestBotDetectorLogGathering extends TestCase
     public function test_returnsErrorWhenNoLogFound()
     {
         global $apbct;
-        $apbct->settings['data__bot_detector_enabled'] = '1';
+        $apbct->data['bot_detector_enabled'] = '1';
         AltSessions::wipe();
 
         $result = apbct__bot_detector_get_fd_log();
@@ -58,7 +58,7 @@ class TestBotDetectorLogGathering extends TestCase
     public function test_returnsErrorWhenLogNotString()
     {
         global $apbct;
-        $apbct->settings['data__bot_detector_enabled'] = '1';
+        $apbct->data['bot_detector_enabled'] = '1';
         AltSessions::set('ct_bot_detector_frontend_data_log', false);
 
         $result = apbct__bot_detector_get_fd_log();
@@ -74,7 +74,7 @@ class TestBotDetectorLogGathering extends TestCase
     public function test_returnsErrorWhenLogNotJson()
     {
         global $apbct;
-        $apbct->settings['data__bot_detector_enabled'] = '1';
+        $apbct->data['bot_detector_enabled'] = '1';
         AltSessions::set('ct_bot_detector_frontend_data_log', 'invalid json');
 
         $result = apbct__bot_detector_get_fd_log();

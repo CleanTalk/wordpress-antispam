@@ -135,7 +135,7 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'EasyDigitalDownloads' => array(
-        'hook'    => array('edd_pre_process_register_form', 'edd_insert_user_args'),
+        'hook'    => array('edd_pre_process_register_form', 'edd_insert_user_args', 'edd_customer_pre_create'),
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),

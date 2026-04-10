@@ -32,7 +32,7 @@ function apbct_init()
         $apbct->settings['data__pixel'] &&
         empty($apbct->pixel_url) &&
         !(
-            $apbct->settings['data__bot_detector_enabled'] === '1' &&
+            apbct__is_bot_detector_enabled() &&
             $apbct->settings['data__pixel'] === '3'
         )
     ) {
@@ -375,6 +375,36 @@ function apbct_init()
     }
 }
 
+/**
+ * SiteGround Speed Optimizer: register sgo_bypass_query_params filter.
+ */
+function apbct_sgo_optimizer__register_bypass_query_params()
+{
+    if ( ! defined('SG_OPTIMIZER_VERSION') ) {
+        return;
+    }
+    add_filter('sgo_bypass_query_params', 'apbct_sgo_bypass_query_params', 10, 1);
+}
+
+/**
+ * Adds apbct_no_cache to SG Optimizer bypass list.
+ *
+ * @param string[] $bypass_query_params
+ *
+ * @return string[]
+ */
+function apbct_sgo_bypass_query_params($bypass_query_params)
+{
+    if ( ! is_array($bypass_query_params) ) {
+        $bypass_query_params = array();
+    }
+    if ( ! in_array('apbct_no_cache', $bypass_query_params, true) ) {
+        $bypass_query_params[] = 'apbct_no_cache';
+    }
+
+    return $bypass_query_params;
+}
+
 function apbct_buffer__start()
 {
     ob_start();
@@ -537,7 +567,7 @@ function apbct_hook__wp_footer()
         (
             $apbct->settings['data__pixel'] === '3' &&
             ! apbct_is_cache_plugins_exists() &&
-            $apbct->settings['data__bot_detector_enabled'] !== '1'
+            ! apbct__is_bot_detector_enabled()
         )
     ) {
         echo '<img alt="Cleantalk Pixel" title="Cleantalk Pixel" id="apbct_pixel" style="display: none;" src="' . Escape::escUrl($apbct->pixel_url) . '">';
@@ -1242,7 +1272,7 @@ function apbct_enqueue_and_localize_public_scripts()
     ApbctEnqueue::getInstance()->js($bundle_name, array(), $in_footer);
 
     // Bot detector
-    if ( $apbct->settings['data__bot_detector_enabled'] && ! apbct_bot_detector_scripts_exclusion()) {
+    if ( apbct__is_bot_detector_enabled() && ! apbct_bot_detector_scripts_exclusion()) {
         // Attention! Skip old enqueue way for external script.
         wp_enqueue_script(
             'ct_bot_detector',

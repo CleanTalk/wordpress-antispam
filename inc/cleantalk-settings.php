@@ -564,14 +564,17 @@ function apbct_settings__set_fields()
                     'callback' => 'apbct_settings__check_alt_cookies_types'
                 ),
                 //bot detector
-                'data__bot_detector_enabled' => array(
-                    'title' => __('Use ', 'cleantalk-spam-protect')
-                               . $apbct->data['wl_brandname']
-                               . __(' JavaScript library', 'cleantalk-spam-protect'),
-                    'description' => __('This option includes external ', 'cleantalk-spam-protect')
-                               . $apbct->data['wl_brandname']
-                               . __(' JavaScript library to getting visitors info data', 'cleantalk-spam-protect'),
-                    'childrens' => array('exclusions__bot_detector')
+                'bot_detector_state' => array(
+                    'callback' => function () {
+                        printf(
+                            esc_html__('JavaScript library (Bot Detector) is %s', 'cleantalk-spam-protect'),
+                            apbct__is_bot_detector_enabled()
+                                ? esc_html__('enabled', 'cleantalk-spam-protect')
+                                : esc_html__('disabled', 'cleantalk-spam-protect')
+                        );
+                    },
+                    'long_description' => true,
+                    'display'    => apbct__is_bot_detector_enabled(),
                 ),
                 'exclusions__bot_detector' => array(
                     'title' => __('JavaScript Library Exclusions', 'cleantalk-spam-protect'),
@@ -584,7 +587,7 @@ function apbct_settings__set_fields()
                         'Regular expression. Use to skip a HTML form from special service field attach.',
                         'cleantalk-spam-protect'
                     ),
-                    'parent' => 'data__bot_detector_enabled',
+                    'display'    => apbct__is_bot_detector_enabled(),
                 ),
                 'exclusions__bot_detector__form_attributes'             => array(
                     'type'        => 'text',
@@ -592,6 +595,7 @@ function apbct_settings__set_fields()
                     'parent' => 'exclusions__bot_detector',
                     'class' => 'apbct_settings-field_wrapper--sub',
                     'long_description' => true,
+                    'display'    => apbct__is_bot_detector_enabled(),
                 ),
                 'exclusions__bot_detector__form_children_attributes'             => array(
                     'type'        => 'text',
@@ -599,6 +603,7 @@ function apbct_settings__set_fields()
                     'parent' => 'exclusions__bot_detector',
                     'class' => 'apbct_settings-field_wrapper--sub',
                     'long_description' => true,
+                    'display'    => apbct__is_bot_detector_enabled(),
                 ),
                 'exclusions__bot_detector__form_parent_attributes'             => array(
                     'type'        => 'text',
@@ -606,6 +611,7 @@ function apbct_settings__set_fields()
                     'parent' => 'exclusions__bot_detector',
                     'class' => 'apbct_settings-field_wrapper--sub',
                     'long_description' => true,
+                    'display'    => apbct__is_bot_detector_enabled(),
                 ),
                 'wp__use_builtin_http_api'             => array(
                     'title'       => __("Use WordPress HTTP API", 'cleantalk-spam-protect'),
@@ -3149,6 +3155,14 @@ function apbct_settings__get__long_description()
         'data__email_decoder' => array(
             'title' => __('Contact data encoding', 'cleantalk-spam-protect'),
             'desc'  => ContactsEncoder::getEmailEncoderCommonLongDescription(),
+        ),
+        'bot_detector_state' => array(
+            'title' => esc_html__('JavaScript library (Bot Detector)', 'cleantalk-spam-protect'),
+            'desc' => esc_html__("The Bot Detector is a JavaScript library that runs in the visitor's browser and collects behavioral signals to distinguish real users from bots.", 'cleantalk-spam-protect')
+                . '<br><br>' . esc_html__("This data is sent to the CleanTalk cloud along with each spam check request, significantly improving detection accuracy for spam on any website forms.", 'cleantalk-spam-protect')
+                . '<br><br>' . esc_html__("Disabling the Bot Detector will reduce anti-spam effectiveness.", 'cleantalk-spam-protect')
+                . '<br>' . esc_html__("It can only be disabled by adding the following constant to your wp-config.php: define('APBCT_SERVICE__BOT_DETECTOR_ENABLED', false);", 'cleantalk-spam-protect')
+                . '<br>' . esc_html__("We do not recommend disabling this functionality.", 'cleantalk-spam-protect')
         ),
     );
 
