@@ -200,6 +200,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
         'agent'       => APBCT_AGENT,
         'sender_info' => $sender_info,
         'submit_time' => SubmitTimeHandler::getFromRequest(),
+        'event_token_enabled' => apbct__is_bot_detector_enabled() ? 1 : 0,
     );
 
     if (!isset($params['post_info']['post_url'])) {
