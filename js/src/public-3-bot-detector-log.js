@@ -3,8 +3,8 @@ let botDetectorLogEventTypesCollected = [];
 
 // bot_detector frontend_data log alt session saving cron
 if (
-    ctPublicFunctions.hasOwnProperty('data__bot_detector_enabled') &&
-    ctPublicFunctions.data__bot_detector_enabled == 1 &&
+    ctPublicFunctions.hasOwnProperty('bot_detector_enabled') &&
+    +ctPublicFunctions.bot_detector_enabled &&
     ctPublicFunctions.hasOwnProperty('data__frontend_data_log_enabled') &&
     ctPublicFunctions.data__frontend_data_log_enabled == 1
 ) {
