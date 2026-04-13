@@ -12,7 +12,7 @@ class HivePressRegistration extends IntegrationBase
     public function getDataForChecking($argument)
     {
         if (
-            ! apbct_is_plugin_active('hivepress/hivepress.php') ||
+            ! $this->isThePluginActive() ||
             ! isset($argument['email'])
         ) {
             do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '(hivepress registration integration):' . __LINE__, $_POST);
@@ -36,5 +36,10 @@ class HivePressRegistration extends IntegrationBase
             ]
         );
         die();
+    }
+
+    protected function isThePluginActive()
+    {
+        return apbct_is_plugin_active('hivepress/hivepress.php');
     }
 }
