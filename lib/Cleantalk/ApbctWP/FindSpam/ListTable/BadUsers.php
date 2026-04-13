@@ -111,13 +111,14 @@ class BadUsers extends Users
             $column_content .= esc_html__('No IP adress', 'cleantalk-spam-protect');
         }
 
-        $actions = array(
-            'delete' => sprintf(
-                '<a href="?page=%s&action=%s&spam=%s">Delete</a>',
-                htmlspecialchars(addslashes(TT::toString(Get::get('page')))),
-                'delete',
-                $user_obj->ID
-            )
+        $page       = htmlspecialchars(addslashes(TT::toString(Get::get('page'))));
+        $delete_url = wp_nonce_url(
+            admin_url('users.php?page=' . $page . '&action=delete&spam=' . $user_obj->ID),
+            'apbct_ct_check_users_row',
+            '_wpnonce'
+        );
+        $actions    = array(
+            'delete' => '<a href="' . esc_url($delete_url) . '">Delete</a>',
         );
 
         return sprintf('%1$s %2$s', $column_content, $this->row_actions($actions));

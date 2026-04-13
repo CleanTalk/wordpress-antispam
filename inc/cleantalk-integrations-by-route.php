@@ -10,7 +10,17 @@ $apbct_active_rest_integrations = array(
         'rest_route'    => '/wp-recipe-maker/v1/user-rating/',
         'setting' => 'forms__contact_forms_test',
         'rest'       => true,
-    )
+    ),
+    'HivePress'         => array(
+        'rest_route'    => '/hivepress/v1/listings/',
+        'setting' => 'forms__contact_forms_test',
+        'rest'       => true,
+    ),
+    'HivePressRegistration'         => array(
+        'rest_route'    => '/hivepress/v1/users',
+        'setting' => 'forms__registrations_test',
+        'rest'       => true,
+    ),
 );
 
 add_filter('rest_pre_dispatch', function ($result, $_, $request) use ($apbct_active_rest_integrations) {

@@ -46,8 +46,6 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $this->shortcodes = new ShortCodesService($params);
 
         $this->shortcodes->registerAll();
-        $this->shortcodes->addActionsAfterModify('the_content', 11);
-        $this->shortcodes->addActionsAfterModify('the_title', 11);
 
         $this->registerHookHandler();
     }
@@ -84,12 +82,15 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         // Search data to buffer
         if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post() && !is_admin()) {
             add_action('wp', 'apbct_buffer__start');
-            add_action('shutdown', 'apbct_buffer__end', 0);
-            add_action('shutdown', array($this, 'bufferOutput'), 2);
-            $this->shortcodes->addActionsAfterModify('shutdown', 3);
+            add_action('shutdown', 'apbct_buffer__end', 0); // Collect $apbct->buffer
+            add_action('shutdown', array($this, 'modifyBuffer'), 2); // Modify $apbct->buffer by `ContactsEncoder::modifyBuffer`
+            $this->shortcodes->addActionsAfterModify('shutdown', 3); // Modify $apbct->buffer by `ShortCodesService::addActionsAfterModify`
+            add_action('shutdown', array($this, 'bufferOutput'), 999); // Output $apbct->buffer
         } else {
             foreach ( $hooks_to_encode as $hook ) {
                 $this->shortcodes->addActionsBeforeModify($hook, 9);
+                //any hook that has actions BEFORE modify, must have actions AFTER
+                $this->shortcodes->addActionsAfterModify($hook, 999);
                 add_filter($hook, array($this, 'modifyContent'), 10);
             }
         }
@@ -175,7 +176,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         }
     }
 
-    public function bufferOutput()
+    public function modifyBuffer()
     {
         global $apbct;
         static $already_output = false;
@@ -183,7 +184,13 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             return;
         }
         $already_output = true;
-        echo $this->modifyContent($apbct->buffer);
+        $apbct->buffer = $this->modifyContent($apbct->buffer);
+    }
+
+    public function bufferOutput()
+    {
+        global $apbct;
+        echo $apbct->buffer;
     }
 
     protected function getTooltip()
@@ -212,7 +219,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
 
         $event_javascript_data = '';
         $event_token = '';
-        if ($apbct->settings['data__bot_detector_enabled'] == 1) {
+        if ( apbct__is_bot_detector_enabled() ) {
             $event_token = Post::getString('event_token');
         } else {
             $post_event_javascript_data = TT::toString(Post::get('event_javascript_data'));

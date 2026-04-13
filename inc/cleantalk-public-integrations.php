@@ -44,7 +44,7 @@ function apbct_print_public_scripts()
     echo CtPublicLocalize::getCode();
 
     echo '<script src="' . $js_url . '" type="application/javascript"></script>';
-    echo '<script src="' . $js_url_wrapper . '" type="application/javascript"></script>';
+    echo '<script src="' . $js_url_wrapper . '" async data-wp-strategy="async" type="application/javascript"></script>';
 }
 
 /**
@@ -938,6 +938,11 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         $checkjs        = $checkjs_cookie ?: $checkjs_post;
     }
 
+    // BuddyBoss Platform use rest api for registration from phone app
+    if ( apbct_is_plugin_active('buddyboss-app/buddyboss-app.php') && apbct_is_in_uri('/wp-json/buddyboss-app/v1/signup') ) {
+        $checkjs = Post::getString('checkjs') === 'true' ? 1 : 0;
+    }
+
     $sender_info = array(
         'post_checkjs_passed'   => $checkjs_post,
         'cookie_checkjs_passed' => $checkjs_cookie,
@@ -1047,6 +1052,10 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 
         if ( $buddypress === true ) {
             $bp->signup->errors['signup_username'] = $ct_result->comment;
+        }
+
+        if (apbct_is_plugin_active('buddyboss-app/buddyboss-app.php') && apbct_is_in_uri('/wp-json/buddyboss-app/v1/signup')) {
+            wp_send_json_error(['success' => false, 'message' => $ct_result->comment]);
         }
 
         if ( $facebook ) {
@@ -1870,19 +1879,16 @@ function ct_quform_post_validate($result, $form)
      * Filter for POST
      */
     $input_array = apply_filters('apbct__filter_post', $form->getValues());
-
     $ct_temp_msg_data = ct_get_fields_any($input_array);
     $sender_email = isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '';
     $sender_emails_array = isset($ct_temp_msg_data['emails_array']) ? $ct_temp_msg_data['emails_array'] : '';
 
-    $checkjs          = apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true);
     $base_call_result = apbct_base_call(
         array(
             'message'      => $form->getValues(),
             'sender_email' => $sender_email,
             'post_info'    => array('comment_type' => $comment_type),
             'sender_info'     => array('sender_emails_array' => $sender_emails_array),
-            'js_on'        => $checkjs,
         )
     );
 
@@ -2113,17 +2119,9 @@ function apbct_form__gravityForms__addField($form_string, $form)
  */
 function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
 {
-    global $apbct, $cleantalk_executed, $ct_gform_is_spam, $ct_gform_response;
+    global $apbct, $ct_gform_is_spam, $ct_gform_response;
 
-    if (
-        $is_spam ||
-        $apbct->settings['forms__contact_forms_test'] == 0 ||
-        ($apbct->settings['data__protect_logged_in'] != 1 && apbct_is_user_logged_in()) || // Skip processing for logged in users.
-        apbct_exclusions_check__url() ||
-        $cleantalk_executed // Return unchanged result if the submission was already tested.
-    ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
+    if (apbct_form__gravityForms__isSkippedRequest()) {
         return $is_spam;
     }
 
@@ -2252,6 +2250,48 @@ function apbct_form__gravityForms__testSpam($is_spam, $form, $entry)
     }
 
     return $is_spam;
+}
+
+/**
+ * Check if Gravity forms request should be skipped
+ *
+ * @param bool $is_spam
+ *
+ * @return bool
+ */
+function apbct_form__gravityForms__isSkippedRequest()
+{
+    global $cleantalk_executed, $apbct;
+
+    $data = [
+        '_POST' => $_POST,
+        '_GET' => $_GET,
+        'SERVER_URI' => Server::getString('REQUEST_URI'),
+        'HTTP_REFERER' => Server::getString('HTTP_REFERER'),
+        '$cleantalk_executed' => $cleantalk_executed,
+    ];
+
+    if ( $apbct->settings['forms__contact_forms_test'] == 0 ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . 'CONTACT FORM TEST DISABLED', $data);
+        return true;
+    }
+
+    if ( ($apbct->settings['data__protect_logged_in'] != 1 && apbct_is_user_logged_in()) ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . 'USER IS LOGGED IN', $data);
+        return true;
+    }
+
+    if ( apbct_exclusions_check__url() ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . 'URL EXCLUSION FOUND', $data);
+        return true;
+    }
+
+    if ( $cleantalk_executed ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . 'CLEANTALK IS ALREADY EXECUTED', $data);
+        return true;
+    }
+
+    return false;
 }
 
 function apbct_form__gravityForms__showResponse($confirmation, $form, $_entry, $_ajax)

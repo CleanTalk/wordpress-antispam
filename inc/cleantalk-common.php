@@ -193,7 +193,9 @@ function apbct_base_call($params = array(), $reg_flag = false)
 
         // Misc
         'auth_key'        => $apbct->api_key,
-        'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true) ? 1 : apbct_js_test(TT::toString(Post::get('ct_checkjs'))),
+        'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::getString('ct_checkjs')), true)
+            ? 1
+            : apbct_js_test(Post::getString('ct_checkjs')),
 
         'agent'       => APBCT_AGENT,
         'sender_info' => $sender_info,
@@ -684,6 +686,7 @@ function apbct_get_sender_info()
         'bot_detector_prepared_form_exclusions' => apbct__bot_detector_get_prepared_exclusion(),
         'bot_detector_frontend_data_log' => apbct__bot_detector_get_fd_log(),
         'submit_time_calculation_enabled' => SubmitTimeHandler::isCalculationDisabled() ? 0 : 1,
+        'ct_gathering_loaded' => Cookie::getBool('ct_gathering_loaded'),
     );
 
     // Unset cookies_enabled from sender_info if cookies_type === none
@@ -1856,7 +1859,6 @@ function apbct__bot_detector_get_fired_exclusions()
  */
 function apbct__bot_detector_get_fd_log()
 {
-    global $apbct;
     $result = array(
         'plugin_status' => 'OK',
         'error_msg' => '',
@@ -1871,7 +1873,7 @@ function apbct__bot_detector_get_fd_log()
     }
 
     try {
-        if ( TT::toString($apbct->settings['data__bot_detector_enabled']) === '0') {
+        if ( ! apbct__is_bot_detector_enabled() ) {
             throw new \Exception('bot detector library usage is disabled');
         }
         // Retrieve bot detector frontend data log from Alt Sessions
@@ -1927,4 +1929,25 @@ function apbct__bot_detector_get_custom_exclusion_from_settings()
         }
     }
     return $exclusions;
+}
+
+/**
+ * Check if Bot-Detector is enabled/disabled
+ *
+ * @return bool
+ */
+function apbct__is_bot_detector_enabled()
+{
+    global $apbct;
+
+    // Constant is preferred
+    if ( isset($apbct->service_constants->bot_detector_enabled) && $apbct->service_constants->bot_detector_enabled->isDefined() ) {
+        return (bool) $apbct->service_constants->bot_detector_enabled->getValue();
+    }
+    // Check by $apbct->data
+    if ( isset($apbct->data['bot_detector_enabled']) ) {
+        return (bool) $apbct->data['bot_detector_enabled'];
+    }
+    // By default - enabled
+    return true;
 }

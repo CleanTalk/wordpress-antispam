@@ -135,7 +135,7 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'EasyDigitalDownloads' => array(
-        'hook'    => array('edd_pre_process_register_form', 'edd_insert_user_args'),
+        'hook'    => array('edd_pre_process_register_form', 'edd_insert_user_args', 'edd_customer_pre_create'),
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
@@ -226,7 +226,7 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'PiotnetAddonsForElementorPro' => array(
-        'hook'    => array('pafe_ajax_form_builder'),
+        'hook'    => 'pafe_ajax_form_builder',
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
@@ -338,6 +338,21 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax' => false
     ),
+    'MailChimpShadowRoot'         => array(
+        'hook'    => 'cleantalk_force_mailchimp_shadowroot_check',
+        'setting' => 'forms__check_external',
+        'ajax'    => true
+    ),
+    'OtterBlocksForm'         => array(
+        'hook'    => 'cleantalk_force_otterform_check',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
+    'ElfsightForm'            => array(
+        'hook'    => 'cleantalk_force_elfsight_check',
+        'setting' => 'forms__check_external',
+        'ajax'    => true
+    ),
     'BloomForms' => array(
         'hook'    => 'bloom_subscribe',
         'setting' => 'forms__contact_forms_test',
@@ -354,11 +369,6 @@ $apbct_active_integrations = array(
         'hook'    => 'tve_leads_ajax_conversion',
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
-    ),
-    'OtterBlocksForm' => array(
-        'hook'    => 'otter_form_anti_spam_validation',
-        'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
     ),
     'TourMasterRegister' => array(
         'hook'    => 'wp_pre_insert_user_data',

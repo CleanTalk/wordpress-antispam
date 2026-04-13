@@ -714,6 +714,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             'nasa_process_login', //Nasa login
             'leaky_paywall_validate_registration', //Leaky Paywall validation request
             'cleantalk_force_ajax_check', //Force ajax check has direct integration
+            'cleantalk_force_mailchimp_shadowroot_check', // Mailchimp ShadowRoot has direct integration
             'cscf-submitform', // CSCF has direct integration
             'mailpoet', // Mailpoet has direct integration
             'wpcommunity_auth_login', // WPCommunity login
@@ -722,6 +723,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             'fl_builder_subscribe_form_submit', // FLBuilderForms has direct integration
             'tutor_pro_social_authentication', // Tutor Pro social authentication, we trust a third-party service
             'drplus_login', // Doctor Plus theme login
+            'fluent_cal_schedule_meeting', // Fluent Booking has direct integration
         );
 
         // Skip test if
@@ -781,6 +783,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
 
         if (apbct_is_plugin_active('ws-form/ws-form.php') && Post::getString('action') === 'the_ajax_hook') {
             return 'WS Form submit service request';
+        }
+
+        // UNIT OK https://wordpress.org/plugins/woocommerce-sendinblue-newsletter-subscription/
+        if (
+            apbct_is_plugin_active('woocommerce-sendinblue-newsletter-subscription/woocommerce-sendinblue.php') &&
+            Post::getString('action') === 'the_ajax_hook'
+        ) {
+            return 'woocommerce-sendinblue-newsletter-subscription';
         }
 
         // Paid Memberships Pro - Login Form
@@ -1420,7 +1430,11 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
                 apbct_is_plugin_active('piotnet-addons-for-elementor-pro/piotnet-addons-for-elementor-pro.php') ||
                 apbct_is_plugin_active('piotnet-addons-for-elementor/piotnet-addons-for-elementor.php')
             ) &&
-            Post::get('action') === 'pafe_ajax_form_builder_preview_submission' ) {
+            (
+                Post::get('action') === 'pafe_ajax_form_builder_preview_submission' ||
+                Post::get('action') === 'pafe_ajax_form_builder'
+            )
+        ) {
             return 'PAFE';
         }
 
@@ -1675,6 +1689,54 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'spoki_abandoned_card_for_woocommerce';
         }
+
+        //UNIT OK https://wordpress.org/plugins/woocommerce-abandoned-cart/
+        if (
+            apbct_is_plugin_active('woocommerce-abandoned-cart\woocommerce-ac.php') &&
+            Post::equal('action', 'save_data')
+        ) {
+            return 'woocommerce-abandoned-cart';
+        }
+
+        //UNIT OK https://wordpress.org/plugins/woo-abandoned-cart-recovery/
+        if (
+            apbct_is_plugin_active('woo-abandoned-cart-recovery/woo-abandoned-cart-recovery.php') &&
+            Post::equal('action', 'wacv_get_info')
+        ) {
+            return 'woo-abandoned-cart-recovery';
+        }
+
+        //UNIT OK unknown wc plugin from https://app.doboard.com/1/task/41205
+        if (
+            apbct_is_plugin_active('abandoned-cart-capture/abandoned-cart-capture.php') &&
+            Post::equal('action', 'acc_save_data')
+        ) {
+            return 'abandoned-cart-capture';
+        }
+
+        //UNIT OK https://wordpress.org/plugins/wp-multi-step-checkout/ multipage request
+        if (
+            apbct_is_plugin_active('wp-multi-step-checkout/wp-multi-step-checkout.php') &&
+            Post::equal('action', 'wpms_checkout_errors')
+        ) {
+            return 'wp-multi-step-checkout';
+        }
+
+        //UNIT OK https://wordpress.org/plugins/cart-recovery/
+        if (
+            apbct_is_plugin_active('cart-recovery/cart-recovery-for-wordpress.php') &&
+            Post::equal('action', 'crfw_record_cart')
+        ) {
+            return 'cart-recovery';
+        }
+
+        //UNIT OK https://wordpress.org/plugins/invoicing/
+        if (
+            apbct_is_plugin_active('invoicing/invoicing.php') &&
+            Post::equal('action', 'wpinv_payment_form_refresh_prices')
+        ) {
+            return 'invoicing';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -1924,6 +1986,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             )
         ) {
             return 'AsgarosForum';
+        }
+
+        // Plugin Name: HivePress
+        if (
+            apbct_is_plugin_active('hivepress/hivepress.php') &&
+            (apbct_is_in_uri('/hivepress/v1/listings/') || apbct_is_in_uri('/hivepress/v1/users'))
+        ) {
+            return 'Plugin Name: HivePress skip REST route checking';
         }
     }
 

@@ -4,7 +4,7 @@ var gulp       = require('gulp'),
     sourcemaps = require('gulp-sourcemaps'),
     uglify     = require('gulp-uglify'),
     rename     = require('gulp-rename'),
-    cssmin     = require('gulp-cssmin'),
+    cleanCSS   = require('gulp-clean-css'),
     concat     = require('gulp-concat'),
     babel      = require('gulp-babel');
 
@@ -13,7 +13,7 @@ var gulp       = require('gulp'),
  */
 gulp.task('compress-css', function () {
     return gulp.src('css/src/*.css')
-        .pipe(cssmin())
+        .pipe(cleanCSS())
         .pipe(rename({suffix: '.min'}))
         .pipe(gulp.dest('css'));
 });
@@ -35,6 +35,7 @@ function minify_all_js_files_except_already_bundled() {
             '!js/src/cleantalk-admin.js',
             '!js/src/common-decoder.js',
             'js/src/public-3-trp.js',
+            'js/src/public-2-gathering-data.js',
         ])
         .pipe(sourcemaps.init())
         .pipe(uglify())
@@ -67,6 +68,9 @@ function bundle_public_default() {
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
         'js/src/public-0*.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyCallbacks.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-3*.js',
     ])
@@ -82,6 +86,9 @@ function bundle_public_default_with_gathering() {
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
         'js/src/public-0*.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyCallbacks.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2-gathering-data.js',
         'js/src/public-3*.js',
@@ -98,6 +105,9 @@ function bundle_public_external_protection() {
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
         'js/src/public-0*.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyCallbacks.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2-external-forms.js',
         '!js/src/public-2-gathering-data.js',
@@ -115,6 +125,9 @@ function bundle_public_external_protection_with_gathering() {
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
         'js/src/public-0*.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyCallbacks.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2-external-forms.js',
         'js/src/public-2-gathering-data.js',
@@ -132,6 +145,9 @@ function bundle_public_internal_protection() {
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
         'js/src/public-0*.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyCallbacks.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2-internal-forms.js',
         'js/src/public-3*.js',
@@ -148,6 +164,9 @@ function bundle_public_internal_protection_with_gathering() {
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
         'js/src/public-0*.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyCallbacks.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2-internal-forms.js',
         'js/src/public-2-gathering-data.js',
@@ -165,6 +184,9 @@ function bundle_public_full_protection() {
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
         'js/src/public-0*.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyCallbacks.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2*.js',
         '!js/src/public-2-gathering-data.js',
@@ -182,6 +204,9 @@ function bundle_public_full_protection_with_gathering() {
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
         'js/src/public-0*.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyCallbacks.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
+        'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2*.js',
         'js/src/public-3*.js',

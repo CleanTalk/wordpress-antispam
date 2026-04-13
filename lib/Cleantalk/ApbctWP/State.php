@@ -84,7 +84,6 @@ class State extends \Cleantalk\Common\State
         'data__use_static_js_key'                  => -1,
         'data__general_postdata_test'              => 0, //CAPD
         'data__set_cookies'                        => 3, // Cookies type: 0 - Off / 1 - Native cookies / 2 - Alt cookies / 3 - Auto
-        'data__bot_detector_enabled'               => 1,
         'data__pixel'                              => '3',
         'data__email_check_before_post'            => 1,
         'data__email_check_exist_post'            => 1,
@@ -239,7 +238,10 @@ class State extends \Cleantalk\Common\State
         'wl_support_email'   => 'support@cleantalk.org',
 
         //IP keeper data
-        'ip_keeper_data'     => array()
+        'ip_keeper_data'     => array(),
+
+        //Connection reports email address
+        'email_for_reports' => 'pluginreports@cleantalk.org',
     );
 
     /**
@@ -284,6 +286,7 @@ class State extends \Cleantalk\Common\State
         'check_website'                 => array('last_call' => 0, 'cooldown' => 0),
         'update_settings'               => array('last_call' => 0, 'cooldown' => 0),
         'run_service_template_get'      => array('last_call' => 0, 'cooldown' => 60),
+        'license_update'                => array('last_call' => 0, 'cooldown' => 0),
 
 
         // Firewall
@@ -368,6 +371,7 @@ class State extends \Cleantalk\Common\State
         'expected_ua_count_personal'   => 0,
         'update_mode'                  => 0,
         'reason_direct_update_log'     => null,
+        'multi_request_batch_size'     => 10,
         'personal_lists_url_id' => '',
         'common_lists_url_id' => '',
         'calls' => 0,
@@ -379,7 +383,7 @@ class State extends \Cleantalk\Common\State
     private $connection_reports;
 
     /**
-     * @var ConnectionReports
+     * @var JsErrorsReport
      */
     private $js_errors_report;
 

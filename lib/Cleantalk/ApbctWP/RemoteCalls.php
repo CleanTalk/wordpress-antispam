@@ -13,6 +13,18 @@ class RemoteCalls
 {
     const COOLDOWN = 10;
 
+    /**
+     * Maximum allowed delay in seconds for remote calls
+     */
+    const MAX_DELAY = 10;
+
+    /**
+     * List of remote call actions that are allowed to use delay parameter
+     */
+    private static $allowedActionsWithDelay = [
+        'sfw_update__worker',
+    ];
+
     private static $allowedActionsWithoutToken = [
         'get_fresh_wpnonce',
         'post_api_key',
@@ -31,9 +43,13 @@ class RemoteCalls
      */
     public static function check()
     {
-        return Request::get('spbc_remote_call_token')
-            ? self::checkWithToken()
-            : self::checkWithoutToken();
+        //do not check token logic if no RC action sign found
+        if ( Request::getString('spbc_remote_call_action') ) {
+            return Request::getString('spbc_remote_call_token')
+                ? self::checkWithToken()
+                : self::checkWithoutToken();
+        }
+        return false;
     }
 
     public static function checkWithToken()
@@ -107,7 +123,7 @@ class RemoteCalls
                 // Check Access key
                 if (
                     (self::checkToken($token)) ||
-                    (self::checkWithoutToken() && self::isAllowedWithoutToken($action))
+                    (self::isAllowedWithoutToken($action) && self::checkWithoutToken())
                 ) {
                     // Flag to let plugin know that Remote Call is running.
                     $apbct->rc_running = true;
@@ -115,10 +131,15 @@ class RemoteCalls
                     $action = 'action__' . $action;
 
                     if ( method_exists(__CLASS__, $action) ) {
-                        // Delay before perform action;
-                        if ( Request::get('delay') ) {
+                        // Delay before perform action - only for whitelisted actions
+                        $current_action = strtolower(Request::getString('spbc_remote_call_action'));
+                        if (
+                            Request::get('delay') &&
+                            in_array($current_action, self::$allowedActionsWithDelay, true)
+                        ) {
                             $delay = Request::getInt('delay');
                             $delay = max($delay, 0);
+                            $delay = min($delay, self::MAX_DELAY);
                             sleep($delay);
                             $params = $_REQUEST;
                             unset($params['delay']);
@@ -152,24 +173,14 @@ class RemoteCalls
     /**
      * Update license
      *
-     * @return string
+     * @return void
      */
-    public static function action__update_license() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public static function action__license_update() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if ( ! headers_sent() ) {
-            header("Content-Type: application/json");
-        }
+        $cron = new Cron();
+        $cron->updateTask('check_account_status', 'ct_account_status_check', 86400, time() + 3600);
 
-        if (function_exists('apbct_settings__sync')) {
-            require_once APBCT_DIR_PATH . 'inc/cleantalk-settings.php';
-        }
-
-        $result = apbct_settings__sync(true);
-        if ( ! empty($result['error']) ) {
-            die(json_encode(['ERROR' => json_encode($result['error'])]));
-        }
-
-        die(json_encode(['OK' => true]));
+        wp_send_json(['OK' => true]);
     }
 
     /**
@@ -510,7 +521,6 @@ class RemoteCalls
             'data__use_static_js_key' => 'Use static keys for JavaScript check',
             'data__general_postdata_test' => 'Check all post data',
             'data__set_cookies' => 'Set cookies',
-            'data__bot_detector_enabled' => 'Use JavaScript library',
             'exclusions__bot_detector' => 'JavaScript Library Exclusions',
             'exclusions__bot_detector__form_attributes' => 'Exclude any forms that has attribute matches',
             'exclusions__bot_detector__form_children_attributes' => 'Exclude any forms that includes a child element with attribute matches',

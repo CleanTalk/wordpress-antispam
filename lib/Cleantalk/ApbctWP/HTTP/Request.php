@@ -139,8 +139,7 @@ class Request extends \Cleantalk\Common\HTTP\Request
 
         foreach ( $responses_raw as $response ) {
             if ( $response instanceof \Exception ) {
-                $responses[$this->url] = new Response(['error' => $response->getMessage()], []);
-                continue;
+                return ['error' => 'WP HTTP API multi-request exception: ' . $response->getMessage()];
             }
             if ( $response instanceof $response_class ) {
                 $responses[$response->url] = new Response($response->body, ['http_code' => $response->status_code]);

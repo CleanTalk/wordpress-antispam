@@ -133,6 +133,8 @@ class EncodeContentSC extends EmailEncoderShortCode
     public function changeContentAfterEncoderModify($content)
     {
         // Restore shortcodes
+        $content = $content === null ? '' : $content;
+
         foreach ($this->shortcode_replacements as $placeholder => $original) {
             $content = str_replace($placeholder, $original, $content);
         }

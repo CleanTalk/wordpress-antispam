@@ -13,8 +13,9 @@ class EasyDigitalDownloads extends IntegrationBase
         $this->user_data = $argument;
 
         if (
-            Post::get('edd_action') === "user_register" ||
-            !empty($argument['user_email'])
+            Post::getString('edd_action') === "user_register" ||
+            !empty($argument['user_email']) ||
+            Post::getString('edd-process-checkout-nonce')
         ) {
             /**
              * Filter for POST

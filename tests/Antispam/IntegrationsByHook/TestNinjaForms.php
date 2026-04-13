@@ -11,6 +11,8 @@ use Mockery\MockInterface;
 
 class TestNinjaForms extends TestCase
 {
+	private $post;
+
     /** @var NinjaForms */
     private $ninjaForms;
 
@@ -165,5 +167,39 @@ class TestNinjaForms extends TestCase
 
         // Assert
         $this->assertArrayNotHasKey('nf-field-1-', $result['message']);
+    }
+
+    public function testNoFormID()
+    {
+
+        Post::getInstance()->variables = [];
+        // Arrange
+        $_POST['formData'] = json_encode(['fields' => [
+            ['id' => 1, 'value' => '<xml>malicious</xml>'],
+        ]]);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('No form id provided');
+        // Act
+        $result = $this->ninjaForms->getGFANew();
+
+        // Assert
+        $this->assertNotNull('nf-field-1-', $result['message']);
+    }
+
+    public function testNoFormData()
+    {
+
+        Post::getInstance()->variables = [];
+        // Arrange
+        $_POST['formData'] = json_encode(['id' => 1]);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('No form data is provided');
+        // Act
+        $result = $this->ninjaForms->getGFANew();
+
+        // Assert
+        $this->assertNotNull('nf-field-1-', $result['message']);
     }
 }

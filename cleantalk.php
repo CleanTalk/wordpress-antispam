@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.72.99-dev
+  Version: 6.76.99-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -476,10 +476,11 @@ if (
 }
 
 // Memberpress integration
+// MemberPress sends mepr_process_signup_form='Y' or '1' — both must trigger the check
 if (
     !empty($_POST) &&
     apbct_is_plugin_active('memberpress/memberpress.php') &&
-    Post::hasString('mepr_process_signup_form', '1') &&
+    Post::getString('mepr_process_signup_form') &&
     (int)$apbct->settings['forms__registrations_test'] === 1
 ) {
     apbct_memberpress_signup_request_test();
@@ -614,9 +615,11 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
                 . '/js/apbct-public-bundle.min.js'
                 . '?ver=' . APBCT_VERSION . '" id="ct_public_functions-js"></script>';
             echo '<script src="' . APBCT_BOT_DETECTOR_SCRIPT_URL . '?ver='
-                . APBCT_VERSION . '" id="ct_bot_detector-js"></script>';
+                . APBCT_VERSION . '" async id="ct_bot_detector-js" data-wp-strategy="async"></script>';
         }, 100);
     }
+
+    SFWUpdateHelper::processSFWOutdatedError($apbct);
 
     // SpamFireWall check
     if ( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
@@ -690,6 +693,9 @@ if ( ! defined('WP_ALLOW_MULTISITE') || (defined('WP_ALLOW_MULTISITE') && WP_ALL
 
 // After plugin loaded - to load locale as described in manual
 add_action('init', 'apbct_plugin_loaded');
+
+// SiteGround Speed Optimizer: skip cache for URLs with apbct_no_cache.
+add_action('plugins_loaded', 'apbct_sgo_optimizer__register_bypass_query_params', 1);
 
 if ( ! empty($apbct->settings['data__use_ajax']) &&
      ! apbct_is_in_uri('.xml') &&
@@ -910,25 +916,12 @@ function apbct_sfw__check()
     }
 
     // update mode - skip checking
-    if ( isset($apbct->fw_stats['update_mode']) && $apbct->fw_stats['update_mode'] === 1 ) {
+    if ( SFWUpdateHelper::SFWUpdateModeEnabled($apbct)) {
         return;
     }
 
-    // Checking if database was outdated
-    $is_sfw_outdated = $apbct->stats['sfw']['last_update_time'] + $apbct->stats['sfw']['update_period'] * 3 < time();
-
-    add_action('init', function () use ($apbct, $is_sfw_outdated) {
-        $apbct->errorToggle(
-            $is_sfw_outdated,
-            'sfw_outdated',
-            esc_html__(
-                'SpamFireWall database is outdated. Please, try to synchronize with the cloud.',
-                'cleantalk-spam-protect'
-            )
-        );
-    });
-
-    if ( $is_sfw_outdated ) {
+    // sfw is outdated - skip checking
+    if ( SFWUpdateHelper::SFWDataOutdated($apbct) ) {
         return;
     }
 
@@ -1519,92 +1512,13 @@ function apbct_sfw_update__get_multifiles_of_type(array $params)
 
 /**
  * Queue stage. Do load multifiles with networks on their urls.
- * @param $urls
- * @return array|array[]|bool|string|string[]
+ * @param $all_urls
+ * @return array|true
  */
-function apbct_sfw_update__download_files($urls, $direct_update = false)
+function apbct_sfw_update__download_files($all_urls, $direct_update = false)
 {
-    global $apbct;
-
-    sleep(3);
-
-    if ( ! is_writable($apbct->fw_stats['updating_folder']) ) {
-        return array('error' => 'SFW update folder is not writable.');
-    }
-
-    //Reset keys
-    $urls          = array_values(array_unique($urls));
-
-    $results = array();
-    $batch_size = 10;
-
-    /**
-     * Reduce batch size of curl multi instanced
-     */
-    if (defined('APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE')) {
-        if (
-            is_int(APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE) &&
-            APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE > 0 &&
-            APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE < 10
-        ) {
-            $batch_size = APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE;
-        };
-    }
-
-    $total_urls = count($urls);
-    $batches = ceil($total_urls / $batch_size);
-
-    for ($i = 0; $i < $batches; $i++) {
-        $batch_urls = array_slice($urls, $i * $batch_size, $batch_size);
-        if (!empty($batch_urls)) {
-            $http_results = Helper::httpMultiRequest($batch_urls, $apbct->fw_stats['updating_folder']);
-            if (is_array($http_results)) {
-                $results = array_merge($results, $http_results);
-            }
-            // to handle case if we request only one url, then Helper::httpMultiRequest returns string 'success' instead of array
-            if (count($batch_urls) === 1 && $http_results === 'success') {
-                $results = array_merge($results, $batch_urls);
-            }
-        }
-    }
-
-    $results       = TT::toArray($results);
-    $count_urls    = count($urls);
-    $count_results = count($results);
-
-    if ( empty($results['error']) && ($count_urls === $count_results) ) {
-        if ( $direct_update ) {
-            return true;
-        }
-        $download_again = array();
-        $results        = array_values($results);
-        for ( $i = 0; $i < $count_results; $i++ ) {
-            if ( $results[$i] === 'error' ) {
-                $download_again[] = $urls[$i];
-            }
-        }
-
-        if ( count($download_again) !== 0 ) {
-            return array(
-                'error'       => 'Files download not completed.',
-                'update_args' => array(
-                    'args' => $download_again
-                )
-            );
-        }
-
-        return array(
-            'next_stage' => array(
-                'name' => 'apbct_sfw_update__create_tables'
-            )
-        );
-    }
-
-    if ( ! empty($results['error']) ) {
-        return $results;
-    }
-
-    return array('error' => 'Files download not completed.');
+    $downloader = new \Cleantalk\ApbctWP\Firewall\SFWFilesDownloader();
+    return $downloader->downloadFiles($all_urls, $direct_update);
 }
 
 /**
@@ -2175,6 +2089,11 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
         $plugin = Get::get('plugin') ? Get::get('plugin') : '';
     }
 
+    $allowed_plugin = 'security-malware-firewall/security-malware-firewall.php';
+    if ( !empty($plugin) && TT::toString($plugin) !== $allowed_plugin ) {
+        die('FAIL ' . json_encode(array('error' => 'PLUGIN_NOT_ALLOWED')));
+    }
+
     if ( !empty($plugin) ) {
         $plugin = TT::toString($plugin);
         if ( preg_match('/[a-zA-Z-\d]+[\/\\][a-zA-Z-\d]+\.php/', $plugin) ) {
@@ -2238,6 +2157,12 @@ function apbct_rc__activate_plugin($plugin)
         $plugin = Get::get('plugin') ? TT::toString(Get::get('plugin')) : null;
     }
 
+    // Only allow activation of Security by CleanTalk plugin via remote call
+    $allowed_plugin = 'security-malware-firewall/security-malware-firewall.php';
+    if ( $plugin && $plugin !== $allowed_plugin ) {
+        return array('error' => 'PLUGIN_NOT_ALLOWED');
+    }
+
     if ( $plugin ) {
         if ( preg_match('@[a-zA-Z-\d]+[\\\/][a-zA-Z-\d]+\.php@', $plugin) ) {
             require_once(ABSPATH . '/wp-admin/includes/plugin.php');
@@ -2276,6 +2201,15 @@ function apbct_rc__deactivate_plugin($plugin = null)
 
     if ( is_null($plugin) ) {
         $plugin = Get::get('plugin') ? TT::toString(Get::get('plugin')) : null;
+    }
+
+    // Only allow deactivation of CleanTalk plugins via remote call
+    $allowed_plugins = array(
+        'cleantalk-spam-protect/cleantalk.php',
+        'security-malware-firewall/security-malware-firewall.php',
+    );
+    if ( $plugin && !in_array($plugin, $allowed_plugins, true) ) {
+        die('FAIL ' . json_encode(array('error' => 'PLUGIN_NOT_ALLOWED')));
     }
 
     if ( $plugin ) {
@@ -2322,6 +2256,15 @@ function apbct_rc__uninstall_plugin($plugin = null)
 
     if ( is_null($plugin) ) {
         $plugin = Get::get('plugin') ? TT::toString(Get::get('plugin')) : null;
+    }
+
+    // Only allow uninstallation of CleanTalk plugins via remote call
+    $allowed_plugins = array(
+        'cleantalk-spam-protect/cleantalk.php',
+        'security-malware-firewall/security-malware-firewall.php',
+    );
+    if ( $plugin && !in_array($plugin, $allowed_plugins, true) ) {
+        die('FAIL ' . json_encode(array('error' => 'PLUGIN_NOT_ALLOWED')));
     }
 
     if ( $plugin ) {

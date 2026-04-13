@@ -139,19 +139,20 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
         $page = htmlspecialchars(addslashes(TT::toString(Get::get('page'))));
 
+        $approve_url = wp_nonce_url(
+            admin_url('users.php?page=' . $page . '&action=approve&spam=' . $user_obj->ID),
+            'apbct_ct_check_users_row',
+            '_wpnonce'
+        );
+        $delete_url = wp_nonce_url(
+            admin_url('users.php?page=' . $page . '&action=delete&spam=' . $user_obj->ID),
+            'apbct_ct_check_users_row',
+            '_wpnonce'
+        );
+
         $actions = array(
-            'approve' => sprintf(
-                '<a href="?page=%s&action=%s&spam=%s">Approve</a>',
-                $page,
-                'approve',
-                $user_obj->ID
-            ),
-            'delete' => sprintf(
-                '<a href="?page=%s&action=%s&spam=%s">Delete</a>',
-                $page,
-                'delete',
-                $user_obj->ID
-            ),
+            'approve' => '<a href="' . esc_url($approve_url) . '">Approve</a>',
+            'delete'  => '<a href="' . esc_url($delete_url) . '">Delete</a>',
         );
 
         return sprintf('%1$s %2$s', $column_content, $this->row_actions($actions));
@@ -232,12 +233,22 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             return;
         }
 
+        if ( ! wp_verify_nonce(Get::getString('_wpnonce'), 'apbct_ct_check_users_row') ) {
+            wp_die(esc_html__('Security check failed. Please try again.', 'cleantalk-spam-protect'), 403);
+        }
+
         if ( Get::get('action') === 'approve' ) {
+            if ( ! current_user_can('edit_users') ) {
+                wp_die(esc_html__('You do not have sufficient permissions to perform this action.', 'cleantalk-spam-protect'), 403);
+            }
             $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT);
             $this->approveSpam(array($id));
         }
 
         if ( Get::get('action') === 'delete' ) {
+            if ( ! current_user_can('delete_users') ) {
+                wp_die(esc_html__('You do not have sufficient permissions to perform this action.', 'cleantalk-spam-protect'), 403);
+            }
             $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_NUMBER_INT);
             $this->removeSpam(array($id));
         }
@@ -282,10 +293,21 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         foreach ( $ids as $id ) {
             $user_id = (int)sanitize_key($id);
 
-            //Send feedback
-            $hash = get_user_meta($user_id, 'ct_hash', true);
-            if ( $hash ) {
-                ct_feedback($hash, 0);
+            // Check if user was marked as spam or as bad (without IP/email)
+            $is_marked_spam = delete_user_meta($user_id, 'ct_marked_as_spam');
+            $is_bad_user = delete_user_meta($user_id, 'ct_bad');
+
+            // Only act on users that were marked by CleanTalk
+            if ( ! $is_marked_spam && ! $is_bad_user ) {
+                continue;
+            }
+
+            //Send feedback (only for spam-marked users)
+            if ( $is_marked_spam ) {
+                $hash = get_user_meta($user_id, 'ct_hash', true);
+                if ( $hash ) {
+                    ct_feedback($hash, 0);
+                }
             }
 
             //Delete user and posts
