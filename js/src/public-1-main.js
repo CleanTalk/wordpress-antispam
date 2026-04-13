@@ -842,7 +842,7 @@ class ApbctHandler {
                     try {
                         const batchPayload = JSON.parse(args[1].body);
                         if (batchPayload.requests && Array.isArray(batchPayload.requests)) {
-                            const fieldPair = selectFieldsData(+ctPublic.settings__data__bot_detector_enabled);
+                            const fieldPair = selectFieldsData(+ctPublic.bot_detector_enabled);
                             for (const req of batchPayload.requests) {
                                 const isAddItem = req.path === '/wc/store/v1/cart/add-item';
                                 if (isAddItem && req.body && fieldPair && fieldPair.key) {
@@ -1100,7 +1100,7 @@ class ApbctHandler {
         try {
             // Event token
             if (
-                +ctPublic.settings__data__bot_detector_enabled &&
+                +ctPublic.bot_detector_enabled &&
                 apbctLocalStorage.get('bot_detector_event_token')
             ) {
                 const token = this.toolGetEventToken();
