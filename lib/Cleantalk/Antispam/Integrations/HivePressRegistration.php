@@ -26,7 +26,7 @@ class HivePressRegistration extends IntegrationBase
     /**
      * @inheritDoc
      */
-    public function doBlock($message) # pragma: no cover
+    public function doBlock($message)
     {
         wp_send_json(
             [
@@ -36,7 +36,7 @@ class HivePressRegistration extends IntegrationBase
         die();
     }
 
-    protected function isThePluginActive() # pragma: no cover
+    protected function isThePluginActive()
     {
         return apbct_is_plugin_active('hivepress/hivepress.php');
     }
