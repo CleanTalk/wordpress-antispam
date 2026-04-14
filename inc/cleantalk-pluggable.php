@@ -1819,6 +1819,11 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
              apbct_is_in_uri('wc-ajax=iwd_opc_update_order_review') ) {
             return 'cartflows_save_cart';
         }
+        // WC addon - Metorik Helper plugin service requests
+        if ( apbct_is_plugin_active('metorik-helper/metorik-helper.php') &&
+             apbct_is_in_uri('wc-ajax=metorik_capture_customer_data') ) {
+            return 'metorik-helper skip';
+        }
         // Vault Press (JetPack) plugin service requests
         if (
             Post::get('do_backups') !== '' &&
