@@ -21,7 +21,7 @@ class TestCleantalkIntegrationsByRoute extends TestCase
         $this->assertArrayHasKey('rest', $apbct_active_rest_integrations['HivePress']);
 
         $this->assertEquals($apbct_active_rest_integrations['HivePress']['rest_route'], '/hivepress/v1/listings/');
-        $this->assertArrayHasKey($apbct_active_rest_integrations['HivePress']['setting'], 'forms__contact_forms_test');
-        $this->assertArrayHasKey($apbct_active_rest_integrations['HivePress']['rest'], true);
+        $this->assertEquals($apbct_active_rest_integrations['HivePress']['setting'], 'forms__contact_forms_test');
+        $this->assertEquals($apbct_active_rest_integrations['HivePress']['rest'], true);
     }
 }
