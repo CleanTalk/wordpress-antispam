@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 class TestCleantalkIntegrationsByRoute extends TestCase
 {
-    public function test_apbct_active_rest_integrations_has_valid_structure()
+    public function testApbctActiveRestIntegrationsHasValidStructure()
     {
         $apbct_active_rest_integrations = null;
         include CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-integrations-by-route.php';
@@ -14,7 +14,7 @@ class TestCleantalkIntegrationsByRoute extends TestCase
         $this->assertIsArray($apbct_active_rest_integrations);
         $this->assertNotEmpty($apbct_active_rest_integrations);
 
-        $this->assertArrayHasKey('HivePress', $$apbct_active_rest_integrations);
+        $this->assertArrayHasKey('HivePress', $apbct_active_rest_integrations);
 
         $this->assertArrayHasKey('rest_route', $apbct_active_rest_integrations['HivePress']);
         $this->assertArrayHasKey('setting', $apbct_active_rest_integrations['HivePress']);
