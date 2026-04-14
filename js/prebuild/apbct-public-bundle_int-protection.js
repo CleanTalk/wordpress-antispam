@@ -4688,6 +4688,14 @@ function ctListenRequiredRedrawing(inputEmail) {
             },
             'emailElement': inputEmail,
         },
+        {
+            'selector': 'form.hp-form--user-register',
+            'observerConfig': {
+                childList: true,
+                subtree: true,
+            },
+            'emailElement': inputEmail,
+        },
     ];
 
     formChangesToListen.forEach((aForm) => {
