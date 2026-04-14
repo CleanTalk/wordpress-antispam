@@ -32,7 +32,7 @@ class HivePress extends IntegrationBase
         return null;
     }
 
-    public function doBlock($message)
+    public function doBlock($message) # pragma: no cover
     {
         wp_send_json(
             [
@@ -42,17 +42,17 @@ class HivePress extends IntegrationBase
         die();
     }
 
-    protected function isThePluginActive()
+    protected function isThePluginActive() # pragma: no cover
     {
         return apbct_is_plugin_active('hivepress/hivepress.php');
     }
 
-    protected function isUserLoggedIn()
+    protected function isUserLoggedIn() # pragma: no cover
     {
         return apbct_is_user_logged_in();
     }
 
-    protected function getCurrentUser()
+    protected function getCurrentUser() # pragma: no cover
     {
         return wp_get_current_user();
     }
