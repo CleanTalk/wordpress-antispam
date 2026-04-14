@@ -2,8 +2,6 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\Antispam\Integrations\IntegrationBase;
-
 class HivePressRegistration extends IntegrationBase
 {
     /**

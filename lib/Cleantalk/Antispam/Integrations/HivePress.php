@@ -9,8 +9,8 @@ class HivePress extends IntegrationBase
         global $apbct;
 
         if (
-            ! apbct_is_plugin_active('hivepress/hivepress.php') ||
-            ! apbct_is_user_logged_in() ||
+            ! $this->isThePluginActive() ||
+            ! $this->isUserLoggedIn() ||
             ! $apbct->settings['data__protect_logged_in']
         ) {
             do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '(hivepress theme listing integration):' . __LINE__, $_POST);
@@ -18,7 +18,7 @@ class HivePress extends IntegrationBase
         }
 
         $sender_email = '';
-        $current_user = wp_get_current_user();
+        $current_user = $this->getCurrentUser();
         if ( ! empty($current_user->data->user_email) ) {
             $sender_email = $current_user->data->user_email;
         }
@@ -40,5 +40,20 @@ class HivePress extends IntegrationBase
             ]
         );
         die();
+    }
+
+    protected function isThePluginActive()
+    {
+        return apbct_is_plugin_active('hivepress/hivepress.php');
+    }
+
+    protected function isUserLoggedIn()
+    {
+        return apbct_is_user_logged_in();
+    }
+
+    protected function getCurrentUser()
+    {
+        return wp_get_current_user();
     }
 }
