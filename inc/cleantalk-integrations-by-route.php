@@ -1,31 +1,34 @@
 <?php
 
-$apbct_active_rest_integrations = array(
-    'SureForms'         => array(
-        'rest_route'    => '/sureforms/v1/submit-form',
-        'setting' => 'forms__contact_forms_test',
-        'rest'       => true,
-    ),
-    'WPRecipeMaker'         => array(
-        'rest_route'    => '/wp-recipe-maker/v1/user-rating/',
-        'setting' => 'forms__contact_forms_test',
-        'rest'       => true,
-    ),
-    'HivePress'         => array(
-        'rest_route'    => '/hivepress/v1/listings/',
-        'setting' => 'forms__contact_forms_test',
-        'rest'       => true,
-    ),
-    'HivePressRegistration'         => array(
-        'rest_route'    => '/hivepress/v1/users',
-        'setting' => 'forms__registrations_test',
-        'rest'       => true,
-    ),
-);
+function apbctGetActiveRestIntegrations() {
+    return array(
+        'SureForms'         => array(
+            'rest_route'    => '/sureforms/v1/submit-form',
+            'setting' => 'forms__contact_forms_test',
+            'rest'       => true,
+        ),
+        'WPRecipeMaker'         => array(
+            'rest_route'    => '/wp-recipe-maker/v1/user-rating/',
+            'setting' => 'forms__contact_forms_test',
+            'rest'       => true,
+        ),
+        'HivePress'         => array(
+            'rest_route'    => '/hivepress/v1/listings/',
+            'setting' => 'forms__contact_forms_test',
+            'rest'       => true,
+        ),
+        'HivePressRegistration'         => array(
+            'rest_route'    => '/hivepress/v1/users',
+            'setting' => 'forms__registrations_test',
+            'rest'       => true,
+        ),
+    );
+}
 
-add_filter('rest_pre_dispatch', function ($result, $_, $request) use ($apbct_active_rest_integrations) {
+add_filter('rest_pre_dispatch', function ($result, $_, $request) {
     global $apbct;
     $route = $request->get_route();
+    $apbct_active_rest_integrations = apbctGetActiveRestIntegrations();
     foreach ($apbct_active_rest_integrations as $integration_name => $rest_data) {
         if (isset($rest_data['rest_route']) && strpos($route, $rest_data['rest_route']) === 0) {
             $apbct_settings = isset($apbct->settings) && is_array($apbct->settings) ? $apbct->settings : array();

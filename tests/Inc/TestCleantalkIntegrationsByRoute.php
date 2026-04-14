@@ -8,20 +8,26 @@ class TestCleantalkIntegrationsByRoute extends TestCase
 {
     public function testApbctActiveRestIntegrationsHasValidStructure()
     {
-        $apbct_active_rest_integrations = null;
-        include CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-integrations-by-route.php';
+        $apbct_active_rest_integrations = apbctGetActiveRestIntegrations();
 
         $this->assertIsArray($apbct_active_rest_integrations);
         $this->assertNotEmpty($apbct_active_rest_integrations);
 
-        $this->assertArrayHasKey('HivePress', $apbct_active_rest_integrations);
+        $routes = [];
 
-        $this->assertArrayHasKey('rest_route', $apbct_active_rest_integrations['HivePress']);
-        $this->assertArrayHasKey('setting', $apbct_active_rest_integrations['HivePress']);
-        $this->assertArrayHasKey('rest', $apbct_active_rest_integrations['HivePress']);
+        foreach ($apbct_active_rest_integrations as $name => $data) {
+            $this->assertArrayHasKey('rest_route', $data, "Missing rest_route in $name");
+            $this->assertArrayHasKey('setting', $data, "Missing setting in $name");
+            $this->assertArrayHasKey('rest', $data, "Missing rest in $name");
 
-        $this->assertEquals($apbct_active_rest_integrations['HivePress']['rest_route'], '/hivepress/v1/listings/');
-        $this->assertEquals($apbct_active_rest_integrations['HivePress']['setting'], 'forms__contact_forms_test');
-        $this->assertEquals($apbct_active_rest_integrations['HivePress']['rest'], true);
+            $this->assertIsString($data['rest_route'], "rest_route in $name must be string");
+            $this->assertIsString($data['setting'], "setting in $name must be string");
+            $this->assertIsBool($data['rest'], "rest in $name must be boolean");
+
+            $this->assertStringStartsWith('/', $data['rest_route'], "rest_route in $name must start with /");
+
+            $this->assertNotContains($data['rest_route'], $routes, "Duplicate rest_route: {$data['rest_route']} in $name");
+            $routes[] = $data['rest_route'];
+        }
     }
 }
