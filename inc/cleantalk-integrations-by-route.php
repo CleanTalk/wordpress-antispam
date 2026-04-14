@@ -1,6 +1,7 @@
 <?php
 
-function apbctGetActiveRestIntegrations() {
+function apbctGetActiveRestIntegrations()
+{
     return array(
         'SureForms'         => array(
             'rest_route'    => '/sureforms/v1/submit-form',
