@@ -2,9 +2,9 @@
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
-Tested up to: 7.0
+Tested up to: 7
 Requires PHP: 7.2
-Stable tag: 6.76
+Stable tag: 6.77
 License: GPLv2
 
 Blocks spam comments, fake users, contact form spam and more. No impact on SEO. Privacy focused. CAPTCHA free, premium Antispam plugin.
@@ -411,6 +411,17 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.77 16.04.2026 =
+* Fix. AltSession. Correcting the issue of array conversion
+* New. BookingCalendar. New integration with BookingCalendar
+* Upd. Settings. Updated flow to check pingback. (#764) (#773) (#774)
+* Fix. CF7. Edit honeypot
+* Fix. Integration. EDD integration fixed. (#770)
+* Fix. Code. Editing the bot detector settings
+* Fix. Exclusion. Skip request from Metorik Helper
+* Fix. Common. Add bot detector state to ct_options. (#778)
+* Fix. WPMS. Errors output for WPMS mutual-mutual mode fixed. (#772)
 
 = 6.76 02.04.2026 =
 * Mod. ForceAltCookies. Removed the use of force alt cookies for integration with piotnet-addons-for-elementor
