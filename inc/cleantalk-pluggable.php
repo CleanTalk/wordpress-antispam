@@ -1450,7 +1450,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             apbct_is_plugin_active('bloom/bloom.php') &&
             Post::get('action') === 'bloom_subscribe'
         ) {
-            return 'Bloom';
+            return 'Bloom skip - has the direct integration';
         }
 
         // Ajax Search Lite - these requests will be caught by search form protection
@@ -1743,14 +1743,6 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             Post::equal('action', 'wpinv_payment_form_refresh_prices')
         ) {
             return 'invoicing';
-        }
-
-        //Bloom skip - has the direct integration
-        if (
-            apbct_is_plugin_active('bloom/bloom.php') &&
-            Post::equal('action', 'bloom_subscribe')
-        ) {
-            return 'Bloom skip - has the direct integration';
         }
     } else {
         /*****************************************/
