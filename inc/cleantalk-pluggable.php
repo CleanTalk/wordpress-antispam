@@ -1744,6 +1744,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'invoicing';
         }
+
+        //Bloom skip - has the direct integration
+        if (
+            apbct_is_plugin_active('bloom/bloom.php') &&
+            Post::equal('action', 'bloom_subscribe')
+        ) {
+            return 'Bloom skip - has the direct integration';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
