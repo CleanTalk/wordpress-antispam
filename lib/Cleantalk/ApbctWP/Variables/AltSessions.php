@@ -224,6 +224,10 @@ class AltSessions
                     $cookies_array[$name] = (bool)$value;
                     break;
                 case 'string':
+                    if (is_array($value) || is_object($value)) {
+                        unset($cookies_array[$name]);
+                        break;
+                    }
                     $cookies_array[$name] = (string)$value;
                     break;
                 case 'json':
