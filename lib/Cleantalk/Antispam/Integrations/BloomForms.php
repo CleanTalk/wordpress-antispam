@@ -2,14 +2,10 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\ApbctWP\Variables\Cookie;
-
 class BloomForms extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        Cookie::$force_alt_cookies_global = true;
-
         $filtered_post = apply_filters('apbct__filter_post', $_POST);
         $nickname = '';
 
