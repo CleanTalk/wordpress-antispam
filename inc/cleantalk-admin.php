@@ -751,12 +751,10 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
      * Link to project manager
      */
     $project_manager_title_node = apbct__admin_bar__get_title_for_project_manager();
-    if ( $project_manager_title_node ) {
+    $gf2db_title_node = apbct__admin_bar__add_gf2db_title();
+    if ( $project_manager_title_node && $gf2db_title_node) {
         $wp_admin_bar->add_node($project_manager_title_node);
-        $gf2db_title_node = apbct__admin_bar__add_gf2db_title();
-        if ($gf2db_title_node) {
-            $wp_admin_bar->add_node($gf2db_title_node);
-        }
+        $wp_admin_bar->add_node($gf2db_title_node);
     }
 
     /**
