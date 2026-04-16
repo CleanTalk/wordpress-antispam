@@ -566,7 +566,14 @@ class State extends \Cleantalk\Common\State
             $wpdb_option_name = $this->option_prefix . '_' . $option_name;
             //prevent fatal on broken serialized data
             try {
-                $option = get_option($wpdb_option_name);
+                if ( ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2 ) {
+                    // Options have to be gathered from the main site in this case
+                    switch_to_blog(get_main_site_id());
+                    $option = get_option($wpdb_option_name);
+                    restore_current_blog();
+                } else {
+                    $option = get_option($wpdb_option_name);
+                }
             } catch (\UnexpectedValueException $e) {
                 $default_option_name = 'default_' . $option_name;
                 delete_option($wpdb_option_name);
