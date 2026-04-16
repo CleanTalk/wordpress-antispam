@@ -422,6 +422,8 @@ Yes, it is. Please read this article,
 * Fix. Exclusion. Skip request from Metorik Helper
 * Fix. Common. Add bot detector state to ct_options. (#778)
 * Fix. WPMS. Errors output for WPMS mutual-mutual mode fixed. (#772)
+* Fix. WPMS. Settings for `mutual/mutual` fixed.
+* Fix. WPMS. Settings page error fixed.
 
 = 6.76 02.04.2026 =
 * Mod. ForceAltCookies. Removed the use of force alt cookies for integration with piotnet-addons-for-elementor
