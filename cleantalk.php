@@ -2136,7 +2136,7 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
                     die(
                         'FAIL ' . json_encode(array(
                             'error'   => 'FAIL_TO_GET_LATEST_VERSION',
-                            'details' => $result instanceof WP_Error ? $result->get_error_message() : '',
+                            'details' => $result->get_error_message() ? $result->get_error_message() : '',
                         ))
                     );
                 }
@@ -2173,7 +2173,7 @@ function apbct_rc__activate_plugin($plugin)
             $error_msg = '';
 
             if (!$result || is_wp_error($result)) {
-                if ($result instanceof WP_Error) {
+                if ($result->get_error_message()) {
                     $error_msg = ' ' . $result->get_error_message();
                 }
                 $result_array = array(
@@ -2293,7 +2293,7 @@ function apbct_rc__uninstall_plugin($plugin = null)
             $error_msg = '';
 
             if (!$result || is_wp_error($result)) {
-                if ($result instanceof WP_Error) {
+                if (is_wp_error($result) && $result->get_error_message()) {
                     $error_msg = ' ' . $result->get_error_message();
                 }
                 $die_string = 'FAIL ' . json_encode(array(
