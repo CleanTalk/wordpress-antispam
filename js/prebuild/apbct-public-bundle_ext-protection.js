@@ -2184,7 +2184,7 @@ function ctSetAlternativeCookie(cookies, params) {
         if (Array.isArray(cookies)) {
             cookies = getJavascriptClientData(cookies);
         }
-    } else if (!+ctPublic.settings__data__bot_detector_enabled) {
+    } else if (!+ctPublic.bot_detector_enabled) {
         console.log('APBCT ERROR: getJavascriptClientData() is not loaded');
     }
 
@@ -2400,10 +2400,12 @@ let apbctLocalStorage = {
                 const json = JSON.parse(storageValue);
                 if ( json.hasOwnProperty(property) ) {
                     try {
-                        // if property can be parsed as JSON - do it
-                        return JSON.parse( json[property] );
+                        const parsed = JSON.parse( json[property] );
+                        if ( parsed !== null && typeof parsed === 'object' ) {
+                            return json[property].toString();
+                        }
+                        return parsed;
                     } catch (e) {
-                        // if not - return string of value
                         return json[property].toString();
                     }
                 } else {
@@ -3422,7 +3424,7 @@ class ApbctHandler {
                     try {
                         const batchPayload = JSON.parse(args[1].body);
                         if (batchPayload.requests && Array.isArray(batchPayload.requests)) {
-                            const fieldPair = selectFieldsData(+ctPublic.settings__data__bot_detector_enabled);
+                            const fieldPair = selectFieldsData(+ctPublic.bot_detector_enabled);
                             for (const req of batchPayload.requests) {
                                 const isAddItem = req.path === '/wc/store/v1/cart/add-item';
                                 if (isAddItem && req.body && fieldPair && fieldPair.key) {
@@ -3596,6 +3598,11 @@ class ApbctHandler {
                 if (ajaxObject.data.indexOf('action=wwlc_create_user') !== -1) {
                     sourceSign.found = 'action=wwlc_create_user';
                 }
+                if (ajaxObject.data.indexOf('action=WPBC_AJX_BOOKING__CREATE') !== -1) {
+                    sourceSign.found = 'action=WPBC_AJX_BOOKING__CREATE';
+                    sourceSign.keepUnwrapped = true;
+                    sourceSign.attachVisibleFieldsData = true;
+                }
                 if (ajaxObject.data.indexOf('action=drplus_signup') !== -1) {
                     sourceSign.found = 'action=drplus_signup';
                     sourceSign.keepUnwrapped = true;
@@ -3675,7 +3682,7 @@ class ApbctHandler {
         try {
             // Event token
             if (
-                +ctPublic.settings__data__bot_detector_enabled &&
+                +ctPublic.bot_detector_enabled &&
                 apbctLocalStorage.get('bot_detector_event_token')
             ) {
                 const token = this.toolGetEventToken();
@@ -5111,7 +5118,7 @@ function ctProtectOutsideFunctionalHandler(entity, lsStorageName, lsUniqueName) 
     ctAttachCoverCSSToHead();
     entityParent.appendChild(ctProtectOutsideFunctionalGenerateCover());
     let entitiesProtected = apbctLocalStorage.get(lsStorageName);
-    if (false === entitiesProtected) {
+    if (false === entitiesProtected || !Array.isArray(entitiesProtected)) {
         entitiesProtected = [];
     }
     if (lsUniqueName) {
