@@ -578,7 +578,7 @@ function ctProtectOutsideFunctionalHandler(entity, lsStorageName, lsUniqueName) 
     ctAttachCoverCSSToHead();
     entityParent.appendChild(ctProtectOutsideFunctionalGenerateCover());
     let entitiesProtected = apbctLocalStorage.get(lsStorageName);
-    if (false === entitiesProtected) {
+    if (false === entitiesProtected || !Array.isArray(entitiesProtected)) {
         entitiesProtected = [];
     }
     if (lsUniqueName) {
