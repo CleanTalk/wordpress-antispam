@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.77
+  Version: 6.77.99-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -2136,7 +2136,7 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
                     die(
                         'FAIL ' . json_encode(array(
                             'error'   => 'FAIL_TO_GET_LATEST_VERSION',
-                            'details' => $result instanceof WP_Error ? $result->get_error_message() : '',
+                            'details' => $result->get_error_message(),
                         ))
                     );
                 }
@@ -2170,12 +2170,9 @@ function apbct_rc__activate_plugin($plugin)
             $result = activate_plugins($plugin);
 
             $result_array = array('success' => true);
-            $error_msg = '';
 
             if (!$result || is_wp_error($result)) {
-                if ($result instanceof WP_Error) {
-                    $error_msg = ' ' . $result->get_error_message();
-                }
+                $error_msg = ' ' . $result->get_error_message();
                 $result_array = array(
                     'error'   => 'FAIL_TO_ACTIVATE',
                     'details' => $error_msg
@@ -2293,7 +2290,7 @@ function apbct_rc__uninstall_plugin($plugin = null)
             $error_msg = '';
 
             if (!$result || is_wp_error($result)) {
-                if ($result instanceof WP_Error) {
+                if (is_wp_error($result) && $result->get_error_message()) {
                     $error_msg = ' ' . $result->get_error_message();
                 }
                 $die_string = 'FAIL ' . json_encode(array(

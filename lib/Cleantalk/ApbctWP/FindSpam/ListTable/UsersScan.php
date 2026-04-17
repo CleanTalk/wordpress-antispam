@@ -10,7 +10,7 @@ class UsersScan extends Users
     {
         $current_screen = get_current_screen();
         $per_page_option = !is_null($current_screen)
-            ? $current_screen->get_option('per_page', 'option')
+            ? ($current_screen->get_option('per_page', 'option') ?? '10')
             : '10';
         $per_page        = get_user_meta(get_current_user_id(), $per_page_option, true);
         if ( ! $per_page ) {
