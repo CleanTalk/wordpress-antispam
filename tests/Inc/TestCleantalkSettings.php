@@ -26,4 +26,18 @@ class TestCleantalkSettings extends TestCase
 		$this->assertArrayHasKey('display', $data_processing_options['bot_detector_state']);
 		$this->assertArrayNotHasKey('parent', $data_processing_options['exclusions__bot_detector']);
 	}
+
+	public function testApbctSettingsSetFieldsEmailCheckReadMore()
+	{
+		$fields = apbct_settings__set_fields();
+
+		$this->assertArrayHasKey('data_processing', $fields);
+
+		$data_processing_options = $fields['data_processing']['fields'];
+
+		$this->assertArrayHasKey('data__email_check_exist_post', $data_processing_options);
+		$this->assertArrayHasKey('description', $data_processing_options['data__email_check_exist_post']);
+        $this->assertStringContainsString('https://cleantalk.org/help/show-email-existence-alert', $data_processing_options['data__email_check_exist_post']['description']);
+        $this->assertStringContainsString('Read more', $data_processing_options['data__email_check_exist_post']['description']);
+	}
 }
