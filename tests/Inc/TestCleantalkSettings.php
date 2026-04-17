@@ -27,7 +27,7 @@ class TestCleantalkSettings extends TestCase
 		$this->assertArrayNotHasKey('parent', $data_processing_options['exclusions__bot_detector']);
 	}
 
-	public function testApbctSettingsSetFieldsEmailCheckReadMre()
+	public function testApbctSettingsSetFieldsEmailCheckReadMore()
 	{
 		$fields = apbct_settings__set_fields();
 
