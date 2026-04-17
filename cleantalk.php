@@ -2136,7 +2136,7 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
                     die(
                         'FAIL ' . json_encode(array(
                             'error'   => 'FAIL_TO_GET_LATEST_VERSION',
-                            'details' => $result->get_error_message() ? $result->get_error_message() : '',
+                            'details' => $result->get_error_message(),
                         ))
                     );
                 }
@@ -2170,12 +2170,9 @@ function apbct_rc__activate_plugin($plugin)
             $result = activate_plugins($plugin);
 
             $result_array = array('success' => true);
-            $error_msg = '';
 
             if (!$result || is_wp_error($result)) {
-                if ($result->get_error_message()) {
-                    $error_msg = ' ' . $result->get_error_message();
-                }
+                $error_msg = ' ' . $result->get_error_message();
                 $result_array = array(
                     'error'   => 'FAIL_TO_ACTIVATE',
                     'details' => $error_msg
