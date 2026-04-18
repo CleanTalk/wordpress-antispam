@@ -3075,11 +3075,9 @@ class ApbctHandler {
         let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
         let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
-        let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
             jetpackCommentsForm ||
-            userRegistrationProForm ||
-            etPbDiviSubscriptionForm;
+            userRegistrationProForm;
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
@@ -3102,6 +3100,7 @@ class ApbctHandler {
             document.querySelector('div.wfu_container') !== null ||
             document.querySelector('#newAppointmentForm') !== null ||
             document.querySelector('.booked-calendar-shortcode-wrap') !== null ||
+            document.querySelector('.et_pb_newsletter_form') !== null ||
             (
                 // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
                 document.body.classList.contains('single-product') &&
@@ -3116,8 +3115,11 @@ class ApbctHandler {
                     (
                         body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
                         body.indexOf('action=booked_add_appt') !== -1 ||
-                        body.indexOf('action=cwginstock_product_subscribe') !== -1
+                        body.indexOf('action=cwginstock_product_subscribe') !== -1 ||
+                        body.indexOf('action=et_pb_submit_subscribe_form') !== -1
                     );
+                const isDiviNewsletterRequest = body && typeof body === 'string' &&
+                    body.indexOf('action=et_pb_submit_subscribe_form') !== -1;
 
                 let isNeedToAddCleantalkDataCheckFormData = body && typeof body === 'object' &&
                     body instanceof FormData &&
@@ -3127,17 +3129,27 @@ class ApbctHandler {
 
                 if (isNeedToAddCleantalkDataCheckString) {
                     let addidionalCleantalkData = '';
+                    const noCookieDataKey = isDiviNewsletterRequest ?
+                        'ct_no_cookie_hidden_field' :
+                        'data%5Bct_no_cookie_hidden_field%5D';
+                    const eventTokenKey = isDiviNewsletterRequest ?
+                        'ct_bot_detector_event_token' :
+                        'data%5Bct_bot_detector_event_token%5D';
 
                     if (!(
                         +ctPublic.bot_detector_enabled &&
                         apbctLocalStorage.get('bot_detector_event_token')
                     )) {
                         let noCookieData = getNoCookieData();
-                        addidionalCleantalkData += '&' + 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData;
+                        if (body.indexOf('ct_no_cookie_hidden_field=') === -1) {
+                            addidionalCleantalkData += '&' + noCookieDataKey + '=' + noCookieData;
+                        }
                     } else {
                         const eventToken = new ApbctHandler().toolGetEventToken();
                         if (eventToken) {
-                            addidionalCleantalkData += '&' + 'data%5Bct_bot_detector_event_token%5D=' + eventToken;
+                            if (body.indexOf('ct_bot_detector_event_token=') === -1) {
+                                addidionalCleantalkData += '&' + eventTokenKey + '=' + eventToken;
+                            }
                         }
                     }
 
