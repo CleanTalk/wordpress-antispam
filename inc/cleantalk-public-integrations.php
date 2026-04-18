@@ -1866,56 +1866,6 @@ function apbct_form__seedprod_coming_soon__testSpam()
 }
 
 /**
- *  QuForms check spam
- *    works with single-paged forms
- *    and with multi-paged forms - check only last step of the forms
- *
- * @param $result
- * @param $form
- *
- * @return mixed
- */
-function ct_quform_post_validate($result, $form)
-{
-    if ( $form->hasPages() ) {
-        $comment_type = 'contact_form_wordpress_quforms_multipage';
-    } else {
-        $comment_type = 'contact_form_wordpress_quforms_singlepage';
-    }
-
-    /**
-     * Filter for POST
-     */
-    $input_array = apply_filters('apbct__filter_post', $form->getValues());
-    $ct_temp_msg_data = ct_get_fields_any($input_array);
-    $sender_email = isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '';
-    $sender_emails_array = isset($ct_temp_msg_data['emails_array']) ? $ct_temp_msg_data['emails_array'] : '';
-
-    $base_call_result = apbct_base_call(
-        array(
-            'message'      => $form->getValues(),
-            'sender_email' => $sender_email,
-            'post_info'    => array('comment_type' => $comment_type),
-            'sender_info'     => array('sender_emails_array' => $sender_emails_array),
-        )
-    );
-
-    if ( isset($base_call_result['ct_result']) ) {
-        $ct_result = $base_call_result['ct_result'];
-        if ( $ct_result->allow == 0 ) {
-            die(
-                json_encode(
-                    array('type' => 'error', 'apbct' => array('blocked' => true, 'comment' => $ct_result->comment)),
-                    JSON_HEX_QUOT | JSON_HEX_TAG
-                )
-            );
-        }
-    }
-
-    return $result;
-}
-
-/**
  * Inserts anti-spam hidden to Fast Secure contact form
  */
 function ct_si_contact_display_after_fields($string = '', $_style = '', $_form_errors = array(), $_form_id_num = 0)
