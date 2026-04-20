@@ -19,7 +19,7 @@ class BaseCallDefaultParamsTest extends TestCase
                 'getXForwardedForIP',
                 'getXRealIP',
                 'getJsOn',
-                'getSubmittime',
+                'getSubmitTime',
                 'getAgent',
                 'getTestIp',
                 'ipGet',
@@ -128,11 +128,11 @@ class BaseCallDefaultParamsTest extends TestCase
         $obj = $this->getMockBuilder(DefaultParams::class)
             ->setConstructorArgs(['test_key', []])
             ->onlyMethods([
-                'getSubmittime',
+                'getSubmitTime',
             ])
             ->getMock();
 
-        $obj->method('getSubmittime')
+        $obj->method('getSubmitTime')
             ->willReturn(123);
 
         $this->assertEquals(123, $obj->get()['submit_time']);
@@ -163,7 +163,7 @@ class BaseCallDefaultParamsTest extends TestCase
                 'getXForwardedForIP',
                 'getXRealIP',
                 'getJsOn',
-                'getSubmittime',
+                'getSubmitTime',
                 'getAgent',
                 'getTestIp',
                 'ipGet',
@@ -173,11 +173,11 @@ class BaseCallDefaultParamsTest extends TestCase
         $obj->method('getTestIp')->willReturn(null);
         $obj->method('getSenderIP')->willReturn('1.2.3.4');
         $obj->method('getAgent')->willReturn('test-agent');
-        $obj->method('getSubmittime')->willReturn(999);
+        $obj->method('getSubmitTime')->willReturn(999);
         $obj->method('getXRealIP')->willReturn('10.0.0.2');
         $obj->method('getXForwardedForIP')->willReturn('10.0.0.1');
         $obj->method('getJsOn')->willReturn(1);
-        $obj->method('getSubmittime')->willReturn(true);
+        $obj->method('getSubmitTime')->willReturn(true);
 
         $result = $obj->get();
 
