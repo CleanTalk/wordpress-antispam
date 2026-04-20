@@ -4,6 +4,7 @@ use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
 use Cleantalk\ApbctWP\API;
+use Cleantalk\ApbctWP\BaseCall\DefaultParams;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\DB;
@@ -12,14 +13,14 @@ use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Honeypot;
+use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
+use Cleantalk\ApbctWP\RequestParameters\SubmitTimeHandler;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
-use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
-use Cleantalk\ApbctWP\RequestParameters\SubmitTimeHandler;
 use Cleantalk\Common\TT;
 
 // Prevent direct call
@@ -182,25 +183,8 @@ function apbct_base_call($params = array(), $reg_flag = false)
         );
     }
 
-    $default_params = array(
-
-        // IPs
-        'sender_ip'       => defined('CT_TEST_IP')
-            ? CT_TEST_IP
-            : \Cleantalk\ApbctWP\Helper::ipGet('remote_addr', false),
-        'x_forwarded_for' => \Cleantalk\ApbctWP\Helper::ipGet('x_forwarded_for', false),
-        'x_real_ip'       => \Cleantalk\ApbctWP\Helper::ipGet('x_real_ip', false),
-
-        // Misc
-        'auth_key'        => $apbct->api_key,
-        'js_on'           => apbct_js_test(Sanitize::cleanTextField(Cookie::getString('ct_checkjs')), true)
-            ? 1
-            : apbct_js_test(Post::getString('ct_checkjs')),
-
-        'agent'       => APBCT_AGENT,
-        'sender_info' => $sender_info,
-        'submit_time' => SubmitTimeHandler::getFromRequest(),
-    );
+    $default_params_getter = new DefaultParams($apbct->api_key, $sender_info);
+    $default_params = $default_params_getter->get();
 
     if (!isset($params['post_info']['post_url'])) {
         $params['post_info']['post_url'] = Server::get('HTTP_REFERER');
