@@ -8,6 +8,8 @@ use PHPUnit\Framework\TestCase;
 
 class TestFluentForms extends TestCase
 {
+	private $post;
+
     /** @var FluentForm */
     private $fluentForm;
 

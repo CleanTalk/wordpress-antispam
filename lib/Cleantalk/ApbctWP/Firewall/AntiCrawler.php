@@ -154,10 +154,10 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     {
         $db->execute("TRUNCATE TABLE {$db__table__data};");
         $db->setQuery("SELECT COUNT(*) as cnt FROM {$db__table__data};")->fetch(); // Check if it is clear
-        if ( $db->result['cnt'] != 0 ) {
+        if ( isset($db->result['cnt']) && $db->result['cnt'] != 0 ) {
             $db->execute("DELETE FROM {$db__table__data};"); // Truncate table
             $db->setQuery("SELECT COUNT(*) as cnt FROM {$db__table__data};")->fetch(); // Check if it is clear
-            if ( $db->result['cnt'] != 0 ) {
+            if ( isset($db->result['cnt']) && $db->result['cnt'] != 0 ) {
                 return array('error' => 'COULD_NOT_CLEAR_UA_BL_TABLE'); // throw an error
             }
         }
@@ -510,7 +510,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             'data__email_check_before_post' => $apbct->settings['data__email_check_before_post'],
             'data__cookies_type'            => $apbct->data['cookies_type'],
             'data__visible_fields_required' => ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1,
-            'settings__data__bot_detector_enabled' => $apbct->settings['data__bot_detector_enabled'],
+            'bot_detector_enabled' => apbct__is_bot_detector_enabled(),
         );
 
         $replaces = array(

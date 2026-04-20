@@ -66,7 +66,7 @@ function ctProtectExternal() {
     // Trying to process external form into an iframe
     apbctProcessIframes();
     // if form is still not processed by fields listening, do it here
-    if (ctPublic.settings__data__bot_detector_enabled != 1 && typeof ApbctGatheringData !== 'undefined') {
+    if (ctPublic.bot_detector_enabled != 1 && typeof ApbctGatheringData !== 'undefined') {
         new ApbctGatheringData().startFieldsListening();
     }
 }
@@ -578,7 +578,7 @@ function ctProtectOutsideFunctionalHandler(entity, lsStorageName, lsUniqueName) 
     ctAttachCoverCSSToHead();
     entityParent.appendChild(ctProtectOutsideFunctionalGenerateCover());
     let entitiesProtected = apbctLocalStorage.get(lsStorageName);
-    if (false === entitiesProtected) {
+    if (false === entitiesProtected || !Array.isArray(entitiesProtected)) {
         entitiesProtected = [];
     }
     if (lsUniqueName) {

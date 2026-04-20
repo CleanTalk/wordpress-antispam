@@ -287,6 +287,11 @@ function skip_for_ct_contact_form_validate()
             Get::equal('wc-ajax', 'wc_stripe_frontend_request') &&
             ! empty(Post::getString('stripe_applepay_token_key'))
         ),
+        // BuddyBoss REST API has a direct integration
+        '101' => (
+            apbct_is_plugin_active('buddyboss-platform/buddyboss-platform.php') &&
+            apbct_is_in_uri('/wp-json/buddyboss/v1/signup')
+        ),
     );
 
     foreach ( $exclusions as $exclusion_key => $state ) {

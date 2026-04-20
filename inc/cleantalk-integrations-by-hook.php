@@ -135,7 +135,7 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'EasyDigitalDownloads' => array(
-        'hook'    => array('edd_pre_process_register_form', 'edd_insert_user_args'),
+        'hook'    => array('edd_pre_process_register_form', 'edd_insert_user_args', 'edd_customer_pre_create'),
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
@@ -287,6 +287,13 @@ $apbct_active_integrations = array(
     'BookingPress' => array(
         'hook'    => [
             'bookingpress_book_appointment_booking',
+        ],
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
+    'BookingCalendar' => array(
+        'hook'    => [
+            'WPBC_AJX_BOOKING__CREATE',
         ],
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true

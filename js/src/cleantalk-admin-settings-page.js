@@ -429,12 +429,12 @@ jQuery(document).ready(function() {
         apbct_admin_sendAJAX(data, params);
     });
 
-    document.querySelector('.apbct_hidden_section_nav_mob_btn').addEventListener('click', () => {
+    document.querySelector('.apbct_hidden_section_nav_mob_btn')?.addEventListener('click', () => {
         document.querySelector('#apbct_hidden_section_nav ul').style.display = 'block';
         document.querySelector('.apbct_hidden_section_nav_mob_btn').style.display = 'none';
     });
 
-    document.querySelector('.apbct_hidden_section_nav_mob_btn-close').addEventListener('click', () => {
+    document.querySelector('.apbct_hidden_section_nav_mob_btn-close')?.addEventListener('click', () => {
         document.querySelector('#apbct_hidden_section_nav ul').style.display = 'none';
         document.querySelector('.apbct_hidden_section_nav_mob_btn').style.display = 'block';
     });

@@ -11,6 +11,8 @@ use Mockery\MockInterface;
 
 class TestNinjaForms extends TestCase
 {
+	private $post;
+
     /** @var NinjaForms */
     private $ninjaForms;
 

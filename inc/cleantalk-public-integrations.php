@@ -938,6 +938,11 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
         $checkjs        = $checkjs_cookie ?: $checkjs_post;
     }
 
+    // BuddyBoss Platform use rest api for registration from phone app
+    if ( apbct_is_plugin_active('buddyboss-app/buddyboss-app.php') && apbct_is_in_uri('/wp-json/buddyboss-app/v1/signup') ) {
+        $checkjs = Post::getString('checkjs') === 'true' ? 1 : 0;
+    }
+
     $sender_info = array(
         'post_checkjs_passed'   => $checkjs_post,
         'cookie_checkjs_passed' => $checkjs_cookie,
@@ -1047,6 +1052,10 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
 
         if ( $buddypress === true ) {
             $bp->signup->errors['signup_username'] = $ct_result->comment;
+        }
+
+        if (apbct_is_plugin_active('buddyboss-app/buddyboss-app.php') && apbct_is_in_uri('/wp-json/buddyboss-app/v1/signup')) {
+            wp_send_json_error(['success' => false, 'message' => $ct_result->comment]);
         }
 
         if ( $facebook ) {
@@ -1451,6 +1460,11 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
      */
     $input_array = apply_filters('apbct__filter_post', $_POST);
 
+    $honeypot_params = array();
+    if ( isset($input_array['apbct__email_id__wp_contact_form_7']) ) {
+        $honeypot_params['honeypot_field'] = ($input_array['apbct__email_id__wp_contact_form_7'] === '') ? 1 : 0;
+    }
+
     $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     $sender_email    = isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '';
@@ -1463,21 +1477,24 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
     }
 
     $base_call_result = apbct_base_call(
-        array(
-            'message'         => $message,
-            'sender_email'    => $sender_email,
-            'sender_nickname' => $sender_nickname,
-            'js_on'           => $checkjs,
-            'post_info'       => array('comment_type' => 'contact_form_wordpress_cf7'),
-            'sender_info'     => array(
-                'form_validation' => ! isset($apbct->validation_error)
-                    ? null
-                    : json_encode(array(
-                        'validation_notice' => $apbct->validation_error,
-                        'page_url'          => TT::toString(Server::get('HTTP_HOST')) . TT::toString(Server::get('REQUEST_URI')),
-                    )),
-                'sender_emails_array' => $sender_emails_array,
+        array_merge(
+            array(
+                'message'         => $message,
+                'sender_email'    => $sender_email,
+                'sender_nickname' => $sender_nickname,
+                'js_on'           => $checkjs,
+                'post_info'       => array('comment_type' => 'contact_form_wordpress_cf7'),
+                'sender_info'     => array(
+                    'form_validation' => ! isset($apbct->validation_error)
+                        ? null
+                        : json_encode(array(
+                            'validation_notice' => $apbct->validation_error,
+                            'page_url'          => TT::toString(Server::get('HTTP_HOST')) . TT::toString(Server::get('REQUEST_URI')),
+                        )),
+                    'sender_emails_array' => $sender_emails_array,
+                ),
             ),
+            $honeypot_params
         )
     );
 

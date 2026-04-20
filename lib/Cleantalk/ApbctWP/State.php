@@ -84,7 +84,6 @@ class State extends \Cleantalk\Common\State
         'data__use_static_js_key'                  => -1,
         'data__general_postdata_test'              => 0, //CAPD
         'data__set_cookies'                        => 3, // Cookies type: 0 - Off / 1 - Native cookies / 2 - Alt cookies / 3 - Auto
-        'data__bot_detector_enabled'               => 1,
         'data__pixel'                              => '3',
         'data__email_check_before_post'            => 1,
         'data__email_check_exist_post'            => 1,
@@ -483,10 +482,10 @@ class State extends \Cleantalk\Common\State
     {
         global $wpdb;
 
-        $db_prefix = is_multisite() && is_main_site() ? $wpdb->base_prefix : $wpdb->prefix;
+        $db_prefix = is_multisite() && $this->isMainSite() ? $wpdb->base_prefix : $wpdb->prefix;
         // Use tables from main site on wpms_mode=2
         $fw_db_prefix =
-            is_multisite() && ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2
+            is_multisite() && ! $this->isMainSite() && $this->getWpmsMode() == 2
                 ? $wpdb->base_prefix
                 : $db_prefix;
 
@@ -567,7 +566,14 @@ class State extends \Cleantalk\Common\State
             $wpdb_option_name = $this->option_prefix . '_' . $option_name;
             //prevent fatal on broken serialized data
             try {
-                $option = get_option($wpdb_option_name);
+                if ( ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2 ) {
+                    // Options have to be gathered from the main site in this case
+                    switch_to_blog(get_main_site_id());
+                    $option = get_option($wpdb_option_name);
+                    restore_current_blog();
+                } else {
+                    $option = get_option($wpdb_option_name);
+                }
             } catch (\UnexpectedValueException $e) {
                 $default_option_name = 'default_' . $option_name;
                 delete_option($wpdb_option_name);
@@ -649,12 +655,16 @@ class State extends \Cleantalk\Common\State
         $this->stats['no_cookie_data_taken'] = null;
 
         // Network with Mutual Access key
-        if ( ! is_main_site() && $this->network_settings['multisite__work_mode'] == 2 ) {
-            // Get stats from main blog
-            switch_to_blog(get_main_site_id());
+        if ( ! $this->isMainSite() && $this->getWpmsMode() === 2 ) {
+            // Get stats and errors from main blog
+
+            $this->switchToMainBlog();
             $main_blog_stats = get_option($this->option_prefix . '_stats');
-            restore_current_blog();
+            $main_blog_errors = get_option($this->option_prefix . '_errors');
+            $this->switchToCurrentBlog();
+
             $this->stats = $main_blog_stats;
+            $this->errors = $main_blog_errors;
             $this->api_key     = $this->network_settings['apikey'];
             $this->key_is_ok   = $this->network_data['key_is_ok'];
             $this->user_token  = $this->network_data['user_token'];
@@ -1047,5 +1057,25 @@ class State extends \Cleantalk\Common\State
         }
 
         return $this->js_errors_report;
+    }
+
+    protected function isMainSite()
+    {
+        return is_main_site();
+    }
+
+    protected function getWpmsMode()
+    {
+        return (int) $this->network_settings['multisite__work_mode'];
+    }
+
+    protected function switchToMainBlog()
+    {
+        switch_to_blog(get_main_site_id());
+    }
+
+    protected function switchToCurrentBlog()
+    {
+        restore_current_blog();
     }
 }
