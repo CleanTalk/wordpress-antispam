@@ -1,4 +1,4 @@
-=== Anti Spam for WordPress Forms & Comments – CleanTalk ===
+=== Anti Spam for Contact Forms, Comments & Orders - CleanTalk ===
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
