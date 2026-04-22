@@ -459,7 +459,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         $script =
         "<script>
             window.addEventListener('DOMContentLoaded', function () {
-                ctSetCookie( " . self::COOKIE_NAME__ANTIBOT . ", '" . hash('sha256', $apbct->api_key . $apbct->data['salt']) . "', 0 );
+                ctSetCookie( " . json_encode(self::COOKIE_NAME__ANTIBOT) . ", '" . hash('sha256', $apbct->api_key . $apbct->data['salt']) . "', 0 );
             });
         </script>";
 
