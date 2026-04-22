@@ -888,7 +888,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
      * Write a timestamped debug message to the PHP error log when DEBUG mode is enabled.
      *
      * @param string     $message Human-readable description of the event.
-     * @param mixed|null $data    Optional context data; arrays are serialised with print_r().
+     * @param mixed|null $data    Optional context data; arrays and objects are serialised with print_r().
      */
     private function debug(string $message, $data = null, $add_counstructor_data = false)
     {
@@ -896,10 +896,16 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             return;
         }
 
-        if ( is_array($data) ) {
-            $data = ' ' . print_r($data, true);
-        } else {
+        if ( $data === null ) {
             $data = '';
+        } elseif ( is_array($data) || is_object($data) ) {
+            $data = ' ' . print_r($data, true);
+        } elseif ( is_bool($data) ) {
+            $data = ' ' . ($data ? 'true' : 'false');
+        } elseif ( is_scalar($data) ) {
+            $data = ' ' . (string) $data;
+        } else {
+            $data = ' [' . gettype($data) . ']';
         }
 
         $constructor_data = '';
