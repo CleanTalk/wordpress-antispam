@@ -325,7 +325,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
      */
     private function visitorHasBotDetectorRequestParam()
     {
-        return RequestParameters::get('apbct_bot_detector_exist', true) == '1';
+        return RequestParameters::get(self::PARAM_NAME__BOT_DETECTOR_EXIST, true) == '1';
     }
 
     /**
