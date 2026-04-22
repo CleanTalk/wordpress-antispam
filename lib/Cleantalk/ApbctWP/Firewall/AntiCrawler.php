@@ -809,6 +809,10 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     {
         $file_content = file_get_contents($file_path_ua);
 
+        if ( $file_content === false ) {
+            return array('error' => 'Can not read datafile');
+        }
+
         if ( ! function_exists('gzdecode') ) {
             return array('error' => 'Function gzdecode not exists. Please update your PHP at least to version 5.4 ');
         }
