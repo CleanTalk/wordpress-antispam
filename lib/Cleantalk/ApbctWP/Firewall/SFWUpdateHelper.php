@@ -63,7 +63,7 @@ class SFWUpdateHelper
         }
 
         if ( ! is_int($result) ) {
-            return array('error' => 'UPDATING UA LIST: : WRONG_RESPONSE AntiCrawler::update');
+            return array('error' => 'UPDATING UA LIST: : WRONG_RESPONSE AntiCrawler::updateUADataTable');
         }
 
         return $result;
