@@ -890,7 +890,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
      * @param string     $message Human-readable description of the event.
      * @param mixed|null $data    Optional context data; arrays and objects are serialised with print_r().
      */
-    private function debug(string $message, $data = null, $add_counstructor_data = false)
+    private function debug(string $message, $data = null, $add_constructor_data = false)
     {
         if ( ! $this->debug_mode) {
             return;
@@ -909,7 +909,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         }
 
         $constructor_data = '';
-        if ( $add_counstructor_data ) {
+        if ( $add_constructor_data ) {
             $constructor_data = print_r([
                 'server__http_user_agent' => $this->server__http_user_agent,
                 'ip_array' => $this->ip_array,
