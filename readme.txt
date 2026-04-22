@@ -1,4 +1,4 @@
-=== Anti Spam for Contact Forms, Comments & Orders - CleanTalk ===
+=== Anti Spam for Contact Forms, Comments & Online Stores - CleanTalk ===
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
@@ -7,7 +7,7 @@ Requires PHP: 7.2
 Stable tag: 6.77
 License: GPLv2
 
-Top-rated anti-spam protection for WordPress. Blocks spam on forms, comments and registrations automatically. No CAPTCHA or visitor friction.
+Top-rated anti-spam protection for WordPress, eCommerce. Blocks spam on forms, comments and registrations automatically. No CAPTCHA.
 
 == Description ==
 
@@ -17,7 +17,7 @@ Top-rated anti-spam protection for WordPress. No CAPTCHA, no puzzles, and no vis
 1. Stops spam comments.
 2. Stops spam registrations.
 3. Stops spam contact emails.
-4. Stops fake orders.
+4. Stops fake orders eCommerce sites and online stores.
 5. Stops spam bookings.
 6. Stops spam subscriptions.
 7. Stops spam surveys, polls.
@@ -87,7 +87,7 @@ Plugin protects HubSpot embedded forms against any spam submissions. Guide to st
 Plugin extends Contact Form by WPForms to provide spam protection. It filters spam submissions for each type of forms - simple contact form, marketing form, request a quote and etc.
 
 = WooCommerce spam & fake orders filter =
-Anti-spam by CleanTalk filters spam registrations, spam reviews, and fake orders for WooCommerce. The plugin is fully compatible with WooCommerce 2.1 and higher.
+Anti-spam by CleanTalk filters spam registrations, spam reviews, and fake orders for WooCommerce (any eCommerce plugin as well). The plugin is fully compatible with WooCommerce 2.1+ and online stores.
 
 = Spam filter for theme contact forms =
 The plugin blocks spam emails via any theme (built-in ones included) contact forms. The plugin filters spam emails silently (without any error notices on WordPress frontend) in AJAX forms as well.
