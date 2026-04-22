@@ -190,7 +190,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             $this->debug('Pre-check IP', $current_ip);
             if ( $this->requestIsRedirected() ) {
                 $results[] = $this->makeResult($current_ip, 'PASS_ANTICRAWLER');
-                $this->debug('Early module exit: isRedirected', $results);
+                $this->debug('Early module exit: requestIsRedirected', $results);
                 return $results;
             }
 
