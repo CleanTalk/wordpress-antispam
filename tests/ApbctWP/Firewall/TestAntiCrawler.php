@@ -74,6 +74,50 @@ class TestAntiCrawler extends TestCase
         $this->assertFalse($result[0]['is_personal']);
     }
 
+    public function testUpdateAcLogWritesQueryForEachIp(): void
+    {
+        $module = new AntiCrawler('', 'ac_logs');
+        $module->setIpArray(
+            array(
+                'real' => '198.51.100.15',
+                'alt'  => '203.0.113.10',
+            )
+        );
+
+        $expectedSign = md5($_SERVER['HTTP_USER_AGENT'] . $_SERVER['HTTPS'] . $_SERVER['HTTP_HOST']);
+
+        $db = $this->getMockBuilder(stdClass::class)
+            ->setMethods(array('execute'))
+            ->getMock();
+
+        $db->expects($this->exactly(2))
+            ->method('execute')
+            ->withConsecutive(
+                array(
+                    $this->callback(function ($query) use ($expectedSign) {
+                        $this->assertStringContainsString('INSERT INTO ac_logs SET', $query);
+                        $this->assertStringContainsString("ip = '198.51.100.15'", $query);
+                        $this->assertStringContainsString("ua = '$expectedSign'", $query);
+                        $this->assertStringContainsString('entries = 1', $query);
+                        $this->assertStringContainsString('ON DUPLICATE KEY UPDATE', $query);
+                        return true;
+                    }),
+                ),
+                array(
+                    $this->callback(function ($query) use ($expectedSign) {
+                        $this->assertStringContainsString('INSERT INTO ac_logs SET', $query);
+                        $this->assertStringContainsString("ip = '203.0.113.10'", $query);
+                        $this->assertStringContainsString("ua = '$expectedSign'", $query);
+                        $this->assertStringContainsString('entries = entries + 1', $query);
+                        return true;
+                    }),
+                )
+            );
+
+        $module->setDb($db);
+        $module->updateAcLog();
+    }
+
     private function bootstrapApbct(): void
     {
         global $apbct;
@@ -102,7 +146,7 @@ class TestAntiCrawler extends TestCase
     private function createDbStub(array $uaRows, $ipFetchResult)
     {
         $db = $this->getMockBuilder(stdClass::class)
-            ->setMethods(array('fetchAll', 'fetch'))
+            ->setMethods(array('fetchAll', 'fetch', 'execute'))
             ->getMock();
 
         $db->method('fetchAll')->willReturn($uaRows);
