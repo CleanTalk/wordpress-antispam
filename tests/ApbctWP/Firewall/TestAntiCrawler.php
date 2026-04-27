@@ -116,6 +116,35 @@ class TestAntiCrawler extends TestCase
         $module->updateAcLog();
     }
 
+    public function testDiePageRegistersInitHookAndBuildsHtml(): void
+    {
+        global $apbct;
+
+        $apbct->settings = array(
+            'forms__check_external' => '0',
+            'forms__check_internal' => '0',
+        );
+        $apbct->stats = array(
+            'sfw' => array('entries' => 7),
+        );
+        $apbct->data['wl_brandname'] = 'CleanTalk';
+        $apbct->data['wl_url'] = 'https://cleantalk.org';
+        $apbct->data['service_id'] = 'service-id';
+
+        $module = new AntiCrawler('', '');
+        $module->diePage(array('ip' => '203.0.113.10'));
+
+        $this->assertNotFalse(has_action('init', array($module, 'printDiePage')));
+
+        $property = new ReflectionProperty(AntiCrawler::class, 'sfw_die_page');
+        $property->setAccessible(true);
+        $html = (string) $property->getValue($module);
+
+        $this->assertNotSame('', $html);
+        $this->assertStringContainsString('203.0.113.10', $html);
+        $this->assertStringContainsString(hash('sha256', $apbct->api_key . $apbct->data['salt']), $html);
+    }
+
     private function bootstrapApbct(): void
     {
         global $apbct;
