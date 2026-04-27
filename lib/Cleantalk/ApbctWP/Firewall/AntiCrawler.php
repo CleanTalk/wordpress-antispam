@@ -237,7 +237,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
             if ( $ip_check !== null ) {
                 $results[] = $ip_check['entry'];
                 if ( $ip_check['early_return'] ) {
-                    $this->debug('Early module exit: IP found in logs - DENY', $results);
+                    $this->debug('Early module exit: IP found in logs', $results);
                     return $results;
                 }
             }
