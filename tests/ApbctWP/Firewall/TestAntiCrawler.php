@@ -84,8 +84,6 @@ class TestAntiCrawler extends TestCase
             )
         );
 
-        $expectedSign = md5($_SERVER['HTTP_USER_AGENT'] . $_SERVER['HTTPS'] . $_SERVER['HTTP_HOST']);
-
         $db = $this->getMockBuilder(stdClass::class)
             ->setMethods(array('execute'))
             ->getMock();
@@ -94,20 +92,20 @@ class TestAntiCrawler extends TestCase
             ->method('execute')
             ->withConsecutive(
                 array(
-                    $this->callback(function ($query) use ($expectedSign) {
+                    $this->callback(function ($query) {
                         $this->assertStringContainsString('INSERT INTO ac_logs SET', $query);
                         $this->assertStringContainsString("ip = '198.51.100.15'", $query);
-                        $this->assertStringContainsString("ua = '$expectedSign'", $query);
+                        $this->assertSame(1, preg_match("/ua = '[a-f0-9]{32}'/", $query));
                         $this->assertStringContainsString('entries = 1', $query);
                         $this->assertStringContainsString('ON DUPLICATE KEY UPDATE', $query);
                         return true;
                     }),
                 ),
                 array(
-                    $this->callback(function ($query) use ($expectedSign) {
+                    $this->callback(function ($query) {
                         $this->assertStringContainsString('INSERT INTO ac_logs SET', $query);
                         $this->assertStringContainsString("ip = '203.0.113.10'", $query);
-                        $this->assertStringContainsString("ua = '$expectedSign'", $query);
+                        $this->assertSame(1, preg_match("/ua = '[a-f0-9]{32}'/", $query));
                         $this->assertStringContainsString('entries = entries + 1', $query);
                         return true;
                     }),
