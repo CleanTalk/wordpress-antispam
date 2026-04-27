@@ -6,10 +6,31 @@ use PHPUnit\Framework\TestCase;
 class TestAntiCrawler extends TestCase
 {
     private $initialHttpCode;
+    private $initialApbctExists = false;
+    private $initialApbct;
+    private $initialServerValues = array();
+    private $initialServerKeysPresence = array();
+    private $initialCookie;
 
     public function setUp(): void
     {
+        global $apbct;
+
+        $this->initialApbctExists = isset($apbct);
+        if ($this->initialApbctExists) {
+            $this->initialApbct = $apbct;
+        }
+
         $this->initialHttpCode = http_response_code();
+        $serverKeys = array('HTTPS', 'HTTP_USER_AGENT', 'HTTP_HOST', 'REQUEST_URI', 'HTTP_REFERER');
+        foreach ($serverKeys as $key) {
+            $this->initialServerKeysPresence[$key] = array_key_exists($key, $_SERVER);
+            if ($this->initialServerKeysPresence[$key]) {
+                $this->initialServerValues[$key] = $_SERVER[$key];
+            }
+        }
+        $this->initialCookie = $_COOKIE;
+
         $this->bootstrapApbct();
 
         $_SERVER['HTTPS'] = '';
@@ -24,6 +45,23 @@ class TestAntiCrawler extends TestCase
 
     public function tearDown(): void
     {
+        global $apbct;
+
+        if ($this->initialApbctExists) {
+            $apbct = $this->initialApbct;
+        } else {
+            unset($apbct);
+        }
+
+        foreach ($this->initialServerKeysPresence as $key => $wasPresent) {
+            if ($wasPresent) {
+                $_SERVER[$key] = $this->initialServerValues[$key];
+            } else {
+                unset($_SERVER[$key]);
+            }
+        }
+        $_COOKIE = $this->initialCookie;
+
         http_response_code($this->initialHttpCode ?: 200);
     }
 
