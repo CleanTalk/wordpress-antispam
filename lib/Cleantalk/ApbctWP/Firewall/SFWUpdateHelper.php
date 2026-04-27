@@ -57,7 +57,7 @@ class SFWUpdateHelper
     public static function processUA($file_path)
     {
         if (empty($file_path) || ! file_exists($file_path) ) {
-            return array('error' => 'UPDATING UA LIST: ' . $file_path . ' is not exists.');
+            return array('error' => 'UPDATING UA LIST: ' . $file_path . ' does not exist.');
         }
 
         $result = AntiCrawler::updateUADataTable($file_path);
