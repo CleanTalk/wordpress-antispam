@@ -62,7 +62,7 @@ class SFWUpdateHelper
 
         $result = AntiCrawler::updateUADataTable($file_path);
 
-        if ( ! empty($result['error']) ) {
+        if ( is_array($result) && ! empty($result['error']) ) {
             return array('error' => 'UPDATING UA LIST: ' . $result['error']);
         }
 
