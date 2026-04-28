@@ -284,6 +284,19 @@ function apbct_base_call($params = array(), $reg_flag = false)
     $ct_result = $reg_flag
         ? @$ct->isAllowUser($ct_request)
         : @$ct->isAllowMessage($ct_request);
+    is_writable(APBCT_DIR_PATH) && @file_put_contents(
+        APBCT_DIR_PATH . 'cleantalk_debug.log',
+        implode('', array(
+            '[' . date('Y-m-d H:i:s') . '] ',
+            'CTDEBUG: [' . __FUNCTION__ . ']' . "\r\n",
+            '[ APBCT_UID $ct_request $ct_result]: ',
+            @var_export(defined('APBCT_UID') ? APBCT_UID : 'NO UID!', true) . "\r\n",
+            @var_export($ct_request, true) . "\r\n" ,
+            @var_export($ct_result, true) . "\r\n" ,
+            '---' . "\r\n",
+        )),
+        FILE_APPEND
+    );
     $exec_time = microtime(true) - $start;
 
     // Statistics

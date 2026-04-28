@@ -186,6 +186,30 @@ $apbct->setSFWUpdateSentinel();
 $apbct->setLoginIPKeeper();
 
 add_action('wp_login', 'apbct_wp_login_actions', 10, 2);
+define('APBCT_UID', mt_rand(1000000000, 9999999999));
+if (
+    (
+        !empty($_POST) &&
+        !isset($_POST['cookies']) &&
+        (!isset($_POST['action']) || $_POST['action'] !== 'spbc_get_authorized_admins') &&
+        (!isset($_POST['action']) || $_POST['action'] !== 'heartbeat')
+    )
+) {
+    is_writable(APBCT_DIR_PATH) && @file_put_contents(
+        APBCT_DIR_PATH . 'cleantalk_debug.log',
+        implode('', array(
+            '[' . date('Y-m-d H:i:s') . '] ',
+            'CTDEBUG: [' . __FUNCTION__ . ']' . "\r\n",
+            '[ APBCT_UID $_POST $_GET REQUEST_URI]: ',
+            @var_export(APBCT_UID, true) . "\r\n",
+            @var_export($_POST, true) . "\r\n" ,
+            @var_export($_GET, true) . "\r\n" ,
+            @var_export($_SERVER['REQUEST_URI'], true) . "\r\n" ,
+              '---' . "\r\n",
+          )),
+          FILE_APPEND
+      );
+}
 
 /**
  * Actions for hook 'wp-login'.
