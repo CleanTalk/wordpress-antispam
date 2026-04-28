@@ -1582,7 +1582,7 @@ function apbct_sfw_update__create_temp_tables($direct_update = false)
         return $result;
     }
 
-    $result__clear_db = AntiCrawler::clearDataTable(
+    $result__clear_db = AntiCrawler::clearUADataTable(
         \Cleantalk\ApbctWP\DB::getInstance(),
         APBCT_TBL_AC_UA_BL
     );
@@ -2064,7 +2064,7 @@ function apbct_antiflood__clear_table()
             APBCT_TBL_AC_LOG
         );
         $anticrawler->setDb(DB::getInstance());
-        $anticrawler->clearTable();
+        $anticrawler->clearLogTable();
         unset($anticrawler);
     }
 }
