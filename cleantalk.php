@@ -2132,13 +2132,20 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
                     } else {
                         die('FAIL ' . json_encode(array('error' => $installer->apbct_result)));
                     }
-                } else {
+                } elseif ( $result instanceof \WP_Error ) {
                     die(
                         'FAIL ' . json_encode(array(
                             'error'   => 'FAIL_TO_GET_LATEST_VERSION',
                             'details' => $result->get_error_message(),
                         ))
                     );
+                } else {
+	                die(
+		                'FAIL ' . json_encode(array(
+			                'error'   => 'FAIL_TO_GET_LATEST_VERSION',
+			                'details' => 'Unknown error',
+		                ))
+	                );
                 }
             } else {
                 die('FAIL ' . json_encode(array('error' => 'PLUGIN_SLUG_INCORRECT')));
@@ -2170,9 +2177,12 @@ function apbct_rc__activate_plugin($plugin)
             $result = activate_plugins($plugin);
 
             $result_array = array('success' => true);
+	        $error_msg = '';
 
-            if (!$result || is_wp_error($result)) {
-                $error_msg = ' ' . $result->get_error_message();
+            if ( ! $result || is_wp_error($result) ) {
+	            if ( $result instanceof \WP_Error ) {
+		            $error_msg = ' ' . $result->get_error_message();
+	            }
                 $result_array = array(
                     'error'   => 'FAIL_TO_ACTIVATE',
                     'details' => $error_msg
@@ -2289,8 +2299,8 @@ function apbct_rc__uninstall_plugin($plugin = null)
             $die_string = 'OK';
             $error_msg = '';
 
-            if (!$result || is_wp_error($result)) {
-                if (is_wp_error($result) && $result->get_error_message()) {
+            if ( ! $result || is_wp_error($result) ) {
+                if ( $result instanceof \WP_Error ) {
                     $error_msg = ' ' . $result->get_error_message();
                 }
                 $die_string = 'FAIL ' . json_encode(array(
