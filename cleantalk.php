@@ -2140,12 +2140,12 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
                         ))
                     );
                 } else {
-	                die(
-		                'FAIL ' . json_encode(array(
-			                'error'   => 'FAIL_TO_GET_LATEST_VERSION',
-			                'details' => 'Unknown error',
-		                ))
-	                );
+                    die(
+                        'FAIL ' . json_encode(array(
+                            'error'   => 'FAIL_TO_GET_LATEST_VERSION',
+                            'details' => 'Unknown error',
+                        ))
+                    );
                 }
             } else {
                 die('FAIL ' . json_encode(array('error' => 'PLUGIN_SLUG_INCORRECT')));
@@ -2177,12 +2177,12 @@ function apbct_rc__activate_plugin($plugin)
             $result = activate_plugins($plugin);
 
             $result_array = array('success' => true);
-	        $error_msg = '';
+            $error_msg = '';
 
             if ( ! $result || is_wp_error($result) ) {
-	            if ( $result instanceof \WP_Error ) {
-		            $error_msg = ' ' . $result->get_error_message();
-	            }
+                if ( $result instanceof \WP_Error ) {
+                    $error_msg = ' ' . $result->get_error_message();
+                }
                 $result_array = array(
                     'error'   => 'FAIL_TO_ACTIVATE',
                     'details' => $error_msg
