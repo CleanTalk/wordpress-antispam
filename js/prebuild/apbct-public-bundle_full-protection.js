@@ -4635,6 +4635,7 @@ function formIsExclusion(currentForm) {
         'frmCalc', // nobletitle-calc
         'ihf-contact-request-form',
         'wpforms', // integration with wpforms
+        'fast-cmp-form', // IFRAME of https://eu.fastcmp.com/#overview
     ];
 
     const exclusionsByRole = [

@@ -52,7 +52,7 @@ class RestController extends \WP_REST_Controller
                 'callback'            => 'apbct_email_check_before_post',
                 'args'                => array(
                     'email' => array(
-                        'type'     => 'email',
+                        'type'     => 'string',
                         'required' => true,
                     ),
                 ),
@@ -67,7 +67,7 @@ class RestController extends \WP_REST_Controller
                 'callback'            => 'apbct_email_check_exist_post',
                 'args'                => array(
                     'email' => array(
-                        'type'     => 'email',
+                        'type'     => 'string',
                         'required' => true,
                     ),
                 ),
