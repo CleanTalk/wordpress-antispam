@@ -12,6 +12,7 @@ class TestCleantalkSettings extends TestCase
         require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php');
 		global $apbct;
 		$apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
+        $apbct->data['bot_detector_enabled'] = 1;
 	}
 
     protected function tearDown(): void
