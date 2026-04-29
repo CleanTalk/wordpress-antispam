@@ -48,4 +48,20 @@ class TestCleantalkPublic extends TestCase
         // Assert
         $this->assertNull($apbct->pixel_url);
     }
+
+    public function testApbctHookWpFooterShowPixel()
+    {
+        // Arrange
+        global $apbct;
+        $apbct->data['bot_detector_enabled'] = 0;
+        $apbct->settings['data__pixel'] = '3';
+
+        // Act
+        ob_start();
+        apbct_hook__wp_footer();
+        $output = ob_get_clean();
+
+        // Assert
+        $this->assertStringContainsString('img alt="Cleantalk Pixel" title="Cleantalk Pixel" id="apbct_pixel" style="display: none;"', $output);
+    }
 }
