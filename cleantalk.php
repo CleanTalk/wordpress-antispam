@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.75.99-dev
+  Version: 6.78.99-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -693,6 +693,9 @@ if ( ! defined('WP_ALLOW_MULTISITE') || (defined('WP_ALLOW_MULTISITE') && WP_ALL
 
 // After plugin loaded - to load locale as described in manual
 add_action('init', 'apbct_plugin_loaded');
+
+// SiteGround Speed Optimizer: skip cache for URLs with apbct_no_cache.
+add_action('plugins_loaded', 'apbct_sgo_optimizer__register_bypass_query_params', 1);
 
 if ( ! empty($apbct->settings['data__use_ajax']) &&
      ! apbct_is_in_uri('.xml') &&
@@ -1579,7 +1582,7 @@ function apbct_sfw_update__create_temp_tables($direct_update = false)
         return $result;
     }
 
-    $result__clear_db = AntiCrawler::clearDataTable(
+    $result__clear_db = AntiCrawler::clearUADataTable(
         \Cleantalk\ApbctWP\DB::getInstance(),
         APBCT_TBL_AC_UA_BL
     );
@@ -2061,7 +2064,7 @@ function apbct_antiflood__clear_table()
             APBCT_TBL_AC_LOG
         );
         $anticrawler->setDb(DB::getInstance());
-        $anticrawler->clearTable();
+        $anticrawler->clearLogTable();
         unset($anticrawler);
     }
 }
@@ -2129,11 +2132,18 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
                     } else {
                         die('FAIL ' . json_encode(array('error' => $installer->apbct_result)));
                     }
+                } elseif ( $result instanceof \WP_Error ) {
+                    die(
+                        'FAIL ' . json_encode(array(
+                            'error'   => 'FAIL_TO_GET_LATEST_VERSION',
+                            'details' => $result->get_error_message(),
+                        ))
+                    );
                 } else {
                     die(
                         'FAIL ' . json_encode(array(
                             'error'   => 'FAIL_TO_GET_LATEST_VERSION',
-                            'details' => $result instanceof WP_Error ? $result->get_error_message() : '',
+                            'details' => 'Unknown error',
                         ))
                     );
                 }
@@ -2169,8 +2179,8 @@ function apbct_rc__activate_plugin($plugin)
             $result_array = array('success' => true);
             $error_msg = '';
 
-            if (!$result || is_wp_error($result)) {
-                if ($result instanceof WP_Error) {
+            if ( ! $result || is_wp_error($result) ) {
+                if ( $result instanceof \WP_Error ) {
                     $error_msg = ' ' . $result->get_error_message();
                 }
                 $result_array = array(
@@ -2289,8 +2299,8 @@ function apbct_rc__uninstall_plugin($plugin = null)
             $die_string = 'OK';
             $error_msg = '';
 
-            if (!$result || is_wp_error($result)) {
-                if ($result instanceof WP_Error) {
+            if ( ! $result || is_wp_error($result) ) {
+                if ( $result instanceof \WP_Error ) {
                     $error_msg = ' ' . $result->get_error_message();
                 }
                 $die_string = 'FAIL ' . json_encode(array(

@@ -171,7 +171,7 @@ function ctSetAlternativeCookie(cookies, params) {
         if (Array.isArray(cookies)) {
             cookies = getJavascriptClientData(cookies);
         }
-    } else if (!+ctPublic.settings__data__bot_detector_enabled) {
+    } else if (!+ctPublic.bot_detector_enabled) {
         console.log('APBCT ERROR: getJavascriptClientData() is not loaded');
     }
 
@@ -387,10 +387,12 @@ let apbctLocalStorage = {
                 const json = JSON.parse(storageValue);
                 if ( json.hasOwnProperty(property) ) {
                     try {
-                        // if property can be parsed as JSON - do it
-                        return JSON.parse( json[property] );
+                        const parsed = JSON.parse( json[property] );
+                        if ( parsed !== null && typeof parsed === 'object' ) {
+                            return json[property].toString();
+                        }
+                        return parsed;
                     } catch (e) {
-                        // if not - return string of value
                         return json[property].toString();
                     }
                 } else {

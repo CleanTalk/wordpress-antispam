@@ -438,11 +438,6 @@ function ct_ajax_hook($message_obj = null)
         }
     }
 
-    //divi subscription form needs to force alt cookies
-    if ( Post::hasString('action', 'et_pb_submit_subscribe_form') ) {
-        Cookie::$force_alt_cookies_global = true;
-    }
-
     // thriveleads modification to check gravity forms
     if ( Post::get('action') === 'tve_api_form_submit' ) {
         unset($_POST['ct_checkjs']);

@@ -1407,6 +1407,13 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         }
 
         if (
+            apbct_is_plugin_active('booking/wpdev-booking.php') &&
+            (Post::getString('action') === 'WPBC_AJX_BOOKING__CREATE')
+        ) {
+            return 'WP BookingCalendar service action';
+        }
+
+        if (
             (
                 apbct_is_plugin_active('pixelyoursite/pixelyoursite.php') ||
                 apbct_is_plugin_active('pixelyoursite-pro/pixelyoursite-pro.php')
@@ -1443,7 +1450,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             apbct_is_plugin_active('bloom/bloom.php') &&
             Post::get('action') === 'bloom_subscribe'
         ) {
-            return 'Bloom';
+            return 'Bloom skip - has the direct integration';
         }
 
         // Ajax Search Lite - these requests will be caught by search form protection
@@ -1811,6 +1818,11 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         if ( apbct_is_plugin_active('woocommerce/woocommerce.php') &&
              apbct_is_in_uri('wc-ajax=iwd_opc_update_order_review') ) {
             return 'cartflows_save_cart';
+        }
+        // WC addon - Metorik Helper plugin service requests
+        if ( apbct_is_plugin_active('metorik-helper/metorik-helper.php') &&
+             apbct_is_in_uri('wc-ajax=metorik_capture_customer_data') ) {
+            return 'metorik-helper skip';
         }
         // Vault Press (JetPack) plugin service requests
         if (

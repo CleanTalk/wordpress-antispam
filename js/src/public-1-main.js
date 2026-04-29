@@ -493,11 +493,9 @@ class ApbctHandler {
         let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
         let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
-        let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
             jetpackCommentsForm ||
-            userRegistrationProForm ||
-            etPbDiviSubscriptionForm;
+            userRegistrationProForm;
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
@@ -520,6 +518,7 @@ class ApbctHandler {
             document.querySelector('div.wfu_container') !== null ||
             document.querySelector('#newAppointmentForm') !== null ||
             document.querySelector('.booked-calendar-shortcode-wrap') !== null ||
+            document.querySelector('.et_pb_newsletter_form') !== null ||
             (
                 // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
                 document.body.classList.contains('single-product') &&
@@ -534,8 +533,11 @@ class ApbctHandler {
                     (
                         body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
                         body.indexOf('action=booked_add_appt') !== -1 ||
-                        body.indexOf('action=cwginstock_product_subscribe') !== -1
+                        body.indexOf('action=cwginstock_product_subscribe') !== -1 ||
+                        body.indexOf('action=et_pb_submit_subscribe_form') !== -1
                     );
+                const isDiviNewsletterRequest = body && typeof body === 'string' &&
+                    body.indexOf('action=et_pb_submit_subscribe_form') !== -1;
 
                 let isNeedToAddCleantalkDataCheckFormData = body && typeof body === 'object' &&
                     body instanceof FormData &&
@@ -545,17 +547,27 @@ class ApbctHandler {
 
                 if (isNeedToAddCleantalkDataCheckString) {
                     let addidionalCleantalkData = '';
+                    const noCookieDataKey = isDiviNewsletterRequest ?
+                        'ct_no_cookie_hidden_field' :
+                        'data%5Bct_no_cookie_hidden_field%5D';
+                    const eventTokenKey = isDiviNewsletterRequest ?
+                        'ct_bot_detector_event_token' :
+                        'data%5Bct_bot_detector_event_token%5D';
 
                     if (!(
                         +ctPublic.bot_detector_enabled &&
                         apbctLocalStorage.get('bot_detector_event_token')
                     )) {
                         let noCookieData = getNoCookieData();
-                        addidionalCleantalkData += '&' + 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData;
+                        if (body.indexOf('ct_no_cookie_hidden_field=') === -1) {
+                            addidionalCleantalkData += '&' + noCookieDataKey + '=' + noCookieData;
+                        }
                     } else {
                         const eventToken = new ApbctHandler().toolGetEventToken();
                         if (eventToken) {
-                            addidionalCleantalkData += '&' + 'data%5Bct_bot_detector_event_token%5D=' + eventToken;
+                            if (body.indexOf('ct_bot_detector_event_token=') === -1) {
+                                addidionalCleantalkData += '&' + eventTokenKey + '=' + eventToken;
+                            }
                         }
                     }
 
@@ -805,7 +817,7 @@ class ApbctHandler {
                     }
                 }
 
-                // === WooCommerce add to cart ===
+                // === WooCommerce add to cart (direct add-item URL) ===
                 if (
                     (
                         document.querySelectorAll(
@@ -821,6 +833,35 @@ class ApbctHandler {
                                 args[1].body,
                                 selectFieldsData(+ctPublic.bot_detector_enabled),
                             );
+                        }
+                    } catch (e) {
+                        // Continue even if error
+                    }
+                }
+
+                // === WooCommerce add to cart (batch API - /wc/store/v1/batch) ===
+                if (
+                    +ctPublic.settings__forms__wc_add_to_cart &&
+                    (
+                        document.querySelectorAll(
+                            'button.add_to_cart_button, button.ajax_add_to_cart, button.single_add_to_cart_button',
+                        ).length > 0 ||
+                        document.querySelectorAll('a.add_to_cart_button').length > 0
+                    ) &&
+                    args[0].includes('/wc/store/v1/batch') &&
+                    typeof args[1].body === 'string'
+                ) {
+                    try {
+                        const batchPayload = JSON.parse(args[1].body);
+                        if (batchPayload.requests && Array.isArray(batchPayload.requests)) {
+                            const fieldPair = selectFieldsData(+ctPublic.bot_detector_enabled);
+                            for (const req of batchPayload.requests) {
+                                const isAddItem = req.path === '/wc/store/v1/cart/add-item';
+                                if (isAddItem && req.body && fieldPair && fieldPair.key) {
+                                    req.body[fieldPair.key] = fieldPair.value;
+                                }
+                            }
+                            args[1].body = JSON.stringify(batchPayload);
                         }
                     } catch (e) {
                         // Continue even if error
@@ -987,6 +1028,11 @@ class ApbctHandler {
                 if (ajaxObject.data.indexOf('action=wwlc_create_user') !== -1) {
                     sourceSign.found = 'action=wwlc_create_user';
                 }
+                if (ajaxObject.data.indexOf('action=WPBC_AJX_BOOKING__CREATE') !== -1) {
+                    sourceSign.found = 'action=WPBC_AJX_BOOKING__CREATE';
+                    sourceSign.keepUnwrapped = true;
+                    sourceSign.attachVisibleFieldsData = true;
+                }
                 if (ajaxObject.data.indexOf('action=drplus_signup') !== -1) {
                     sourceSign.found = 'action=drplus_signup';
                     sourceSign.keepUnwrapped = true;
@@ -1066,7 +1112,7 @@ class ApbctHandler {
         try {
             // Event token
             if (
-                +ctPublic.settings__data__bot_detector_enabled &&
+                +ctPublic.bot_detector_enabled &&
                 apbctLocalStorage.get('bot_detector_event_token')
             ) {
                 const token = this.toolGetEventToken();
@@ -1208,21 +1254,21 @@ class ApbctHandler {
                 return next(options);
             }
 
-            // add to cart
+            // add to cart (batch uses body not data for request payload)
             if (options.data.hasOwnProperty('requests') &&
                 options.data.requests.length > 0 &&
                 options.data.requests[0].hasOwnProperty('path') &&
                 options.data.requests[0].path === '/wc/store/v1/cart/add-item'
             ) {
+                const reqBody = options.data.requests[0].body || (options.data.requests[0].body = {});
                 if (
                     +ctPublic.bot_detector_enabled &&
                     apbctLocalStorage.get('bot_detector_event_token')
                 ) {
-                    let token = localStorage.getItem('bot_detector_event_token');
-                    options.data.requests[0].data.ct_bot_detector_event_token = token;
+                    reqBody.ct_bot_detector_event_token = localStorage.getItem('bot_detector_event_token');
                 } else {
                     if (ctPublic.data__cookies_type === 'none') {
-                        options.data.requests[0].data.ct_no_cookie_hidden_field = getNoCookieData();
+                        reqBody.ct_no_cookie_hidden_field = getNoCookieData();
                     }
                 }
             }
