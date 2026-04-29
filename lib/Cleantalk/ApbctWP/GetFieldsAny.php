@@ -365,7 +365,7 @@ class GetFieldsAny
                 // Email
                 $value_for_email = Validate::isUrlencoded($value_for_email) ? urldecode($value_for_email) : $value_for_email;
 
-                if ( preg_match("/^\S+@\S+\.\S+$/", $value_for_email) ) {
+                if ( self::isEmailLike($value_for_email) ) {
                     // Bypass email collecting if it is set by attribute.
                     if ($this->preprocessed_email) {
                         continue;
@@ -669,5 +669,20 @@ class GetFieldsAny
         }
 
         return $current_fields_collection;
+    }
+
+    /**
+     * Validates if the given string is in a valid CleanTalk email format.
+     *
+     * This not a full RFC email validation!
+     *
+     * @param string $value_for_email The string to be tested as an email address.
+     * @return bool Returns true if the string matches the email format, otherwise false.
+     * @see testGFAEmailRegex
+     */
+    public static function isEmailLike($value_for_email)
+    {
+        //todo This regex should be reinspected with moderate and management team. https://app.doboard.com/1/task/47742
+        return (bool)preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $value_for_email);
     }
 }

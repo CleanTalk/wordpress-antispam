@@ -4,7 +4,7 @@ Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.77
+Stable tag: 6.78
 License: GPLv2
 
 Top-rated anti-spam protection for WordPress, eCommerce. Blocks spam on forms, comments and registrations automatically. No CAPTCHA.
@@ -231,9 +231,7 @@ The option helps to block bots. The honeypot field option adds a hidden field to
 
 5. Done! The plugin is ready to use.
 
-= Video guide - Anti-Spam Plugin Installation in WordPress. =
-
-[youtube https://www.youtube.com/watch?v=SktF0s-go6A ]
+[Video guide](https://youtu.be/NbTG5BhFOEM) - Anti-Spam Plugin Installation in WordPress
 
 **Important!** To test spam protection you must post a dummy submissions as website visitor (use must logged out from WordPress console), because the plugin doesn't filter submissions from WordPress administrators.
 
@@ -410,6 +408,18 @@ Yes, it is. Please read this article,
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.78 29.04.2026 =
+* Removing the link to install "Gravity Forms to doBoard" (#784)
+* Mod. BloomForms. Editing the integration with BloomForms
+* Update inc/cleantalk-settings.php
+* Upd. Integrations. Improve Divi newsletters flow to attach meta data to request.
+* Add "Read more" link to cleantalk page (#782)
+* New. BaseCall. Default params class.
+* Fix. REST API. Updated 'email' argument type from 'email' to 'string' in callbacks.
+* Fix. GFA. Replaced email regex with isEmailLike method and added unit tests for validation.
+* Upd. Integrations. Improve Divi newsletters flow to attach meta data to request. (#786)
+* Ref. AntiCrawler. Module flow refactored. (#788)
 
 = 6.77 16.04.2026 =
 * Fix. AltSession. Correcting the issue of array conversion
