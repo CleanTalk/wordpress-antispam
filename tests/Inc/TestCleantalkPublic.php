@@ -64,4 +64,17 @@ class TestCleantalkPublic extends TestCase
         // Assert
         $this->assertStringContainsString('img alt="Cleantalk Pixel" title="Cleantalk Pixel" id="apbct_pixel" style="display: none;"', $output);
     }
+
+    public function testApbctEnqueueAndLocalizePublicScripts()
+    {
+        // Arrange
+        global $apbct;
+        $apbct->data['bot_detector_enabled'] = 1;
+
+        // Act
+        apbct_enqueue_and_localize_public_scripts();
+
+        // Assert
+        $this->assertTrue(wp_script_is('ct_bot_detector'));
+    }
 }
