@@ -1,7 +1,5 @@
 <?php
 
-namespace Inc;
-
 use Cleantalk\ApbctWP\State;
 use PHPUnit\Framework\TestCase;
 
