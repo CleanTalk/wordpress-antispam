@@ -1,5 +1,7 @@
 <?php
 
+namespace Inc;
+
 use Cleantalk\ApbctWP\State;
 use PHPUnit\Framework\TestCase;
 
@@ -24,7 +26,7 @@ class TestCleantalkCommon extends TestCase
         // Arrange empty
 
         // Act
-        $bot_detector_state = apbct__is_bot_detector_enabled();
+        $bot_detector_state = \apbct__is_bot_detector_enabled();
 
         // Assert
         $this->assertTrue($bot_detector_state);
@@ -37,9 +39,17 @@ class TestCleantalkCommon extends TestCase
         $apbct->data['bot_detector_enabled'] = 0;
 
         // Act
-        $bot_detector_state = apbct__is_bot_detector_enabled();
+        $bot_detector_state = \apbct__is_bot_detector_enabled();
 
         // Assert
         $this->assertFalse($bot_detector_state);
+    }
+
+    public function testApbctIsBotDetectorEnabledByDataTrue()
+    {
+        global $apbct;
+        $apbct->data['bot_detector_enabled'] = 1;
+
+        $this->assertTrue(\apbct__is_bot_detector_enabled());
     }
 }
