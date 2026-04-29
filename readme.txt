@@ -232,9 +232,7 @@ The option helps to block bots. The honeypot field option adds a hidden field to
 
 5. Done! The plugin is ready to use.
 
-= Video guide - Anti-Spam Plugin Installation in WordPress. =
-
-[youtube https://www.youtube.com/watch?v=SktF0s-go6A ]
+[Video guide](https://youtu.be/NbTG5BhFOEM) - Anti-Spam Plugin Installation in WordPress
 
 **Important!** To test spam protection you must post a dummy submissions as website visitor (use must logged out from WordPress console), because the plugin doesn't filter submissions from WordPress administrators.
 
