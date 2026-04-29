@@ -8,9 +8,6 @@ on: # event list
       - beta
       - master
   pull_request:
-    branches:
-      - dev
-      - master
 
 env: # environment variables (available in any part of the action)
   PHP_VERSION: 7.4
@@ -32,6 +29,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
+          coverage: xdebug
 
       - name: Run MySQL server
         run: sudo systemctl start mysql
