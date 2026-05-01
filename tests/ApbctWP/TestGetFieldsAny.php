@@ -347,4 +347,60 @@ class TestGetFieldsAny extends TestCase {
         $this->assertIsArray($result);
         $this->assertArrayNotHasKey('visible_fields', $result);
     }
+
+    /**
+     * Tests the email-like patterns against predefined lists of valid and invalid email strings.
+     *
+     * This method validates the correct email formats using the `isEmailLike` method
+     * and ensures incorrect email formats are identified and rejected.
+     *
+     * @return void
+     */
+    public function testGFAEmailRegex()
+    {
+        //todo filter this junk..
+        $correct_strings = array(
+            's@cleantalk.org',
+            'user@example.com',
+            'user.name@example.com',
+            'user_name@example.com',
+            'user-name@example.com',
+            'user+tag@example.com',
+            'user%test@example.com',
+            'u123@example123.com',
+            'user.name+tag+sorting@example.com',
+            'user_name-test@example-domain.com',
+            'user123@sub.example.com',
+            'user@sub.subdomain.example.com',
+            'user@123example.com',
+            'user@example.co',
+            'user@example.company',
+            'user@exa-mple.com',
+            'user@e-x-a-m-p-l-e.com',
+            'user..name@example.com',
+            '.user@example.com',
+            'user.@example.com',
+            'user@example..com',
+        );
+        $incorrect_strings = array(
+            'john..doe"@example.com',
+            '"very.unusual.@.unusual.com"@example.com',
+            '"much.more unusual"@example.com',
+            '" "@example.com',
+            '"john\"doe"@example.com',
+            '"user@domain"@example.com',
+            '"name(with)parens"@example.com',
+            '"comma,name"@example.com',
+            '"semi;colon"@example.com',
+            'https://mail.python.org/archives/list/security-announce@python.org/thread/HTWB2Z6KT5QQX4RYEZAFININDHNOSIF3/',
+            '"quoted space"@example.com'
+        );
+        foreach ($correct_strings as $string) {
+            $this->assertTrue(GetFieldsAny::isEmailLike($string));
+        }
+
+        foreach ($incorrect_strings as $string) {
+            $this->assertFalse(GetFieldsAny::isEmailLike($string));
+        }
+    }
 }

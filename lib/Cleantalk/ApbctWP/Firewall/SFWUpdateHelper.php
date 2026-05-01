@@ -56,14 +56,18 @@ class SFWUpdateHelper
      */
     public static function processUA($file_path)
     {
-        $result = AntiCrawler::update($file_path);
+        if (empty($file_path) || ! file_exists($file_path) ) {
+            return array('error' => 'UPDATING UA LIST: ' . $file_path . ' does not exist.');
+        }
 
-        if ( ! empty($result['error']) ) {
+        $result = AntiCrawler::updateUADataTable($file_path);
+
+        if ( is_array($result) && ! empty($result['error']) ) {
             return array('error' => 'UPDATING UA LIST: ' . $result['error']);
         }
 
         if ( ! is_int($result) ) {
-            return array('error' => 'UPDATING UA LIST: : WRONG_RESPONSE AntiCrawler::update');
+            return array('error' => 'UPDATING UA LIST: : WRONG_RESPONSE AntiCrawler::updateUADataTable');
         }
 
         return $result;

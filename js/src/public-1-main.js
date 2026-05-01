@@ -493,11 +493,9 @@ class ApbctHandler {
         let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
         let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
-        let etPbDiviSubscriptionForm = document.querySelectorAll('div[class^="et_pb_newsletter_form"]').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
             jetpackCommentsForm ||
-            userRegistrationProForm ||
-            etPbDiviSubscriptionForm;
+            userRegistrationProForm;
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
@@ -520,6 +518,7 @@ class ApbctHandler {
             document.querySelector('div.wfu_container') !== null ||
             document.querySelector('#newAppointmentForm') !== null ||
             document.querySelector('.booked-calendar-shortcode-wrap') !== null ||
+            document.querySelector('.et_pb_newsletter_form') !== null ||
             (
                 // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
                 document.body.classList.contains('single-product') &&
@@ -534,8 +533,11 @@ class ApbctHandler {
                     (
                         body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
                         body.indexOf('action=booked_add_appt') !== -1 ||
-                        body.indexOf('action=cwginstock_product_subscribe') !== -1
+                        body.indexOf('action=cwginstock_product_subscribe') !== -1 ||
+                        body.indexOf('action=et_pb_submit_subscribe_form') !== -1
                     );
+                const isDiviNewsletterRequest = body && typeof body === 'string' &&
+                    body.indexOf('action=et_pb_submit_subscribe_form') !== -1;
 
                 let isNeedToAddCleantalkDataCheckFormData = body && typeof body === 'object' &&
                     body instanceof FormData &&
@@ -545,17 +547,27 @@ class ApbctHandler {
 
                 if (isNeedToAddCleantalkDataCheckString) {
                     let addidionalCleantalkData = '';
+                    const noCookieDataKey = isDiviNewsletterRequest ?
+                        'ct_no_cookie_hidden_field' :
+                        'data%5Bct_no_cookie_hidden_field%5D';
+                    const eventTokenKey = isDiviNewsletterRequest ?
+                        'ct_bot_detector_event_token' :
+                        'data%5Bct_bot_detector_event_token%5D';
 
                     if (!(
                         +ctPublic.bot_detector_enabled &&
                         apbctLocalStorage.get('bot_detector_event_token')
                     )) {
                         let noCookieData = getNoCookieData();
-                        addidionalCleantalkData += '&' + 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData;
+                        if (body.indexOf('ct_no_cookie_hidden_field=') === -1) {
+                            addidionalCleantalkData += '&' + noCookieDataKey + '=' + noCookieData;
+                        }
                     } else {
                         const eventToken = new ApbctHandler().toolGetEventToken();
                         if (eventToken) {
-                            addidionalCleantalkData += '&' + 'data%5Bct_bot_detector_event_token%5D=' + eventToken;
+                            if (body.indexOf('ct_bot_detector_event_token=') === -1) {
+                                addidionalCleantalkData += '&' + eventTokenKey + '=' + eventToken;
+                            }
                         }
                     }
 
@@ -842,7 +854,7 @@ class ApbctHandler {
                     try {
                         const batchPayload = JSON.parse(args[1].body);
                         if (batchPayload.requests && Array.isArray(batchPayload.requests)) {
-                            const fieldPair = selectFieldsData(+ctPublic.settings__data__bot_detector_enabled);
+                            const fieldPair = selectFieldsData(+ctPublic.bot_detector_enabled);
                             for (const req of batchPayload.requests) {
                                 const isAddItem = req.path === '/wc/store/v1/cart/add-item';
                                 if (isAddItem && req.body && fieldPair && fieldPair.key) {
@@ -1016,6 +1028,11 @@ class ApbctHandler {
                 if (ajaxObject.data.indexOf('action=wwlc_create_user') !== -1) {
                     sourceSign.found = 'action=wwlc_create_user';
                 }
+                if (ajaxObject.data.indexOf('action=WPBC_AJX_BOOKING__CREATE') !== -1) {
+                    sourceSign.found = 'action=WPBC_AJX_BOOKING__CREATE';
+                    sourceSign.keepUnwrapped = true;
+                    sourceSign.attachVisibleFieldsData = true;
+                }
                 if (ajaxObject.data.indexOf('action=drplus_signup') !== -1) {
                     sourceSign.found = 'action=drplus_signup';
                     sourceSign.keepUnwrapped = true;
@@ -1095,7 +1112,7 @@ class ApbctHandler {
         try {
             // Event token
             if (
-                +ctPublic.settings__data__bot_detector_enabled &&
+                +ctPublic.bot_detector_enabled &&
                 apbctLocalStorage.get('bot_detector_event_token')
             ) {
                 const token = this.toolGetEventToken();
