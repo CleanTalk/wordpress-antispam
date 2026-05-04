@@ -1,6 +1,6 @@
 === Anti Spam for Contact Forms, Comments & Online Stores - CleanTalk ===
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
-Tags: antispam, comments, contact form, captcha, spam
+Tags: antispam, honeypot, contact form spam, captcha, akismet 
 Requires at least: 4.7
 Tested up to: 7.0
 Requires PHP: 7.2
@@ -396,6 +396,15 @@ https://cleantalk.org/help/spam-comment-management
 = Is the plugin EU GDPR compatible? =
 Yes, it is. Please read this article,
 <a href="https://cleantalk.org/publicoffer#cleantalk_gdpr_compliance">https://cleantalk.org/publicoffer#cleantalk_gdpr_compliance</a>
+
+= Is CleanTalk a reCAPTCHA alternative? =
+Yes, CleanTalk can be used as an alternative to Google reCAPTCHA, but it works differently.
+Instead of showing challenges, it blocks spam automatically in the background with no user interaction, improving user experience and conversions.
+
+= Is CleanTalk an Akismet alternative? =
+Yes — CleanTalk can be used as an alternative to Akismet.
+They solve the same problem, but CleanTalk protects all site forms (not just comments) and works as a broader, cloud-based anti-spam solution.
+
 
 == Screenshots ==
 1. AntiSpam settings are easy to use to protect any contact forms. For example - Ninja forms, Fluent forms and etc.
