@@ -751,17 +751,10 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
      * Link to project manager
      */
     $project_manager_title_node = apbct__admin_bar__get_title_for_project_manager();
-    if ( $project_manager_title_node ) {
+    $gf2db_title_node = apbct__admin_bar__add_gf2db_title();
+    if ( $project_manager_title_node && $gf2db_title_node) {
         $wp_admin_bar->add_node($project_manager_title_node);
-        $gf2db_title_node = apbct__admin_bar__add_gf2db_title();
-        if ($gf2db_title_node) {
-            $wp_admin_bar->add_node($gf2db_title_node);
-        } else {
-            $gf2db_invite_to_install_title = apbct__admin_bar__get_title_for_gf2db_invite_to_install();
-            if ($gf2db_invite_to_install_title) {
-                $wp_admin_bar->add_node($gf2db_invite_to_install_title);
-            }
-        }
+        $wp_admin_bar->add_node($gf2db_title_node);
     }
 
     /**
@@ -823,36 +816,6 @@ function apbct__admin_bar__add_gf2db_title()
     );
 }
 
-/**
- * Gets the title for the "Gravity Forms to doBoard" Add-On invite to install admin bar node.
- *
- * This function constructs the title for the "Gravity Forms to doBoard" Add-On invite to install admin bar node based on various conditions.
- * The title includes a link to the "Gravity Forms to doBoard" Add-On invite to install.
- *
- * @return array|false The node data for the "Gravity Forms to doBoard" Add-On invite to install admin bar node, or false if the "Gravity Forms to doBoard" Add-On invite to install admin bar node is not enabled.
- */
-function apbct__admin_bar__get_title_for_gf2db_invite_to_install()
-{
-    if (is_plugin_active('cleantalk-doboard-add-on-for-gravity-forms/cleantalk-doboard-add-on-for-gravity-forms.php')) {
-        return false;
-    }
-
-    $title = sprintf(
-        '<a href="%s" target="_blank" title="%s">%s</a>',
-        admin_url('plugin-install.php?s=GF2DB&tab=search&type=term'),
-        esc_html__(
-            'Organize and track all messages from your site. Gravity Forms, upgraded with project management.',
-            'cleantalk-spam-protect'
-        ),
-        esc_html__('Install "Gravity Forms to doBoard" Add-On', 'cleantalk-spam-protect')
-    );
-
-    return array(
-        'parent' => 'project_manager__parent_node',
-        'id' => 'gf2db_invite_to_install_title',
-        'title' => $title,
-    );
-}
 
 /**
  * Gets the title for the APBCT admin bar node.
