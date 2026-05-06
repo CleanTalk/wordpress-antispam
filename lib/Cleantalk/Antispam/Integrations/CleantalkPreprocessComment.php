@@ -303,7 +303,7 @@ class CleantalkPreprocessComment extends IntegrationBase
      */
     private function addActionSetTRPHash()
     {
-        add_action('comment_post', array(CleantalkRealPerson::class, 'setTRPHash'), 999, 2);
+        add_action('comment_post', array(CleantalkRealPerson::class, 'setTRPHash'), 999);
     }
 
     public function doBlock($message)
