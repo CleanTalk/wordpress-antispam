@@ -68,7 +68,7 @@ class CleantalkRealPerson
             get_comment_meta((int)$comment_id, self::$meta_hash_name__automod, true) ||
             get_comment_meta((int)$comment_id, self::$meta_hash_name__old, true);
 
-        return !empty($trp_hash);
+        return $trp_hash;
     }
 
     /**
