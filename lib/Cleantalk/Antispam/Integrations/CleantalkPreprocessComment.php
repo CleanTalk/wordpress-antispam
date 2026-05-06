@@ -299,7 +299,7 @@ class CleantalkPreprocessComment extends IntegrationBase
     }
 
     /**
-     * TRP hash should be set anyway if Cleantalk processed.
+     * TRP hash should be set only if Cleantalk processed && auto-moderated the comment.
      */
     private function addActionSetTRPHash()
     {
