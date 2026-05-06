@@ -283,7 +283,7 @@ class CleantalkPreprocessComment extends IntegrationBase
                 } else {
                     $this->setCommentPreStatusAndModifyEmail('not_approved');
                 }
-                // thi is the only case when we do not set TRP hash!
+                // this is the only case when we do not set TRP hash!
             }
         } else {
             //not new author - standard WP check
