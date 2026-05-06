@@ -213,6 +213,8 @@ class CleantalkPreprocessComment extends IntegrationBase
     /**
      * Do all the actions after and if request is allowed
      * @return void
+     *
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function allow()
     {
