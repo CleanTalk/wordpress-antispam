@@ -64,13 +64,9 @@ class CleantalkRealPerson
      */
     public static function isTRPHashExist($comment_id)
     {
-        if (CleantalkPreprocessComment::firstCommentAutoModEnabled()) {
-            // Only for auto-moderated
-            $trp_hash = get_comment_meta((int)$comment_id, self::$meta_hash_name__automod, true);
-        } else {
-            // Only for old
-            $trp_hash = get_comment_meta((int)$comment_id, self::$meta_hash_name__old, true);
-        }
+        $trp_hash =
+            get_comment_meta((int)$comment_id, self::$meta_hash_name__automod, true) ||
+            get_comment_meta((int)$comment_id, self::$meta_hash_name__old, true);
 
         return !empty($trp_hash);
     }
