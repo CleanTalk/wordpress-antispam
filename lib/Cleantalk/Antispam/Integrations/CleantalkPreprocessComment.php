@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\ApbctWP\CleantalkRealPerson;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Cookie;
@@ -212,12 +213,14 @@ class CleantalkPreprocessComment extends IntegrationBase
     /**
      * Do all the actions after and if request is allowed
      * @return void
+     *
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function allow()
     {
         $wp_comment_moderation_enabled = get_option('comment_moderation') === '1';
         $wp_auto_approve_for_user_who_has_approved_comment = get_option('comment_previously_approved') === '1';
-        $clentalk_option_skip_moderation_for_first_comment = get_option('cleantalk_allowed_moderation', 1) == 1;
+        $cleantalk_option_skip_moderation_for_first_comment = self::firstCommentAutoModEnabled();
         $is_allowed_because_of_inactive_license = false;
 
         $args            = array(
@@ -250,7 +253,7 @@ class CleantalkPreprocessComment extends IntegrationBase
         // if anu of options is disabled - standard WP recheck and exit
         if (
             !$wp_auto_approve_for_user_who_has_approved_comment ||
-            !$clentalk_option_skip_moderation_for_first_comment
+            !$cleantalk_option_skip_moderation_for_first_comment
         ) {
             if (
                 $this->rerunWPcheckCommentFunction()
@@ -259,6 +262,7 @@ class CleantalkPreprocessComment extends IntegrationBase
             } else {
                 $this->setCommentPreStatusAndModifyEmail('not_approved');
             }
+            $this->addActionSetTRPHash();
             return;
         }
 
@@ -271,6 +275,7 @@ class CleantalkPreprocessComment extends IntegrationBase
                 !$is_allowed_because_of_inactive_license
             ) {
                 $this->setCommentPreStatusAndModifyEmail('approved');
+                $this->addActionSetTRPHash();
             } else {
                 // moderation disabled - standard WP check
                 if (
@@ -280,6 +285,7 @@ class CleantalkPreprocessComment extends IntegrationBase
                 } else {
                     $this->setCommentPreStatusAndModifyEmail('not_approved');
                 }
+                // this is the only case when we do not set TRP hash!
             }
         } else {
             //not new author - standard WP check
@@ -290,6 +296,18 @@ class CleantalkPreprocessComment extends IntegrationBase
             } else {
                 $this->setCommentPreStatusAndModifyEmail('not_approved');
             }
+            $this->addActionSetTRPHash();
+        }
+    }
+
+    /**
+     * TRP hash should be set only if Cleantalk processed && auto-moderated the comment.
+     */
+    private function addActionSetTRPHash()
+    {
+        $callback = array(CleantalkRealPerson::class, 'setTRPHash');
+        if (has_action('comment_post', $callback) === false) {
+            add_action('comment_post', $callback, 999, 2);
         }
     }
 
@@ -540,24 +558,20 @@ class CleantalkPreprocessComment extends IntegrationBase
         return $check_result;
     }
 
+    /**
+     * @param $status
+     *
+     * @return void
+     */
     private function setCommentPreStatusAndModifyEmail($status)
     {
         if ($status !== 'approved' && $status !== 'not_approved') {
             return;
         }
-        if ( $status === 'approved' ) {
-            add_filter('pre_comment_approved', 'ct_set_approved', 999, 2);
-
-            // Always set hash for auto-moderated (approved) comments if cleantalk_allowed_moderation is enabled
-            if (
-                !empty($this->apbct->settings['cleantalk_allowed_moderation']) &&
-                $this->apbct->settings['cleantalk_allowed_moderation'] == '1'
-            ) {
-                add_action('comment_post', 'ct_set_real_user_badge_automod_hash', 999, 2);
-            }
-        } else {
-            add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
-        }
+        $pre_comment_approved_callback_function = $status === 'approved'
+            ? 'ct_set_approved'
+            : 'ct_set_not_approved';
+        add_filter('pre_comment_approved', $pre_comment_approved_callback_function, 999, 2);
 
         // Modify the email notification
         add_filter(
@@ -566,5 +580,14 @@ class CleantalkPreprocessComment extends IntegrationBase
             100,
             2
         ); // Add two blacklist links: by email and IP
+    }
+
+    /**
+     * @return bool
+     */
+    public static function firstCommentAutoModEnabled()
+    {
+        global $apbct;
+        return !empty($apbct->settings['cleantalk_allowed_moderation']) && $apbct->settings['cleantalk_allowed_moderation'] == '1';
     }
 }
