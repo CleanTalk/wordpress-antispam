@@ -69,4 +69,74 @@ class testEmailEncoderShortCodeEncode extends TestCase
 
         $this->assertEquals('Test content', $result);
     }
+
+    public function testShortcodeInsideHtmlAttributeIsNotProcessed()
+    {
+        $content = '<a title="[apbct_encode_data]test[/apbct_encode_data]">X</a>';
+
+        $result = $this->shortcode->changeContentBeforeEncoderModify($content);
+
+        // shortcode should NOT be replaced because it's inside HTML tag
+        $this->assertEquals($content, $result);
+    }
+
+    public function testShortcodeOutsideHtmlIsProcessed()
+    {
+        $content = '[apbct_encode_data]Test content[/apbct_encode_data]';
+
+        $result = $this->shortcode->changeContentBeforeEncoderModify($content);
+
+        $this->assertStringContainsString(
+            '%%APBCT_SHORT_CODE_INCLUDE_EE_0%%',
+            $result
+        );
+
+        $this->assertNotEquals($content, $result);
+    }
+
+    public function testMultipleShortcodesAreHandled()
+    {
+        $content =
+            '[apbct_encode_data]A[/apbct_encode_data]' .
+            ' middle ' .
+            '[apbct_encode_data]B[/apbct_encode_data]';
+
+        $result = $this->shortcode->changeContentBeforeEncoderModify($content);
+
+        $this->assertStringContainsString('%%APBCT_SHORT_CODE_INCLUDE_EE_0%%', $result);
+        $this->assertStringContainsString('%%APBCT_SHORT_CODE_INCLUDE_EE_1%%', $result);
+    }
+
+    public function testHtmlAttributeBreakPayloadDoesNotExplode()
+    {
+        $content = '<a href="http://x" title="[/apbct_encode_data]">Test</a>';
+
+        $result = $this->shortcode->changeContentBeforeEncoderModify($content);
+
+        // must remain stable, no corruption, no placeholder injection inside tag
+        $this->assertStringContainsString('<a', $result);
+        $this->assertStringContainsString('</a>', $result);
+    }
+
+    public function testOffsetDetectionInsideHtmlTag()
+    {
+        $content = '<a title="[apbct_encode_data]">X</a>';
+
+        $pos = strpos($content, '[apbct_encode_data]');
+
+        $this->assertTrue(
+            $this->shortcode->isOffsetInsideHtmlTag($content, $pos)
+        );
+    }
+
+    public function testOffsetDetectionOutsideHtmlTag()
+    {
+        $content = '[apbct_encode_data]test[/apbct_encode_data]';
+
+        $pos = strpos($content, '[apbct_encode_data]');
+
+        $this->assertFalse(
+            $this->shortcode->isOffsetInsideHtmlTag($content, $pos)
+        );
+    }
 }
