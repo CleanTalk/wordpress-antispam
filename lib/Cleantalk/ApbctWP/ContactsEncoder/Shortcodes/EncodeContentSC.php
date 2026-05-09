@@ -108,8 +108,8 @@ class EncodeContentSC extends EmailEncoderShortCode
         }
 
         // skip encoding if the content is already encoded with hook
-        // Extract shortcode content to protect it from email encoding
-        $shortcode_exist_pattern = sprintf('/(\[%s\])(.*?)(\[\/%s\])/s', $this->public_name, $this->public_name);
+        // Extract shortcode content to protect it from email encoding, supports sc attributes(!)
+        $shortcode_exist_pattern = sprintf('/(\[%s(?:\s[^\]]*)?\])([\s\S]*?)(\[\/%s\])/s', $this->public_name, $this->public_name);
         $content = preg_replace_callback($shortcode_exist_pattern, function ($matches) {
             $placeholder = preg_replace('/EE\_\d+/', 'EE_' . (string)$this->shortcode_counter++, $this->exclusion_wrapper);
             if (is_null($placeholder)) {
@@ -152,7 +152,10 @@ class EncodeContentSC extends EmailEncoderShortCode
     protected function isShortcodeInsideHtmlTag($content)
     {
         preg_match_all(
-            sprintf('/\[\/?%s\]/', preg_quote($this->public_name, '/')),
+            sprintf(
+                '/\[\/?%s(?:\s[^\]]*)?\]/', //supports sc attributes(!)
+                preg_quote($this->public_name, '/')
+            ),
             $content,
             $matches,
             PREG_OFFSET_CAPTURE
