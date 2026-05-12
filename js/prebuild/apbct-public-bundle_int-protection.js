@@ -3665,7 +3665,11 @@ class ApbctHandler {
                 }
             }
 
-            if (typeof ajaxObject.data === 'object' && typeof ajaxObject.data.get === 'function') {
+            if (
+                typeof ajaxObject.data === 'object' &&
+                ajaxObject.data !== null &&
+                typeof ajaxObject.data.get === 'function'
+            ) {
                 if (ajaxObject.data.get('action') === 'pafe_ajax_form_builder') {
                     sourceSign.found = 'action=pafe_ajax_form_builder';
                     sourceSign.keepUnwrapped = true;
