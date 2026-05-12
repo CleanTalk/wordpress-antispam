@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\ContactsEncoder\Shortcodes;
 
 use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
+use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService;
@@ -102,22 +103,112 @@ class EncodeContentSC extends EmailEncoderShortCode
             return $content;
         }
 
+        if ($this->isShortcodeInsideHtmlTag($content)) {
+            return $content;
+        }
+
         // skip encoding if the content is already encoded with hook
-        // Extract shortcode content to protect it from email encoding
-        $shortcode_exist_pattern = sprintf('/\[%s\](.*?)\[\/%s\]/s', $this->public_name, $this->public_name);
+        // Extract shortcode content to protect it from email encoding, supports sc attributes(!)
+        $shortcode_exist_pattern = sprintf('/(\[%s(?:\s[^\]]*)?\])([\s\S]*?)(\[\/%s\])/s', $this->public_name, $this->public_name);
         $content = preg_replace_callback($shortcode_exist_pattern, function ($matches) {
             $placeholder = preg_replace('/EE\_\d+/', 'EE_' . (string)$this->shortcode_counter++, $this->exclusion_wrapper);
             if (is_null($placeholder)) {
                 $placeholder = $this->exclusion_wrapper;
             }
-            if (isset($matches[0])) {
-                $this->shortcode_replacements[$placeholder] = $matches[0];
+            if (isset($matches[1], $matches[2], $matches[3])) {
+                $prefix = $matches[1];
+                $entity = $matches[2];
+                $suffix = $matches[3];
+                $entity = Escape::escKsesPost($entity);
+                $this->shortcode_replacements[$placeholder] = $prefix . $entity . $suffix;
             }
 
             return $placeholder;
         }, $content);
-
         return $content;
+    }
+
+    /**
+     * Checks whether any shortcode occurrence is located inside an HTML tag.
+     *
+     * This validation is used to prevent shortcode extraction from HTML
+     * attribute contexts such as:
+     *
+     * <a title="[apbct_encode_data]...[/apbct_encode_data]">
+     *
+     * Processing shortcodes inside HTML tags may lead to malformed markup
+     * after WordPress content filters (e.g. wptexturize()) mutate surrounding
+     * content. Such mutations may potentially lead to attribute injection or
+     * mutation-XSS issues.
+     *
+     * The method scans all opening and closing shortcode tags and verifies
+     * whether their offsets are located between an unclosed "<" and ">" pair.
+     *
+     * @param string $content The content to validate.
+     *
+     * @return bool True if any shortcode boundary is detected inside an HTML tag,
+     *              false otherwise.
+     */
+    protected function isShortcodeInsideHtmlTag($content)
+    {
+        preg_match_all(
+            sprintf(
+                '/\[\/?%s(?:\s[^\]]*)?\]/', //supports sc attributes(!)
+                preg_quote($this->public_name, '/')
+            ),
+            $content,
+            $matches,
+            PREG_OFFSET_CAPTURE
+        );
+
+        if (isset($matches[0])) {
+            foreach ($matches[0] as $match) {
+                $offset = $match[1] ?? null;
+
+                if ($offset === null) {
+                    continue;
+                }
+
+                if ($this->isOffsetInsideHtmlTag($content, $offset)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Determines whether a given character offset is located inside an HTML tag.
+     *
+     * The method performs a lightweight context check by locating the nearest
+     * "<" and ">" characters before the specified offset.
+     *
+     * If the last "<" appears after the last ">", the offset is considered
+     * to be inside an HTML tag or attribute context.
+     *
+     * Example:
+     *
+     * <a href="value [OFFSET HERE]
+     *
+     * In this case the offset is inside the opening <a> tag.
+     *
+     * @param string $content The full content string.
+     * @param int    $offset  Character offset to validate.
+     *
+     * @return bool True if the offset is located inside an HTML tag,
+     *              false otherwise.
+     */
+    public function isOffsetInsideHtmlTag($content, $offset)
+    {
+        $before = substr($content, 0, $offset);
+
+        $last_open  = strrpos($before, '<');
+        $last_close = strrpos($before, '>');
+
+        return $last_open !== false &&
+            ($last_close === false || $last_open > $last_close);
     }
 
     /**
