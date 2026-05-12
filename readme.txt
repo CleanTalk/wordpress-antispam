@@ -418,6 +418,10 @@ They solve the same problem, but CleanTalk protects all site forms (not just com
 
 == Changelog ==
 
+= 6.78 14.05.2026 =
+* Mod. Settings. Moving the AC option
+* Fix. Search forms. Add a sign of 's' GET param to a native search form signs.
+
 = 6.78 29.04.2026 =
 * Removing the link to install "Gravity Forms to doBoard" (#784)
 * Mod. BloomForms. Editing the integration with BloomForms
