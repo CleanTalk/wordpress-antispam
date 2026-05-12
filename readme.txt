@@ -1,17 +1,17 @@
 === Anti Spam for Contact Forms, Comments & Online Stores - CleanTalk ===
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
-Tags: antispam, comments, contact form, captcha, spam
+Tags: antispam, honeypot, contact form spam, captcha, akismet 
 Requires at least: 4.7
 Tested up to: 7.0
 Requires PHP: 7.2
 Stable tag: 6.79
 License: GPLv2
 
-Top-rated anti-spam protection for WordPress, eCommerce. Blocks spam on forms, comments and registrations automatically. No CAPTCHA.
+Top-rated anti spam protection for WordPress, eCommerce. Blocks spam on forms, comments and registrations automatically. No CAPTCHA.
 
 == Description ==
 
-Top-rated anti-spam protection for WordPress. No CAPTCHA, no puzzles, and no visitor friction - just automatic spam blocking for forms, comments, registrations, subscriptions, and fake orders.
+Top-rated antispam protection for WordPress. No CAPTCHA, no puzzles, and no visitor friction - just automatic spam blocking for forms, comments, registrations, subscriptions, and fake orders.
 
 = Anti-Spam features =
 1. Stops spam comments.
@@ -35,7 +35,7 @@ Top-rated anti-spam protection for WordPress. No CAPTCHA, no puzzles, and no vis
 19. Spam FireWall, wich includes Anti-Crawler & Anti-Flood options.
 21. Hide «Website» field for comments.
 22. Block messages by languages, countries, networks and stop words.
-23. Email Address Encoder - protection for email addresses published on your site.
+23. Email Address Encoder - antispam protection for email addresses published on your site.
 24. No jQuery.
 
 = Free trial then $12 per year =
@@ -396,6 +396,15 @@ https://cleantalk.org/help/spam-comment-management
 = Is the plugin EU GDPR compatible? =
 Yes, it is. Please read this article,
 <a href="https://cleantalk.org/publicoffer#cleantalk_gdpr_compliance">https://cleantalk.org/publicoffer#cleantalk_gdpr_compliance</a>
+
+= Is CleanTalk a reCAPTCHA alternative? =
+Yes, CleanTalk can be used as an alternative to Google reCAPTCHA, but it works differently.
+Instead of showing challenges, it blocks spam automatically in the background with no user interaction, improving user experience and conversions.
+
+= Is CleanTalk an Akismet alternative? =
+Yes — CleanTalk can be used as an alternative to Akismet.
+They solve the same problem, but CleanTalk protects all site forms (not just comments) and works as a broader, cloud-based anti-spam solution.
+
 
 == Screenshots ==
 1. AntiSpam settings are easy to use to protect any contact forms. For example - Ninja forms, Fluent forms and etc.
