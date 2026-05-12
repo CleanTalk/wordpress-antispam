@@ -4,7 +4,7 @@ Tags: antispam, comments, contact form, captcha, spam
 Requires at least: 4.7
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.78
+Stable tag: 6.79
 License: GPLv2
 
 Top-rated anti-spam protection for WordPress, eCommerce. Blocks spam on forms, comments and registrations automatically. No CAPTCHA.
