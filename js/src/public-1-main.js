@@ -519,6 +519,7 @@ class ApbctHandler {
             document.querySelector('#newAppointmentForm') !== null ||
             document.querySelector('.booked-calendar-shortcode-wrap') !== null ||
             document.querySelector('.et_pb_newsletter_form') !== null ||
+            document.querySelector('form.mailpoet_form') !== null ||
             (
                 // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
                 document.body.classList.contains('single-product') &&
@@ -534,7 +535,11 @@ class ApbctHandler {
                         body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
                         body.indexOf('action=booked_add_appt') !== -1 ||
                         body.indexOf('action=cwginstock_product_subscribe') !== -1 ||
-                        body.indexOf('action=et_pb_submit_subscribe_form') !== -1
+                        body.indexOf('action=et_pb_submit_subscribe_form') !== -1 ||
+                        (
+                            body.indexOf('action=mailpoet') !== -1 &&
+                            body.indexOf('method=subscribe') !== -1
+                        )
                     );
                 const isDiviNewsletterRequest = body && typeof body === 'string' &&
                     body.indexOf('action=et_pb_submit_subscribe_form') !== -1;
