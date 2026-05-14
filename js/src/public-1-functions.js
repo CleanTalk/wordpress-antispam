@@ -489,7 +489,7 @@ function getNoCookieData() { // eslint-disable-line no-unused-vars
     let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
     noCookieData = JSON.stringify(noCookieData);
 
-    return '_ct_no_cookie_data_' + btoa(noCookieData);
+    return '_ct_no_cookie_data_' + btoa(unescape(encodeURIComponent(noCookieData)));
 }
 
 
