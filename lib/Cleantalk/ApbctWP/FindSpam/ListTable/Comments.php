@@ -406,6 +406,9 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
     protected function removeLogs($ids)
     {
         $spam_ids = wp_parse_id_list($ids);
+        if (empty($spam_ids)) {
+            return;
+        }
         $ids_string = implode(', ', $spam_ids);
         global $wpdb;
 
