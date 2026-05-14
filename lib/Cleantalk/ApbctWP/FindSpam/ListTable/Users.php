@@ -551,6 +551,9 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
         foreach ( $ids as $id ) {
             $sanitized_ids[] = sanitize_key($id);
         }
+        if (empty($sanitized_ids)) {
+            return;
+        }
         $ids_string = implode(', ', $sanitized_ids);
         global $wpdb;
 

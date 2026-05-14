@@ -112,7 +112,7 @@ class ApbctAttachData {
         hiddenInput.setAttribute( 'name', 'apbct_visible_fields');
         let visibleFieldsToInput = {};
         visibleFieldsToInput[0] = this.collectVisibleFields(form);
-        hiddenInput.value = btoa(JSON.stringify(visibleFieldsToInput));
+        hiddenInput.value = btoa(unescape(encodeURIComponent(JSON.stringify(visibleFieldsToInput))));
         form.append( hiddenInput );
     }
 
@@ -142,7 +142,7 @@ class ApbctAttachData {
 
         let noCookieData = getCleanTalkStorageDataArray();
         noCookieData = JSON.stringify(noCookieData);
-        noCookieData = '_ct_no_cookie_data_' + btoa(noCookieData);
+        noCookieData = '_ct_no_cookie_data_' + btoa(unescape(encodeURIComponent(noCookieData)));
         field = document.createElement('input');
         field.setAttribute('name', 'ct_no_cookie_hidden_field');
         field.setAttribute('value', noCookieData);

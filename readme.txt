@@ -4,7 +4,7 @@ Tags: antispam, honeypot, contact form spam, captcha, akismet
 Requires at least: 4.7
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.78
+Stable tag: 6.79
 License: GPLv2
 
 Top-rated anti spam protection for WordPress, eCommerce. Blocks spam on forms, comments and registrations automatically. No CAPTCHA.
@@ -417,6 +417,14 @@ They solve the same problem, but CleanTalk protects all site forms (not just com
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.79 14.05.2026 =
+* Mod. Settings. Moving the AC option
+* Fix. Search forms. Add a sign of 's' GET param to a native search form signs.
+* Fix. Contacts Encoder. Shortcodes. Content sanitization improved.
+* Fix. NoCookieData. Correcting an error when encoding a NoCookie array
+* Fix. CheckForSpam. Editing the deletion of spam check logs
+* Mod. AntiCrawler. Editing the option description
 
 = 6.78 29.04.2026 =
 * Removing the link to install "Gravity Forms to doBoard" (#784)
