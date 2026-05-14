@@ -189,6 +189,28 @@ function apbct_settings__set_fields()
                     ),
                     'long_description' => true,
                 ),
+                'sfw__anti_crawler'           => array(
+                    'type'        => 'checkbox',
+                    'title'       => 'Anti-Crawler' . $additional_ac_title, // Do not to localize this phrase
+                    'class'       => 'apbct_settings-field_wrapper',
+                    'parent'      => 'sfw__enabled',
+                    'description' =>
+                        __(
+                            'Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).',
+                            'cleantalk-spam-protect'
+                        )
+                        . '<br>'
+                        . __(
+                            'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.',
+                            'cleantalk-spam-protect'
+                        )
+                        . '<br><b>'
+                        . __(
+                            'This option works only when SpamFireWall is enabled.',
+                            'cleantalk-spam-protect'
+                        ) . '</b>',
+                    'long_description' => true,
+                ),
                 'data__email_decoder__status'        => array(
                     'type'        => 'custom_html',
                     'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
@@ -868,23 +890,6 @@ function apbct_settings__set_fields()
                     'callback'    => 'apbct_settings__custom_logo',
                     'title'       => __('Custom logo on SpamFireWall blocking pages', 'cleantalk-spam-protect'),
                     'parent'      => 'sfw__enabled',
-                ),
-                'sfw__anti_crawler'           => array(
-                    'type'        => 'checkbox',
-                    'title'       => 'Anti-Crawler' . $additional_ac_title, // Do not to localize this phrase
-                    'class'       => 'apbct_settings-field_wrapper',
-                    'parent'      => 'sfw__enabled',
-                    'description' =>
-                        __(
-                            'Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).',
-                            'cleantalk-spam-protect'
-                        )
-                        . '<br>'
-                        . __(
-                            'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.',
-                            'cleantalk-spam-protect'
-                        ),
-                    'long_description' => true,
                 ),
                 'sfw__anti_flood'             => array(
                     'type'        => 'checkbox',
