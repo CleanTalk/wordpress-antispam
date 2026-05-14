@@ -58,7 +58,7 @@ class CommentsLogs extends Comments
             wp_die('nonce error');
         }
 
-        $spam_ids = wp_parse_id_list(TT::toString(Post::get('spamids')));
+        $spam_ids = wp_parse_id_list(Post::getArray('spamids'));
         $this->removeLogs($spam_ids);
     }
 
