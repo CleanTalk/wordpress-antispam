@@ -424,6 +424,7 @@ They solve the same problem, but CleanTalk protects all site forms (not just com
 * Fix. Contacts Encoder. Shortcodes. Content sanitization improved.
 * Fix. NoCookieData. Correcting an error when encoding a NoCookie array
 * Fix. CheckForSpam. Editing the deletion of spam check logs
+* Mod. AntiCrawler. Editing the option description
 
 = 6.78 29.04.2026 =
 * Removing the link to install "Gravity Forms to doBoard" (#784)
