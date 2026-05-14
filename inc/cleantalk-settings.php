@@ -203,7 +203,12 @@ function apbct_settings__set_fields()
                         . __(
                             'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.',
                             'cleantalk-spam-protect'
-                        ),
+                        )
+                        . '<br><b>'
+                        . __(
+                            'This option works only when SpamFireWall is enabled.',
+                            'cleantalk-spam-protect'
+                        ) . '</b>',
                     'long_description' => true,
                 ),
                 'data__email_decoder__status'        => array(
