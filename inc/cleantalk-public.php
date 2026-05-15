@@ -851,11 +851,15 @@ function ct_die($_comment_id, $_comment_status)
             $ct_die_page = str_replace($place_holder, (is_null($replace) ? '' : $replace), $ct_die_page);
         }
 
-        http_response_code(200);
+        if ( ! headers_sent() ) {
+            http_response_code(200);
+        }
         die($ct_die_page);
     }
 
-    http_response_code(200);
+    if ( ! headers_sent() ) {
+        http_response_code(200);
+    }
     die("Forbidden. Sender blacklisted. Blocked by CleanTalk");
 }
 
@@ -901,7 +905,9 @@ function ct_die_extended($comment_body)
             $ct_die_page = str_replace($place_holder, $replace, $ct_die_page);
         }
 
-        http_response_code(200);
+        if ( ! headers_sent() ) {
+            http_response_code(200);
+        }
         $allowed_html = array(
             'html' => array(
                 'lang' => array(),
@@ -938,7 +944,9 @@ function ct_die_extended($comment_body)
         die($content);
     }
 
-    http_response_code(200);
+    if ( ! headers_sent() ) {
+        http_response_code(200);
+    }
     die("Forbidden. Sender blacklisted. Blocked by CleanTalk");
 }
 

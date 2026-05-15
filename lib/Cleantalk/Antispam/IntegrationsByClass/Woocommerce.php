@@ -303,7 +303,9 @@ class Woocommerce extends IntegrationByClassBase
                         ]
                 ];
 
-                http_response_code(403);
+                if ( ! headers_sent() ) {
+                    http_response_code(403);
+                }
                 die(json_encode($response));
             }
         }
