@@ -14,8 +14,8 @@ jQuery(document).ready(function(){
 		jQuery('.column-email a').each(function(){
 			var ct_curr_str = jQuery(this).html();
 			if( ct_is_email(ct_curr_str) !== -1 ){
-				ct_curr_str += '?utm_source=admin_side&utm_medium=comments&utm_content=avatar&utm_campaign=apbct_links';
-				jQuery(this).after('&nbsp;<a href="https://cleantalk.org/blacklists/'+ct_curr_str+'" target="_blank" title="https://cleantalk.org/blacklists/'+ct_curr_str+'" class="ct_link_new_tab"><img src="'+ctUsersScreen.ct_img_src_new_tab+'"></a>');
+				var ct_url = ctUsersScreen.links.users_editscreen.replace('{TARGET}', ct_curr_str);
+				jQuery(this).after('&nbsp;<a href="'+ct_url+'" target="_blank" title="'+ct_url+'" class="ct_link_new_tab"><img src="'+ctUsersScreen.ct_img_src_new_tab+'"></a>');
 			}
 		});
 

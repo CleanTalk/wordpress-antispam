@@ -3,6 +3,7 @@
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
 use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\ApbctEnqueue;
+use Cleantalk\ApbctWP\Localize\CtPublicLocalize;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Escape;
@@ -638,6 +639,7 @@ function apbct_admin__enqueue_scripts($hook)
             (if the Extra package is activated) ago.', 'cleantalk-spam-protect'),
             'ct_show_check_links'         => (bool)$apbct->settings['comments__show_check_links'],
             'ct_img_src_new_tab'          => plugin_dir_url(__FILE__) . "images/new_window.gif",
+            'links'                       => CtPublicLocalize::getData()['links'],
         ));
     }
 
@@ -648,7 +650,8 @@ function apbct_admin__enqueue_scripts($hook)
         wp_localize_script('cleantalk-users-editscreen-js', 'ctUsersScreen', array(
             'spambutton_text'     => __("Find spam-users", 'cleantalk-spam-protect'),
             'ct_show_check_links' => (bool)$apbct->settings['comments__show_check_links'],
-            'ct_img_src_new_tab'  => plugin_dir_url(__FILE__) . "images/new_window.gif"
+            'ct_img_src_new_tab'  => plugin_dir_url(__FILE__) . "images/new_window.gif",
+            'links'               => CtPublicLocalize::getData()['links'],
         ));
     }
 }
