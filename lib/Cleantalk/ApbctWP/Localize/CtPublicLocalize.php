@@ -3,7 +3,6 @@
 namespace Cleantalk\ApbctWP\Localize;
 
 use Cleantalk\ApbctWP\CleantalkRealPerson;
-use Cleantalk\ApbctWP\LinkConstructor;
 
 class CtPublicLocalize
 {
@@ -42,10 +41,6 @@ class CtPublicLocalize
             'advancedCacheExists' => apbct_is_advanced_cache_exists(),
             'varnishCacheExists' => apbct_is_varnish_cache_exists(),
             'wc_ajax_add_to_cart' => get_option('woocommerce_enable_ajax_add_to_cart') === 'yes',
-            'links' => array(
-                'users_editscreen'    => LinkConstructor::buildCleanTalkLink('admin_blacklists_avatar_link', 'blacklists/{TARGET}'),
-                'comments_editscreen' => LinkConstructor::buildCleanTalkLink('admin_blacklists_avatar_link', 'blacklists/{TARGET}'),
-            ),
         );
         if ( $apbct->settings['comments__the_real_person'] ) {
             $localize_array = array_merge($localize_array, CleantalkRealPerson::getLocalizingData());

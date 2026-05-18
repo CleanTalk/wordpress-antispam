@@ -11,7 +11,7 @@ jQuery(document).ready(function(){
 		jQuery('.column-author a, .comment-author a').each(function(){
 			var ct_curr_str = jQuery(this).html();
 			if(ct_is_email(ct_curr_str) != -1 || ct_is_ip(ct_curr_str) != -1){
-				var ct_url = ctCommentsScreen.links.comments_editscreen.replace('{TARGET}', ct_curr_str);
+				var ct_url = ctAdminCommon.links.comments_editscreen.replace('{TARGET}', ct_curr_str);
 				jQuery(this).after('&nbsp;<a href="'+ct_url+'" target="_blank" title="'+ct_url+'" class="ct_link_new_tab"><img src="'+ctCommentsScreen.ct_img_src_new_tab+'"></a>');
 			}
 		});
