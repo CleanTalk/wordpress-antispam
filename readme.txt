@@ -13,7 +13,7 @@ Top-rated anti spam protection for WordPress, eCommerce. Blocks spam on forms, c
 
 Top-rated antispam protection for WordPress. No CAPTCHA, no puzzles, and no visitor friction - just automatic spam blocking for forms, comments, registrations, subscriptions, and fake orders.
 
-= Anti-Spam features =
+= Anti-Spam Superpowers =
 1. Stops spam comments.
 2. Stops spam registrations.
 3. Stops spam contact emails.
@@ -27,9 +27,6 @@ Top-rated antispam protection for WordPress. No CAPTCHA, no puzzles, and no visi
 11. Checks and removes the existing spam comments and spam users.
 14. Blocking  disposable & temporary emails.
 22. Block messages by languages, countries, networks and stop words.
-
-= Free trial then $12 per year =
-CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
 
 = Public reviews =
 > It’s more than just a tool to combat spam; it’s an integral component that enhances the overall quality and performance of your website.
@@ -50,6 +47,9 @@ CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam se
 
 > The key selling point of CleanTalk for me is not simply its effectiveness. It's the fact that CleanTalk works in the background. It does not make users jump through hoops in order to submit a comment or complete a form.
 > <a href="https://www.kevinmuldoon.com/cleantalk-anti-spam-service/">www.kevinmuldoon.com</a>
+
+= Free trial then $12 per year =
+CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
 
 = AntiSpam protection for comments =
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
