@@ -39,8 +39,8 @@ Top-rated antispam protection for WordPress. No CAPTCHA, no puzzles, and no visi
 > <a href="https://newswatchtv.com/2018/07/18/cleantalk-newswatch-review/" target="_blank">NewsWatch Review</a>.
 
 > Compare reCAPTCHA & Akismet VS CleanTalk
-> <a href="https://www.saashub.com/compare-recaptcha-vs-cleantalk">https://www.saashub.com/compare-recaptcha-vs-cleantalk</a>
-> <a href="https://www.saashub.com/compare-akismet-vs-cleantalk">https://www.saashub.com/compare-akismet-vs-cleantalk</a>
+> [CleanTalk vs Google reRECAPTCHA](https://cleantalk.org/recaptcha-alternative) 
+> [CleanTalk vs Akismet](https://cleantalk.org/help/cleantalk-vs-akismet)
 
 >I know you have heard of a number of anti-spam plugins. But you must know, the cloud-based ones are the best regarding detection rate. They compare all the content in forms with their own algorithm to find out the legibility.
 >*<a href="https://www.techwibe.com/cleantalk-wordpress-plugin-review/" target="_blank">www.techwibe.com</a>*
