@@ -13,7 +13,7 @@ Top-rated anti spam protection for WordPress, eCommerce. Blocks spam on forms, c
 
 Top-rated antispam protection for WordPress. No CAPTCHA, no puzzles, and no visitor friction - just automatic spam blocking for forms, comments, registrations, subscriptions, and fake orders.
 
-= Anti-Spam Superpowers =
+= Superpowers =
 1. Stops spam comments.
 2. Stops spam registrations.
 3. Stops spam contact emails.
@@ -126,8 +126,12 @@ All the CleanTalk Spam FireWall activity is being logged in the process of filte
 Spam FireWall: Anti-Flood and Anti-Crawler options are intended for blocking unwanted bots, content parsing, shop goods prices parsing or aggressive website scanning bots. Learn more https://cleantalk.org/help/anti-flood-and-anti-crawler
 
 = How to protect sites from spam bots without CAPTCHA? =
-CleanTalk blocks spam using background behavioral analysis, invisible tests, and a global spam database instead of CAPTCHA challenges. The service automatically checks comments, registrations, contact forms, and orders in real time, stopping spam bots while keeping the experience friction-free for real visitors.
+CleanTalk Anti-Spam protects websites from spam bots without using traditional CAPTCHA, reCAPTCHA, or other visitor challenges. Instead of showing CAPTCHA puzzles, the service uses behavioral analysis, invisible JavaScript tests, and a global spam database to detect spam automatically in the background. This CAPTCHA-free anti-spam protection works for contact forms, comments, registrations, and WooCommerce checkouts without creating friction for real visitors. By replacing CAPTCHA with automated spam detection, CleanTalk helps improve usability, accessibility, and conversion rates while still blocking spam effectively.
 
+Sometimes CAPTCHA reminds us of the doodles of a two year old child. For users with vision problems CAPTCHA is an insurmountable obstacle. Users hate captcha. Captcha for users means "hate". Unreadable CAPTCHA **stops about 80% of site visitors**. After 2 failed attempts to decipher CAPTCHA **95% of visitors reject** further attempts. At the sight of CAPTCHA and after input errors, many visitors leave the resource. Thus, CAPTCHA helps to protect the resource spam both from bots and visitors. CAPTCHA is not a panacea from spam. Doubts concerning the Need for CAPTCHA?
+
+*"Ultimately, CAPTCHAs are useless for spam because they're designed to tell you if someone is 'human' or not, but not whether something is spam or not." Matt Mullenweg*
+ 
 = Real-time email validation. Is email real or Not. =
 It is very important to be sure that the user used his real email address. Spambots very often use fake email addresses, i.e. which addresses do not exist.
 
