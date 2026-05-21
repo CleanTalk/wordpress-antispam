@@ -505,6 +505,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'Amelia' => array(
+        'hook'    => 'wpamelia_api',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_active_integrations) {
