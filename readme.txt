@@ -148,6 +148,8 @@ All the CleanTalk Spam FireWall activity is being logged in the process of filte
 = Spam FireWall: Anti-Flood & Anti-Crawler =
 Spam FireWall: Anti-Flood and Anti-Crawler options are intended for blocking unwanted bots, content parsing, shop goods prices parsing or aggressive website scanning bots. Learn more https://cleantalk.org/help/anti-flood-and-anti-crawler
 
+By default, well-known good bots — including AI crawlers such as GPTBot (ChatGPT), ClaudeBot (Claude), Google-Extended (Gemini), and Copilot — are allowed. You can choose which of these bots to block individually in your private lists. Blocking a bot will stop the corresponding AI service from accessing your content.
+
 = How to protect sites from spam bots without CAPTCHA? =
 The most popular anti-spam method is CAPTCHA - the annoying picture with curved and sloping symbols, which are presented to the visitor to decipher and fill in. In is supposed that spam bots won't discern these CAPTCHA, but a visitor will. CAPTCHA provokes great irritation, but if the visitor wants to comment, he has to fill in these symbols time after time, making mistakes and starting once again. Sometimes CAPTCHA reminds us of the doodles of a two year old child. For users with vision problems CAPTCHA is an insurmountable obstacle. Users hate captcha. Captcha for users means "hate". Unreadable CAPTCHA stops about 80% of site visitors. After 2 failed attempts to decipher CAPTCHA 95% of visitors reject further attempts. At the sight of CAPTCHA and after input errors, many visitors leave the resource. Thus, CAPTCHA helps to protect the resource spam both from bots and visitors. CAPTCHA is not a panacea from spam. Doubts concerning the Need for CAPTCHA?
 
