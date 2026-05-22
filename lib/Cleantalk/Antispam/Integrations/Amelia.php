@@ -40,7 +40,7 @@ class Amelia extends IntegrationBase
             return null;
         }
 
-        return array('email' => $email, 'sender_nickname' => 'stop_emai');
+        return array('email' => $email);
     }
 
     public function doBlock($message)
@@ -48,6 +48,8 @@ class Amelia extends IntegrationBase
         remove_action('wp_ajax_wpamelia_api',        array('AmeliaBooking\\Plugin', 'wpAmeliaApiCall'));
         remove_action('wp_ajax_nopriv_wpamelia_api', array('AmeliaBooking\\Plugin', 'wpAmeliaApiCall'));
 
+        status_header(403);
+        nocache_headers();
         header('Content-Type: application/json; charset=utf-8');
         echo wp_json_encode(array(
             'message' => $message,
