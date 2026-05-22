@@ -170,16 +170,6 @@ function apbct_settings__set_fields()
             'html_before'    => '<hr>',
             'html_after'     => '',
             'fields'         => array(
-                'comments__hide_website_field'             => array(
-                    'type'        => 'checkbox',
-                    'title'       => __('Hide the "Website" field', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        'This option hides the "Website" field on the comment form.',
-                        'cleantalk-spam-protect'
-                    ),
-                    'long_description' => true,
-                    'display'     => ! $apbct->white_label,
-                ),
                 'comments__the_real_person' => array(
                     'type'        => 'checkbox',
                     'title' => __('The Real Person Badge!', 'cleantalk-spam-protect')
@@ -928,6 +918,12 @@ function apbct_settings__set_fields()
             'section'    => 'hidden_section',
             'html_after' => '</div><div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}<div class="apbct_hidden_section_nav_mob_btn"></div></div></div>',
             'fields'     => array(
+                'comments__hide_website_field'             => array(
+                    'type'        => 'checkbox',
+                    'title'       => __('Hide the "Website" field', 'cleantalk-spam-protect'),
+                    'long_description' => true,
+                    'display'     => ! $apbct->white_label,
+                ),
                 'misc__send_connection_reports' => array(
                     'type'        => 'checkbox',
                     'title'       => __('Send connection reports', 'cleantalk-spam-protect'),
