@@ -492,10 +492,8 @@ class ApbctHandler {
     detectForcedAltCookiesForms() {
         let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
-        let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
-            jetpackCommentsForm ||
-            userRegistrationProForm;
+            jetpackCommentsForm;
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
@@ -999,14 +997,21 @@ class ApbctHandler {
         // on ajaxSetup
         if (catchOn === 'ajaxSetup') {
             // settings data is string (important!)
+            console.log(ajaxObject);
             if ( typeof ajaxObject.data === 'string' ) {
-                if (ajaxObject.data.indexOf('action=fl_builder_subscribe_form_submit') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('action=fl_builder_subscribe_form_submit') !== -1
+                ) {
                     sourceSign.found = 'fl_builder_subscribe_form_submit';
                 }
-                if (ajaxObject.data.indexOf('twt_cc_signup') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('twt_cc_signup') !== -1
+                ) {
                     sourceSign.found = 'twt_cc_signup';
                 }
-                if (ajaxObject.data.indexOf('action=mailpoet') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('action=mailpoet') !== -1
+                ) {
                     sourceSign.found = 'action=mailpoet';
                     sourceSign.attachVisibleFieldsData = true;
                 }
@@ -1022,26 +1027,38 @@ class ApbctHandler {
                     sourceSign.found = 'action=happyforms_message';
                 }
 
-                if (ajaxObject.data.indexOf('action=new_activity_comment') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('action=new_activity_comment') !== -1
+                ) {
                     sourceSign.found = 'action=new_activity_comment';
                 }
-                if (ajaxObject.data.indexOf('action=wwlc_create_user') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('action=wwlc_create_user') !== -1
+                ) {
                     sourceSign.found = 'action=wwlc_create_user';
                 }
-                if (ajaxObject.data.indexOf('action=WPBC_AJX_BOOKING__CREATE') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('action=WPBC_AJX_BOOKING__CREATE') !== -1
+                ) {
                     sourceSign.found = 'action=WPBC_AJX_BOOKING__CREATE';
                     sourceSign.keepUnwrapped = true;
                     sourceSign.attachVisibleFieldsData = true;
                 }
-                if (ajaxObject.data.indexOf('action=drplus_signup') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('action=drplus_signup') !== -1
+                ) {
                     sourceSign.found = 'action=drplus_signup';
                     sourceSign.keepUnwrapped = true;
                 }
-                if (ajaxObject.data.indexOf('action=bt_cc') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('action=bt_cc') !== -1
+                ) {
                     sourceSign.found = 'action=bt_cc';
                     sourceSign.keepUnwrapped = true;
                 }
-                if (ajaxObject.data.indexOf('action=wpr_form_builder_email') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('action=wpr_form_builder_email') !== -1
+                ) {
                     sourceSign.found = 'action=wpr_form_builder_email';
                     sourceSign.keepUnwrapped = true;
                 }
@@ -1064,6 +1081,13 @@ class ApbctHandler {
                 ) {
                     sourceSign.found = 'action=SQBSubmitQuizAjax';
                     sourceSign.keepUnwrapped = true;
+                }
+                if (
+                    ajaxObject.data.indexOf('action=user_registration_user_form_submit') !== -1
+                ) {
+                    sourceSign.found = 'action=user_registration_user_form_submit';
+                    sourceSign.keepUnwrapped = true;
+                    sourceSign.attachVisibleFieldsData = true;
                 }
             }
             // wooocommerce add to cart is based on URL
