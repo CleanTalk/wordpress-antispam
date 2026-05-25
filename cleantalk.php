@@ -2132,18 +2132,11 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
                     } else {
                         die('FAIL ' . json_encode(array('error' => $installer->apbct_result)));
                     }
-                } elseif ( $result instanceof \WP_Error ) {
-                    die(
-                        'FAIL ' . json_encode(array(
-                            'error'   => 'FAIL_TO_GET_LATEST_VERSION',
-                            'details' => $result->get_error_message(),
-                        ))
-                    );
                 } else {
                     die(
                         'FAIL ' . json_encode(array(
                             'error'   => 'FAIL_TO_GET_LATEST_VERSION',
-                            'details' => 'Unknown error',
+                            'details' => $result->get_error_message(),
                         ))
                     );
                 }
@@ -2177,15 +2170,17 @@ function apbct_rc__activate_plugin($plugin)
             $result = activate_plugins($plugin);
 
             $result_array = array('success' => true);
-            $error_msg = '';
 
-            if ( ! $result || is_wp_error($result) ) {
-                if ( $result instanceof \WP_Error ) {
-                    $error_msg = ' ' . $result->get_error_message();
-                }
+            if ( is_wp_error($result) ) {
+                $error_msg = ' ' . $result->get_error_message();
                 $result_array = array(
                     'error'   => 'FAIL_TO_ACTIVATE',
                     'details' => $error_msg
+                );
+            } elseif ( ! $result ) {
+                $result_array = array(
+                    'error'   => 'FAIL_TO_ACTIVATE',
+                    'details' => ''
                 );
             }
             return $result_array;
