@@ -23,7 +23,7 @@ Top-rated antispam protection for WordPress. No CAPTCHA, no puzzles, and no visi
 7. Stops spam surveys, polls.
 9. Stops spam in WooCommerce.
 17. Stops spam in Search Form.
-10. Real-time email validation. Check if an email is real or fake. 
+10. Real-time email validation. Check if an email is real or fake.
 11. Checks and removes the existing spam comments and spam users.
 14. Blocking  disposable & temporary emails.
 22. Block messages by languages, countries, networks and stop words.
@@ -39,7 +39,7 @@ Top-rated antispam protection for WordPress. No CAPTCHA, no puzzles, and no visi
 > <a href="https://newswatchtv.com/2018/07/18/cleantalk-newswatch-review/" target="_blank">NewsWatch Review</a>.
 
 > Compare reCAPTCHA & Akismet VS CleanTalk
-> [CleanTalk vs Google reRECAPTCHA](https://cleantalk.org/recaptcha-alternative) 
+> [CleanTalk vs Google reRECAPTCHA](https://cleantalk.org/recaptcha-alternative)
 > [CleanTalk vs Akismet](https://cleantalk.org/help/cleantalk-vs-akismet)
 
 >I know you have heard of a number of anti-spam plugins. But you must know, the cloud-based ones are the best regarding detection rate. They compare all the content in forms with their own algorithm to find out the legibility.
@@ -131,7 +131,7 @@ CleanTalk Anti-Spam protects websites from spam bots without using traditional C
 Sometimes CAPTCHA reminds us of the doodles of a two year old child. For users with vision problems CAPTCHA is an insurmountable obstacle. Users hate captcha. Captcha for users means "hate". Unreadable CAPTCHA **stops about 80% of site visitors**. After 2 failed attempts to decipher CAPTCHA **95% of visitors reject** further attempts. At the sight of CAPTCHA and after input errors, many visitors leave the resource. Thus, CAPTCHA helps to protect the resource spam both from bots and visitors. CAPTCHA is not a panacea from spam. Doubts concerning the Need for CAPTCHA?
 
 *"Ultimately, CAPTCHAs are useless for spam because they're designed to tell you if someone is 'human' or not, but not whether something is spam or not." Matt Mullenweg*
- 
+
 = Real-time email validation. Is email real or Not. =
 It is very important to be sure that the user used his real email address. Spambots very often use fake email addresses, i.e. which addresses do not exist.
 
@@ -381,7 +381,7 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 
 == Changelog ==
 
-= 6.79.1 14.05.2026 =
+= 6.79.1 25.05.2026 =
 * Fix. Admin banners. Call-to-action buttons visibility fixed.
 
 = 6.79 14.05.2026 =
