@@ -3067,11 +3067,11 @@ function apbct_settings__get__long_description()
             //HANDLE LINK
             'desc'  => sprintf(
                 '<p>' . sprintf(
-                     __('%1$s Anti-Crawler — this option is meant to block all types of bots visiting website pages that can search vulnerabilities on a website, attempt to hack a site, collect personal data, price parsing or content and images, generate 404 error pages, or aggressive website scanning bots. %2$s', 'cleantalk-spam-protect'),
-                     esc_html($apbct->data['wl_brandname']),
-                     '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}#anticrawl" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
-                 ) . '</p>' .
-                 '<p>' . __('By default, well-known good bots are allowed, including AI crawlers like GPTBot (ChatGPT), ClaudeBot (Claude), Google-Extended (Gemini), and Copilot. You can selectively block any of these bots in your private lists.', 'cleantalk-spam-protect') . '</p>'
+                    __('%1$s Anti-Crawler — this option is meant to block all types of bots visiting website pages that can search vulnerabilities on a website, attempt to hack a site, collect personal data, price parsing or content and images, generate 404 error pages, or aggressive website scanning bots. %2$s', 'cleantalk-spam-protect'),
+                    esc_html($apbct->data['wl_brandname']),
+                    '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}#anticrawl" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                ) . '</p>' .
+                '<p>' . __('By default, well-known good bots are allowed, including AI crawlers like GPTBot (ChatGPT), ClaudeBot (Claude), Google-Extended (Gemini), and Copilot. You can selectively block any of these bots in your private lists.', 'cleantalk-spam-protect') . '</p>'
             )
         ),
         'sfw__anti_flood' => array(
