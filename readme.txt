@@ -125,6 +125,8 @@ All the CleanTalk Spam FireWall activity is being logged in the process of filte
 = Spam FireWall: Anti-Flood & Anti-Crawler =
 Spam FireWall: Anti-Flood and Anti-Crawler options are intended for blocking unwanted bots, content parsing, shop goods prices parsing or aggressive website scanning bots. Learn more https://cleantalk.org/help/anti-flood-and-anti-crawler
 
+By default, well-known good bots — including AI crawlers such as GPTBot (ChatGPT), ClaudeBot (Claude), Google-Extended (Gemini), and Copilot — are allowed. You can choose which of these bots to block individually in your private lists. Blocking a bot will stop the corresponding AI service from accessing your content.
+
 = How to protect sites from spam bots without CAPTCHA? =
 CleanTalk Anti-Spam protects websites from spam bots without using traditional CAPTCHA, reCAPTCHA, or other visitor challenges. Instead of showing CAPTCHA puzzles, the service uses behavioral analysis, invisible JavaScript tests, and a global spam database to detect spam automatically in the background. This CAPTCHA-free anti-spam protection works for contact forms, comments, registrations, and WooCommerce checkouts without creating friction for real visitors. By replacing CAPTCHA with automated spam detection, CleanTalk helps improve usability, accessibility, and conversion rates while still blocking spam effectively.
 
