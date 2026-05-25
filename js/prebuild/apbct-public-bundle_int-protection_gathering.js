@@ -3579,7 +3579,6 @@ class ApbctHandler {
         // on ajaxSetup
         if (catchOn === 'ajaxSetup') {
             // settings data is string (important!)
-            console.log(ajaxObject);
             if ( typeof ajaxObject.data === 'string' ) {
                 if (
                     ajaxObject.data.indexOf('action=fl_builder_subscribe_form_submit') !== -1

@@ -2,8 +2,6 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\ApbctWP\Variables\Cookie;
-
 /**
  * Plugin: User Registration & Membership
  */
