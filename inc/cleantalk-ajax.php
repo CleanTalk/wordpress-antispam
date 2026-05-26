@@ -906,23 +906,6 @@ function ct_ajax_hook($message_obj = null)
             die();
         }
 
-        // Plugin Name: User Registration; ajax register action user_registration_user_form_submit
-        if (
-            (
-                apbct_is_plugin_active('user-registration/user-registration.php')
-                ||
-                apbct_is_plugin_active('user-registration-pro/user-registration.php')
-            ) &&
-            Post::get('action') === 'user_registration_user_form_submit'
-        ) {
-            wp_send_json_error(
-                array(
-                    'message' => $ct_result->comment
-                )
-            );
-            die();
-        }
-
         // Plugin Name: eForm - WordPress Form Builder; ajax action ipt_fsqm_save_form
         if (
             apbct_is_plugin_active('wp-fsqm-pro/ipt_fsqm.php') &&
