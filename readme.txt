@@ -4,7 +4,7 @@ Tags: antispam, honeypot, contact form spam, captcha, akismet
 Requires at least: 4.7
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.79.1
+Stable tag: 6.80
 License: GPLv2
 
 Top-rated anti spam protection for WordPress, eCommerce. Blocks spam on forms, comments and registrations automatically. No CAPTCHA.
@@ -382,6 +382,20 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.80 28.05.2026 =
+* Fix. catchJqueryAjax. Object as null comparison fixed.
+* Fix. CatchXHR. Mailpoet integration added to provide the event_token.
+* Upd. Bot Detector Service. Added alternative source URL.
+* Upd. Bot Detector Service. Updates.
+* Fix. PHP8. Prevent duplicate headers before sending HTTP response code.
+* Fix. TRP. Correctly save TRP hashes.
+* Mod. Settings. Transferring an option and deleting its description
+* Fix. Code. Bug fixes after WP 7.0 update
+* Fix. Admin banners. Call-to-action buttons visibility fixed.
+* Mod. Settings. Editing the description of the Anti-Crawler option
+* Fix. Settings. Edit long description
+* Mod. Integration. Opting out of force alt cookies for UserRegistrationPro members 
 
 = 6.79.1 25.05.2026 =
 * Fix. Admin banners. Call-to-action buttons visibility fixed.
