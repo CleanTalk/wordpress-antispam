@@ -14,7 +14,6 @@
 use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
-use Cleantalk\ApbctWP\BotDetectorService;
 use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Antispam\ForceProtection;
 use Cleantalk\ApbctWP\API;
@@ -136,8 +135,9 @@ if ( defined('CLEANTALK_SERVER') ) {
     define('APBCT_MODERATE_URL', 'https://moderate.cleantalk.org'); // Api URL
 }
 
-$bot_detector_service = new BotDetectorService();
-define('APBCT_BOT_DETECTOR_SCRIPT_URL', $bot_detector_service->getWrapperScriptUrl());
+if ( ! defined('APBCT_BOT_DETECTOR_SCRIPT_URL') ) {
+    define('APBCT_BOT_DETECTOR_SCRIPT_URL', 'https://fd.cleantalk.org/ct-bot-detector-wrapper.js');
+}
 
 /**
  * Require base classes.
