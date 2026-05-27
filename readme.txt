@@ -396,6 +396,9 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 * Mod. Settings. Editing the description of the Anti-Crawler option
 * Fix. Settings. Edit long description
 * Mod. Integration. Opting out of force alt cookies for UserRegistrationPro members
+* Fix. BotDetector. Editing the bot detector connection
+* Fix. CheckJS. Edit the check_js entry if the global key is not available
+* Fix. Code. Added a space between the username and the TRP text
 
 = 6.79.1 25.05.2026 =
 * Fix. Admin banners. Call-to-action buttons visibility fixed.
