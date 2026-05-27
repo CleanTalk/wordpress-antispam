@@ -1809,7 +1809,7 @@ if (!Object.prototype.hasOwn) {
 /**
  * Callbacks for FetchProxy integrations
  */
-const ApbctFetchProxyCallbacks = {
+const ApbctFetchProxyCallbacks = { // eslint-disable-line no-unused-vars
     /**
      * Mailchimp block callback - clears localStorage by mcforms mask
      * @param {object} result
@@ -1835,10 +1835,11 @@ const ApbctFetchProxyCallbacks = {
     //     // Custom logic
     // },
 };
+
 /**
  * Config for FetchProxy integrations
  */
-const ApbctFetchProxyConfig = {
+const ApbctFetchProxyConfig = { // eslint-disable-line no-unused-vars
     'mailchimp': {
         selector: '.mcforms-wrapper',
         urlPattern: 'mcf-integrations-mcmktg.mlchmpcompprduse2.iks2.a.intuit.com/gateway/receive',
@@ -1865,10 +1866,14 @@ const ApbctFetchProxyConfig = {
         callbackBlock: false,
     },
 };
+
 /**
  * Class for handling FetchProxy forms
  */
-class ApbctFetchProxyProtection {
+class ApbctFetchProxyProtection { // eslint-disable-line no-unused-vars
+    /**
+     * Constructor
+     */
     constructor() {
         this.config = ApbctFetchProxyConfig;
     }
@@ -1879,9 +1884,9 @@ class ApbctFetchProxyProtection {
      * @return {object|null} { formKey, config } or null
      */
     findMatchingConfig(url) {
-        const urlStr = typeof url === 'string'
-            ? url
-            : (url != null && typeof url.href === 'string' ? url.href : '');
+        const urlStr = typeof url === 'string' ?
+            url :
+            (url != null && typeof url.href === 'string' ? url.href : '');
 
         for (const [formKey, config] of Object.entries(this.config)) {
             // FetchProxy can send both external and internal requests
@@ -2107,7 +2112,7 @@ function initParams(gatheringLoaded) {
  * @param {string|number} expires
  */
 // eslint-disable-next-line no-unused-vars,require-jsdoc
-function ctSetCookie( cookies, value, expires ) {
+function ctSetCookie( cookies, value, expires='') {
     let listOfCookieNamesToForceAlt = [
         'ct_sfw_pass_key',
         'ct_sfw_passed',
@@ -4453,9 +4458,11 @@ async function apbctImportScript(scriptAbsolutePath) {
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 async function apbct_ready() {
-    apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
-    ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true);
-
+    // Only set ct_checkjs if the key is actually provided (not on block pages)
+    if (typeof ctPublic.ct_checkjs_key !== 'undefined' && ctPublic.ct_checkjs_key !== null) {
+        apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
+        ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key);
+    }
 
     new ApbctShowForbidden().prepareBlockForAjaxForms();
 

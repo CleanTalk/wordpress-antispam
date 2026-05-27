@@ -94,7 +94,7 @@ function initParams(gatheringLoaded) {
  * @param {string|number} expires
  */
 // eslint-disable-next-line no-unused-vars,require-jsdoc
-function ctSetCookie( cookies, value, expires ) {
+function ctSetCookie( cookies, value, expires='') {
     let listOfCookieNamesToForceAlt = [
         'ct_sfw_pass_key',
         'ct_sfw_passed',
