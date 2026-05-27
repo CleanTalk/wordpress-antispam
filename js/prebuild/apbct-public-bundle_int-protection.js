@@ -5309,8 +5309,8 @@ document.addEventListener('DOMContentLoaded', function() {
         trpDescriptionContent.setAttribute('style', 'white-space: nowrap');
 
         let trpDescriptionContentFirstLine = document.createElement('div');
-        trpDescriptionContentFirstLine.append(trpDescriptionHeading);
         trpDescriptionContentFirstLine.append(' ');
+        trpDescriptionContentFirstLine.append(trpDescriptionHeading);
         trpDescriptionContentFirstLine.append(ctTrpLocalize.phrases.trpContent1);
 
         let trpDescriptionContentSecondLine = document.createElement('div');
