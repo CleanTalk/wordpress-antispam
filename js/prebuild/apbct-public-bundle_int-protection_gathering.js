@@ -1809,7 +1809,7 @@ if (!Object.prototype.hasOwn) {
 /**
  * Callbacks for FetchProxy integrations
  */
-const ApbctFetchProxyCallbacks = {
+const ApbctFetchProxyCallbacks = { // eslint-disable-line no-unused-vars
     /**
      * Mailchimp block callback - clears localStorage by mcforms mask
      * @param {object} result
@@ -1835,10 +1835,11 @@ const ApbctFetchProxyCallbacks = {
     //     // Custom logic
     // },
 };
+
 /**
  * Config for FetchProxy integrations
  */
-const ApbctFetchProxyConfig = {
+const ApbctFetchProxyConfig = { // eslint-disable-line no-unused-vars
     'mailchimp': {
         selector: '.mcforms-wrapper',
         urlPattern: 'mcf-integrations-mcmktg.mlchmpcompprduse2.iks2.a.intuit.com/gateway/receive',
@@ -1865,10 +1866,14 @@ const ApbctFetchProxyConfig = {
         callbackBlock: false,
     },
 };
+
 /**
  * Class for handling FetchProxy forms
  */
-class ApbctFetchProxyProtection {
+class ApbctFetchProxyProtection { // eslint-disable-line no-unused-vars
+    /**
+     * Constructor
+     */
     constructor() {
         this.config = ApbctFetchProxyConfig;
     }
@@ -1879,9 +1884,9 @@ class ApbctFetchProxyProtection {
      * @return {object|null} { formKey, config } or null
      */
     findMatchingConfig(url) {
-        const urlStr = typeof url === 'string'
-            ? url
-            : (url != null && typeof url.href === 'string' ? url.href : '');
+        const urlStr = typeof url === 'string' ?
+            url :
+            (url != null && typeof url.href === 'string' ? url.href : '');
 
         for (const [formKey, config] of Object.entries(this.config)) {
             // FetchProxy can send both external and internal requests
@@ -2107,7 +2112,7 @@ function initParams(gatheringLoaded) {
  * @param {string|number} expires
  */
 // eslint-disable-next-line no-unused-vars,require-jsdoc
-function ctSetCookie( cookies, value, expires ) {
+function ctSetCookie( cookies, value, expires='') {
     let listOfCookieNamesToForceAlt = [
         'ct_sfw_pass_key',
         'ct_sfw_passed',
@@ -3074,10 +3079,8 @@ class ApbctHandler {
     detectForcedAltCookiesForms() {
         let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
-        let userRegistrationProForm = document.querySelectorAll('div[id^="user-registration-form"]').length > 0;
         ctPublic.force_alt_cookies = smartFormsSign ||
-            jetpackCommentsForm ||
-            userRegistrationProForm;
+            jetpackCommentsForm;
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
@@ -3101,6 +3104,7 @@ class ApbctHandler {
             document.querySelector('#newAppointmentForm') !== null ||
             document.querySelector('.booked-calendar-shortcode-wrap') !== null ||
             document.querySelector('.et_pb_newsletter_form') !== null ||
+            document.querySelector('form.mailpoet_form') !== null ||
             (
                 // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
                 document.body.classList.contains('single-product') &&
@@ -3116,7 +3120,11 @@ class ApbctHandler {
                         body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
                         body.indexOf('action=booked_add_appt') !== -1 ||
                         body.indexOf('action=cwginstock_product_subscribe') !== -1 ||
-                        body.indexOf('action=et_pb_submit_subscribe_form') !== -1
+                        body.indexOf('action=et_pb_submit_subscribe_form') !== -1 ||
+                        (
+                            body.indexOf('action=mailpoet') !== -1 &&
+                            body.indexOf('method=subscribe') !== -1
+                        )
                     );
                 const isDiviNewsletterRequest = body && typeof body === 'string' &&
                     body.indexOf('action=et_pb_submit_subscribe_form') !== -1;
@@ -3582,13 +3590,19 @@ class ApbctHandler {
         if (catchOn === 'ajaxSetup') {
             // settings data is string (important!)
             if ( typeof ajaxObject.data === 'string' ) {
-                if (ajaxObject.data.indexOf('action=fl_builder_subscribe_form_submit') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('action=fl_builder_subscribe_form_submit') !== -1
+                ) {
                     sourceSign.found = 'fl_builder_subscribe_form_submit';
                 }
-                if (ajaxObject.data.indexOf('twt_cc_signup') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('twt_cc_signup') !== -1
+                ) {
                     sourceSign.found = 'twt_cc_signup';
                 }
-                if (ajaxObject.data.indexOf('action=mailpoet') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('action=mailpoet') !== -1
+                ) {
                     sourceSign.found = 'action=mailpoet';
                     sourceSign.attachVisibleFieldsData = true;
                 }
@@ -3604,26 +3618,38 @@ class ApbctHandler {
                     sourceSign.found = 'action=happyforms_message';
                 }
 
-                if (ajaxObject.data.indexOf('action=new_activity_comment') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('action=new_activity_comment') !== -1
+                ) {
                     sourceSign.found = 'action=new_activity_comment';
                 }
-                if (ajaxObject.data.indexOf('action=wwlc_create_user') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('action=wwlc_create_user') !== -1
+                ) {
                     sourceSign.found = 'action=wwlc_create_user';
                 }
-                if (ajaxObject.data.indexOf('action=WPBC_AJX_BOOKING__CREATE') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('action=WPBC_AJX_BOOKING__CREATE') !== -1
+                ) {
                     sourceSign.found = 'action=WPBC_AJX_BOOKING__CREATE';
                     sourceSign.keepUnwrapped = true;
                     sourceSign.attachVisibleFieldsData = true;
                 }
-                if (ajaxObject.data.indexOf('action=drplus_signup') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('action=drplus_signup') !== -1
+                ) {
                     sourceSign.found = 'action=drplus_signup';
                     sourceSign.keepUnwrapped = true;
                 }
-                if (ajaxObject.data.indexOf('action=bt_cc') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('action=bt_cc') !== -1
+                ) {
                     sourceSign.found = 'action=bt_cc';
                     sourceSign.keepUnwrapped = true;
                 }
-                if (ajaxObject.data.indexOf('action=wpr_form_builder_email') !== -1) {
+                if (
+                    ajaxObject.data.indexOf('action=wpr_form_builder_email') !== -1
+                ) {
                     sourceSign.found = 'action=wpr_form_builder_email';
                     sourceSign.keepUnwrapped = true;
                 }
@@ -3647,6 +3673,13 @@ class ApbctHandler {
                     sourceSign.found = 'action=SQBSubmitQuizAjax';
                     sourceSign.keepUnwrapped = true;
                 }
+                if (
+                    ajaxObject.data.indexOf('action=user_registration_user_form_submit') !== -1
+                ) {
+                    sourceSign.found = 'action=user_registration_user_form_submit';
+                    sourceSign.keepUnwrapped = true;
+                    sourceSign.attachVisibleFieldsData = true;
+                }
             }
             // wooocommerce add to cart is based on URL
             if ( typeof ajaxObject.url === 'string' ) {
@@ -3665,7 +3698,11 @@ class ApbctHandler {
                 }
             }
 
-            if (typeof ajaxObject.data === 'object' && typeof ajaxObject.data.get === 'function') {
+            if (
+                typeof ajaxObject.data === 'object' &&
+                ajaxObject.data !== null &&
+                typeof ajaxObject.data.get === 'function'
+            ) {
                 if (ajaxObject.data.get('action') === 'pafe_ajax_form_builder') {
                     sourceSign.found = 'action=pafe_ajax_form_builder';
                     sourceSign.keepUnwrapped = true;
@@ -4421,9 +4458,11 @@ async function apbctImportScript(scriptAbsolutePath) {
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 async function apbct_ready() {
-    apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
-    ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true);
-
+    // Only set ct_checkjs if the key is actually provided (not on block pages)
+    if (typeof ctPublic.ct_checkjs_key !== 'undefined' && ctPublic.ct_checkjs_key !== null) {
+        apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
+        ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key);
+    }
 
     new ApbctShowForbidden().prepareBlockForAjaxForms();
 
@@ -6114,8 +6153,8 @@ document.addEventListener('DOMContentLoaded', function() {
         trpDescriptionContent.setAttribute('style', 'white-space: nowrap');
 
         let trpDescriptionContentFirstLine = document.createElement('div');
-        trpDescriptionContentFirstLine.append(trpDescriptionHeading);
         trpDescriptionContentFirstLine.append(' ');
+        trpDescriptionContentFirstLine.append(trpDescriptionHeading);
         trpDescriptionContentFirstLine.append(ctTrpLocalize.phrases.trpContent1);
 
         let trpDescriptionContentSecondLine = document.createElement('div');

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.79.1
+  Version: 6.80
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -135,7 +135,9 @@ if ( defined('CLEANTALK_SERVER') ) {
     define('APBCT_MODERATE_URL', 'https://moderate.cleantalk.org'); // Api URL
 }
 
-define('APBCT_BOT_DETECTOR_SCRIPT_URL', 'https://fd.cleantalk.org/ct-bot-detector-wrapper.js');
+if ( ! defined('APBCT_BOT_DETECTOR_SCRIPT_URL') ) {
+    define('APBCT_BOT_DETECTOR_SCRIPT_URL', 'https://fd.cleantalk.org/ct-bot-detector-wrapper.js');
+}
 
 /**
  * Require base classes.
@@ -2132,18 +2134,11 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
                     } else {
                         die('FAIL ' . json_encode(array('error' => $installer->apbct_result)));
                     }
-                } elseif ( $result instanceof \WP_Error ) {
-                    die(
-                        'FAIL ' . json_encode(array(
-                            'error'   => 'FAIL_TO_GET_LATEST_VERSION',
-                            'details' => $result->get_error_message(),
-                        ))
-                    );
                 } else {
                     die(
                         'FAIL ' . json_encode(array(
                             'error'   => 'FAIL_TO_GET_LATEST_VERSION',
-                            'details' => 'Unknown error',
+                            'details' => $result->get_error_message(),
                         ))
                     );
                 }
@@ -2177,15 +2172,17 @@ function apbct_rc__activate_plugin($plugin)
             $result = activate_plugins($plugin);
 
             $result_array = array('success' => true);
-            $error_msg = '';
 
-            if ( ! $result || is_wp_error($result) ) {
-                if ( $result instanceof \WP_Error ) {
-                    $error_msg = ' ' . $result->get_error_message();
-                }
+            if ( is_wp_error($result) ) {
+                $error_msg = ' ' . $result->get_error_message();
                 $result_array = array(
                     'error'   => 'FAIL_TO_ACTIVATE',
                     'details' => $error_msg
+                );
+            } elseif ( ! $result ) {
+                $result_array = array(
+                    'error'   => 'FAIL_TO_ACTIVATE',
+                    'details' => ''
                 );
             }
             return $result_array;

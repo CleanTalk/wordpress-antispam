@@ -4,7 +4,7 @@ Tags: antispam, honeypot, contact form spam, captcha, akismet
 Requires at least: 4.7
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.79.1
+Stable tag: 6.80
 License: GPLv2
 
 Top-rated anti spam protection for WordPress, eCommerce. Blocks spam on forms, comments and registrations automatically. No CAPTCHA.
@@ -124,6 +124,8 @@ All the CleanTalk Spam FireWall activity is being logged in the process of filte
 
 = Spam FireWall: Anti-Flood & Anti-Crawler =
 Spam FireWall: Anti-Flood and Anti-Crawler options are intended for blocking unwanted bots, content parsing, shop goods prices parsing or aggressive website scanning bots. Learn more https://cleantalk.org/help/anti-flood-and-anti-crawler
+
+By default, well-known good bots — including AI crawlers such as GPTBot (ChatGPT), ClaudeBot (Claude), Google-Extended (Gemini), and Copilot — are allowed. You can choose which of these bots to block individually in your private lists. Blocking a bot will stop the corresponding AI service from accessing your content.
 
 = How to protect sites from spam bots without CAPTCHA? =
 CleanTalk Anti-Spam protects websites from spam bots without using traditional CAPTCHA, reCAPTCHA, or other visitor challenges. Instead of showing CAPTCHA puzzles, the service uses behavioral analysis, invisible JavaScript tests, and a global spam database to detect spam automatically in the background. This CAPTCHA-free anti-spam protection works for contact forms, comments, registrations, and WooCommerce checkouts without creating friction for real visitors. By replacing CAPTCHA with automated spam detection, CleanTalk helps improve usability, accessibility, and conversion rates while still blocking spam effectively.
@@ -380,6 +382,23 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.80 28.05.2026 =
+* Fix. catchJqueryAjax. Object as null comparison fixed.
+* Fix. CatchXHR. Mailpoet integration added to provide the event_token.
+* Upd. Bot Detector Service. Added alternative source URL.
+* Upd. Bot Detector Service. Updates.
+* Fix. PHP8. Prevent duplicate headers before sending HTTP response code.
+* Fix. TRP. Correctly save TRP hashes.
+* Mod. Settings. Transferring an option and deleting its description
+* Fix. Code. Bug fixes after WP 7.0 update
+* Fix. Admin banners. Call-to-action buttons visibility fixed.
+* Mod. Settings. Editing the description of the Anti-Crawler option
+* Fix. Settings. Edit long description
+* Mod. Integration. Opting out of force alt cookies for UserRegistrationPro members
+* Fix. BotDetector. Editing the bot detector connection
+* Fix. CheckJS. Edit the check_js entry if the global key is not available
+* Fix. Code. Added a space between the username and the TRP text
 
 = 6.79.1 25.05.2026 =
 * Fix. Admin banners. Call-to-action buttons visibility fixed.

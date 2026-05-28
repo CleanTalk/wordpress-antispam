@@ -2,22 +2,36 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\ApbctWP\Variables\Cookie;
-
+/**
+ * Plugin: User Registration & Membership
+ */
 class UserRegistrationPro extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
         $ct_post_temp = apply_filters('apbct__filter_post', $_POST);
         if (isset($ct_post_temp['form_data']) && is_string($ct_post_temp['form_data'])) {
-            $decoded = json_decode($ct_post_temp['form_data'], true);
+            $decoded = json_decode(stripslashes($ct_post_temp['form_data']), true);
             $ct_post_temp['form_data'] = $decoded !== null ? $decoded : $ct_post_temp['form_data'];
         }
-        $data             = ct_gfa($ct_post_temp);
-        $data['register'] = true;
 
-        Cookie::$force_alt_cookies_global = true;
-        $data['event_token'] = Cookie::get('ct_bot_detector_event_token');
+        // Extract email and username from form_data
+        $email = '';
+        $nickname = '';
+        if (isset($ct_post_temp['form_data']) && is_array($ct_post_temp['form_data'])) {
+            foreach ($ct_post_temp['form_data'] as $field) {
+                if (isset($field['field_name'], $field['value'])) {
+                    if ($field['field_name'] === 'user_email') {
+                        $email = $field['value'];
+                    } elseif ($field['field_name'] === 'user_login') {
+                        $nickname = $field['value'];
+                    }
+                }
+            }
+        }
+
+        $data             = ct_gfa_dto($ct_post_temp, $email, $nickname)->getArray();
+        $data['register'] = true;
 
         return $data;
     }
