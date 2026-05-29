@@ -89,8 +89,21 @@ class TestAmelia extends TestCase
         $this->assertTrue($this->integration->doPrepareActions(null));
     }
 
+    public function testDoPrepareActionsReturnsFalseForOtherCall()
+    {
+        $_GET['call'] = '/appointments';
+
+        $this->assertFalse($this->integration->doPrepareActions(null));
+    }
+
     public function testDoPrepareActionsReturnsFalseWhenCallMissing()
     {
+        $this->assertFalse($this->integration->doPrepareActions(null));
+    }
+
+    public function testDoPrepareActionsReturnsFalseForArrayCall()
+    {
+        $_GET['call'] = array('/bookings');
         $this->assertFalse($this->integration->doPrepareActions(null));
     }
 
@@ -115,5 +128,15 @@ class TestAmelia extends TestCase
         $result = $this->getDataWithInput($payload);
 
         $this->assertSame('customer@example.com', $result['email']);
+    }
+
+    public function testGetDataForCheckingReturnsNullForEmptyBody()
+    {
+        $this->assertNull($this->getDataWithInput(''));
+    }
+
+    public function testGetDataForCheckingReturnsNullForInvalidJson()
+    {
+        $this->assertNull($this->getDataWithInput('not a valid json'));
     }
 }
