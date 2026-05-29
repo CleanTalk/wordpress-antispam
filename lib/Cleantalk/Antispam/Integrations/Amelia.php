@@ -2,11 +2,13 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\ApbctWP\Variables\Get;
+
 class Amelia extends IntegrationBase
 {
     public function doPrepareActions($argument)
     {
-        $call = isset($_GET['call']) ? (string) $_GET['call'] : '';
+        $call = Get::getString('call');
 
         if ( $call !== '/bookings' ) {
             return false;
