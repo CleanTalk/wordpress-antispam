@@ -63,6 +63,7 @@ function apbct_settings_add_page()
         global $apbct;
 
         $filtered = ($value === '1' || $value === 1) ? '1' : '0';
+        //sync discussion and plugin settings
         if ($old_value !== $filtered) {
             $apbct->settings['cleantalk_allowed_moderation'] = $filtered;
             $apbct->saveSettings();
@@ -169,16 +170,6 @@ function apbct_settings__set_fields()
             'html_before'    => '<hr>',
             'html_after'     => '',
             'fields'         => array(
-                'comments__hide_website_field'             => array(
-                    'type'        => 'checkbox',
-                    'title'       => __('Hide the "Website" field', 'cleantalk-spam-protect'),
-                    'description' => __(
-                        'This option hides the "Website" field on the comment form.',
-                        'cleantalk-spam-protect'
-                    ),
-                    'long_description' => true,
-                    'display'     => ! $apbct->white_label,
-                ),
                 'comments__the_real_person' => array(
                     'type'        => 'checkbox',
                     'title' => __('The Real Person Badge!', 'cleantalk-spam-protect')
@@ -927,6 +918,12 @@ function apbct_settings__set_fields()
             'section'    => 'hidden_section',
             'html_after' => '</div><div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}<div class="apbct_hidden_section_nav_mob_btn"></div></div></div>',
             'fields'     => array(
+                'comments__hide_website_field'             => array(
+                    'type'        => 'checkbox',
+                    'title'       => __('Hide the "Website" field', 'cleantalk-spam-protect'),
+                    'long_description' => true,
+                    'display'     => ! $apbct->white_label,
+                ),
                 'misc__send_connection_reports' => array(
                     'type'        => 'checkbox',
                     'title'       => __('Send connection reports', 'cleantalk-spam-protect'),
@@ -2108,7 +2105,7 @@ function apbct_discussion_settings__field__moderation()
                 name="cleantalk_allowed_moderation" 
                 id="cleantalk_allowed_moderation" 
                 value="1" ' .
-                checked('1', $apbct->settings['cleantalk_allowed_moderation'], false) .
+                checked('1', TT::toString($apbct->settings['cleantalk_allowed_moderation'], '0'), false) .
                 '/> ';
     $output .= esc_html__('Skip manual approving for the very first comment if a comment has been allowed by CleanTalk Anti-Spam protection.', 'cleantalk-spam-protect');
     $output .= '</label>';
@@ -2580,6 +2577,11 @@ function apbct_settings__validate($incoming_settings)
     } else {
         $apbct->errorDelete('email_encoder', true, 'settings_validate');
         $incoming_settings['data__email_decoder_obfuscation_custom_text'] = ContactsEncoder::getDefaultReplacingText();
+    }
+
+    //sync discussion and plugin settings
+    if (isset($incoming_settings['cleantalk_allowed_moderation'])) {
+        update_option('cleantalk_allowed_moderation', TT::toString($incoming_settings['cleantalk_allowed_moderation'], '0'));
     }
 
     /**
@@ -3064,8 +3066,12 @@ function apbct_settings__get__long_description()
             'title' => 'Anti-Crawler', // Do not to localize this phrase
             //HANDLE LINK
             'desc'  => sprintf(
-                __(esc_html__($apbct->data['wl_brandname']) . ' Anti-Crawler — this option is meant to block all types of bots visiting website pages that can search vulnerabilities on a website, attempt to hack a site, collect personal data, price parsing or content and images, generate 404 error pages, or aggressive website scanning bots. %s', 'cleantalk-spam-protect'),
-                '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}#anticrawl" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                '<p>' . sprintf(
+                    __('%1$s Anti-Crawler — this option is meant to block all types of bots visiting website pages that can search vulnerabilities on a website, attempt to hack a site, collect personal data, price parsing or content and images, generate 404 error pages, or aggressive website scanning bots. %2$s', 'cleantalk-spam-protect'),
+                    esc_html($apbct->data['wl_brandname']),
+                    '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}#anticrawl" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                ) . '</p>' .
+                '<p>' . __('By default, well-known good bots are allowed, including AI crawlers like GPTBot (ChatGPT), ClaudeBot (Claude), Google-Extended (Gemini), and Copilot. You can selectively block any of these bots in your private lists.', 'cleantalk-spam-protect') . '</p>'
             )
         ),
         'sfw__anti_flood' => array(

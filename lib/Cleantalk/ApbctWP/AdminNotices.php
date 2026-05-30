@@ -180,6 +180,7 @@ class AdminNotices
 
             $banner_data->level = 'error';
             $banner_data->is_dismissible = ! $this->is_cleantalk_page;
+            $banner_data->is_show_button = ! $this->is_cleantalk_page;
 
             $banner = new ApbctUniversalBanner($banner_data);
             $banner->echoBannerBody();
@@ -213,6 +214,7 @@ class AdminNotices
 
             $banner_data->level = 'error';
             $banner_data->is_dismissible = ! $this->is_cleantalk_page;
+            $banner_data->is_show_button = ! $this->is_cleantalk_page;
 
             $banner = new ApbctUniversalBanner($banner_data);
             $banner->echoBannerBody();

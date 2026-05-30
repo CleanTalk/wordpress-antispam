@@ -1,7 +1,10 @@
 /**
  * Class for handling FetchProxy forms
  */
-class ApbctFetchProxyProtection {
+class ApbctFetchProxyProtection { // eslint-disable-line no-unused-vars
+    /**
+     * Constructor
+     */
     constructor() {
         this.config = ApbctFetchProxyConfig;
     }
@@ -12,9 +15,9 @@ class ApbctFetchProxyProtection {
      * @return {object|null} { formKey, config } or null
      */
     findMatchingConfig(url) {
-        const urlStr = typeof url === 'string'
-            ? url
-            : (url != null && typeof url.href === 'string' ? url.href : '');
+        const urlStr = typeof url === 'string' ?
+            url :
+            (url != null && typeof url.href === 'string' ? url.href : '');
 
         for (const [formKey, config] of Object.entries(this.config)) {
             // FetchProxy can send both external and internal requests
