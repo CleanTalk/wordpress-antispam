@@ -33,7 +33,8 @@ function ct_append_blacklist_link(anchor, linkTemplate, imgSrc){
 		return;
 	}
 	let ct_url = ct_build_blacklist_url(linkTemplate, ct_curr_str);
-	jQuery(anchor).after('\u00a0').after(
+	jQuery(anchor).after(
+		'\u00a0',
 		jQuery('<a>', {
 			href: ct_url,
 			target: '_blank',
