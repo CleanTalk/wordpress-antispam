@@ -487,6 +487,26 @@ class UsersChecker extends Checker
     }
 
     /**
+     * Escape a cell value for CSV export
+     * @param mixed $value
+     * @return string
+     */
+    private static function escapeCsvField($value)
+    {
+        $value = (string) $value;
+
+        if ( $value !== '' && preg_match('/^[\s]*[=+\-@\t\r|]/u', $value) ) {
+            $value = "'" . $value;
+        }
+
+        if ( strpbrk($value, ",\"\n\r") !== false ) {
+            $value = '"' . str_replace('"', '""', $value) . '"';
+        }
+
+        return $value;
+    }
+
+    /**
      * Admin action 'wp_ajax_ajax_ct_get_csv_file' - prints CSV file to AJAX
      */
     public static function ctGetCsvFile()
@@ -519,13 +539,14 @@ class UsersChecker extends Checker
             $nickname = $iValue->data->user_nicename;
             $nickname = null !== $nickname ? $nickname : 'N/A';
 
-            $text .= $iValue->user_login . ',';
-            $text .= $iValue->data->user_email . ',';
-            $text .= $ip_from_keeper . ',';
-            $text .= $first_name . ',';
-            $text .= $last_name . ',';
-            $text .= $nickname;
-            $text .= PHP_EOL;
+            $text .= implode(',', array(
+                self::escapeCsvField($iValue->user_login),
+                self::escapeCsvField($iValue->data->user_email),
+                self::escapeCsvField($ip_from_keeper),
+                self::escapeCsvField($first_name),
+                self::escapeCsvField($last_name),
+                self::escapeCsvField($nickname),
+            )) . PHP_EOL;
         }
 
         $filename = ! empty(Post::get('filename')) ? Post::get('filename') : false;
@@ -541,6 +562,10 @@ class UsersChecker extends Checker
 
     public static function ctAjaxInsertUsers()
     {
+        if ( ! defined('APBCT_IS_LOCALHOST') || ! APBCT_IS_LOCALHOST ) {
+            wp_die('Forbidden', '', array('response' => 403));
+        }
+
         AJAXService::checkNonceRestrictingNonAdmins('security');
 
         global $wpdb, $apbct;
