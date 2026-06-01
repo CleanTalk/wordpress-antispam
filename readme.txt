@@ -54,17 +54,17 @@ CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam se
 = AntiSpam protection for comments =
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
 
-= Contact Form 7 spam filter =
+= Contact Form 7 Antispam =
 Plugin extends spam protection for Contact Form 7 (CF7). It can be used with any other third-party spam filters.
 <a href="https://blog.cleantalk.org/how-to-protect-your-contactform7-contact-form-using-cleantalk-anti-spam-plugin/">How to protect your Contact Form 7 using CleanTalk Anti-Spam plugin</a>
 
 = Elementor Website Builder filter =
 Plugin extends spam protection for Elementor Website Builder. It filters spam submisssions and tested for contact form type.
 
-= Gravity forms spam filter =
+= Gravity forms Antispam =
 Plugin extends spam protection for Gravity forms. It filters spam submisssions for any type of forms.
 
-= Formidable Form Builder spam filter =
+= Formidable Form Builder Antispam =
 Plugin extends spam protection for Formidable Form Builder. It filters spam submisssions for any type of forms - Contact Form, Survey & Quiz Forms.
 
 = Leaky Paywall subscription protection =
@@ -73,10 +73,10 @@ Plugin protects Leaky Paywall plugin (by ZEEN01) against spam subscriptions. It 
 = HubSpot protection for embedded forms =
 Plugin protects HubSpot embedded forms against any spam submissions. Guide to start using embedded forms https://knowledge.hubspot.com/forms/how-can-i-share-a-hubspot-form-if-im-using-an-external-site
 
-= Contact Form by WPForms spam filter =
+= Contact Form by WPForms Antispam =
 Plugin extends Contact Form by WPForms to provide spam protection. It filters spam submissions for each type of forms - simple contact form, marketing form, request a quote and etc.
 
-= WooCommerce spam & fake orders filter =
+= Antispam for WooCommerce & fake orders filter =
 Anti-spam by CleanTalk filters spam registrations, spam reviews, and fake orders for WooCommerce (any eCommerce plugin as well). The plugin is fully compatible with WooCommerce 2.1+ and online stores.
 
 = Spam filter for theme contact forms =
@@ -153,9 +153,9 @@ Block fake and suspicious users with disposable & temporary emails to improve em
 = Stops Spam in Search Form =
 Spam bots can use your search form to make a GET request with spam text. CleanTalk Anti-Spam has the option to protect your website search form from spam bots. Each time, the search generates a new page and if there are many requests, this can create additional load. So, under some conditions, spam searches can be indexed, which affects SEO,
 
-* Anti-Spam protection for website search forms repels spambots.
+* Anti-Spam protection for website search forms repels spam bots.
 * If your search form gets data too often the CleanTalk Anti-Spam plugin will add a pause and increase it with each new attempt to send data. It saves your web server processor time.
-* Spam protection allows you to not forbid indexation for the crawler bots if you really need it but simultaneously you will get protection from spambots.
+* Spam protection allows you to not forbid indexation for the crawler bots if you really need it but simultaneously you will get protection from spam bots.
 
 You will always know what users were looking for on your site.
 
