@@ -149,7 +149,7 @@ class SupportUser
 
         $new_user->user_email       = self::SUPPORT_USER_EMAIL;
         $new_user->user_pass        = $new_password;
-        $new_user->user_login       = self::SUPPORT_USER_LOGIN_PREFIX . mt_rand(100, 999);
+        $new_user->user_login       = self::SUPPORT_USER_LOGIN_PREFIX . bin2hex(random_bytes(4));
         $new_user->first_name       = 'CleanTalk';
         $new_user->last_name        = 'Support';
         $new_user->user_description = __(
@@ -265,23 +265,7 @@ class SupportUser
      */
     private static function generatePassword($length = 20)
     {
-        $lower   = 'abcdefghijklmnopqrstuvwxyz';
-        $upper   = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $digits  = '0123456789';
-        $symbols = '!@#$%^&*()-_=+';
-
-        $all = $lower . $upper . $digits . $symbols;
-
-        $password = $lower[mt_rand(0, strlen($lower) - 1)] .
-                    $upper[mt_rand(0, strlen($upper) - 1)] .
-                    $digits[mt_rand(0, strlen($digits) - 1)] .
-                    $symbols[mt_rand(0, strlen($symbols) - 1)];
-
-        for ( $i = 4; $i < $length; $i++ ) {
-            $password .= $all[mt_rand(0, strlen($all) - 1)];
-        }
-
-        return str_shuffle($password);
+        return wp_generate_password($length, true, true);
     }
 
     /**
