@@ -47,6 +47,29 @@ class TestCleanTalkLinks extends \PHPUnit\Framework\TestCase
             $link);
     }
 
+    public function testAdminBlacklistsAvatarLink()
+    {
+        $link = LinkConstructor::buildCleanTalkLink(
+            'admin_blacklists_avatar_link',
+            'blacklists/{TARGET}'
+        );
+        $this->assertIsString($link);
+        $this->assertEquals(
+            'https://cleantalk.org/blacklists/{TARGET}?utm_source=admin_side&utm_medium=comments&utm_content=avatar&utm_campaign=apbct_links',
+            $link
+        );
+    }
+
+    public function testAdminBlacklistsAvatarLinkPresetExists()
+    {
+        $this->assertArrayHasKey('admin_blacklists_avatar_link', LinkConstructor::$utm_presets);
+        $preset = LinkConstructor::$utm_presets['admin_blacklists_avatar_link'];
+        $this->assertSame('admin_side', $preset['utm_source']);
+        $this->assertSame('comments', $preset['utm_medium']);
+        $this->assertSame('avatar', $preset['utm_content']);
+        $this->assertSame('apbct_links', $preset['utm_campaign']);
+    }
+
     public function testRenewalLink()
     {
         $token = 'test_token';
