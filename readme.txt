@@ -18,11 +18,11 @@ Top-rated antispam protection for WordPress. No CAPTCHA, no puzzles, and no visi
 2. Stops spam registrations.
 3. Stops spam contact emails.
 4. Stops fake orders eCommerce sites and online stores.
-5. Stops spam bookings.
-6. Stops spam subscriptions.
+5. Antispam for bookings.
+6. Antispam subscriptions.
 7. Stops spam surveys, polls.
 9. Stops spam in WooCommerce.
-17. Stops spam in Search Form.
+17. Antispam for Search Form.
 10. Real-time email validation. Check if an email is real or fake.
 11. Checks and removes the existing spam comments and spam users.
 14. Blocking  disposable & temporary emails.
