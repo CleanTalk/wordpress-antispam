@@ -290,37 +290,49 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     {
         $id   = md5($ip . $this->module_name);
         $time = time();
+        $blocked = strpos($status, 'DENY') !== false ? 1 : 0;
         $short_url_to_log = substr($this->server__http_host . $this->server__request_uri, 0, 100);
+
+        // Sanitize source: must be SQL NULL or integer
+        $source_safe = ($source === 'NULL' || $source === null) ? 'NULL' : (int)$source;
 
         $this->db->prepare(
             "INSERT INTO " . $this->db__table__logs . "
             SET
-                id = '$id',
-                ip = '$ip',
-                status = '$status',
+                id = %s,
+                ip = %s,
+                status = %s,
                 all_entries = 1,
-                blocked_entries = " . (strpos($status, 'DENY') !== false ? 1 : 0) . ",
-                entries_timestamp = '" . $time . "',
+                blocked_entries = %d,
+                entries_timestamp = %d,
                 ua_name = %s,
-                source = $source,
+                source = " . $source_safe . ",
                 network = %s,
                 first_url = %s,
                 last_url = %s
             ON DUPLICATE KEY
             UPDATE
-                status = '$status',
-                source = $source,
+                status = %s,
+                source = " . $source_safe . ",
                 all_entries = all_entries + 1,
-                blocked_entries = blocked_entries" . (strpos($status, 'DENY') !== false ? ' + 1' : '') . ",
-                entries_timestamp = '" . $time . "',
+                blocked_entries = blocked_entries + %d,
+                entries_timestamp = %d,
                 ua_name = %s,
                 network = %s,
                 last_url = %s",
             array(
+                $id,
+                $ip,
+                $status,
+                $blocked,
+                $time,
                 $this->server__http_user_agent,
                 $network,
                 $short_url_to_log,
                 $short_url_to_log,
+                $status,
+                $blocked,
+                $time,
                 $this->server__http_user_agent,
                 $network,
                 $short_url_to_log,
