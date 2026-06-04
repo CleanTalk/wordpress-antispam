@@ -146,7 +146,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         foreach ($this->ip_array as $current_ip) {
             if (
                 TT::toString(Cookie::get('ct_sfw_pass_key'))
-                && strpos(TT::toString(Cookie::get('ct_sfw_pass_key')), md5($current_ip . $this->api_key)) === 0
+                && strpos(TT::toString(Cookie::get('ct_sfw_pass_key')), md5($current_ip . $this->api_key . $apbct->data['salt'])) === 0
             ) {
                 if (Cookie::get('ct_sfw_passed')) {
                     if ( ! headers_sent()) {
@@ -352,9 +352,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
     public function actionsForPassed($result)
     {
+        global $apbct;
         if ($this->data__cookies_type === 'native' && ! headers_sent()) {
             $status     = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
-            $cookie_val = md5($result['ip'] . $this->api_key) . $status;
+            $cookie_val = md5($result['ip'] . $this->api_key . $apbct->data['salt']) . $status;
             Cookie::setNativeCookie(
                 'ct_sfw_pass_key',
                 $cookie_val,
@@ -393,7 +394,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $net_count = $apbct->stats['sfw']['entries'];
 
             $status     = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
-            $cookie_val = md5($result['ip'] . $this->api_key) . $status;
+            $cookie_val = md5($result['ip'] . $this->api_key . $apbct->data['salt']) . $status;
 
             $block_message = sprintf(
                 esc_html__('SpamFireWall is checking your browser and IP %s for spam bots', 'cleantalk-spam-protect'),
