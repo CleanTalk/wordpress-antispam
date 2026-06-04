@@ -47,9 +47,6 @@ class Amelia extends IntegrationBase
 
     public function doBlock($message)
     {
-        remove_action('wp_ajax_wpamelia_api', array('AmeliaBooking\\Plugin', 'wpAmeliaApiCall'));
-        remove_action('wp_ajax_nopriv_wpamelia_api', array('AmeliaBooking\\Plugin', 'wpAmeliaApiCall'));
-
         status_header(403);
         nocache_headers();
         header('Content-Type: application/json; charset=utf-8');
