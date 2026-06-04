@@ -2,7 +2,6 @@
 
 namespace Cleantalk\ApbctWP\PingbackTrackback;
 
-
 /**
  * Blocks incoming Trackback requests.
  *
