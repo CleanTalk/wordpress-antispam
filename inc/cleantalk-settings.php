@@ -3183,7 +3183,7 @@ function apbct_settings__get__long_description()
                 . '<br>' . esc_html__("We do not recommend disabling this functionality.", 'cleantalk-spam-protect')
         ),
         'wp__disable_pingback_and_trackback' => array(
-                'title' => esc_html__(SettingsView::getTitle()),
+                'title' => esc_html(SettingsView::getTitle()),
                 'desc' => SettingsView::getLongDescription()
         ),
     );
