@@ -8,8 +8,7 @@ use PHPUnit\Framework\TestCase;
 class TestSettingsView extends TestCase
 {
 
-    public function testRegisterTrackbackHook()
-    {
+    public function testSettingsViewReturnsNonEmptyStrings()
         $this->assertIsString(
             SettingsView::getTitle()
         );
