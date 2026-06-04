@@ -43,7 +43,7 @@ use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\PingbackTrackback\PingbackHandler;
-use Cleantalk\ApbctWP\PingbackTrackback\TrackbackHandler;
+use Cleantalk\ApbctWP\PingbackTrackback\TrackBackHandler;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use Cleantalk\Common\DNS;
 use Cleantalk\Common\Firewall;
@@ -278,7 +278,7 @@ add_action('init', function () {
 
     if ($apbct->settings['wp__disable_pingback_and_trackback']) {
         new PingbackHandler();
-        new TrackbackHandler();
+        new TrackBackHandler();
     }
 
     // Self cron

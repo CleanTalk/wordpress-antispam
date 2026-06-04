@@ -11,7 +11,7 @@ namespace Cleantalk\ApbctWP\PingbackTrackback;
  * Trackback requests and returns an error response before WordPress can
  * create a Trackback comment.
  */
-class TrackbackHandler
+class TrackBackHandler
 {
     /**
      * Registers hooks required to block incoming Trackbacks.
