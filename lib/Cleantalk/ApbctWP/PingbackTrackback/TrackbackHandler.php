@@ -34,7 +34,7 @@ class TrackbackHandler
      *
      * @return void
      */
-    public function blockTrackback(...$args)
+    public function blockTrackback(...$_args)
     {
         if (function_exists('trackback_response')) {
             trackback_response(
