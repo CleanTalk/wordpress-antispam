@@ -57,6 +57,10 @@ class TestPingbackHandler extends TestCase
 
     public function testBlockPingbackReturnsIXRError()
     {
+        if (!class_exists('\IXR_Error') && defined('ABSPATH') && defined('WPINC')) {
+            require_once ABSPATH . WPINC . '/class-IXR.php';
+        }
+
         $handler = new PingbackHandler();
 
         $result = $handler->blockPingback();
