@@ -56,7 +56,7 @@ class PingbackHandler
      *                         is unavailable.
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function blockPingback()
+    public function blockPingback(...$_args)
     {
         if (class_exists('\IXR_Error')) {
             return new \IXR_Error(
