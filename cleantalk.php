@@ -42,6 +42,8 @@ use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\ApbctWP\PingbackTrackback\PingbackHandler;
+use Cleantalk\ApbctWP\PingbackTrackback\TrackbackHandler;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use Cleantalk\Common\DNS;
 use Cleantalk\Common\Firewall;
@@ -273,6 +275,11 @@ apbct_update_actions();
 
 add_action('init', function () {
     global $apbct;
+
+    if ($apbct->settings['wp__disable_pingback_and_trackback']) {
+        new PingbackHandler();
+        new TrackbackHandler();
+    }
 
     // Self cron
     $ct_cron = Cron::getInstance();
@@ -2135,6 +2142,7 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
                         die('FAIL ' . json_encode(array('error' => $installer->apbct_result)));
                     }
                 } else {
+                    /** @psalm-suppress PossiblyInvalidMethodCall */
                     die(
                         'FAIL ' . json_encode(array(
                             'error'   => 'FAIL_TO_GET_LATEST_VERSION',
@@ -2174,6 +2182,7 @@ function apbct_rc__activate_plugin($plugin)
             $result_array = array('success' => true);
 
             if ( is_wp_error($result) ) {
+                /** @psalm-suppress PossiblyInvalidMethodCall */
                 $error_msg = ' ' . $result->get_error_message();
                 $result_array = array(
                     'error'   => 'FAIL_TO_ACTIVATE',
