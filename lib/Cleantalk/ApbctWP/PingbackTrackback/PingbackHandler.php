@@ -35,7 +35,9 @@ class PingbackHandler
     public function registerPingbackBlock($methods)
     {
         // Override Pingback-related XML-RPC methods to prevent WordPress from processing incoming Pingback requests.
-        $methods['pingback.ping'] = array($this, 'blockPingback');
+        if (isset($methods['pingback.ping'])) {
+            $methods['pingback.ping'] = array($this, 'blockPingback');
+        }
 
         if (isset($methods['pingback.extensions.getPingbacks'])) {
             $methods['pingback.extensions.getPingbacks'] = array($this, 'blockPingback');
