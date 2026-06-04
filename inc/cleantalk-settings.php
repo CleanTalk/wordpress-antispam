@@ -920,10 +920,10 @@ function apbct_settings__set_fields()
             'html_after' => '</div><div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}<div class="apbct_hidden_section_nav_mob_btn"></div></div></div>',
             'fields'     => array(
                 'wp__disable_pingback_and_trackback'             => array(
-                        'type'        => 'checkbox',
-                        'title'       => SettingsView::getTitle(),
-                        'description'       => SettingsView::getDescription(),
-                        'long_description' => true,
+                    'type'        => 'checkbox',
+                    'title'       => SettingsView::getTitle(),
+                    'description'       => SettingsView::getDescription(),
+                    'long_description' => true,
                 ),
                 'comments__hide_website_field'             => array(
                     'type'        => 'checkbox',
@@ -3183,8 +3183,8 @@ function apbct_settings__get__long_description()
                 . '<br>' . esc_html__("We do not recommend disabling this functionality.", 'cleantalk-spam-protect')
         ),
         'wp__disable_pingback_and_trackback' => array(
-                'title' => esc_html(SettingsView::getTitle()),
-                'desc' => SettingsView::getLongDescription()
+            'title' => esc_html(SettingsView::getTitle()),
+            'desc' => SettingsView::getLongDescription()
         ),
     );
 
