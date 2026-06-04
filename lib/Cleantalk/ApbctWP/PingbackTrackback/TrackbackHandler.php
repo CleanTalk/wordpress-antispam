@@ -2,7 +2,6 @@
 
 namespace Cleantalk\ApbctWP\PingbackTrackback;
 
-use JetBrains\PhpStorm\NoReturn;
 
 /**
  * Blocks incoming Trackback requests.
