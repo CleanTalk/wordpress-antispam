@@ -7,7 +7,7 @@ Requires PHP: 7.2
 Stable tag: 6.80
 License: GPLv2
 
-Top-rated antispam protection for WordPress, eCommerce. Blocks spam on forms, comments and registrations. No CAPTCHA, no bot anti-spam plugin.
+Top-rated antispam protection. Spam FireWall & Honeypot. Blocks spam on forms, comments and registrations. No CAPTCHA, no bot anti-spam plugin.
 
 == Description ==
 
