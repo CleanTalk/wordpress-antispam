@@ -3918,6 +3918,150 @@ class ApbctHandler {
     }
 
     /**
+     * CSS class names used by popular themes for search forms.
+     * @return {string[]}
+     */
+    getPopularThemeSearchFormClassNames() {
+        return [
+            'search-form', // Astra, Neve, OceanWP, GeneratePress, WP default HTML5
+            'searchform', // WP legacy
+            'et_pb_searchform', // Divi
+            'kadence-search-form', // Kadence
+            'ct-search-form', // Blocksy
+        ];
+    }
+
+    /**
+     * Check if the form is a GET search form from a popular theme markup.
+     * @param {HTMLFormElement} form
+     * @return {boolean}
+     */
+    isPopularThemeSearchForm(form) {
+        if (!form || form.tagName !== 'FORM') {
+            return false;
+        }
+
+        const method = (form.getAttribute('method') || 'get').toLowerCase();
+        if (method !== 'get' || !form.querySelector('input[name="s"]')) {
+            return false;
+        }
+
+        if (form.id === 'searchform' || form.getAttribute('role') === 'search') {
+            return true;
+        }
+
+        for (const className of this.getPopularThemeSearchFormClassNames()) {
+            if (form.classList.contains(className)) {
+                return true;
+            }
+        }
+
+        const parentSelectors = [
+            '.kadence-search-form',
+            '.ast-search-menu',
+            '.header-search-wrap',
+        ];
+        for (const parentSelector of parentSelectors) {
+            if (form.closest(parentSelector)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if the page contains a popular-theme GET search form.
+     * @return {boolean}
+     */
+    pageHasPopularThemeSearchForm() {
+        for (const form of document.forms) {
+            if (this.isPopularThemeSearchForm(form)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * LS key: timestamp (ms) of the last successful search-form token sync to alt cookies.
+     * @return {string}
+     */
+    getSearchFormTokenAltCookieSentAtLsKey() {
+        return 'apbct_search_form_token_alt_cookie_sent_at';
+    }
+
+    /**
+     * Whether enough time has passed since the last successful alt-cookie token sync.
+     * Uses apbctLocalStorage timestamp from the previous successful send.
+     * @return {boolean}
+     */
+    canSendSearchFormTokenToAlternativeCookie() {
+        const lsKey = this.getSearchFormTokenAltCookieSentAtLsKey();
+        if (!apbctLocalStorage.isSet(lsKey)) {
+            return true;
+        }
+
+        return !apbctLocalStorage.isAlive(lsKey, 5 * 60); // 5 minutes
+    }
+
+    /**
+     * Remember successful search-form token sync in LS.
+     * @return {void}
+     */
+    markSearchFormTokenAltCookieSent() {
+        apbctLocalStorage.set(this.getSearchFormTokenAltCookieSentAtLsKey(), 1);
+    }
+
+    /**
+     * Write bot detector event token to alternative cookies for search requests.
+     * Throttled: at most one successful send per 5 minutes (tracked in LS).
+     * @return {void}
+     */
+    writeSearchFormTokenToAlternativeCookie() {
+        if (!+ctPublic.bot_detector_enabled) {
+            return;
+        }
+
+        if (!this.canSendSearchFormTokenToAlternativeCookie()) {
+            return;
+        }
+
+        const eventTokenLocalStorage = apbctLocalStorage.get('bot_detector_event_token');
+        if (!eventTokenLocalStorage) {
+            return;
+        }
+
+        const handler = this;
+        ctSetAlternativeCookie(
+            JSON.stringify({ ct_bot_detector_event_token: eventTokenLocalStorage }),
+            {
+                forceAltCookies: true,
+                callback: function() {
+                    handler.markSearchFormTokenAltCookieSent();
+                },
+            },
+        );
+    }
+
+    /**
+     * Sync bot detector token to alt cookies when a popular-theme search form is on the page.
+     * Complements searchFormMiddleware() which handles native_search forms on submit.
+     * @return {void}
+     */
+    searchFormMiddlewareJustSetTokenToAlternativeCookie() {
+        if (typeof ctPublic === 'undefined' || +ctPublic.settings__forms__search_test !== 1) {
+            return;
+        }
+
+        if (!this.pageHasPopularThemeSearchForm()) {
+            return;
+        }
+
+        this.writeSearchFormTokenToAlternativeCookie();
+    }
+
+    /**
      * Handle search forms middleware
      * @return {void}
      */
@@ -4536,10 +4680,15 @@ async function apbct_ready() {
 
             handler.catchMain(form, i);
         }
+
+        if (+ctPublic.settings__forms__search_test === 1) {
+            handler.searchFormMiddlewareJustSetTokenToAlternativeCookie();
+        }
     }, 1000);
 
     if (+ctPublic.settings__forms__search_test === 1) {
         handler.searchFormMiddleware();
+        handler.searchFormMiddlewareJustSetTokenToAlternativeCookie();
     }
 
     handler.catchXmlHttpRequest();
@@ -4563,6 +4712,9 @@ async function apbct_ready() {
                         JSON.stringify({'ct_bot_detector_event_token': botDetectorEventToken}),
                         {forceAltCookies: true},
                     );
+                }
+                if (+ctPublic.settings__forms__search_test === 1 && handler.pageHasPopularThemeSearchForm()) {
+                    handler.writeSearchFormTokenToAlternativeCookie();
                 }
             }
         });
