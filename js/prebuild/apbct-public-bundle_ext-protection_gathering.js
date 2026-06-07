@@ -3683,12 +3683,6 @@ class ApbctHandler {
                     sourceSign.keepUnwrapped = true;
                     sourceSign.attachVisibleFieldsData = true;
                 }
-                if (
-                    ajaxObject.data.indexOf('action=rednao_smart_forms_save_form_values') !== -1
-                ) {
-                    sourceSign.found = 'action=rednao_smart_forms_save_form_values';
-                    sourceSign.keepUnwrapped = true;
-                }
             }
             // wooocommerce add to cart is based on URL
             if ( typeof ajaxObject.url === 'string' ) {
