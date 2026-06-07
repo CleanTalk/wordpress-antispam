@@ -3152,13 +3152,19 @@ class ApbctHandler {
                         apbctLocalStorage.get('bot_detector_event_token')
                     )) {
                         let noCookieData = getNoCookieData();
-                        if (body.indexOf('ct_no_cookie_hidden_field=') === -1) {
+                        const hasNoCookieField =
+                            body.indexOf('ct_no_cookie_hidden_field=') !== -1 ||
+                            body.indexOf('data%5Bct_no_cookie_hidden_field%5D=') !== -1;
+                        if (!hasNoCookieField) {
                             addidionalCleantalkData += '&' + noCookieDataKey + '=' + noCookieData;
                         }
                     } else {
                         const eventToken = new ApbctHandler().toolGetEventToken();
                         if (eventToken) {
-                            if (body.indexOf('ct_bot_detector_event_token=') === -1) {
+                            const hasEventToken =
+                                body.indexOf('ct_bot_detector_event_token=') !== -1 ||
+                                body.indexOf('data%5Bct_bot_detector_event_token%5D=') !== -1;
+                            if (!hasEventToken) {
                                 addidionalCleantalkData += '&' + eventTokenKey + '=' + eventToken;
                             }
                         }
