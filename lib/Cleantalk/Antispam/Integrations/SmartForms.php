@@ -14,7 +14,6 @@ class SmartForms extends IntegrationBase
 
         $input_array = apply_filters('apbct__filter_post', $_POST);
         $email = '';
-        $nickname = '';
 
         if (isset($input_array['formString']) && is_string($input_array['formString'])) {
             $form_data = json_decode(stripslashes($input_array['formString']), true);
@@ -32,7 +31,7 @@ class SmartForms extends IntegrationBase
             }
         }
 
-        return ct_gfa_dto($input_array, $email, $nickname)->getArray();
+        return ct_gfa_dto($input_array, $email)->getArray();
     }
 
     /**
