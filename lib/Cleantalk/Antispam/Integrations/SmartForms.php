@@ -24,8 +24,9 @@ class SmartForms extends IntegrationBase
                         continue;
                     }
 
-                    if ($email === '' && filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                    if (filter_var($value, FILTER_VALIDATE_EMAIL)) {
                         $email = $value;
+                        break;
                     }
                 }
             }
