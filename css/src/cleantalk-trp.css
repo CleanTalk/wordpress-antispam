@@ -55,6 +55,11 @@
     flex-direction: column;
     gap: 1px;
 }
+@media (min-width: 768px) {
+    .apbct-real-user-popup-content_row {
+        white-space: nowrap;
+    }
+}
 
 .apbct-real-user-popup-content_row * {
     color: grey;
