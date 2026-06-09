@@ -90,8 +90,12 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
             if ( ! empty($ua_bl_results)) {
                 foreach ($ua_bl_results as $ua_bl_result) {
                     if (
-                        ! empty($ua_bl_result['ua_template']) &&
-                        preg_match("%" . str_replace('"', '', $ua_bl_result['ua_template']) . "%i", $this->server__http_user_agent)
+                        ! empty($ua_bl_result['ua_template'])
+                        && preg_match(
+                            '%' . str_replace(array('"', '%'), array('', '\%'), $ua_bl_result['ua_template']) . '%i',
+                            $this->server__http_user_agent
+                        )
+                        && ! in_array(preg_last_error(), array(PREG_BACKTRACK_LIMIT_ERROR, PREG_RECURSION_LIMIT_ERROR), true)
                     ) {
                         if (TT::getArrayValueAsString($ua_bl_result, 'ua_status')  === '1') {
                             // Whitelisted
@@ -314,7 +318,9 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
             $this->sfw_die_page = str_replace($place_holder, $replace, $this->sfw_die_page);
         }
 
-        http_response_code(403);
+        if ( ! headers_sent() ) {
+            http_response_code(403);
+        }
 
         // File exists?
         if (file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html")) {

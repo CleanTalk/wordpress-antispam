@@ -517,6 +517,7 @@ class ApbctHandler {
             document.querySelector('#newAppointmentForm') !== null ||
             document.querySelector('.booked-calendar-shortcode-wrap') !== null ||
             document.querySelector('.et_pb_newsletter_form') !== null ||
+            document.querySelector('form.mailpoet_form') !== null ||
             (
                 // Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
                 document.body.classList.contains('single-product') &&
@@ -532,7 +533,11 @@ class ApbctHandler {
                         body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
                         body.indexOf('action=booked_add_appt') !== -1 ||
                         body.indexOf('action=cwginstock_product_subscribe') !== -1 ||
-                        body.indexOf('action=et_pb_submit_subscribe_form') !== -1
+                        body.indexOf('action=et_pb_submit_subscribe_form') !== -1 ||
+                        (
+                            body.indexOf('action=mailpoet') !== -1 &&
+                            body.indexOf('method=subscribe') !== -1
+                        )
                     );
                 const isDiviNewsletterRequest = body && typeof body === 'string' &&
                     body.indexOf('action=et_pb_submit_subscribe_form') !== -1;
@@ -1106,7 +1111,11 @@ class ApbctHandler {
                 }
             }
 
-            if (typeof ajaxObject.data === 'object' && typeof ajaxObject.data.get === 'function') {
+            if (
+                typeof ajaxObject.data === 'object' &&
+                ajaxObject.data !== null &&
+                typeof ajaxObject.data.get === 'function'
+            ) {
                 if (ajaxObject.data.get('action') === 'pafe_ajax_form_builder') {
                     sourceSign.found = 'action=pafe_ajax_form_builder';
                     sourceSign.keepUnwrapped = true;
@@ -1862,9 +1871,11 @@ async function apbctImportScript(scriptAbsolutePath) {
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 async function apbct_ready() {
-    apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
-    ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key, true);
-
+    // Only set ct_checkjs if the key is actually provided (not on block pages)
+    if (typeof ctPublic.ct_checkjs_key !== 'undefined' && ctPublic.ct_checkjs_key !== null) {
+        apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
+        ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key);
+    }
 
     new ApbctShowForbidden().prepareBlockForAjaxForms();
 

@@ -1,13 +1,13 @@
-=== Anti Spam for Contact Forms, Comments & Online Stores - CleanTalk ===
+=== Anti-Spam by CleanTalk. Spam Firewall & protection === 
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: antispam, honeypot, contact form spam, captcha, akismet
 Requires at least: 4.7
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.79.1
+Stable tag: 6.80
 License: GPLv2
 
-Top-rated anti spam protection for WordPress, eCommerce. Blocks spam on forms, comments and registrations automatically. No CAPTCHA.
+Top-rated antispam plugin for WordPress, eCommerce. Blocks spam on forms, comments and registrations. No CAPTCHA, no bot anti-spam.
 
 == Description ==
 
@@ -18,11 +18,11 @@ Top-rated antispam protection for WordPress. No CAPTCHA, no puzzles, and no visi
 2. Stops spam registrations.
 3. Stops spam contact emails.
 4. Stops fake orders eCommerce sites and online stores.
-5. Stops spam bookings.
-6. Stops spam subscriptions.
+5. Antispam for bookings.
+6. Antispam subscriptions.
 7. Stops spam surveys, polls.
 9. Stops spam in WooCommerce.
-17. Stops spam in Search Form.
+17. Antispam for Search Form.
 10. Real-time email validation. Check if an email is real or fake.
 11. Checks and removes the existing spam comments and spam users.
 14. Blocking  disposable & temporary emails.
@@ -54,17 +54,17 @@ CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam se
 = AntiSpam protection for comments =
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
 
-= Contact Form 7 spam filter =
+= Contact Form 7 Antispam =
 Plugin extends spam protection for Contact Form 7 (CF7). It can be used with any other third-party spam filters.
 <a href="https://blog.cleantalk.org/how-to-protect-your-contactform7-contact-form-using-cleantalk-anti-spam-plugin/">How to protect your Contact Form 7 using CleanTalk Anti-Spam plugin</a>
 
 = Elementor Website Builder filter =
 Plugin extends spam protection for Elementor Website Builder. It filters spam submisssions and tested for contact form type.
 
-= Gravity forms spam filter =
+= Gravity forms Antispam =
 Plugin extends spam protection for Gravity forms. It filters spam submisssions for any type of forms.
 
-= Formidable Form Builder spam filter =
+= Formidable Form Builder Antispam =
 Plugin extends spam protection for Formidable Form Builder. It filters spam submisssions for any type of forms - Contact Form, Survey & Quiz Forms.
 
 = Leaky Paywall subscription protection =
@@ -73,10 +73,10 @@ Plugin protects Leaky Paywall plugin (by ZEEN01) against spam subscriptions. It 
 = HubSpot protection for embedded forms =
 Plugin protects HubSpot embedded forms against any spam submissions. Guide to start using embedded forms https://knowledge.hubspot.com/forms/how-can-i-share-a-hubspot-form-if-im-using-an-external-site
 
-= Contact Form by WPForms spam filter =
+= Contact Form by WPForms Antispam =
 Plugin extends Contact Form by WPForms to provide spam protection. It filters spam submissions for each type of forms - simple contact form, marketing form, request a quote and etc.
 
-= WooCommerce spam & fake orders filter =
+= Antispam for WooCommerce & fake orders filter =
 Anti-spam by CleanTalk filters spam registrations, spam reviews, and fake orders for WooCommerce (any eCommerce plugin as well). The plugin is fully compatible with WooCommerce 2.1+ and online stores.
 
 = Spam filter for theme contact forms =
@@ -153,9 +153,9 @@ Block fake and suspicious users with disposable & temporary emails to improve em
 = Stops Spam in Search Form =
 Spam bots can use your search form to make a GET request with spam text. CleanTalk Anti-Spam has the option to protect your website search form from spam bots. Each time, the search generates a new page and if there are many requests, this can create additional load. So, under some conditions, spam searches can be indexed, which affects SEO,
 
-* Anti-Spam protection for website search forms repels spambots.
+* Anti-Spam protection for website search forms repels spam bots.
 * If your search form gets data too often the CleanTalk Anti-Spam plugin will add a pause and increase it with each new attempt to send data. It saves your web server processor time.
-* Spam protection allows you to not forbid indexation for the crawler bots if you really need it but simultaneously you will get protection from spambots.
+* Spam protection allows you to not forbid indexation for the crawler bots if you really need it but simultaneously you will get protection from spam bots.
 
 You will always know what users were looking for on your site.
 
@@ -382,6 +382,23 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.80 28.05.2026 =
+* Fix. catchJqueryAjax. Object as null comparison fixed.
+* Fix. CatchXHR. Mailpoet integration added to provide the event_token.
+* Upd. Bot Detector Service. Added alternative source URL.
+* Upd. Bot Detector Service. Updates.
+* Fix. PHP8. Prevent duplicate headers before sending HTTP response code.
+* Fix. TRP. Correctly save TRP hashes.
+* Mod. Settings. Transferring an option and deleting its description
+* Fix. Code. Bug fixes after WP 7.0 update
+* Fix. Admin banners. Call-to-action buttons visibility fixed.
+* Mod. Settings. Editing the description of the Anti-Crawler option
+* Fix. Settings. Edit long description
+* Mod. Integration. Opting out of force alt cookies for UserRegistrationPro members
+* Fix. BotDetector. Editing the bot detector connection
+* Fix. CheckJS. Edit the check_js entry if the global key is not available
+* Fix. Code. Added a space between the username and the TRP text
 
 = 6.79.1 25.05.2026 =
 * Fix. Admin banners. Call-to-action buttons visibility fixed.

@@ -13,3 +13,4 @@ checkstyle.xml
 /lib/Cleantalk/Common/ContactsEncoder/tests/
 /coverage.xml
 /tests/.phpunit.result.cache
+.phpunit.result.cache

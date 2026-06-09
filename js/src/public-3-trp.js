@@ -71,8 +71,8 @@ document.addEventListener('DOMContentLoaded', function() {
         trpDescriptionContent.setAttribute('class', 'apbct-real-user-popup-content_row');
 
         let trpDescriptionContentFirstLine = document.createElement('div');
-        trpDescriptionContentFirstLine.append(trpDescriptionHeading);
         trpDescriptionContentFirstLine.append(' ');
+        trpDescriptionContentFirstLine.append(trpDescriptionHeading);
         trpDescriptionContentFirstLine.append(ctTrpLocalize.phrases.trpContent1);
 
         let trpDescriptionContentSecondLine = document.createElement('div');
