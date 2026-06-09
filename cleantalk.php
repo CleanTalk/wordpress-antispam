@@ -901,7 +901,7 @@ function apbct_sfw__check()
             );
             Cookie::set(
                 'ct_sfw_pass_key',
-                md5(Server::get('REMOTE_ADDR') . $apbct->api_key),
+                md5(Server::get('REMOTE_ADDR') . $apbct->api_key . $apbct->data['salt']),
                 time() + 1200,
                 '/',
                 ''

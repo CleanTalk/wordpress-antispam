@@ -6159,7 +6159,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let trpDescriptionContent = document.createElement('div');
         trpDescriptionContent.setAttribute('class', 'apbct-real-user-popup-content_row');
-        trpDescriptionContent.setAttribute('style', 'white-space: nowrap');
 
         let trpDescriptionContentFirstLine = document.createElement('div');
         trpDescriptionContentFirstLine.append(' ');
