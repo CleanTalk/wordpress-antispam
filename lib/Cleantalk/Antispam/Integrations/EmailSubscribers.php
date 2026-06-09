@@ -2,8 +2,6 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\ApbctWP\Variables\Post;
-
 class EmailSubscribers extends IntegrationBase
 {
     public function getDataForChecking($argument)
@@ -24,7 +22,7 @@ class EmailSubscribers extends IntegrationBase
                     'apbct' => array(
                         'blocked'     => true,
                         'comment'     => $message,
-                        'stop_script' => 1
+                        'stop_script' => apbct__stop_script_after_ajax_checking()
                     )
                 )
             )
