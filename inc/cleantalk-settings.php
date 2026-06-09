@@ -7,6 +7,7 @@ use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\LinkConstructor;
+use Cleantalk\ApbctWP\PingbackTrackback\SettingsView;
 use Cleantalk\ApbctWP\Validate;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Cron;
@@ -918,6 +919,12 @@ function apbct_settings__set_fields()
             'section'    => 'hidden_section',
             'html_after' => '</div><div id="apbct_hidden_section_nav">{HIDDEN_SECTION_NAV}<div class="apbct_hidden_section_nav_mob_btn"></div></div></div>',
             'fields'     => array(
+                'wp__disable_pingback_and_trackback'             => array(
+                    'type'        => 'checkbox',
+                    'title'       => SettingsView::getTitle(),
+                    'description'       => SettingsView::getDescription(),
+                    'long_description' => true,
+                ),
                 'comments__hide_website_field'             => array(
                     'type'        => 'checkbox',
                     'title'       => __('Hide the "Website" field', 'cleantalk-spam-protect'),
@@ -3174,6 +3181,10 @@ function apbct_settings__get__long_description()
                 . '<br><br>' . esc_html__("Disabling the Bot Detector will reduce anti-spam effectiveness.", 'cleantalk-spam-protect')
                 . '<br>' . esc_html__("It can only be disabled by adding the following constant to your wp-config.php: define('APBCT_SERVICE__BOT_DETECTOR_ENABLED', false);", 'cleantalk-spam-protect')
                 . '<br>' . esc_html__("We do not recommend disabling this functionality.", 'cleantalk-spam-protect')
+        ),
+        'wp__disable_pingback_and_trackback' => array(
+            'title' => esc_html(SettingsView::getTitle()),
+            'desc' => SettingsView::getLongDescription()
         ),
     );
 
