@@ -493,6 +493,10 @@ class ApbctHandler {
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
         ctPublic.force_alt_cookies = jetpackCommentsForm;
 
+        /**
+         * NOT ADD ANY NEW INTEGRATION IN THIS FLOW
+         */
+
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
                 const bookingPress =
