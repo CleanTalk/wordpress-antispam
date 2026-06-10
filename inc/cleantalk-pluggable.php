@@ -1744,6 +1744,14 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'invoicing';
         }
+
+        // Email Subscribers by Icegram Express - skip subscribe action
+        if (
+            apbct_is_plugin_active('email-subscribers/email-subscribers.php') &&
+            Post::equal('action', 'es_add_subscriber')
+        ) {
+            return 'Email Subscribers by Icegram Express - skip subscribe action';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
