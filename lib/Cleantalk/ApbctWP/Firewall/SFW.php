@@ -146,7 +146,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         foreach ($this->ip_array as $current_ip) {
             if (
                 TT::toString(Cookie::get('ct_sfw_pass_key'))
-                && strpos(TT::toString(Cookie::get('ct_sfw_pass_key')), md5($current_ip . $this->api_key)) === 0
+                && strpos(TT::toString(Cookie::get('ct_sfw_pass_key')), md5($current_ip . $this->api_key . $apbct->data['salt'])) === 0
             ) {
                 if (Cookie::get('ct_sfw_passed')) {
                     if ( ! headers_sent()) {
@@ -290,37 +290,49 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     {
         $id   = md5($ip . $this->module_name);
         $time = time();
+        $blocked = strpos($status, 'DENY') !== false ? 1 : 0;
         $short_url_to_log = substr($this->server__http_host . $this->server__request_uri, 0, 100);
+
+        // Sanitize source: must be SQL NULL or integer
+        $source_safe = ($source === 'NULL' || $source === null) ? 'NULL' : (int)$source;
 
         $this->db->prepare(
             "INSERT INTO " . $this->db__table__logs . "
             SET
-                id = '$id',
-                ip = '$ip',
-                status = '$status',
+                id = %s,
+                ip = %s,
+                status = %s,
                 all_entries = 1,
-                blocked_entries = " . (strpos($status, 'DENY') !== false ? 1 : 0) . ",
-                entries_timestamp = '" . $time . "',
+                blocked_entries = %d,
+                entries_timestamp = %d,
                 ua_name = %s,
-                source = $source,
+                source = " . $source_safe . ",
                 network = %s,
                 first_url = %s,
                 last_url = %s
             ON DUPLICATE KEY
             UPDATE
-                status = '$status',
-                source = $source,
+                status = %s,
+                source = " . $source_safe . ",
                 all_entries = all_entries + 1,
-                blocked_entries = blocked_entries" . (strpos($status, 'DENY') !== false ? ' + 1' : '') . ",
-                entries_timestamp = '" . $time . "',
+                blocked_entries = blocked_entries + %d,
+                entries_timestamp = %d,
                 ua_name = %s,
                 network = %s,
                 last_url = %s",
             array(
+                $id,
+                $ip,
+                $status,
+                $blocked,
+                $time,
                 $this->server__http_user_agent,
                 $network,
                 $short_url_to_log,
                 $short_url_to_log,
+                $status,
+                $blocked,
+                $time,
                 $this->server__http_user_agent,
                 $network,
                 $short_url_to_log,
@@ -340,9 +352,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
     public function actionsForPassed($result)
     {
+        global $apbct;
         if ($this->data__cookies_type === 'native' && ! headers_sent()) {
             $status     = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
-            $cookie_val = md5($result['ip'] . $this->api_key) . $status;
+            $cookie_val = md5($result['ip'] . $this->api_key . $apbct->data['salt']) . $status;
             Cookie::setNativeCookie(
                 'ct_sfw_pass_key',
                 $cookie_val,
@@ -381,7 +394,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $net_count = $apbct->stats['sfw']['entries'];
 
             $status     = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
-            $cookie_val = md5($result['ip'] . $this->api_key) . $status;
+            $cookie_val = md5($result['ip'] . $this->api_key . $apbct->data['salt']) . $status;
 
             $block_message = sprintf(
                 esc_html__('SpamFireWall is checking your browser and IP %s for spam bots', 'cleantalk-spam-protect'),

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.80
+  Version: 6.81
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -42,6 +42,8 @@ use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\ApbctWP\PingbackTrackback\PingbackHandler;
+use Cleantalk\ApbctWP\PingbackTrackback\TrackBackHandler;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use Cleantalk\Common\DNS;
 use Cleantalk\Common\Firewall;
@@ -229,7 +231,9 @@ if (
     if ($apbct->settings['data__email_decoder'] && !$skip_email_encode && !apbct_is_amp_request()) {
         // Encode content
         $contacts_encoder->runEncoding();
+    }
 
+    if ( apbct_is_ajax() ) {
         // Email Encoder ajax handlers for decoding
         $contacts_encoder->registerAjaxRoute();
     }
@@ -273,6 +277,11 @@ apbct_update_actions();
 
 add_action('init', function () {
     global $apbct;
+
+    if ($apbct->settings['wp__disable_pingback_and_trackback']) {
+        new PingbackHandler();
+        new TrackBackHandler();
+    }
 
     // Self cron
     $ct_cron = Cron::getInstance();
@@ -901,7 +910,7 @@ function apbct_sfw__check()
             );
             Cookie::set(
                 'ct_sfw_pass_key',
-                md5(Server::get('REMOTE_ADDR') . $apbct->api_key),
+                md5(Server::get('REMOTE_ADDR') . $apbct->api_key . $apbct->data['salt']),
                 time() + 1200,
                 '/',
                 ''
@@ -2135,6 +2144,7 @@ function apbct_rc__install_plugin($_wp = null, $plugin = null)
                         die('FAIL ' . json_encode(array('error' => $installer->apbct_result)));
                     }
                 } else {
+                    /** @psalm-suppress PossiblyInvalidMethodCall */
                     die(
                         'FAIL ' . json_encode(array(
                             'error'   => 'FAIL_TO_GET_LATEST_VERSION',
@@ -2174,6 +2184,7 @@ function apbct_rc__activate_plugin($plugin)
             $result_array = array('success' => true);
 
             if ( is_wp_error($result) ) {
+                /** @psalm-suppress PossiblyInvalidMethodCall */
                 $error_msg = ' ' . $result->get_error_message();
                 $result_array = array(
                     'error'   => 'FAIL_TO_ACTIVATE',
