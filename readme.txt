@@ -1,21 +1,21 @@
-=== Anti-Spam by CleanTalk. Spam Firewall & protection === 
+=== Anti-Spam by CleanTalk. Spam protection === 
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
-Tags: antispam, honeypot, contact form spam, captcha, akismet
+Tags: antispam, honeypot, contact form spam, captcha, login 
 Requires at least: 4.7
 Tested up to: 7.0
 Requires PHP: 7.2
 Stable tag: 6.80
 License: GPLv2
 
-Top-rated antispam plugin for WordPress, eCommerce. Blocks spam on forms, comments and registrations. No CAPTCHA, no bot anti-spam.
+Top-rated antispam plugin. For contact forms, orders, registration, login. No CAPTCHA, no puzzle, no bot anti-spam. Global spam detection network. 
 
 == Description ==
 
-Top-rated antispam protection for WordPress. No CAPTCHA, no puzzles, and no visitor friction - just automatic spam blocking for forms, comments, registrations, subscriptions, and fake orders.
+Top-rated ant-spam protection for WordPress. **No CAPTCHAs**, no puzzles, and no visitor friction — just automatic spam blocking for forms, comments, registrations, subscriptions, and fake orders. Powered by a **global spam detection network** that helps stop spam before it reaches your website. Easy to install and ready to protect your site in **less than 30 seconds**.
 
 = Superpowers =
 1. Stops spam comments.
-2. Stops spam registrations.
+2. Stops spam registrations and logins.
 3. Stops spam contact emails.
 4. Stops fake orders eCommerce sites and online stores.
 5. Antispam for bookings.
