@@ -83,12 +83,21 @@ class API extends \Cleantalk\Common\API
         // Adding agent version to data
         $data['agent'] = defined('APBCT_AGENT') ? APBCT_AGENT : '';
 
+        $options = ['timeout' => $timeout];
+        // Optional proxy (constants declared in wp-config.php).
+        if ( defined('CT_PROXY_HOST') && CT_PROXY_HOST !== '' ) {
+            $proxy = CT_PROXY_HOST . ':' . CT_PROXY_PORT;
+            $options['proxy']           = $proxy;          // WP HTTP API branch
+            $options[CURLOPT_PROXY]     = CT_PROXY_HOST;   // cURL branch
+            $options[CURLOPT_PROXYPORT] = CT_PROXY_PORT;
+        }
+
         $http = new Request();
 
         $request = $http->setUrl($url)
                     ->setData($data)
                     ->setPresets(['retry_with_socket'])
-                    ->setOptions(['timeout' => $timeout]);
+                    ->setOptions($options);
         if ( isset($data['method_name']) ) {
             $request->addCallback(
                 __CLASS__ . '::checkResponse',
