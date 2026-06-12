@@ -11,7 +11,7 @@ Top-rated antispam plugin. For contact forms, orders, registration, login. No CA
 
 == Description ==
 
-Top-rated ant-spam protection for WordPress. **No CAPTCHAs, no puzzles, and no visitor friction** — just automatic spam blocking for forms, comments, registrations, subscriptions, and fake orders. Powered by a **global spam detection network** that helps stop spam before it reaches your website. Easy to install and ready to protect your site in **less than 30 seconds**.
+Top-rated anti-spam protection for WordPress. **No CAPTCHAs, no puzzles, and no visitor friction** — just automatic spam blocking for forms, comments, registrations, subscriptions, and fake orders. Powered by a **global spam detection network** that helps stop spam before it reaches your website. Easy to install and ready to protect your site in **less than 30 seconds**.
 
 = Superpowers =
 1. Stops spam comments.
