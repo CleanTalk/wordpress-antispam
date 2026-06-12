@@ -1,6 +1,6 @@
-=== Anti-Spam by CleanTalk. Spam protection ===
+=== CleanTalk Anti-Spam. Spam Firewall & Bot protection ===
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
-Tags: antispam, honeypot, contact form spam, captcha, login
+Tags: antispam, honeypot, bot, captcha, spam 
 Requires at least: 4.7
 Tested up to: 7.0
 Requires PHP: 7.2
