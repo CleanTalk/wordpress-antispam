@@ -71,14 +71,20 @@ class TestAmelia extends TestCase
     {
         $result = $this->getDataWithInput('{"customer":{"email":"customer@example.com"}}');
 
-        $this->assertSame(array('email' => 'customer@example.com'), $result);
+        $this->assertSame(
+            array('email' => 'customer@example.com', 'event_token' => ''),
+            $result
+        );
     }
 
     public function testGetDataForCheckingReturnsBookingsCustomerEmail()
     {
         $result = $this->getDataWithInput('{"bookings":[{"customer":{"email":"booking@example.com"}}]}');
 
-        $this->assertSame(array('email' => 'booking@example.com'), $result);
+        $this->assertSame(
+            array('email' => 'booking@example.com', 'event_token' => ''),
+            $result
+        );
     }
 
     public function testGetDataForCheckingPrefersCustomerEmail()
@@ -88,6 +94,19 @@ class TestAmelia extends TestCase
         $result = $this->getDataWithInput($payload);
 
         $this->assertSame('customer@example.com', $result['email']);
+    }
+
+    public function testGetDataForCheckingExtractsEventTokenFromJsonPayload()
+    {
+        $payload = '{"customer":{"email":"customer@example.com"},'
+            . '"ct_bot_detector_event_token":"abc123"}';
+
+        $result = $this->getDataWithInput($payload);
+
+        $this->assertSame(
+            array('email' => 'customer@example.com', 'event_token' => 'abc123'),
+            $result
+        );
     }
 
     public function testGetDataForCheckingReturnsNullForEmptyBody()
