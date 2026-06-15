@@ -84,12 +84,14 @@ class API extends \Cleantalk\Common\API
         $data['agent'] = defined('APBCT_AGENT') ? APBCT_AGENT : '';
 
         $options = ['timeout' => $timeout];
-        // Optional proxy (constants declared in wp-config.php).
-        if ( defined('CT_PROXY_HOST') && CT_PROXY_HOST !== '' ) {
-            $proxy = CT_PROXY_HOST . ':' . CT_PROXY_PORT;
-            $options['proxy']           = $proxy;          // WP HTTP API branch
-            $options[CURLOPT_PROXY]     = CT_PROXY_HOST;   // cURL branch
-            $options[CURLOPT_PROXYPORT] = CT_PROXY_PORT;
+        // Proxy settings from wp-config.php constants.
+        if ( defined('WP_PROXY_HOST') && WP_PROXY_HOST !== '' ) {
+            $options['proxy']           = WP_PROXY_HOST . ':' . WP_PROXY_PORT; // WP HTTP API branch
+            $options[CURLOPT_PROXY]     = WP_PROXY_HOST;                       // cURL branch
+            $options[CURLOPT_PROXYPORT] = WP_PROXY_PORT;
+            if ( defined('WP_PROXY_USERNAME') && WP_PROXY_USERNAME !== '' ) {
+                $options[CURLOPT_PROXYUSERPWD] = WP_PROXY_USERNAME . ':' . (defined('WP_PROXY_PASSWORD') ? WP_PROXY_PASSWORD : '');
+            }
         }
 
         $http = new Request();
