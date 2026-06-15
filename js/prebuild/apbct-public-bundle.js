@@ -3080,6 +3080,10 @@ class ApbctHandler {
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
         ctPublic.force_alt_cookies = jetpackCommentsForm;
 
+        /**
+         * NOT ADD ANY NEW INTEGRATION IN THIS FLOW
+         */
+
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
                 const bookingPress =
@@ -3110,8 +3114,23 @@ class ApbctHandler {
             ) ||
             document.querySelector('div.fluent_booking_wrap') !== null || // Fluent Booking Pro
             document.querySelector('div.fcal_calendar_slot_wrap ') !== null || // Fluent Booking / Calendar Pro
-            document.querySelectorAll('script[id*="smart-forms"]').length > 0
+            document.querySelectorAll('script[id*="smart-forms"]').length > 0 ||
+            // Amelia
+            document.querySelector(
+                '[id^="amelia-app-booking"], .amelia-frontend, .amelia-v2-booking',
+            ) !== null
         ) {
+            // Capture request URL on open() — send() does not receive URL directly
+            const originalOpen = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+                try {
+                    this._apbctUrl = typeof url === 'string' ? url : '';
+                } catch (e) {
+                    // ignore
+                }
+                return originalOpen.call(this, method, url, ...rest);
+            };
+
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
                 let isNeedToAddCleantalkDataCheckString = body && typeof body === 'string' &&
@@ -3184,6 +3203,28 @@ class ApbctHandler {
                         const eventToken = new ApbctHandler().toolGetEventToken();
                         if (eventToken) {
                             body.append('ct_bot_detector_event_token', eventToken);
+                        }
+                    }
+                }
+
+                // === Amelia (axios → XHR with JSON body) ===
+                const isAmeliaJsonRequest = body && typeof body === 'string' &&
+                    typeof this._apbctUrl === 'string' &&
+                    this._apbctUrl.indexOf('action=wpamelia_api') !== -1;
+                if (isAmeliaJsonRequest && +ctPublic.bot_detector_enabled) {
+                    const eventToken = new ApbctHandler().toolGetEventToken();
+                    if (eventToken) {
+                        try {
+                            const bodyObj = JSON.parse(body);
+                            if (
+                                bodyObj && typeof bodyObj === 'object' &&
+                                !Object.prototype.hasOwnProperty.call(bodyObj, 'ct_bot_detector_event_token')
+                            ) {
+                                bodyObj.ct_bot_detector_event_token = eventToken;
+                                body = JSON.stringify(bodyObj);
+                            }
+                        } catch (e) {
+                            // body is not JSON — leave as is
                         }
                     }
                 }
@@ -3405,6 +3446,22 @@ class ApbctHandler {
                     document.querySelectorAll('form.wprm-user-ratings-modal-stars-container').length > 0 &&
                     typeof args[0].includes === 'function' &&
                     args[0].includes('/wp-json/wp-recipe-maker/')
+                ) {
+                    try {
+                        args[1].body = attachFieldsToBody(
+                            args[1].body,
+                            selectFieldsData(+ctPublic.bot_detector_enabled),
+                        );
+                    } catch (e) {
+                        // Continue even if error
+                    }
+                }
+
+                // === Amelia ===
+                if (
+                    document.querySelectorAll('[id^="amelia-app"], .amelia-app, .amelia-frontend').length > 0 &&
+                    typeof args[0].includes === 'function' &&
+                    args[0].includes('action=wpamelia_api')
                 ) {
                     try {
                         args[1].body = attachFieldsToBody(

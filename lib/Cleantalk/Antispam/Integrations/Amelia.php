@@ -3,6 +3,7 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
 
 class Amelia extends IntegrationBase
 {
@@ -42,7 +43,14 @@ class Amelia extends IntegrationBase
             return null;
         }
 
-        return array('email' => $email);
+        $event_token = ! empty($payload['ct_bot_detector_event_token'])
+            ? (string) $payload['ct_bot_detector_event_token']
+            : Post::getString('ct_bot_detector_event_token');
+
+        return array(
+            'email'       => $email,
+            'event_token' => $event_token,
+        );
     }
 
     public function doBlock($message)
