@@ -527,23 +527,8 @@ class ApbctHandler {
             ) ||
             document.querySelector('div.fluent_booking_wrap') !== null || // Fluent Booking Pro
             document.querySelector('div.fcal_calendar_slot_wrap ') !== null || // Fluent Booking / Calendar Pro
-            document.querySelectorAll('script[id*="smart-forms"]').length > 0 ||
-            // Amelia
-            document.querySelector(
-                '[id^="amelia-app-booking"], .amelia-frontend, .amelia-v2-booking',
-            ) !== null
+            document.querySelectorAll('script[id*="smart-forms"]').length > 0
         ) {
-            // Capture request URL on open() — send() does not receive URL directly
-            const originalOpen = XMLHttpRequest.prototype.open;
-            XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-                try {
-                    this._apbctUrl = typeof url === 'string' ? url : '';
-                } catch (e) {
-                    // ignore
-                }
-                return originalOpen.call(this, method, url, ...rest);
-            };
-
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
                 let isNeedToAddCleantalkDataCheckString = body && typeof body === 'string' &&
@@ -620,7 +605,25 @@ class ApbctHandler {
                     }
                 }
 
-                // === Amelia (axios → XHR with JSON body) ===
+                return originalSend.apply(this, [body]);
+            };
+        }
+
+        // === Amelia (axios → XHR with JSON body) ===
+        if (document.querySelector('[id^="amelia-app-booking"], .amelia-frontend, .amelia-v2-booking') !== null) {
+            // Capture request URL on open() — send() does not receive URL directly
+            const originalAmeliaOpen = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+                try {
+                    this._apbctUrl = typeof url === 'string' ? url : '';
+                } catch (e) {
+                    // ignore
+                }
+                return originalAmeliaOpen.call(this, method, url, ...rest);
+            };
+
+            const originalAmeliaSend = XMLHttpRequest.prototype.send;
+            XMLHttpRequest.prototype.send = function(body) {
                 const isAmeliaJsonRequest = body && typeof body === 'string' &&
                     typeof this._apbctUrl === 'string' &&
                     this._apbctUrl.indexOf('action=wpamelia_api') !== -1;
@@ -641,8 +644,7 @@ class ApbctHandler {
                         }
                     }
                 }
-
-                return originalSend.apply(this, [body]);
+                return originalAmeliaSend.apply(this, [body]);
             };
         }
     }
@@ -859,22 +861,6 @@ class ApbctHandler {
                     document.querySelectorAll('form.wprm-user-ratings-modal-stars-container').length > 0 &&
                     typeof args[0].includes === 'function' &&
                     args[0].includes('/wp-json/wp-recipe-maker/')
-                ) {
-                    try {
-                        args[1].body = attachFieldsToBody(
-                            args[1].body,
-                            selectFieldsData(+ctPublic.bot_detector_enabled),
-                        );
-                    } catch (e) {
-                        // Continue even if error
-                    }
-                }
-
-                // === Amelia ===
-                if (
-                    document.querySelectorAll('[id^="amelia-app"], .amelia-app, .amelia-frontend').length > 0 &&
-                    typeof args[0].includes === 'function' &&
-                    args[0].includes('action=wpamelia_api')
                 ) {
                     try {
                         args[1].body = attachFieldsToBody(
