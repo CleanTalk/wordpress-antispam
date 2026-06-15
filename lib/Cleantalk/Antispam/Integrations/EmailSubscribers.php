@@ -16,16 +16,9 @@ class EmailSubscribers extends IntegrationBase
 
     public function doBlock($message)
     {
-        die(
-            json_encode(
-                array(
-                    'apbct' => array(
-                        'blocked'     => true,
-                        'comment'     => $message,
-                        'stop_script' => apbct__stop_script_after_ajax_checking()
-                    )
-                )
-            )
-        );
+        wp_send_json_error([
+            'status'  => 'failed',
+            'message' => $message
+        ], 422);
     }
 }
