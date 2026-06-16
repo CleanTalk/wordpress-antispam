@@ -527,7 +527,8 @@ class ApbctHandler {
             ) ||
             document.querySelector('div.fluent_booking_wrap') !== null || // Fluent Booking Pro
             document.querySelector('div.fcal_calendar_slot_wrap ') !== null || // Fluent Booking / Calendar Pro
-            document.querySelectorAll('script[id*="smart-forms"]').length > 0
+            document.querySelectorAll('script[id*="smart-forms"]').length > 0 ||
+            document.querySelector('[id^="amelia-app-booking"], .amelia-frontend, .amelia-v2-booking') !== null
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
