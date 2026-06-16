@@ -82,6 +82,47 @@ jQuery(document).ready(function($) {
         });
     });
 
+    // Extended spam order details show via modal
+    $('.apbct-details-spam-order-button').click(function() {
+        const spmOrderId = $(this).data('spam-order-id');
+        let data = {
+            action: 'apbct_details_spam_order',
+            _ajax_nonce: ctAdminCommon._ajax_nonce,
+            order_id: spmOrderId,
+        };
+        if (cleantalkModal !== undefined) {
+            cleantalkModal.loaded = false;
+            cleantalkModal.open(false);
+            $.ajax({
+                type: 'POST',
+                url: ctAdminCommon._ajax_url,
+                data: data,
+                success: function(result) {
+                    const modalContent = $('#cleantalk-modal-content');
+                    modalContent.empty();
+                    if (result.success && result.data) {
+                        const container = apbctGetWCOrderDetailsModalContainer(result.data);
+                        const containerHeader = document.createElement('h3');
+                        containerHeader.className = 'apbct_wc_details__table-container_header';
+                        containerHeader.textContent = 'WooCommerce spam order details';
+                        modalContent.append(containerHeader);
+                        modalContent.append(container);
+                    } else {
+                        const error = result.data.error || 'Unknown error occurred';
+                        modalContent.text(error);
+                    }
+                    cleantalkModal.loaded = true;
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', error);
+                    alert('An error occurred while processing your request, see console for details.');
+                },
+            });
+        } else {
+            alert('Can not initialize CleanTalk modal window.');
+        }
+    });
+
     // Email decoder example
     if (window.location.href.includes('options-general.php?page=cleantalk')) {
         let encodedEmailNode = document.querySelector('[data-original-string]');
@@ -92,6 +133,80 @@ jQuery(document).ready(function($) {
         }
     }
 });
+
+/**
+ * apbctGetWCOrderDetailsModalContainer
+ * @param {object} wcOrderData
+ * @return {HTMLDivElement}
+ */
+function apbctGetWCOrderDetailsModalContainer(wcOrderData) {
+    const container = document.createElement('div');
+    container.className = 'apbct_wc_details__wrapper';
+
+    /**
+     * createTableFromObject
+     * @param {object} obj
+     * @param {string} title
+     * @return {HTMLDivElement}
+     */
+    function createTableFromObject(obj, title) {
+        const tableWrapperInner = document.createElement('div');
+        tableWrapperInner.className = 'apbct_wc_details__table-wrapper-inner';
+
+        const header = document.createElement('h4');
+        header.textContent = title;
+        tableWrapperInner.appendChild(header);
+
+        const table = document.createElement('table');
+        table.className = 'apbct_wc_details__table';
+
+        const tbody = document.createElement('tbody');
+
+        for (const [key, value] of Object.entries(obj)) {
+            const row = document.createElement('tr');
+
+            const keyCell = document.createElement('td');
+            keyCell.className = 'apbct_wc_details__table-key-cell';
+            keyCell.textContent = key;
+
+            const valueCell = document.createElement('td');
+            valueCell.className = 'apbct_wc_details__table-value-cell';
+
+            if (typeof value === 'object' && value !== null) {
+                valueCell.textContent = JSON.stringify(value, null, 2);
+                valueCell.classList.add('apbct_wc_details__table-value-cell--json');
+            } else {
+                valueCell.textContent = value !== null && value !== undefined ? value : '—';
+            }
+
+            row.appendChild(keyCell);
+            row.appendChild(valueCell);
+            tbody.appendChild(row);
+        }
+
+        table.appendChild(tbody);
+        tableWrapperInner.appendChild(table);
+        return tableWrapperInner;
+    }
+
+    if (wcOrderData.order_details) {
+        const orderDetails = wcOrderData.order_details;
+        const firstKey = Object.keys(orderDetails)[0];
+        if (firstKey) {
+            container.appendChild(
+                createTableFromObject(orderDetails[firstKey], 'Order Details'),
+            );
+        }
+    }
+
+    if (wcOrderData.customer_details) {
+        container.appendChild(
+            createTableFromObject(wcOrderData.customer_details, 'Customer Details'),
+        );
+    }
+
+    return container;
+}
 // eslint-disable-next-line camelcase,require-jsdoc,no-unused-vars
 function apbct_admin_sendAJAX(data, params, obj) {
     // Default params

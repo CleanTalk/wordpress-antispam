@@ -20,7 +20,7 @@ class WcSpamOrdersFunctions
         $order_data = self::getOrderDataById($order_id);
 
         if (is_null($order_data)) {
-            wp_send_json_error(esc_html__('Error: Order is not founded.', 'cleantalk-spam-protect'));
+            wp_send_json_error(esc_html__('Error: Order is not found.', 'cleantalk-spam-protect'));
         }
 
         try {
@@ -35,6 +35,65 @@ class WcSpamOrdersFunctions
         }
 
         wp_send_json_success();
+    }
+
+    /**
+     * Handler for 'wp_ajax_apbct_details_spam_order' ajax call.
+     * @return void wp_send_json
+     */
+    public static function detailsOrderAction()
+    {
+        AJAXService::checkNonceRestrictingNonAdmins();
+
+        $order_id = Post::getInt('order_id');
+
+        $response_data = self::prepareDetailsOrderResponse(
+            $order_id,
+            ['class' => self::class, 'method' => 'getOrderDataById']
+        );
+
+        if (empty($response_data['error'])) {
+            wp_send_json_success($response_data);
+        } else {
+            wp_send_json_error($response_data);
+        }
+    }
+
+    public static function prepareDetailsOrderResponse($order_id = null, $search_method = ['class' => null, 'method' => null])
+    {
+        $response_data = array(
+            'order_details' => null,
+            'customer_details' => null,
+            'error' => null,
+        );
+
+        try {
+            if (!$order_id) {
+                throw new \Exception(esc_html__('Order ID is not valid.', 'cleantalk-spam-protect'));
+            }
+
+            if (
+                !isset($search_method['class'], $search_method['method']) ||
+                !class_exists($search_method['class']) ||
+                !method_exists($search_method['class'], $search_method['method'])
+            ) {
+                throw new \Exception(esc_html__('Search method undefined.', 'cleantalk-spam-protect'));
+            }
+
+            // Get order data from table with spam orders
+            $order_data = $search_method['class']::{$search_method['method']}($order_id);
+
+            if (is_null($order_data)) {
+                throw new \Exception(esc_html__('Order is not found.', 'cleantalk-spam-protect'));
+            }
+
+            $response_data['order_details'] = json_decode($order_data->order_details);
+            $response_data['customer_details'] = json_decode($order_data->customer_details);
+        } catch (\Exception $e) {
+            $response_data['error'] = esc_html__('Error: ' . $e->getMessage(), 'cleantalk-spam-protect');
+        }
+
+        return $response_data;
     }
 
     private static function getOrderDataById($order_id)
