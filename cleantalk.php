@@ -231,7 +231,9 @@ if (
     if ($apbct->settings['data__email_decoder'] && !$skip_email_encode && !apbct_is_amp_request()) {
         // Encode content
         $contacts_encoder->runEncoding();
+    }
 
+    if ( apbct_is_ajax() ) {
         // Email Encoder ajax handlers for decoding
         $contacts_encoder->registerAjaxRoute();
     }
