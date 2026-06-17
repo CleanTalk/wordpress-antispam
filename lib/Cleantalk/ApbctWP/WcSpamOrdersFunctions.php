@@ -73,7 +73,10 @@ class WcSpamOrdersFunctions
             }
 
             if (
-                !isset($search_method['class'], $search_method['method']) ||
+                empty($search_method['class']) ||
+                empty($search_method['method']) ||
+                !is_string($search_method['class']) ||
+                !is_string($search_method['method']) ||
                 !class_exists($search_method['class']) ||
                 !method_exists($search_method['class'], $search_method['method'])
             ) {
@@ -90,7 +93,10 @@ class WcSpamOrdersFunctions
             $response_data['order_details'] = json_decode($order_data->order_details);
             $response_data['customer_details'] = json_decode($order_data->customer_details);
         } catch (\Exception $e) {
-            $response_data['error'] = esc_html__('Error: ' . $e->getMessage(), 'cleantalk-spam-protect');
+            $response_data['error'] = sprintf(
+                esc_html__('Error: %s', 'cleantalk-spam-protect'),
+                $e->getMessage()
+            );
         }
 
         return $response_data;

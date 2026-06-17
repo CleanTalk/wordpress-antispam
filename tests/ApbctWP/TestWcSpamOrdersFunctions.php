@@ -166,7 +166,7 @@ class WcSpamOrdersFunctionsTest extends TestCase
         $this->assertSame(777, $capturedId);
     }
 
-    // makeOrderRow нужен публично для использования внутри замыкания выше
+    // makeOrderRow must be public to use it inside the closure above
     public function makeOrderRowPublic(array $orderDetails = [], array $customerDetails = []): \stdClass
     {
         return $this->makeOrderRow($orderDetails, $customerDetails);
@@ -245,8 +245,8 @@ class WcSpamOrdersFunctionsTest extends TestCase
 }
 
 // ---------------------------------------------------------------------------
-// Named stub — живёт на уровне файла, чтобы class_exists() / method_exists()
-// его видели при проверке внутри prepareDetailsOrderResponse
+// Named stub — declared at file scope so class_exists() / method_exists()
+// can see it during checks inside prepareDetailsOrderResponse().
 // ---------------------------------------------------------------------------
 
 class OrderDataStub

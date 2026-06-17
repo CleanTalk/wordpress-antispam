@@ -494,7 +494,7 @@ class ApbctHandler {
         ctPublic.force_alt_cookies = jetpackCommentsForm;
 
         /**
-         * NOT ADD ANY NEW INTEGRATION IN THIS FLOW
+         * DO NOT ADD ANY NEW INTEGRATION IN THIS FLOW
          */
 
         setTimeout(function() {

@@ -90,7 +90,7 @@ jQuery(document).ready(function($) {
             _ajax_nonce: ctAdminCommon._ajax_nonce,
             order_id: spmOrderId,
         };
-        if (cleantalkModal !== undefined) {
+        if (typeof cleantalkModal !== 'undefined') {
             cleantalkModal.loaded = false;
             cleantalkModal.open(false);
             $.ajax({
@@ -191,11 +191,11 @@ function apbctGetWCOrderDetailsModalContainer(wcOrderData) {
 
     if (wcOrderData.order_details) {
         const orderDetails = wcOrderData.order_details;
-        const firstKey = Object.keys(orderDetails)[0];
-        if (firstKey) {
-            container.appendChild(
-                createTableFromObject(orderDetails[firstKey], 'Order Details'),
-            );
+        for (const [key, value] of Object.entries(orderDetails)) {
+            const productId = orderDetails[key] && typeof orderDetails[key]['product_id'] === 'number' ?
+                orderDetails[key]['product_id'] :
+                'Unknown';
+            container.appendChild(createTableFromObject(value, `Order Details for product ID ${productId}`));
         }
     }
 
