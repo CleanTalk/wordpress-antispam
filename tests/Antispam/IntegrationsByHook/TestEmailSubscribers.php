@@ -12,6 +12,13 @@ class TestEmailSubscribers extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Ensure deterministic global state for each test.
+        $_POST = [];
+        Post::getInstance()->variables = [];
+        global $cleantalk_executed;
+        $cleantalk_executed = null;
+
         $this->integration = new EmailSubscribers();
     }
 
