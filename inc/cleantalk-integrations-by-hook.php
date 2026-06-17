@@ -510,6 +510,12 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'EmailSubscribers' => array(
+        'hook'    => ['es_add_subscriber', 'ig_es_validate_subscription'],
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => true,
+        'ajax_and_post' => true
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_active_integrations) {
