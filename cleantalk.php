@@ -2732,7 +2732,7 @@ function apbct_cookies_test()
         // generate value
         $cookie_names = TT::getArrayValueAsArray($cookie_test, 'cookies_names');
         foreach ( $cookie_names as $cookie_name ) {
-            $check_string .= Cookie::get($cookie_name);
+            $check_string .= TT::toString(Cookie::get($cookie_name));
         }
         // check generated value with current cookie
         $check_value = TT::getArrayValueAsString($cookie_test, 'check_value');
