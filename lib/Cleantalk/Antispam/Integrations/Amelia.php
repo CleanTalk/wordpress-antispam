@@ -47,6 +47,12 @@ class Amelia extends IntegrationBase
             ? (string) $payload['ct_bot_detector_event_token']
             : Post::getString('ct_bot_detector_event_token');
 
+        if ( isset($payload['ct_no_cookie_hidden_field']) ) {
+            apbct_form__get_no_cookie_data(
+                ['ct_no_cookie_hidden_field' => $payload['ct_no_cookie_hidden_field']]
+            );
+        }
+
         return array(
             'email'       => $email,
             'event_token' => $event_token,
