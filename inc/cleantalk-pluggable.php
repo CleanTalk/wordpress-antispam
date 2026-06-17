@@ -1748,7 +1748,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         // Email Subscribers by Icegram Express - skip subscribe action
         if (
             apbct_is_plugin_active('email-subscribers/email-subscribers.php') &&
-            Post::equal('action', 'es_add_subscriber')
+            (Post::equal('action', 'es_add_subscriber') || Post::equal('action', 'ig_es_validate_subscription'))
         ) {
             return 'Email Subscribers by Icegram Express - skip subscribe action';
         }
