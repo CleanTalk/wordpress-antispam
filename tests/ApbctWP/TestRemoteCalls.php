@@ -317,4 +317,68 @@ class TestRemoteCalls extends TestCase
         $this->assertCount(1, $allowedActions);
         $this->assertEquals(['sfw_update__worker'], $allowedActions);
     }
+
+    // =========================================================================
+    // APBCT-W07: 'api_key' added to $sensitiveData list
+    // =========================================================================
+
+    /** @test */
+    public function sensitiveDataListContainsApiKeyWithUnderscore()
+    {
+        $reflection = new ReflectionClass(RemoteCalls::class);
+        $property = $reflection->getProperty('sensitiveData');
+        $property->setAccessible(true);
+
+        $sensitiveData = $property->getValue();
+
+        $this->assertContains('api_key', $sensitiveData);
+        $this->assertContains('apikey', $sensitiveData);
+    }
+
+    /** @test */
+    public function itHidesApiKeyWithUnderscoreInData()
+    {
+        // This tests that keys containing 'api_key' substring are masked
+        // e.g. 'multisite__hoster_api_key' should be masked
+        $input = [
+            'multisite__hoster_api_key' => 'secret_hoster_key_12345',
+            'normal_setting' => 'visible_value'
+        ];
+
+        $method = new ReflectionMethod(RemoteCalls::class, 'hideSensitiveData');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(null, $input);
+
+        // The hoster_api_key value should be masked (contains 'api_key' substring)
+        $this->assertNotEquals('secret_hoster_key_12345', $result['multisite__hoster_api_key']);
+        $this->assertStringContainsString('*', $result['multisite__hoster_api_key']);
+
+        // Normal setting should remain visible
+        $this->assertEquals('visible_value', $result['normal_setting']);
+    }
+
+    /** @test */
+    public function itHidesNestedApiKeyWithUnderscore()
+    {
+        $input = [
+            'network_settings' => [
+                'multisite__hoster_api_key' => 'abcdefghij1234567890'
+            ]
+        ];
+
+        $method = new ReflectionMethod(RemoteCalls::class, 'hideSensitiveData');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(null, $input);
+
+        $this->assertNotEquals(
+            'abcdefghij1234567890',
+            $result['network_settings']['multisite__hoster_api_key']
+        );
+        $this->assertEquals(
+            'ab****************90',
+            $result['network_settings']['multisite__hoster_api_key']
+        );
+    }
 }

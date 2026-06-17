@@ -1,13 +1,13 @@
-=== Anti Spam for Contact Forms, Comments & Online Stores - CleanTalk ===
+=== Anti-Spam by CleanTalk. Spam Firewall & protection ===
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: antispam, honeypot, contact form spam, captcha, akismet
 Requires at least: 4.7
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.80
+Stable tag: 6.81
 License: GPLv2
 
-Top-rated anti spam protection for WordPress, eCommerce. Blocks spam on forms, comments and registrations automatically. No CAPTCHA.
+Top-rated antispam plugin for WordPress, eCommerce. Blocks spam on forms, comments and registrations. No CAPTCHA, no bot anti-spam.
 
 == Description ==
 
@@ -18,11 +18,11 @@ Top-rated antispam protection for WordPress. No CAPTCHA, no puzzles, and no visi
 2. Stops spam registrations.
 3. Stops spam contact emails.
 4. Stops fake orders eCommerce sites and online stores.
-5. Stops spam bookings.
-6. Stops spam subscriptions.
+5. Antispam for bookings.
+6. Antispam subscriptions.
 7. Stops spam surveys, polls.
 9. Stops spam in WooCommerce.
-17. Stops spam in Search Form.
+17. Antispam for Search Form.
 10. Real-time email validation. Check if an email is real or fake.
 11. Checks and removes the existing spam comments and spam users.
 14. Blocking  disposable & temporary emails.
@@ -54,17 +54,17 @@ CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam se
 = AntiSpam protection for comments =
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
 
-= Contact Form 7 spam filter =
+= Contact Form 7 Antispam =
 Plugin extends spam protection for Contact Form 7 (CF7). It can be used with any other third-party spam filters.
 <a href="https://blog.cleantalk.org/how-to-protect-your-contactform7-contact-form-using-cleantalk-anti-spam-plugin/">How to protect your Contact Form 7 using CleanTalk Anti-Spam plugin</a>
 
 = Elementor Website Builder filter =
 Plugin extends spam protection for Elementor Website Builder. It filters spam submisssions and tested for contact form type.
 
-= Gravity forms spam filter =
+= Gravity forms Antispam =
 Plugin extends spam protection for Gravity forms. It filters spam submisssions for any type of forms.
 
-= Formidable Form Builder spam filter =
+= Formidable Form Builder Antispam =
 Plugin extends spam protection for Formidable Form Builder. It filters spam submisssions for any type of forms - Contact Form, Survey & Quiz Forms.
 
 = Leaky Paywall subscription protection =
@@ -73,10 +73,10 @@ Plugin protects Leaky Paywall plugin (by ZEEN01) against spam subscriptions. It 
 = HubSpot protection for embedded forms =
 Plugin protects HubSpot embedded forms against any spam submissions. Guide to start using embedded forms https://knowledge.hubspot.com/forms/how-can-i-share-a-hubspot-form-if-im-using-an-external-site
 
-= Contact Form by WPForms spam filter =
+= Contact Form by WPForms Antispam =
 Plugin extends Contact Form by WPForms to provide spam protection. It filters spam submissions for each type of forms - simple contact form, marketing form, request a quote and etc.
 
-= WooCommerce spam & fake orders filter =
+= Antispam for WooCommerce & fake orders filter =
 Anti-spam by CleanTalk filters spam registrations, spam reviews, and fake orders for WooCommerce (any eCommerce plugin as well). The plugin is fully compatible with WooCommerce 2.1+ and online stores.
 
 = Spam filter for theme contact forms =
@@ -153,9 +153,9 @@ Block fake and suspicious users with disposable & temporary emails to improve em
 = Stops Spam in Search Form =
 Spam bots can use your search form to make a GET request with spam text. CleanTalk Anti-Spam has the option to protect your website search form from spam bots. Each time, the search generates a new page and if there are many requests, this can create additional load. So, under some conditions, spam searches can be indexed, which affects SEO,
 
-* Anti-Spam protection for website search forms repels spambots.
+* Anti-Spam protection for website search forms repels spam bots.
 * If your search form gets data too often the CleanTalk Anti-Spam plugin will add a pause and increase it with each new attempt to send data. It saves your web server processor time.
-* Spam protection allows you to not forbid indexation for the crawler bots if you really need it but simultaneously you will get protection from spambots.
+* Spam protection allows you to not forbid indexation for the crawler bots if you really need it but simultaneously you will get protection from spam bots.
 
 You will always know what users were looking for on your site.
 
@@ -383,6 +383,17 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 
 == Changelog ==
 
+= 6.81 10.06.2026 =
+* New. Code. Amelia integration
+* Code. Links from backend
+* Fix. Code. Improve statement.
+* Fix. Code. Editing the array key transfer
+* Fix. SFWUpdateLog. Transferring values to placeholders prepare()
+* Fix. SFW. Mixing values in cookies SFW
+* New. Pingback and trackback rejection implemented.
+* Code. Mobile styles fix (#803)
+* Mod. Integrations. Opting out of force alt cookies for SmartForms. (#808)
+
 = 6.80 28.05.2026 =
 * Fix. catchJqueryAjax. Object as null comparison fixed.
 * Fix. CatchXHR. Mailpoet integration added to provide the event_token.
@@ -561,171 +572,5 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 * New. Integration. Bit Form integration implemented.
 * Upd. Code. PHP compatibility increased to 7.2.
 * New. Settings. Added project management menu item.
-
-= 6.70.1 19.12.2025 =
-* Fix. Integration. Fluent forms integration fixed (fix for commit ae74511a96417b607f2b79b83ef984de7eac0588).
-
-= 6.70 18.12.2025 =
-New. Integrations. Protect Bitrix24 external forms.
-New. SFW. Update. Constant APBCT_SERVICE__SFW_UPDATE_CURL_MULTI_BATCH_SIZE. Used to reduce curl multi batch size.
-Upd. Integrations. Added precheck email for Gravity Forms.
-Upd. Contact Data Encoder. Encoder lib updated to support new formats.
-Upd. Contact Data Encoder. Added new format to encode phone numbers.
-Upd. Setting. Do not drop settings state on disabling. Uses a special list.
-Mod. FluentForm. Added the ability to connect js scripts for logged in users.
-Fix. FluentForm. The verification depends on the data__protect_logged_in and is_user_logged_in() options.
-Fix. Contact Data Encoder. Fixed shortcode flow on multiple use.
-Fix. Contact Data Encoder. PHP 8.4 notices fixed.
-Fix. The Real Person. Adding a check that excludes duplication of TRP.
-
-= 6.69.2  09.12.2025 =
-Fix. Contact Data Encoder. Fixed deprecation notice.
-Fix. Contact Data Encoder. Frontend. Fixed connection errors handling.
-
-= 6.69.1  08.12.2025 =
-Fix. Integrations. Update Woo add to cart check.
-
-= 6.69 04.12.2025 =
-New. WPRecipeMaker. Integration with WP Recipe Maker
-Upd. Code. ContactsEncoder module refactoring.
-Upd. ContactEncoder. Improve UX.
-Upd. TRP. Restart show badge on woo review page.
-Upd. WCAddToCart. Processing and adding event_token to the request
-Upd. Integrations. JS. Dynamic rendered form interval clearance on window load custom events.
-Upd. EmailEncoder. Added new format to encode phone numbers.
-Mod. CheckEmailExist. Integration of Check Email Exist with Ninja Forms
-Mod. WPRecipeMaker. Editing the blocking message
-Fix. Bot detector. Set event_token for the different cookies types fixed.
-Fix. Integration. Ninja Forms refactored - no using force_alt_cookies.
-Fix. Integration. Fluentbook. Added public scripts echoing on author landing visit.
-Fix. Integrations. JS. Run dynamic forms catching on interval.
-Fix. Woocommerce. Exclusion for WC Stripe Apple Pay frontend request.
-Fix. Integration. Brick theme ajax response fixed.
-Fix. Integration. FunnelKit. Funnel builder action added.
-Fix. WPMS. Getting and recreating personal tables on WPMS.
-Fix. OptiPress. Editing the integration in passing the message parameter
-Fix. WPRecipeMaker. Combining logic under one condition
-Fix. Helper. Correcting the error of using 'static' in string callables inside array_map since version 8.2
-Fix. FluentForm. The verification depends on the data__protect_logged_in and is_user_logged_in() options
-Github. New action to create assets from dev/fix on push event.
-
-= 6.68 13.11.2025 =
-New. Integration. Ultimate affiliate plugin (Codecanyon).
-New. Integration. Gwolle Guestbook integration implemented.
-Upd. Integrations. Improved capability with perfmatters.
-Upd. Settings. Improved UX.
-Upd. Email Encoder. Try to decode in both ways ssl/str_base.
-Fix. ContactEncoder. Editing duplicate pages due to buffer interception.
-Fix. Code. Unit text TestRequirementsChecker refactored.
-Fix. Integration. WPForo. Catch email and nickname via native WPF object. Get message from input.
-Fix. Integrations. Nex-forms POST clearance from service fields after check.
-Fix. Protection by fake button. Sender.net forms ignored, preparing for the next iteration.
-Fix. Integrations. GiveWP. Partially protected Give REST submission.
-Code. Unused code removed.
-Mod. TRP. TRP edits, duplicate the cleantalk_allowed_moderation option and move it to settings.
-
-= 6.67 30.10.2025 =
-New. AdminBanner. Separation of banners about an empty and invalid key
-New. AdminBanner. Editing logic for a banner about an incorrect key
-Fix. ContactEncoder. Revert svg content.
-Fix. Integrations. Prevent spam requests to third-party services.
-Fix. Integrations. Added Beaver Builder.
-Fix. Integrations. Improved gathering data for fluentbooking pro.
-Fix. OptimizePress. Registration process protected.
-Fix. Integration. WP Booking System integration fixed.
-New. Integration. Doctor Plus theme registration and login.
-Fix. Integration. WPForms. Fixed missed request on non-emtpty WPForm form errors array.
-Fix. Hide website field. Forced condition to replace via honeypot.
-Upd. Server Requirements Checker. Added curl_multi_exec to the check-list.
-New. Email exists check. Implemented for CF7. (#669)
-Upd. Settings. Updated access key link parameters for improved registration process.
-Fix. Settings. Typo (system requirements) fixed.
-Fix. Settings. Complete deactivation fixed.
-Fix. State. Default `fw_stats` fixed.
-Fix. SFW. SFW updating (process exclusions) fixed.
-Fix. Exclusion. Newsletter Automation. Skip test newsletter check.
-Fix. Integration. btQuoteBooking form params gathering fixed.
-Fix. Integration. WP Mailer Lite. Fixed exclusion.
-
-
-= 6.66 16.10.2025 =
-Fix. Remote calls. Debug RC now hide sensitive data.
-Fix. TRP. Show TRP for admins and editors.
-Fix. TRP. Twenty Twenty-Five theme support added.
-Fix. Settings. Activator fixed.
-New. Summary and statistics. Support user action moved.
-Fix. Integrations. Skip service requests for checkout process.
-Fix. FW. Improved rules to update personal tables.
-Fix. Integrations. Updated statement to skip woo-mailerlite service requests.
-Fix. Integrations. Fixed statement for cwginstock.
-Fix. Integrations. Improved statement to intruding to checkout request.
-
-= 6.65 02.10.2025 =
-Fix. Code. Pluggable exclusions logic fixed.
-Fix. Common. Alt cookies getting fixed.
-Fix. ContactEncoder. Skip SVG content.
-Fix. Integration. Added WPCommunity login to request exclusions.
-Fix. Integration. Fluent Booking Pro integration fixed - exclude requests from general contact forms checking.
-Fix. Integration. Skip BuddyBoss login form.
-Fix. Integration. WooCommerce mark spam orders fixed.
-Fix. Integration. WP Booking System integration fixed - support pro version.
-Fix. Integrations. Added rules to skip woocommerce service request.
-New. CheckEmailExist. Support for Registration Form.
-New. CheckEmailExist. Support for Woocommerce checkout form.
-New. Integration. Added NEXForms integration.
-New. Integration. Indeed Coming Soon integration implemented.
-New. Summary and statistics. Temporary support user creation implemented.
-Upd. CheckEmailExist. Improve support for Woocommerce checkout form and update option description.
-Upd. Search form. Added CleanTalk unique sign for native form.
-Upd. UsersChecker. Include first name, last name, and nickname in csv report of user data output.
-
-= 6.64 18.09.2025 =
-New. Integration. Integration with WPFunnels.
-New. CheckEmailExist. Support for Registration Form.
-New. Integration. LifterLMS (registration) protection implemented.
-New. CheckEmailExist. Support for Fluent Forms.
-Upd. Request parameters. Calculate no submittime if bot detector enabled.
-Upd. Bot detector gathering. Changed URL of wrapper to fd.cleantalk.org
-Mod. Integration. Unset visible fields.
-Fix. Integration. Happy Forms protection fixed.
-Fix. Integration. HabSpot external form (transparent div) protection fixed.
-Fix. Integration. Back-In-Stock ajax catching detect fixed.
-Fix. Integration. Back-in-stock-notifier fixed event token transport.
-Fix. External forms. Protection by cover fixed.
-Fix. Code. Undefined object botDetectorLocalStorage using removed.
-
-= 6.63 04.09.2025 =
-New. Integrations. BuddyPress App REST API protection.
-New. Integration. WooCommerce Wholesale Lead Capture registration protection implemented.
-Fix. Integration. SiteReviews integration fixed.
-Fix. Integration. Connecting the required js bundle and bot detector for Fluent Booking.
-Fix. JS. Passing the original context to an anonymous function
-Fix. Integration. FluentBooking integration fixed.
-Fix. Code. JS function getCleanTalkStorageDataArray moved to common file.
-Fix. Anti-Spam. Integrations by class logic fixed.
-Fix. Registration. Checking WP_Error during registration protection.
-
-= 6.62 21.08.2025 =
-* Mod. Firewall. Disabling SFW, AntiCrawler, and AntiFlood if the key is invalid or empty
-* Fix. Woocommerce. Add to cart validation on AJAX fixed.
-* Mod. Settings. Renaming email verification options before submitting the form
-* Fix. EmailCheckExist. Edit for WL mode
-* Ref. Frontend. Optimize flow to prevent forсed reflow.
-
-= 6.61 07.08.2025 =
-* New. Integration. Asgaros Forum topics and replies protected.
-* Upd. EmailEncoder. Add mode handler for shortcode.
-* Upd. Settings. Restore notice about get key auto.
-* Upd. Footer links. Footer links block Recommended plugins updated.
-* Upd. ServerRequirementsChecker. Check updated, unit test provided, docs added.
-* Ref. JS. Refactoring to optimize bundle size.
-* Mod. Code. Removing the option - Manage comments on public pages.
-* Del. Script. Remove cleantalk-public-admin.js.
-* Fix. Integrations. Do not skip check for woo registration during checkout.
-* Fix. Integrations. Fixed uni cpo gathering meta data about woocommerce item.
-* Fix. Woocommerce. Deleting REST API order if on pending status.
-* Fix. Woocommerce. Event token gathering fixed on any cookies mode.
-* Fix. Searchform. JS error on form class gathering fixed.
-* Fix. Settings. Search forms. Forgotten space added.
 
 = Look for early changelogs in <a href="https://github.com/CleanTalk/wordpress-antispam/blob/master/changelog.txt" target="_blank">changelog.txt</a>=

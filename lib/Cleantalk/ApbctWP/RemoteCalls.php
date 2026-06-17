@@ -33,7 +33,8 @@ class RemoteCalls
     private static $sensitiveData = [
         'user_token',
         'salt',
-        'apikey'
+        'apikey',
+        'api_key'
     ];
 
     /**
