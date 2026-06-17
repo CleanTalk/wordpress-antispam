@@ -48,7 +48,7 @@ class EmailSubscribers extends IntegrationBase
 
     /**
      * @param mixed $message
-     * @return array{message_text: mixed, status: string}
+     * @return array{message_text: mixed, status: string}|void
      */
     public function doBlock($message)
     {
