@@ -7,11 +7,11 @@ Requires PHP: 7.2
 Stable tag: 6.81
 License: GPLv2
 
-Top-rated antispam plugin. For contact forms, orders, registration, login. No CAPTCHA, no puzzle, no bot anti-spam. Global spam detection network.
+Top-rated antispam for contact forms, comments, WooCommerce, eCommerce, and login. No CAPTCHAs, no friction, just background anti spam protection.
 
 == Description ==
 
-Top-rated anti-spam protection for WordPress. **No CAPTCHAs, no puzzles, and no visitor friction** — just automatic spam blocking for forms, comments, registrations, subscriptions, and fake orders. Powered by a **global spam detection network** that helps stop spam before it reaches your website. Easy to install and ready to protect your site in **less than 30 seconds**.
+**Trusted by over 200,000 websites and rated among the top anti-spam solutions for WordPress in 2026**. No CAPTCHAs, no puzzles, and no visitor friction — just automatic spam blocking for forms, comments, registrations, subscriptions, and fake orders. Powered by a **global spam detection network that includes over 1,078,000 websites** and helps stop spam before it reaches your website. **Install it in less than 30 seconds** and start protecting your site immediately.
 
 = Superpowers =
 1. Stops spam comments.
@@ -35,18 +35,9 @@ Top-rated anti-spam protection for WordPress. **No CAPTCHAs, no puzzles, and no 
 > Improve Your Security WordPress Spam Protection With CleanTalk Anti-Spam
 > <a href="https://thehackernews.com/2023/07/improve-your-security-wordpress-spam.html" target="_blank">The Hacker News</a>.
 
-> CleanTalk - Cloud-Based Anti-Spam Service to Keep Your Site Bot-Free.
-> <a href="https://newswatchtv.com/2018/07/18/cleantalk-newswatch-review/" target="_blank">NewsWatch Review</a>.
-
 > Compare reCAPTCHA & Akismet VS CleanTalk
 > [CleanTalk vs Google reRECAPTCHA](https://cleantalk.org/recaptcha-alternative)
 > [CleanTalk vs Akismet](https://cleantalk.org/help/cleantalk-vs-akismet)
-
->I know you have heard of a number of anti-spam plugins. But you must know, the cloud-based ones are the best regarding detection rate. They compare all the content in forms with their own algorithm to find out the legibility.
->*<a href="https://www.techwibe.com/cleantalk-wordpress-plugin-review/" target="_blank">www.techwibe.com</a>*
-
-> The key selling point of CleanTalk for me is not simply its effectiveness. It's the fact that CleanTalk works in the background. It does not make users jump through hoops in order to submit a comment or complete a form.
-> <a href="https://www.kevinmuldoon.com/cleantalk-anti-spam-service/">www.kevinmuldoon.com</a>
 
 = Free trial then $12 per year =
 CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
