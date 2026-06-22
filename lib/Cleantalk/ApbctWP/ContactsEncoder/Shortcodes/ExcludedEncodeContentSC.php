@@ -83,62 +83,6 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         return $result;
     }
 
-    /**
-     * Checks whether any shortcode occurrence is located inside an HTML tag.
-     *
-     * This validation prevents shortcode processing from HTML attribute contexts
-     * which could lead to attribute injection or mutation-XSS issues.
-     *
-     * @param string $content The content to validate.
-     * @return bool True if any shortcode boundary is detected inside an HTML tag.
-     */
-    protected function isShortcodeInsideHtmlTag($content)
-    {
-        preg_match_all(
-            sprintf(
-                '/\[\/?%s(?:\s[^\]]*)?\]/',
-                preg_quote($this->public_name, '/')
-            ),
-            $content,
-            $matches,
-            PREG_OFFSET_CAPTURE
-        );
-
-        if (isset($matches[0])) {
-            foreach ($matches[0] as $match) {
-                $offset = $match[1] ?? null;
-
-                if ($offset === null) {
-                    continue;
-                }
-
-                if ($this->isOffsetInsideHtmlTag($content, $offset)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Determines whether a given character offset is located inside an HTML tag.
-     *
-     * @param string $content The full content string.
-     * @param int    $offset  Character offset to validate.
-     * @return bool True if the offset is inside an HTML tag.
-     */
-    public function isOffsetInsideHtmlTag($content, $offset)
-    {
-        $before = substr($content, 0, $offset);
-
-        $last_open  = strrpos($before, '<');
-        $last_close = strrpos($before, '>');
-
-        return $last_open !== false &&
-            ($last_close === false || $last_open > $last_close);
-    }
-
     protected function getCurrentAction()
     {
         return function_exists('current_action') ? current_action() : null;

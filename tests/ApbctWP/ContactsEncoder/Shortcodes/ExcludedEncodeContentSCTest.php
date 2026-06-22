@@ -237,6 +237,20 @@ class ExcludedEncodeContentSCTest extends TestCase
     }
 
     /**
+     * Test that > inside quoted attribute value does not fool the parser
+     */
+    public function testOffsetDetectionWithGreaterThanInQuotedAttribute(): void
+    {
+        // The > inside title="1>2" must not be treated as tag close
+        $content = '<a title="1>2 [apbct_skip_encoding]payload[/apbct_skip_encoding]">';
+        $pos = strpos($content, '[apbct_skip_encoding]');
+
+        $this->assertTrue(
+            $this->exclude_content_sc->isOffsetInsideHtmlTag($content, $pos)
+        );
+    }
+
+    /**
      * Test that shortcode inside HTML attribute is not processed by changeContentAfterEncoderModify
      */
     public function testChangeContentAfterEncoderModifySkipsShortcodeInsideHtmlTag(): void
@@ -282,15 +296,16 @@ class ExcludedEncodeContentSCTest extends TestCase
     }
 
     /**
-     * Test that decoded email with HTML entities is properly escaped
+     * Test that callback sanitizes content with data-original-string when decoding fails
      */
-    public function testCallbackEscapesDecodedDataWithHtmlChars(): void
+    public function testCallbackSanitizesFallbackWithDataOriginalAndScript(): void
     {
-        // Test with content that has HTML special chars in a non-encoded context
-        $content = '<span data-original-string="nonexistent_encoded_data">test</span>';
+        // Content has data-original-string but decoding will fail,
+        // so fallback wp_kses_post should strip the script tag
+        $content = '<span data-original-string="nonexistent_encoded_data"><script>alert(1)</script></span>';
         $result = $this->exclude_content_sc->callback([], $content, '');
-        // Even if decoding fails, fallback should be sanitized
         $this->assertStringNotContainsString('<script>', $result);
+        $this->assertStringNotContainsString('alert(1)', $result);
     }
 
     /**
