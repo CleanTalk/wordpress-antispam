@@ -654,7 +654,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     {
         $result = array();
 
-        if ( empty($decoded_emails_array) ) {
+        if ( empty($decoded_emails_array) || ! is_array($decoded_emails_array) ) {
             return false;
         }
 
