@@ -11,11 +11,7 @@ class Amelia extends IntegrationBase
     {
         $call = Get::getString('call');
 
-        if ( $call !== '/bookings' ) {
-            return false;
-        }
-
-        return true;
+        return $call === '/bookings' || $call === '/payment/wc';
     }
 
     public function getDataForChecking($argument)
