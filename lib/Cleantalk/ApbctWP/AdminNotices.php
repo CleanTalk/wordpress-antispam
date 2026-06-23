@@ -19,7 +19,7 @@ class AdminNotices
     /*
      * The time interval in which the review notification will be hidden for user
      */
-    const DAYS_INTERVAL_HIDING_REVIEW_NOTICE = 90;
+    const DAYS_INTERVAL_HIDING_REVIEW_NOTICE = 365;
 
     /**
      * @var null|AdminNotices
