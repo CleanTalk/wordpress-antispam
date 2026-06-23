@@ -140,7 +140,7 @@
 }
 
 .apbct-table-actions-wrapper {
-	background: #FСFСFС;
+	background: #FCFCFC;
 	border-radius: 2px;
 	padding: 5px !important;
 	border: 1px solid lightgray;
@@ -155,4 +155,86 @@
 		height: 100%;
 		max-width: 50%;
 	}
+}
+
+/* Review banner styles */
+.apbct-notice.apbct-banner-success {
+	padding: 16px 32px !important;
+	background-color: #ffffff !important;
+	box-shadow: 0px 4px 15px #84848440 !important;
+	border-left-color: #00BB5D !important;
+}
+
+.apbct-banner-content {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	row-gap: 16px;
+}
+
+.apbct-banner-text-wrapper {
+	margin-top: 16px;
+	margin-left: 32px;
+}
+
+.apbct-banner-button {
+	display: block;
+	padding: 16px 50px;
+	color: #FFFFFF !important;
+	border-radius: 8px;
+	font-size: 16px;
+	font-weight: 500;
+	text-decoration: none !important;
+	text-align: center;
+	align-content: center;
+}
+
+.apbct-banner-button-green {
+	background-color: #00BB5D !important;
+}
+
+.apbct-banner-button-green:hover {
+	background-color: #00a34f !important;
+}
+
+.apbct-banner-button-wrapper {
+	display: grid;
+	gap: 12px;
+	align-content: center;
+	text-align: center;
+	margin-right: 24px;
+	margin-left: 32px;
+}
+
+.apbct-banner-title {
+	font-size: 24px;
+	line-height: 29px;
+	font-weight: 500;
+	color: #000000;
+}
+
+.apbct-banner-subtitle {
+	font-size: 14px;
+	line-height: 22px;
+	font-weight: 400;
+	color: #444444;
+	margin-top: 8px;
+}
+
+.apbct-banner-big-subtitle {
+	font-size: 16px;
+}
+
+.apbct-banner-link {
+	font-size: 16px;
+	line-height: 24px;
+	font-weight: 400;
+	color: #026E88 !important;
+}
+
+.apbct-banner-dismiss-link {
+	font-weight: 400;
+	font-size: 14px;
+	line-height: 22px;
+	color: #646464 !important;
 }
