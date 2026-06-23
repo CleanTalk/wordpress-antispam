@@ -387,7 +387,7 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 * New. Integration. Integration with Email Subscribers
 * Fix. Integration. Editing the doBlock method
 * New. Integration. Integration edits when on and off js
-* 
+* Fix. Code. Editing the check_value parametere
 
 = 6.81 10.06.2026 =
 * New. Code. Amelia integration
