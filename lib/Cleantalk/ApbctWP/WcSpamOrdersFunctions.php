@@ -92,7 +92,14 @@ class WcSpamOrdersFunctions
             }
 
             $response_data['order_details'] = json_decode($order_data->order_details);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception(esc_html__('Order details JSON is invalid.', 'cleantalk-spam-protect'));
+            }
+
             $response_data['customer_details'] = json_decode($order_data->customer_details);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception(esc_html__('Customer details JSON is invalid.', 'cleantalk-spam-protect'));
+            }
         } catch (\Exception $e) {
             $response_data['error'] = sprintf(
                 esc_html__('Error: %s', 'cleantalk-spam-protect'),
