@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.81
+  Version: 6.82
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -2635,7 +2635,7 @@ function apbct_cookie()
     // Cookie names to validate
     $cookie_test_value = array(
         'cookies_names' => array(),
-        'check_value'   => $apbct->api_key,
+        'check_value'   => $apbct->api_key . $apbct->data['salt'],
     );
 
     // We need to skip the domain attribute for prevent including the dot to the cookie's domain on the client.
@@ -2730,11 +2730,11 @@ function apbct_cookies_test()
             return 0;
         }
 
-        $check_string = $apbct->api_key;
+        $check_string = $apbct->api_key . $apbct->data['salt'];
         // generate value
         $cookie_names = TT::getArrayValueAsArray($cookie_test, 'cookies_names');
         foreach ( $cookie_names as $cookie_name ) {
-            $check_string .= Cookie::get($cookie_name);
+            $check_string .= Cookie::getString($cookie_name);
         }
         // check generated value with current cookie
         $check_value = TT::getArrayValueAsString($cookie_test, 'check_value');
