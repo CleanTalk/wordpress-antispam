@@ -79,7 +79,7 @@ class WcSpamOrdersFunctions
                 !is_string($search_method['class']) ||
                 !is_string($search_method['method']) ||
                 !class_exists($search_method['class']) ||
-                !method_exists($search_method['class'], $search_method['method'])
+                !is_callable([$search_method['class'], $search_method['method']])
             ) {
                 throw new \Exception(esc_html__('Search method undefined.', 'cleantalk-spam-protect'));
             }
