@@ -459,7 +459,7 @@ class AdminNotices
         $option_name = 'cleantalk_' . $notice_uid . '_dismissed';
 
         // Special for notice_review
-        if (is_string($notice_uid) && strpos($notice_uid, 'notice_review')) {
+        if (is_string($notice_uid) && strpos($notice_uid, 'notice_review') !== false) {
             return $this->checkOptionExpired($option_name, self::DAYS_INTERVAL_HIDING_REVIEW_NOTICE);
         }
 
