@@ -58,7 +58,7 @@ class ApbctBannerReview extends ApbctUniversalBanner
                         <?php esc_html_e('Anti-Spam', 'cleantalk-spam-protect'); ?>
                     </a>
                 </div>
-                <div class="apbct-banner-text-wrapper" style="display: flex;flex-wrap: wrap;justify-content: space-between;">
+                <div class="apbct-banner-content-wrapper apbct-banner-text-wrapper">
                     <div style="display: flex; gap: 32px;">
                         <img src="<?php echo esc_url($review_img_url); ?>" width="92" height="81" alt="CleanTalk Review Logo" style="align-self: center;">
                         <div>

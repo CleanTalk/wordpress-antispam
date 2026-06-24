@@ -172,6 +172,13 @@
 	row-gap: 16px;
 }
 
+.apbct-banner-content-wrapper {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	justify-content: space-between;
+}
+
 .apbct-banner-text-wrapper {
 	margin-top: 16px;
 	margin-left: 32px;
