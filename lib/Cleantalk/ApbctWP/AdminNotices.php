@@ -308,7 +308,7 @@ class AdminNotices
             $banner_data = new BannerDataDto();
             $banner_data->type = 'review';
 
-            $banner_data->text = __("Share your positive experience — leave a 5-star rating on WordPress", 'cleantalk-spam-protect');
+            $banner_data->text = __("Share your positive experience — leave a rating on WordPress", 'cleantalk-spam-protect');
 
             $banner_data->secondary_text = sprintf(
                 __("You've been using %s — tell us about your experience. Your feedback helps other users find the right solution and helps us make the plugin even better.", 'cleantalk-spam-protect'),
