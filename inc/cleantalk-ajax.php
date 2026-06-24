@@ -724,15 +724,6 @@ function ct_ajax_hook($message_obj = null)
             throw new Exception($ct_result->comment);
         }
 
-        //ES Add subscriber
-        if ( Post::get('action') === 'es_add_subscriber' ) {
-            $result = array(
-                'error' => 'unexpected-error',
-            );
-            print json_encode($result);
-            die();
-        }
-
         //Convertplug. Strpos because action value dynamically changes and depends on mailing service
         if ( strpos(TT::toString(Post::get('action')), '_add_subscriber') !== false ) {
             $result = array(
