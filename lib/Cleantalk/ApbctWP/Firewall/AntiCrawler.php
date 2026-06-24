@@ -275,10 +275,12 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
 
         foreach ( $ua_bl_results as $ua_bl_result ) {
             if (
-                ! empty($ua_bl_result['ua_template']) && preg_match(
-                    "%" . str_replace('"', '', $ua_bl_result['ua_template']) . "%i",
+                ! empty($ua_bl_result['ua_template']) &&
+                preg_match(
+                    '%' . str_replace(array('"', '%'), array('', '\%'), $ua_bl_result['ua_template']) . '%i',
                     $this->server__http_user_agent
-                )
+                ) &&
+                ! in_array(preg_last_error(), array(PREG_BACKTRACK_LIMIT_ERROR, PREG_RECURSION_LIMIT_ERROR), true)
             ) {
                 $this->ua_id = TT::getArrayValueAsString($ua_bl_result, 'id');
 

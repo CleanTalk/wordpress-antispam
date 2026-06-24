@@ -125,6 +125,7 @@ class State extends \Cleantalk\Common\State
         'wp__comment_notify'                       => 1,
         'wp__comment_notify__roles'                => array('administrator'),
         'wp__dashboard_widget__show'               => 1,
+        'wp__disable_pingback_and_trackback'       => 0,
 
         // Trusted and affiliate settings
         'trusted_and_affiliate__shortcode'         => 0,

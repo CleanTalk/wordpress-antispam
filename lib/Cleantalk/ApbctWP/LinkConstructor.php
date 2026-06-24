@@ -224,6 +224,12 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_medium' => 'settings',
             'utm_content' => 'antispam',
         ),
+        'admin_blacklists_avatar_link' => array(
+            'utm_source' => 'admin_side',
+            'utm_medium' => 'comments',
+            'utm_content' => 'avatar',
+            'utm_campaign' => 'apbct_links',
+        ),
     );
 
     public static function buildCleanTalkLink($utm_preset, $uri = '', $get_params = array(), $domain = 'https://cleantalk.org')

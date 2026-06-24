@@ -3077,10 +3077,12 @@ class ApbctHandler {
      * @return {void}
      */
     detectForcedAltCookiesForms() {
-        let smartFormsSign = document.querySelectorAll('script[id*="smart-forms"]').length > 0;
         let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
-        ctPublic.force_alt_cookies = smartFormsSign ||
-            jetpackCommentsForm;
+        ctPublic.force_alt_cookies = jetpackCommentsForm;
+
+        /**
+         * NOT ADD ANY NEW INTEGRATION IN THIS FLOW
+         */
 
         setTimeout(function() {
             if (!ctPublic.force_alt_cookies) {
@@ -3111,7 +3113,8 @@ class ApbctHandler {
                 typeof cwginstock !== 'undefined'
             ) ||
             document.querySelector('div.fluent_booking_wrap') !== null || // Fluent Booking Pro
-            document.querySelector('div.fcal_calendar_slot_wrap ') !== null // Fluent Booking / Calendar Pro
+            document.querySelector('div.fcal_calendar_slot_wrap ') !== null || // Fluent Booking / Calendar Pro
+            document.querySelectorAll('script[id*="smart-forms"]').length > 0
         ) {
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
@@ -3121,6 +3124,7 @@ class ApbctHandler {
                         body.indexOf('action=booked_add_appt') !== -1 ||
                         body.indexOf('action=cwginstock_product_subscribe') !== -1 ||
                         body.indexOf('action=et_pb_submit_subscribe_form') !== -1 ||
+                        body.indexOf('rednao_smart_forms_save_form_values') !== -1 ||
                         (
                             body.indexOf('action=mailpoet') !== -1 &&
                             body.indexOf('method=subscribe') !== -1
@@ -3128,6 +3132,8 @@ class ApbctHandler {
                     );
                 const isDiviNewsletterRequest = body && typeof body === 'string' &&
                     body.indexOf('action=et_pb_submit_subscribe_form') !== -1;
+                const isSmartFormsRequest = body && typeof body === 'string' &&
+                    body.indexOf('rednao_smart_forms_save_form_values') !== -1;
 
                 let isNeedToAddCleantalkDataCheckFormData = body && typeof body === 'object' &&
                     body instanceof FormData &&
@@ -3137,10 +3143,11 @@ class ApbctHandler {
 
                 if (isNeedToAddCleantalkDataCheckString) {
                     let addidionalCleantalkData = '';
-                    const noCookieDataKey = isDiviNewsletterRequest ?
+                    const useUnwrappedCleantalkKeys = isDiviNewsletterRequest || isSmartFormsRequest;
+                    const noCookieDataKey = useUnwrappedCleantalkKeys ?
                         'ct_no_cookie_hidden_field' :
                         'data%5Bct_no_cookie_hidden_field%5D';
-                    const eventTokenKey = isDiviNewsletterRequest ?
+                    const eventTokenKey = useUnwrappedCleantalkKeys ?
                         'ct_bot_detector_event_token' :
                         'data%5Bct_bot_detector_event_token%5D';
 
@@ -3149,13 +3156,19 @@ class ApbctHandler {
                         apbctLocalStorage.get('bot_detector_event_token')
                     )) {
                         let noCookieData = getNoCookieData();
-                        if (body.indexOf('ct_no_cookie_hidden_field=') === -1) {
+                        const hasNoCookieField =
+                            body.indexOf('ct_no_cookie_hidden_field=') !== -1 ||
+                            body.indexOf('data%5Bct_no_cookie_hidden_field%5D=') !== -1;
+                        if (!hasNoCookieField) {
                             addidionalCleantalkData += '&' + noCookieDataKey + '=' + noCookieData;
                         }
                     } else {
                         const eventToken = new ApbctHandler().toolGetEventToken();
                         if (eventToken) {
-                            if (body.indexOf('ct_bot_detector_event_token=') === -1) {
+                            const hasEventToken =
+                                body.indexOf('ct_bot_detector_event_token=') !== -1 ||
+                                body.indexOf('data%5Bct_bot_detector_event_token%5D=') !== -1;
+                            if (!hasEventToken) {
                                 addidionalCleantalkData += '&' + eventTokenKey + '=' + eventToken;
                             }
                         }
@@ -7631,7 +7644,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let trpDescriptionContent = document.createElement('div');
         trpDescriptionContent.setAttribute('class', 'apbct-real-user-popup-content_row');
-        trpDescriptionContent.setAttribute('style', 'white-space: nowrap');
 
         let trpDescriptionContentFirstLine = document.createElement('div');
         trpDescriptionContentFirstLine.append(' ');
