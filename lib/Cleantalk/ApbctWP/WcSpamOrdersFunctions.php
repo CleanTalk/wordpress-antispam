@@ -68,9 +68,10 @@ class WcSpamOrdersFunctions
         );
 
         try {
-            if (!$order_id) {
+            if (!is_numeric($order_id) || (int)$order_id <= 0) {
                 throw new \Exception(esc_html__('Order ID is not valid.', 'cleantalk-spam-protect'));
             }
+            $order_id = (int)$order_id;
 
             if (
                 empty($search_method['class']) ||
