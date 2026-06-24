@@ -45,18 +45,13 @@ CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam se
 = AntiSpam protection for comments =
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
 
+
 = Contact Form 7 Antispam =
 Plugin extends spam protection for Contact Form 7 (CF7). It can be used with any other third-party spam filters.
 <a href="https://blog.cleantalk.org/how-to-protect-your-contactform7-contact-form-using-cleantalk-anti-spam-plugin/">How to protect your Contact Form 7 using CleanTalk Anti-Spam plugin</a>
 
-= Elementor Website Builder filter =
-Plugin extends spam protection for Elementor Website Builder. It filters spam submisssions and tested for contact form type.
-
 = Gravity forms Antispam =
 Plugin extends spam protection for Gravity forms. It filters spam submisssions for any type of forms.
-
-= Formidable Form Builder Antispam =
-Plugin extends spam protection for Formidable Form Builder. It filters spam submisssions for any type of forms - Contact Form, Survey & Quiz Forms.
 
 = Leaky Paywall subscription protection =
 Plugin protects Leaky Paywall plugin (by ZEEN01) against spam subscriptions. It can be used with any other third-party spam filters.
@@ -76,16 +71,44 @@ The plugin blocks spam emails via any theme (built-in ones included) contact for
 = bbPress spam filter =
 Spam protection for everything about bbPress: logins, registrations, forums, topics and replies.
 
-= Many other great contact, signups and all kind of forms that supported by CleanTalk =
-* AWeber form builder <a href="https://wordpress.org/plugins/aweber-web-form-widget/">https://wordpress.org/plugins/aweber-web-form-widget/</a>
-* Contact form by BestWebSoft <a href="https://wordpress.org/plugins/contact-form-plugin/">https://wordpress.org/plugins/contact-form-plugin/</a>
-* Contact Form Plugin by Fluent Forms Ninja forms <a href="https://fluentforms.com/">https://fluentforms.com</a>
-* Forminator contact from <a href="https://wpmudev.com/project/forminator-pro/">https://wpmudev.com/project/forminator-pro/</a>
-* Ninja forms <a href="https://ninjaforms.com/">https://ninjaforms.com</a>
-* Newsletters - MC4WP: Mailchimp for WordPress (<a href="https://www.mc4wp.com/">mc4wp.com</a>), MailPoet – emails and newsletters in WordPress (https://www.mailpoet.com/)
-* WS Form Lite <a href="https://wordpress.org/plugins/ws-form/">https://wordpress.org/plugins/ws-form/</a>
-* WP User Frontend, UserPro.
-* WordPress Landing Pages.
+= Many other great contact, signups and all kind of forms that supported by Anti-Spam plugin by CleanTalk =
+* Asgaros Forum
+* Avada Forms
+* AWeber form builder
+* Awesome Support – WordPress HelpDesk & Support Plugin
+* Back In Stock Notifier for WooCommerce | WooCommerce Waitlist Pro
+* Brave Popup Builder – Popup, Optins, Lead Generation, Survey & Interactive Content
+* Calculated Fields Form
+* Chatway Live Chat – AI Chatbot, Customer Support, FAQ & Helpdesk Customer Service & Chat Buttons
+* Contact Form Clean and Simple
+* Contact Form by BestWebSoft – Advanced WP Contact Form Builder for WordPress
+* Contact Form Plugin by Fluent Forms Ninja forms
+* Contact Form by Supsystic
+* Contact Form Email
+* Constant Contact Forms
+* Customer Reviews for WooCommerce
+* Floating Chat Widget: Contact Chat Icons, Telegram Chat, Line Messenger, WeChat, Email, SMS, Call Button – Chaty
+* Forminator Forms – Contact Form, Payment Form & Custom Form Builder
+* Easy Digital Downloads – eCommerce Payments and Subscriptions made easy
+* eForm - WordPress Form Builder
+* Elementor - Build, Design & Manage Forms From One Place
+* Elfsight Blocks for Elementor — 80+ Widgets
+* Events Manager – Calendar, Bookings, Tickets, and more!
+* Everest Forms – Contact Form, Payment Form, Quiz, Survey & Custom Form Builder with AI
+* FiboSearch – Ajax Search for WooCommerce
+* Flamingo
+* Fluentbooking.com
+* Formidable Forms – WordPress Form Builder for Contact Forms, Calculators, Quizzes & More
+* Form Maker by 10Web – Mobile-Friendly Drag & Drop Contact Form Builder
+* GeoDirectory – WP Business Directory Plugin and Classified Listings Directory
+* GiveWP – Donation Plugin and Fundraising Platform
+* gravityforms.com - Powerful data capture fueled by Gravity Forms
+* Gwolle Guestbook 
+* Ninja forms 
+* Newsletters - MC4WP: Mailchimp for WordPress
+* WS Form Lite
+* WP User Frontend, UserPro
+* WordPress Landing Pages
 
 Protection for the forms above works as a built-in feature of Anti-Spam by CleanTalk without requiring any additional actions from the user.
 
