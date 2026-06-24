@@ -10,17 +10,6 @@ jQuery(document).ready(function($) {
     jQuery('li a[href="options-general.php?page=cleantalk"]').css('white-space', 'nowrap')
         .css('display', 'inline-block');
 
-    jQuery('body').on('click', '.apbct-notice .notice-dismiss-link', function(e) {
-        jQuery(e.target).parent()
-            .parent('.notice')
-            .after('<div id="apbct-notice-dismiss-success" class="notice notice-success is-dismissible"><p>' +
-                ctAdminCommon.apbctNoticeDismissSuccess +
-                '</p></div>');
-        setTimeout(function() {
-            jQuery('#apbct-notice-dismiss-success').fadeOut();
-        }, 2000);
-        jQuery(e.target).parent().siblings('.apbct-notice .notice-dismiss').click();
-    });
     jQuery('body').on('click', '.apbct-notice .notice-dismiss', function(e) {
         let apbctNoticeName = jQuery(e.target).parent().attr('id');
         if ( apbctNoticeName ) {
