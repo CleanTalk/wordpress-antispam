@@ -3,6 +3,8 @@
 namespace Cleantalk\Antispam\IntegrationsByClass;
 
 use Cleantalk\ApbctWP\Honeypot;
+use Cleantalk\ApbctWP\Variables\AltSessions;
+use Cleantalk\ApbctWP\Variables\Server;
 use DOMDocument;
 
 /**
@@ -90,10 +92,78 @@ class WPSearchForm extends IntegrationByClassBase
 
             $result = str_replace('<form', '<form ' . $form_sign, $form_html);
             $result = str_replace('</form>', Honeypot::generateHoneypotField('search_form', $form_method) . '</form>', $result);
+            self::setSearchFormDrawn();
             return $result;
         }
 
         return $form_html;
+    }
+
+    /**
+     * Marks a protected native WordPress search form as submitted for the given URI.
+     *
+     * Removes the URI from the alternative-session storage after the search request is
+     * received, so the same rendered form state cannot be reused for repeated checks.
+     * If no tracked forms remain, stores false because alternative sessions do not
+     * support an empty array value.
+     *
+     * @param string $drawn_for_uri URI path where the protected search form was rendered.
+     * @return void
+     */
+    public static function setSearchFormSent($drawn_for_uri)
+    {
+        $current = AltSessions::get('search_form_ready');
+        $current = is_string($current) ? json_decode($current, true) : $current;
+        if (!empty($current) && is_array($current) && isset($current[$drawn_for_uri])) {
+            unset($current[$drawn_for_uri]);
+        }
+        if (empty($current)) {
+            // prepare for alt sessions, empty array is restriced :(
+            $current = false;
+        }
+        AltSessions::set('search_form_ready', $current);
+    }
+
+    /**
+     * Stores the current URI as having a protected native WordPress search form rendered.
+     *
+     * The stored URI is later used to verify that an incoming native search request
+     * came from a page where CleanTalk added protection fields to the search form.
+     *
+     * @return void
+     */
+    public static function setSearchFormDrawn()
+    {
+        $drawn_for_uri = parse_url(Server::getString('REQUEST_URI'), PHP_URL_PATH);
+        $current = AltSessions::get('search_form_ready');
+        if (empty($current)) {
+            $current = [];
+            $current[$drawn_for_uri] = 1;
+        }
+        AltSessions::set('search_form_ready', $current);
+    }
+
+    /**
+     * Checks whether the current request refers to a previously rendered protected search form.
+     *
+     * Reads the stored search form URI list from alternative sessions and compares each
+     * stored URI with the current HTTP referer. Returns the matched URI path when found,
+     * otherwise returns false.
+     *
+     * @return false|string URI path where the protected form was rendered, or false if no match exists.
+     */
+    public static function isSearchFormDrawn()
+    {
+        $current = AltSessions::get('search_form_ready');
+        $current = is_string($current) ? json_decode($current, true) : $current;
+        if (!empty($current) && is_array($current)) {
+            foreach ($current as $drawn_for_uri => $_val) {
+                if (is_string($drawn_for_uri) && apbct_is_in_referer($drawn_for_uri)) {
+                    return $drawn_for_uri;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -114,6 +184,15 @@ class WPSearchForm extends IntegrationByClassBase
             ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
         ) {
             do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+            return $search;
+        }
+
+        // do checks only if the form was built via apbct for the visitor on the uri
+        $form_is_ready_for_uri = self::isSearchFormDrawn();
+        if (false !== $form_is_ready_for_uri) {
+            self::setSearchFormSent($form_is_ready_for_uri);
+        } else {
+            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '(): native form has not been drawn ' . __LINE__, $_GET);
             return $search;
         }
 
