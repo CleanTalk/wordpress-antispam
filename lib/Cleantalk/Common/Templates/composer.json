@@ -1,0 +1,16 @@
+{
+  "name": "cleantalk/templates",
+  "description": "CleanTalk APBCT traits",
+  "authors": [
+    {
+      "name": "CleanTalk Team",
+      "email": "support@cleantalk.org"
+    }
+  ],
+  "license": "GPL-3.0-or-later",
+  "autoload": {
+    "psr-4": {
+      "Cleantalk\\Common\\Templates\\": "/"
+    }
+  }
+}
