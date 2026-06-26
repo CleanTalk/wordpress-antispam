@@ -6,6 +6,7 @@ use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\ContactsEncoder\Shortcodes\ShortCodesService;
+use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use Cleantalk\ApbctWP\ContactsEncoder\Exclusions\ExclusionsService;
@@ -644,5 +645,28 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     {
         add_filter('apbct_encode_data', [$this, 'modifyAny'], 10, 3);
         add_filter('apbct_encode_email_data', [$this, 'modifyContent']);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function compileResponse($decoded_emails_array, $is_allowed)
+    {
+        $result = array();
+
+        if ( empty($decoded_emails_array) || ! is_array($decoded_emails_array) ) {
+            return false;
+        }
+
+        foreach ( $decoded_emails_array as $encoded_email => $decoded_email ) {
+            $result[] = array(
+                'is_allowed' => $is_allowed,
+                'show_comment' => !$is_allowed,
+                'comment' => Escape::escHtml($this->getCheckRequestComment()),
+                'encoded_email' => strip_tags($encoded_email, '<a>'),
+                'decoded_email' => $is_allowed ? Escape::escKsesPost(strip_tags($decoded_email, '<a>')) : '',
+            );
+        }
+        return $result;
     }
 }
