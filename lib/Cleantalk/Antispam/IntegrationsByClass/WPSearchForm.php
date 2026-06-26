@@ -135,14 +135,18 @@ class WPSearchForm extends IntegrationByClassBase
     public static function setSearchFormDrawn()
     {
         $drawn_for_uri = parse_url(Server::getString('REQUEST_URI'), PHP_URL_PATH);
-        $drawn_for_uri = (is_string($drawn_for_uri) && $drawn_for_uri !== '') ? $drawn_for_uri : '/';
+        if (!is_string($drawn_for_uri) || $drawn_for_uri === '') {
+            return;
+        }
+
         $current = AltSessions::get('search_form_ready');
         $current = is_string($current) ? json_decode($current, true) : $current;
-        if (!is_array(($current))) {
-            $current = [];
+        $current = is_array($current) ? $current : [];
+
+        if (!isset($current[$drawn_for_uri])) {
+            $current[$drawn_for_uri] = 1;
+            AltSessions::set('search_form_ready', $current);
         }
-        $current[$drawn_for_uri] = 1;
-        AltSessions::set('search_form_ready', $current);
     }
 
     /**
