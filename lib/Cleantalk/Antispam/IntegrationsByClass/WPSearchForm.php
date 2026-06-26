@@ -118,7 +118,7 @@ class WPSearchForm extends IntegrationByClassBase
             unset($current[$drawn_for_uri]);
         }
         if (empty($current)) {
-            // prepare for alt sessions, empty array is restriced :(
+            // prepare for alt sessions, empty array is restricted :(
             $current = false;
         }
         AltSessions::set('search_form_ready', $current);
@@ -135,11 +135,13 @@ class WPSearchForm extends IntegrationByClassBase
     public static function setSearchFormDrawn()
     {
         $drawn_for_uri = parse_url(Server::getString('REQUEST_URI'), PHP_URL_PATH);
+        $drawn_for_uri = (is_string($drawn_for_uri) && $drawn_for_uri !== '') ? $drawn_for_uri : '/';
         $current = AltSessions::get('search_form_ready');
-        if (empty($current)) {
+        $current = is_string($current) ? json_decode($current, true) : $current;
+        if (!is_array(($current))) {
             $current = [];
-            $current[$drawn_for_uri] = 1;
         }
+        $current[$drawn_for_uri] = 1;
         AltSessions::set('search_form_ready', $current);
     }
 

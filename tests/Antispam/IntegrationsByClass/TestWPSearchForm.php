@@ -5,7 +5,6 @@ namespace Antispam\IntegrationsByClass;
 use Cleantalk\Antispam\IntegrationsByClass\WPSearchForm;
 use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Server;
-use Cleantalk\Variables\ServerVariables;
 use PHPUnit\Framework\TestCase;
 
 class TestWPSearchForm extends TestCase
