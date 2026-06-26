@@ -3,6 +3,7 @@
 namespace Antispam\IntegrationsByClass;
 
 use Cleantalk\Antispam\IntegrationsByClass\WPSearchForm;
+use Cleantalk\ApbctWP\UpdatePlugin\DbTablesCreator;
 use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Server;
 use PHPUnit\Framework\TestCase;
@@ -16,6 +17,7 @@ class TestWPSearchForm extends TestCase
 
     public function setUp(): void
     {
+        global $wpdb;
         parent::setUp();
 
         $this->serverBackup = $_SERVER;
@@ -26,6 +28,9 @@ class TestWPSearchForm extends TestCase
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
         $_SERVER['REQUEST_URI'] = '/search-source-page/';
         $_SERVER['HTTP_REFERER'] = '';
+
+        $creator = new DbTablesCreator();
+        $creator->createTable($wpdb->prefix . 'cleantalk_sessions');
 
         AltSessions::wipe();
     }
