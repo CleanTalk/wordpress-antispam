@@ -103,10 +103,13 @@ class WcFieldSwapHoneypot
         $secret    = self::getSecretName($field_key);
         $random_id = 'a' . substr(md5((string) time()), 0, 31);
 
-        return '<script data-noptimize>'
-            . 'document.getElementById("' . esc_js($field_key) . '").setAttribute("id", "' . esc_js($random_id) . '");'
-            . 'document.getElementById("' . esc_js($secret) . '").setAttribute("id", "' . esc_js($field_key) . '");'
-            . '</script>';
+        return '<script data-noptimize>(function(){'
+            . 'const trap=document.getElementById("' . esc_js($field_key) . '");'
+            . 'const real=document.getElementById("' . esc_js($secret) . '");'
+            . 'if(!trap||!real){return;}'
+            . 'trap.setAttribute("id","' . esc_js($random_id) . '");'
+            . 'real.setAttribute("id","' . esc_js($field_key) . '");'
+            . '})();</script>';
     }
 
     /**
