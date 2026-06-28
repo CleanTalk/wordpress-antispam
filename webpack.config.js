@@ -40,5 +40,6 @@ module.exports = {
         path: path.resolve(__dirname, 'js/public'),
         filename: 'apbct-react-bundle.js',
     },
-    mode: 'development',
+    mode: 'production',
+    devtool: false,
 };
