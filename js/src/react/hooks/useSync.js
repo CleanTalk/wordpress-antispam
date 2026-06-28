@@ -44,17 +44,12 @@ export async function runSync(onProgress, onComplete = null) {
             onProgress(call.processing_msg, percent);
         }
 
-        const response = await sendAjaxRequest(call.data, true, false);
-
-        if (response && typeof response === 'object' && response.success === false) {
-            throw new Error(response.message || 'Synchronization failed');
-        }
-    }
+        const response = await sendAjaxRequest(call.data, true, false);
 
-
+        if (response && typeof response === 'object' && response.success === false) {
+            throw new Error(response.message || 'Synchronization failed');
         }
-
-
+    }
 
     if (onComplete && typeof onComplete === 'function') {
         onComplete();
