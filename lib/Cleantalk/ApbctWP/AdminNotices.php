@@ -136,6 +136,10 @@ class AdminNotices
      */
     public function notice_get_key_error() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        if ( Get::getString('signup_wizard') === '1' ) {
+            return;
+        }
+
         if (isset($this->apbct->errors['key_get']) &&
             !empty($this->apbct->errors['key_get']) && !$this->apbct->white_label
         ) {
@@ -163,6 +167,10 @@ class AdminNotices
      */
     public function notice_key_is_empty() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        if ( Get::getString('signup_wizard') === '1' ) {
+            return;
+        }
+
         if ( ! $this->apbct->white_label &&
             empty($this->apbct->api_key) &&
             $this->apbct->moderate_ip == 0

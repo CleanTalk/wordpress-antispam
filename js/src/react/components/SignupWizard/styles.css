@@ -1,0 +1,387 @@
+.apbct-signup-wizard {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #F0F0F1;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    color: #444444;
+}
+.apbct-signup-wizard * {
+    box-sizing: border-box;
+}
+.apbct-signup-wizard-card {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(132, 132, 132, 0.25);
+    width: 60%;
+    padding: 32px;
+    display: flex;
+    justify-content: space-between;
+}
+@media (max-width: 1600px) {
+    .apbct-signup-wizard-card {
+        width: 80%;
+    }
+}
+@media (max-width: 1024px) {
+    .apbct-signup-wizard-card {
+        width: 100%;
+        padding: 24px;
+    }
+}
+.apbct-signup-wizard-card.existing-user,
+.apbct-signup-wizard-card.apbct-signup-wizard-card-error,
+.apbct-signup-wizard-card.apbct-signup-wizard-card-success {
+    flex-direction: column;
+}
+
+.apbct-signup-wizard-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: #000;
+    margin: 0;
+    margin-bottom: 32px;
+}
+.apbct-signup-wizard-subtitle {
+    font-size: 18px;
+    line-height: 22px;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 12px;
+}
+.apbct-signup-wizard-card > div {
+    width: 50%;
+    border-radius: 8px;
+}
+.apbct-signup-wizard-card.existing-user > div,
+.apbct-signup-wizard-card.apbct-signup-wizard-card-error > div,
+.apbct-signup-wizard-card.apbct-signup-wizard-card-success > div
+{
+    width: 100%;
+}
+.apbct-signup-wizard-checked-ico {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    position: relative;
+    padding: 2px 12px 0 0;
+    margin-right: 12px;
+}
+.apbct-signup-wizard-checked-ico::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 8px;
+    height: 13px;
+    border: solid #026E88;
+    border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg);
+}
+.apbct-signup-wizard-card-left > svg {
+    margin-bottom: 22px;
+}
+.apbct-signup-wizard-card-left > div {
+    padding: 0 32px;
+}
+.apbct-signup-wizard-card-left p {
+    font-size: 16px;
+    line-height: 22px;
+    display: flex;
+    margin: 0 0 18px 0;
+}
+.apbct-signup-wizard-card .apbct-signup-wizard-beautiful-digits {
+    font-size: 16px;
+    line-height: 22px;
+}
+.apbct-signup-wizard-card-left p.apbct-signup-wizard-title {
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 29px;
+    color: #000;
+}
+.apbct-signup-wizard-card-left .apbct-signup-wizard-what-next {
+    margin-top: 64px;
+}
+.apbct-signup-wizard-card-left .apbct-signup-wizard-what-next-title {
+    display: inline-block;
+    background: #F3F6F9;
+    border-radius: 18px;
+    padding: 8px 16px;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 19px;
+    color: #000;
+}
+.apbct-signup-wizard-card-left .apbct-signup-wizard-what-next-hint{
+    display: inline-block;
+    font-size: 14px;
+    line-height: 22px;
+    margin-top: 8px;
+}
+.apbct-signup-wizard-card-right {
+    background: #F3F6F9;
+    padding: 48px 62px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.apbct-signup-wizard-form-group {
+    position: relative;
+    margin-bottom: 12px;
+}
+.apbct-signup-wizard-form-group input,
+.apbct-signup-wizard-form-group button {
+    width: 100%;
+    height: 44px;
+}
+.apbct-signup-wizard-form-group input[type="email"],
+.apbct-signup-wizard-form-group input[type="text"] {
+    border: 1px solid #026E88;
+    border-radius: 7px;
+    box-shadow: none;
+}
+.apbct-signup-wizard-form-group .apbct-signup-wizard-input-title {
+    color: #026E88;
+    font-size: 12px;
+    position: absolute;
+    top: -1px;
+    left: 10px;
+    background: #F3F6F9;
+    height: 2px;
+    line-height: 0;
+    padding: 0 5px;
+}
+.apbct-signup-wizard-form-group.checkbox-block {
+    text-align: left;
+    height: 18px;
+}
+.apbct-signup-wizard-form-group.checkbox-block input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+}
+.apbct-signup-wizard-form-group.checkbox-block input[type="checkbox"] + label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    height: 18px;
+    color: #646464;
+}
+.apbct-signup-wizard-form-group.checkbox-block input[type="checkbox"] + label:before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    background-color: #fff;
+    border: 1px solid #026E88;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+.apbct-signup-wizard-form-group.checkbox-block input[type="checkbox"]:checked + label:before {
+    background-color: #026E88;
+    border-color: #026E88;
+    background-image: url("data:image/svg+xml,<svg width='14' height='10' viewBox='0 0 14 10' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M12.75 0.75L4.5 9L0.75 5.25' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 14px;
+}
+.apbct-signup-wizard-form-group.checkbox-block input[type="checkbox"] + label:hover::before {
+    border-color: #026E88;
+}
+.apbct-signup-wizard-form-group.checkbox-block a {
+    color: #646464;
+    text-decoration: none;
+    transition: color .1s cubic-bezier(.39,.575,.565,1)
+}
+.apbct-signup-wizard-form-group.checkbox-block a:hover {
+    color: #026E88;
+}
+.apbct-signup-wizard-form-group button,
+.apbct-signup-wizard-form-group a.apbct-signup-wizard-link-button {
+    transition: opacity .1s cubic-bezier(.39,.575,.565,1);
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+.apbct-signup-wizard-form-group button:hover,
+.apbct-signup-wizard-form-group a.apbct-signup-wizard-link-button:hover {
+    opacity: .75;
+}
+.apbct-signup-wizard-form-group button[type="submit"] {
+    background: #026E88;
+    color: #FFFFFF;
+    border: none;
+    font-weight: 400;
+}
+.apbct-signup-wizard-form-group.apbct-signup-wizard-subtitle {
+    text-align: left;
+}
+.apbct-signup-wizard-form-group button[name="existingUser"] {
+    background: #DFE4E9;
+    border: 1px solid #D6D8DB;
+    color: #444444;
+}
+.apbct-signup-wizard-card .apbct-signup-wizard-skip-wizard-link,
+.apbct-signup-wizard-card .apbct-signup-wizard-skip-wizard-link:hover {
+    color: #646464;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 22px;
+}
+.apbct-signup-wizard-card.existing-user a {
+    text-decoration: none;
+    display: flex;
+    gap: 4px;
+}
+.apbct-signup-wizard-card.existing-user a:hover,
+.apbct-signup-wizard-card.existing-user a:focus {
+    text-decoration: underline;
+}
+.apbct-signup-wizard-card.existing-user p {
+    font-size: 16px;
+}
+.apbct-signup-wizard-card.existing-user .apbct-signup-wizard-card-inner {
+    padding: 32px;
+}
+.apbct-signup-wizard-card.existing-user .apbct-signup-wizard-title {
+    font-weight: 500;
+    font-size: 24px;
+    line-height: 29px;
+    margin-bottom: 16px;
+}
+.apbct-signup-wizard-card.existing-user form {
+    background: #F3F6F9;
+    border-radius: 8px;
+    padding: 32px;
+    display: flex;
+    gap: 24px;
+}
+.apbct-signup-wizard-card.existing-user .apbct-signup-wizard-form-group,
+.apbct-signup-wizard-card.existing-user .apbct-signup-wizard-form-group input,
+.apbct-signup-wizard-card.existing-user .apbct-signup-wizard-form-group button {
+    margin: 0;
+}
+.apbct-signup-wizard-card.existing-user .apbct-signup-wizard-form-group:first-child {
+    flex-grow: 1;
+}
+.apbct-signup-wizard-card.existing-user .apbct-signup-wizard-form-group button {
+    padding: 0 48px;
+}
+.apbct-signup-wizard-card.apbct-signup-wizard-card-error .apbct-signup-wizard-error-head,
+.apbct-signup-wizard-card.apbct-signup-wizard-card-success .apbct-signup-wizard-success-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.apbct-signup-wizard-card.apbct-signup-wizard-card-error .apbct-signup-wizard-error-title {
+    display: flex;
+    align-items: center;
+}
+.apbct-signup-wizard-card.apbct-signup-wizard-card-error .apbct-signup-wizard-error-title svg {
+    margin-right: 12px;
+}
+.apbct-signup-wizard-card.apbct-signup-wizard-card-error .apbct-signup-wizard-error-title h2 {
+    font-size: 24px;
+    font-weight: 500;
+    color: #A94442;
+    margin: 0;
+}
+.apbct-signup-wizard-card.apbct-signup-wizard-card-error .apbct-signup-wizard-title {
+    padding: 32px;
+    color: #000;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+}
+.apbct-signup-wizard-card.apbct-signup-wizard-card-error .apbct-signup-wizard-error-links a {
+    color: #444444;
+    margin-right: 16px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 22px;
+}
+.apbct-signup-wizard-card.apbct-signup-wizard-card-success p {
+    margin: 0 0 32px;
+    text-align: center;
+    font-size: 16px;
+}
+.apbct-signup-wizard-card.apbct-signup-wizard-card-success p.apbct-signup-wizard-title {
+    margin-bottom: 14px;
+    margin-top: 18px;
+    font-size: 24px;
+}
+.apbct-signup-wizard-card.apbct-signup-wizard-card-success p.apbct-signup-wizard-title svg {
+    margin-right: 8px;
+}
+.apbct-signup-wizard-card.apbct-signup-wizard-card-success .apbct-signup-wizard-form-group {
+    text-align: center;
+    margin-bottom: 0;
+}
+.apbct-signup-wizard-card.apbct-signup-wizard-card-success .apbct-signup-wizard-form-group a.apbct-signup-wizard-link-button {
+    background: #026E88;
+    color: #FFF;
+    border: none;
+    font-weight: 400;
+    width: auto;
+    padding: 10px 20px;
+    margin-bottom: 0;
+    text-decoration: none;
+    outline: none;
+}
+.apbct-signup-wizard-connecting-gif img {
+    width: 100%;
+    border-radius: 8px;
+}
+.apbct-signup-wizard-card-left > div.apbct-signup-wizard-connecting-gif {
+    padding: 0 24px;
+}
+.apbct-signup-wizard-card.apbct-signup-wizard-card-connecting {
+    padding-bottom: 64px;
+}
+.apbct-signup-wizard-card.apbct-signup-wizard-card-connecting .apbct-signup-wizard-card-inner {
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.apbct-signup-wizard-card.apbct-signup-wizard-card-connecting .apbct-signup-wizard-title {
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 29px;
+    margin-bottom: 24px;
+}
+.apbct-signup-wizard-card .apbct-signup-wizard-progressbar-legend {
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.apbct-signup-wizard-card .apbct-signup-wizard-progressbar-legend .apbct-signup-wizard-progressbar-legend-percent {
+    color: #026E88;
+}
+.apbct-signup-wizard-card .apbct-signup-wizard-progressbar {
+    height: 10px;
+    border-radius: 5px;
+    background: #E1ECF1;
+    position: relative;
+}
+.apbct-signup-wizard-card .apbct-signup-wizard-progressbar div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 10px;
+    border-radius: 5px;
+    background-image: linear-gradient(to right, #BAB9F9, #026E88);
+    background-size: 500px 100%;
+    background-repeat: no-repeat;
+    transition: width .3s cubic-bezier(.39,.575,.565,1);
+}

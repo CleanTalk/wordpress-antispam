@@ -391,6 +391,7 @@ function apbct_admin__init()
     add_action('wp_ajax_apbct_sync', 'apbct_settings__sync');
 
     add_action('wp_ajax_apbct_get_key_auto', 'apbct_settings__get_key_auto');
+    add_action('wp_ajax_apbct_save_key', 'apbct_settings__save_key');
 
     add_action('wp_ajax_apbct_update_account_email', 'apbct_settings__update_account_email');
 
@@ -606,6 +607,14 @@ function apbct_admin__enqueue_scripts($hook)
             'key_is_ok'   => ! empty($apbct->key_is_ok) && !empty($apbct->settings['apikey']),
             'support_user_creation_msg_array' => SupportUser::getMessages(),
         ));
+
+        wp_enqueue_script('wp-i18n');
+        ApbctEnqueue::getInstance()->js(
+            'public/apbct-react-bundle.js',
+            array('wp-i18n', 'cleantalk-admin-js'),
+            true
+        );
+        wp_set_script_translations('apbct-react-bundle-js', 'cleantalk-spam-protect');
 
         ApbctEnqueue::getInstance()->js('common-cleantalk-modal.min.js');
     }

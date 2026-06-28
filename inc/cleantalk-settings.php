@@ -9,6 +9,7 @@ use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\LinkConstructor;
 use Cleantalk\ApbctWP\PingbackTrackback\SettingsView;
 use Cleantalk\ApbctWP\Validate;
+use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\Variables\Server;
@@ -1320,6 +1321,121 @@ function apbct_settings__add_groups_and_fields($fields)
 }
 
 /**
+ * Whether the current AJAX request comes from the React signup wizard.
+ */
+function apbct_settings__is_wizard_ajax_request()
+{
+    return Post::getInt('apbct_wizard_request') === 1;
+}
+
+/**
+ * Send a JSON response and stop execution.
+ *
+ * @param array $out
+ */
+function apbct_settings__ajax_json_response($out)
+{
+    wp_send_json($out);
+}
+
+/**
+ * Whether the site still needs the signup wizard (no valid access key).
+ */
+function apbct_settings__needs_signup_wizard()
+{
+    global $apbct;
+
+    if ( ! empty($apbct->moderate_ip) || apbct__is_hosting_license() ) {
+        return false;
+    }
+
+    return ! ( ! empty($apbct->key_is_ok) && apbct_api_key__is_correct() );
+}
+
+/**
+ * Settings page URL that opens the signup wizard.
+ */
+function apbct_settings__get_signup_wizard_url()
+{
+    global $apbct;
+
+    return $apbct->settings_link . '&signup_wizard=1';
+}
+
+/**
+ * Whether the signup wizard should be shown instead of the classic settings form.
+ */
+function apbct_settings__is_signup_wizard()
+{
+    if ( Get::getString('signup_wizard') !== '1' ) {
+        return false;
+    }
+
+    return apbct_settings__needs_signup_wizard();
+}
+
+/**
+ * Data attributes for the React settings mount point.
+ */
+function apbct_settings__get_react_page_data()
+{
+    global $apbct;
+
+    return array(
+        'adminEmail'      => ct_get_admin_email(),
+        'settingsLink'    => apbct_settings__get_settings_url_without_wizard(),
+        'signupWizardUrl' => apbct_settings__get_signup_wizard_url(),
+    );
+}
+
+/**
+ * Settings page URL without signup wizard query arg (for Skip wizard link).
+ */
+function apbct_settings__get_settings_url_without_wizard()
+{
+    global $apbct;
+
+    return remove_query_arg('signup_wizard', $apbct->settings_link);
+}
+
+/**
+ * Tab/meta data for the React settings mount point.
+ */
+function apbct_settings__get_react_tabs_data()
+{
+    return array(
+        'keyIsOk'           => apbct_settings__is_access_key_valid(),
+        'needsSignupWizard' => apbct_settings__needs_signup_wizard(),
+    );
+}
+
+/**
+ * Whether the current access key is valid and active.
+ */
+function apbct_settings__is_access_key_valid()
+{
+    global $apbct;
+
+    return ! empty($apbct->key_is_ok) && apbct_api_key__is_correct();
+}
+
+/**
+ * Outputs the React root element for the settings / signup wizard UI.
+ */
+function apbct_settings__render_react_mount()
+{
+    $is_signup_wizard = apbct_settings__is_signup_wizard();
+    $react_style      = $is_signup_wizard ? '' : 'display:none;';
+
+    echo '<div 
+        id="apbct-page--react"
+        data-page-data=\'' . esc_attr(wp_json_encode(apbct_settings__get_react_page_data())) . '\'
+        data-tabs-data=\'' . esc_attr(wp_json_encode(apbct_settings__get_react_tabs_data())) . '\'
+        style="' . esc_attr($react_style) . '"
+    ></div>';
+}
+
+/**
  * Admin callback function - Displays plugin options page
  */
 function apbct_settings__display()
@@ -1330,6 +1446,11 @@ function apbct_settings__display()
     if (isset($apbct->data['wl_brandname']) && $apbct->data['wl_brandname'] !== APBCT_NAME) {
         $actual_plugin_name = $apbct->data['wl_brandname'];
     }
+
+    apbct_settings__render_react_mount();
+
+    $settings_wrap_style = apbct_settings__is_signup_wizard() ? 'display:none;' : '';
+    echo '<div id="apbct-settings-page-wrap" style="' . esc_attr($settings_wrap_style) . '">';
 
     // Title
     echo '<h2 class="apbct_settings-title">' . __($actual_plugin_name, 'cleantalk-spam-protect') . '</h2>';
@@ -1505,6 +1626,7 @@ function apbct_settings__display()
     echo '</div>';
 
     echo "</form>";
+    echo '</div>';
 
     //the form should be here! button code is placed in apbct_sfw_force_sfw_update_button
     echo '<form id="debug__cron_set" method="POST"></form>';
@@ -1917,8 +2039,10 @@ function apbct_settings__field__apikey()
     $define_show_deobfuscating_href = apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok && (!isset($apbct->data["key_changed"]) || !$apbct->data["key_changed"]);
 
     $get_key_manual_chunk_display = '';
-    if (!empty($apbct->settings['apikey']) ||
-        APBCT_WPMS && !is_main_site() && $apbct->network_settings['multisite__work_mode'] == 2
+    if (
+        ! apbct_settings__needs_signup_wizard() ||
+        ( ! empty($apbct->api_key) && apbct_settings__is_access_key_valid() ) ||
+        ( APBCT_WPMS && ! is_main_site() && (int) $apbct->network_settings['multisite__work_mode'] === 2 )
     ) {
         $get_key_manual_chunk_display = 'style="display:none"';
     }
@@ -1938,15 +2062,11 @@ function apbct_settings__field__apikey()
         'get_key_auto_wrapper_display' => 'style="display:none"',
         'get_key_auto_button_display' => 'style="display:none"',
         'get_key_auto_button_text' => __('GET ACCESS KEY', 'cleantalk-spam-protect'),
-        'get_key_auto_preloader_src' => Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif'),
-        'get_key_auto_success_icon_src' => Escape::escUrl(APBCT_URL_PATH . '/inc/images/yes.png'),
+        'signup_wizard_url' => Escape::escUrl(apbct_settings__get_signup_wizard_url()),
         'get_key_manual_chunk' => '',
         'get_key_manual_chunk_display' => $get_key_manual_chunk_display,
         'save_changes_button_text' => __('Save the Access key', 'cleantalk-spam-protect'),
         'trying_to_set_bad_key_notice' => __('Please, insert a correct access key before saving changes! Key should contain at least 8 symbols.', 'cleantalk-spam-protect'),
-        'public_offer_display' => 'style="display:none"',
-        'public_offer_link' => '',
-        'need_accept_agreement_notice' => __('You should accept the License Agreement', 'cleantalk-spam-protect'),
     ];
 
     //WPMS KEY CASE
@@ -1973,45 +2093,21 @@ function apbct_settings__field__apikey()
         __('Account at cleantalk.org is %s.', 'cleantalk-spam-protect'),
         '<b>' . Escape::escHtml($account_name) . '</b>'
     );
-    //GET KEY AUTO
-    $replaces['get_key_auto_wrapper_display'] = $define_show_key_field && empty($apbct->api_key)
-        ? ''
-        : 'style="display:none"';
-    $replaces['get_key_auto_button_display'] = !$apbct->ip_license ? '' : 'style="display:none"';
+    //GET KEY AUTO — opens React signup wizard
+    $show_signup_wizard_link = apbct_settings__needs_signup_wizard()
+        && $define_show_key_field
+        && ( empty($apbct->api_key) || ! apbct_settings__is_access_key_valid() );
+    $replaces['get_key_auto_wrapper_display'] = $show_signup_wizard_link ? '' : 'style="display:none"';
+    $replaces['get_key_auto_button_display'] = ! $apbct->ip_license ? '' : 'style="display:none"';
 
-    //GET KEY MANUAL CHUNK
-    $register_link = LinkConstructor::buildCleanTalkLink(
-        'get_access_key_link',
-        'register',
-        array(
-            'platform' => 'wordpress',
-            'product_name' => 'antispam',
-            'email' => ct_get_admin_email(),
-            'website' => get_bloginfo('url')
-        )
-    );
-    $link_template = __(
-        'The admin email %s %s will be used to obtain a key and as the email for signing up at CleanTalk.org.',
-        'cleantalk-spam-protect'
-    );
-    $link_template .= '<br>';
-    $link_template .= __('As a backup, use the %sCleanTalk Dashboard%s to copy and paste your key.', 'cleantalk-spam-protect');
-    $href = '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="' . $register_link . '">';
+    //GET KEY MANUAL CHUNK — same signup wizard as GET ACCESS KEY
+    $manual_href = '<a class="apbct_color--gray" id="apbct-key-manually-link" href="' . Escape::escUrl(apbct_settings__get_signup_wizard_url()) . '">';
     $replaces['get_key_manual_chunk'] = sprintf(
-        $link_template,
-        '<span id="apbct-account-email">' . ct_get_admin_email() . '</span>',
-        apbct_settings__btn_change_account_email_html(),
-        $href,
+        '<span id="apbct_get_key_or_text">%s</span> %s%s%s',
+        __('or', 'cleantalk-spam-protect'),
+        $manual_href,
+        __('Get access key manually', 'cleantalk-spam-protect'),
         '</a>'
-    );
-
-    //PUBLIC OFFER
-    $replaces['public_offer_display'] = !$apbct->ip_license ? '' : 'style="display:none"';
-    $replaces['public_offer_link'] = sprintf(
-        '<label for="apbct_license_agreed">' .
-        __('I accept %sLicense Agreement%s.', 'cleantalk-spam-protect'),
-        '<a id="apbct_license_agreed_href" class = "apbct_color--gray" href="https://cleantalk.org/publicoffer" target="_blank">',
-        '</a></label>'
     );
 
     //DO REPLACE
@@ -2731,6 +2827,78 @@ function apbct_settings__sync($direct_call = false)
 }
 
 /**
+ * Format an AJAX error payload for settings page or signup wizard clients.
+ *
+ * @param string $message
+ * @return array
+ */
+function apbct_settings__format_ajax_error($message)
+{
+    if ( apbct_settings__is_wizard_ajax_request() ) {
+        return array(
+            'success' => false,
+            'msg'     => $message,
+        );
+    }
+
+    return array(
+        'success' => true,
+        'reload'  => false,
+        'error'   => $message,
+    );
+}
+
+/**
+ * @param bool $direct_call
+ * @param string $apikey
+ *
+ * @return void
+ */
+function apbct_settings__save_key($apikey = '', $direct_call = false)
+{
+    global $apbct;
+
+    if ( ! $direct_call ) {
+        AJAXService::checkAdminNonce();
+
+        if ( ! current_user_can('activate_plugins') ) {
+            apbct_settings__ajax_json_response(
+                apbct_settings__format_ajax_error(
+                    __('You do not have sufficient permissions to access this page.', 'cleantalk-spam-protect')
+                )
+            );
+        }
+
+        $apikey = Post::getString('apiKey');
+
+        if ( ! apbct_api_key__is_correct($apikey) ) {
+            apbct_settings__ajax_json_response(
+                apbct_settings__format_ajax_error(
+                    __('access key format is invalid', 'cleantalk-spam-protect')
+                )
+            );
+        }
+    }
+
+    $apikey = trim($apikey);
+    $apikey = preg_match('/^[a-z\d]*$/', $apikey) ? $apikey : $apbct->settings['apikey'];
+
+    if ( APBCT_WPMS && ! is_main_site() && (int) $apbct->network_settings['multisite__work_mode'] === 2 ) {
+        $apikey = $apbct->network_settings['apikey'];
+    }
+
+    $apbct->settings['apikey'] = $apikey;
+    $apbct->data['key_is_ok']  = apbct_api_key__is_correct($apikey);
+    $apbct->data['key_changed'] = true;
+    $apbct->saveSettings();
+    $apbct->saveData();
+
+    if ( ! $direct_call ) {
+        apbct_settings__ajax_json_response(array('success' => true));
+    }
+}
+
+/**
  * @param bool $direct_call
  *
  * @return array|bool|false[]|mixed|string|string[]|void
@@ -2745,12 +2913,11 @@ function apbct_settings__get_key_auto($direct_call = false)
     global $apbct;
 
     if (!current_user_can('activate_plugins')) {
-        $out = array(
-            'success' => false,
-            'message' => __('You do not have sufficient permissions to access this page.', 'cleantalk-spam-protect'),
-
+        apbct_settings__ajax_json_response(
+            apbct_settings__format_ajax_error(
+                __('You do not have sufficient permissions to access this page.', 'cleantalk-spam-protect')
+            )
         );
-        die(json_encode($out));
     }
 
     $website        = parse_url(get_option('home'), PHP_URL_HOST) . parse_url(get_option('home'), PHP_URL_PATH);
@@ -2761,7 +2928,7 @@ function apbct_settings__get_key_auto($direct_call = false)
     $wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && ! SUBDOMAIN_INSTALL ? true : false;
     $white_label    = $apbct->network_settings['multisite__white_label'] ? true : false;
     $hoster_api_key = $apbct->network_settings['multisite__hoster_api_key'];
-    $admin_email    = ct_get_admin_email();
+    $admin_email    = Post::getString('email') ? Post::getString('email') : ct_get_admin_email();
 
     /**
      * Filters the email to get Access key
@@ -2769,6 +2936,9 @@ function apbct_settings__get_key_auto($direct_call = false)
      * @param string email to get Access key
      */
     $filtered_admin_email = apply_filters('apbct_get_api_key_email', $admin_email);
+    $filtered_admin_email = filter_var($filtered_admin_email, FILTER_VALIDATE_EMAIL)
+        ? $filtered_admin_email
+        : $admin_email;
 
     $language = is_string($language) ? $language : null;
 
@@ -2787,6 +2957,10 @@ function apbct_settings__get_key_auto($direct_call = false)
     );
 
     if ( ! empty($result['error']) ) {
+        $error_message = isset($result['error_message'])
+            ? esc_html($result['error_message'])
+            : esc_html($result['error']);
+
         $apbct->errorAdd(
             'key_get',
             $result['error']
@@ -2796,16 +2970,12 @@ function apbct_settings__get_key_auto($direct_call = false)
             )
         );
         $apbct->saveErrors();
-        $out = array(
-            'success' => true,
-            'reload'  => false,
-            'error' => isset($result['error_message']) ? esc_html($result['error_message']) : esc_html($result['error'])
-        );
+        $out = apbct_settings__format_ajax_error($error_message);
     } elseif (isset($result['error_no']) && $result['error_no'] == '403') {
-        $out = array(
-            'success' => true,
-            'reload'  => false,
-            'error' => isset($result['error_message']) ? esc_html($result['error_message']) : esc_html('Our service is not available in your region.'),
+        $out = apbct_settings__format_ajax_error(
+            isset($result['error_message'])
+                ? esc_html($result['error_message'])
+                : esc_html('Our service is not available in your region.')
         );
     } elseif ( ! isset($result['auth_key']) ) {
         $msg = sprintf(
@@ -2814,11 +2984,7 @@ function apbct_settings__get_key_auto($direct_call = false)
         );
         $apbct->errorAdd('key_get', $msg);
         $apbct->saveErrors();
-        $out = array(
-            'success' => true,
-            'reload'  => false,
-            'error' => $msg
-        );
+        $out = apbct_settings__format_ajax_error($msg);
     } else {
         if ( isset($result['user_token']) ) {
             $apbct->data['user_token'] = $result['user_token'];
@@ -2840,6 +3006,10 @@ function apbct_settings__get_key_auto($direct_call = false)
                 'success'      => true,
                 'getTemplates' => $templatesObj->getHtmlContent(true),
             );
+        } elseif ( apbct_settings__is_wizard_ajax_request() ) {
+            $out = array(
+                'success' => true,
+            );
         } else {
             $out = array(
                 'success' => true,
@@ -2853,9 +3023,9 @@ function apbct_settings__get_key_auto($direct_call = false)
 
     if ( $direct_call ) {
         return $result;
-    } else {
-        die(json_encode($out));
     }
+
+    apbct_settings__ajax_json_response($out);
 }
 
 function apbct_settings__update_account_email()
