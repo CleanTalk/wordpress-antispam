@@ -1426,11 +1426,13 @@ function apbct_settings__render_react_mount()
 {
     $is_signup_wizard = apbct_settings__is_signup_wizard();
     $react_style      = $is_signup_wizard ? '' : 'display:none;';
+    $page_data_json    = wp_json_encode(apbct_settings__get_react_page_data());
+    $tabs_data_json    = wp_json_encode(apbct_settings__get_react_tabs_data());
 
     echo '<div 
         id="apbct-page--react"
-        data-page-data=\'' . esc_attr(wp_json_encode(apbct_settings__get_react_page_data())) . '\'
-        data-tabs-data=\'' . esc_attr(wp_json_encode(apbct_settings__get_react_tabs_data())) . '\'
+        data-page-data=\'' . esc_attr(is_string($page_data_json) ? $page_data_json : '{}') . '\'
+        data-tabs-data=\'' . esc_attr(is_string($tabs_data_json) ? $tabs_data_json : '{}') . '\'
         style="' . esc_attr($react_style) . '"
     ></div>';
 }
