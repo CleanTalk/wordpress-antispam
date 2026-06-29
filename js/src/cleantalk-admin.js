@@ -1,3 +1,4 @@
+const {__} = wp.i18n;
 jQuery(document).ready(function($) {
     // Auto update banner close handler
     jQuery('.apbct_update_notice').on('click', 'button', function() {
@@ -104,7 +105,9 @@ jQuery(document).ready(function($) {
                         const container = apbctGetWCOrderDetailsModalContainer(result.data);
                         const containerHeader = document.createElement('h3');
                         containerHeader.className = 'apbct_wc_details__table-container_header';
-                        containerHeader.textContent = 'WooCommerce spam order details';
+                        containerHeader.textContent = __('WooCommerce spam order details', 'cleantalk-spam-protect');
+                        modalContent.append(containerHeader);
+                        modalContent.append(container);
                         modalContent.append(containerHeader);
                         modalContent.append(container);
                     } else {
@@ -195,7 +198,8 @@ function apbctGetWCOrderDetailsModalContainer(wcOrderData) {
             const productId = orderDetails[key] && typeof orderDetails[key]['product_id'] === 'number' ?
                 orderDetails[key]['product_id'] :
                 'Unknown';
-            container.appendChild(createTableFromObject(value, `Order Details for product ID ${productId}`));
+            const header = __('Order Details for product ID', 'cleantalk-spam-protect');
+            container.appendChild(createTableFromObject(value, `${header} ${productId}`));
         }
     }
 
