@@ -273,7 +273,7 @@ The plugin uses several simple tests to stop spammers:
 1. **Comment submit time.** Spam bots usually submit the info immediately after the page has been loaded, this happens because spam bots don't actually fill the web form, they just send $_POST data to the blog. The normal visitor sends the data after several seconds or minutes.
 
 = What about pingback, trackback spam? =
-The plugin passes pingbacks without any checks by default. All trackbacks will be blocked if the sender had spam activity.
+The plugin does not filter trackbacks or pingbacks, but it can disable them using WordPress core functionality. To enable this option, go to: *WordPress Dashboard → Settings → Anti-Spam by CleanTalk → Advanced Settings → "Disable Pingbacks and Trackbacks"*.
 
 = Can I use CleanTalk to remove pending spam comments? =
 Yes, you can. The plugin has the option to test all pending comments via database of <a href="https://cleantalk.org/blacklists">spam active IP/Email</a>, found spam comments will be moved to Trash folder.
