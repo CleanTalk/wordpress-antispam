@@ -366,8 +366,8 @@ class Request
         }
         unset($response);
 
-        // Return a single content if it was a single request
-        return is_array($this->response) && count($this->response) > 1
+        // Return associative array if URLs were passed as array, single value otherwise
+        return is_array($this->url)
             ? $return_value
             : reset($return_value);
     }
