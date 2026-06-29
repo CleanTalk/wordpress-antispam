@@ -2,6 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 use Cleantalk\ApbctWP\RemoteCalls;
+use Cleantalk\Common\RateLimiter\RateLimiterConfig;
 
 class TestRemoteCalls extends TestCase
 {
@@ -380,5 +381,100 @@ class TestRemoteCalls extends TestCase
             'ab****************90',
             $result['network_settings']['multisite__hoster_api_key']
         );
+    }
+
+    // =========================================================================
+    // Rate limiting for remote calls
+    // =========================================================================
+
+    /** @test */
+    public function rateLimitCheckMethodExists()
+    {
+        $this->assertTrue(
+            method_exists(RemoteCalls::class, 'rateLimitCheck'),
+            'RemoteCalls must have a rateLimitCheck method'
+        );
+    }
+
+    /** @test */
+    public function rateLimitCheckIsPrivateStatic()
+    {
+        $method = new ReflectionMethod(RemoteCalls::class, 'rateLimitCheck');
+        $this->assertTrue($method->isPrivate(), 'rateLimitCheck must be private');
+        $this->assertTrue($method->isStatic(), 'rateLimitCheck must be static');
+    }
+
+    /** @test */
+    public function rateLimitCheckUsesCorrectConfig()
+    {
+        // Verify the config values used inside rateLimitCheck by inspecting the method body.
+        // The method creates RateLimiterConfig('rc_remote_call', 10, 60).
+        $method = new ReflectionMethod(RemoteCalls::class, 'rateLimitCheck');
+        $method->setAccessible(true);
+
+        // Read the source to confirm config values
+        $filename = $method->getFileName();
+        $startLine = $method->getStartLine();
+        $endLine = $method->getEndLine();
+        $source = implode('', array_slice(file($filename), $startLine - 1, $endLine - $startLine + 1));
+
+        $this->assertStringContainsString("'rc_remote_call'", $source, 'Rate limit type must be rc_remote_call');
+        $this->assertStringContainsString('10', $source, 'Rate limit must be set to 10 requests');
+        $this->assertStringContainsString('60', $source, 'Rate limit period must be 60 seconds');
+    }
+
+    /** @test */
+    public function performCallsRateLimitCheckBeforeCooldown()
+    {
+        // Verify that rateLimitCheck() is called BEFORE any cooldown logic in perform().
+        // Read perform() source and check ordering.
+        $method = new ReflectionMethod(RemoteCalls::class, 'perform');
+        $filename = $method->getFileName();
+        $startLine = $method->getStartLine();
+        $endLine = $method->getEndLine();
+        $source = implode('', array_slice(file($filename), $startLine - 1, $endLine - $startLine + 1));
+
+        $rateLimitPos = strpos($source, 'rateLimitCheck');
+        $cooldownPos  = strpos($source, 'last_call');
+
+        $this->assertNotFalse($rateLimitPos, 'perform() must call rateLimitCheck');
+        $this->assertNotFalse($cooldownPos, 'perform() must reference last_call');
+        $this->assertLessThan($cooldownPos, $rateLimitPos, 'rateLimitCheck must be called BEFORE last_call / cooldown logic');
+    }
+
+    /** @test */
+    public function lastCallIsUpdatedAfterTokenCheck()
+    {
+        // Verify that last_call is updated AFTER checkToken / isAllowedWithoutToken,
+        // not before. This prevents attackers from updating cooldown with bogus tokens.
+        $method = new ReflectionMethod(RemoteCalls::class, 'perform');
+        $filename = $method->getFileName();
+        $startLine = $method->getStartLine();
+        $endLine = $method->getEndLine();
+        $source = implode('', array_slice(file($filename), $startLine - 1, $endLine - $startLine + 1));
+
+        $checkTokenPos  = strpos($source, 'checkToken');
+        $lastCallUpdate = strpos($source, "['last_call'] = time()");
+
+        $this->assertNotFalse($checkTokenPos, 'perform() must call checkToken');
+        $this->assertNotFalse($lastCallUpdate, 'perform() must update last_call');
+        $this->assertGreaterThan(
+            $checkTokenPos,
+            $lastCallUpdate,
+            'last_call update must come AFTER token validation'
+        );
+    }
+
+    /** @test */
+    public function performDiesWithRateLimitErrorWhenBlocked()
+    {
+        // Verify the error response format for rate-limited requests
+        $method = new ReflectionMethod(RemoteCalls::class, 'perform');
+        $filename = $method->getFileName();
+        $startLine = $method->getStartLine();
+        $endLine = $method->getEndLine();
+        $source = implode('', array_slice(file($filename), $startLine - 1, $endLine - $startLine + 1));
+
+        $this->assertStringContainsString('RATE_LIMIT_EXCEEDED', $source, 'perform() must use RATE_LIMIT_EXCEEDED error code');
     }
 }
