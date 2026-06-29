@@ -217,7 +217,7 @@ class HTTPMultiRequestService
 
         // CommonRequest::request() returns a single value instead of an associative
         // array when only one URL is passed. Normalize to expected format.
-        if (count($urls) === 1 && !is_array($result)) {
+        if (count($urls) === 1 && !is_array($result) && isset($urls[0])) {
             return [$urls[0] => $result];
         }
 
