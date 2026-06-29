@@ -131,15 +131,15 @@ class HTTPMultiRequestService
      */
     public function fillMultiContract($http_multi_result)
     {
-        // Handle HTTP request error
-        if (!empty($http_multi_result['error'])) {
-            $this->error_msg = __CLASS__ . ': HTTP_MULTI_RESULT ERROR' . $http_multi_result['error'];
-            return $this;
-        }
-
         // Validate result is an array
         if (!is_array($http_multi_result)) {
             $this->error_msg = __CLASS__ . ': HTTP_MULTI_RESULT INVALID';
+            return $this;
+        }
+
+        // Handle HTTP request error
+        if (!empty($http_multi_result['error'])) {
+            $this->error_msg = __CLASS__ . ': HTTP_MULTI_RESULT ERROR' . $http_multi_result['error'];
             return $this;
         }
 
@@ -213,7 +213,15 @@ class HTTPMultiRequestService
         // Configure and execute multi-request
         $http->setUrl($urls)
             ->setPresets('get');
-        return $http->request();
+        $result = $http->request();
+
+        // CommonRequest::request() returns a single value instead of an associative
+        // array when only one URL is passed. Normalize to expected format.
+        if (count($urls) === 1 && !is_array($result)) {
+            return [$urls[0] => $result];
+        }
+
+        return $result;
     }
 
     /**
