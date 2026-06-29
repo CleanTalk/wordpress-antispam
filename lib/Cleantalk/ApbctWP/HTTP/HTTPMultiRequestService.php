@@ -139,7 +139,7 @@ class HTTPMultiRequestService
 
         // Handle HTTP request error
         if (!empty($http_multi_result['error'])) {
-            $this->error_msg = __CLASS__ . ': HTTP_MULTI_RESULT ERROR' . $http_multi_result['error'];
+            $this->error_msg = __CLASS__ . ': HTTP_MULTI_RESULT ERROR: ' . $http_multi_result['error'];
             return $this;
         }
 
@@ -214,11 +214,12 @@ class HTTPMultiRequestService
         $http->setUrl($urls)
             ->setPresets('get');
         $result = $http->request();
+        $url_list = is_array($urls) ? array_values($urls) : [$urls];
 
         // CommonRequest::request() returns a single value instead of an associative
         // array when only one URL is passed. Normalize to expected format.
-        if (count($urls) === 1 && !is_array($result) && isset($urls[0])) {
-            return [$urls[0] => $result];
+        if (count($url_list) === 1 && !is_array($result)) {
+             return [$url_list[0] => $result];
         }
 
         return $result;
