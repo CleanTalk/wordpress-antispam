@@ -213,16 +213,7 @@ class HTTPMultiRequestService
         // Configure and execute multi-request
         $http->setUrl($urls)
             ->setPresets('get');
-        $result = $http->request();
-        $url_list = is_array($urls) ? array_values($urls) : [$urls];
-
-        // CommonRequest::request() returns a single value instead of an associative
-        // array when only one URL is passed. Normalize to expected format.
-        if (count($url_list) === 1 && !is_array($result)) {
-             return [$url_list[0] => $result];
-        }
-
-        return $result;
+        return $http->request();
     }
 
     /**
