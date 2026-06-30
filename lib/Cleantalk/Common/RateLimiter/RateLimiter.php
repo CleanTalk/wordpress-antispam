@@ -99,6 +99,10 @@ abstract class RateLimiter
                 throw new \Exception('UID_DATA_INVALID');
             }
 
+            if ($record_found && $this->isLocked($uid_data)) {
+                return false; // Block here by limit exceeded
+            }
+
             if ($record_found) {
                 if (!$this->increment($uid_data)) {
                     throw new \Exception('INCREMENT_FAILED');
@@ -128,7 +132,7 @@ abstract class RateLimiter
             return true;
         }
 
-        return !$this->isLocked($uid_data);
+        return true;
     }
 
     /**
