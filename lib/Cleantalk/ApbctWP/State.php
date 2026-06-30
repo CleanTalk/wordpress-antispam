@@ -531,6 +531,10 @@ class State extends \Cleantalk\Common\State
             // Table with session data.
             define('APBCT_SPAMSCAN_LOGS', $db_prefix . 'cleantalk_spamscan_logs');
         }
+        if ( ! defined('APBCT_TBL_RATE_LIMITS')) {
+            // Table with rate limit data.
+            define('APBCT_TBL_RATE_LIMITS', $db_prefix . 'cleantalk_rate_limits');
+        }
         if ( ! defined('APBCT_SELECT_LIMIT')) {
             // Select limit for logs.
             define('APBCT_SELECT_LIMIT', 5000);
