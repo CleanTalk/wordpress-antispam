@@ -35,7 +35,7 @@ if (! trait_exists('Cleantalk\Common\Templates\Singleton')) {
         /**
          * Alternative constructor
          */
-        protected function init()
+        protected function init($params = array())
         {
         }
 

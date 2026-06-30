@@ -3,7 +3,6 @@
 namespace Cleantalk\ApbctWP\RateLimit;
 
 use Cleantalk\Common\RateLimiter\RateLimiter;
-use Cleantalk\Common\RateLimiter\RateLimiterConfig;
 use Cleantalk\Common\RateLimiter\RateLimiterDto;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Server;
@@ -103,8 +102,6 @@ class ApbctRateLimiter extends RateLimiter
      *
      * @param RateLimiterDto $uid_data
      * @return bool
-     *
-     * @psalm-suppress MethodSignatureMismatch - library uses incorrect casing RateLimiterDTO vs RateLimiterDto
      */
     protected function insert(RateLimiterDto $uid_data): bool
     {
@@ -134,8 +131,6 @@ class ApbctRateLimiter extends RateLimiter
      *
      * @param RateLimiterDto $uid_data
      * @return bool
-     *
-     * @psalm-suppress MethodSignatureMismatch - library uses incorrect casing RateLimiterDTO vs RateLimiterDto
      */
     protected function increment(RateLimiterDto $uid_data): bool
     {
