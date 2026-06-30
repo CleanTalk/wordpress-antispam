@@ -101,15 +101,16 @@ class Schema
             '__createkey' => 'INT unsigned primary KEY AUTO_INCREMENT FIRST'
         ),
         'rate_limits' => array(
+            'id' => 'INT NOT NULL AUTO_INCREMENT',
             'uid' => 'VARCHAR(32) NOT NULL',
             'type' => 'VARCHAR(64) NOT NULL',
             'ip' => 'VARCHAR(45) NOT NULL',
-            'ua' => 'VARCHAR(512) NOT NULL DEFAULT \'\'' ,
+            'ua' => 'VARCHAR(512) NOT NULL DEFAULT \'\'',
             'counter' => 'INT NOT NULL DEFAULT 0',
             'last_call' => 'INT NOT NULL DEFAULT 0',
             'created_at' => 'INT NOT NULL DEFAULT 0',
-            '__indexes' => 'PRIMARY KEY (`uid`), INDEX (`type`), INDEX (`created_at`)',
-            '__createkey' => 'VARCHAR(32) NOT NULL primary KEY FIRST'
+            '__indexes' => 'PRIMARY KEY (`id`), UNIQUE KEY `uid` (`uid`), INDEX (`type`), INDEX (`created_at`)',
+             '__createkey' => 'INT unsigned primary KEY AUTO_INCREMENT FIRST'
         ),
     );
 

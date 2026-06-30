@@ -4,7 +4,6 @@ namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\RateLimit\ApbctRateLimiter;
-use Cleantalk\ApbctWP\UpdatePlugin\DbAnalyzer;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -130,7 +129,7 @@ class RemoteCalls
                     (self::checkToken($token)) ||
                     (self::isAllowedWithoutToken($action) && self::checkWithoutToken())
                 ) {
-                    // Update last_call only for authenticated requests
+                    // Update last_call only for authorized requests
                     $apbct->remote_calls[$action]['last_call'] = time();
                     $apbct->save('remote_calls');
 
@@ -688,7 +687,7 @@ class RemoteCalls
 
     /**
      * Rate limit check for remote calls.
-     * Blocks abusive IPs/UAs that exceed 10 requests per 60 seconds.
+     * Blocks abusive IPs that exceed 10 requests per 60 seconds.
      *
      * @return bool True if request is allowed, false if rate limited
      */

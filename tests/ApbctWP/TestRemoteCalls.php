@@ -2,7 +2,6 @@
 
 use PHPUnit\Framework\TestCase;
 use Cleantalk\ApbctWP\RemoteCalls;
-use Cleantalk\Common\RateLimiter\RateLimiterConfig;
 
 class TestRemoteCalls extends TestCase
 {
