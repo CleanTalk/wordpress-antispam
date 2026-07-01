@@ -3019,6 +3019,24 @@ function apbct_settings__get__long_description()
     }
 
     $setting_id = TT::toString(Post::get('setting_id', null, 'word'));
+    $descriptions = apbct_settings__get_long_descriptions_data();
+
+    if (!empty($setting_id) && isset($descriptions[$setting_id])) {
+        die(json_encode($descriptions[$setting_id]));
+    } else {
+        die(json_encode(['error' => 'Invalid setting ID']));
+    }
+}
+
+/**
+ * Builds the long descriptions data array with all LinkConstructor links.
+ * Extracted for testability.
+ *
+ * @return array
+ */
+function apbct_settings__get_long_descriptions_data()
+{
+    global $apbct;
 
     $link_exclusion_by_form_signs = LinkConstructor::buildCleanTalkLink(
         'exclusion_by_form_signs',
@@ -3175,11 +3193,7 @@ function apbct_settings__get__long_description()
         ),
     );
 
-    if (!empty($setting_id) && isset($descriptions[$setting_id])) {
-        die(json_encode($descriptions[$setting_id]));
-    } else {
-        die(json_encode(['error' => 'Invalid setting ID']));
-    }
+    return $descriptions;
 }
 
 function apbct_settings__check_renew_banner()
