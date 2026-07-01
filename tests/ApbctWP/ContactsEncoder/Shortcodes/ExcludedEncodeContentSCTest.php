@@ -87,7 +87,32 @@ class ExcludedEncodeContentSCTest extends TestCase
         $this->contacts_encoder->dropInstance(); // Need to rebuild the object after the settings changed
         $this->contacts_encoder = apbctGetContactsEncoder();
 
-        $result = $this->exclude_content_sc->changeContentAfterEncoderModify('');
+        $result = $this->exclude_content_sc->changeContentAfterEncoderModify($content);
+
+        $this->assertEquals($content, $result);
+    }
+
+    /**
+     * Test changeContentAfterEncoderModify uses apbct->buffer during shutdown when content is empty
+     */
+    public function testChangeContentAfterEncoderModifyWithBufferOnUsesBufferDuringShutdown(): void
+    {
+        global $apbct;
+
+        $content = 'original buffer content test@example.com';
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->buffer = $content;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $shortcodeMock = $this->getMockBuilder(ExcludedEncodeContentSC::class)
+                              ->setMethods(['getCurrentAction'])
+                              ->getMock();
+        $shortcodeMock->method('getCurrentAction')->willReturn('shutdown');
+
+        $result = $shortcodeMock->changeContentAfterEncoderModify('');
 
         $this->assertEquals($content, $result);
     }
@@ -134,11 +159,14 @@ class ExcludedEncodeContentSCTest extends TestCase
         $apbct->saveSettings();
         $this->contacts_encoder->dropInstance(); // Need to rebuild the object after the settings changed
         $this->contacts_encoder = apbctGetContactsEncoder();
-        $apbct->buffer = 'buffer [apbct_skip_encoding]first[/apbct_skip_encoding] and [apbct_skip_encoding]second[/apbct_skip_encoding]';
+        $buffer_content = 'buffer [apbct_skip_encoding]first[/apbct_skip_encoding] and [apbct_skip_encoding]second[/apbct_skip_encoding]';
+        $apbct->buffer = $buffer_content;
 
         $shortcodeMock = $this->getMockBuilder(ExcludedEncodeContentSC::class)
-                              ->setMethods(['callback'])
+                              ->setMethods(['callback', 'getCurrentAction'])
                               ->getMock();
+
+        $shortcodeMock->method('getCurrentAction')->willReturn('shutdown');
 
         // Expect two calls to callback
         $matcher = $this->exactly(2);
@@ -156,7 +184,7 @@ class ExcludedEncodeContentSCTest extends TestCase
                           return '';
                       });
 
-        $result = $shortcodeMock->changeContentAfterEncoderModify('input');
+        $result = $shortcodeMock->changeContentAfterEncoderModify($buffer_content);
 
         $this->assertEquals('buffer decoded first and decoded second', $result);
     }
@@ -172,17 +200,20 @@ class ExcludedEncodeContentSCTest extends TestCase
         $apbct->saveSettings();
         $this->contacts_encoder->dropInstance(); // Need to rebuild the object after the settings changed
         $this->contacts_encoder = apbctGetContactsEncoder();
-        $apbct->buffer = 'buffer [apbct_skip_encoding]content[/apbct_skip_encoding]';
+        $buffer_content = 'buffer [apbct_skip_encoding]content[/apbct_skip_encoding]';
+        $apbct->buffer = $buffer_content;
 
         $shortcodeMock = $this->getMockBuilder(ExcludedEncodeContentSC::class)
-                              ->setMethods(['callback'])
+                              ->setMethods(['callback', 'getCurrentAction'])
                               ->getMock();
+
+        $shortcodeMock->method('getCurrentAction')->willReturn('shutdown');
 
         $shortcodeMock->expects($this->once())
                       ->method('callback')
                       ->willReturn('content'); // Return unmodified content
 
-        $result = $shortcodeMock->changeContentAfterEncoderModify('input');
+        $result = $shortcodeMock->changeContentAfterEncoderModify($buffer_content);
 
         // Expect content not to change, but tags are removed
         $this->assertEquals('buffer content', $result);
@@ -265,7 +296,7 @@ class ExcludedEncodeContentSCTest extends TestCase
         $this->contacts_encoder->dropInstance();
         $this->contacts_encoder = apbctGetContactsEncoder();
 
-        $result = $this->exclude_content_sc->changeContentAfterEncoderModify('');
+        $result = $this->exclude_content_sc->changeContentAfterEncoderModify($content);
 
         // Content should be returned unchanged because shortcode is inside HTML tag
         $this->assertEquals($content, $result);
@@ -289,7 +320,7 @@ class ExcludedEncodeContentSCTest extends TestCase
         $this->contacts_encoder->dropInstance();
         $this->contacts_encoder = apbctGetContactsEncoder();
 
-        $result = $this->exclude_content_sc->changeContentAfterEncoderModify('');
+        $result = $this->exclude_content_sc->changeContentAfterEncoderModify($content);
 
         // Full block should be skipped if ANY shortcode is inside HTML tag
         $this->assertEquals($content, $result);
