@@ -84,9 +84,23 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post() && !is_admin()) {
             add_action('wp', 'apbct_buffer__start');
             add_action('shutdown', 'apbct_buffer__end', 0); // Collect $apbct->buffer
-            add_action('shutdown', array($this, 'modifyBuffer'), 2); // Modify $apbct->buffer by `ContactsEncoder::modifyBuffer`
-            $this->shortcodes->addActionsAfterModify('shutdown', 3); // Modify $apbct->buffer by `ShortCodesService::addActionsAfterModify`
+            add_action('shutdown', array($this, 'modifyBuffer'), 1); // Before apbct_buffer__output (priority 2)
             add_action('shutdown', array($this, 'bufferOutput'), 999); // Output $apbct->buffer
+
+            foreach ( $hooks_to_encode as $hook ) {
+                if ( $hook === 'render_block' ) {
+                    // Post content is handled on the_content after do_blocks (priority 9).
+                    continue;
+                }
+                if ( $hook === 'the_content' ) {
+                    // Priority 9 runs after do_blocks (9) when registered from init — placeholders keep <p> wrappers.
+                    $this->shortcodes->addActionsBeforeModify($hook, 9);
+                    $this->shortcodes->addActionsAfterModifyEncodeOnly($hook, 999);
+                    continue;
+                }
+                $this->shortcodes->addActionsBeforeModify($hook, 9);
+                $this->shortcodes->addActionsAfterModifyEncodeOnly($hook, 999);
+            }
         } else {
             foreach ( $hooks_to_encode as $hook ) {
                 $this->shortcodes->addActionsBeforeModify($hook, 9);
@@ -185,7 +199,9 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             return;
         }
         $already_output = true;
+        $apbct->buffer = $this->shortcodes->modifyBufferBefore($apbct->buffer);
         $apbct->buffer = $this->modifyContent($apbct->buffer);
+        $apbct->buffer = $this->shortcodes->modifyBufferAfter($apbct->buffer);
     }
 
     public function bufferOutput()

@@ -262,6 +262,81 @@ class TestEmailEncoder extends TestCase
         $this->assertNotEquals($apbct->buffer, $test_string);
     }
 
+    public function testModifyBufferPreservesParagraphWrapperAroundShortcode()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->contacts_encoder->runEncoding();
+
+        $apbct->buffer = '<p>[apbct_encode_data]any data to encode[/apbct_encode_data]</p>';
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertStringStartsWith('<p>', $apbct->buffer);
+        $this->assertStringContainsString('</p>', $apbct->buffer);
+        $this->assertStringNotContainsString('[apbct_encode_data]', $apbct->buffer);
+        $this->assertStringContainsString('apbct-email-encoder', $apbct->buffer);
+    }
+
+    public function testModifyBufferPreservesParagraphWrapperAroundPlainEmailAndShortcode()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->contacts_encoder->runEncoding();
+
+        $apbct->buffer =
+            '<p>s@cleantalk.org</p>' .
+            '<p>[apbct_encode_data]any data to encode[/apbct_encode_data]</p>' .
+            '<p>[apbct_encode_data]plain shortcode line[/apbct_encode_data]</p>';
+
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertEquals(3, substr_count($apbct->buffer, '<p>'));
+        $this->assertEquals(3, substr_count($apbct->buffer, '</p>'));
+        $this->assertStringNotContainsString('[apbct_encode_data]', $apbct->buffer);
+        $this->assertStringContainsString('apbct-email-encoder', $apbct->buffer);
+    }
+
+    public function testModifyBufferSkipsEncodingWhenDecoderCookieSet()
+    {
+        global $apbct;
+
+        $_COOKIE['apbct_email_encoder_passed'] = apbct_get_email_encoder_pass_key();
+        \Cleantalk\ApbctWP\Variables\Cookie::set('apbct_email_encoder_passed', apbct_get_email_encoder_pass_key());
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->contacts_encoder->runEncoding();
+
+        $apbct->buffer =
+            '<p>any text to encode</p>' .
+            '<p>email test1@te.st</p>' .
+            '<p>text and email, email - test2@te.st</p>';
+
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertEquals(3, substr_count($apbct->buffer, '<p>'));
+        $this->assertEquals(3, substr_count($apbct->buffer, '</p>'));
+        $this->assertStringNotContainsString('apbct-email-encoder', $apbct->buffer);
+        $this->assertStringContainsString('any text to encode', $apbct->buffer);
+        $this->assertStringContainsString('test1@te.st', $apbct->buffer);
+        $this->assertStringContainsString('test2@te.st', $apbct->buffer);
+
+        unset($_COOKIE['apbct_email_encoder_passed']);
+    }
+
     public function testBufferOutput()
     {
         global $apbct;
