@@ -3093,7 +3093,7 @@ function apbct_settings__get_long_descriptions_data()
         'sfw__anti_flood' => array(
             'title' => 'Anti-Flood', // Do not to localize this phrase
             'desc'  => sprintf(
-                __(esc_html__($apbct->data['wl_brandname']) . ' Anti-Flood — this option is meant to block aggressive bots. You can set the maximum number of website pages your visitors can click on within 1 minute. If any IP exceeds the set number it will get the ' . $apbct->data['wl_brandname'] . ' blocking screen for 30 seconds. It\'s impossible for the IP to open any website pages while the 30-second timer takes place. %s', 'cleantalk-spam-protect'),
+                __(esc_html($apbct->data['wl_brandname']) . ' Anti-Flood — this option is meant to block aggressive bots. You can set the maximum number of website pages your visitors can click on within 1 minute. If any IP exceeds the set number it will get the ' . $apbct->data['wl_brandname'] . ' blocking screen for 30 seconds. It\'s impossible for the IP to open any website pages while the 30-second timer takes place. %s', 'cleantalk-spam-protect'),
                 '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('apbct_hint_sfw__anti_flood', 'help/anti-flood-and-anti-crawler')) . '#antiflood" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
