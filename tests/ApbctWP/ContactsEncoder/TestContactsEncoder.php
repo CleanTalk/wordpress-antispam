@@ -4,6 +4,7 @@ namespace ApbctWP\ContactsEncoder;
 
 use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\State;
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use PHPUnit\Framework\TestCase;
 
@@ -22,6 +23,41 @@ class TestEmailEncoder extends TestCase
         global $apbct;
         $apbct->api_key         = 'testapikey';
         $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->clearDecoderPassedCookie();
+    }
+
+    private function clearDecoderPassedCookie(): void
+    {
+        $cookie_name = apbct__get_cookie_prefix() . 'apbct_email_encoder_passed';
+        unset($_COOKIE[$cookie_name]);
+
+        $cookie_instance = Cookie::getInstance();
+        $ref = new \ReflectionClass($cookie_instance);
+        while ($ref) {
+            if ($ref->hasProperty('variables')) {
+                $prop = $ref->getProperty('variables');
+                $prop->setAccessible(true);
+                $variables = $prop->getValue($cookie_instance);
+                unset($variables[$cookie_name]);
+                $prop->setValue($cookie_instance, $variables);
+                break;
+            }
+            $ref = $ref->getParentClass();
+        }
+    }
+
+    private function setDecoderPassedCookie(): string
+    {
+        global $apbct;
+        $apbct->data['key_is_ok'] = true;
+        $apbct->data['cookies_type'] = 'native';
+        $pass_key = apbct_get_email_encoder_pass_key();
+        $cookie_name = apbct__get_cookie_prefix() . 'apbct_email_encoder_passed';
+        $this->clearDecoderPassedCookie();
+        $_COOKIE[$cookie_name] = $pass_key;
+        Cookie::set('apbct_email_encoder_passed', $pass_key);
+
+        return $pass_key;
     }
 
     public function testPlainTextEncodeDecodeSSL()
@@ -310,25 +346,7 @@ class TestEmailEncoder extends TestCase
     {
         global $apbct;
 
-        $apbct->data['key_is_ok'] = true;
-        $apbct->data['cookies_type'] = 'native';
-        $pass_key = apbct_get_email_encoder_pass_key();
-        $cookie_name = apbct__get_cookie_prefix() . 'apbct_email_encoder_passed';
-        $_COOKIE[$cookie_name] = $pass_key;
-
-        $cookie_instance = \Cleantalk\ApbctWP\Variables\Cookie::getInstance();
-        $ref = new \ReflectionClass($cookie_instance);
-        while ($ref) {
-            if ($ref->hasProperty('variables')) {
-                $prop = $ref->getProperty('variables');
-                $prop->setAccessible(true);
-                $variables = $prop->getValue($cookie_instance);
-                unset($variables[$cookie_name]);
-                $prop->setValue($cookie_instance, $variables);
-                break;
-            }
-            $ref = $ref->getParentClass();
-        }
+        $pass_key = $this->setDecoderPassedCookie();
 
         $apbct->settings['data__email_decoder_buffer'] = true;
         $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
@@ -337,7 +355,7 @@ class TestEmailEncoder extends TestCase
         $this->contacts_encoder = apbctGetContactsEncoder();
         $this->contacts_encoder->runEncoding();
 
-        $this->assertEquals($pass_key, \Cleantalk\ApbctWP\Variables\Cookie::get('apbct_email_encoder_passed'));
+        $this->assertEquals($pass_key, Cookie::get('apbct_email_encoder_passed'));
 
         $apbct->buffer =
             '<p>any text to encode</p>' .
@@ -352,8 +370,6 @@ class TestEmailEncoder extends TestCase
         $this->assertStringContainsString('any text to encode', $apbct->buffer);
         $this->assertStringContainsString('test1@te.st', $apbct->buffer);
         $this->assertStringContainsString('test2@te.st', $apbct->buffer);
-
-        unset($_COOKIE[$cookie_name]);
     }
 
     public function testBufferOutput()
@@ -564,5 +580,6 @@ class TestEmailEncoder extends TestCase
     {
         global $apbct;
         $apbct->buffer = '';
+        $this->clearDecoderPassedCookie();
     }
 }
