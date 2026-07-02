@@ -3066,7 +3066,7 @@ function apbct_settings__get_long_descriptions_data()
         'comments__hide_website_field' => array(
             'title' => __('Hide the "Website" field', 'cleantalk-spam-protect'),
             'desc'  => sprintf(
-                __('This «Website» field is frequently used by spammers to place spam links in it. ' . esc_html__($apbct->data['wl_brandname']) . ' helps you protect your WordPress website comments by hiding this field off. %s', 'cleantalk-spam-protect'),
+                __('This «Website» field is frequently used by spammers to place spam links in it. ' . esc_html($apbct->data['wl_brandname']) . ' helps you protect your WordPress website comments by hiding this field off. %s', 'cleantalk-spam-protect'),
                 '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('apbct_hint_comments__hide_website_field', 'help/how-to-hide-website-field-in-wordpress-comments')) . '" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
