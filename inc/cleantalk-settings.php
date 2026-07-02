@@ -3098,7 +3098,7 @@ function apbct_settings__get_long_descriptions_data()
             )
         ),
         'data__pixel' => array(
-            'title' => __(esc_html__($apbct->data['wl_brandname']) . ' Pixel', 'cleantalk-spam-protect'),
+            'title' => __(esc_html($apbct->data['wl_brandname']) . ' Pixel', 'cleantalk-spam-protect'),
             'desc'  => sprintf(
                 __('It is an «invisible» 1×1px image that the Anti-Spam plugin integrates to your WordPress website. And when someone visits your website the Pixel is triggered and reports this visit and some other data including true IP address. %s', 'cleantalk-spam-protect'),
                 '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('apbct_hint_data__pixel', 'introducing-cleantalk-pixel', array(), 'https://blog.cleantalk.org')) . '" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
