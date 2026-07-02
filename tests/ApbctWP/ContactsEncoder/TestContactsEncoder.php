@@ -310,8 +310,25 @@ class TestEmailEncoder extends TestCase
     {
         global $apbct;
 
-        $_COOKIE['apbct_email_encoder_passed'] = apbct_get_email_encoder_pass_key();
-        \Cleantalk\ApbctWP\Variables\Cookie::set('apbct_email_encoder_passed', apbct_get_email_encoder_pass_key());
+        $apbct->data['key_is_ok'] = true;
+        $apbct->data['cookies_type'] = 'native';
+        $pass_key = apbct_get_email_encoder_pass_key();
+        $cookie_name = apbct__get_cookie_prefix() . 'apbct_email_encoder_passed';
+        $_COOKIE[$cookie_name] = $pass_key;
+
+        $cookie_instance = \Cleantalk\ApbctWP\Variables\Cookie::getInstance();
+        $ref = new \ReflectionClass($cookie_instance);
+        while ($ref) {
+            if ($ref->hasProperty('variables')) {
+                $prop = $ref->getProperty('variables');
+                $prop->setAccessible(true);
+                $variables = $prop->getValue($cookie_instance);
+                unset($variables[$cookie_name]);
+                $prop->setValue($cookie_instance, $variables);
+                break;
+            }
+            $ref = $ref->getParentClass();
+        }
 
         $apbct->settings['data__email_decoder_buffer'] = true;
         $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
@@ -319,6 +336,8 @@ class TestEmailEncoder extends TestCase
         $this->contacts_encoder->dropInstance();
         $this->contacts_encoder = apbctGetContactsEncoder();
         $this->contacts_encoder->runEncoding();
+
+        $this->assertEquals($pass_key, \Cleantalk\ApbctWP\Variables\Cookie::get('apbct_email_encoder_passed'));
 
         $apbct->buffer =
             '<p>any text to encode</p>' .
@@ -334,7 +353,7 @@ class TestEmailEncoder extends TestCase
         $this->assertStringContainsString('test1@te.st', $apbct->buffer);
         $this->assertStringContainsString('test2@te.st', $apbct->buffer);
 
-        unset($_COOKIE['apbct_email_encoder_passed']);
+        unset($_COOKIE[$cookie_name]);
     }
 
     public function testBufferOutput()

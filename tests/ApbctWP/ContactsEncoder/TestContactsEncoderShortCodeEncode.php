@@ -21,18 +21,58 @@ class testEmailEncoderShortCodeEncode extends TestCase
          */
         global $apbct;
         $apbct->api_key              = 'tetskey';
+        $apbct->data['key_is_ok']    = true;
         $apbct->data['cookies_type'] = 'native';
         $apbct->saveData();
         $params = new Params();
         $params->api_key = $apbct->api_key;
         $this->shortcode = new EncodeContentSC($params);
         $this->shortcode->register();
+        $this->clearDecoderPassedCookie();
+    }
+
+    protected function tearDown(): void
+    {
+        $this->clearDecoderPassedCookie();
+        parent::tearDown();
+    }
+
+    private function clearDecoderPassedCookie(): void
+    {
+        $cookie_name = apbct__get_cookie_prefix() . 'apbct_email_encoder_passed';
+        unset($_COOKIE[$cookie_name]);
+
+        $cookie_instance = Cookie::getInstance();
+        $ref = new \ReflectionClass($cookie_instance);
+        while ($ref) {
+            if ($ref->hasProperty('variables')) {
+                $prop = $ref->getProperty('variables');
+                $prop->setAccessible(true);
+                $variables = $prop->getValue($cookie_instance);
+                unset($variables[$cookie_name]);
+                $prop->setValue($cookie_instance, $variables);
+                break;
+            }
+            $ref = $ref->getParentClass();
+        }
+    }
+
+    private function setDecoderPassedCookie(): void
+    {
+        global $apbct;
+        $apbct->data['key_is_ok'] = true;
+        $apbct->data['cookies_type'] = 'native';
+        $pass_key = apbct_get_email_encoder_pass_key();
+        $cookie_name = apbct__get_cookie_prefix() . 'apbct_email_encoder_passed';
+        $_COOKIE[$cookie_name] = $pass_key;
+        $this->clearDecoderPassedCookie();
+        $_COOKIE[$cookie_name] = $pass_key;
+        Cookie::set('apbct_email_encoder_passed', $pass_key);
     }
 
     public function testCallbackEncodesContent()
     {
-        $_COOKIE['apbct_email_encoder_passed'] = apbct_get_email_encoder_pass_key();
-        Cookie::set('apbct_email_encoder_passed', apbct_get_email_encoder_pass_key());
+        $this->setDecoderPassedCookie();
         $cookie  = Cookie::get('apbct_email_encoder_passed');
         $content = 'Test content';
         $result  = $this->shortcode->callback([], $content, 'apbct_encode_data');
@@ -42,8 +82,8 @@ class testEmailEncoderShortCodeEncode extends TestCase
 
     public function testCallbackReturnsOriginalContentIfCookieSet()
     {
-        $_COOKIE['apbct_email_encoder_passed'] = apbct_get_email_encoder_pass_key();
-        $content                               = 'Test content';
+        $this->setDecoderPassedCookie();
+        $content = 'Test content';
 
         $result = $this->shortcode->callback([], $content, 'apbct_encode_data');
 
@@ -61,16 +101,13 @@ class testEmailEncoderShortCodeEncode extends TestCase
 
     public function testChangeContentBeforeEncoderModifyUsesPlaceholdersWhenDecoderCookieSet()
     {
-        $_COOKIE['apbct_email_encoder_passed'] = apbct_get_email_encoder_pass_key();
-        Cookie::set('apbct_email_encoder_passed', apbct_get_email_encoder_pass_key());
+        $this->setDecoderPassedCookie();
 
         $content = 'Some content with [apbct_encode_data]Test content[/apbct_encode_data]';
         $result  = $this->shortcode->changeContentBeforeEncoderModify($content);
 
         $this->assertStringContainsString('%%APBCT_SHORT_CODE_INCLUDE_EE_0%%', $result);
         $this->assertArrayHasKey('%%APBCT_SHORT_CODE_INCLUDE_EE_0%%', $this->shortcode->shortcode_replacements);
-
-        unset($_COOKIE['apbct_email_encoder_passed']);
     }
 
     public function testChangeContentBeforeEncoderModifyUsesPlaceholdersWhenGlobalEmailEncodingDisabled()
@@ -95,6 +132,21 @@ class testEmailEncoderShortCodeEncode extends TestCase
         ];
         $content                                 = '%%APBCT_SHORT_CODE_INCLUDE_EE_0%%';
         $result                                  = $this->shortcode->changeContentAfterEncoderModify($content);
+
+        $this->assertStringNotContainsString('[apbct_encode_data]', $result);
+        $this->assertStringNotContainsString('%%APBCT_SHORT_CODE_INCLUDE_EE_0%%', $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+    }
+
+    public function testChangeContentAfterEncoderModifyRestoresShortcodesWithoutEncodingWhenDecoderCookieSet()
+    {
+        $this->setDecoderPassedCookie();
+
+        $this->shortcode->shortcode_replacements = [
+            '%%APBCT_SHORT_CODE_INCLUDE_EE_0%%' => '[apbct_encode_data]Test content[/apbct_encode_data]'
+        ];
+        $content = '%%APBCT_SHORT_CODE_INCLUDE_EE_0%%';
+        $result  = $this->shortcode->changeContentAfterEncoderModify($content);
 
         $this->assertEquals('Test content', $result);
     }

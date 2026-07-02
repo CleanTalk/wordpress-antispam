@@ -31,6 +31,11 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     private $privacy_policy_hook_handled = false;
 
     /**
+     * @var bool
+     */
+    private $buffer_modified = false;
+
+    /**
      * @var string[]
      */
     public $decoded_contacts_array = array();
@@ -194,11 +199,10 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     public function modifyBuffer()
     {
         global $apbct;
-        static $already_output = false;
-        if ($already_output) {
+        if ($this->buffer_modified) {
             return;
         }
-        $already_output = true;
+        $this->buffer_modified = true;
         $apbct->buffer = $this->shortcodes->modifyBufferBefore($apbct->buffer);
         $apbct->buffer = $this->modifyContent($apbct->buffer);
         $apbct->buffer = $this->shortcodes->modifyBufferAfter($apbct->buffer);
