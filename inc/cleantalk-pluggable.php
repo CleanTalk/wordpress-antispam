@@ -2020,7 +2020,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         if (
             apbct_is_plugin_active('woocommerce/woocommerce.php') &&
             Post::getString('woocommerce-register-nonce') &&
-            wp_verify_nonce(wp_unslash(Post::getString('woocommerce-register-nonce')), 'woocommerce-register')
+            wp_verify_nonce(Post::getString('woocommerce-register-nonce'), 'woocommerce-register')
         ) {
             return 'WooCommerce register request (have to be processed by hook `woocommerce_registration_errors`)';
         }
