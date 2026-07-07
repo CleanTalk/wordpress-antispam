@@ -2040,15 +2040,6 @@ function apbct_settings__field__apikey()
     $define_show_key_field = ! (apbct_api_key__is_correct($apbct->api_key) && isset($apbct->data["key_changed"]) && $apbct->data["key_changed"]);
     $define_show_deobfuscating_href = apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok && (!isset($apbct->data["key_changed"]) || !$apbct->data["key_changed"]);
 
-    $get_key_manual_chunk_display = '';
-    if (
-        ! apbct_settings__needs_signup_wizard() ||
-        ( ! empty($apbct->api_key) && apbct_settings__is_access_key_valid() ) ||
-        ( APBCT_WPMS && ! is_main_site() && (int) $apbct->network_settings['multisite__work_mode'] === 2 )
-    ) {
-        $get_key_manual_chunk_display = 'style="display:none"';
-    }
-
     $replaces = [
         'wpms_admin_provided' => '',
         'key_label_display' => 'style="display:none"',
@@ -2065,8 +2056,6 @@ function apbct_settings__field__apikey()
         'get_key_auto_button_display' => 'style="display:none"',
         'get_key_auto_button_text' => __('GET ACCESS KEY', 'cleantalk-spam-protect'),
         'signup_wizard_url' => Escape::escUrl(apbct_settings__get_signup_wizard_url()),
-        'get_key_manual_chunk' => '',
-        'get_key_manual_chunk_display' => $get_key_manual_chunk_display,
         'save_changes_button_text' => __('Save the Access key', 'cleantalk-spam-protect'),
         'trying_to_set_bad_key_notice' => __('Please, insert a correct access key before saving changes! Key should contain at least 8 symbols.', 'cleantalk-spam-protect'),
     ];
@@ -2101,16 +2090,6 @@ function apbct_settings__field__apikey()
         && ( empty($apbct->api_key) || ! apbct_settings__is_access_key_valid() );
     $replaces['get_key_auto_wrapper_display'] = $show_signup_wizard_link ? '' : 'style="display:none"';
     $replaces['get_key_auto_button_display'] = ! $apbct->ip_license ? '' : 'style="display:none"';
-
-    //GET KEY MANUAL CHUNK — same signup wizard as GET ACCESS KEY
-    $manual_href = '<a class="apbct_color--gray" id="apbct-key-manually-link" href="' . Escape::escUrl(apbct_settings__get_signup_wizard_url()) . '">';
-    $replaces['get_key_manual_chunk'] = sprintf(
-        '<span id="apbct_get_key_or_text">%s</span> %s%s%s',
-        __('or', 'cleantalk-spam-protect'),
-        $manual_href,
-        __('Get access key manually', 'cleantalk-spam-protect'),
-        '</a>'
-    );
 
     //DO REPLACE
     foreach ($replaces as $key => $value) {

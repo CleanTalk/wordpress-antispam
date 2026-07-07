@@ -248,12 +248,6 @@ jQuery(document).ready(function() {
                 {
                     timeout: 5000,
                     callback: function(result, data, params, obj) {
-                        if (result.success !== undefined && result.success === 'ok') {
-                            if (result.manuallyLink !== undefined) {
-                                jQuery('#apbct-key-manually-link').attr('href', result.manuallyLink);
-                            }
-                        }
-
                         if (result.error !== undefined) {
                             jQuery('#apbct-account-email').css('border-color', 'red');
                         }
@@ -280,12 +274,10 @@ jQuery(document).ready(function() {
             jQuery('#apbct_button__key_line__save_changes_wrapper').hide();
             if (jQuery('#apbct_button__get_key_auto').length) {
                 jQuery('#apbct_button__get_key_auto__wrapper').show();
-                jQuery('#apbct_button__get_key_manual_chunk').show();
             }
         } else {
             jQuery('#apbct_button__key_line__save_changes_wrapper').show();
             jQuery('#apbct_button__get_key_auto__wrapper').hide();
-            jQuery('#apbct_button__get_key_manual_chunk').hide();
             if (keyBad) {
                 jQuery('#apbct_settings__key_line__save_settings').on('click',
                     function(e) {
