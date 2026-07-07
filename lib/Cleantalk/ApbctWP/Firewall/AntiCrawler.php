@@ -583,7 +583,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                 '{COOKIE_ANTICRAWLER}'             => hash('sha256', $apbct->api_key . $apbct->data['salt']),
                 '{COOKIE_ANTICRAWLER_PASSED}'      => '1',
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . "</p>",
-                '{SCRIPT_URL}'                     => esc_html($js_url),
+'{SCRIPT_URL}'                     => esc_url($js_url),
 
                 // Custom Logo
                 '{CUSTOM_LOGO}'                    => $custom_logo_img
