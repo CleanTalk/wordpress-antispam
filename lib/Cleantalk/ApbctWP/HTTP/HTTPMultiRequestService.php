@@ -131,15 +131,15 @@ class HTTPMultiRequestService
      */
     public function fillMultiContract($http_multi_result)
     {
-        // Handle HTTP request error
-        if (!empty($http_multi_result['error'])) {
-            $this->error_msg = __CLASS__ . ': HTTP_MULTI_RESULT ERROR' . $http_multi_result['error'];
-            return $this;
-        }
-
         // Validate result is an array
         if (!is_array($http_multi_result)) {
             $this->error_msg = __CLASS__ . ': HTTP_MULTI_RESULT INVALID';
+            return $this;
+        }
+
+        // Handle HTTP request error
+        if (!empty($http_multi_result['error'])) {
+            $this->error_msg = __CLASS__ . ': HTTP_MULTI_RESULT ERROR: ' . $http_multi_result['error'];
             return $this;
         }
 

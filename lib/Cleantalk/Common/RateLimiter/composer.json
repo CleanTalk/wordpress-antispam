@@ -1,0 +1,39 @@
+{
+    "name": "cleantalk/rate-limiter",
+    "description": "CleanTalk APBCT RateLimit classes",
+    "authors": [
+        {
+            "name": "CleanTalk Team",
+            "email": "support@cleantalk.org"
+        }
+    ],
+    "license": "GPL-3.0-or-later",
+    "autoload": {
+        "psr-4": {
+            "Cleantalk\\Common\\RateLimiter\\": "./"
+        }
+    },
+    "require": {
+        "cleantalk/templates": "*"
+    },
+    "require-dev": {
+        "vimeo/psalm": "^4.8",
+        "phpunit/phpunit": "^8.5.52",
+        "squizlabs/php_codesniffer": "3.*",
+        "phpcompatibility/php-compatibility": "^9.3"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "test": [
+            "vendor/bin/phpunit --configuration tests/phpunit.xml",
+            "vendor/bin/phpcs --config-set installed_paths vendor/phpcompatibility/php-compatibility",
+            "vendor/bin/phpcs --standard=tests/.phpcs.xml",
+            "vendor/bin/psalm --no-cache --config=tests/psalm.xml",
+            "vendor/bin/psalm --no-cache --config=tests/psalm.xml --taint-analysis"
+        ]
+    }
+}

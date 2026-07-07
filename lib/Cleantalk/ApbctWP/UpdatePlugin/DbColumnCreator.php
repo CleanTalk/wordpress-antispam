@@ -127,36 +127,42 @@ class DbColumnCreator
         $db_indexes_raw = $wpdb->get_results("SHOW INDEX FROM `$this->dbTableName`", ARRAY_A);
 
         if (is_string($schema_indexes_raw) && !empty($schema_indexes_raw)) {
-            // Parse index definitions from string like: "PRIMARY KEY (`id`), INDEX (  `network` ,  `mask` ), INDEX ( `status` )"
-            preg_match_all('/(?:PRIMARY\s+KEY|INDEX)\s*\([^)]+\)/i', $schema_indexes_raw, $matches);
-            if (isset($matches[0]) && !empty($matches[0])) {
-                foreach ($matches[0] as $match) {
-                    // Extract column names from index definition
-                    if (preg_match('/\(([^)]+)\)/', $match, $col_match) && isset($col_match[1])) {
-                        $columns_raw = trim($col_match[1]);
-                        $columns = preg_split('/\s*,\s*/', $columns_raw);
-                        // Normalize column names
-                        $normalized_columns = array();
-                        foreach ($columns as $col) {
-                            $normalized_columns[] = trim($col, '` ');
-                        }
+            // Parse index definitions from string like: "PRIMARY KEY (`id`), UNIQUE KEY `uid` (`uid`), INDEX (`type`)"
+            preg_match_all('/(PRIMARY\s+KEY|UNIQUE\s+(?:KEY|INDEX)|INDEX|KEY)\s*(?:`?(\w+)`?\s*)?\(([^)]+)\)/i', $schema_indexes_raw, $matches, PREG_SET_ORDER);
+            if (!empty($matches)) {
+                foreach ($matches as $match) {
+                    if (!isset($match[1], $match[3])) {
+                        continue;
+                    }
+                    $keyword = strtoupper(trim($match[1]));
+                    $explicit_name = !empty($match[2]) ? $match[2] : '';
+                    $columns_raw = trim($match[3]);
 
-                        // Skip PRIMARY KEY as it should already exist if table has primary key
-                        if (stripos($match, 'PRIMARY') !== false) {
-                            continue;
-                        }
+                    // Skip PRIMARY KEY as it should already exist if table has primary key
+                    if (strpos($keyword, 'PRIMARY') !== false) {
+                        continue;
+                    }
 
-                        if (!empty($normalized_columns)) {
-                            $index_name = $normalized_columns[0];
+                    $columns = preg_split('/\s*,\s*/', $columns_raw);
+                    // Normalize column names
+                    $normalized_columns = array();
+                    foreach ($columns as $col) {
+                        $normalized_columns[] = trim($col, '` ');
+                    }
 
-                            $normalized_def = 'INDEX (' . implode(',', array_map(function ($col) {
-                                return '`' . $col . '`';
-                            }, $normalized_columns)) . ')';
+                    if (!empty($normalized_columns)) {
+                        // Use explicit name if provided, otherwise first column name
+                        $index_name = !empty($explicit_name) ? $explicit_name : $normalized_columns[0];
 
-                            // Use first column as index name
-                            $schema_indexes[$index_name] = $normalized_def;
-                            $schema_index_names[] = $index_name;
-                        }
+                        $is_unique = (strpos($keyword, 'UNIQUE') !== false);
+                        $index_type = $is_unique ? 'UNIQUE INDEX' : 'INDEX';
+
+                        $normalized_def = $index_type . ' (' . implode(',', array_map(function ($col) {
+                            return '`' . $col . '`';
+                        }, $normalized_columns)) . ')';
+
+                        $schema_indexes[$index_name] = $normalized_def;
+                        $schema_index_names[] = $index_name;
                     }
                 }
             }
@@ -251,7 +257,8 @@ class DbColumnCreator
                     $index_def = $schema_indexes[$index_name];
                     if (preg_match('/\(([^)]+)\)/', $index_def, $col_match) && isset($col_match[1])) {
                         $columns = trim($col_match[1]);
-                        $sql = "ALTER TABLE `$this->dbTableName` ADD INDEX `$index_name` ($columns)";
+                        $add_type = (stripos($index_def, 'UNIQUE') !== false) ? 'UNIQUE INDEX' : 'INDEX';
+                        $sql = "ALTER TABLE `$this->dbTableName` ADD $add_type `$index_name` ($columns)";
                         $result = $wpdb->query($sql);
                         if ($result === false) {
                             $errors[] = "Failed to recreate index `$index_name`.\nQuery: $wpdb->last_query\nError: $wpdb->last_error";
@@ -287,7 +294,8 @@ class DbColumnCreator
                     // Parse the index definition to extract columns
                     if (preg_match('/\(([^)]+)\)/', $index_def, $col_match) && isset($col_match[1])) {
                         $columns = trim($col_match[1]);
-                        $sql = "ALTER TABLE `$this->dbTableName` ADD INDEX `$diff_index_name` ($columns)";
+                        $add_type = (stripos($index_def, 'UNIQUE') !== false) ? 'UNIQUE INDEX' : 'INDEX';
+                        $sql = "ALTER TABLE `$this->dbTableName` ADD $add_type `$diff_index_name` ($columns)";
                         $result = $wpdb->query($sql);
                         if ($result === false) {
                             $errors[] = "Failed to add index `$diff_index_name`.\nQuery: $wpdb->last_query\nError: $wpdb->last_error";

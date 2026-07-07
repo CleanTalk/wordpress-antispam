@@ -8,6 +8,9 @@
             "email": "plugins@cleantalk.org"
         }
     ],
+    "require": {
+        "cleantalk/rate-limiter": "*"
+    },
     "require-dev": {
         "vimeo/psalm": "^4.8",
         "phpunit/phpunit": "^8.5.52",
