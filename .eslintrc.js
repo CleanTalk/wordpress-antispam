@@ -11,7 +11,43 @@ module.exports = {
         'js/src/cleantalk-users-checkspam.js',
         'js/src/cleantalk-users-editscreen.js',
     ],
-    overrides: [],
+    overrides: [
+        {
+            files: ['js/src/react/**/*.js'],
+            extends: [
+                'plugin:react/recommended',
+                'plugin:react/jsx-runtime',
+            ],
+            parserOptions: {
+                ecmaVersion: 'latest',
+                sourceType: 'module',
+                ecmaFeatures: {
+                    jsx: true,
+                },
+            },
+            plugins: ['react'],
+            settings: {
+                react: {
+                    version: 'detect',
+                },
+            },
+            rules: {
+                'react/prop-types': 'off',
+                'react/react-in-jsx-scope': 'off',
+                'react/jsx-uses-react': 'off',
+                'require-jsdoc': 'off',
+                'valid-jsdoc': 'off',
+                'linebreak-style': 'off',
+                'no-invalid-this': 'off',
+                'max-len': 'off',
+                'no-unused-vars': ['error', {varsIgnorePattern: 'React', args: 'none'}],
+            },
+            globals: {
+                wp: 'readonly',
+                cleantalkModal: 'readonly',
+            },
+        },
+    ],
     parserOptions: {
         ecmaVersion: 'latest',
     },
