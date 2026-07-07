@@ -53,7 +53,12 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         }
 
         if ( $apbct->settings['data__email_decoder_buffer'] ) {
-            $content = $apbct->buffer;
+            if ( $this->getCurrentAction() !== 'shutdown' ) {
+                return $content;
+            }
+            if ( $content === '' || $content === null ) {
+                $content = $apbct->buffer;
+            }
         }
 
         // Skip processing if shortcode is inside an HTML tag to prevent attribute injection
