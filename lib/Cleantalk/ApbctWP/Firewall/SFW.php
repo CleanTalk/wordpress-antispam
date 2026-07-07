@@ -456,7 +456,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 '{TEST_IP__HEADER}'                => '',
                 '{TEST_IP}'                        => '',
                 '{REAL_IP}'                        => '',
-                '{SCRIPT_URL}'                     => esc_html($js_url),
+'{SCRIPT_URL}'                     => esc_url($js_url),
 
                 // Message about IP status
                 '{MESSAGE_IP_STATUS}'              => '',
