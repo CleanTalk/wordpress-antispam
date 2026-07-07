@@ -442,7 +442,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 '{SERVICE_ID}'                     => esc_html($apbct->data['service_id']) . ', ' . esc_html($net_count),
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . '</p>',
-                '{REQUEST_URI}'                    => esc_html($request_uri),
+                '{REQUEST_URI}'                    => esc_url($request_uri),
 
                 // Cookie
                 '{COOKIE_PREFIX}'                  => '',
