@@ -456,13 +456,13 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 '{TEST_IP__HEADER}'                => '',
                 '{TEST_IP}'                        => '',
                 '{REAL_IP}'                        => '',
-'{SCRIPT_URL}'                     => esc_url($js_url),
+                '{SCRIPT_URL}'                     => esc_url($js_url),
 
                 // Message about IP status
                 '{MESSAGE_IP_STATUS}'              => '',
 
                 // Custom Logo
-'{CUSTOM_LOGO}'                    => wp_kses_post($custom_logo_img)
+                '{CUSTOM_LOGO}'                    => wp_kses_post($custom_logo_img)
             );
 
             /**

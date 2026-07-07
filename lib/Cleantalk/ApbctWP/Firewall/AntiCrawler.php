@@ -576,14 +576,14 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                     ) . '<br>'
                     . __('Don\'t close this page. Please, wait for 3 seconds to pass to the page.', 'cleantalk-spam-protect'),
                 '{CLEANTALK_TITLE}'                => esc_html($apbct->data['wl_brandname']),
-'{CLEANTALK_URL}'                  => esc_url($apbct->data['wl_url']),
+                '{CLEANTALK_URL}'                  => esc_url($apbct->data['wl_url']),
                 '{REMOTE_ADDRESS}'                 => esc_html($ip),
                 '{SERVICE_ID}'                     => esc_html($this->apbct->data['service_id']) . ', ' . esc_html($net_count),
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
                 '{COOKIE_ANTICRAWLER}'             => hash('sha256', $apbct->api_key . $apbct->data['salt']),
                 '{COOKIE_ANTICRAWLER_PASSED}'      => '1',
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . "</p>",
-'{SCRIPT_URL}'                     => esc_url($js_url),
+                '{SCRIPT_URL}'                     => esc_url($js_url),
 
                 // Custom Logo
                 '{CUSTOM_LOGO}'                    => $custom_logo_img
