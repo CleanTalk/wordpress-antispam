@@ -595,9 +595,9 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
 
             if ( Get::get('debug') ) {
                 $debug = '<h1>Headers</h1>'
-                         . str_replace("\n", "<br>", print_r(\apache_request_headers(), true))
+                         . esc_html(str_replace("\n", "<br>", print_r(\apache_request_headers(), true)))
                          . '<h1>$_SERVER</h1>'
-                         . str_replace("\n", "<br>", print_r($_SERVER, true))
+                         . esc_html(str_replace("\n", "<br>", print_r($_SERVER, true)))
                          . '<h1>AC_LOG_RESULT</h1>'
                          . esc_html(str_replace("\n", "<br>", print_r($this->ac_log_result, true)))
                          . '<h1>IPS</h1>'
