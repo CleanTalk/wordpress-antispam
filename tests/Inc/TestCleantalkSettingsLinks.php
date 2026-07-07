@@ -125,25 +125,30 @@ class TestCleantalkSettingsLinks extends TestCase
     }
 
     // =========================================================================
-    // apbct_settings__field__apikey() — covers line 2007
+    // apbct_settings__field__apikey() — signup wizard link on settings page
     // =========================================================================
 
     /**
-     * Line 2007 (settings_public_offer) - unconditional after passing early returns.
-     * Needs: apbct__is_hosting_license() = false, not WPMS sub-site
+     * When no valid key exists, apikey field shows GET ACCESS KEY linking to signup wizard.
+     * Public offer / license agreement moved to the React signup wizard.
      */
-    public function testFieldApikeyCoversPublicOfferLink()
+    public function testFieldApikeyCoversSignupWizardLink()
     {
         global $apbct;
         $apbct->data['moderate_ip'] = 0;
         $apbct->data['ip_license'] = 0;
+        $apbct->data['key_is_ok'] = false;
+        $apbct->settings['apikey'] = '';
 
         ob_start();
         apbct_settings__field__apikey();
         $output = ob_get_clean();
 
-        $this->assertStringContainsString('publicoffer', $output);
-        $this->assertStringContainsString('utm_content=public_offer', $output);
+        $this->assertStringContainsString('signup_wizard=1', $output);
+        $this->assertStringContainsString('apbct_button__get_key_auto', $output);
+        $this->assertStringContainsString('GET ACCESS KEY', $output);
+        $this->assertStringNotContainsString('publicoffer', $output);
+        $this->assertStringNotContainsString('apbct_button__get_key_manual_chunk', $output);
     }
 
     // =========================================================================
