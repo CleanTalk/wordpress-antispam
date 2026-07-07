@@ -259,7 +259,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
                     30
                 ),
                 '{CLEANTALK_TITLE}'                => esc_html($apbct->data['wl_brandname']),
-                '{CLEANTALK_URL}'                  => esc_html($apbct->data['wl_url']),
+'{CLEANTALK_URL}'                  => esc_url($apbct->data['wl_url']),
                 '{REMOTE_ADDRESS}'                 => esc_html($result['ip']),
                 '{REQUEST_URI}'                    => esc_html(Server::getString('REQUEST_URI')),
                 '{SERVICE_ID}'                     => esc_html($this->apbct->data['service_id']) . ', ' . esc_html($net_count),
