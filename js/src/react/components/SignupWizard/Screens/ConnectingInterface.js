@@ -5,7 +5,7 @@ import {runSync} from '../../../hooks/useSync';
 
 const {__} = wp.i18n;
 
-export default function ConnectingInterface({handleShowSuccessInterface}) {
+export default function ConnectingInterface({handleShowSuccessInterface, setError}) {
     const [progress, setProgress] = useState(0);
     const [statusMessage, setStatusMessage] = useState('');
 
@@ -24,8 +24,18 @@ export default function ConnectingInterface({handleShowSuccessInterface}) {
             handleShowSuccessInterface();
         };
 
-        runSync(handleProgress, handleComplete);
-    }, [handleShowSuccessInterface]);
+        const startSync = async () => {
+            try {
+                await runSync(handleProgress, handleComplete);
+            } catch (syncError) {
+                setError(
+                    syncError.message || __('Synchronization failed. Please try again.', 'cleantalk-spam-protect'),
+                );
+            }
+        };
+
+        startSync();
+    }, [handleShowSuccessInterface, setError]);
 
     return (
         <div className="apbct-signup-wizard">

@@ -74,6 +74,7 @@ export default function SignupWizard({dataRoot}) {
     if (showConnectingInterface) {
         return <ConnectingInterface
             handleShowSuccessInterface={handleShowSuccessInterface}
+            setError={setError}
         />;
     }
 

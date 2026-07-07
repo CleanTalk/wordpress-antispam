@@ -2880,6 +2880,14 @@ function apbct_settings__save_key($apikey = '', $direct_call = false)
                 )
             );
         }
+
+        if ( ! ct_account_status_check($apikey, false) ) {
+            apbct_settings__ajax_json_response(
+                apbct_settings__format_ajax_error(
+                    __('Testing failed. Please check the Access key.', 'cleantalk-spam-protect')
+                )
+            );
+        }
     }
 
     $apikey = trim($apikey);
