@@ -119,7 +119,7 @@ class Honeypot
 
         if ( ! empty($_POST) ) {
             $honeypot_potential_values = array_filter($_POST, function ($key) use (&$hp_exists) {
-                $result = strpos($key, 'apbct_email_id') !== false;
+                $result = strpos($key, 'apbct__email_id') !== false;
                 if ($result) {
                     $hp_exists = true;
                 }
