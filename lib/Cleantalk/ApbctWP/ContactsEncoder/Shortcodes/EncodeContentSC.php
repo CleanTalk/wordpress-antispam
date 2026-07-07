@@ -6,7 +6,7 @@ use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
-use Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService;
+use Cleantalk\ApbctWP\ContactsEncoder\Exclusions\ExclusionsService;
 
 /**
  * Shortcode to encode any string content.
@@ -99,7 +99,7 @@ class EncodeContentSC extends EmailEncoderShortCode
      */
     public function changeContentBeforeEncoderModify($content)
     {
-        if ( $this->exclusions->doReturnContentBeforeModify($content) ) {
+        if ( $this->exclusions->doReturnShortcodeContentBeforeModify($content) ) {
             return $content;
         }
 
@@ -146,6 +146,19 @@ class EncodeContentSC extends EmailEncoderShortCode
         foreach ($this->shortcode_replacements as $placeholder => $original) {
             $content = str_replace($placeholder, $original, $content);
         }
-        return $this->doCallbackAction($content);
+
+        $result = $this->doCallbackAction($content);
+        $this->resetShortcodeReplacements();
+
+        return $result;
+    }
+
+    /**
+     * @return void
+     */
+    public function resetShortcodeReplacements()
+    {
+        $this->shortcode_replacements = array();
+        $this->shortcode_counter = 0;
     }
 }

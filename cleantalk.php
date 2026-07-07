@@ -888,12 +888,15 @@ function apbct_sfw__check()
     global $apbct, $spbc, $cleantalk_url_exclusions;
 
     // Turn off the SpamFireWall if current url in the exceptions list and WordPress core pages
+    $core_page_to_skip_check = array('/feed');
     if ( ! empty($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions) ) {
-        $core_page_to_skip_check = array('/feed');
-        foreach ( array_merge($cleantalk_url_exclusions, $core_page_to_skip_check) as $v ) {
-            if ( apbct_is_in_uri($v) ) {
-                return;
-            }
+        $cleantalk_url_exclusions = array_merge($cleantalk_url_exclusions, $core_page_to_skip_check);
+    } else {
+        $cleantalk_url_exclusions = $core_page_to_skip_check;
+    }
+    foreach ( $cleantalk_url_exclusions as $v ) {
+        if ( apbct_is_in_uri($v) ) {
+            return;
         }
     }
 
