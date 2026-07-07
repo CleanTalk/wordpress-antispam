@@ -509,7 +509,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             // Debug
             if ($this->debug) {
                 $debug = '<h1>Headers</h1>'
-                         . var_export(apache_request_headers(), true)
+                         . '<pre>' . esc_html(var_export(apache_request_headers(), true)) . '</pre>'
                          . '<h1>REMOTE_ADDR</h1>'
                          . esc_html($this->server__remote_addr)
                          . '<h1>SERVER_ADDR</h1>'
