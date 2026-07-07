@@ -3,7 +3,28 @@ import {saveAccessKey} from '../../../modules/Http/wizardApi';
 
 const {__} = wp.i18n;
 
-export default function AccessKeyInterface({handleBackToSignup, handleShowConnectingInterface, setError}) {
+function getSignupUrl(signupUrl, email) {
+    if (!signupUrl || !email) {
+        return signupUrl;
+    }
+
+    try {
+        const url = new URL(signupUrl);
+        url.searchParams.set('email', email);
+        return url.toString();
+    } catch (error) {
+        return signupUrl;
+    }
+}
+
+export default function AccessKeyInterface({
+    handleBackToSignup,
+    handleShowConnectingInterface,
+    setError,
+    cloudDashboardUrl,
+    signupUrl,
+    savedEmail,
+}) {
     const [buttonText, setButtonText] = useState(__('Connect to CleanTalk', 'cleantalk-spam-protect'));
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -53,11 +74,24 @@ export default function AccessKeyInterface({handleBackToSignup, handleShowConnec
                     <p>
                         <span>
                             {__('Copy the access key you have received via email or you can get it from ', 'cleantalk-spam-protect')}
-                            <a href={'https://cleantalk.org/my/?cp_mode=antispam'} target={'_blank'} rel="noreferrer" style={{display: 'inline'}}>
+                            <a
+                                href={cloudDashboardUrl}
+                                target={'_blank'}
+                                rel="noreferrer"
+                                className={'apbct-signup-wizard-inline-link'}
+                            >
                                 {__('Cloud Dashboard', 'cleantalk-spam-protect')}
                             </a>
-                            {'. '}
-                            {__('If your account has multiple domains select the one you want to use.', 'cleantalk-spam-protect')}
+                            {__(' or ', 'cleantalk-spam-protect')}
+                            <a
+                                href={getSignupUrl(signupUrl, savedEmail)}
+                                target={'_blank'}
+                                rel="noreferrer"
+                                className={'apbct-signup-wizard-inline-link'}
+                            >
+                                {__('Sign up', 'cleantalk-spam-protect')}
+                            </a>
+                            {__(' for a new account.', 'cleantalk-spam-protect')}
                         </span>
                     </p>
                     <form onSubmit={handleSaveKey}>

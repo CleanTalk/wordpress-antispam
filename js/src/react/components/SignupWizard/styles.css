@@ -248,6 +248,16 @@
 .apbct-signup-wizard-card.existing-user p {
     font-size: 16px;
 }
+.apbct-signup-wizard-card.existing-user p a.apbct-signup-wizard-inline-link {
+    display: inline;
+    color: #646464;
+    text-decoration: underline;
+    transition: color .1s cubic-bezier(.39,.575,.565,1);
+}
+.apbct-signup-wizard-card.existing-user p a.apbct-signup-wizard-inline-link:hover,
+.apbct-signup-wizard-card.existing-user p a.apbct-signup-wizard-inline-link:focus {
+    color: #026E88;
+}
 .apbct-signup-wizard-card.existing-user .apbct-signup-wizard-card-inner {
     padding: 32px;
 }

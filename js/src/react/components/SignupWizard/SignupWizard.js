@@ -61,6 +61,9 @@ export default function SignupWizard({dataRoot}) {
             handleBackToSignup={handleBackToSignup}
             handleShowConnectingInterface={handleShowConnectingInterface}
             setError={setError}
+            cloudDashboardUrl={dataRoot.cloudDashboardUrl}
+            signupUrl={dataRoot.signupUrl}
+            savedEmail={savedFormData.email}
         />;
     }
 

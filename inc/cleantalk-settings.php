@@ -1375,16 +1375,37 @@ function apbct_settings__is_signup_wizard()
 }
 
 /**
+ * Registration URL for the signup wizard (manual key screen).
+ */
+function apbct_settings__get_wizard_signup_url($email = null)
+{
+    if ( null === $email ) {
+        $email = ct_get_admin_email();
+    }
+
+    return LinkConstructor::buildCleanTalkLink(
+        'get_access_key_link',
+        'register',
+        array(
+            'platform'     => 'wordpress',
+            'product_name' => 'antispam',
+            'email'        => $email,
+            'website'      => get_bloginfo('url'),
+        )
+    );
+}
+
+/**
  * Data attributes for the React settings mount point.
  */
 function apbct_settings__get_react_page_data()
 {
-    global $apbct;
-
     return array(
-        'adminEmail'      => ct_get_admin_email(),
-        'settingsLink'    => apbct_settings__get_settings_url_without_wizard(),
-        'signupWizardUrl' => apbct_settings__get_signup_wizard_url(),
+        'adminEmail'        => ct_get_admin_email(),
+        'settingsLink'      => apbct_settings__get_settings_url_without_wizard(),
+        'signupWizardUrl'   => apbct_settings__get_signup_wizard_url(),
+        'cloudDashboardUrl' => 'https://cleantalk.org/my/?cp_mode=antispam',
+        'signupUrl'         => apbct_settings__get_wizard_signup_url(),
     );
 }
 
