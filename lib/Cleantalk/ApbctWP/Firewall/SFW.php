@@ -462,7 +462,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 '{MESSAGE_IP_STATUS}'              => '',
 
                 // Custom Logo
-                '{CUSTOM_LOGO}'                    => esc_attr($custom_logo_img)
+'{CUSTOM_LOGO}'                    => wp_kses_post($custom_logo_img)
             );
 
             /**
