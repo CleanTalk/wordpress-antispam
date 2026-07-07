@@ -437,7 +437,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     'This is the testing page for SpamFireWall',
                     'cleantalk-spam-protect'
                 ) : ''),
-                '{CLEANTALK_URL}'                  => esc_html($apbct->data['wl_url']),
+                '{CLEANTALK_URL}'                  => esc_url($apbct->data['wl_url']),
                 '{REMOTE_ADDRESS}'                 => esc_html($result['ip']),
                 '{SERVICE_ID}'                     => esc_html($apbct->data['service_id']) . ', ' . esc_html($net_count),
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
