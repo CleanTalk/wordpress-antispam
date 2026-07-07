@@ -266,7 +266,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . "</p>",
                 '{COOKIE_ANTIFLOOD_PASSED}'        => md5($result['ip'] . $this->api_key),
-                '{SCRIPT_URL}'                     => esc_html($js_url),
+'{SCRIPT_URL}'                     => esc_url($js_url),
 
                 // Custom Logo
                 '{CUSTOM_LOGO}'                    => $custom_logo_img
