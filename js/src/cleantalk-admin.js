@@ -108,21 +108,31 @@ jQuery(document).ready(function($) {
                         containerHeader.textContent = __('WooCommerce spam order details', 'cleantalk-spam-protect');
                         modalContent.append(containerHeader);
                         modalContent.append(container);
-                        modalContent.append(containerHeader);
-                        modalContent.append(container);
                     } else {
-                        const error = result.data.error || 'Unknown error occurred';
+                        const error = (result && result.data && result.data.error) ?
+                            result.data.error :
+                            __('Unknown error occurred', 'cleantalk-spam-protect');
                         modalContent.text(error);
                     }
                     cleantalkModal.loaded = true;
                 },
                 error: function(xhr, status, error) {
                     console.error('AJAX Error:', error);
-                    alert('An error occurred while processing your request, see console for details.');
+                    alert(
+                        __(
+                            'An error occurred while processing your request, see console for details.',
+                            'cleantalk-spam-protect',
+                        ),
+                    );
                 },
             });
         } else {
-            alert('Can not initialize CleanTalk modal window.');
+            alert(
+                __(
+                    'Can not initialize CleanTalk modal window.',
+                    'cleantalk-spam-protect',
+                ),
+            );
         }
     });
 
