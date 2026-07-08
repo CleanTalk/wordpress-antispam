@@ -14,44 +14,9 @@ jQuery(document).ready(function() {
         jQuery('.apbct_settings-field--api_key+div').css('display', 'inline');
     });
 
-    let d = new Date();
-    let timezone = d.getTimezoneOffset()/60*(-1);
-    jQuery('#ct_admin_timezone').val(timezone);
-
-    // Key KEY automatically
-    jQuery('#apbct_button__get_key_auto').on('click', function() {
-        if (!jQuery('#apbct_license_agreed').is(':checked')) {
-            jQuery('#apbct_settings__no_agreement_notice').show();
-            apbctHighlightElement('apbct_license_agreed', 3);
-            return;
-        }
-        apbct_admin_sendAJAX(
-            {action: 'apbct_get_key_auto', ct_admin_timezone: timezone},
-            {
-                timeout: 25000,
-                button: document.getElementById('apbct_button__get_key_auto' ),
-                spinner: jQuery('#apbct_button__get_key_auto .apbct_preloader_button' ),
-                callback: function(result, data, params, obj) {
-                    jQuery('#apbct_button__get_key_auto .apbct_success').show(300);
-                    setTimeout(function() {
-                        jQuery('#apbct_button__get_key_auto .apbct_success').hide(300);
-                    }, 2000);
-                    if (result.reload) {
-                        document.location.reload();
-                    }
-                    if (result.getTemplates) {
-                        cleantalkModal.loaded = result.getTemplates;
-                        cleantalkModal.open();
-                        document.addEventListener('cleantalkModalClosed', function( e ) {
-                            document.location.reload();
-                        });
-                    }
-                },
-            },
-        );
-    });
-
-    // Import settings
+    /**
+     * Validate apikey and hide get auto btn
+     */
     jQuery( document ).on('click', '#apbct_settings_templates_import_button', function() {
         jQuery('#apbct-ajax-result').remove();
         let optionSelected = jQuery('option:selected', jQuery('#apbct_settings_templates_import'));
@@ -283,12 +248,6 @@ jQuery(document).ready(function() {
                 {
                     timeout: 5000,
                     callback: function(result, data, params, obj) {
-                        if (result.success !== undefined && result.success === 'ok') {
-                            if (result.manuallyLink !== undefined) {
-                                jQuery('#apbct-key-manually-link').attr('href', result.manuallyLink);
-                            }
-                        }
-
                         if (result.error !== undefined) {
                             jQuery('#apbct-account-email').css('border-color', 'red');
                         }
@@ -311,15 +270,14 @@ jQuery(document).ready(function() {
         jQuery('#apbct_settings__key_is_bad').hide();
         jQuery('#apbct_showApiKey').hide();
         jQuery('#apbct_settings__account_name_ob').hide();
-        jQuery('#apbct_settings__no_agreement_notice').hide();
         if (enteredValue === '') {
             jQuery('#apbct_button__key_line__save_changes_wrapper').hide();
-            jQuery('#apbct_button__get_key_auto__wrapper').show();
-            jQuery('#apbct_button__get_key_manual_chunk').show();
+            if (jQuery('#apbct_button__get_key_auto').length) {
+                jQuery('#apbct_button__get_key_auto__wrapper').show();
+            }
         } else {
             jQuery('#apbct_button__key_line__save_changes_wrapper').show();
             jQuery('#apbct_button__get_key_auto__wrapper').hide();
-            jQuery('#apbct_button__get_key_manual_chunk').hide();
             if (keyBad) {
                 jQuery('#apbct_settings__key_line__save_settings').on('click',
                     function(e) {

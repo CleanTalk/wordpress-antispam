@@ -3114,8 +3114,19 @@ class ApbctHandler {
             ) ||
             document.querySelector('div.fluent_booking_wrap') !== null || // Fluent Booking Pro
             document.querySelector('div.fcal_calendar_slot_wrap ') !== null || // Fluent Booking / Calendar Pro
-            document.querySelectorAll('script[id*="smart-forms"]').length > 0
+            document.querySelectorAll('script[id*="smart-forms"]').length > 0 ||
+            document.querySelector('[id^="amelia-app-booking"], .amelia-frontend, .amelia-v2-booking') !== null
         ) {
+            const originalOpen = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+                try {
+                    this._apbctAjaxCallUrl = typeof url === 'string' ? url : '';
+                } catch (e) {
+                    // ignore
+                }
+                return originalOpen.call(this, method, url, ...rest);
+            };
+
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
                 let isNeedToAddCleantalkDataCheckString = body && typeof body === 'string' &&
@@ -3139,6 +3150,13 @@ class ApbctHandler {
                     body instanceof FormData &&
                     (
                         body.has('action') && body.get('action') === 'fluent_cal_schedule_meeting'
+                    );
+
+                let isNeedToAddCleantalkDataCheckJsonData = body && typeof body === 'string' &&
+                    (
+                        // For Amelia booking integration
+                        typeof this._apbctAjaxCallUrl === 'string' &&
+                        this._apbctAjaxCallUrl.indexOf('action=wpamelia_api') !== -1
                     );
 
                 if (isNeedToAddCleantalkDataCheckString) {
@@ -3188,6 +3206,43 @@ class ApbctHandler {
                         const eventToken = new ApbctHandler().toolGetEventToken();
                         if (eventToken) {
                             body.append('ct_bot_detector_event_token', eventToken);
+                        }
+                    }
+                }
+
+                if (isNeedToAddCleantalkDataCheckJsonData) {
+                    if (!(
+                        +ctPublic.bot_detector_enabled &&
+                        apbctLocalStorage.get('bot_detector_event_token')
+                    )) {
+                        let noCookieData = getNoCookieData();
+                        try {
+                            const bodyObj = JSON.parse(body);
+                            if (
+                                bodyObj && typeof bodyObj === 'object' &&
+                                !Object.prototype.hasOwnProperty.call(bodyObj, 'ct_no_cookie_hidden_field')
+                            ) {
+                                bodyObj.ct_no_cookie_hidden_field = noCookieData;
+                                body = JSON.stringify(bodyObj);
+                            }
+                        } catch (e) {
+                            // body is not JSON — leave as is
+                        }
+                    } else {
+                        const eventToken = new ApbctHandler().toolGetEventToken();
+                        if (eventToken) {
+                            try {
+                                const bodyObj = JSON.parse(body);
+                                if (
+                                    bodyObj && typeof bodyObj === 'object' &&
+                                    !Object.prototype.hasOwnProperty.call(bodyObj, 'ct_bot_detector_event_token')
+                                ) {
+                                    bodyObj.ct_bot_detector_event_token = eventToken;
+                                    body = JSON.stringify(bodyObj);
+                                }
+                            } catch (e) {
+                                // body is not JSON — leave as is
+                            }
                         }
                     }
                 }

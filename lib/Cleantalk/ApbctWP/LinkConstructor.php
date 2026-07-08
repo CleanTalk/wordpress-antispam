@@ -230,6 +230,116 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_content' => 'avatar',
             'utm_campaign' => 'apbct_links',
         ),
+        /*
+         * Settings long descriptions (hints)
+         */
+        'apbct_hint_data__set_cookies' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'apbct_hint_data__set_cookies',
+            'utm_medium' => 'WordPress',
+            'utm_campaign' => 'ABPCT_Settings',
+        ),
+        'apbct_hint_comments__hide_website_field' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'apbct_hint_comments__hide_website_field',
+            'utm_medium' => 'hide_website_field_hint',
+        ),
+        'apbct_hint_sfw__anti_crawler' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'apbct_hint_sfw__anti_crawler',
+            'utm_medium' => 'WordPress',
+            'utm_campaign' => 'ABPCT_Settings',
+        ),
+        'apbct_hint_sfw__anti_flood' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'apbct_hint_sfw__anti_flood',
+            'utm_medium' => 'WordPress',
+            'utm_campaign' => 'ABPCT_Settings',
+        ),
+        'apbct_hint_data__pixel' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'apbct_hint_data__pixel',
+            'utm_medium' => 'WordPress',
+            'utm_campaign' => 'ABPCT_Settings',
+        ),
+        'apbct_hint_data__honeypot_field' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'apbct_hint_data__honeypot_field',
+            'utm_medium' => 'WordPress',
+            'utm_campaign' => 'ABPCT_Settings',
+        ),
+        'apbct_hint_sfw__enabled' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'apbct_hint_sfw__enabled',
+            'utm_medium' => 'WordPress',
+            'utm_campaign' => 'ABPCT_Settings',
+        ),
+        /*
+         * Settings page links
+         */
+        'settings_support_open' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'admin_panel',
+            'utm_medium' => 'settings',
+            'utm_content' => 'sfw_support_link',
+        ),
+        'blog_search_form_protection' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'admin_panel',
+            'utm_medium' => 'settings',
+            'utm_content' => 'search_form_protection',
+        ),
+        'settings_dashboard_link' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'wp-backend',
+            'utm_medium' => 'admin-bar',
+            'utm_content' => 'settings_dashboard_link',
+        ),
+        'settings_email_existence_alert' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'admin_panel',
+            'utm_medium' => 'settings',
+            'utm_content' => 'email_existence_alert',
+        ),
+        'settings_hoster_api_key' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'admin_panel',
+            'utm_medium' => 'settings',
+            'utm_content' => 'hoster_api_key',
+        ),
+        'settings_cloud_dashboard_button' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'admin_panel',
+            'utm_medium' => 'settings',
+            'utm_content' => 'cloud_dashboard_button',
+        ),
+        'blog_email_validation_status' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'admin_panel',
+            'utm_medium' => 'settings',
+            'utm_content' => 'email_validation_status',
+        ),
+        'settings_public_offer' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'admin_panel',
+            'utm_medium' => 'settings',
+            'utm_content' => 'public_offer',
+        ),
     );
 
     public static function buildCleanTalkLink($utm_preset, $uri = '', $get_params = array(), $domain = 'https://cleantalk.org')

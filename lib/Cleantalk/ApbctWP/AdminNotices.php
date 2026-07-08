@@ -19,7 +19,7 @@ class AdminNotices
     /*
      * The time interval in which the review notification will be hidden for user
      */
-    const DAYS_INTERVAL_HIDING_REVIEW_NOTICE = 90;
+    const DAYS_INTERVAL_HIDING_REVIEW_NOTICE = 365;
 
     /**
      * @var null|AdminNotices
@@ -136,6 +136,10 @@ class AdminNotices
      */
     public function notice_get_key_error() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        if ( Get::getString('signup_wizard') === '1' ) {
+            return;
+        }
+
         if (isset($this->apbct->errors['key_get']) &&
             !empty($this->apbct->errors['key_get']) && !$this->apbct->white_label
         ) {
@@ -163,6 +167,10 @@ class AdminNotices
      */
     public function notice_key_is_empty() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        if ( Get::getString('signup_wizard') === '1' ) {
+            return;
+        }
+
         if ( ! $this->apbct->white_label &&
             empty($this->apbct->api_key) &&
             $this->apbct->moderate_ip == 0
@@ -308,26 +316,21 @@ class AdminNotices
             $banner_data = new BannerDataDto();
             $banner_data->type = 'review';
 
-            $banner_data->text = sprintf(
-                __("Help others to fight spam with %s – leave your feedback!", 'cleantalk-spam-protect'),
+            $banner_data->text = __("Share your positive experience — leave a rating on WordPress", 'cleantalk-spam-protect');
+
+            $banner_data->secondary_text = sprintf(
+                __("You've been using %s — tell us about your experience. Your feedback helps other users find the right solution and helps us make the plugin even better.", 'cleantalk-spam-protect'),
                 $this->apbct->data['wl_brandname']
             );
 
             $banner_data->button_url = 'https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5';
             $banner_data->button_text = __('SHARE YOUR FEEDBACK', 'cleantalk-spam-protect');
 
-            $support_link = '<a href="https://wordpress.org/support/plugin/cleantalk-spam-protect/" 
-                            style="display:inline-block; margin-top: 10px;"  target="_blank">'
-                            . __('Still have spam?', 'cleantalk-spam-protect')
-                            . '</a>';
-            $close_link = '<a href="#" class="notice-dismiss-link" onclick="return false;">'
-                            . __('Already posted the review', 'cleantalk-spam-protect')
-                            . '</a>';
-            $banner_data->additional_text = $support_link . '&nbsp;&nbsp;' . $close_link;
+            $banner_data->additional_text = __('Already posted the review', 'cleantalk-spam-protect');
 
             $banner_data->level = isset($this->apbct->data['notice_review_level']) ? $this->apbct->data['notice_review_level'] : 'success';
 
-            $banner = new ApbctUniversalBanner($banner_data);
+            $banner = new ApbctBannerReview($banner_data, $this->settings_link, APBCT_IMG_ASSETS_PATH);
             $banner->echoBannerBody();
         }
     }
@@ -464,7 +467,7 @@ class AdminNotices
         $option_name = 'cleantalk_' . $notice_uid . '_dismissed';
 
         // Special for notice_review
-        if (is_string($notice_uid) && strpos($notice_uid, 'notice_review')) {
+        if (is_string($notice_uid) && strpos($notice_uid, 'notice_review') !== false) {
             return $this->checkOptionExpired($option_name, self::DAYS_INTERVAL_HIDING_REVIEW_NOTICE);
         }
 
