@@ -194,11 +194,11 @@ function apbctGetWCOrderDetailsModalContainer(wcOrderData) {
     if (wcOrderData.order_details) {
         const orderDetails = wcOrderData.order_details;
         for (const [key, value] of Object.entries(orderDetails)) {
-            const productId = orderDetails[key] && typeof orderDetails[key]['product_id'] === 'number' ?
-                orderDetails[key]['product_id'] :
-                'Unknown';
-            const header = __('Order Details for product ID', 'cleantalk-spam-protect');
-            container.appendChild(createTableFromObject(value, `${header} ${productId}`));
+            const productName = orderDetails[key] && typeof orderDetails[key]['product_name'] === 'string' ?
+                orderDetails[key]['product_name'] :
+                __('Unknown product name', 'cleantalk-spam-protect');
+            const header = __('Order Details for', 'cleantalk-spam-protect');
+            container.appendChild(createTableFromObject(value, `${header} ${productName}`));
         }
     }
 

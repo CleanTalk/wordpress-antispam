@@ -147,8 +147,8 @@ class WcSpamOrdersFunctionsTest extends TestCase
         $this->assertNull($result['error']);
         $this->assertNotNull($result['order_details']);
         $this->assertNotNull($result['customer_details']);
-        $this->assertEquals('test@example.com', $result['customer_details']->billing_email);
-        $this->assertEquals(5, $result['order_details'][0]->product_id);
+        $this->assertEquals('test@example.com', $result['customer_details']['billing_email']);
+        $this->assertEquals(5, $result['order_details'][0]['product_id']);
     }
 
     /** @test */

@@ -91,12 +91,27 @@ class WcSpamOrdersFunctions
                 throw new \Exception(esc_html__('Order is not found.', 'cleantalk-spam-protect'));
             }
 
-            $response_data['order_details'] = json_decode($order_data->order_details);
+            $response_data['order_details'] = json_decode($order_data->order_details, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new \Exception(esc_html__('Order details JSON is invalid.', 'cleantalk-spam-protect'));
             }
+            if (is_array($response_data['order_details'])) {
+                foreach ($response_data['order_details'] as $_item => &$details) {
+                    $product_name = __('Unknown product name', 'cleantalk-spam-protect');
+                    if (isset($details['product_id']) && function_exists('wc_get_product')) {
+                        $product_details = wc_get_product($details['product_id']);
+                        if ($product_details && method_exists($product_details, 'get_name')) {
+                            $product_name_got = $product_details->get_name();
+                            if (is_string($product_name_got) && !empty($product_name_got)) {
+                                $product_name = $product_name_got;
+                            }
+                        }
+                    }
+                    $details['product_name'] = $product_name;
+                }
+            }
 
-            $response_data['customer_details'] = json_decode($order_data->customer_details);
+            $response_data['customer_details'] = json_decode($order_data->customer_details, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new \Exception(esc_html__('Customer details JSON is invalid.', 'cleantalk-spam-protect'));
             }
