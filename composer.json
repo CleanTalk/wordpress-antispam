@@ -8,9 +8,6 @@
             "email": "plugins@cleantalk.org"
         }
     ],
-    "require": {
-        "cleantalk/rate-limiter": "*"
-    },
     "require-dev": {
         "vimeo/psalm": "^4.8",
         "phpunit/phpunit": "^8.5.52",
@@ -21,7 +18,8 @@
         "wp-cli/wp-cli-bundle": "*",
         "mockery/mockery": "*",
         "cleantalk/apbct-installer": "*",
-        "cleantalk/contacts-encoder": "*"
+        "cleantalk/contacts-encoder": "2.0.18",
+        "cleantalk/rate-limiter": "*"
     },
     "scripts": {
         "test": [
