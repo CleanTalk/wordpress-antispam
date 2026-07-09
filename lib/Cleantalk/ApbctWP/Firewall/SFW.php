@@ -888,13 +888,17 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
             $table_name__temp = $table_name . '_temp';
 
-            if ( ! $db->execute('CREATE TABLE IF NOT EXISTS `' . $table_name__temp . '` LIKE `' . $table_name . '`;')) {
-                return array('error' => 'CREATE TEMP TABLES: COULD NOT CREATE ' . $table_name__temp
+            $result = $db->execute('CREATE TABLE IF NOT EXISTS `' . $table_name__temp . '` LIKE `' . $table_name . '`;');
+            sleep(1);
+            if ( ! $result ) {
+                return array('error' => 'CREATE TEMP TABLES: COULD NOT CREATE: ' . $table_name__temp
                     . ' DB Error: ' . $db->getLastError() );
             }
 
-            if ( ! $db->execute('TRUNCATE TABLE `' . $table_name__temp . '`;')) {
-                return array('error' => 'CREATE TEMP TABLES: COULD NOT TRUNCATE' . $table_name__temp
+            $result = $db->execute('TRUNCATE TABLE `' . $table_name__temp . '`;');
+            sleep(1);
+            if ( ! $result ) {
+                return array('error' => 'CREATE TEMP TABLES: COULD NOT TRUNCATE: ' . $table_name__temp
                     . ' DB Error: ' . $db->getLastError() );
             }
         }
