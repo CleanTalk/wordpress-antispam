@@ -817,6 +817,138 @@ class ApbctHandler {
             return skipUrls.some((skipUrl) => url.includes(skipUrl));
         };
 
+        // === Shared logic for external form providers (Bitrix24, sender.com, ...) ===
+
+        /**
+         * Collect form field values into a payload for the ajax check request.
+         * Shared by all external form providers so each handler only needs
+         * to know how to locate its own form element.
+         * @param {HTMLFormElement} form
+         * @return {object}
+         */
+        const collectFormFields = function(form) {
+            const data = {
+                action: 'cleantalk_force_ajax_check',
+            };
+
+            for (const field of form.elements) {
+                if (field.name) {
+                    data[field.name] = field.value;
+                }
+            }
+
+            return data;
+        };
+
+        /**
+         * Run the CleanTalk ajax check for a given external form and decide
+         * whether the original fetch request should be blocked.
+         * Centralizes the isInternalCall flag handling, the sendAJAX call,
+         * and the "blocked" detection so providers don't duplicate this logic.
+         * @param {HTMLFormElement|null} form
+         * @return {Promise<boolean>} True if the request should be blocked.
+         */
+        const runExternalFormCheck = async function(form) {
+            if (!form) {
+                return false;
+            }
+
+            const data = collectFormFields(form);
+
+            // Set internal call flag before making our own AJAX request
+            isInternalCall = true;
+            try {
+                // Check form request - wrap in Promise to wait for completion
+                const result = await new Promise((resolve, reject) => {
+                    apbct_public_sendAJAX(
+                        data,
+                        {
+                            async: true,
+                            callback: resolve,
+                            onErrorCallback: reject,
+                        },
+                    );
+                });
+
+                // blocked
+                const isBlocked =
+                    (result.apbct !== undefined && +result.apbct.blocked) ||
+                    (result.data !== undefined && result.data.message !== undefined);
+
+                if (isBlocked) {
+                    new ApbctShowForbidden().parseBlockMessage(result);
+                }
+
+                return isBlocked;
+            } catch (e) {
+                return false;
+            } finally {
+                isInternalCall = false;
+            }
+        };
+
+        /**
+         * Config-driven list of external form providers.
+         * Adding a new provider only requires a new entry here — no need
+         * to duplicate the Promise/AJAX/blocked-check boilerplate above.
+         */
+        const externalFormHandlers = [
+            {
+                name: 'bitrix24',
+                matches: (url, args) =>
+                    document.querySelector('.b24-form') &&
+                    url.includes('bitrix/services/main/ajax.php?action=crm.site.form.fill') &&
+                    args[1].body instanceof FormData,
+                getForm: () => document.querySelector('.b24-form form'),
+            },
+            {
+                name: 'sender',
+                matches: (url, args) =>
+                    url.includes('stats.sender.net/forms') &&
+                    typeof args[1].body === 'string',
+                getForm: () => {
+                    const iframes = document.querySelectorAll('iframe');
+                    for (let i = 0; i < iframes.length; i++) {
+                        try {
+                            // contentDocument access can throw on cross-origin iframes
+                            const doc = iframes[i].contentDocument;
+                            if (doc && doc.querySelectorAll('#sender-form-content').length > 0) {
+                                return doc.querySelector('#sender-form-content');
+                            }
+                        } catch (e) {
+                            // Ignore inaccessible (cross-origin) iframes
+                        }
+                    }
+                    return null;
+                },
+            },
+        ];
+
+        /**
+         * Run the matching external form handler(s), if any, and return
+         * whether the original fetch request should be prevented.
+         * @param {string} url
+         * @param {Array} args Original fetch() arguments.
+         * @return {Promise<boolean>}
+         */
+        const processFetchOfExternalForms = async function(url, args) {
+            if (!+ctPublic.settings__forms__check_external) {
+                return false;
+            }
+
+            for (const handler of externalFormHandlers) {
+                if (handler.matches(url, args)) {
+                    const form = handler.getForm();
+                    const blocked = await runExternalFormCheck(form);
+                    if (blocked) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        };
+
         // Override window.fetch
         window.fetch = async function(...args) {
             // Prevent recursion - if this is our internal call, pass through without processing
@@ -939,64 +1071,8 @@ class ApbctHandler {
                     }
                 }
 
-                // === Bitrix24 external form ===
-                if (
-                    +ctPublic.settings__forms__check_external &&
-                    document.querySelectorAll('.b24-form').length > 0 &&
-                    args[0].includes('bitrix/services/main/ajax.php?action=crm.site.form.fill') &&
-                    args[1].body instanceof FormData
-                ) {
-                    const currentTargetForm = document.querySelector('.b24-form form');
-                    if (currentTargetForm) {
-                        let data = {
-                            action: 'cleantalk_force_ajax_check',
-                        };
-                        for (const field of currentTargetForm.elements) {
-                            if (field.name) {
-                                data[field.name] = field.value;
-                            }
-                        }
-
-                        // Set internal call flag before making our own AJAX request
-                        isInternalCall = true;
-                        try {
-                            // Check form request - wrap in Promise to wait for completion
-                            await new Promise((resolve, reject) => {
-                                apbct_public_sendAJAX(
-                                    data,
-                                    {
-                                        async: true,
-                                        callback: function(result) {
-                                            // allowed
-                                            if ((result.apbct === undefined && result.data === undefined) ||
-                                                (result.apbct !== undefined && !+result.apbct.blocked)
-                                            ) {
-                                                preventOriginalFetch = false;
-                                            }
-
-                                            // blocked
-                                            if ((result.apbct !== undefined && +result.apbct.blocked) ||
-                                                (result.data !== undefined && result.data.message !== undefined)
-                                            ) {
-                                                preventOriginalFetch = true;
-                                                new ApbctShowForbidden().parseBlockMessage(result);
-                                            }
-                                            resolve(result);
-                                        },
-                                        onErrorCallback: function(error) {
-                                            preventOriginalFetch = false;
-                                            reject(error);
-                                        },
-                                    },
-                                );
-                            });
-                        } catch (e) {
-                            preventOriginalFetch = false;
-                        } finally {
-                            isInternalCall = false;
-                        }
-                    }
-                }
+                // === Bitrix24 / sender.com external forms (config-driven, see externalFormHandlers) ===
+                preventOriginalFetch = await processFetchOfExternalForms(url, args);
 
                 // Return original fetch result if not prevented
                 if (!preventOriginalFetch) {
