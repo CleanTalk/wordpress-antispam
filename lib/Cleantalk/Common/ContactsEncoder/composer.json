@@ -8,9 +8,6 @@
     }
   ],
   "license": "GPL-3.0-or-later",
-  "require": {
-    "cleantalk/antispam": "^1.6"
-  },
   "require-dev": {
     "vimeo/psalm": "^4.8",
     "phpunit/phpunit": "^8.5.52",
@@ -28,8 +25,7 @@
   },
   "config": {
     "allow-plugins": {
-      "dealerdirect/phpcodesniffer-composer-installer": true,
-      "cleantalk/apbct-installer": false
+      "dealerdirect/phpcodesniffer-composer-installer": true
     }
   },
   "autoload": {
