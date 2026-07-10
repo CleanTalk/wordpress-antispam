@@ -6,6 +6,7 @@ use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\RateLimit\ApbctRateLimiter;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
+use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\Common\RateLimiter\RateLimiterConfig;
 use Cleantalk\Common\TT;
@@ -685,6 +686,18 @@ class RemoteCalls
         return $data;
     }
 
+    private static function isSelfRemoteCall(): bool
+    {
+        $remote = Helper::ipGet('remote_addr', true);
+        $server = Server::getString('SERVER_ADDR');
+
+        if ($remote !== '' && $server !== '' && $remote === $server) {
+            return true;
+        }
+
+        return in_array($remote, array('127.0.0.1', '::1'), true);
+    }
+
     /**
      * Rate limit check for remote calls.
      * Blocks abusive IPs that exceed 10 requests per 60 seconds.
@@ -693,7 +706,16 @@ class RemoteCalls
      */
     private static function rateLimitCheck()
     {
-        $config = new RateLimiterConfig('rc_remote_call', 10, 60);
+        $limit = 10;
+
+        $action = strtolower(Request::getString('spbc_remote_call_action'));
+    
+        // Self-RC for SFW queue — not abuse, skip rate limit
+        if (self::isSelfRemoteCall() && $action === 'sfw_update__worker') {
+            $limit = 100;
+        }
+
+        $config = new RateLimiterConfig('rc_remote_call', $limit, 60);
         $limiter = new ApbctRateLimiter($config);
 
         // If rate limiter failed (e.g. table missing), allow the request through
