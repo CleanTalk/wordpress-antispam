@@ -709,7 +709,7 @@ class RemoteCalls
         $limit = 10;
 
         $action = strtolower(Request::getString('spbc_remote_call_action'));
-    
+
         // Self-RC for SFW queue — not abuse, skip rate limit
         if (self::isSelfRemoteCall() && $action === 'sfw_update__worker') {
             $limit = 100;
