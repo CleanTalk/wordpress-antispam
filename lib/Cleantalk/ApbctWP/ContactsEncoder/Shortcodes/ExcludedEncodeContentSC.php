@@ -7,6 +7,31 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     protected $public_name = 'apbct_skip_encoding';
 
     /**
+     * @var array<string, string> Placeholder => original shortcode inner content.
+     */
+    public $shortcode_replacements = array();
+
+    /**
+     * @var string Wrapper used to mark content excluded from encoding.
+     */
+    public $exclusion_wrapper = '%%APBCT_SHORT_CODE_SKIP_EE_0%%';
+
+    /**
+     * @var int Counter for shortcode placeholders.
+     */
+    private $shortcode_counter = 0;
+
+    /**
+     * @var string[] Active render_block stack.
+     */
+    private $render_block_stack = array();
+
+    /**
+     * @var array<int, string> Raw post titles captured before encoder mutates post objects.
+     */
+    private static $raw_titles_cache = array();
+
+    /**
      * Callback for the shortcode
      *
      * @param $_atts array Not used here
@@ -19,6 +44,12 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     {
         if ( ! $content ) {
             return $content;
+        }
+
+        global $apbct;
+
+        if ( ! $apbct->settings['data__email_decoder_buffer'] ) {
+            return $this->createPlaceholder($content);
         }
 
         // Pattern to get data-original-string attribute
@@ -37,6 +68,30 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     }
 
     /**
+     * Replace skip-encoding shortcodes with placeholders before ContactsEncoder::modifyContent().
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    public function changeContentBeforeEncoderModify($content)
+    {
+        if ($this->isShortcodeInsideHtmlAttribute($content)) {
+            return $content;
+        }
+
+        $pattern = '/\[apbct_skip_encoding\](.*?)\[\/apbct_skip_encoding\]/s';
+
+        return preg_replace_callback($pattern, function ($matches) {
+            if (isset($matches[1])) {
+                return $this->createPlaceholder($matches[1]);
+            }
+
+            return isset($matches[0]) ? $matches[0] : '';
+        }, $content);
+    }
+
+    /**
      * This method runs at the end of Contacts Encoder and tries to process unprocessed shortcodes
      * The unprocessed shortcodes may be only in `the_title` hook
      *
@@ -48,8 +103,12 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     {
         global $apbct;
 
-        if ( ! $apbct->settings['data__email_decoder_buffer'] && $this->getCurrentAction() !== 'the_title' ) {
-            return $content;
+        if ( ! $apbct->settings['data__email_decoder_buffer'] ) {
+            if ( ! $this->shouldDeferPlaceholderRestore() ) {
+                $content = $this->restorePlaceholders($content);
+            }
+
+            return $this->processSkipEncodingShortcodes($content);
         }
 
         if ( $apbct->settings['data__email_decoder_buffer'] ) {
@@ -61,31 +120,797 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             }
         }
 
-        // Skip processing if shortcode is inside an HTML tag to prevent attribute injection
-        if ($this->isShortcodeInsideHtmlTag($content)) {
+        // Skip processing if shortcode is inside an HTML attribute to prevent attribute injection
+        if ($this->isShortcodeInsideHtmlAttribute($content)) {
             if ( $apbct->settings['data__email_decoder_buffer'] ) {
                 $apbct->buffer = $content;
             }
             return $content;
         }
 
-        $pattern = '/\[apbct_skip_encoding\](.*?)\[\/apbct_skip_encoding\]/s';
-        $result = preg_replace_callback($pattern, function ($matches) {
-            // $matches[0] - all full match
-            if ( isset($matches[1]) ) {
-                // $matches[1] - only between tags group
-                $modifiedContent = $this->callback([], $matches[1], '');
-                return $modifiedContent; // Return modified (decoded) content without tags
-            }
-            /** @psalm-suppress PossiblyUndefinedIntArrayOffset */
-            return $matches[0]; // By default, return not modified match
-        }, $content);
+        $content = $this->restorePlaceholders($content);
+
+        $result = $this->processSkipEncodingShortcodes($content);
 
         if ( $apbct->settings['data__email_decoder_buffer'] ) {
             $apbct->buffer = $result;
         }
 
         return $result;
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return string
+     */
+    protected function processSkipEncodingShortcodes($content)
+    {
+        if ($this->isShortcodeInsideHtmlAttribute($content)) {
+            return $content;
+        }
+
+        $pattern = '/\[apbct_skip_encoding\](.*?)\[\/apbct_skip_encoding\]/s';
+
+        return preg_replace_callback($pattern, function ($matches) {
+            if ( isset($matches[1]) ) {
+                return $this->callback([], $matches[1], '');
+            }
+            /** @psalm-suppress PossiblyUndefinedIntArrayOffset */
+            return $matches[0];
+        }, $content);
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return string
+     */
+    protected function restorePlaceholders($content)
+    {
+        $content = $content === null ? '' : $content;
+
+        foreach ($this->shortcode_replacements as $placeholder => $original) {
+            $content = str_replace($placeholder, esc_html($original), $content);
+        }
+
+        $this->resetShortcodeReplacements();
+
+        return $content;
+    }
+
+    /**
+     * Track currently rendered blocks to restore placeholders after the last encoding pass.
+     *
+     * @param mixed $pre_render
+     * @param array $block
+     *
+     * @return mixed
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function pushRenderBlockStack($pre_render, $block)
+    {
+        $this->render_block_stack[] = isset($block['blockName']) ? (string)$block['blockName'] : '';
+
+        return $pre_render;
+    }
+
+    /**
+     * Restore placeholders once the outermost render_block finished ContactsEncoder::modifyContent().
+     *
+     * @param string $content
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function finalizePlaceholderRestoreAfterRenderBlock($content)
+    {
+        array_pop($this->render_block_stack);
+
+        if ( ! empty($this->render_block_stack) ) {
+            return $content;
+        }
+
+        if ( function_exists('doing_filter') && doing_filter('the_content') ) {
+            return $content;
+        }
+
+        if ( strpos($content, 'APBCT_SHORT_CODE_SKIP') !== false ) {
+            $content = $this->restorePlaceholders($content);
+        }
+
+        return $content;
+    }
+
+    /**
+     * Keep placeholders until the outermost render_block finishes encoding.
+     *
+     * @return bool
+     */
+    protected function shouldDeferPlaceholderRestore()
+    {
+        if ( $this->getCurrentAction() === 'render_block' ) {
+            return true;
+        }
+
+        return ! empty($this->render_block_stack);
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return string
+     */
+    protected function createPlaceholder($content)
+    {
+        $placeholder = preg_replace('/EE\_\d+/', 'EE_' . (string)$this->shortcode_counter++, $this->exclusion_wrapper);
+        if (is_null($placeholder)) {
+            $placeholder = $this->exclusion_wrapper;
+        }
+        $this->shortcode_replacements[$placeholder] = $content;
+
+        return $placeholder;
+    }
+
+    /**
+     * @return void
+     */
+    public function resetShortcodeReplacements()
+    {
+        $this->shortcode_replacements = array();
+        $this->shortcode_counter = 0;
+    }
+
+    /**
+     * @param string $content
+     * @param array $block
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function restorePageListLinkTitles($content, $block)
+    {
+        $block_name = isset($block['blockName']) ? $block['blockName'] : '';
+        if ( ! in_array($block_name, array('core/page-list', 'core/navigation'), true) ) {
+            return $content;
+        }
+
+        return $this->restorePageListLinkTitlesInHtml($content);
+    }
+
+    /**
+     * @param string $content
+     * @param array $_parsed_block
+     * @param object|null $block
+     *
+     * @return string
+     */
+    public function restoreEncodedBlockTitlesFilter($content, $_parsed_block, $block = null)
+    {
+        if ( $this->isBufferMode() ) {
+            return $content;
+        }
+
+        $content = $this->restorePageListLinkTitlesInHtml($content);
+
+        return $this->restorePostTitleInHtml($content, $_parsed_block, $block);
+    }
+
+    /**
+     * @param string $content
+     * @param array $_parsed_block
+     *
+     * @return string
+     * @deprecated Use restoreEncodedBlockTitlesFilter().
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function restorePageListLinkTitlesFilter($content, $_parsed_block)
+    {
+        return $this->restoreEncodedBlockTitlesFilter($content, $_parsed_block);
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return string
+     */
+    protected function restorePageListLinkTitlesInHtml($content)
+    {
+        return preg_replace_callback(
+            '/(<a\b[^>]*href=["\']([^"\']+)["\'][^>]*>)(.*?)(<\/a>)/is',
+            function ($matches) {
+                if ( ! isset($matches[0], $matches[1], $matches[2], $matches[3], $matches[4]) ) {
+                    return isset($matches[0]) ? $matches[0] : '';
+                }
+
+                $post_id = url_to_postid($matches[2]);
+                if ( ! $post_id ) {
+                    return $matches[0];
+                }
+
+                $title = $this->getRawPostTitle($post_id);
+                if ( ! is_string($title) || $title === '' ) {
+                    return $matches[0];
+                }
+
+                if (
+                    strpos($title, '[apbct_skip_encoding]') === false
+                    && strpos($matches[3], 'apbct-email-encoder') === false
+                    && strpos($matches[3], '[apbct_skip_encoding]') === false
+                ) {
+                    return $matches[0];
+                }
+
+                return $matches[1] . esc_html($this->processTitleString($title)) . $matches[4];
+            },
+            $content
+        );
+    }
+
+    /**
+     * Restore post-title block output after nested render_block encoding passes.
+     *
+     * @param string $content
+     * @param array $_parsed_block
+     * @param object|null $block
+     *
+     * @return string
+     */
+    protected function restorePostTitleInHtml($content, $_parsed_block = array(), $block = null)
+    {
+        if ( strpos($content, 'wp-block-post-title') === false ) {
+            return $content;
+        }
+
+        $post_id = $this->resolvePostIdFromBlockContext($_parsed_block, $block);
+        if ( ! $post_id ) {
+            return $content;
+        }
+
+        $title = $this->getRawPostTitle($post_id);
+        if ( $title === '' || strpos($title, '[apbct_skip_encoding]') === false ) {
+            return $content;
+        }
+
+        $processed = $this->processTitleString($title, false);
+
+        return preg_replace_callback(
+            '/(<h[1-6]\b[^>]*\bwp-block-post-title\b[^>]*>)(.*?)(<\/h[1-6]>)/is',
+            function ($matches) use ($processed) {
+                if ( ! isset($matches[0], $matches[1], $matches[2], $matches[3]) ) {
+                    return isset($matches[0]) ? $matches[0] : '';
+                }
+
+                if (
+                    strpos($matches[2], '[apbct_skip_encoding]') === false
+                    && strpos($matches[2], 'apbct-email-encoder') === false
+                    && strpos($matches[2], '%%APBCT_SHORT_CODE_SKIP') === false
+                ) {
+                    return $matches[0];
+                }
+
+                return $matches[1] . $processed . $matches[3];
+            },
+            $content
+        );
+    }
+
+    /**
+     * @param array $_parsed_block
+     * @param object|null $block
+     *
+     * @return int
+     */
+    protected function resolvePostIdFromBlockContext($_parsed_block, $block)
+    {
+        if ( is_object($block) && isset($block->context['postId']) ) {
+            return (int)$block->context['postId'];
+        }
+
+        if ( is_singular() ) {
+            return get_queried_object_id();
+        }
+
+        return 0;
+    }
+
+    /**
+     * Check whether shortcode is inside an HTML attribute rather than element text.
+     *
+     * @param string $content
+     *
+     * @return bool
+     */
+    protected function isShortcodeInsideHtmlAttribute($content)
+    {
+        preg_match_all(
+            '/\[\/?apbct_skip_encoding(?:\s[^\]]*)?\]/',
+            $content,
+            $matches,
+            PREG_OFFSET_CAPTURE
+        );
+
+        if ( ! isset($matches[0]) ) {
+            return false;
+        }
+
+        foreach ($matches[0] as $match) {
+            $offset = $match[1] ?? null;
+
+            if ( $offset === null ) {
+                continue;
+            }
+
+            if ( $this->isOffsetInsideHtmlTag($content, $offset) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function removeDuplicateContactsOutsideShortcodes($title)
+    {
+        if ( strpos($title, '[apbct_skip_encoding]') === false ) {
+            return $title;
+        }
+
+        preg_match_all('/\[apbct_skip_encoding\](.*?)\[\/apbct_skip_encoding\]/s', $title, $matches);
+        if ( empty($matches[0]) || ! isset($matches[1]) ) {
+            return $title;
+        }
+
+        $outside = preg_replace('/\[apbct_skip_encoding\].*?\[\/apbct_skip_encoding\]/s', ' ', $title);
+        $outside = trim(preg_replace('/\s+/', ' ', $outside));
+
+        foreach ( $matches[1] as $inner ) {
+            $inner = trim($inner);
+            if ( $inner === '' ) {
+                continue;
+            }
+
+            $quoted = preg_quote($inner, '/');
+            $outside = preg_replace('/' . $quoted . '/', '', $outside, 1);
+            $outside = trim(preg_replace('/\s+/', ' ', $outside));
+        }
+
+        $result = $outside;
+        foreach ( $matches[0] as $shortcode ) {
+            $result .= ($result !== '' ? ' ' : '') . $shortcode;
+        }
+
+        return trim(preg_replace('/\s+/', ' ', $result));
+    }
+
+    /**
+     * Cache titles with skip-encoding shortcodes before frontend encoding mutates post objects.
+     *
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function primeRawTitleCache()
+    {
+        if ( is_admin() ) {
+            return;
+        }
+
+        global $wpdb;
+
+        $rows = $wpdb->get_results(
+            "SELECT ID, post_title FROM {$wpdb->posts} WHERE post_status = 'publish'",
+            OBJECT_K
+        );
+
+        if ( ! is_array($rows) ) {
+            return;
+        }
+
+        foreach ( $rows as $post_id => $row ) {
+            if (
+                isset($row->post_title)
+                && is_string($row->post_title)
+                && strpos($row->post_title, '[apbct_skip_encoding]') !== false
+                && strpos($row->post_title, 'apbct-email-encoder') === false
+            ) {
+                self::$raw_titles_cache[(int)$post_id] = $row->post_title;
+            }
+        }
+    }
+
+    /**
+     * Read post title from DB bypassing in-memory mutations during encoding.
+     *
+     * @param int $post_id
+     *
+     * @return string
+     */
+    protected function getRawPostTitle($post_id)
+    {
+        $post_id = (int) $post_id;
+
+        if ( ! $post_id ) {
+            return '';
+        }
+
+        if (
+            isset(self::$raw_titles_cache[$post_id])
+            && strpos(self::$raw_titles_cache[$post_id], 'apbct-email-encoder') === false
+        ) {
+            return self::$raw_titles_cache[$post_id];
+        }
+
+        global $wpdb;
+
+        clean_post_cache($post_id);
+        wp_cache_delete($post_id, 'posts');
+        wp_cache_delete('last_changed', 'posts');
+
+        $title = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT post_title FROM {$wpdb->posts} WHERE ID = %d LIMIT 1",
+                $post_id
+            )
+        );
+
+        if ( ! is_string($title) ) {
+            return '';
+        }
+
+        if ( strpos($title, 'apbct-email-encoder') === false ) {
+            self::$raw_titles_cache[$post_id] = $title;
+        }
+
+        return $title;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function isBufferMode()
+    {
+        global $apbct;
+
+        return ! empty($apbct->settings['data__email_decoder_buffer']);
+    }
+
+    /**
+     * Keep shortcode tags in title during render; buffer mode encodes on shutdown.
+     *
+     * @param string $title
+     *
+     * @return string
+     */
+    protected function prepareTitleForBufferMode($title)
+    {
+        if ( strpos($title, '[apbct_skip_encoding]') === false ) {
+            return $title;
+        }
+
+        return $this->removeDuplicateContactsOutsideShortcodes($title);
+    }
+
+    /**
+     * Rebuild encoded titles in the full output buffer after buffer-mode encoding.
+     *
+     * @param string $buffer
+     *
+     * @return string
+     */
+    public function restoreEncodedTitlesInBuffer($buffer)
+    {
+        if ( ! is_string($buffer) || $buffer === '' ) {
+            return $buffer;
+        }
+
+        $buffer = $this->restoreDocumentTitleInHtml($buffer);
+        $buffer = $this->restorePageListLinkTitlesInHtml($buffer);
+
+        return $this->restorePostTitleInHtml($buffer);
+    }
+
+    /**
+     * Finalize output buffer after ContactsEncoder::modifyContent() in buffer mode.
+     *
+     * @param string $buffer
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function finalizeBufferAfterEncoding($buffer)
+    {
+        if ( ! is_string($buffer) || $buffer === '' ) {
+            return $buffer;
+        }
+
+        if ( ! $this->isShortcodeInsideHtmlAttribute($buffer) ) {
+            $buffer = $this->restorePlaceholders($buffer);
+            $buffer = $this->processSkipEncodingShortcodes($buffer);
+        }
+
+        return $this->restoreEncodedTitlesInBuffer($buffer);
+    }
+
+    /**
+     * Restore document <title> after buffer-mode encoding.
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    protected function restoreDocumentTitleInHtml($content)
+    {
+        if ( strpos($content, '<title') === false ) {
+            return $content;
+        }
+
+        $post_id = is_singular() ? get_queried_object_id() : 0;
+        if ( ! $post_id ) {
+            return $content;
+        }
+
+        $raw_title = $this->getRawPostTitle($post_id);
+        if ( $raw_title === '' || strpos($raw_title, '[apbct_skip_encoding]') === false ) {
+            return $content;
+        }
+
+        $processed = esc_html($this->processTitleString($raw_title));
+
+        return preg_replace_callback(
+            '/(<title[^>]*>)(.*?)(<\/title>)/is',
+            function ($matches) use ($processed) {
+                if ( ! isset($matches[0], $matches[1], $matches[2], $matches[3]) ) {
+                    return isset($matches[0]) ? $matches[0] : '';
+                }
+
+                if (
+                    strpos($matches[2], '[apbct_skip_encoding]') === false
+                    && strpos($matches[2], 'apbct-email-encoder') === false
+                    && strpos($matches[2], '%%APBCT_SHORT_CODE_SKIP') === false
+                ) {
+                    return $matches[0];
+                }
+
+                $suffix = '';
+                if ( preg_match('/^(.+?)(\s(?:&#8211;|&ndash;|–|-)\s.+)$/u', $matches[2], $parts) && isset($parts[2]) ) {
+                    $suffix = $parts[2];
+                }
+
+                return $matches[1] . $processed . $suffix . $matches[3];
+            },
+            $content,
+            1
+        );
+    }
+
+    /**
+     * Run callback without mutating shared placeholder state used by content hooks.
+     *
+     * @param callable $callback
+     *
+     * @return mixed
+     */
+    protected function withIsolatedShortcodeState($callback)
+    {
+        $saved_replacements = $this->shortcode_replacements;
+        $saved_counter = $this->shortcode_counter;
+
+        $this->resetShortcodeReplacements();
+
+        try {
+            return $callback();
+        } finally {
+            $this->shortcode_replacements = $saved_replacements;
+            $this->shortcode_counter = $saved_counter;
+        }
+    }
+
+    /**
+     * Process title strings where WordPress does not run the the_title filter.
+     *
+     * @param string $title
+     * @param bool $strip_html
+     *
+     * @return string
+     */
+    public function processTitleString($title, $strip_html = true)
+    {
+        if ( $title === '' || $title === null ) {
+            return (string)$title;
+        }
+
+        $result = $this->withIsolatedShortcodeState(function () use ($title) {
+            $title = $this->removeDuplicateContactsOutsideShortcodes($title);
+            $processed = $this->changeContentBeforeEncoderModify($title);
+            $processed = apbctGetContactsEncoder()->modifyContent($processed);
+            $processed = $this->restorePlaceholders($processed);
+
+            return $this->processSkipEncodingShortcodes($processed);
+        });
+
+        if ( $strip_html ) {
+            $result = wp_strip_all_tags($result);
+            $result = trim(preg_replace('/\s+/', ' ', $result));
+        }
+
+        return $result;
+    }
+
+    /**
+     * Remove skip-encoding shortcodes before slug generation.
+     *
+     * @param string $title
+     *
+     * @return string
+     */
+    public static function stripShortcodesForSlug($title)
+    {
+        $title = preg_replace('/\[apbct_skip_encoding\](.*?)\[\/apbct_skip_encoding\]/s', '$1', $title);
+        $title = preg_replace('/\[\/?apbct_skip_encoding\]/', '', $title);
+
+        return trim(preg_replace('/\s+/', ' ', $title));
+    }
+
+    /**
+     * @param string $title
+     * @param int $post_id
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function filterTheTitle($title, $post_id)
+    {
+        if ( is_admin() && ! wp_doing_ajax() ) {
+            return $title;
+        }
+
+        $raw_title = $this->getRawPostTitle($post_id);
+        if ( $raw_title === '' || strpos($raw_title, '[apbct_skip_encoding]') === false ) {
+            return $title;
+        }
+
+        if ( $this->isBufferMode() ) {
+            return $this->prepareTitleForBufferMode($raw_title);
+        }
+
+        return $this->processTitleString($raw_title, false);
+    }
+
+    /**
+     * @param string $title
+     * @param \WP_Post $_post
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function filterSinglePostTitle($title, $_post)
+    {
+        $post_id = is_object($_post) && isset($_post->ID) ? (int)$_post->ID : 0;
+        $raw_title = $post_id ? $this->getRawPostTitle($post_id) : $title;
+
+        if ( strpos($raw_title, '[apbct_skip_encoding]') === false ) {
+            return $title;
+        }
+
+        if ( $this->isBufferMode() ) {
+            return $this->prepareTitleForBufferMode($raw_title);
+        }
+
+        return $this->processTitleString($raw_title);
+    }
+
+    /**
+     * @param array $parts
+     *
+     * @return array
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function filterDocumentTitleParts($parts)
+    {
+        if ( empty($parts['title']) ) {
+            return $parts;
+        }
+
+        $post_id = is_singular() ? get_queried_object_id() : 0;
+        $title = $parts['title'];
+
+        if ( $post_id ) {
+            $raw_title = $this->getRawPostTitle($post_id);
+            if ( $raw_title !== '' && strpos($raw_title, '[apbct_skip_encoding]') !== false ) {
+                $title = $raw_title;
+            }
+        }
+
+        if ( strpos($title, '[apbct_skip_encoding]') === false ) {
+            return $parts;
+        }
+
+        if ( $this->isBufferMode() ) {
+            $parts['title'] = $this->prepareTitleForBufferMode($title);
+
+            return $parts;
+        }
+
+        $parts['title'] = $this->processTitleString($title);
+
+        return $parts;
+    }
+
+    /**
+     * @param string $title
+     * @param \WP_Post $menu_item
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function filterNavMenuItemTitle($title, $menu_item)
+    {
+        $post_id = 0;
+        if ( is_object($menu_item) && isset($menu_item->object, $menu_item->object_id) && $menu_item->object === 'page' ) {
+            $post_id = (int)$menu_item->object_id;
+        }
+
+        if ( $post_id ) {
+            $raw_title = $this->getRawPostTitle($post_id);
+            if ( $raw_title !== '' && strpos($raw_title, '[apbct_skip_encoding]') !== false ) {
+                if ( $this->isBufferMode() ) {
+                    return $this->prepareTitleForBufferMode($raw_title);
+                }
+
+                return $this->processTitleString($raw_title);
+            }
+        }
+
+        if ( strpos($title, '[apbct_skip_encoding]') === false ) {
+            return $title;
+        }
+
+        if ( $this->isBufferMode() ) {
+            return $this->prepareTitleForBufferMode($title);
+        }
+
+        return $this->processTitleString($title);
+    }
+
+    /**
+     * @param array $data
+     * @param array $postarr
+     *
+     * @return array
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function filterPostDataForSlug($data, $postarr)
+    {
+        $post_id = isset($postarr['ID']) ? (int)$postarr['ID'] : 0;
+
+        if (
+            ! empty($data['post_title'])
+            && strpos($data['post_title'], 'apbct-email-encoder') !== false
+            && $post_id
+            && isset(self::$raw_titles_cache[$post_id])
+        ) {
+            $data['post_title'] = self::$raw_titles_cache[$post_id];
+        }
+
+        if ( empty($data['post_title']) || strpos($data['post_title'], '[apbct_skip_encoding]') === false ) {
+            return $data;
+        }
+
+        $status = isset($data['post_status']) ? $data['post_status'] : '';
+        if ( in_array($status, array('draft', 'pending', 'auto-draft'), true) ) {
+            return $data;
+        }
+
+        $post_name = isset($data['post_name']) ? $data['post_name'] : '';
+        $explicit_slug = isset($postarr['post_name']) && $postarr['post_name'] !== '';
+        $clean_slug = sanitize_title(self::stripShortcodesForSlug($data['post_title']));
+
+        if ( $post_name === '' && ! $explicit_slug ) {
+            $data['post_name'] = $clean_slug;
+        } elseif ( strpos($post_name, 'apbct_skip_encoding') !== false ) {
+            $data['post_name'] = $clean_slug;
+        }
+
+        return $data;
     }
 
     protected function getCurrentAction()

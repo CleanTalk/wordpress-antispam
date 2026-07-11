@@ -99,11 +99,11 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
                 }
                 if ( $hook === 'the_content' ) {
                     // Priority 9 runs after do_blocks (9) when registered from init — placeholders keep <p> wrappers.
-                    $this->shortcodes->addActionsBeforeModify($hook, 9);
+                    $this->shortcodes->addActionsBeforeModifyEncodeOnly($hook, 9);
                     $this->shortcodes->addActionsAfterModifyEncodeOnly($hook, 999);
                     continue;
                 }
-                $this->shortcodes->addActionsBeforeModify($hook, 9);
+                $this->shortcodes->addActionsBeforeModifyEncodeOnly($hook, 9);
                 $this->shortcodes->addActionsAfterModifyEncodeOnly($hook, 999);
             }
         } else {
