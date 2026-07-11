@@ -401,7 +401,6 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 New. Settings. Getting apikey wizard. 
 New. RateLimit. Enabled the RateLimit shared library
 New. Footer. New link on Website Feedback Plugin
-New. RateLimit. Enabled the RateLimit shared library
 Upd. Contacts Encoder. Flow improvements.
 Upd. ContactEncoder. Improve shortcode flow.
 Mod. BannerReview. Changing the design of the review banner

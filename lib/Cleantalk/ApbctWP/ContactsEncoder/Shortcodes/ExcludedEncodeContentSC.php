@@ -171,7 +171,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         $content = $content === null ? '' : $content;
 
         foreach ($this->shortcode_replacements as $placeholder => $original) {
-            $content = str_replace($placeholder, esc_html($original), $content);
+            $content = str_replace($placeholder, wp_kses_post($original), $content);
         }
 
         $this->resetShortcodeReplacements();
@@ -497,7 +497,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         global $wpdb;
 
         $rows = $wpdb->get_results(
-            "SELECT ID, post_title FROM {$wpdb->posts} WHERE post_status = 'publish'",
+            "SELECT ID, post_title FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_title LIKE '%[apbct_skip_encoding]%'",
             OBJECT_K
         );
 
@@ -509,7 +509,6 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             if (
                 isset($row->post_title)
                 && is_string($row->post_title)
-                && strpos($row->post_title, '[apbct_skip_encoding]') !== false
                 && strpos($row->post_title, 'apbct-email-encoder') === false
             ) {
                 self::$raw_titles_cache[(int)$post_id] = $row->post_title;
@@ -540,10 +539,6 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         }
 
         global $wpdb;
-
-        clean_post_cache($post_id);
-        wp_cache_delete($post_id, 'posts');
-        wp_cache_delete('last_changed', 'posts');
 
         $title = $wpdb->get_var(
             $wpdb->prepare(
