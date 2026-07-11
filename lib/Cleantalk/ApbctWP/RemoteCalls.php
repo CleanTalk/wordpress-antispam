@@ -691,11 +691,17 @@ class RemoteCalls
         $remote = Helper::ipGet('remote_addr', true);
         $server = Server::getString('SERVER_ADDR');
 
-        if ($remote !== '' && $server !== '' && $remote === $server) {
+        if ( $remote === '' || $server === '' ) {
+            return false;
+        }
+
+        if ( $remote === $server ) {
             return true;
         }
 
-        return in_array($remote, array('127.0.0.1', '::1'), true);
+        $loopback = array('127.0.0.1', '::1');
+
+        return in_array($remote, $loopback, true) && in_array($server, $loopback, true);
     }
 
     /**
