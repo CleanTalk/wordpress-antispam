@@ -316,6 +316,19 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      */
     protected function restorePageListLinkTitlesInHtml($content)
     {
+        if ( strpos($content, '<a') === false ) {
+            return $content;
+        }
+
+        if (
+            empty(self::$raw_titles_cache)
+            && strpos($content, 'apbct-email-encoder') === false
+            && strpos($content, '[apbct_skip_encoding]') === false
+            && strpos($content, '%%APBCT_SHORT_CODE_SKIP') === false
+        ) {
+            return $content;
+        }
+
         return preg_replace_callback(
             '/(<a\b[^>]*href=["\']([^"\']+)["\'][^>]*>)(.*?)(<\/a>)/is',
             function ($matches) {
