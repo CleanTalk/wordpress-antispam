@@ -119,18 +119,12 @@ class ShortCodesService
         $buffer = $this->encode->changeContentAfterEncoderModify($buffer);
 
         if ( $apbct->settings['data__email_decoder_buffer'] ) {
-            $apbct->buffer = $buffer;
-        }
-
-        if ( $apbct->settings['data__email_decoder_buffer'] ) {
             $buffer = $this->shortcode_to_exclude->finalizeBufferAfterEncoding($buffer);
             $apbct->buffer = $buffer;
 
             return $buffer;
         }
 
-        $buffer = $this->shortcode_to_exclude->changeContentAfterEncoderModify($buffer);
-
-        return $buffer;
+        return $this->shortcode_to_exclude->changeContentAfterEncoderModify($buffer);
     }
 }
