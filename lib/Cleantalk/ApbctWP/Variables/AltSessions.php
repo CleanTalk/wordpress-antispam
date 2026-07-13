@@ -35,6 +35,7 @@ class AltSessions
         'ct_sfw_pass_key' => 'string',
         'ct_sfw_passed' => 'int',
         'ct_gathering_loaded' => 'bool',
+        'apbct_search_form__honeypot_value' => 'string',
     ];
 
     public static function getID()

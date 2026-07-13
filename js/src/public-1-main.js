@@ -1426,7 +1426,7 @@ class ApbctHandler {
     searchFormHandler(e, targetForm) {
         try {
             // get honeypot field and it's value
-            const honeyPotField = targetForm.querySelector('[name*="apbct_email_id__"]');
+            const honeyPotField = targetForm.querySelector('[name*="apbct__email_id__"]');
             let hpValue = null;
             if (
                 honeyPotField !== null &&
@@ -1457,7 +1457,9 @@ class ApbctHandler {
 
                 let cookiesArray = cleantalkStorageDataArray;
 
-                // if honeypot data provided add the fields to the parsed data
+                // if honeypot data provided add it to the alt-session payload to read on the search request.
+                // The search form is GET and the field is stripped from the URL, so the value travels via
+                // alt-sessions - the search submit always force-sends alt cookies, so this works in any cookie mode.
                 if ( hpValue !== null ) {
                     cookiesArray.apbct_search_form__honeypot_value = hpValue;
                 }

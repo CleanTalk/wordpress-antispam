@@ -3,6 +3,7 @@
 namespace Cleantalk\Antispam\IntegrationsByClass;
 
 use Cleantalk\ApbctWP\Honeypot;
+use Cleantalk\ApbctWP\Variables\AltSessions;
 use DOMDocument;
 
 /**
@@ -27,6 +28,9 @@ class WPSearchForm extends IntegrationByClassBase
         global $apbct;
         if ($apbct->settings['forms__search_test']) {
             add_filter('get_search_form', array($this, 'apbctFormSearchAddFields'), 999);
+            // The block search form (core/search) is rendered by render_block_core_search()
+            // and does not fire get_search_form, so it is handled on its dedicated render hook.
+            add_filter('render_block_core/search', array($this, 'apbctFormSearchAddFields'), 999);
         }
         if ($this->isNativeSearchFormRequest()) {
             // Default search
@@ -126,6 +130,17 @@ class WPSearchForm extends IntegrationByClassBase
             'post_info'       => array('comment_type' => 'site_search_wordpress'),
             'exception_action' => 0,
         );
+
+        // Honeypot, same approach as CF7 (see apbct_form__contactForm7__testSpam): when the honeypot field is
+        // enabled the search form always renders it, so read its value and set the status directly -
+        // empty is clean (1), filled is spam (0). With JS the value travels via alt-sessions (the field is
+        // stripped from the GET URL); without JS the field stays in the GET request.
+        if ( $apbct->settings['data__honeypot_field'] ) {
+            $honeypot_value = isset($_GET['apbct__email_id__search_form'])
+                ? $_GET['apbct__email_id__search_form']
+                : AltSessions::get('apbct_search_form__honeypot_value');
+            $data['honeypot_field'] = ( $honeypot_value === '' ) ? 1 : 0;
+        }
 
         $base_call_result = apbct_base_call($data);
 

@@ -4013,7 +4013,7 @@ class ApbctHandler {
     searchFormHandler(e, targetForm) {
         try {
             // get honeypot field and it's value
-            const honeyPotField = targetForm.querySelector('[name*="apbct_email_id__"]');
+            const honeyPotField = targetForm.querySelector('[name*="apbct__email_id__"]');
             let hpValue = null;
             if (
                 honeyPotField !== null &&
@@ -4044,9 +4044,12 @@ class ApbctHandler {
 
                 let cookiesArray = cleantalkStorageDataArray;
 
-                // if honeypot data provided add the fields to the parsed data
+                // if honeypot data provided store it in a short-lived native cookie to read on the search request.
+                // The search form is GET and the field is stripped from the URL, so the value travels in a cookie.
+                // The expiry keeps it bound to the imminent submit so it can't go stale on search-result reloads.
                 if ( hpValue !== null ) {
-                    cookiesArray.apbct_search_form__honeypot_value = hpValue;
+                    const hpExpires = new Date(Date.now() + 30000).toUTCString();
+                    ctSetCookie('apbct_search_form__honeypot_value', hpValue, hpExpires);
                 }
 
                 // set event token
