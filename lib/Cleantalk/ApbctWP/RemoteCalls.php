@@ -3,10 +3,12 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
-use Cleantalk\ApbctWP\UpdatePlugin\DbAnalyzer;
+use Cleantalk\ApbctWP\RateLimit\ApbctRateLimiter;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
+use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\Common\RateLimiter\RateLimiterConfig;
 use Cleantalk\Common\TT;
 
 class RemoteCalls
@@ -102,6 +104,11 @@ class RemoteCalls
         $action = strtolower(Request::getString('spbc_remote_call_action'));
         $token  = strtolower(Request::getString('spbc_remote_call_token'));
 
+        // Rate limit check — block abusive IPs before any cooldown logic
+        if ( ! self::rateLimitCheck() ) {
+            die('FAIL ' . json_encode(array('error' => 'RATE_LIMIT_EXCEEDED')));
+        }
+
         if ( isset($apbct->remote_calls[$action]) ) {
             $cooldown = isset($apbct->remote_calls[$action]['cooldown']) ? $apbct->remote_calls[$action]['cooldown'] : self::COOLDOWN;
 
@@ -114,9 +121,6 @@ class RemoteCalls
                 time() - $apbct->remote_calls[$action]['last_call'] >= $cooldown ||
                 ($action === 'sfw_update' && Request::get('file_urls'))
             ) {
-                $apbct->remote_calls[$action]['last_call'] = time();
-                $apbct->save('remote_calls');
-
                 if ( ! self::isRcAllowed() ) {
                     die('FAIL ' . json_encode(array('error' => 'FORBIDDEN')));
                 }
@@ -126,6 +130,10 @@ class RemoteCalls
                     (self::checkToken($token)) ||
                     (self::isAllowedWithoutToken($action) && self::checkWithoutToken())
                 ) {
+                    // Update last_call only for authorized requests
+                    $apbct->remote_calls[$action]['last_call'] = time();
+                    $apbct->save('remote_calls');
+
                     // Flag to let plugin know that Remote Call is running.
                     $apbct->rc_running = true;
 
@@ -676,5 +684,45 @@ class RemoteCalls
             }
         }
         return $data;
+    }
+
+    private static function isSelfRemoteCall(): bool
+    {
+        $remote = Helper::ipGet('remote_addr', true);
+        $server = Server::getString('SERVER_ADDR');
+
+        if ($remote !== '' && $server !== '' && $remote === $server) {
+            return true;
+        }
+
+        return in_array($remote, array('127.0.0.1', '::1'), true);
+    }
+
+    /**
+     * Rate limit check for remote calls.
+     * Blocks abusive IPs that exceed 10 requests per 60 seconds.
+     *
+     * @return bool True if request is allowed, false if rate limited
+     */
+    private static function rateLimitCheck()
+    {
+        $limit = 10;
+
+        $action = strtolower(Request::getString('spbc_remote_call_action'));
+
+        // Self-RC for SFW queue — not abuse, skip rate limit
+        if (self::isSelfRemoteCall() && $action === 'sfw_update__worker') {
+            $limit = 100;
+        }
+
+        $config = new RateLimiterConfig('rc_remote_call', $limit, 60);
+        $limiter = new ApbctRateLimiter($config);
+
+        // If rate limiter failed (e.g. table missing), allow the request through
+        if ( ! $limiter->process_ok ) {
+            return true;
+        }
+
+        return $limiter->checkPassed();
     }
 }

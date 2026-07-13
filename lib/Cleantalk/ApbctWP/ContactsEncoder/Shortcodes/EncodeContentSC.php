@@ -6,7 +6,7 @@ use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
-use Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService;
+use Cleantalk\ApbctWP\ContactsEncoder\Exclusions\ExclusionsService;
 
 /**
  * Shortcode to encode any string content.
@@ -99,7 +99,7 @@ class EncodeContentSC extends EmailEncoderShortCode
      */
     public function changeContentBeforeEncoderModify($content)
     {
-        if ( $this->exclusions->doReturnContentBeforeModify($content) ) {
+        if ( $this->exclusions->doReturnShortcodeContentBeforeModify($content) ) {
             return $content;
         }
 
@@ -129,89 +129,6 @@ class EncodeContentSC extends EmailEncoderShortCode
     }
 
     /**
-     * Checks whether any shortcode occurrence is located inside an HTML tag.
-     *
-     * This validation is used to prevent shortcode extraction from HTML
-     * attribute contexts such as:
-     *
-     * <a title="[apbct_encode_data]...[/apbct_encode_data]">
-     *
-     * Processing shortcodes inside HTML tags may lead to malformed markup
-     * after WordPress content filters (e.g. wptexturize()) mutate surrounding
-     * content. Such mutations may potentially lead to attribute injection or
-     * mutation-XSS issues.
-     *
-     * The method scans all opening and closing shortcode tags and verifies
-     * whether their offsets are located between an unclosed "<" and ">" pair.
-     *
-     * @param string $content The content to validate.
-     *
-     * @return bool True if any shortcode boundary is detected inside an HTML tag,
-     *              false otherwise.
-     */
-    protected function isShortcodeInsideHtmlTag($content)
-    {
-        preg_match_all(
-            sprintf(
-                '/\[\/?%s(?:\s[^\]]*)?\]/', //supports sc attributes(!)
-                preg_quote($this->public_name, '/')
-            ),
-            $content,
-            $matches,
-            PREG_OFFSET_CAPTURE
-        );
-
-        if (isset($matches[0])) {
-            foreach ($matches[0] as $match) {
-                $offset = $match[1] ?? null;
-
-                if ($offset === null) {
-                    continue;
-                }
-
-                if ($this->isOffsetInsideHtmlTag($content, $offset)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-
-    /**
-     * Determines whether a given character offset is located inside an HTML tag.
-     *
-     * The method performs a lightweight context check by locating the nearest
-     * "<" and ">" characters before the specified offset.
-     *
-     * If the last "<" appears after the last ">", the offset is considered
-     * to be inside an HTML tag or attribute context.
-     *
-     * Example:
-     *
-     * <a href="value [OFFSET HERE]
-     *
-     * In this case the offset is inside the opening <a> tag.
-     *
-     * @param string $content The full content string.
-     * @param int    $offset  Character offset to validate.
-     *
-     * @return bool True if the offset is located inside an HTML tag,
-     *              false otherwise.
-     */
-    public function isOffsetInsideHtmlTag($content, $offset)
-    {
-        $before = substr($content, 0, $offset);
-
-        $last_open  = strrpos($before, '<');
-        $last_close = strrpos($before, '>');
-
-        return $last_open !== false &&
-            ($last_close === false || $last_open > $last_close);
-    }
-
-    /**
      * Modifies the content after the encoder processes it.
      *
      * Restores the original shortcodes from placeholders and executes the callback action.
@@ -229,6 +146,19 @@ class EncodeContentSC extends EmailEncoderShortCode
         foreach ($this->shortcode_replacements as $placeholder => $original) {
             $content = str_replace($placeholder, $original, $content);
         }
-        return $this->doCallbackAction($content);
+
+        $result = $this->doCallbackAction($content);
+        $this->resetShortcodeReplacements();
+
+        return $result;
+    }
+
+    /**
+     * @return void
+     */
+    public function resetShortcodeReplacements()
+    {
+        $this->shortcode_replacements = array();
+        $this->shortcode_counter = 0;
     }
 }

@@ -2494,3 +2494,144 @@ msgstr ""
 #. Author of the plugin
 msgid "СleanTalk - Anti-Spam Protection <welcome@cleantalk.org>"
 msgstr ""
+
+#: inc/cleantalk-settings.php
+msgid "Get access key manually"
+msgstr ""
+
+#: js/src/react/hooks/useSync.js
+msgid "Checking access key..."
+msgstr ""
+
+#: js/src/react/hooks/useSync.js
+msgid "Updating SpamFireWall..."
+msgstr ""
+
+#: js/src/react/hooks/useSync.js
+msgid "Sending feedback..."
+msgstr ""
+
+#: js/src/react/hooks/useSync.js
+msgid "Updating dashboard data..."
+msgstr ""
+
+#: js/src/react/hooks/useSync.js
+msgid "Adjusting environment..."
+msgstr ""
+
+#: js/src/react/hooks/useSync.js
+msgid "Finishing setup..."
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SignupInterface.js
+msgid "Connect to Account"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SignupInterface.js
+msgid "Please, wait..."
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SignupInterface.js
+msgid "Request failed. Please try again."
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SignupInterface.js
+msgid "Protect your website in under 60 seconds"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SignupInterface.js
+msgid "Top-rated spam and bot protection for WordPress"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SignupInterface.js
+msgid "Protects comments, registrations, and contact forms automatically"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SignupInterface.js
+msgid "No CAPTCHAs, no puzzles, and no visitor friction"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SignupInterface.js
+msgid "What happens next?"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SignupInterface.js
+msgid "Once connected, the plugin synchronizes with the CleanTalk cloud, updates the spam database, and enables protection for your forms."
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SignupInterface.js
+msgid "Connect your website to CleanTalk cloud"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SignupInterface.js
+msgid "Email address"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SignupInterface.js
+msgid "I agree to the Privacy Policy and"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SignupInterface.js
+msgid "License Agreement"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SignupInterface.js
+msgid "I already have an Access Key"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SignupInterface.js
+msgid "Skip setup wizard"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/AccessKeyInterface.js
+msgid "Connect to CleanTalk"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/AccessKeyInterface.js
+msgid "Go to previous step"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/AccessKeyInterface.js
+msgid "Connect your site to CleanTalk cloud"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/AccessKeyInterface.js
+msgid "Copy the access key you have received via email or you can get it from "
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/AccessKeyInterface.js
+msgid "Cloud Dashboard"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/AccessKeyInterface.js
+msgid "If your account has multiple domains select the one you want to use."
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/AccessKeyInterface.js
+msgid "Access key"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/ConnectingInterface.js
+msgid "Connecting your site to CleanTalk cloud"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SuccessInterface.js
+msgid "Everything is good!"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SuccessInterface.js
+#, javascript-format
+msgid "The plugin is ready to protect %s. After closing this window, your site will be fully protected against spam."
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/SuccessInterface.js
+msgid "Go to settings"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/ErrorInterface.js
+msgid "Contact support"
+msgstr ""
+
+#: js/src/react/components/SignupWizard/Screens/ErrorInterface.js
+msgid "Try again"
+msgstr ""

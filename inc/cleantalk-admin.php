@@ -391,6 +391,7 @@ function apbct_admin__init()
     add_action('wp_ajax_apbct_sync', 'apbct_settings__sync');
 
     add_action('wp_ajax_apbct_get_key_auto', 'apbct_settings__get_key_auto');
+    add_action('wp_ajax_apbct_save_key', 'apbct_settings__save_key');
 
     add_action('wp_ajax_apbct_update_account_email', 'apbct_settings__update_account_email');
 
@@ -537,7 +538,6 @@ function apbct_admin__enqueue_scripts($hook)
         'logo_small_colored' => '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'new_window_gif'     => APBCT_URL_PATH . "/inc/images/new_window.gif",
         'notice_when_deleting_user_text' => esc_html__('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.', 'cleantalk-spam-protect'),
-        'apbctNoticeDismissSuccess'       => esc_html__('Thank you for the review! We strive to make our Anti-Spam plugin better every day.', 'cleantalk-spam-protect'),
         'apbctNoticeForceProtectionOn'       => esc_html__('This option affects the reflection of the page by checking the user and adds a cookie "apbct_force_protection_check", which serves as an indicator of successful or unsuccessful verification. If the check is successful, it will no longer run.', 'cleantalk-spam-protect'),
         'links' => array(
             'users_editscreen'    => LinkConstructor::buildCleanTalkLink('admin_blacklists_avatar_link', 'blacklists/{TARGET}'),
@@ -607,6 +607,14 @@ function apbct_admin__enqueue_scripts($hook)
             'key_is_ok'   => ! empty($apbct->key_is_ok) && !empty($apbct->settings['apikey']),
             'support_user_creation_msg_array' => SupportUser::getMessages(),
         ));
+
+        wp_enqueue_script('wp-i18n');
+        ApbctEnqueue::getInstance()->js(
+            'public/apbct-react-bundle.js',
+            array('wp-i18n', 'cleantalk-admin-js'),
+            true
+        );
+        wp_set_script_translations('apbct-react-bundle-js', 'cleantalk-spam-protect');
 
         ApbctEnqueue::getInstance()->js('common-cleantalk-modal.min.js');
     }
