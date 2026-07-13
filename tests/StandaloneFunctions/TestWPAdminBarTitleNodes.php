@@ -161,4 +161,20 @@ class TestWPAdminBarTitleNodes extends PHPUnit\Framework\TestCase
         $this->assertStringContainsString('product_id=4', $title);
         $this->assertStringNotContainsString('apbct-icon-attention-alt', $title);
     }
+
+    public function testProjectManagerNodeIndependentOfGf2dbNode()
+    {
+
+        $project_manager_node = apbct__admin_bar__get_title_for_project_manager();
+        $gf2db_node = apbct__admin_bar__add_gf2db_title();
+
+        $this->assertFalse($project_manager_node );
+        $this->assertFalse($gf2db_node);
+
+        $shouldAddParentNode = (bool) $project_manager_node;
+        $shouldAddChildNode = (bool) $gf2db_node;
+
+        $this->assertFalse($shouldAddParentNode);
+        $this->assertFalse($shouldAddChildNode);
+    }
 }

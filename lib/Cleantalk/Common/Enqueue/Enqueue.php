@@ -74,6 +74,9 @@ class Enqueue
             if (is_null($data)) {
                 throw new \Exception(__('Data DTO is invalid', 'cleantalk-spam-protect'));
             }
+            if ($data->handle === '') {
+                throw new \Exception(__('Script handle is empty.', 'cleantalk-spam-protect'));
+            }
             $this->handles_to_register = array_merge($this->handles_to_register, array($data->handle));
             // any must have a type
             if ($this->type === 'css') {

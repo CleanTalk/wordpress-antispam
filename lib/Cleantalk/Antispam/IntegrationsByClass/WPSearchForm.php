@@ -2,13 +2,6 @@
 
 namespace Cleantalk\Antispam\IntegrationsByClass;
 
-use Cleantalk\ApbctWP\Escape;
-use Cleantalk\ApbctWP\Variables\Post;
-use Cleantalk\ApbctWP\Variables\Server;
-use Cleantalk\Common\TT;
-use Cleantalk\ApbctWP\Sanitize;
-use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Honeypot;
 use DOMDocument;
 
@@ -32,10 +25,10 @@ class WPSearchForm extends IntegrationByClassBase
     public function doPublicWork()
     {
         global $apbct;
-        if ( $apbct->settings['forms__search_test'] ) {
+        if ($apbct->settings['forms__search_test']) {
             add_filter('get_search_form', array($this, 'apbctFormSearchAddFields'), 999);
         }
-        if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
+        if ($this->isNativeSearchFormRequest()) {
             // Default search
             add_filter('get_search_query', array($this, 'testSpam'));
             add_action('wp_head', array($this, 'addNoindex'), 1);
@@ -167,5 +160,23 @@ class WPSearchForm extends IntegrationByClassBase
 
         echo '<!-- meta by CleanTalk Anti-Spam Protection plugin -->' . "\n";
         echo '<meta name="robots" content="noindex,nofollow" />' . "\n";
+    }
+
+    /**
+     * Process signs for the default search request.
+     * - not an admin page
+     * - not an ajax call
+     * - not a preview
+     * - has a 's' param in the GET array
+     * @return bool
+     */
+    public function isNativeSearchFormRequest()
+    {
+        return (
+            !is_admin() &&
+            !apbct_is_ajax() &&
+            !apbct_is_customize_preview() &&
+            isset($_GET['s']) // https://app.doboard.com/1/task/47523#comment_305493
+        );
     }
 }

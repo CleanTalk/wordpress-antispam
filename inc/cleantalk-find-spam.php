@@ -94,7 +94,9 @@ add_action('wp_ajax_ajax_trash_all', [\Cleantalk\ApbctWP\FindSpam\CommentsChecke
 add_action('wp_ajax_ajax_spam_all', [\Cleantalk\ApbctWP\FindSpam\CommentsChecker::class, 'ctAjaxSpamAll']);
 
 // Debug
-add_action('wp_ajax_ajax_insert_users', array('\Cleantalk\ApbctWP\FindSpam\UsersChecker', 'ctAjaxInsertUsers'));
+if ( defined('APBCT_IS_LOCALHOST') && APBCT_IS_LOCALHOST ) {
+    add_action('wp_ajax_ajax_insert_users', array('\Cleantalk\ApbctWP\FindSpam\UsersChecker', 'ctAjaxInsertUsers'));
+}
 
 // Hook for saving "per_page" option
 add_action('wp_loaded', 'ct_save_screen_option');

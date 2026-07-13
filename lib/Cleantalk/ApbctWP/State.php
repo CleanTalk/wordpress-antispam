@@ -125,6 +125,7 @@ class State extends \Cleantalk\Common\State
         'wp__comment_notify'                       => 1,
         'wp__comment_notify__roles'                => array('administrator'),
         'wp__dashboard_widget__show'               => 1,
+        'wp__disable_pingback_and_trackback'       => 0,
 
         // Trusted and affiliate settings
         'trusted_and_affiliate__shortcode'         => 0,
@@ -529,6 +530,10 @@ class State extends \Cleantalk\Common\State
         if ( ! defined('APBCT_SPAMSCAN_LOGS')) {
             // Table with session data.
             define('APBCT_SPAMSCAN_LOGS', $db_prefix . 'cleantalk_spamscan_logs');
+        }
+        if ( ! defined('APBCT_TBL_RATE_LIMITS')) {
+            // Table with rate limit data.
+            define('APBCT_TBL_RATE_LIMITS', $db_prefix . 'cleantalk_rate_limits');
         }
         if ( ! defined('APBCT_SELECT_LIMIT')) {
             // Select limit for logs.

@@ -62,16 +62,15 @@ class Cron extends \Cleantalk\Common\Cron
             )
         );
 
-        if (!$result) {
+        if ( ! $result || ! is_serialized($result) ) {
             return array();
         }
 
-        // First unserialize the outer string
-        $unserialized = unserialize($result);
+        $unserialize_options = array('allowed_classes' => false);
+        $unserialized        = @unserialize(trim($result), $unserialize_options);
 
-        // If the unserialized data is still a string, it needs to be unserialized again
-        if (is_string($unserialized)) {
-            $unserialized = unserialize($unserialized);
+        if ( is_string($unserialized) && is_serialized($unserialized) ) {
+            $unserialized = @unserialize(trim($unserialized), $unserialize_options);
         }
 
         return is_array($unserialized) ? $unserialized : array();

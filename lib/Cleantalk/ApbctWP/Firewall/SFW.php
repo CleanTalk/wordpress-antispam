@@ -146,7 +146,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         foreach ($this->ip_array as $current_ip) {
             if (
                 TT::toString(Cookie::get('ct_sfw_pass_key'))
-                && strpos(TT::toString(Cookie::get('ct_sfw_pass_key')), md5($current_ip . $this->api_key)) === 0
+                && strpos(TT::toString(Cookie::get('ct_sfw_pass_key')), md5($current_ip . $this->api_key . $apbct->data['salt'])) === 0
             ) {
                 if (Cookie::get('ct_sfw_passed')) {
                     if ( ! headers_sent()) {
@@ -290,37 +290,49 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     {
         $id   = md5($ip . $this->module_name);
         $time = time();
+        $blocked = strpos($status, 'DENY') !== false ? 1 : 0;
         $short_url_to_log = substr($this->server__http_host . $this->server__request_uri, 0, 100);
+
+        // Sanitize source: must be SQL NULL or integer
+        $source_safe = ($source === 'NULL' || $source === null) ? 'NULL' : (int)$source;
 
         $this->db->prepare(
             "INSERT INTO " . $this->db__table__logs . "
             SET
-                id = '$id',
-                ip = '$ip',
-                status = '$status',
+                id = %s,
+                ip = %s,
+                status = %s,
                 all_entries = 1,
-                blocked_entries = " . (strpos($status, 'DENY') !== false ? 1 : 0) . ",
-                entries_timestamp = '" . $time . "',
+                blocked_entries = %d,
+                entries_timestamp = %d,
                 ua_name = %s,
-                source = $source,
+                source = " . $source_safe . ",
                 network = %s,
                 first_url = %s,
                 last_url = %s
             ON DUPLICATE KEY
             UPDATE
-                status = '$status',
-                source = $source,
+                status = %s,
+                source = " . $source_safe . ",
                 all_entries = all_entries + 1,
-                blocked_entries = blocked_entries" . (strpos($status, 'DENY') !== false ? ' + 1' : '') . ",
-                entries_timestamp = '" . $time . "',
+                blocked_entries = blocked_entries + %d,
+                entries_timestamp = %d,
                 ua_name = %s,
                 network = %s,
                 last_url = %s",
             array(
+                $id,
+                $ip,
+                $status,
+                $blocked,
+                $time,
                 $this->server__http_user_agent,
                 $network,
                 $short_url_to_log,
                 $short_url_to_log,
+                $status,
+                $blocked,
+                $time,
                 $this->server__http_user_agent,
                 $network,
                 $short_url_to_log,
@@ -340,9 +352,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
     public function actionsForPassed($result)
     {
+        global $apbct;
         if ($this->data__cookies_type === 'native' && ! headers_sent()) {
             $status     = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
-            $cookie_val = md5($result['ip'] . $this->api_key) . $status;
+            $cookie_val = md5($result['ip'] . $this->api_key . $apbct->data['salt']) . $status;
             Cookie::setNativeCookie(
                 'ct_sfw_pass_key',
                 $cookie_val,
@@ -381,11 +394,11 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $net_count = $apbct->stats['sfw']['entries'];
 
             $status     = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
-            $cookie_val = md5($result['ip'] . $this->api_key) . $status;
+            $cookie_val = md5($result['ip'] . $this->api_key . $apbct->data['salt']) . $status;
 
             $block_message = sprintf(
                 esc_html__('SpamFireWall is checking your browser and IP %s for spam bots', 'cleantalk-spam-protect'),
-                '<a href="https://cleantalk.org/blacklists/' . $result['ip'] . '" target="_blank">' . $result['ip'] . '</a>'
+                '<a href="https://cleantalk.org/blacklists/' . esc_attr($result['ip']) . '" target="_blank">' . esc_html($result['ip']) . '</a>'
             );
 
             $request_uri = $this->server__request_uri;
@@ -424,16 +437,16 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     'This is the testing page for SpamFireWall',
                     'cleantalk-spam-protect'
                 ) : ''),
-                '{CLEANTALK_URL}'                  => $apbct->data['wl_url'],
-                '{REMOTE_ADDRESS}'                 => $result['ip'],
-                '{SERVICE_ID}'                     => $apbct->data['service_id'] . ', ' . $net_count,
+                '{CLEANTALK_URL}'                  => esc_url($apbct->data['wl_url']),
+                '{REMOTE_ADDRESS}'                 => esc_html($result['ip']),
+                '{SERVICE_ID}'                     => esc_html($apbct->data['service_id']) . ', ' . esc_html($net_count),
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . '</p>',
-                '{REQUEST_URI}'                    => $request_uri,
+                '{REQUEST_URI}'                    => esc_url($request_uri),
 
                 // Cookie
                 '{COOKIE_PREFIX}'                  => '',
-                '{COOKIE_DOMAIN}'                  => $this->cookie_domain,
+                '{COOKIE_DOMAIN}'                  => esc_html($this->cookie_domain),
                 '{COOKIE_SFW}'                     => $cookie_val,
                 '{COOKIE_ANTICRAWLER}'             => hash('sha256', $apbct->api_key . $apbct->data['salt']),
 
@@ -443,13 +456,13 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 '{TEST_IP__HEADER}'                => '',
                 '{TEST_IP}'                        => '',
                 '{REAL_IP}'                        => '',
-                '{SCRIPT_URL}'                     => $js_url,
+                '{SCRIPT_URL}'                     => esc_url($js_url),
 
                 // Message about IP status
                 '{MESSAGE_IP_STATUS}'              => '',
 
                 // Custom Logo
-                '{CUSTOM_LOGO}'                    => $custom_logo_img
+                '{CUSTOM_LOGO}'                    => wp_kses_post($custom_logo_img)
             );
 
             /**
@@ -478,7 +491,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                         break;
                 }
 
-                $replaces['{MESSAGE_IP_STATUS}'] = "<h3 style='color:$message_ip_status_color;'>$message_ip_status</h3>";
+                $replaces['{MESSAGE_IP_STATUS}'] = "<h3 style='color:" . esc_attr($message_ip_status_color) . "'>" . esc_html($message_ip_status) . "</h3>";
             }
 
             // Test
@@ -489,22 +502,22 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 );
                 $replaces['{REAL_IP__HEADER}'] = 'Real IP:';
                 $replaces['{TEST_IP__HEADER}'] = 'Test IP:';
-                $replaces['{TEST_IP}']         = $this->test_ip;
-                $replaces['{REAL_IP}']         = $this->real_ip;
+                $replaces['{TEST_IP}']         = esc_html($this->test_ip);
+                $replaces['{REAL_IP}']         = esc_html($this->real_ip);
             }
 
             // Debug
             if ($this->debug) {
                 $debug = '<h1>Headers</h1>'
-                         . var_export(apache_request_headers(), true)
+                         . '<pre>' . esc_html(var_export(apache_request_headers(), true)) . '</pre>'
                          . '<h1>REMOTE_ADDR</h1>'
-                         . $this->server__remote_addr
+                         . esc_html($this->server__remote_addr)
                          . '<h1>SERVER_ADDR</h1>'
-                         . $this->server__remote_addr
+                         . esc_html($this->server__remote_addr)
                          . '<h1>IP_ARRAY</h1>'
-                         . var_export($this->ip_array, true)
+                         . esc_html(var_export($this->ip_array, true))
                          . '<h1>ADDITIONAL</h1>'
-                         . var_export($this->debug_data, true);
+                         . esc_html(var_export($this->debug_data, true));
             }
             $replaces['{DEBUG}'] = isset($debug) ? $debug : '';
 
@@ -554,7 +567,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $this->sfw_die_page = str_replace($place_holder, $replace, $this->sfw_die_page);
         }
 
-        http_response_code(403);
+        if ( ! headers_sent() ) {
+            http_response_code(403);
+        }
 
         // File exists?
         if (file_exists(CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_sfw.html")) {

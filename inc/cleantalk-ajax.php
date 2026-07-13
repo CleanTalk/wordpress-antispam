@@ -438,11 +438,6 @@ function ct_ajax_hook($message_obj = null)
         }
     }
 
-    //divi subscription form needs to force alt cookies
-    if ( Post::hasString('action', 'et_pb_submit_subscribe_form') ) {
-        Cookie::$force_alt_cookies_global = true;
-    }
-
     // thriveleads modification to check gravity forms
     if ( Post::get('action') === 'tve_api_form_submit' ) {
         unset($_POST['ct_checkjs']);
@@ -729,15 +724,6 @@ function ct_ajax_hook($message_obj = null)
             throw new Exception($ct_result->comment);
         }
 
-        //ES Add subscriber
-        if ( Post::get('action') === 'es_add_subscriber' ) {
-            $result = array(
-                'error' => 'unexpected-error',
-            );
-            print json_encode($result);
-            die();
-        }
-
         //Convertplug. Strpos because action value dynamically changes and depends on mailing service
         if ( strpos(TT::toString(Post::get('action')), '_add_subscriber') !== false ) {
             $result = array(
@@ -902,23 +888,6 @@ function ct_ajax_hook($message_obj = null)
             apbct_is_plugin_active('digits/digit.php') &&
             Post::get('action') === 'digits_forms_ajax' &&
             Post::get('type') === 'register'
-        ) {
-            wp_send_json_error(
-                array(
-                    'message' => $ct_result->comment
-                )
-            );
-            die();
-        }
-
-        // Plugin Name: User Registration; ajax register action user_registration_user_form_submit
-        if (
-            (
-                apbct_is_plugin_active('user-registration/user-registration.php')
-                ||
-                apbct_is_plugin_active('user-registration-pro/user-registration.php')
-            ) &&
-            Post::get('action') === 'user_registration_user_form_submit'
         ) {
             wp_send_json_error(
                 array(

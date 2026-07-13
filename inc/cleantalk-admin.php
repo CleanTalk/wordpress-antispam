@@ -391,6 +391,7 @@ function apbct_admin__init()
     add_action('wp_ajax_apbct_sync', 'apbct_settings__sync');
 
     add_action('wp_ajax_apbct_get_key_auto', 'apbct_settings__get_key_auto');
+    add_action('wp_ajax_apbct_save_key', 'apbct_settings__save_key');
 
     add_action('wp_ajax_apbct_update_account_email', 'apbct_settings__update_account_email');
 
@@ -537,8 +538,11 @@ function apbct_admin__enqueue_scripts($hook)
         'logo_small_colored' => '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'new_window_gif'     => APBCT_URL_PATH . "/inc/images/new_window.gif",
         'notice_when_deleting_user_text' => esc_html__('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.', 'cleantalk-spam-protect'),
-        'apbctNoticeDismissSuccess'       => esc_html__('Thank you for the review! We strive to make our Anti-Spam plugin better every day.', 'cleantalk-spam-protect'),
         'apbctNoticeForceProtectionOn'       => esc_html__('This option affects the reflection of the page by checking the user and adds a cookie "apbct_force_protection_check", which serves as an indicator of successful or unsuccessful verification. If the check is successful, it will no longer run.', 'cleantalk-spam-protect'),
+        'links' => array(
+            'users_editscreen'    => LinkConstructor::buildCleanTalkLink('admin_blacklists_avatar_link', 'blacklists/{TARGET}'),
+            'comments_editscreen' => LinkConstructor::buildCleanTalkLink('admin_blacklists_avatar_link', 'blacklists/{TARGET}'),
+        ),
     );
     $data = array_merge($data, ContactsEncoder::getLocalizationText());
     wp_localize_script('cleantalk-admin-js', 'ctAdminCommon', $data);
@@ -604,6 +608,14 @@ function apbct_admin__enqueue_scripts($hook)
             'support_user_creation_msg_array' => SupportUser::getMessages(),
         ));
 
+        wp_enqueue_script('wp-i18n');
+        ApbctEnqueue::getInstance()->js(
+            'public/apbct-react-bundle.js',
+            array('wp-i18n', 'cleantalk-admin-js'),
+            true
+        );
+        wp_set_script_translations('apbct-react-bundle-js', 'cleantalk-spam-protect');
+
         ApbctEnqueue::getInstance()->js('common-cleantalk-modal.min.js');
     }
 
@@ -616,7 +628,7 @@ function apbct_admin__enqueue_scripts($hook)
             'ctTrpAdminLocalize',
             \Cleantalk\ApbctWP\CleantalkRealPerson::getLocalizingData()
         );
-        ApbctEnqueue::getInstance()->js('cleantalk-comments-editscreen.js');
+        ApbctEnqueue::getInstance()->js('cleantalk-comments-editscreen.js', array('cleantalk-admin-js'));
         $link = LinkConstructor::buildCleanTalkLink(
             'public_comments_page_go_to_cp',
             'my',
@@ -634,7 +646,7 @@ function apbct_admin__enqueue_scripts($hook)
                 __("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk-spam-protect'),
                 $apbct->user_token ? "<a target='_blank' href='$link'>" : '',
                 $apbct->user_token ? "</a>" : ''
-            ) . ' ' . esc_html__('The service accepts feedback only for requests made no more than 7 or 45 days 
+            ) . ' ' . esc_html__('The service accepts feedback only for requests made no more than 7 or 45 days
             (if the Extra package is activated) ago.', 'cleantalk-spam-protect'),
             'ct_show_check_links'         => (bool)$apbct->settings['comments__show_check_links'],
             'ct_img_src_new_tab'          => plugin_dir_url(__FILE__) . "images/new_window.gif",
@@ -644,11 +656,11 @@ function apbct_admin__enqueue_scripts($hook)
     // USERS page JavaScript
     if ( $hook == 'users.php' ) {
         ApbctEnqueue::getInstance()->css('cleantalk-icons.css');
-        ApbctEnqueue::getInstance()->js('cleantalk-users-editscreen.js');
+        ApbctEnqueue::getInstance()->js('cleantalk-users-editscreen.js', array('cleantalk-admin-js'));
         wp_localize_script('cleantalk-users-editscreen-js', 'ctUsersScreen', array(
             'spambutton_text'     => __("Find spam-users", 'cleantalk-spam-protect'),
             'ct_show_check_links' => (bool)$apbct->settings['comments__show_check_links'],
-            'ct_img_src_new_tab'  => plugin_dir_url(__FILE__) . "images/new_window.gif"
+            'ct_img_src_new_tab'  => plugin_dir_url(__FILE__) . "images/new_window.gif",
         ));
     }
 }
@@ -751,17 +763,10 @@ function apbct_admin__admin_bar__add_structure($wp_admin_bar)
      * Link to project manager
      */
     $project_manager_title_node = apbct__admin_bar__get_title_for_project_manager();
-    if ( $project_manager_title_node ) {
+    $gf2db_title_node = apbct__admin_bar__add_gf2db_title();
+    if ( $project_manager_title_node && $gf2db_title_node) {
         $wp_admin_bar->add_node($project_manager_title_node);
-        $gf2db_title_node = apbct__admin_bar__add_gf2db_title();
-        if ($gf2db_title_node) {
-            $wp_admin_bar->add_node($gf2db_title_node);
-        } else {
-            $gf2db_invite_to_install_title = apbct__admin_bar__get_title_for_gf2db_invite_to_install();
-            if ($gf2db_invite_to_install_title) {
-                $wp_admin_bar->add_node($gf2db_invite_to_install_title);
-            }
-        }
+        $wp_admin_bar->add_node($gf2db_title_node);
     }
 
     /**
@@ -823,36 +828,6 @@ function apbct__admin_bar__add_gf2db_title()
     );
 }
 
-/**
- * Gets the title for the "Gravity Forms to doBoard" Add-On invite to install admin bar node.
- *
- * This function constructs the title for the "Gravity Forms to doBoard" Add-On invite to install admin bar node based on various conditions.
- * The title includes a link to the "Gravity Forms to doBoard" Add-On invite to install.
- *
- * @return array|false The node data for the "Gravity Forms to doBoard" Add-On invite to install admin bar node, or false if the "Gravity Forms to doBoard" Add-On invite to install admin bar node is not enabled.
- */
-function apbct__admin_bar__get_title_for_gf2db_invite_to_install()
-{
-    if (is_plugin_active('cleantalk-doboard-add-on-for-gravity-forms/cleantalk-doboard-add-on-for-gravity-forms.php')) {
-        return false;
-    }
-
-    $title = sprintf(
-        '<a href="%s" target="_blank" title="%s">%s</a>',
-        admin_url('plugin-install.php?s=GF2DB&tab=search&type=term'),
-        esc_html__(
-            'Organize and track all messages from your site. Gravity Forms, upgraded with project management.',
-            'cleantalk-spam-protect'
-        ),
-        esc_html__('Install "Gravity Forms to doBoard" Add-On', 'cleantalk-spam-protect')
-    );
-
-    return array(
-        'parent' => 'project_manager__parent_node',
-        'id' => 'gf2db_invite_to_install_title',
-        'title' => $title,
-    );
-}
 
 /**
  * Gets the title for the APBCT admin bar node.

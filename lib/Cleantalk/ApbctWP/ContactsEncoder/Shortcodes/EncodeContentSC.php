@@ -3,9 +3,10 @@
 namespace Cleantalk\ApbctWP\ContactsEncoder\Shortcodes;
 
 use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
+use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
-use Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService;
+use Cleantalk\ApbctWP\ContactsEncoder\Exclusions\ExclusionsService;
 
 /**
  * Shortcode to encode any string content.
@@ -98,25 +99,32 @@ class EncodeContentSC extends EmailEncoderShortCode
      */
     public function changeContentBeforeEncoderModify($content)
     {
-        if ( $this->exclusions->doReturnContentBeforeModify($content) ) {
+        if ( $this->exclusions->doReturnShortcodeContentBeforeModify($content) ) {
+            return $content;
+        }
+
+        if ($this->isShortcodeInsideHtmlTag($content)) {
             return $content;
         }
 
         // skip encoding if the content is already encoded with hook
-        // Extract shortcode content to protect it from email encoding
-        $shortcode_exist_pattern = sprintf('/\[%s\](.*?)\[\/%s\]/s', $this->public_name, $this->public_name);
+        // Extract shortcode content to protect it from email encoding, supports sc attributes(!)
+        $shortcode_exist_pattern = sprintf('/(\[%s(?:\s[^\]]*)?\])([\s\S]*?)(\[\/%s\])/s', $this->public_name, $this->public_name);
         $content = preg_replace_callback($shortcode_exist_pattern, function ($matches) {
             $placeholder = preg_replace('/EE\_\d+/', 'EE_' . (string)$this->shortcode_counter++, $this->exclusion_wrapper);
             if (is_null($placeholder)) {
                 $placeholder = $this->exclusion_wrapper;
             }
-            if (isset($matches[0])) {
-                $this->shortcode_replacements[$placeholder] = $matches[0];
+            if (isset($matches[1], $matches[2], $matches[3])) {
+                $prefix = $matches[1];
+                $entity = $matches[2];
+                $suffix = $matches[3];
+                $entity = Escape::escKsesPost($entity);
+                $this->shortcode_replacements[$placeholder] = $prefix . $entity . $suffix;
             }
 
             return $placeholder;
         }, $content);
-
         return $content;
     }
 
@@ -138,6 +146,19 @@ class EncodeContentSC extends EmailEncoderShortCode
         foreach ($this->shortcode_replacements as $placeholder => $original) {
             $content = str_replace($placeholder, $original, $content);
         }
-        return $this->doCallbackAction($content);
+
+        $result = $this->doCallbackAction($content);
+        $this->resetShortcodeReplacements();
+
+        return $result;
+    }
+
+    /**
+     * @return void
+     */
+    public function resetShortcodeReplacements()
+    {
+        $this->shortcode_replacements = array();
+        $this->shortcode_counter = 0;
     }
 }

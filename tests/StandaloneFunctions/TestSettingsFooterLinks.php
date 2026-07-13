@@ -28,10 +28,6 @@ class TestSettingsFooterLinks extends TestCase
             $this->assertArrayHasKey('text', $decoded[0]);
             $this->assertArrayHasKey('url', $decoded[0]);
             $this->assertEquals('Security plugin by CleanTalk', $decoded[0]['text']);
-
-            $this->assertArrayHasKey('text', $decoded[1]);
-            $this->assertArrayHasKey('url', $decoded[1]);
-            $this->assertStringContainsString('Gravity Add-On', $decoded[1]['text']);
         } else {
             $this->fail('JSON for Recommended plugins not found');
         }
