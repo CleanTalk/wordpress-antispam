@@ -85,13 +85,18 @@ class CleantalkScriptsIntegrator
      */
     public function getIntegrations()
     {
-        try {
-            $integrations = [
-                new GiveWPScript(),
-                new FluentFormScript(),
-            ];
-        } catch (\Exception $e) {
-            $integrations = [];
+        $classes = [
+            GiveWPScript::class,
+            FluentFormScript::class,
+        ];
+
+        $integrations = [];
+        foreach ($classes as $class) {
+            try {
+                $integrations[] = new $class();
+            } catch (\Exception $e) {
+                // Skip broken integration
+            }
         }
 
         return $integrations;

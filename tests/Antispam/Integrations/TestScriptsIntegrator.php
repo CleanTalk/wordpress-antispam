@@ -169,7 +169,7 @@ class TestScriptsIntegrator extends TestCase
     }
 
     /**
-     * helper: достать callbacks из WP
+     * helper: get callbacks from WP
      */
     private function get_registered_hooks($hook)
     {
