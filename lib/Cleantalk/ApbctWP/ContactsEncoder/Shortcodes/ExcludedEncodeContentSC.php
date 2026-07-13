@@ -29,11 +29,11 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             $encoder = apbctGetContactsEncoder();
             $decoded_data = $encoder->decodeContactData([$matches[2]]);
             if ( $decoded_data && is_array($decoded_data) ) {
-                return current($decoded_data);
+                return esc_html(current($decoded_data));
             }
         }
 
-        return $content;
+        return wp_kses_post($content);
     }
 
     /**
@@ -53,7 +53,20 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         }
 
         if ( $apbct->settings['data__email_decoder_buffer'] ) {
-            $content = $apbct->buffer;
+            if ( $this->getCurrentAction() !== 'shutdown' ) {
+                return $content;
+            }
+            if ( $content === '' || $content === null ) {
+                $content = $apbct->buffer;
+            }
+        }
+
+        // Skip processing if shortcode is inside an HTML tag to prevent attribute injection
+        if ($this->isShortcodeInsideHtmlTag($content)) {
+            if ( $apbct->settings['data__email_decoder_buffer'] ) {
+                $apbct->buffer = $content;
+            }
+            return $content;
         }
 
         $pattern = '/\[apbct_skip_encoding\](.*?)\[\/apbct_skip_encoding\]/s';

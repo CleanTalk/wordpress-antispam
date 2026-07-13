@@ -4,7 +4,7 @@ Tags: antispam, honeypot, bot, captcha, spam
 Requires at least: 4.7
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.82
+Stable tag: 6.83
 License: GPLv2
 
 Top-rated antispam for contact forms, comments, WooCommerce, eCommerce, and login. No CAPTCHAs, no friction, just background anti spam protection.
@@ -425,6 +425,24 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.83 09.07.2026 =
+New. Settings. Getting apikey wizard. 
+New. RateLimit. Enabled the RateLimit shared library
+New. Footer. New link on Website Feedback Plugin
+New. RateLimit. Enabled the RateLimit shared library
+Upd. Contacts Encoder. Flow improvements.
+Upd. ContactEncoder. Improve shortcode flow.
+Mod. BannerReview. Changing the design of the review banner
+Mod. LinkConstructor. Changing all links on the settings page to LinkConstructor
+Fix. ContactEncoder. Edits made in the shortcode omitted from encoding.
+Fix. SFW. RSS exclusion fixed.
+Fix. RemoteCalls. Editing multiple calls
+Fix. SFW. Update SFW fix
+Fix. SFW. Modules die pages fixed.
+Fix. Integration. Amelia integration fixed: event_token added.
+Fix. Integration. Brevo integration fixed.
+Fix. Integration. WooCommerce register requests protection fixed.
 
 = 6.82 24.06.2026 =
 * New. Integration. Integration with Email Subscribers

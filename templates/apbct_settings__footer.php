@@ -43,6 +43,7 @@ function apbct_settings__footer()
     ];
     $block2_links = [
         ['text' => 'Security plugin by CleanTalk', 'url' => admin_url('plugin-install.php') . '?s=spbct&tab=search&type=term'],
+        ['text' => 'Website Feedback Plugin', 'url' => admin_url('plugin-install.php') . '?s=spotfix&tab=search&type=term'],
     ];
 
     ?>

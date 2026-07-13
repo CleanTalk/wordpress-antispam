@@ -1,0 +1,22 @@
+.apbct-signup-wizard-shell {
+    max-width: 720px;
+    margin: 24px 0 40px;
+    padding: 32px 36px;
+    background: #fff;
+    border: 1px solid #dce4ea;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(30, 42, 50, 0.06);
+}
+
+.apbct-signup-wizard-shell__title {
+    margin: 0 0 8px;
+    font-size: 22px;
+    line-height: 1.3;
+    color: #1e2a32;
+}
+
+.apbct-signup-wizard-shell__hint {
+    margin: 0;
+    font-size: 14px;
+    color: #5c6b76;
+}

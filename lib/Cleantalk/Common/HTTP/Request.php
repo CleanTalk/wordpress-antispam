@@ -227,8 +227,9 @@ class Request
             $request_result = array('error' => curl_error($ch));
         }
 
-        curl_close($ch);
-
+        if (PHP_VERSION_ID < 80500) {
+            curl_close($ch);
+        }
 
         return new Response($request_result, $curl_info);
     }
@@ -366,8 +367,8 @@ class Request
         }
         unset($response);
 
-        // Return a single content if it was a single request
-        return is_array($this->response) && count($this->response) > 1
+        // Return associative array if URLs were passed as array, single value otherwise
+        return is_array($this->url)
             ? $return_value
             : reset($return_value);
     }

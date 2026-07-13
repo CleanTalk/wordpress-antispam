@@ -258,15 +258,15 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
                     ),
                     30
                 ),
-                '{CLEANTALK_TITLE}'                => $apbct->data['wl_brandname'],
-                '{CLEANTALK_URL}'                  => $apbct->data['wl_url'],
-                '{REMOTE_ADDRESS}'                 => $result['ip'],
-                '{REQUEST_URI}'                    => Server::get('REQUEST_URI'),
-                '{SERVICE_ID}'                     => $this->apbct->data['service_id'] . ', ' . $net_count,
+                '{CLEANTALK_TITLE}'                => esc_html($apbct->data['wl_brandname']),
+                '{CLEANTALK_URL}'                  => esc_url($apbct->data['wl_url']),
+                '{REMOTE_ADDRESS}'                 => esc_html($result['ip']),
+                '{REQUEST_URI}'                    => esc_html(Server::getString('REQUEST_URI')),
+                '{SERVICE_ID}'                     => esc_html($this->apbct->data['service_id']) . ', ' . esc_html($net_count),
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . "</p>",
                 '{COOKIE_ANTIFLOOD_PASSED}'        => md5($result['ip'] . $this->api_key),
-                '{SCRIPT_URL}'                     => $js_url,
+                '{SCRIPT_URL}'                     => esc_url($js_url),
 
                 // Custom Logo
                 '{CUSTOM_LOGO}'                    => $custom_logo_img

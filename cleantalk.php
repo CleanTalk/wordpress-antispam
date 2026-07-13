@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.82
+  Version: 6.83
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -720,6 +720,7 @@ if ( is_admin() || is_network_admin() ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-find-spam.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-admin.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php');
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/apbct-sync-react.php');
 
     add_action('admin_init', 'apbct_admin__init', 1);
 
@@ -887,12 +888,15 @@ function apbct_sfw__check()
     global $apbct, $spbc, $cleantalk_url_exclusions;
 
     // Turn off the SpamFireWall if current url in the exceptions list and WordPress core pages
+    $core_page_to_skip_check = array('/feed');
     if ( ! empty($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions) ) {
-        $core_page_to_skip_check = array('/feed');
-        foreach ( array_merge($cleantalk_url_exclusions, $core_page_to_skip_check) as $v ) {
-            if ( apbct_is_in_uri($v) ) {
-                return;
-            }
+        $cleantalk_url_exclusions = array_merge($cleantalk_url_exclusions, $core_page_to_skip_check);
+    } else {
+        $cleantalk_url_exclusions = $core_page_to_skip_check;
+    }
+    foreach ( $cleantalk_url_exclusions as $v ) {
+        if ( apbct_is_in_uri($v) ) {
+            return;
         }
     }
 
@@ -1011,14 +1015,30 @@ function apbct_plugin_redirect()
 {
     global $apbct;
     wp_suspend_cache_addition(true);
+    $redirect = get_option('ct_plugin_do_activation_redirect', false);
     if (
-        get_option('ct_plugin_do_activation_redirect', false) &&
+        $redirect &&
         delete_option('ct_plugin_do_activation_redirect') &&
         ! Get::get('activate-multi')
     ) {
         ct_account_status_check(null, false);
         apbct_sfw_update__init(3); // Updating SFW
-        wp_redirect($apbct->settings_link);
+
+        if ( is_string($redirect) && $redirect !== '1' ) {
+            $redirect_url = $redirect;
+        } else {
+            $redirect_url = $apbct->settings_link;
+            if (
+                function_exists('apbct_settings__needs_signup_wizard') &&
+                apbct_settings__needs_signup_wizard() &&
+                empty($apbct->api_key)
+            ) {
+                $redirect_url = apbct_settings__get_signup_wizard_url();
+            }
+        }
+
+        wp_safe_redirect($redirect_url);
+        exit;
     }
     wp_suspend_cache_addition(false);
 }

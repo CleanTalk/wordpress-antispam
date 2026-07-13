@@ -9,6 +9,7 @@ use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\LinkConstructor;
 use Cleantalk\ApbctWP\PingbackTrackback\SettingsView;
 use Cleantalk\ApbctWP\Validate;
+use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\Variables\Server;
@@ -112,8 +113,7 @@ function apbct_settings__set_fields()
                     'cleantalk-spam-protect'
                 )
                 . ' '
-                //HANDLE LINK
-                . '<a href="https://cleantalk.org/my/support/open" target="_blank" style="color:red">'
+                . '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('settings_support_open', 'my/support/open')) . '" target="_blank" style="color:red">'
                 . esc_html__(
                     'contact to our support.',
                     'cleantalk-spam-protect'
@@ -288,7 +288,7 @@ function apbct_settings__set_fields()
                                     'Read more about %sspam protection for Search form%s on our blog. The "noindex" tag will be placed in the meta directive on the search results page.',
                                     'cleantalk-spam-protect'
                                 ),
-                                '<a href="https://blog.cleantalk.org/how-to-protect-website-search-from-spambots/" target="_blank">',
+                                '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('blog_search_form_protection', 'how-to-protect-website-search-from-spambots', array(), 'https://blog.cleantalk.org')) . '" target="_blank">',
                                 '</a>'
                             )
                             : ''
@@ -526,9 +526,7 @@ function apbct_settings__set_fields()
                         . ( ! $apbct->white_label && ! $apbct->data["wl_mode_enabled"] ?
                             __(' Or you don`t have records about missed spam here:', 'cleantalk-spam-protect')
                             . '&nbsp;'
-                            //HANDLE LINK
-                            . '<a href="https://cleantalk.org/my/?user_token='
-                            . $apbct->user_token . '&utm_source=wp-backend&utm_medium=admin-bar&cp_mode=antispam" target="_blank">'
+                            . '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('settings_dashboard_link', 'my', array('user_token' => $apbct->user_token, 'cp_mode' => 'antispam'))) . '" target="_blank">'
                             . __('CleanTalk Dashboard', 'cleantalk-spam-protect')
                             . '</a>.' : '' )
                         . '<br />'
@@ -665,7 +663,7 @@ function apbct_settings__set_fields()
                 ),
                 'data__email_check_exist_post'        => array(
                     'title'       => __('Show email existence alert when filling in the field', 'cleantalk-spam-protect'),
-                    'description' => __('Checks the email address and shows the result as an icon in the email field before submitting the form. Works for WooCommerce checkout form, FluentForms, Contact Form 7, Gravity Forms, Ninja Forms, WPForms, standard WordPress comment form and registration form.', 'cleantalk-spam-protect') . ' ' . '<a href="https://cleantalk.org/help/show-email-existence-alert" target="_blank" rel="noopener noreferrer">' . __('Read more', 'cleantalk-spam-protect') . '</a>',
+                    'description' => __('Checks the email address and shows the result as an icon in the email field before submitting the form. Works for WooCommerce checkout form, FluentForms, Contact Form 7, Gravity Forms, Ninja Forms, WPForms, standard WordPress comment form and registration form.', 'cleantalk-spam-protect') . ' ' . '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('settings_email_existence_alert', 'help/show-email-existence-alert')) . '" target="_blank" rel="noopener noreferrer">' . __('Read more', 'cleantalk-spam-protect') . '</a>',
                 ),
             ),
         ),
@@ -1125,8 +1123,7 @@ function apbct_settings__set_fields__network($fields)
                     'title'            => __('Hoster Access key', 'cleantalk-spam-protect'),
                     'description'      => sprintf(
                         __('Copy the Access key from your %sCleanTalk Profile%s', 'cleantalk-spam-protect'),
-                        //HANDLE LINK
-                        '<a href="https://cleantalk.org/my/profile#api_keys" target="_blank">',
+                        '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('settings_hoster_api_key', 'my/profile')) . '#api_keys" target="_blank">',
                         '</a>'
                     ),
                     'class'            => 'apbct_settings-field_wrapper--sub',
@@ -1320,6 +1317,144 @@ function apbct_settings__add_groups_and_fields($fields)
 }
 
 /**
+ * Whether the current AJAX request comes from the React signup wizard.
+ */
+function apbct_settings__is_wizard_ajax_request()
+{
+    return Post::getInt('apbct_wizard_request') === 1;
+}
+
+/**
+ * Send a JSON response and stop execution.
+ *
+ * @param array $out
+ */
+function apbct_settings__ajax_json_response($out)
+{
+    wp_send_json($out);
+}
+
+/**
+ * Whether the site still needs the signup wizard (no valid access key).
+ */
+function apbct_settings__needs_signup_wizard()
+{
+    global $apbct;
+
+    if ( ! empty($apbct->moderate_ip) || apbct__is_hosting_license() ) {
+        return false;
+    }
+
+    return ! ( ! empty($apbct->key_is_ok) && apbct_api_key__is_correct() );
+}
+
+/**
+ * Settings page URL that opens the signup wizard.
+ */
+function apbct_settings__get_signup_wizard_url()
+{
+    global $apbct;
+
+    return $apbct->settings_link . '&signup_wizard=1';
+}
+
+/**
+ * Whether the signup wizard should be shown instead of the classic settings form.
+ */
+function apbct_settings__is_signup_wizard()
+{
+    if ( Get::getString('signup_wizard') !== '1' ) {
+        return false;
+    }
+
+    return apbct_settings__needs_signup_wizard();
+}
+
+/**
+ * Registration URL for the signup wizard (manual key screen).
+ */
+function apbct_settings__get_wizard_signup_url($email = null)
+{
+    if ( null === $email ) {
+        $email = ct_get_admin_email();
+    }
+
+    return LinkConstructor::buildCleanTalkLink(
+        'get_access_key_link',
+        'register',
+        array(
+            'platform'     => 'wordpress',
+            'product_name' => 'antispam',
+            'email'        => $email,
+            'website'      => get_bloginfo('url'),
+        )
+    );
+}
+
+/**
+ * Data attributes for the React settings mount point.
+ */
+function apbct_settings__get_react_page_data()
+{
+    return array(
+        'adminEmail'        => ct_get_admin_email(),
+        'settingsLink'      => apbct_settings__get_settings_url_without_wizard(),
+        'signupWizardUrl'   => apbct_settings__get_signup_wizard_url(),
+        'cloudDashboardUrl' => 'https://cleantalk.org/my/?cp_mode=antispam',
+        'signupUrl'         => apbct_settings__get_wizard_signup_url(),
+    );
+}
+
+/**
+ * Settings page URL without signup wizard query arg (for Skip wizard link).
+ */
+function apbct_settings__get_settings_url_without_wizard()
+{
+    global $apbct;
+
+    return remove_query_arg('signup_wizard', $apbct->settings_link);
+}
+
+/**
+ * Tab/meta data for the React settings mount point.
+ */
+function apbct_settings__get_react_tabs_data()
+{
+    return array(
+        'keyIsOk'           => apbct_settings__is_access_key_valid(),
+        'needsSignupWizard' => apbct_settings__needs_signup_wizard(),
+    );
+}
+
+/**
+ * Whether the current access key is valid and active.
+ */
+function apbct_settings__is_access_key_valid()
+{
+    global $apbct;
+
+    return ! empty($apbct->key_is_ok) && apbct_api_key__is_correct();
+}
+
+/**
+ * Outputs the React root element for the settings / signup wizard UI.
+ */
+function apbct_settings__render_react_mount()
+{
+    $is_signup_wizard = apbct_settings__is_signup_wizard();
+    $react_style      = $is_signup_wizard ? '' : 'display:none;';
+    $page_data_json    = wp_json_encode(apbct_settings__get_react_page_data());
+    $tabs_data_json    = wp_json_encode(apbct_settings__get_react_tabs_data());
+
+    echo '<div 
+        id="apbct-page--react"
+        data-page-data=\'' . esc_attr(is_string($page_data_json) ? $page_data_json : '{}') . '\'
+        data-tabs-data=\'' . esc_attr(is_string($tabs_data_json) ? $tabs_data_json : '{}') . '\'
+        style="' . esc_attr($react_style) . '"
+    ></div>';
+}
+
+/**
  * Admin callback function - Displays plugin options page
  */
 function apbct_settings__display()
@@ -1330,6 +1465,11 @@ function apbct_settings__display()
     if (isset($apbct->data['wl_brandname']) && $apbct->data['wl_brandname'] !== APBCT_NAME) {
         $actual_plugin_name = $apbct->data['wl_brandname'];
     }
+
+    apbct_settings__render_react_mount();
+
+    $settings_wrap_style = apbct_settings__is_signup_wizard() ? 'display:none;' : '';
+    echo '<div id="apbct-settings-page-wrap" style="' . esc_attr($settings_wrap_style) . '">';
 
     // Title
     echo '<h2 class="apbct_settings-title">' . __($actual_plugin_name, 'cleantalk-spam-protect') . '</h2>';
@@ -1370,8 +1510,7 @@ function apbct_settings__display()
     if ( $apbct->key_is_ok && apbct_api_key__is_correct() && ! $apbct->data["wl_mode_enabled"] ) {
         if ( $apbct->network_settings['multisite__work_mode'] != 2 || is_main_site() ) {
             // CP button
-            //HANDLE LINK
-            echo '<a class="cleantalk_link cleantalk_link-manual" target="__blank" href="https://cleantalk.org/my?user_token=' . Escape::escHtml($apbct->user_token) . '&cp_mode=antispam">'
+            echo '<a class="cleantalk_link cleantalk_link-manual" target="__blank" href="' . esc_attr(LinkConstructor::buildCleanTalkLink('settings_cloud_dashboard_button', 'my', array('user_token' => $apbct->user_token, 'cp_mode' => 'antispam'))) . '">'
                  . __('Cloud Dashboard', 'cleantalk-spam-protect')
                  . '<img style="margin-left: 7px; margin-top:7px;" src="' . APBCT_URL_PATH . "/inc/images/new_window.gif" . '">'
                  . '</a>';
@@ -1505,6 +1644,7 @@ function apbct_settings__display()
     echo '</div>';
 
     echo "</form>";
+    echo '</div>';
 
     //the form should be here! button code is placed in apbct_sfw_force_sfw_update_button
     echo '<form id="debug__cron_set" method="POST"></form>';
@@ -1874,9 +2014,8 @@ function apbct_settings__field__state()
         'cleantalk-spam-protect'
     );
     if ( ! $apbct->white_label || is_main_site() ) {
-        //HANDLE LINK
         echo '<img class="apbct_status_icon" src="' . ($apbct->data['moderate'] == 1 ? Escape::escUrl($img) : Escape::escUrl($img_no)) . '"/>'
-             . '<a style="color: black" href="https://blog.cleantalk.org/real-time-email-address-existence-validation/">' . __(
+             . '<a style="color: black" href="' . esc_attr(LinkConstructor::buildCleanTalkLink('blog_email_validation_status', 'real-time-email-address-existence-validation', array(), 'https://blog.cleantalk.org')) . '">' . __(
                  'Validate email for existence',
                  'cleantalk-spam-protect'
              ) . '</a>';
@@ -1916,13 +2055,6 @@ function apbct_settings__field__apikey()
     $define_show_key_field = ! (apbct_api_key__is_correct($apbct->api_key) && isset($apbct->data["key_changed"]) && $apbct->data["key_changed"]);
     $define_show_deobfuscating_href = apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok && (!isset($apbct->data["key_changed"]) || !$apbct->data["key_changed"]);
 
-    $get_key_manual_chunk_display = '';
-    if (!empty($apbct->settings['apikey']) ||
-        APBCT_WPMS && !is_main_site() && $apbct->network_settings['multisite__work_mode'] == 2
-    ) {
-        $get_key_manual_chunk_display = 'style="display:none"';
-    }
-
     $replaces = [
         'wpms_admin_provided' => '',
         'key_label_display' => 'style="display:none"',
@@ -1938,15 +2070,9 @@ function apbct_settings__field__apikey()
         'get_key_auto_wrapper_display' => 'style="display:none"',
         'get_key_auto_button_display' => 'style="display:none"',
         'get_key_auto_button_text' => __('GET ACCESS KEY', 'cleantalk-spam-protect'),
-        'get_key_auto_preloader_src' => Escape::escUrl(APBCT_URL_PATH . '/inc/images/preloader2.gif'),
-        'get_key_auto_success_icon_src' => Escape::escUrl(APBCT_URL_PATH . '/inc/images/yes.png'),
-        'get_key_manual_chunk' => '',
-        'get_key_manual_chunk_display' => $get_key_manual_chunk_display,
+        'signup_wizard_url' => Escape::escUrl(apbct_settings__get_signup_wizard_url()),
         'save_changes_button_text' => __('Save the Access key', 'cleantalk-spam-protect'),
         'trying_to_set_bad_key_notice' => __('Please, insert a correct access key before saving changes! Key should contain at least 8 symbols.', 'cleantalk-spam-protect'),
-        'public_offer_display' => 'style="display:none"',
-        'public_offer_link' => '',
-        'need_accept_agreement_notice' => __('You should accept the License Agreement', 'cleantalk-spam-protect'),
     ];
 
     //WPMS KEY CASE
@@ -1973,46 +2099,12 @@ function apbct_settings__field__apikey()
         __('Account at cleantalk.org is %s.', 'cleantalk-spam-protect'),
         '<b>' . Escape::escHtml($account_name) . '</b>'
     );
-    //GET KEY AUTO
-    $replaces['get_key_auto_wrapper_display'] = $define_show_key_field && empty($apbct->api_key)
-        ? ''
-        : 'style="display:none"';
-    $replaces['get_key_auto_button_display'] = !$apbct->ip_license ? '' : 'style="display:none"';
-
-    //GET KEY MANUAL CHUNK
-    $register_link = LinkConstructor::buildCleanTalkLink(
-        'get_access_key_link',
-        'register',
-        array(
-            'platform' => 'wordpress',
-            'product_name' => 'antispam',
-            'email' => ct_get_admin_email(),
-            'website' => get_bloginfo('url')
-        )
-    );
-    $link_template = __(
-        'The admin email %s %s will be used to obtain a key and as the email for signing up at CleanTalk.org.',
-        'cleantalk-spam-protect'
-    );
-    $link_template .= '<br>';
-    $link_template .= __('As a backup, use the %sCleanTalk Dashboard%s to copy and paste your key.', 'cleantalk-spam-protect');
-    $href = '<a class="apbct_color--gray" target="__blank" id="apbct-key-manually-link" href="' . $register_link . '">';
-    $replaces['get_key_manual_chunk'] = sprintf(
-        $link_template,
-        '<span id="apbct-account-email">' . ct_get_admin_email() . '</span>',
-        apbct_settings__btn_change_account_email_html(),
-        $href,
-        '</a>'
-    );
-
-    //PUBLIC OFFER
-    $replaces['public_offer_display'] = !$apbct->ip_license ? '' : 'style="display:none"';
-    $replaces['public_offer_link'] = sprintf(
-        '<label for="apbct_license_agreed">' .
-        __('I accept %sLicense Agreement%s.', 'cleantalk-spam-protect'),
-        '<a id="apbct_license_agreed_href" class = "apbct_color--gray" href="https://cleantalk.org/publicoffer" target="_blank">',
-        '</a></label>'
-    );
+    //GET KEY AUTO — opens React signup wizard
+    $show_signup_wizard_link = apbct_settings__needs_signup_wizard()
+        && $define_show_key_field
+        && ( empty($apbct->api_key) || ! apbct_settings__is_access_key_valid() );
+    $replaces['get_key_auto_wrapper_display'] = $show_signup_wizard_link ? '' : 'style="display:none"';
+    $replaces['get_key_auto_button_display'] = ! $apbct->ip_license ? '' : 'style="display:none"';
 
     //DO REPLACE
     foreach ($replaces as $key => $value) {
@@ -2731,6 +2823,86 @@ function apbct_settings__sync($direct_call = false)
 }
 
 /**
+ * Format an AJAX error payload for settings page or signup wizard clients.
+ *
+ * @param string $message
+ * @return array
+ */
+function apbct_settings__format_ajax_error($message)
+{
+    if ( apbct_settings__is_wizard_ajax_request() ) {
+        return array(
+            'success' => false,
+            'msg'     => $message,
+        );
+    }
+
+    return array(
+        'success' => true,
+        'reload'  => false,
+        'error'   => $message,
+    );
+}
+
+/**
+ * @param bool $direct_call
+ * @param string $apikey
+ *
+ * @return void
+ */
+function apbct_settings__save_key($apikey = '', $direct_call = false)
+{
+    global $apbct;
+
+    if ( ! $direct_call ) {
+        AJAXService::checkAdminNonce();
+
+        if ( ! current_user_can('activate_plugins') ) {
+            apbct_settings__ajax_json_response(
+                apbct_settings__format_ajax_error(
+                    __('You do not have sufficient permissions to access this page.', 'cleantalk-spam-protect')
+                )
+            );
+        }
+
+        $apikey = Post::getString('apiKey');
+
+        if ( ! apbct_api_key__is_correct($apikey) ) {
+            apbct_settings__ajax_json_response(
+                apbct_settings__format_ajax_error(
+                    __('access key format is invalid', 'cleantalk-spam-protect')
+                )
+            );
+        }
+
+        if ( ! ct_account_status_check($apikey, false) ) {
+            apbct_settings__ajax_json_response(
+                apbct_settings__format_ajax_error(
+                    __('Testing failed. Please check the Access key.', 'cleantalk-spam-protect')
+                )
+            );
+        }
+    }
+
+    $apikey = trim($apikey);
+    $apikey = preg_match('/^[a-z\d]*$/', $apikey) ? $apikey : $apbct->settings['apikey'];
+
+    if ( APBCT_WPMS && ! is_main_site() && (int) $apbct->network_settings['multisite__work_mode'] === 2 ) {
+        $apikey = $apbct->network_settings['apikey'];
+    }
+
+    $apbct->settings['apikey'] = $apikey;
+    $apbct->data['key_is_ok']  = apbct_api_key__is_correct($apikey);
+    $apbct->data['key_changed'] = true;
+    $apbct->saveSettings();
+    $apbct->saveData();
+
+    if ( ! $direct_call ) {
+        apbct_settings__ajax_json_response(array('success' => true));
+    }
+}
+
+/**
  * @param bool $direct_call
  *
  * @return array|bool|false[]|mixed|string|string[]|void
@@ -2745,12 +2917,11 @@ function apbct_settings__get_key_auto($direct_call = false)
     global $apbct;
 
     if (!current_user_can('activate_plugins')) {
-        $out = array(
-            'success' => false,
-            'message' => __('You do not have sufficient permissions to access this page.', 'cleantalk-spam-protect'),
-
+        apbct_settings__ajax_json_response(
+            apbct_settings__format_ajax_error(
+                __('You do not have sufficient permissions to access this page.', 'cleantalk-spam-protect')
+            )
         );
-        die(json_encode($out));
     }
 
     $website        = parse_url(get_option('home'), PHP_URL_HOST) . parse_url(get_option('home'), PHP_URL_PATH);
@@ -2761,7 +2932,7 @@ function apbct_settings__get_key_auto($direct_call = false)
     $wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && ! SUBDOMAIN_INSTALL ? true : false;
     $white_label    = $apbct->network_settings['multisite__white_label'] ? true : false;
     $hoster_api_key = $apbct->network_settings['multisite__hoster_api_key'];
-    $admin_email    = ct_get_admin_email();
+    $admin_email    = Post::getString('email') ? Post::getString('email') : ct_get_admin_email();
 
     /**
      * Filters the email to get Access key
@@ -2769,6 +2940,9 @@ function apbct_settings__get_key_auto($direct_call = false)
      * @param string email to get Access key
      */
     $filtered_admin_email = apply_filters('apbct_get_api_key_email', $admin_email);
+    $filtered_admin_email = filter_var($filtered_admin_email, FILTER_VALIDATE_EMAIL)
+        ? $filtered_admin_email
+        : $admin_email;
 
     $language = is_string($language) ? $language : null;
 
@@ -2787,6 +2961,10 @@ function apbct_settings__get_key_auto($direct_call = false)
     );
 
     if ( ! empty($result['error']) ) {
+        $error_message = isset($result['error_message'])
+            ? esc_html($result['error_message'])
+            : esc_html($result['error']);
+
         $apbct->errorAdd(
             'key_get',
             $result['error']
@@ -2796,16 +2974,12 @@ function apbct_settings__get_key_auto($direct_call = false)
             )
         );
         $apbct->saveErrors();
-        $out = array(
-            'success' => true,
-            'reload'  => false,
-            'error' => isset($result['error_message']) ? esc_html($result['error_message']) : esc_html($result['error'])
-        );
+        $out = apbct_settings__format_ajax_error($error_message);
     } elseif (isset($result['error_no']) && $result['error_no'] == '403') {
-        $out = array(
-            'success' => true,
-            'reload'  => false,
-            'error' => isset($result['error_message']) ? esc_html($result['error_message']) : esc_html('Our service is not available in your region.'),
+        $out = apbct_settings__format_ajax_error(
+            isset($result['error_message'])
+                ? esc_html($result['error_message'])
+                : esc_html('Our service is not available in your region.')
         );
     } elseif ( ! isset($result['auth_key']) ) {
         $msg = sprintf(
@@ -2814,11 +2988,7 @@ function apbct_settings__get_key_auto($direct_call = false)
         );
         $apbct->errorAdd('key_get', $msg);
         $apbct->saveErrors();
-        $out = array(
-            'success' => true,
-            'reload'  => false,
-            'error' => $msg
-        );
+        $out = apbct_settings__format_ajax_error($msg);
     } else {
         if ( isset($result['user_token']) ) {
             $apbct->data['user_token'] = $result['user_token'];
@@ -2840,6 +3010,10 @@ function apbct_settings__get_key_auto($direct_call = false)
                 'success'      => true,
                 'getTemplates' => $templatesObj->getHtmlContent(true),
             );
+        } elseif ( apbct_settings__is_wizard_ajax_request() ) {
+            $out = array(
+                'success' => true,
+            );
         } else {
             $out = array(
                 'success' => true,
@@ -2853,9 +3027,9 @@ function apbct_settings__get_key_auto($direct_call = false)
 
     if ( $direct_call ) {
         return $result;
-    } else {
-        die(json_encode($out));
     }
+
+    apbct_settings__ajax_json_response($out);
 }
 
 function apbct_settings__update_account_email()
@@ -3025,6 +3199,24 @@ function apbct_settings__get__long_description()
     }
 
     $setting_id = TT::toString(Post::get('setting_id', null, 'word'));
+    $descriptions = apbct_settings__get_long_descriptions_data();
+
+    if (!empty($setting_id) && isset($descriptions[$setting_id])) {
+        die(json_encode($descriptions[$setting_id]));
+    } else {
+        die(json_encode(['error' => 'Invalid setting ID']));
+    }
+}
+
+/**
+ * Builds the long descriptions data array with all LinkConstructor links.
+ * Extracted for testability.
+ *
+ * @return array
+ */
+function apbct_settings__get_long_descriptions_data()
+{
+    global $apbct;
 
     $link_exclusion_by_form_signs = LinkConstructor::buildCleanTalkLink(
         'exclusion_by_form_signs',
@@ -3046,18 +3238,16 @@ function apbct_settings__get__long_description()
         ),
         'data__set_cookies' => array(
             'title' => __('Cookies setting', 'cleantalk-spam-protect'),
-            //HANDLE LINK
             'desc'  => sprintf(
                 __('It determines what methods of using the HTTP cookies the Anti-Spam plugin for WordPress should switch to. It is necessary for the plugin to work properly. All CleanTalk cookies contain technical data. Data of the current website visitor is encrypted with the MD5 algorithm and being deleted when the browser session ends. %s', 'cleantalk-spam-protect'),
-                '<a href="https://cleantalk.org/help/set-cookies-option{utm_mark}" target="_blank">' . __('Learn more about suboptions', 'cleantalk-spam-protect') . '</a>'
+                '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('apbct_hint_data__set_cookies', 'help/set-cookies-option')) . '" target="_blank">' . __('Learn more about suboptions', 'cleantalk-spam-protect') . '</a>'
             )
         ),
         'comments__hide_website_field' => array(
             'title' => __('Hide the "Website" field', 'cleantalk-spam-protect'),
-            //HANDLE LINK
             'desc'  => sprintf(
-                __('This «Website» field is frequently used by spammers to place spam links in it. ' . esc_html__($apbct->data['wl_brandname']) . ' helps you protect your WordPress website comments by hiding this field off. %s', 'cleantalk-spam-protect'),
-                '<a href="https://cleantalk.org/help/how-to-hide-website-field-in-wordpress-comments{utm_mark}" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                __('This «Website» field is frequently used by spammers to place spam links in it. ' . esc_html($apbct->data['wl_brandname']) . ' helps you protect your WordPress website comments by hiding this field off. %s', 'cleantalk-spam-protect'),
+                '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('apbct_hint_comments__hide_website_field', 'help/how-to-hide-website-field-in-wordpress-comments')) . '" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
         'comments__the_real_person' => array(
@@ -3071,50 +3261,45 @@ function apbct_settings__get__long_description()
         ),
         'sfw__anti_crawler' => array(
             'title' => 'Anti-Crawler', // Do not to localize this phrase
-            //HANDLE LINK
             'desc'  => sprintf(
                 '<p>' . sprintf(
                     __('%1$s Anti-Crawler — this option is meant to block all types of bots visiting website pages that can search vulnerabilities on a website, attempt to hack a site, collect personal data, price parsing or content and images, generate 404 error pages, or aggressive website scanning bots. %2$s', 'cleantalk-spam-protect'),
                     esc_html($apbct->data['wl_brandname']),
-                    '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}#anticrawl" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                    '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('apbct_hint_sfw__anti_crawler', 'help/anti-flood-and-anti-crawler')) . '#anticrawl" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
                 ) . '</p>' .
                 '<p>' . __('By default, well-known good bots are allowed, including AI crawlers like GPTBot (ChatGPT), ClaudeBot (Claude), Google-Extended (Gemini), and Copilot. You can selectively block any of these bots in your private lists.', 'cleantalk-spam-protect') . '</p>'
             )
         ),
         'sfw__anti_flood' => array(
             'title' => 'Anti-Flood', // Do not to localize this phrase
-            //HANDLE LINK
             'desc'  => sprintf(
-                __(esc_html__($apbct->data['wl_brandname']) . ' Anti-Flood — this option is meant to block aggressive bots. You can set the maximum number of website pages your visitors can click on within 1 minute. If any IP exceeds the set number it will get the ' . $apbct->data['wl_brandname'] . ' blocking screen for 30 seconds. It\'s impossible for the IP to open any website pages while the 30-second timer takes place. %s', 'cleantalk-spam-protect'),
-                '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}#antiflood" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                __(esc_html($apbct->data['wl_brandname']) . ' Anti-Flood — this option is meant to block aggressive bots. You can set the maximum number of website pages your visitors can click on within 1 minute. If any IP exceeds the set number it will get the ' . esc_html($apbct->data['wl_brandname']) . ' blocking screen for 30 seconds. It\'s impossible for the IP to open any website pages while the 30-second timer takes place. %s', 'cleantalk-spam-protect'),
+                '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('apbct_hint_sfw__anti_flood', 'help/anti-flood-and-anti-crawler')) . '#antiflood" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
         'data__pixel' => array(
-            'title' => __(esc_html__($apbct->data['wl_brandname']) . ' Pixel', 'cleantalk-spam-protect'),
-            //HANDLE LINK
+            'title' => __(esc_html($apbct->data['wl_brandname']) . ' Pixel', 'cleantalk-spam-protect'),
             'desc'  => sprintf(
                 __('It is an «invisible» 1×1px image that the Anti-Spam plugin integrates to your WordPress website. And when someone visits your website the Pixel is triggered and reports this visit and some other data including true IP address. %s', 'cleantalk-spam-protect'),
-                '<a href="https://blog.cleantalk.org/introducing-cleantalk-pixel{utm_mark}" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
+                '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('apbct_hint_data__pixel', 'introducing-cleantalk-pixel', array(), 'https://blog.cleantalk.org')) . '" target="_blank">' . __('Learn more.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
         'data__honeypot_field' => array(
             'title' => __('Honeypot field', 'cleantalk-spam-protect'),
-            //HANDLE LINK
             'desc'  => sprintf(
                 esc_html__('The option helps to block bots . The honeypot field option adds a hidden field to the form. When spambots come to a website form, they can fill out each input field. Enable this option to make the protection stronger on these forms. Learn more about supported forms %s', 'cleantalk-spam-protect'),
-                '<a href="https://cleantalk.org/help/honeypot-field{utm_mark}" target="_blank">' . __('here.', 'cleantalk-spam-protect') . '</a>'
+                '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('apbct_hint_data__honeypot_field', 'help/honeypot-field')) . '" target="_blank">' . __('here.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
         'sfw__enabled' => array(
             'title' => 'SpamFireWall',
-            //HANDLE LINK
             'desc'  => sprintf(
                 '<p>' . esc_html__('SpamFireWall is a part of the anti-spam service and blocks the most spam active bots before the site pages load.', 'cleantalk-spam-protect') . '</p>'
                     . '<p>' . esc_html__('Anti-Crawler is an add-on to SFW and helps to strengthen the protection against spam bots. Disabled by default.', 'cleantalk-spam-protect') . '</p>'
-                    . '<p>' . esc_html__($apbct->data['wl_brandname'] . ' Anti-Flood is also an add-on to SFW and limits the number of pages visited per minute. Disabled by default.', 'cleantalk-spam-protect') . '</p>'
+                    . '<p>' . esc_html($apbct->data['wl_brandname']) . __(' Anti-Flood is also an add-on to SFW and limits the number of pages visited per minute. Disabled by default.', 'cleantalk-spam-protect') . '</p>'
                     . '<p>' . esc_html__('You can read more about SFW modes %s', 'cleantalk-spam-protect') . '</p>'
                     . '<p>' . esc_html__('Read out the article if you are using Varnish on your server.', 'cleantalk-spam-protect'),
-                '<a href="https://cleantalk.org/help/anti-flood-and-anti-crawler{utm_mark}" target="_blank">' . __('here.', 'cleantalk-spam-protect') . '</a>'
+                '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('apbct_hint_sfw__enabled', 'help/anti-flood-and-anti-crawler')) . '" target="_blank">' . __('here.', 'cleantalk-spam-protect') . '</a>'
             )
         ),
         'exclusions__form_signs' => array(
@@ -3188,17 +3373,7 @@ function apbct_settings__get__long_description()
         ),
     );
 
-    if (!empty($setting_id) && isset($descriptions[$setting_id])) {
-        if ($setting_id === 'comments__hide_website_field') {
-            $utm = '?utm_source=apbct_hint_' . esc_attr($setting_id) . '&utm_medium=hide_website_field_hint&utm_campaign=apbct_links';
-        } else {
-            $utm = '?utm_source=apbct_hint_' . esc_attr($setting_id) . '&utm_medium=WordPress&utm_campaign=ABPCT_Settings';
-        }
-        $descriptions[$setting_id]['desc'] = str_replace('{utm_mark}', $utm, $descriptions[$setting_id]['desc']);
-        die(json_encode($descriptions[$setting_id]));
-    } else {
-        die(json_encode(['error' => 'Invalid setting ID']));
-    }
+    return $descriptions;
 }
 
 function apbct_settings__check_renew_banner()
