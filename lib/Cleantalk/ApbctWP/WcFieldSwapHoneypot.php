@@ -37,7 +37,15 @@ class WcFieldSwapHoneypot
         return ! empty($apbct->settings['data__honeypot_field'])
             && ! apbct_exclusions_check__url()
             && ! apbct_is_amp_request()
-            && ! self::isFluidCheckoutActive();
+            && ! self::isUnsupportedCheckout();
+    }
+
+    /**
+     * Checkout layouts that rely on the billing_email field key or #billing_email_field wrapper.
+     */
+    private static function isUnsupportedCheckout()
+    {
+        return self::isFluidCheckoutActive() || self::isXStoreThemeActive();
     }
 
     /**
@@ -55,6 +63,19 @@ class WcFieldSwapHoneypot
                 apbct_is_plugin_active('fluid-checkout/fluid-checkout.php')
                 || apbct_is_plugin_active('fluid-checkout-pro/fluid-checkout.php')
             );
+    }
+
+    /**
+     * XStore checkout CSS/JS targets #billing_email_field and billing_email by key
+     * (e.g. Email Field Prioritized). Field rename breaks layout and autofill.
+     */
+    private static function isXStoreThemeActive()
+    {
+        if ( ! function_exists('get_template') ) {
+            return false;
+        }
+
+        return get_template() === 'xstore';
     }
 
     /**

@@ -183,6 +183,20 @@ class TestWcFieldSwapHoneypot extends TestCase
             $this->markTestSkipped('Fluid Checkout is not installed.');
         }
 
+        $this->assertBillingEmailIsNotSwappedOnUnsupportedCheckout();
+    }
+
+    public function testSwapCheckoutFieldsLeavesBillingEmailWhenXStoreThemeIsActive()
+    {
+        if ( ! function_exists('get_template') || get_template() !== 'xstore' ) {
+            $this->markTestSkipped('XStore theme is not active.');
+        }
+
+        $this->assertBillingEmailIsNotSwappedOnUnsupportedCheckout();
+    }
+
+    private function assertBillingEmailIsNotSwappedOnUnsupportedCheckout()
+    {
         global $apbct;
         $apbct = (object) array(
             'settings' => array(
