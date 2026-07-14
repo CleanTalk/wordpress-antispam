@@ -176,4 +176,35 @@ class TestWcFieldSwapHoneypot extends TestCase
 
         unset($apbct);
     }
+
+    public function testSwapCheckoutFieldsLeavesBillingEmailWhenFluidCheckoutIsActive()
+    {
+        if ( ! class_exists('FluidCheckout') ) {
+            $this->markTestSkipped('Fluid Checkout is not installed.');
+        }
+
+        global $apbct;
+        $apbct = (object) array(
+            'settings' => array(
+                'data__honeypot_field' => 1,
+            ),
+        );
+
+        $fields = array(
+            'billing' => array(
+                'billing_email' => array(
+                    'type'     => 'email',
+                    'label'    => 'Email',
+                    'required' => true,
+                ),
+            ),
+        );
+
+        $swapped = WcFieldSwapHoneypot::swapCheckoutFields($fields);
+
+        $this->assertArrayHasKey('billing_email', $swapped['billing']);
+        $this->assertFalse(WcFieldSwapHoneypot::isActive());
+
+        unset($apbct);
+    }
 }

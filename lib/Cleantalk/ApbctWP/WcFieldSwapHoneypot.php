@@ -36,7 +36,25 @@ class WcFieldSwapHoneypot
 
         return ! empty($apbct->settings['data__honeypot_field'])
             && ! apbct_exclusions_check__url()
-            && ! apbct_is_amp_request();
+            && ! apbct_is_amp_request()
+            && ! self::isFluidCheckoutActive();
+    }
+
+    /**
+     * Fluid Checkout renders billing_email on the contact step by field key.
+     * Renaming the field breaks that lookup and hides the email input.
+     */
+    private static function isFluidCheckoutActive()
+    {
+        if ( class_exists('FluidCheckout') ) {
+            return true;
+        }
+
+        return function_exists('apbct_is_plugin_active')
+            && (
+                apbct_is_plugin_active('fluid-checkout/fluid-checkout.php')
+                || apbct_is_plugin_active('fluid-checkout-pro/fluid-checkout.php')
+            );
     }
 
     /**
