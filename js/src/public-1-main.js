@@ -837,6 +837,12 @@ class ApbctHandler {
                 }
             }
 
+            if (+ctPublic.bot_detector_enabled) {
+                data['ct_bot_detector_event_token'] = apbctLocalStorage.get('bot_detector_event_token');
+            } else {
+                data['ct_no_cookie_hidden_field'] = getNoCookieData();
+            }
+
             return data;
         };
 
