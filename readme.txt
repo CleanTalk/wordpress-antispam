@@ -4,7 +4,7 @@ Tags: antispam, honeypot, bot, captcha, spam
 Requires at least: 4.7
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.83
+Stable tag: 6.83.1
 License: GPLv2
 
 Top-rated antispam for contact forms, comments, WooCommerce, eCommerce, and login. No CAPTCHAs, no friction, just background anti spam protection.
@@ -425,6 +425,9 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.83.1 16.07.2026 =
+Upd. Settings. Implement honey test.
 
 = 6.83 09.07.2026 =
 New. Settings. Getting apikey wizard. 
