@@ -8,7 +8,6 @@ use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
-use Cleantalk\ApbctWP\WcFieldSwapHoneypot;
 use Cleantalk\ApbctWP\WcSpamOrdersFunctions;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
@@ -47,7 +46,6 @@ class Woocommerce extends IntegrationByClassBase
 
         // honeypot
         add_filter('woocommerce_checkout_fields', [$this, 'addHoneypotField']);
-        WcFieldSwapHoneypot::registerHooks();
 
         // add to cart hooks if cart works with non-ajax requests
         $this->addCartActions();
@@ -176,10 +174,7 @@ class Woocommerce extends IntegrationByClassBase
     {
         global $apbct, $cleantalk_executed;
 
-        $swap_hp = WcFieldSwapHoneypot::getCheckoutResult();
-        $honeypot_triggered = $swap_hp['status'] === 0;
-
-        if ( count($errors->errors) && ! $honeypot_triggered ) {
+        if ( count($errors->errors) ) {
             return;
         }
 
@@ -193,7 +188,6 @@ class Woocommerce extends IntegrationByClassBase
          * Filter for POST
          */
         $input_array = apply_filters('apbct__filter_post', $_POST);
-        $input_array = WcFieldSwapHoneypot::enrichInputArrayForCleanTalk($input_array);
 
         //Getting request params
         $ct_temp_msg_data = ct_get_fields_any($input_array);
@@ -204,10 +198,6 @@ class Woocommerce extends IntegrationByClassBase
         $subject         = isset($ct_temp_msg_data['subject']) ? $ct_temp_msg_data['subject'] : '';
         $message         = isset($ct_temp_msg_data['message']) ? $ct_temp_msg_data['message'] : array();
 
-        if ( $honeypot_triggered && $sender_email === '' && ! empty($swap_hp['value']) ) {
-            $sender_email = $swap_hp['value'];
-        }
-
         if ( $subject != '' ) {
             $message = array_merge(array('subject' => $subject), $message);
         }
@@ -216,20 +206,12 @@ class Woocommerce extends IntegrationByClassBase
         $post_info['comment_type'] = 'order';
         $post_info['post_url']     = Server::get('HTTP_REFERER');
 
-        $sender_info = array(
-            'sender_url'                    => null,
-            'sender_emails_array'           => $sender_emails_array,
-            'wc_field_swap_honeypot'        => $swap_hp['status'],
-            'wc_field_swap_honeypot_value'  => $swap_hp['value'],
-            'wc_field_swap_honeypot_source' => $swap_hp['source'],
-        );
-
         $base_call_data = array(
             'message'         => $message,
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
             'post_info'       => $post_info,
-            'sender_info'     => $sender_info,
+            'sender_info'     => array('sender_url' => null, 'sender_emails_array' => $sender_emails_array)
         );
 
         $base_call_result = apbct_base_call($base_call_data);
