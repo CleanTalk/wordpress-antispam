@@ -900,10 +900,6 @@ class API
                 } else {
                     $result['valid'] = 1;
                 }
-                $result['renew'] = 1;
-                $result['trial'] = 0;
-                $result['show_notice'] = 1;
-                $result['show_review'] = 1;
 
                 return $result;
 
