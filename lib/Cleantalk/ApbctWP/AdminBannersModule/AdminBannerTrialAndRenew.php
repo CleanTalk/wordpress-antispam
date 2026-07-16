@@ -42,7 +42,7 @@ class AdminBannerTrialAndRenew extends AdminBannerAbstract
         $user_token = $apbct->user_token ?: '';
         $renewal_link = LinkConstructor::buildRenewalLink(
             $user_token,
-            'renew_notice_trial'
+            $apbct->notice_trial == 1 ? 'renew_notice_trial' : 'renew_notice_renew'
         );
 
         $settings_link = is_network_admin()

@@ -34,7 +34,7 @@ class AdminBannerTrialAndRenewFullpage extends AdminBannerAbstract
         $user_token = $apbct->user_token ?: '';
         $renewal_link = LinkConstructor::buildRenewalLink(
             $user_token,
-            'renew_notice_trial'
+            $apbct->notice_trial == 1 ? 'renew_notice_trial' : 'renew_notice_renew'
         );
 
         $settings_link = is_network_admin()
@@ -101,7 +101,7 @@ class AdminBannerTrialAndRenewFullpage extends AdminBannerAbstract
             ),
             'title_upd' => sprintf(
                 __(
-                    'Account status updates every hour or click Settings → Anti-Spam by CleanTalk → Synchronize with Cloud',
+                    'Account status updates every hour or click Settings → %s → Synchronize with Cloud',
                     'cleantalk-spam-protect'
                 ),
                 $apbct->data["wl_brandname"] ? $apbct->data["wl_brandname"] : 'Anti-Spam by CleanTalk'
@@ -150,11 +150,6 @@ class AdminBannerTrialAndRenewFullpage extends AdminBannerAbstract
         $data = $this->template_data;
         $banner_id = $this->banner_id;
         ?>
-        <style>
-            #wpfooter {
-                display: none;
-            }
-        </style>
         <script>
             if (!document.referrer || document.referrer.indexOf('page=cleantalk') === -1) {
                 sessionStorage.removeItem('apbct_trial_fullpage_dismissed');

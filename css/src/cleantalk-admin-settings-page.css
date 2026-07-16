@@ -730,14 +730,11 @@ button[value="save_changes"]:disabled {
 /* Fullpage trial/renew banner */
 .apbct-trial-renew-fullpage {
 	display: flex;
-    width: 100%;
+    width: stretch;
     height: 100%;
-    padding-top: 80px;
-    padding-bottom: 80px;
-    position: absolute;
+    position: fixed;
     top: 0;
     justify-content: center;
-    align-items: center;
     font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     color: #444;
     background-color: #f0f0f0;
@@ -745,6 +742,7 @@ button[value="save_changes"]:disabled {
 }
 
 .apbct-trial-renew-fullpage-notice {
+    height: fit-content;
 	padding: 32px 64px 64px 64px !important;
 	margin-top: 5em !important;
 	margin-bottom: 5em !important;
