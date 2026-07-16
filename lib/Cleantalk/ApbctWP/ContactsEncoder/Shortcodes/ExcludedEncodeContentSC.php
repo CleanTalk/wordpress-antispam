@@ -108,7 +108,11 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
                 $content = $this->restorePlaceholders($content);
             }
 
-            return $this->processSkipEncodingShortcodes($content);
+            $content = $this->processSkipEncodingShortcodes($content);
+
+            // widget_block_content (and similar hooks) re-run modifyContent() on already
+            // rendered page-list HTML and encode skip titles again — restore after that.
+            return $this->restorePageListLinkTitlesInHtml($content);
         }
 
         if ( $apbct->settings['data__email_decoder_buffer'] ) {
@@ -342,7 +346,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
                     return $matches[0];
                 }
 
-                $post_id = url_to_postid($matches[2]);
+                $post_id = $this->resolvePostIdFromHref($matches[2]);
                 if ( ! $post_id ) {
                     return $matches[0];
                 }
@@ -360,6 +364,58 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             },
             $content
         );
+    }
+
+    /**
+     * Resolve post ID from an href used in page-list / navigation links.
+     *
+     * @param string $href
+     *
+     * @return int
+     */
+    protected function resolvePostIdFromHref($href)
+    {
+        if ( ! is_string($href) || $href === '' ) {
+            return 0;
+        }
+
+        $post_id = url_to_postid($href);
+        if ( $post_id ) {
+            return (int)$post_id;
+        }
+
+        $path = wp_parse_url($href, PHP_URL_PATH);
+        if ( ! is_string($path) || $path === '' ) {
+            return 0;
+        }
+
+        $path = trim($path, '/');
+        if ( $path === '' ) {
+            return 0;
+        }
+
+        $page = get_page_by_path($path);
+        if ( $page instanceof \WP_Post ) {
+            return (int)$page->ID;
+        }
+
+        foreach ( self::$raw_titles_cache as $cached_id => $_title ) {
+            $permalink = get_permalink((int)$cached_id);
+            if ( ! is_string($permalink) || $permalink === '' ) {
+                continue;
+            }
+
+            if ( untrailingslashit($permalink) === untrailingslashit($href) ) {
+                return (int)$cached_id;
+            }
+
+            $cached_path = wp_parse_url($permalink, PHP_URL_PATH);
+            if ( is_string($cached_path) && trim($cached_path, '/') === $path ) {
+                return (int)$cached_id;
+            }
+        }
+
+        return 0;
     }
 
     /**
@@ -476,37 +532,78 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         return false;
     }
 
+    /**
+     * Remove contacts that appear both inside skip-encoding shortcodes and as plain text outside them.
+     * Preserves original text/shortcode order (does not move shortcodes to the end).
+     *
+     * @param string $title
+     *
+     * @return string
+     */
     protected function removeDuplicateContactsOutsideShortcodes($title)
     {
         if ( strpos($title, '[apbct_skip_encoding]') === false ) {
             return $title;
         }
 
-        preg_match_all('/\[apbct_skip_encoding\](.*?)\[\/apbct_skip_encoding\]/s', $title, $matches);
+        preg_match_all(
+            '/\[apbct_skip_encoding\](.*?)\[\/apbct_skip_encoding\]/s',
+            $title,
+            $matches,
+            PREG_OFFSET_CAPTURE
+        );
+
         if ( empty($matches[0]) || ! isset($matches[1]) ) {
             return $title;
         }
 
-        $outside = preg_replace('/\[apbct_skip_encoding\].*?\[\/apbct_skip_encoding\]/s', ' ', $title);
-        $outside = trim(preg_replace('/\s+/', ' ', $outside));
-
-        foreach ( $matches[1] as $inner ) {
-            $inner = trim($inner);
-            if ( $inner === '' ) {
-                continue;
+        $protected_contacts = array();
+        foreach ( $matches[1] as $inner_match ) {
+            $inner = trim($inner_match[0]);
+            if ( $inner !== '' ) {
+                $protected_contacts[$inner] = true;
             }
-
-            $quoted = preg_quote($inner, '/');
-            $outside = preg_replace('/' . $quoted . '/', '', $outside, 1);
-            $outside = trim(preg_replace('/\s+/', ' ', $outside));
         }
 
-        $result = $outside;
-        foreach ( $matches[0] as $shortcode ) {
-            $result .= ($result !== '' ? ' ' : '') . $shortcode;
+        if ( empty($protected_contacts) ) {
+            return $title;
         }
+
+        $result = '';
+        $offset = 0;
+
+        foreach ( $matches[0] as $shortcode_match ) {
+            $shortcode = $shortcode_match[0];
+            $position = $shortcode_match[1];
+            $text_before = substr($title, $offset, $position - $offset);
+            $result .= $this->stripProtectedContactsFromPlainText($text_before, array_keys($protected_contacts));
+            $result .= $shortcode;
+            $offset = $position + strlen($shortcode);
+        }
+
+        $result .= $this->stripProtectedContactsFromPlainText(substr($title, $offset), array_keys($protected_contacts));
 
         return trim(preg_replace('/\s+/', ' ', $result));
+    }
+
+    /**
+     * @param string $text
+     * @param string[] $contacts
+     *
+     * @return string
+     */
+    protected function stripProtectedContactsFromPlainText($text, array $contacts)
+    {
+        if ( $text === '' || $text === false ) {
+            return '';
+        }
+
+        foreach ( $contacts as $contact ) {
+            $quoted = preg_quote($contact, '/');
+            $text = preg_replace('/' . $quoted . '/', '', $text);
+        }
+
+        return $text;
     }
 
     /**
