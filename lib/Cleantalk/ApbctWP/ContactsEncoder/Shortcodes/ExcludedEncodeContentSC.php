@@ -194,6 +194,10 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      */
     public function pushRenderBlockStack($pre_render, $block)
     {
+        if ( $pre_render !== null ) {
+            return $pre_render;
+        }
+
         $this->render_block_stack[] = isset($block['blockName']) ? (string)$block['blockName'] : '';
 
         return $pre_render;
@@ -215,7 +219,9 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return $content;
         }
 
-        if ( function_exists('doing_filter') && doing_filter('the_content') ) {
+        if ( function_exists('doing_filter')
+            && ( doing_filter('the_content') || doing_filter('widget_block_content') )
+        ) {
             return $content;
         }
 

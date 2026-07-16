@@ -70,14 +70,19 @@ class ExcludedEncodeContentSCTest extends TestCase
     {
         global $apbct;
 
+        $previous_buffer = $apbct->settings['data__email_decoder_buffer'];
         $apbct->settings['data__email_decoder_buffer'] = false;
 
-        $originalString = 'test@example.com';
-        $encodedString = $this->contacts_encoder->modifyContent($originalString);
+        try {
+            $originalString = 'test@example.com';
+            $encodedString = $this->contacts_encoder->modifyContent($originalString);
 
-        $result = $this->exclude_content_sc->callback([], $encodedString, '');
+            $result = $this->exclude_content_sc->callback([], $encodedString, '');
 
-        $this->assertStringContainsString('APBCT_SHORT_CODE_SKIP', $result);
+            $this->assertStringContainsString('APBCT_SHORT_CODE_SKIP', $result);
+        } finally {
+            $apbct->settings['data__email_decoder_buffer'] = $previous_buffer;
+        }
     }
 
     /**
