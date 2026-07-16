@@ -48,6 +48,10 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     {
         global $apbct;
 
+        if ( ! is_string($content) ) {
+            return $content;
+        }
+
         if ( ! $apbct->settings['data__email_decoder_buffer'] && $this->getCurrentAction() !== 'the_title' ) {
             return $content;
         }
