@@ -1466,9 +1466,18 @@ function apbct_settings__display()
         $actual_plugin_name = $apbct->data['wl_brandname'];
     }
 
+    // Show fullpage trial/renew banner instead of settings if conditions are met
+    $trial_or_renew_fullpage_banner = new \Cleantalk\ApbctWP\AdminBannersModule\AdminBannerTrialAndRenewFullpage();
+    $trial_fullpage_style = '';
+    if ($trial_or_renew_fullpage_banner->needToShow()) {
+        $trial_or_renew_fullpage_banner->display();
+        $trial_fullpage_style = 'display:none;';
+    }
+
     apbct_settings__render_react_mount();
 
     $settings_wrap_style = apbct_settings__is_signup_wizard() ? 'display:none;' : '';
+    $settings_wrap_style .= $trial_fullpage_style;
     echo '<div id="apbct-settings-page-wrap" style="' . esc_attr($settings_wrap_style) . '">';
 
     // Title
@@ -1658,7 +1667,7 @@ function apbct_settings__display()
         }
     }
 
-    if ( $apbct->key_is_ok && !empty($apbct->api_key) ) {
+    if ( $apbct->key_is_ok && !empty($apbct->api_key) && !$trial_or_renew_fullpage_banner->needToShow()) {
         require_once(CLEANTALK_PLUGIN_DIR . 'templates/apbct_settings__footer.php');
     }
 }
