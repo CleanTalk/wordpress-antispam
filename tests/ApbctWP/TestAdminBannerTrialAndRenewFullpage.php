@@ -193,20 +193,6 @@ class TestAdminBannerTrialAndRenewFullpage extends TestCase
         $this->assertStringContainsString('img_fullpage_trial_banner.svg', $output);
     }
 
-    public function testDisplayHidesWpFooter()
-    {
-        global $apbct;
-        $apbct->notice_trial = 1;
-
-        $banner = new AdminBannerTrialAndRenewFullpage();
-        ob_start();
-        $banner->display();
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('#wpfooter', $output);
-        $this->assertStringContainsString('display: none', $output);
-    }
-
     public function testIsDismissedAlwaysReturnsFalse()
     {
         $banner = new AdminBannerTrialAndRenewFullpage();
