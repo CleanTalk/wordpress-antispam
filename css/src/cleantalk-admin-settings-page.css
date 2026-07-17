@@ -729,16 +729,19 @@ button[value="save_changes"]:disabled {
 
 /* Fullpage trial/renew banner */
 .apbct-trial-renew-fullpage {
-	display: flex;
-    width: stretch;
-    height: 100%;
+    display: flex;
     position: fixed;
+    width: stretch;
     top: 0;
+    bottom: 0;
+    overflow-y: auto;
     justify-content: center;
+    align-items: flex-start;
     font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     color: #444;
     background-color: #f0f0f0;
-    z-index: 1;
+    z-index: 99;
+    margin-left: -20px;
 }
 
 .apbct-trial-renew-fullpage-notice {
@@ -827,7 +830,7 @@ button[value="save_changes"]:disabled {
 }
 
 @media (max-width: 782px) {
-    .apbct-trial-renew-fullpage { padding-top: 50px; padding-bottom: 50px; align-items: baseline; }
+    .apbct-trial-renew-fullpage { padding-top: 50px; padding-bottom: 50px; }
 	.apbct-trial-renew-fullpage-notice { padding: 24px 24px 32px 24px !important; }
 	.apbct-trial-renew-fullpage-body { margin-top: 20px; margin-left: 0; }
 	.apbct-banner-desc-blocks-content { gap: 24px; }

@@ -41,34 +41,34 @@ class AdminBannerTrialAndRenewFullpage extends AdminBannerAbstract
             ? rtrim(get_site_option('siteurl'), '/') . '/wp-admin/options-general.php?page=cleantalk'
             : 'options-general.php?page=cleantalk';
 
+            
+
+/* "12,450,238,000+ spam messages blocked across all protected websites.
+
+99.9982% spam detection accuracy with no CAPTCHAs." */
         $this->template_data = array(
             'renewal_link' => $renewal_link,
             'plugin_settings_link' => $settings_link,
-            'title_main' => __(
-                'Upgrade Your License to Keep Your Site Secure',
-                'cleantalk-spam-protect'
-            ),
-            'subtitle' => __(
-                'Trial period is now over, please upgrade to premium version to keep your site secure and safe!',
-                'cleantalk-spam-protect'
-            ),
+            'title_main' => $apbct->notice_trial == 1
+                ? __('Upgrade Your License to Keep Your Site Secure', 'cleantalk-spam-protect')
+                : __('Renew Your License to Keep Your Site Secure', 'cleantalk-spam-protect'),
+            'subtitle' => $apbct->notice_trial == 1
+                ? __('Trial period is now over, please upgrade to premium version to keep your site secure and safe!', 'cleantalk-spam-protect')
+                : __('Your license has expired, please renew it to keep your site secure and safe!', 'cleantalk-spam-protect'),
             'network_statistics_title' => (
                 __('Our Protection Network Statistics:', 'cleantalk-spam-protect')
             ),
-            'network_statistics_files_scanned' => __(
-                'files scanned for malicious code',
-                'cleantalk-spam-protect'
-            ),
-            'network_statistics_trusted_sites' => __(
-                'sites trust CleanTalk',
-                'cleantalk-spam-protect'
+            'network_statistics_trusted_sites' => sprintf(
+                __('sites trust %s, as of %s', 'cleantalk-spam-protect'),
+                $apbct->data["wl_brandname"] ? $apbct->data["wl_brandname"] : 'Anti-Spam by CleanTalk',
+                date_i18n('F Y')
             ),
             'network_statistics_protected_websites' => __(
-                'security attacks successfully blocked across all protected websites',
+                'spam messages blocked across all protected websites.',
                 'cleantalk-spam-protect'
             ),
-            'network_statistics_brute_force' => __(
-                'brute-force attack attempts prevented',
+            'network_statistics_no_captchas' => __(
+                'spam detection accuracy with no CAPTCHAs.',
                 'cleantalk-spam-protect'
             ),
             'upgrade_benefits_title' => __(
@@ -198,23 +198,16 @@ class AdminBannerTrialAndRenewFullpage extends AdminBannerAbstract
                                     </div>
                                     <div class="apbct-banner-desc-block-row">
                                         <span class="apbct-banner-red-point"></span>
-                                        <span class="apbct-banner-desc-block-title apbct-banner-stat-value">10,450,238</span>
+                                        <span class="apbct-banner-desc-block-title apbct-banner-stat-value">12,450,238,000+</span>
                                         <span class="apbct-banner-subtitle apbct-banner-desc-block-text">
                                             <?php echo esc_html($data['network_statistics_protected_websites']); ?>
                                         </span>
                                     </div>
                                     <div class="apbct-banner-desc-block-row">
                                         <span class="apbct-banner-red-point"></span>
-                                        <span class="apbct-banner-desc-block-title apbct-banner-stat-value">1,399,842</span>
+                                        <span class="apbct-banner-desc-block-title apbct-banner-stat-value">99.9982%</span>
                                         <span class="apbct-banner-subtitle apbct-banner-desc-block-text">
-                                            <?php echo esc_html($data['network_statistics_brute_force']); ?>
-                                        </span>
-                                    </div>
-                                    <div class="apbct-banner-desc-block-row">
-                                        <span class="apbct-banner-red-point"></span>
-                                        <span class="apbct-banner-desc-block-title apbct-banner-stat-value">60,645,183</span>
-                                        <span class="apbct-banner-subtitle apbct-banner-desc-block-text">
-                                            <?php echo esc_html($data['network_statistics_files_scanned']); ?>
+                                            <?php echo esc_html($data['network_statistics_no_captchas']); ?>
                                         </span>
                                     </div>
                                 </div>
