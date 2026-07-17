@@ -41,11 +41,6 @@ class AdminBannerTrialAndRenewFullpage extends AdminBannerAbstract
             ? rtrim(get_site_option('siteurl'), '/') . '/wp-admin/options-general.php?page=cleantalk'
             : 'options-general.php?page=cleantalk';
 
-            
-
-/* "12,450,238,000+ spam messages blocked across all protected websites.
-
-99.9982% spam detection accuracy with no CAPTCHAs." */
         $this->template_data = array(
             'renewal_link' => $renewal_link,
             'plugin_settings_link' => $settings_link,
