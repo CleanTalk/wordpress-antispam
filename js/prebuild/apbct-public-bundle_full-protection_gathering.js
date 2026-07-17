@@ -3418,7 +3418,7 @@ class ApbctHandler {
                 return false;
             }
 
-            for (const handler of iframeFetchHandlers) {
+            for (const handler of iframeCommonFetchHandlers) {
                 if (handler.matches(url, args)) {
                     const form = handler.getForm();
                     const blocked = await runIframeCommonFetchCheck(form);
@@ -3436,7 +3436,7 @@ class ApbctHandler {
          * Adding a new provider only requires a new entry here — no need
          * to duplicate the Promise/AJAX/blocked-check boilerplate above.
          */
-        const iframeFetchHandlers = [
+        const iframeCommonFetchHandlers = [
             {
                 name: 'bitrix24',
                 matches: (url, args) =>
@@ -3481,7 +3481,7 @@ class ApbctHandler {
                 return false;
             }
 
-            const data = collectIframeFields(form);
+            const data = collectIframeFormFields(form);
 
             // Set internal call flag before making our own AJAX request
             isInternalCall = true;
@@ -3524,7 +3524,7 @@ class ApbctHandler {
          * @param {HTMLFormElement} form
          * @return {object}
          */
-        const collectIframeFields = function(form) {
+        const collectIframeFormFields = function(form) {
             const data = {
                 action: 'cleantalk_force_ajax_check',
             };
@@ -3544,8 +3544,8 @@ class ApbctHandler {
             return data;
         };
 
-        // MAIN FETCH INTERCEPT LOGIC
-        // Override window.fetch
+        // MAIN FETCH INTERCEPT LOGIC - OVERRIDE WINDOW.FETCH
+
         window.fetch = async function(...args) {
             // Prevent recursion - if this is our internal call, pass through without processing
             if (isInternalCall) {
