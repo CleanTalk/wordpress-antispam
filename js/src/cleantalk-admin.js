@@ -93,9 +93,25 @@ jQuery(document).ready(function($) {
                     if (result.success && result.data) {
                         const container = apbctGetWCOrderDetailsModalContainer(result.data);
                         const containerHeader = document.createElement('h3');
+                        const linkHeader = document.createElement('a');
+                        const linkHeaderWrapper = document.createElement('p');
                         containerHeader.className = 'apbct_wc_details__table-container_header';
                         containerHeader.textContent = __('WooCommerce spam order details', 'cleantalk-spam-protect');
+                        linkHeader.href = new URL(
+                            'https://cleantalk.org/my/show_requests?allow=0&request_type=order',
+                        ).toString();
+                        linkHeader.rel = 'noopener noreferrer';
+                        linkHeader.target = '_blank';
+                        linkHeader.textContent = linkHeader.href;
+                        linkHeaderWrapper.textContent = __(
+                            'Visit CleanTalk Cloud Dashboard to see all of denied requests: ',
+                            'cleantalk-spam-protect',
+                        );
+                        linkHeaderWrapper.style.textAlign ='center';
+                        linkHeaderWrapper.appendChild(linkHeader);
+
                         modalContent.append(containerHeader);
+                        modalContent.append(linkHeaderWrapper);
                         modalContent.append(container);
                     } else {
                         const error = (result && result.data && result.data.error) ?
