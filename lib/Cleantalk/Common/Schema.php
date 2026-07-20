@@ -97,8 +97,8 @@ class Schema
             'id' => 'INT NOT NULL AUTO_INCREMENT',
             'order_details' => 'TEXT NULL DEFAULT NULL',
             'customer_details' => 'TEXT NULL DEFAULT NULL',
-            'order_date' => 'INT(11) NULL DEFAULT NULL',
-            '__indexes' => 'PRIMARY KEY (`id`)',
+            'order_date' => 'INT UNSIGNED NULL DEFAULT NULL',
+            '__indexes' => 'PRIMARY KEY (`id`), INDEX (`order_date`)',
             '__createkey' => 'INT unsigned primary KEY AUTO_INCREMENT FIRST'
         ),
         'rate_limits' => array(
