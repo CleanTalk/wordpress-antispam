@@ -136,11 +136,12 @@ class WPSearchForm extends IntegrationByClassBase
         // empty is clean (1), filled is spam (0). With JS the value travels via alt-sessions (the field is
         // stripped from the GET URL); without JS the field stays in the GET request.
         if ( $apbct->settings['data__honeypot_field'] ) {
-            $honeypot_value = isset($_GET['apbct__email_id__search_form'])
-                ? $_GET['apbct__email_id__search_form']
-                : AltSessions::get('apbct_search_form__honeypot_value');
+            $cookie_name = apbct__get_cookie_prefix() . 'apbct_search_form__honeypot_value';
+            $honeypot_value = $_GET['apbct__email_id__search_form']
+                ?? ( $_COOKIE[$cookie_name] ?? null )
+                ?? AltSessions::get('apbct_search_form__honeypot_value');
+            $honeypot_value = (string)($honeypot_value ?? '');
             $data['honeypot_field'] = ( $honeypot_value === '' ) ? 1 : 0;
-        }
 
         $base_call_result = apbct_base_call($data);
 
