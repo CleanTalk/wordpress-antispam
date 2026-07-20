@@ -129,7 +129,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
         return $columns;
     }
 
-    protected function get_sortable_columns()
+    protected function get_sortable_columns() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         return array(
             'ct_order_date' => array('order_date', false),
@@ -284,10 +284,10 @@ class WcSpamOrdersListTable extends CleantalkListTable
         }
 
         return sprintf(
-                '<time datetime="%1$s" title="%2$s">%3$s</time>',
-                esc_attr(date_i18n('c', $timestamp)),                    // 2023-02-15T20:25:06+00:00
-                esc_html(date_i18n('d.m.Y H:i', $timestamp)),            // 15.02.2023 20:25
-                esc_html(date_i18n('M d, Y', $timestamp))                // Feb 15, 2023
+            '<time datetime="%1$s" title="%2$s">%3$s</time>',
+            esc_attr(date_i18n('c', $timestamp)),                    // 2023-02-15T20:25:06+00:00
+            esc_html(date_i18n('d.m.Y H:i', $timestamp)),            // 15.02.2023 20:25
+            esc_html(date_i18n('M d, Y', $timestamp))                // Feb 15, 2023
         );
     }
 
