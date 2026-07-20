@@ -1,0 +1,16 @@
+{
+  "name": "cleantalk/http",
+  "description": "CleanTalk HTTP Requests library",
+  "authors": [
+    {
+      "name": "CleanTalk Team",
+      "email": "support@cleantalk.org"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Cleantalk\\Common\\Http\\": "/"
+    }
+  },
+  "license": "GPL-3.0-or-later"
+}

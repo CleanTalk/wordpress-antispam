@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\BotDetectorService\BotDetectorService;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Server;
@@ -1387,4 +1388,23 @@ function apbct_update_to_6_76_0()
         $apbct->data['bot_detector_enabled'] = $bot_detector_state;
         $apbct->saveData();
     }
+}
+
+function apbct_update_to_6_84_0()
+{
+    global $apbct;
+
+    if ( ! isset($apbct->data[BotDetectorService::OPTION_NAME]) ) {
+        $apbct->data[BotDetectorService::OPTION_NAME] = $apbct->default_settings[BotDetectorService::OPTION_NAME];
+        $apbct->saveData();
+    }
+
+    $cron = new Cron();
+    $cron->removeTask('get_bot_detector_wrapper_url');
+    $cron->addTask(
+        'get_bot_detector_wrapper_url',
+        '\Cleantalk\ApbctWP\BotDetectorService\BotDetectorService::updateWrapperURLCronHandler',
+        BotDetectorService::CALL_PERIOD,
+        time()
+    );
 }

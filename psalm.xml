@@ -28,7 +28,11 @@
             <file name="lib/Cleantalk/Templates/Singleton.php"/>
             <file name="lib/Cleantalk/Common/Templates/Singleton.php"/>
             <directory name="lib/Cleantalk/Common/RateLimiter"/>
+            <directory name="lib/Cleantalk/Common/Http"/>
+            <directory name="lib/Cleantalk/Common/Api"/>
             <directory name="lib/Cleantalk/Common/Templates"/>
+            <directory name="lib/Cleantalk/Common/Mloader"/>
+            <directory name="lib/Cleantalk/Common/BotDetectorService"/>
             <file name="lib/Cleantalk/ApbctWP/CleantalkListTable.php"/>
             <file name="inc/cleantalk-public-validate-skip-functions.php"/>
             <directory name="lib/Cleantalk/Common/ContactsEncoder" />
@@ -70,7 +74,7 @@
                 <file name="lib/Cleantalk/ApbctWP/Sanitize.php"/>
                 <file name="lib/Cleantalk/ApbctWP/Validate.php"/>
                 <file name="lib/Cleantalk/ApbctWP/Escape.php"/>
-                <file name="lib/Cleantalk/Common/HTTP/Response.php"/>
+                <file name="lib/Cleantalk/Common/Http/Response.php"/>
             </errorLevel>
         </PossiblyUnusedMethod>
     </issueHandlers>

@@ -4,6 +4,7 @@ namespace Cleantalk\ApbctWP;
 
 use AllowDynamicProperties;
 use ArrayObject;
+use Cleantalk\ApbctWP\BotDetectorService\BotDetectorService;
 use Cleantalk\ApbctWP\FindSpam\LoginIPKeeper;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateSentinel;
 use Cleantalk\ApbctWP\ServiceConstants;
@@ -243,6 +244,7 @@ class State extends \Cleantalk\Common\State
 
         //Connection reports email address
         'email_for_reports' => 'pluginreports@cleantalk.org',
+        'bot_detector_wrapper_url' => '',
     );
 
     /**
@@ -1082,5 +1084,16 @@ class State extends \Cleantalk\Common\State
     protected function switchToCurrentBlog()
     {
         restore_current_blog();
+    }
+
+    public function saveWrapperURL($wrapper_url)
+    {
+        $this->data[BotDetectorService::OPTION_NAME] = $wrapper_url;
+        $this->saveData();
+    }
+
+    public function loadWrapperURL()
+    {
+        return $this->data[BotDetectorService::OPTION_NAME] ?? '';
     }
 }

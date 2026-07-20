@@ -1,0 +1,20 @@
+{
+  "name": "cleantalk/api",
+  "description": "CleanTalk APBCT `API` class",
+  "authors": [
+    {
+      "name": "CleanTalk Team",
+      "email": "support@cleantalk.org"
+    }
+  ],
+  "license": "GPL-3.0-or-later",
+  "require": {
+    "cleantalk/http": "*",
+    "cleantalk/mloader": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Cleantalk\\Common\\Api\\": "/"
+    }
+  }
+}

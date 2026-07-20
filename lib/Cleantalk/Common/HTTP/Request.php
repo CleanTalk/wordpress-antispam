@@ -1,6 +1,6 @@
 <?php
 
-namespace Cleantalk\Common\HTTP;
+namespace Cleantalk\Common\Http;
 
 /**
  * Class Request
@@ -11,8 +11,6 @@ namespace Cleantalk\Common\HTTP;
  * @copyright (C) CleanTalk team (http://cleantalk.org)
  * @license       GNU/GPL: http://www.gnu.org/copyleft/gpl.html
  * @see           https://github.com/CleanTalk/security-malware-firewall
- *
- * @psalm-suppress PossiblyUndefinedIntArrayOffset
  */
 class Request
 {
@@ -32,7 +30,7 @@ class Request
     protected $data = [];
 
     /**
-     * @var string[] Array with presets
+     * @var string|string[] Array with presets
      *                          Example: array('get_code', 'async')
      *                      Or space separated string with presets
      *                          Example: 'get_code async get'
@@ -193,7 +191,7 @@ class Request
         // Process the error. Unavailable for multiple URLs.
         if (
             ! is_array($this->url) &&
-            ! is_array($this->response) && $this->response->getError() &&
+            $this->response->getError() &&
             in_array('retry_with_socket', $this->presets, true)
         ) {
             $this->response = $this->requestWithSocket();
@@ -227,11 +225,10 @@ class Request
             $request_result = array('error' => curl_error($ch));
         }
 
-        if (PHP_VERSION_ID < 80000) {
+        if ( version_compare(PHP_VERSION, '8.0.0', '<') ) {
             curl_close($ch);
-        } else {
-            unset($ch);
         }
+
 
         return new Response($request_result, $curl_info);
     }
@@ -241,20 +238,13 @@ class Request
      * Do multi curl requests without processing it.
      *
      * @return array<Response>
-     *
-     * @psalm-suppress PossiblyInvalidArgument
      */
     protected function requestMulti()
     {
-        $this->response = [];
-
-        if ( ! is_array($this->url) ) {
-            return $this->response;
-        }
-
         $urls_count     = count($this->url);
         $curl_arr       = array();
         $mh             = curl_multi_init();
+        $this->response = [];
 
         for ( $i = 0; $i < $urls_count; $i++ ) {
             $this->options[CURLOPT_URL] = $this->url[$i];
@@ -292,9 +282,6 @@ class Request
      * Make a request with socket, exactly with file_get_contents()
      *
      * @return Response
-     *
-     * @psalm-suppress PossiblyInvalidArgument
-     * @psalm-suppress PossiblyInvalidCast
      */
     private function requestWithSocket()
     {
@@ -323,7 +310,7 @@ class Request
     {
         $return_value = [];
 
-        // Cast to array to process result from $this->requestSingle as $this->requestMulti results
+        // Cast to array to precess result from $this->requestSingle as $this->requestMulti results
         $responses = is_object($this->response)
             ? [$this->response]
             : $this->response;
@@ -369,8 +356,8 @@ class Request
         }
         unset($response);
 
-        // Return associative array if URLs were passed as array, single value otherwise
-        return is_array($this->url)
+        // Return a single content if it was a single request
+        return is_array($this->response) && count($this->response) > 1
             ? $return_value
             : reset($return_value);
     }
@@ -432,8 +419,8 @@ class Request
         $this->options = array_replace(
             array(
                 CURLOPT_URL            => ! is_array($this->url) ? $this->url : null,
-                CURLOPT_TIMEOUT        => 50,
-                CURLOPT_LOW_SPEED_TIME => 25,
+                CURLOPT_TIMEOUT        => 10,
+                CURLOPT_LOW_SPEED_TIME => 7,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_CONNECTTIMEOUT => 5000,
                 CURLOPT_FORBID_REUSE   => true,
@@ -521,8 +508,8 @@ class Request
                 case 'ssl':
                     $this->options[CURLOPT_SSL_VERIFYPEER] = true;
                     $this->options[CURLOPT_SSL_VERIFYHOST] = 2;
-                    if ( defined('APBCT_CASERT_PATH') && APBCT_CASERT_PATH ) {
-                        $this->options[CURLOPT_CAINFO] = APBCT_CASERT_PATH;
+                    if ( defined('CLEANTALK_CASERT_PATH') && CLEANTALK_CASERT_PATH ) {
+                        $this->options[CURLOPT_CAINFO] = CLEANTALK_CASERT_PATH;
                     }
                     break;
 
@@ -530,18 +517,15 @@ class Request
                     // Append parameter in a different way for single and multiple requests
                     if ( is_array($this->url) ) {
                         $this->url = array_map(static function ($elem) {
-                            return self::appendParametersToURL($elem, ['apbct_no_cache' => mt_rand()]);
+                            return self::appendParametersToURL($elem, ['no_cache' => mt_rand()]);
                         }, $this->url);
                     } else {
                         $this->options[CURLOPT_URL] = self::appendParametersToURL(
                             $this->options[CURLOPT_URL],
-                            ['apbct_no_cache' => mt_rand()]
+                            ['no_cache' => mt_rand()]
                         );
                     }
                     break;
-                case 'api3.0':
-                    // api3.0 methods requires 'Content-Type: application/json' http header
-                    $this->options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/json';
             }
         }
     }

@@ -19,7 +19,8 @@
         "mockery/mockery": "*",
         "cleantalk/apbct-installer": "*",
         "cleantalk/contacts-encoder": "2.0.18",
-        "cleantalk/rate-limiter": "*"
+        "cleantalk/rate-limiter": "*",
+        "cleantalk/bot-detector-service": "*"
     },
     "scripts": {
         "test": [

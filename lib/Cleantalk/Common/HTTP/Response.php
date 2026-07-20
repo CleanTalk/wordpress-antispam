@@ -1,6 +1,6 @@
 <?php
 
-namespace Cleantalk\Common\HTTP;
+namespace Cleantalk\Common\Http;
 
 class Response
 {
@@ -21,7 +21,7 @@ class Response
         $this->raw       = $raw;
         $this->processed = $raw;
         $this->info      = $info;
-        $this->error     = ! empty($raw['error'])
+        $this->error     = is_array($raw) && ! empty($raw['error'])
             ? $raw
             : null;
         if ( isset($this->info['http_code']) ) {
