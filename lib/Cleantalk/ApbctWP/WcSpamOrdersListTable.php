@@ -90,6 +90,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
             $actions = array(
                 'restore' => '<a class="apbct-restore-spam-order-button" data-spam-order-id="' . $wc_spam_order->id . '">' . esc_html__('Restore', 'cleantalk-spam-protect') . '</a>',
                 'delete'  => '<a onclick="return confirm(\'' . esc_attr(esc_html__('Are you sure?', 'cleantalk-spam-protect')) . '\')" href="' . esc_url($delete_url) . '">Delete</a>',
+                'details' => '<a class="apbct-details-spam-order-button" role="button" tabindex="0" data-spam-order-id="' . esc_attr($wc_spam_order->id) . '">' . esc_html__('See details', 'cleantalk-spam-protect') . '</a>',
                 /*'approve' => sprintf(
                     '<a href="?page=%s&action=%s&spam=%s">Approve</a>',
                     htmlspecialchars(addslashes(Get::get('page'))),
