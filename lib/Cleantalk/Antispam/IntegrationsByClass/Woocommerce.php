@@ -322,14 +322,13 @@ class Woocommerce extends IntegrationByClassBase
     {
         global $wpdb;
 
+        $current_timestamp = time();
         $query = 'INSERT INTO ' . APBCT_TBL_WC_SPAM_ORDERS . ' (order_details, customer_details, order_date) 
             VALUES (%s, %s, %s) 
             ON DUPLICATE KEY UPDATE order_details = %s, customer_details = %s, order_date = %s;';
 
         // store blocked order from ajax checkout
-        // @ToDo $_POST is empty during REST checkout processing
         if (!empty($_POST)) {
-            $current_timestamp = time();
             $prepared_query = $wpdb->prepare($query, [
                 json_encode(wc()->session->cart),
                 json_encode($_POST),
@@ -373,8 +372,10 @@ class Woocommerce extends IntegrationByClassBase
         $prepared_query = $wpdb->prepare($query, [
             json_encode(wc()->session->cart),
             json_encode($customer_data),
+            $current_timestamp,
             json_encode(wc()->session->cart),
             json_encode($customer_data),
+            $current_timestamp,
         ]);
 
         $wpdb->query($prepared_query);
