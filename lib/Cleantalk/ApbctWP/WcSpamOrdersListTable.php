@@ -279,6 +279,10 @@ class WcSpamOrdersListTable extends CleantalkListTable
 
         $timestamp = is_numeric($order_date) ? (int) $order_date : strtotime($order_date);
 
+        if ( ! $timestamp ) {
+            return '-';
+        }
+
         return sprintf(
                 '<time datetime="%1$s" title="%2$s">%3$s</time>',
                 esc_attr(date_i18n('c', $timestamp)),                    // 2023-02-15T20:25:06+00:00
