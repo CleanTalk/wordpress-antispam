@@ -92,12 +92,6 @@ class WcSpamOrdersListTable extends CleantalkListTable
                 'restore' => '<a class="apbct-restore-spam-order-button" data-spam-order-id="' . $wc_spam_order->id . '">' . esc_html__('Restore', 'cleantalk-spam-protect') . '</a>',
                 'delete'  => '<a onclick="return confirm(\'' . esc_attr(esc_html__('Are you sure?', 'cleantalk-spam-protect')) . '\')" href="' . esc_url($delete_url) . '">Delete</a>',
                 'details' => '<a class="apbct-details-spam-order-button" role="button" tabindex="0" data-spam-order-id="' . esc_attr($wc_spam_order->id) . '">' . esc_html__('See details', 'cleantalk-spam-protect') . '</a>',
-                /*'approve' => sprintf(
-                    '<a href="?page=%s&action=%s&spam=%s">Approve</a>',
-                    htmlspecialchars(addslashes(Get::get('page'))),
-                    'approve',
-                    $wc_spam_order->order_id
-                )*/
             );
 
             $order_id_column = sprintf('%1$s %2$s', $wc_spam_order->id, $this->row_actions($actions));
@@ -200,15 +194,6 @@ class WcSpamOrdersListTable extends CleantalkListTable
             $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_ENCODED, FILTER_FLAG_STRIP_HIGH);
             $this->removeSpam(array($id));
         }
-
-        /** Not implemented yet */
-        /*if ( Get::get('action') === 'approve' ) {
-            $id    = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_ENCODED, FILTER_FLAG_STRIP_HIGH);
-            $order = $this->getWcSpamOrder($id);
-
-
-            $result = $this->sendWcSpamOrderAsApproved($order);
-        }*/
     }
 
     /********************************************************/
@@ -289,42 +274,6 @@ class WcSpamOrdersListTable extends CleantalkListTable
             esc_html(date_i18n('d.m.Y H:i', $timestamp)),            // 15.02.2023 20:25
             esc_html(date_i18n('M d, Y', $timestamp))                // Feb 15, 2023
         );
-    }
-
-    /**
-     * @param $order
-     *
-     * @return string
-     *
-     * @psalm-suppress UnusedFunction
-     */
-    private function sendWcSpamOrderAsApproved($order)
-    {
-        $response = wp_remote_post(site_url('/?wc-ajax=checkout'), array(
-                'method'  => 'POST',
-                'timeout' => 45,
-                // 'redirection' => 5,
-                // 'httpversion' => '1.0',
-                // 'blocking' => true,
-                'headers' => array(),
-                'body'    => $order->customer_details,
-                'cookies' => array()
-            ));
-
-        $result = '';
-
-        if ( is_wp_error($response) ) {
-            /** @psalm-suppress PossiblyInvalidMethodCall */
-            $error_message = $response->get_error_message();
-            echo "Something went wrong: $error_message";
-        } else {
-            echo 'Response:<pre>';
-            /** @psalm-suppress PossiblyInvalidArgument */
-            print_r($response);
-            echo '</pre>';
-        }
-
-        return $result;
     }
 
     /**
