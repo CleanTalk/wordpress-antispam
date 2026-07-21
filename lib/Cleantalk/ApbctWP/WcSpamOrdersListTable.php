@@ -304,16 +304,6 @@ class WcSpamOrdersListTable extends CleantalkListTable
         return in_array('ct_' . $order_by, $allowed_order_by) ? $order_by : '';
     }
 
-    private function getWcSpamOrder($id)
-    {
-        global $wpdb;
-
-        return $wpdb->get_results(
-            "SELECT * FROM " . APBCT_TBL_WC_SPAM_ORDERS . " WHERE id = '$id' LIMIT 1",
-            OBJECT
-        );
-    }
-
     private function removeSpam($ids)
     {
         global $wpdb;
