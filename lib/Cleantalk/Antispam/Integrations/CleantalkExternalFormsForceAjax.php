@@ -2,10 +2,18 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\ApbctWP\Variables\Post;
+
 class CleantalkExternalFormsForceAjax extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
+        if (Post::getString('action') === 'cleantalk_force_ajax_check') {
+            unset($_POST['action']);
+        }
+        if (Post::getString('no_cache')) {
+            unset($_POST['no_cache']);
+        }
         $data = ct_gfa_dto(apply_filters('apbct__filter_post', $_POST))->getArray();
 
         if (isset($data['message']['name']) && !empty($data['message']['name'])) {

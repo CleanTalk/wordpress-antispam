@@ -1,3 +1,4 @@
+const {__} = wp.i18n;
 jQuery(document).ready(function($) {
     // Auto update banner close handler
     jQuery('.apbct_update_notice').on('click', 'button', function() {
@@ -71,6 +72,75 @@ jQuery(document).ready(function($) {
         });
     });
 
+    // Extended spam order details show via modal
+    $('.apbct-details-spam-order-button').click(function() {
+        const spmOrderId = $(this).data('spam-order-id');
+        let data = {
+            action: 'apbct_details_spam_order',
+            _ajax_nonce: ctAdminCommon._ajax_nonce,
+            order_id: spmOrderId,
+        };
+        if (typeof cleantalkModal !== 'undefined') {
+            cleantalkModal.loaded = false;
+            cleantalkModal.open(false);
+            $.ajax({
+                type: 'POST',
+                url: ctAdminCommon._ajax_url,
+                data: data,
+                success: function(result) {
+                    const modalContent = $('#cleantalk-modal-content');
+                    modalContent.empty();
+                    if (result.success && result.data) {
+                        const container = apbctGetWCOrderDetailsModalContainer(result.data);
+                        const containerHeader = document.createElement('h3');
+                        const linkHeader = document.createElement('a');
+                        const linkHeaderWrapper = document.createElement('p');
+                        containerHeader.className = 'apbct_wc_details__table-container_header';
+                        containerHeader.textContent = __('WooCommerce spam order details', 'cleantalk-spam-protect');
+                        linkHeader.href = new URL(
+                            'https://cleantalk.org/my/show_requests?allow=0&request_type=order',
+                        ).toString();
+                        linkHeader.rel = 'noopener noreferrer';
+                        linkHeader.target = '_blank';
+                        linkHeader.textContent = linkHeader.href;
+                        linkHeaderWrapper.textContent = __(
+                            'Visit CleanTalk Cloud Dashboard to see all of denied requests: ',
+                            'cleantalk-spam-protect',
+                        );
+                        linkHeaderWrapper.style.textAlign ='center';
+                        linkHeaderWrapper.appendChild(linkHeader);
+
+                        modalContent.append(containerHeader);
+                        modalContent.append(linkHeaderWrapper);
+                        modalContent.append(container);
+                    } else {
+                        const error = (result && result.data && result.data.error) ?
+                            result.data.error :
+                            __('Unknown error occurred', 'cleantalk-spam-protect');
+                        modalContent.text(error);
+                    }
+                    cleantalkModal.loaded = true;
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', error);
+                    alert(
+                        __(
+                            'An error occurred while processing your request, see console for details.',
+                            'cleantalk-spam-protect',
+                        ),
+                    );
+                },
+            });
+        } else {
+            alert(
+                __(
+                    'Can not initialize CleanTalk modal window.',
+                    'cleantalk-spam-protect',
+                ),
+            );
+        }
+    });
+
     // Email decoder example
     if (window.location.href.includes('options-general.php?page=cleantalk')) {
         let encodedEmailNode = document.querySelector('[data-original-string]');
@@ -81,6 +151,81 @@ jQuery(document).ready(function($) {
         }
     }
 });
+
+/**
+ * apbctGetWCOrderDetailsModalContainer
+ * @param {object} wcOrderData
+ * @return {HTMLDivElement}
+ */
+function apbctGetWCOrderDetailsModalContainer(wcOrderData) {
+    const container = document.createElement('div');
+    container.className = 'apbct_wc_details__wrapper';
+
+    /**
+     * createTableFromObject
+     * @param {object} obj
+     * @param {string} title
+     * @return {HTMLDivElement}
+     */
+    function createTableFromObject(obj, title) {
+        const tableWrapperInner = document.createElement('div');
+        tableWrapperInner.className = 'apbct_wc_details__table-wrapper-inner';
+
+        const header = document.createElement('h4');
+        header.textContent = title;
+        tableWrapperInner.appendChild(header);
+
+        const table = document.createElement('table');
+        table.className = 'apbct_wc_details__table';
+
+        const tbody = document.createElement('tbody');
+
+        for (const [key, value] of Object.entries(obj)) {
+            const row = document.createElement('tr');
+
+            const keyCell = document.createElement('td');
+            keyCell.className = 'apbct_wc_details__table-key-cell';
+            keyCell.textContent = key;
+
+            const valueCell = document.createElement('td');
+            valueCell.className = 'apbct_wc_details__table-value-cell';
+
+            if (typeof value === 'object' && value !== null) {
+                valueCell.textContent = JSON.stringify(value, null, 2);
+                valueCell.classList.add('apbct_wc_details__table-value-cell--json');
+            } else {
+                valueCell.textContent = value !== null && value !== undefined ? value : '—';
+            }
+
+            row.appendChild(keyCell);
+            row.appendChild(valueCell);
+            tbody.appendChild(row);
+        }
+
+        table.appendChild(tbody);
+        tableWrapperInner.appendChild(table);
+        return tableWrapperInner;
+    }
+
+    if (wcOrderData.order_details) {
+        const orderDetails = wcOrderData.order_details;
+        for (const [key, value] of Object.entries(orderDetails)) {
+            const productName = orderDetails[key] && typeof orderDetails[key]['product_name'] === 'string' ?
+                orderDetails[key]['product_name'] :
+                __('Unknown product name', 'cleantalk-spam-protect');
+            const header = __('Order Details for', 'cleantalk-spam-protect');
+            container.appendChild(createTableFromObject(value, `${header} ${productName}`));
+        }
+    }
+
+    if (wcOrderData.customer_details) {
+        container.appendChild(
+            createTableFromObject(wcOrderData.customer_details, 'Customer Details'),
+        );
+    }
+
+    return container;
+}
 // eslint-disable-next-line camelcase,require-jsdoc,no-unused-vars
 function apbct_admin_sendAJAX(data, params, obj) {
     // Default params
