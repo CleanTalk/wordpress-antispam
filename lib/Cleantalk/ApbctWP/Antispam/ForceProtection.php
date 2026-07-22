@@ -135,7 +135,8 @@ class ForceProtection
                 (
                     preg_match('#<iframe\s+[^>]*src="([^"]*https:\/\/facebook\.com[^"]*)"[^>]*>#i', $iframe) &&
                     preg_match('#<iframe\s+[^>]*src="([^"]*plugins/comments\.php[^"]*)"[^>]*>#i', $iframe)
-                )
+                ) ||
+                preg_match('#<iframe\s+[^>]*src="([^"]*https:\/\/\S+\.sibforms\.com[^"]*)"[^>]*>#i', $iframe)
 
             ) {
                 return $this->generateWrapper($iframe);
