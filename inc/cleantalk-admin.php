@@ -524,7 +524,7 @@ function apbct_admin__enqueue_scripts($hook)
 
     // Scripts to all admin pages
     ApbctEnqueue::getInstance()->js('common-cleantalk-modal.js', array('jquery'));
-    ApbctEnqueue::getInstance()->js('cleantalk-admin.js', array('common-cleantalk-modal-js', 'jquery'));
+    ApbctEnqueue::getInstance()->js('cleantalk-admin.js', array('wp-i18n','common-cleantalk-modal-js', 'jquery'));
     ApbctEnqueue::getInstance()->css('cleantalk-admin.css');
     ApbctEnqueue::getInstance()->css('cleantalk-icons.css');
     ApbctEnqueue::getInstance()->css('cleantalk-email-decoder.css');

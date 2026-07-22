@@ -1,10 +1,10 @@
 === CleanTalk Anti-Spam. Spam Firewall & Bot protection ===
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
-Tags: antispam, honeypot, bot, captcha, spam 
+Tags: antispam, honeypot, bot, captcha, spam
 Requires at least: 4.7
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.83.1
+Stable tag: 6.84
 License: GPLv2
 
 Top-rated antispam for contact forms, comments, WooCommerce, eCommerce, and login. No CAPTCHAs, no friction, just background anti spam protection.
@@ -100,9 +100,9 @@ Anti-spam by CleanTalk filters spam registrations, spam reviews, and fake orders
 * Jetpack – WP Security, Backup, Speed, & Growth
 * Jotform - Online Forms — Customizable Payment, Contact, Quiz, Survey Form Builder
 * Kadence Blocks — Page Builder Toolkit for Gutenberg Editor
-* Kali Forms (Free & Pro) — Contact Form & Drag-and-Drop Builder 
+* Kali Forms (Free & Pro) — Contact Form & Drag-and-Drop Builder
 * Klaviyo
-* Kulahub 
+* Kulahub
 * Landing Page Builder – Coming Soon page, Maintenance Mode, Lead Page, WordPress Landing Pages
 * Leaky Paywall
 * LearnPress – WordPress LMS Plugin for Create and Sell Online Courses
@@ -426,11 +426,20 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 
 == Changelog ==
 
+= 6.84 23.07.2026 =
+New. Integration. WooCommerce. Spam order details modal windows implemented.
+New. Integration. Catch fetch request. Iframe forms of sender.com protected.
+Fix. Settings. Improve alt storage.
+Fix. ContactEncoder. Addition typecheck.
+Fix. Code. Deprecated notice fixed.
+Fix. Integrations. XStore checkout update flow.
+Fix. Integrations. Woo fluent checkout update flow.
+
 = 6.83.1 16.07.2026 =
 Upd. Settings. Implement honey test.
 
 = 6.83 09.07.2026 =
-New. Settings. Getting apikey wizard. 
+New. Settings. Getting apikey wizard.
 New. RateLimit. Enabled the RateLimit shared library
 New. Footer. New link on Website Feedback Plugin
 New. RateLimit. Enabled the RateLimit shared library

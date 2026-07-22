@@ -4,13 +4,14 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.83.1
+  Version: 6.84
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
   Domain Path: /i18n
 */
 
+use Cleantalk\Antispam\ScriptsIntegration\CleantalkScriptsIntegrator;
 use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
@@ -608,27 +609,8 @@ add_action('mec_booking_end_form_step_2', function () {
 
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
-    if (
-        apbct_is_plugin_active('fluentformpro/fluentformpro.php') &&
-        (
-            apbct_is_in_uri('ff_landing=') ||
-            (
-                // Load scripts for logged in users if constant is defined
-                apbct_is_user_logged_in() &&
-                (defined('APBCT_FF_JS_SCRIPTS_LOAD') &&
-                APBCT_FF_JS_SCRIPTS_LOAD == true)
-            )
-        )
-    ) {
-        add_action('wp_head', function () {
-            echo '<script data-pagespeed-no-defer="" src="'
-                . APBCT_URL_PATH
-                . '/js/apbct-public-bundle.min.js'
-                . '?ver=' . APBCT_VERSION . '" id="ct_public_functions-js"></script>';
-            echo '<script src="' . APBCT_BOT_DETECTOR_SCRIPT_URL . '?ver='
-                . APBCT_VERSION . '" async id="ct_bot_detector-js" data-wp-strategy="async"></script>';
-        }, 100);
-    }
+    $sci = new CleantalkScriptsIntegrator();
+    $sci->run();
 
     SFWUpdateHelper::processSFWOutdatedError($apbct);
 
