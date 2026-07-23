@@ -4,6 +4,7 @@ namespace Cleantalk\Antispam\IntegrationsByClass;
 
 use Cleantalk\ApbctWP\Honeypot;
 use Cleantalk\ApbctWP\Variables\AltSessions;
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use DOMDocument;
 
@@ -137,13 +138,10 @@ class WPSearchForm extends IntegrationByClassBase
         // empty is clean (1), filled is spam (0). With JS the value travels via alt-sessions (the field is
         // stripped from the GET URL); without JS the field stays in the GET request.
         if ( $apbct->settings['data__honeypot_field'] ) {
-            $cookie_name = apbct__get_cookie_prefix() . 'apbct_search_form__honeypot_value';
             $honeypot_value = Get::getString('apbct__email_id__search_form')
-                ?: null;
-            $honeypot_value = $honeypot_value
-                ?? ( $_COOKIE[$cookie_name] ?? null )
-                ?? AltSessions::get('apbct_search_form__honeypot_value');
-            $honeypot_value = (string)($honeypot_value ?? '');
+                ?: Cookie::getString('apbct_search_form__honeypot_value')
+                ?: AltSessions::get('apbct_search_form__honeypot_value');
+            $honeypot_value = (string)$honeypot_value;
             $data['honeypot_field'] = ( $honeypot_value === '' ) ? 1 : 0;
         }
 
