@@ -23,6 +23,10 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      */
     protected function doCallbackAction($content)
     {
+        if ( ! is_string($content) ) {
+            return $content;
+        }
+
         // Check if shortcode exists in content
         if (has_shortcode($content, $this->public_name)) {
             // Process the shortcode
@@ -78,6 +82,10 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      */
     protected function isShortcodeInsideHtmlTag($content)
     {
+        if ( ! is_string($content) ) {
+            return false;
+        }
+
         preg_match_all(
             sprintf(
                 '/\[\/?%s(?:\s[^\]]*)?\]/', //supports sc attributes(!)
