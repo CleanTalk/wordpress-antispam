@@ -119,7 +119,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             if ( $this->getCurrentAction() !== 'shutdown' ) {
                 return $content;
             }
-            if ( $content === '' || $content === null ) {
+            if ( $content === '' ) {
                 $content = $apbct->buffer;
             }
         }
