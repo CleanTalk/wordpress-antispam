@@ -292,6 +292,14 @@ function skip_for_ct_contact_form_validate()
             apbct_is_plugin_active('buddyboss-platform/buddyboss-platform.php') &&
             apbct_is_in_uri('/wp-json/buddyboss/v1/signup')
         ),
+        // aMember Pro signup — has a direct integration AmemberRegister
+        '102' => (
+            apbct_is_plugin_active('amember4/amember4.php') &&
+            (
+                isset($_POST['_save_']) ||
+                (isset($_POST['pass']) && isset($_POST['_pass']))
+            )
+        ),
     );
 
     foreach ( $exclusions as $exclusion_key => $state ) {
