@@ -625,9 +625,9 @@ var cleantalkModal = cleantalkModal || { // eslint-disable-line no-var
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             const serviceContentRegex = /.*\/inc/g;
             if (serviceContentRegex.test(this.loaded) || this.ignoreURLConvert) {
-                content.innerHTML = this.loaded;
+                content.innerHTML = this.sanitizeHtml(this.loaded);
             } else {
-                content.innerHTML = this.loaded.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+                content.innerHTML = this.sanitizeHtml(this.loaded.replace(urlRegex, '<a href="$1" target="_blank">$1</a>'));
             }
         } else {
             content.innerHTML = 'Loading...';
@@ -696,6 +696,44 @@ var cleantalkModal = cleantalkModal || { // eslint-disable-line no-var
         );
     },
 
+    sanitizeHtml: function( dirty ) {
+        if ( typeof dirty !== 'string' || dirty === '' ) {
+            return '';
+        }
+
+        let template = document.createElement( 'template' );
+        template.innerHTML = dirty;
+
+        let forbiddenTags = ['SCRIPT', 'IFRAME', 'OBJECT', 'EMBED', 'BASE', 'LINK', 'META'];
+
+        template.content.querySelectorAll( '*' ).forEach( function( el ) {
+            if ( forbiddenTags.indexOf( el.tagName ) !== -1 ) {
+                el.remove();
+                return;
+            }
+
+            Array.prototype.slice.call( el.attributes ).forEach( function( attr ) {
+                let name = attr.name.toLowerCase();
+                let value = attr.value.replace( /\s+/g, '' ).toLowerCase();
+
+                if ( name.indexOf( 'on' ) === 0 ) {
+                    el.removeAttribute( attr.name );
+                    return;
+                }
+
+                // Executable URLs in link-like attributes
+                if (
+                    ( name === 'href' || name === 'src' || name === 'xlink:href' || name === 'formaction' ) &&
+                    ( value.indexOf( 'javascript:' ) === 0 || value.indexOf( 'data:text/html' ) === 0 )
+                ) {
+                    el.removeAttribute( attr.name );
+                }
+            } );
+        } );
+
+        return template.innerHTML;
+    },
+
     close: function() {
         document.body.classList.remove( 'cleantalk-modal-opened' );
         const overlay = document.getElementById( 'cleantalk-modal-overlay' );
@@ -719,7 +757,7 @@ document.addEventListener('click', function( e ) {
 });
 document.addEventListener('cleantalkModalContentLoaded', function( e ) {
     if ( cleantalkModal.opened && cleantalkModal.loaded ) {
-        document.getElementById( 'cleantalk-modal-content' ).innerHTML = cleantalkModal.loaded;
+        document.getElementById( 'cleantalk-modal-content' ).innerHTML = cleantalkModal.sanitizeHtml( cleantalkModal.loaded );
     }
 });
 
