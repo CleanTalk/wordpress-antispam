@@ -21,6 +21,15 @@ class RemoteCalls
     const MAX_DELAY = 10;
 
     /**
+     * CleanTalk RC servers allowlist. A request is trusted as an NOC remote call only if its
+     * reverse-resolved hostname matches one of these.
+     */
+    const RC_SERVERS = [
+        'netserv3.cleantalk.org',
+        'netserv4.cleantalk.org',
+    ];
+
+    /**
      * List of remote call actions that are allowed to use delay parameter
      */
     private static $allowedActionsWithDelay = [
@@ -30,6 +39,16 @@ class RemoteCalls
     private static $allowedActionsWithoutToken = [
         'get_fresh_wpnonce',
         'post_api_key',
+    ];
+
+    /**
+     * Sensitive plugin-lifecycle actions that must additionally originate from a verified CleanTalk RC server.
+     */
+    private static $pluginLifecycleActions = [
+        'install_plugin',
+        'activate_plugin',
+        'deactivate_plugin',
+        'uninstall_plugin',
     ];
 
     private static $sensitiveData = [
@@ -58,8 +77,8 @@ class RemoteCalls
     public static function checkWithToken()
     {
         return Request::get('spbc_remote_call_token') &&
-               Request::get('spbc_remote_call_action') &&
-               in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct'));
+            Request::get('spbc_remote_call_action') &&
+            in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct'));
     }
 
     private static function isAllowedWithoutToken($rc)
@@ -71,10 +90,6 @@ class RemoteCalls
     {
         global $apbct;
 
-        $rc_servers = [
-            'netserv3.cleantalk.org',
-            'netserv4.cleantalk.org',
-        ];
         // Resolve IP of the client making the request and verify hostname from it to be in the list of RC servers hostnames
         $client_ip = Helper::ipGet('remote_addr');
         $verified_hostname = $client_ip ? \Cleantalk\Common\Helper::ipResolve($client_ip) : false;
@@ -82,7 +97,7 @@ class RemoteCalls
             Request::get('spbc_remote_call_action') &&
             in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct')) &&
             $verified_hostname !== false &&
-            in_array($verified_hostname, $rc_servers, true);
+            in_array($verified_hostname, self::RC_SERVERS, true);
 
         // no token needs for this action, at least for now
         // todo Probably we still need to validate this, consult with analytics team
@@ -107,6 +122,16 @@ class RemoteCalls
         // Rate limit check — block abusive IPs before any cooldown logic
         if ( ! self::rateLimitCheck() ) {
             die('FAIL ' . json_encode(array('error' => 'RATE_LIMIT_EXCEEDED')));
+        }
+
+        // Sensitive plugin-lifecycle actions must additionally originate from a verified CleanTalk RC server.
+        if ( in_array($action, self::$pluginLifecycleActions, true) ) {
+            // Resolve the client IP to a hostname (reverse DNS) and check it against the RC servers allowlist.
+            $client_ip = Helper::ipGet('remote_addr');
+            $verified_hostname = $client_ip ? \Cleantalk\Common\Helper::ipResolve($client_ip) : false;
+            if ( $verified_hostname === false || ! in_array($verified_hostname, self::RC_SERVERS, true) ) {
+                die('FAIL ' . json_encode(array('error' => 'FORBIDDEN_SOURCE')));
+            }
         }
 
         if ( isset($apbct->remote_calls[$action]) ) {
