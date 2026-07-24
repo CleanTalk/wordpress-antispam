@@ -3,18 +3,14 @@
 use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
-use Cleantalk\ApbctWP\State;
 
-class CleantalkTest extends \PHPUnit\Framework\TestCase
+class CleantalkTest extends ApbctTestCase
 {
     protected $ct;
     protected $ct_request;
 
     public function setUp(): void
     {
-        global $apbct;
-        $apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
-
         $this->ct_request = new CleantalkRequest();
         $this->ct_request->auth_key = 'mockKeyAny';
     }
