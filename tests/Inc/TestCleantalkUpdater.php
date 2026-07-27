@@ -1,26 +1,8 @@
 <?php
-
-namespace Inc;
-
 use Cleantalk\ApbctWP\State;
-use PHPUnit\Framework\TestCase;
 
-class TestCleantalkUpdater extends TestCase
+class TestCleantalkUpdater extends ApbctTestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-        global $apbct;
-        $apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
-    }
-
-    protected function tearDown(): void
-    {
-        global $apbct;
-        unset($apbct);
-        parent::tearDown();
-    }
-
     public function testApbctUpdateTo_6_76_0()
     {
         // Arrange

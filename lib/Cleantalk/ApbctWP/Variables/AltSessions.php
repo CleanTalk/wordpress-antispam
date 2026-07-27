@@ -37,6 +37,20 @@ class AltSessions
         'ct_gathering_loaded' => 'bool',
     ];
 
+    /**
+     * In-request cache of session values to avoid duplicate SELECT queries.
+     *
+     * @var array|null
+     */
+    private static $values_cache = null;
+
+    /**
+     * Session id the cache belongs to.
+     *
+     * @var string|null
+     */
+    private static $values_cache_id = null;
+
     public static function getID()
     {
         $id = Helper::ipGet()
@@ -82,12 +96,13 @@ class AltSessions
     {
         global $wpdb;
 
+        $session_id = self::getID();
         $data = array(
-            'id' => self::getID(),
+            'id' => $session_id,
             'value' => serialize($cookies_array),
         );
 
-        return $wpdb->query($wpdb->prepare(
+        $result = $wpdb->query($wpdb->prepare(
             "INSERT INTO " . APBCT_TBL_SESSIONS . " (id, value, last_update)
             VALUES (%s, %s, %s) 
             ON DUPLICATE KEY UPDATE 
@@ -98,16 +113,29 @@ class AltSessions
             date('Y-m-d H:i:s'),
             date('Y-m-d H:i:s')
         ));
+
+        if ( $result !== false ) {
+            self::$values_cache = is_array($cookies_array) ? $cookies_array : array();
+            self::$values_cache_id = $session_id;
+        }
+
+        return $result;
     }
 
     private static function getValues()
     {
         global $wpdb;
 
+        $session_id = self::getID();
+
+        if ( self::$values_cache !== null && self::$values_cache_id === $session_id ) {
+            return self::$values_cache;
+        }
+
         $session_value = $wpdb->get_var(
             $wpdb->prepare(
                 'SELECT value FROM ' . APBCT_TBL_SESSIONS . ' WHERE id = %s',
-                self::getID()
+                $session_id
             )
         );
 
@@ -125,6 +153,9 @@ class AltSessions
         if ( ! is_array($session_value) ) {
             $session_value = array();
         }
+
+        self::$values_cache = $session_value;
+        self::$values_cache_id = $session_id;
 
         return $session_value;
     }
@@ -323,6 +354,9 @@ class AltSessions
     public static function wipe()
     {
         global $wpdb;
+
+        self::$values_cache = null;
+        self::$values_cache_id = null;
 
         return $wpdb->query(
             'TRUNCATE TABLE ' . APBCT_TBL_SESSIONS . ';'
