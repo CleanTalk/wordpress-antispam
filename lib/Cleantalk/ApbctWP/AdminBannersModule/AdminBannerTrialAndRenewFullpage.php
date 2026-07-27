@@ -172,12 +172,23 @@ class AdminBannerTrialAndRenewFullpage extends AdminBannerAbstract
                     </div>
 
                     <div class="apbct-trial-renew-fullpage-body">
-                        <div class="apbct-banner-title">
-                            <?php echo esc_html($data['title_main']); ?>
+                        <div class="apbct-banner-header">
+                            <div>
+                                <div class="apbct-banner-title">
+                                    <?php echo esc_html($data['title_main']); ?>
+                                </div>
+                                <div class="apbct-banner-subtitle">
+                                    <?php echo esc_html($data['subtitle']); ?>
+                                </div>
+                            </div>
+                            <div class="apbct-banner-button-wrapper" style="display: flex;margin: 0;">
+                                <a href="<?php echo esc_url($data['renewal_link']); ?>" target="_blank" class="apbct-banner-button apbct-banner-button-red"><?php echo esc_html($data['btn_upgrade']); ?></a>
+                            </div>
                         </div>
                         <div class="apbct-banner-subtitle">
-                            <?php echo esc_html($data['subtitle']); ?>
+                            <?php echo esc_html($data['title_upd']); ?>
                         </div>
+
                         <div class="apbct-banner-desc-blocks-content">
                             <div class="apbct-banner-desc-blocks">
                                 <div class="apbct-banner-background-container">
@@ -211,11 +222,11 @@ class AdminBannerTrialAndRenewFullpage extends AdminBannerAbstract
                                         <?php echo esc_html($data['upgrade_benefits_title']); ?>
                                     </div>
                                     <div class="apbct-banner-desc-block-row" style="gap: 12px;">
-                                        <img src="<?php echo esc_url(APBCT_IMG_ASSETS_PATH . '/check.svg'); ?>" width="20" height="20">
+                                        <img class="apbct-banner-check" src="<?php echo esc_url(APBCT_IMG_ASSETS_PATH . '/check.svg'); ?>" width="20" height="20">
                                         <span class="apbct-banner-subtitle" style="margin-top: 0px;"><?php echo esc_html($data['upgrade_benefits_top_rated']); ?></span>
                                     </div>
                                     <div class="apbct-banner-desc-block-row" style="gap: 12px;">
-                                        <img src="<?php echo esc_url(APBCT_IMG_ASSETS_PATH . '/check.svg'); ?>" width="20" height="20">
+                                        <img class="apbct-banner-check" src="<?php echo esc_url(APBCT_IMG_ASSETS_PATH . '/check.svg'); ?>" width="20" height="20">
                                         <span class="apbct-banner-subtitle" style="margin-top: 0px;">
                                             <?php echo esc_html($data['upgrade_benefits_protects_plugins']); ?>
                                             <span style="font-weight:bold;"><?php echo esc_html($data['upgrade_benefits_protects_plugins_bold']); ?></span>
@@ -223,7 +234,7 @@ class AdminBannerTrialAndRenewFullpage extends AdminBannerAbstract
                                         </span>
                                     </div>
                                     <div class="apbct-banner-desc-block-row" style="gap: 12px;">
-                                        <img src="<?php echo esc_url(APBCT_IMG_ASSETS_PATH . '/check.svg'); ?>" width="20" height="20">
+                                        <img class="apbct-banner-check" src="<?php echo esc_url(APBCT_IMG_ASSETS_PATH . '/check.svg'); ?>" width="20" height="20">
                                         <span class="apbct-banner-subtitle" style="margin-top: 0px;">
                                             <?php echo esc_html($data['upgrade_benefits_no_captchas']); ?>
                                             <span style="font-weight:bold;">
@@ -232,18 +243,15 @@ class AdminBannerTrialAndRenewFullpage extends AdminBannerAbstract
                                         </span>
                                     </div>
                                     <div class="apbct-banner-desc-block-row" style="gap: 12px;">
-                                        <img src="<?php echo esc_url(APBCT_IMG_ASSETS_PATH . '/check.svg'); ?>" width="20" height="20">
+                                        <img class="apbct-banner-check" src="<?php echo esc_url(APBCT_IMG_ASSETS_PATH . '/check.svg'); ?>" width="20" height="20">
                                         <span class="apbct-banner-subtitle" style="margin-top: 0px;"><?php echo esc_html($data['upgrade_benefits_spam_detection_network']); ?></span>
                                     </div>
                                 </div>
                             </div>
                             <img class="apbct-trial-renew-fullpage-image" src="<?php echo esc_url(APBCT_IMG_ASSETS_PATH . '/img_fullpage_trial_banner.svg'); ?>">
                         </div>
-                        <div class="apbct-banner-subtitle">
-                            <?php echo esc_html($data['title_upd']); ?>
-                        </div>
-                        <div class="apbct-banner-button-wrapper" style="display: flex;margin-top: 32px;margin-left: 0;">
-                            <a href="<?php echo esc_url($data['renewal_link']); ?>" target="_blank" class="apbct-banner-button apbct-banner-button-red"><?php echo esc_html($data['btn_upgrade']); ?></a>
+                        <div class="apbct-trial-renew-upgrade">
+                            <a class="apbct-trial-renew-upgrade-link" href="<?php echo esc_url($data['renewal_link']); ?>">Upgrade now</a>
                         </div>
                     </div>
                 </div>

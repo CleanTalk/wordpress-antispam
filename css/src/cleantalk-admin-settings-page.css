@@ -756,15 +756,23 @@ button[value="save_changes"]:disabled {
 	margin-left: 32px;
 }
 
+.apbct-banner-header {
+    display: flex;
+    justify-content: space-between;
+}
+
 .apbct-trial-renew-fullpage-image {
-	max-width: 100%;
+	flex: 1 1 0;
+	min-width: 0;
+	max-width: 576px;
 	height: auto;
-	width: 576px;
+	object-fit: contain;
+    margin: auto 0;
+	align-self: flex-start;
 }
 
 .apbct-banner-desc-block-row {
-	display: flex;
-	align-items: center;
+	line-height: 22px;
 }
 
 .apbct-banner-red-point {
@@ -774,6 +782,7 @@ button[value="save_changes"]:disabled {
 	background-color: #BB3323;
 	border-radius: 50%;
 	margin-right: 8px;
+	vertical-align: middle;
 }
 
 .apbct-banner-error {
@@ -802,6 +811,7 @@ button[value="save_changes"]:disabled {
 .apbct-banner-stat-value {
 	margin-bottom: 0px;
 	color: #444444;
+	vertical-align: middle;
 }
 
 .apbct-banner-desc-block-text {
@@ -810,19 +820,56 @@ button[value="save_changes"]:disabled {
 	color: #717182;
 	margin-left: 12px;
 	margin-top: 0;
+	vertical-align: middle;
 }
 
 .apbct-banner-desc-blocks {
 	display: grid;
 	gap: 16px;
+	flex: 1 1 0;
+	min-width: 0;
 }
 
 .apbct-banner-desc-blocks-content {
 	display: flex;
 	gap: 72px;
-	flex-wrap: wrap;
 	justify-content: center;
 	margin: 32px 0;
+}
+
+.apbct-banner-check {
+    vertical-align: middle;
+}
+
+.apbct-trial-renew-upgrade {
+    display: none;
+    text-align: center;
+}
+
+.apbct-trial-renew-upgrade-link {
+    font-size: 16px;
+    line-height: 22px;
+    letter-spacing: 0%;
+    text-decoration: underline solid 0% #026E88 !important;
+    text-underline-offset: 25%;
+    color: #026E88 !important;
+}
+
+@media (max-width: 1366px) {
+    .apbct-banner-header {
+        display: grid;
+        gap: 16px;
+    }
+
+    .apbct-banner-desc-blocks-content {
+        display: grid;
+        gap: 38px;
+        place-items: center;
+    }
+
+    .apbct-trial-renew-upgrade {
+        display: block;
+    }
 }
 
 @media (max-width: 1200px) {
@@ -836,7 +883,6 @@ button[value="save_changes"]:disabled {
 	.apbct-banner-desc-blocks-content { gap: 24px; }
 	.apbct-banner-background-container { padding: 20px; }
 	.apbct-trial-renew-fullpage-image { width: 100%; }
-	.apbct-banner-desc-block-row { flex-wrap: wrap; }
 }
 
 @media (max-width: 480px) {

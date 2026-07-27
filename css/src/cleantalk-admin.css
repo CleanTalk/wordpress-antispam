@@ -276,7 +276,7 @@
 
 .apbct-banner-button {
 	display: block;
-	padding: 16px 50px;
+	padding: 17px 53px;
 	color: #FFFFFF !important;
 	border-radius: 8px;
 	font-size: 16px;
@@ -353,5 +353,5 @@
 }
 
 .apbct-banner-button-red:hover {
-	background-color: #ac2e20 !important;
+	background-color: #A82E20 !important;
 }
