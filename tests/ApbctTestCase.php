@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 class ApbctTestCase extends TestCase
 {
     /**
-     * @var \CleantalkSP\SpbctWP\State
+     * @var State
      */
     protected static $state_storage;
 
