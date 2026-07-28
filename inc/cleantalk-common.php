@@ -476,6 +476,48 @@ function apbct_exclusions_check__url()
 }
 
 /**
+ * Whether public JS/CSS assets are allowed on the current page.
+ * Full mode — always. Lite mode — only if REQUEST_URI matches listed pages (substring or regexp).
+ *
+ * @return bool
+ */
+function apbct_is_assets_allowed_on_current_page()
+{
+    global $apbct;
+
+    // Full mode (0) or unset
+    if ( empty($apbct->settings['data__protection_mode']) ) {
+        return true;
+    }
+
+    if ( empty($apbct->settings['data__protection_mode__urls']) ) {
+        return false;
+    }
+
+    if ( strpos($apbct->settings['data__protection_mode__urls'], "\r\n") !== false ) {
+        $patterns = explode("\r\n", $apbct->settings['data__protection_mode__urls']);
+    } elseif ( strpos($apbct->settings['data__protection_mode__urls'], "\n") !== false ) {
+        $patterns = explode("\n", $apbct->settings['data__protection_mode__urls']);
+    } else {
+        $patterns = explode(',', $apbct->settings['data__protection_mode__urls']);
+    }
+
+    $url_haystack = TT::toString(Server::getString('REQUEST_URI'));
+
+    foreach ( $patterns as $pattern ) {
+        $pattern = trim($pattern);
+        if ( $pattern === '' ) {
+            continue;
+        }
+        if ( @preg_match('@' . $pattern . '@', $url_haystack) === 1 || stripos($url_haystack, $pattern) !== false ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * Check POST array for the exclusion form signs. Listen for array keys or for value in case if key is "action".
  * @param array $form_data The POST array or another filtered array of form data.
  * @return bool True if exclusion found in the keys of array, false otherwise.

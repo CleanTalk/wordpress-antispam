@@ -481,6 +481,28 @@ function apbct_settings__set_fields()
             'title'  => __('Data Processing', 'cleantalk-spam-protect'),
             'section' => 'hidden_section',
             'fields' => array(
+                'data__protection_mode'                => array(
+                    'title'       => __('Protection mode', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'Full — load Anti-Spam scripts and styles on all pages. Lite — load them only on the pages listed below. Regular expressions are allowed.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'options'     => array(
+                        array('val' => 0, 'label' => __('Full', 'cleantalk-spam-protect'), 'childrens_enable' => 0,),
+                        array('val' => 1, 'label' => __('Lite', 'cleantalk-spam-protect'), 'childrens_enable' => 1,),
+                    ),
+                    'childrens'   => array('data__protection_mode__urls'),
+                ),
+                'data__protection_mode__urls'          => array(
+                    'type'        => 'textarea',
+                    'title'       => __('Pages to protect (Lite mode)', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'List pages where Anti-Spam assets should be loaded. One value per line or comma-separated. Plain URL parts and regular expressions are allowed. Example: /contact, /checkout, /wp-login\\.php',
+                        'cleantalk-spam-protect'
+                    ),
+                    'parent'      => 'data__protection_mode',
+                    'class'       => 'apbct_settings-field_wrapper--sub',
+                ),
                 'data__protect_logged_in'              => array(
                     'title'       => __("Protect logged in Users", 'cleantalk-spam-protect'),
                     'description' => __(
@@ -1795,6 +1817,7 @@ function apbct_settings__error__output($return = false)
             'settings_validate' => 'Validate Settings',
             'exclusions_urls'   => 'URL Exclusions',
             'exclusions_fields' => 'Field Exclusions',
+            'protection_mode_urls' => 'Pages to protect (Lite mode)',
 
             // Unknown
             'unknown'           => __('Unknown error type: ', 'cleantalk-spam-protect'),
@@ -2369,6 +2392,7 @@ function apbct_settings__validate($incoming_settings)
         'data__email_decoder_obfuscation_mode',
         'data__email_decoder_obfuscation_custom_text',
         'data__email_decoder_buffer',
+        'data__protection_mode__urls',
     );
     $incoming_settings = apbct_settings__keep_settings_state_values(
         $incoming_settings,
@@ -2447,6 +2471,14 @@ function apbct_settings__validate($incoming_settings)
             $setting = preg_replace('/[<"\'>]/', '', trim($setting));
         } // Make HTML code inactive
     }
+
+    // Sanitize Protection mode pages (Lite) — plain URL parts and regexps both allowed
+    $result = apbct_settings__sanitize__exclusions(
+        isset($incoming_settings['data__protection_mode__urls']) ? $incoming_settings['data__protection_mode__urls'] : '',
+        false
+    );
+    $incoming_settings['data__protection_mode__urls'] = $result ? $result : '';
+    $apbct->errorDelete('protection_mode_urls', true, 'settings_validate');
 
     // Validate Exclusions
     // URLs

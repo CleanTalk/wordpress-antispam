@@ -539,6 +539,8 @@ class RemoteCalls
             'data__email_check_before_post' => 'Check email before POST request',
             'data__email_check_exist_post' => 'Check email before POST request',
             'data__honeypot_field' => 'Add a honeypot field',
+            'data__protection_mode' => 'Protection mode',
+            'data__protection_mode__urls' => 'Pages to protect (Lite mode)',
             'data__email_decoder' => 'Encode contact data',
             'data__email_decoder_encode_phone_numbers' => 'Encode phones',
             'data__email_decoder_encode_email_addresses' => 'Encode emails',
