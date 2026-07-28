@@ -2344,6 +2344,9 @@ function apbct_rc__update_settings($source)
 
     foreach ( $apbct->default_settings as $setting => $def_value ) {
         if ( array_key_exists($setting, $source) ) {
+            if ($setting === 'apikey') {
+                continue;
+            }
             $var  = $source[$setting];
             $type = gettype($def_value);
             settype($var, $type);

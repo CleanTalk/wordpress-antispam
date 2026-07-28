@@ -322,7 +322,8 @@ class RemoteCalls
     }
 
     /**
-     * Update settins
+     * Update settings.
+     * @deprecated Since 6.85, see https://app.doboard.com/1/task/36680
      */
     public static function action__update_settings() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
