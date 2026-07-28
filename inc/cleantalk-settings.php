@@ -2477,7 +2477,7 @@ function apbct_settings__validate($incoming_settings)
         ? $incoming_settings['data__protection_mode__urls']
         : '';
     $result = apbct_settings__sanitize__exclusions($raw_protection_mode_urls, false);
-    if ( $result === false ) {
+    if ( ! is_string($result) ) {
         $incoming_settings['data__protection_mode__urls'] = '';
         $apbct->errorAdd(
             'protection_mode_urls',
