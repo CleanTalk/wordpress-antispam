@@ -565,7 +565,7 @@ function apbct_protection_mode__get_invalid_regexp_pattern($urls_setting)
 
 /**
  * Match a single Protection mode pattern against a URL haystack.
- * Substring first, then regexp with escaped delimiter.
+ * Substring first; regexp only when the pattern looks like a regular expression.
  *
  * @param string $pattern
  * @param string $url_haystack
@@ -576,6 +576,10 @@ function apbct_protection_mode__pattern_matches($pattern, $url_haystack)
 {
     if ( stripos($url_haystack, $pattern) !== false ) {
         return true;
+    }
+
+    if ( ! apbct_protection_mode__looks_like_regexp($pattern) ) {
+        return false;
     }
 
     return @preg_match(apbct_protection_mode__build_regexp($pattern), $url_haystack) === 1;

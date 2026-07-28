@@ -2498,6 +2498,14 @@ function apbct_settings__validate($incoming_settings)
         }
     }
 
+    // Lite without pages would disable assets everywhere — fall back to Full
+    if (
+        ! empty($incoming_settings['data__protection_mode']) &&
+        empty($incoming_settings['data__protection_mode__urls'])
+    ) {
+        $incoming_settings['data__protection_mode'] = 0;
+    }
+
     // Validate Exclusions
     // URLs
     $is_exclusions_url_like = apbct_settings__sanitize__exclusions(
