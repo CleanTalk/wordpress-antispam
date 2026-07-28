@@ -2472,13 +2472,31 @@ function apbct_settings__validate($incoming_settings)
         } // Make HTML code inactive
     }
 
-    // Sanitize Protection mode pages (Lite) — plain URL parts and regexps both allowed
-    $result = apbct_settings__sanitize__exclusions(
-        isset($incoming_settings['data__protection_mode__urls']) ? $incoming_settings['data__protection_mode__urls'] : '',
-        false
-    );
-    $incoming_settings['data__protection_mode__urls'] = $result ? $result : '';
-    $apbct->errorDelete('protection_mode_urls', true, 'settings_validate');
+    // Sanitize / validate Protection mode pages (Lite) — plain URL parts and regexps both allowed
+    $raw_protection_mode_urls = isset($incoming_settings['data__protection_mode__urls'])
+        ? $incoming_settings['data__protection_mode__urls']
+        : '';
+    $result = apbct_settings__sanitize__exclusions($raw_protection_mode_urls, false);
+    if ( $result === false ) {
+        $incoming_settings['data__protection_mode__urls'] = '';
+        $apbct->errorAdd(
+            'protection_mode_urls',
+            'is not valid: "' . $raw_protection_mode_urls . '"',
+            'settings_validate'
+        );
+    } else {
+        $incoming_settings['data__protection_mode__urls'] = $result;
+        $invalid_pattern = apbct_protection_mode__get_invalid_regexp_pattern($result);
+        if ( $invalid_pattern !== null ) {
+            $apbct->errorAdd(
+                'protection_mode_urls',
+                'contains invalid regular expression: "' . $invalid_pattern . '"',
+                'settings_validate'
+            );
+        } else {
+            $apbct->errorDelete('protection_mode_urls', true, 'settings_validate');
+        }
+    }
 
     // Validate Exclusions
     // URLs

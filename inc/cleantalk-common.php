@@ -476,6 +476,112 @@ function apbct_exclusions_check__url()
 }
 
 /**
+ * Split Protection mode (Lite) pages list into patterns.
+ *
+ * @param string $urls_setting
+ *
+ * @return string[]
+ */
+function apbct_protection_mode__parse_url_patterns($urls_setting)
+{
+    if ( $urls_setting === '' ) {
+        return array();
+    }
+
+    if ( strpos($urls_setting, "\r\n") !== false ) {
+        $patterns = explode("\r\n", $urls_setting);
+    } elseif ( strpos($urls_setting, "\n") !== false ) {
+        $patterns = explode("\n", $urls_setting);
+    } else {
+        $patterns = explode(',', $urls_setting);
+    }
+
+    $result = array();
+    foreach ( $patterns as $pattern ) {
+        $pattern = trim($pattern);
+        if ( $pattern !== '' ) {
+            $result[] = $pattern;
+        }
+    }
+
+    return $result;
+}
+
+/**
+ * Build a regexp from a user pattern with a safe delimiter.
+ *
+ * @param string $pattern
+ *
+ * @return string
+ */
+function apbct_protection_mode__build_regexp($pattern)
+{
+    $delimiter = '#';
+
+    return $delimiter . str_replace($delimiter, '\\' . $delimiter, $pattern) . $delimiter;
+}
+
+/**
+ * Whether the pattern compiles as a regular expression (same delimiter as runtime).
+ *
+ * @param string $pattern
+ *
+ * @return bool
+ */
+function apbct_protection_mode__is_regexp_compilable($pattern)
+{
+    return @preg_match(apbct_protection_mode__build_regexp($pattern), '') !== false;
+}
+
+/**
+ * Whether the pattern looks like an intentional regular expression.
+ *
+ * @param string $pattern
+ *
+ * @return bool
+ */
+function apbct_protection_mode__looks_like_regexp($pattern)
+{
+    return (bool) preg_match('/[.*+?\[\](){}|^$\\\\]/', $pattern);
+}
+
+/**
+ * Return the first invalid regexp-like pattern, or null if all are ok.
+ *
+ * @param string $urls_setting
+ *
+ * @return string|null
+ */
+function apbct_protection_mode__get_invalid_regexp_pattern($urls_setting)
+{
+    foreach ( apbct_protection_mode__parse_url_patterns($urls_setting) as $pattern ) {
+        if ( apbct_protection_mode__looks_like_regexp($pattern) && ! apbct_protection_mode__is_regexp_compilable($pattern) ) {
+            return $pattern;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Match a single Protection mode pattern against a URL haystack.
+ * Substring first, then regexp with escaped delimiter.
+ *
+ * @param string $pattern
+ * @param string $url_haystack
+ *
+ * @return bool
+ */
+function apbct_protection_mode__pattern_matches($pattern, $url_haystack)
+{
+    if ( stripos($url_haystack, $pattern) !== false ) {
+        return true;
+    }
+
+    return @preg_match(apbct_protection_mode__build_regexp($pattern), $url_haystack) === 1;
+}
+
+/**
  * Whether public JS/CSS assets are allowed on the current page.
  * Full mode — always. Lite mode — only if REQUEST_URI matches listed pages (substring or regexp).
  *
@@ -494,22 +600,10 @@ function apbct_is_assets_allowed_on_current_page()
         return false;
     }
 
-    if ( strpos($apbct->settings['data__protection_mode__urls'], "\r\n") !== false ) {
-        $patterns = explode("\r\n", $apbct->settings['data__protection_mode__urls']);
-    } elseif ( strpos($apbct->settings['data__protection_mode__urls'], "\n") !== false ) {
-        $patterns = explode("\n", $apbct->settings['data__protection_mode__urls']);
-    } else {
-        $patterns = explode(',', $apbct->settings['data__protection_mode__urls']);
-    }
-
     $url_haystack = TT::toString(Server::getString('REQUEST_URI'));
 
-    foreach ( $patterns as $pattern ) {
-        $pattern = trim($pattern);
-        if ( $pattern === '' ) {
-            continue;
-        }
-        if ( @preg_match('@' . $pattern . '@', $url_haystack) === 1 || stripos($url_haystack, $pattern) !== false ) {
+    foreach ( apbct_protection_mode__parse_url_patterns($apbct->settings['data__protection_mode__urls']) as $pattern ) {
+        if ( apbct_protection_mode__pattern_matches($pattern, $url_haystack) ) {
             return true;
         }
     }
