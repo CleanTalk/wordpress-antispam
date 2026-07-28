@@ -16,7 +16,7 @@ export default function SignupInterface({
 }) {
     const [email, setEmail] = useState(savedEmail);
     const [agreedToTerms, setAgreedToTerms] = useState(savedAgreedToTerms);
-    const [buttonText, setButtonText] = useState(__('Connect to Account', 'cleantalk-spam-protect'));
+    const [buttonText, setButtonText] = useState(__('Enable Anti-Spam', 'cleantalk-spam-protect'));
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
@@ -64,7 +64,7 @@ export default function SignupInterface({
             setError(submitError.message || __('Request failed. Please try again.', 'cleantalk-spam-protect'));
         } finally {
             setIsSubmitting(false);
-            setButtonText(__('Connect to Account', 'cleantalk-spam-protect'));
+            setButtonText(__('Enable Anti-Spam', 'cleantalk-spam-protect'));
         }
     };
 
@@ -103,7 +103,7 @@ export default function SignupInterface({
                 <div className={'apbct-signup-wizard-card-right'}>
                     <div>
                         <p className={'apbct-signup-wizard-title'}>
-                            {__('Connect your website to CleanTalk cloud', 'cleantalk-spam-protect')}
+                            {__('Connect Your Website to the Anti-Spam Cloud', 'cleantalk-spam-protect')}
                         </p>
                         <form onSubmit={handleSignUp}>
                             <div className='apbct-signup-wizard-form-group'>
