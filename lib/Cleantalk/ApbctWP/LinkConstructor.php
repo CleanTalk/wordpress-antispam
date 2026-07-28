@@ -84,6 +84,22 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_medium' => 'email',
             'utm_content' => 'wp_spam_registration_passed',
         ),
+        'email_blacklists_comment_passed' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'newsletter',
+            'utm_medium' => 'email',
+            'utm_content' => 'blacklists_check',
+            'utm_campaign' => 'wp_spam_comment_passed',
+        ),
+        'email_blacklists_comment_activate_antispam' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'newsletter',
+            'utm_medium' => 'email',
+            'utm_content' => 'blacklists_check',
+            'utm_campaign' => 'wp_spam_comment_activate_antispam',
+        ),
         /*
          * Renewal links
          * todo All the renewal uses the same utm - make them unique

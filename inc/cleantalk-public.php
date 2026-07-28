@@ -776,22 +776,31 @@ function apbct_comment__Wordpress__changeMailNotification($notify_message, $_com
 
 function apbct_comment__wordpress__show_blacklists($notify_message, $comment_id)
 {
+    global $apbct;
+
     $comment_details = get_comments(array('comment__in' => $comment_id));
     if (is_array($comment_details) && isset($comment_details[0])) {
         $comment_details = $comment_details[0];
     }
 
     if ( is_object($comment_details) && isset($comment_details->comment_author_email, $comment_details->comment_author_IP) ) {
-        //HANDLE LINK
-        $black_list_link = 'https://cleantalk.org/blacklists/';
+        $utm_preset = $apbct->key_is_ok
+            ? 'email_blacklists_comment_passed'
+            : 'email_blacklists_comment_activate_antispam';
 
         $links = PHP_EOL;
         $links .= esc_html__('Check for spam:', 'cleantalk-spam-protect');
         $links .= PHP_EOL;
-        $links .= $black_list_link . $comment_details->comment_author_email;
+        $links .= LinkConstructor::buildCleanTalkLink(
+            $utm_preset,
+            'blacklists/' . $comment_details->comment_author_email
+        );
         $links .= PHP_EOL;
         if ( ! empty($comment_details->comment_author_IP) ) {
-            $links .= $black_list_link . $comment_details->comment_author_IP;
+            $links .= LinkConstructor::buildCleanTalkLink(
+                $utm_preset,
+                'blacklists/' . $comment_details->comment_author_IP
+            );
             $links .= PHP_EOL;
         }
 
