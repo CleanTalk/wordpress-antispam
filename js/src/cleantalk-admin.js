@@ -1,3 +1,4 @@
+(function() {
 const {__} = wp.i18n;
 jQuery(document).ready(function($) {
     // Auto update banner close handler
@@ -297,3 +298,7 @@ function apbct_admin_sendAJAX(data, params, obj) {
         timeout: timeout,
     });
 }
+
+// Keep AJAX helper global — used by settings page and other admin scripts.
+window.apbct_admin_sendAJAX = apbct_admin_sendAJAX;
+})();
