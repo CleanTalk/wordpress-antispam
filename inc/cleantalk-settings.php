@@ -181,6 +181,23 @@ function apbct_settings__set_fields()
                     ),
                     'long_description' => true,
                 ),
+                'data__email_decoder__status'        => array(
+                    'type'        => 'custom_html',
+                    'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
+                    'long_description' => true,
+                ),
+            ),
+        ),
+
+        // Links to open other sections below
+        'spoilers_links' => array(
+            'fields' => array(),
+            'html_before' => apbct_get_spoilers_links()
+        ),
+
+        //Description of advanced settings
+        'advanced_settings'     => array(
+            'fields' => array(
                 'sfw__anti_crawler'           => array(
                     'type'        => 'checkbox',
                     'title'       => 'Anti-Crawler', // Do not to localize this phrase
@@ -204,23 +221,7 @@ function apbct_settings__set_fields()
                         . $additional_ac_description,
                     'long_description' => true,
                 ),
-                'data__email_decoder__status'        => array(
-                    'type'        => 'custom_html',
-                    'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
-                    'long_description' => true,
-                ),
             ),
-        ),
-
-        // Links to open other sections below
-        'spoilers_links' => array(
-            'fields' => array(),
-            'html_before' => apbct_get_spoilers_links()
-        ),
-
-        //Description of advanced settings
-        'advanced_settings'     => array(
-            'fields' => array(),
             'notification'      => __('The default settings correspond to the optimal work of the service and their change is required only in special cases.', 'cleantalk-spam-protect'),
             'html_before'       => '<div id="apbct_settings__before_advanced_settings"></div>'
             . '<div id="apbct_settings__advanced_settings" style="display: none;">'
