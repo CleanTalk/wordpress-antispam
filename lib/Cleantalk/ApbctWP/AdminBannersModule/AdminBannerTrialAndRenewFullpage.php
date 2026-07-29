@@ -181,7 +181,7 @@ class AdminBannerTrialAndRenewFullpage extends AdminBannerAbstract
                                     <?php echo esc_html($data['subtitle']); ?>
                                 </div>
                             </div>
-                            <div class="apbct-banner-button-wrapper" style="display: flex;margin: 0;">
+                            <div class="apbct-banner-button-wrapper">
                                 <a href="<?php echo esc_url($data['renewal_link']); ?>" target="_blank" class="apbct-banner-button apbct-banner-button-red"><?php echo esc_html($data['btn_upgrade']); ?></a>
                             </div>
                         </div>

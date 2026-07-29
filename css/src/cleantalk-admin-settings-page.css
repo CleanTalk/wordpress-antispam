@@ -741,11 +741,9 @@ button[value="save_changes"]:disabled {
     color: #444;
     background-color: #f0f0f0;
     z-index: 99;
-    margin-left: -20px;
 }
 
 .apbct-trial-renew-fullpage-notice {
-    height: fit-content;
 	padding: 32px 64px 64px 64px !important;
 	margin-top: 5em !important;
 	margin-bottom: 5em !important;
@@ -759,6 +757,11 @@ button[value="save_changes"]:disabled {
 .apbct-banner-header {
     display: flex;
     justify-content: space-between;
+}
+
+.apbct-trial-renew-fullpage-body .apbct-banner-button-wrapper {
+    display: flex;
+    margin: 0;
 }
 
 .apbct-trial-renew-fullpage-image {
@@ -833,6 +836,7 @@ button[value="save_changes"]:disabled {
 .apbct-banner-desc-blocks-content {
 	display: flex;
 	gap: 72px;
+	flex-wrap: wrap;
 	justify-content: center;
 	margin: 32px 0;
 }

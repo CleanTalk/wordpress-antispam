@@ -286,14 +286,6 @@
 	align-content: center;
 }
 
-.apbct-banner-button-green {
-	background-color: #00BB5D !important;
-}
-
-.apbct-banner-button-green:hover {
-	background-color: #00a34f !important;
-}
-
 .apbct-banner-button-wrapper {
 	display: grid;
 	gap: 12px;
@@ -346,6 +338,14 @@
 
 .apbct-notice.apbct-banner-error .notice-dismiss::before {
 	color: #646464;
+}
+
+.apbct-banner-button-green {
+	background-color: #00BB5D !important;
+}
+
+.apbct-banner-button-green:hover {
+	background-color: #00a34f !important;
 }
 
 .apbct-banner-button-red {
