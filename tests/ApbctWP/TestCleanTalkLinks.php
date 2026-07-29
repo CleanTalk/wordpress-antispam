@@ -70,6 +70,107 @@ class TestCleanTalkLinks extends \PHPUnit\Framework\TestCase
         $this->assertSame('apbct_links', $preset['utm_campaign']);
     }
 
+    public function testEmailBlacklistsCommentPassedEmailPresetExists()
+    {
+        $this->assertArrayHasKey('email_blacklists_comment_passed_email', LinkConstructor::$utm_presets);
+        $preset = LinkConstructor::$utm_presets['email_blacklists_comment_passed_email'];
+        $this->assertSame('newsletter', $preset['utm_source']);
+        $this->assertSame('email', $preset['utm_medium']);
+        $this->assertSame('blacklists_check', $preset['utm_content']);
+        $this->assertSame('wp_spam_comment_passed', $preset['utm_campaign']);
+    }
+
+    public function testEmailBlacklistsCommentPassedIpPresetExists()
+    {
+        $this->assertArrayHasKey('email_blacklists_comment_passed_ip', LinkConstructor::$utm_presets);
+        $preset = LinkConstructor::$utm_presets['email_blacklists_comment_passed_ip'];
+        $this->assertSame('newsletter', $preset['utm_source']);
+        $this->assertSame('ip', $preset['utm_medium']);
+        $this->assertSame('blacklists_check', $preset['utm_content']);
+        $this->assertSame('wp_spam_comment_passed', $preset['utm_campaign']);
+    }
+
+    public function testEmailBlacklistsCommentActivateAntispamEmailPresetExists()
+    {
+        $this->assertArrayHasKey('email_blacklists_comment_activate_antispam_email', LinkConstructor::$utm_presets);
+        $preset = LinkConstructor::$utm_presets['email_blacklists_comment_activate_antispam_email'];
+        $this->assertSame('newsletter', $preset['utm_source']);
+        $this->assertSame('email', $preset['utm_medium']);
+        $this->assertSame('blacklists_check', $preset['utm_content']);
+        $this->assertSame('wp_spam_comment_activate_antispam', $preset['utm_campaign']);
+    }
+
+    public function testEmailBlacklistsCommentActivateAntispamIpPresetExists()
+    {
+        $this->assertArrayHasKey('email_blacklists_comment_activate_antispam_ip', LinkConstructor::$utm_presets);
+        $preset = LinkConstructor::$utm_presets['email_blacklists_comment_activate_antispam_ip'];
+        $this->assertSame('newsletter', $preset['utm_source']);
+        $this->assertSame('ip', $preset['utm_medium']);
+        $this->assertSame('blacklists_check', $preset['utm_content']);
+        $this->assertSame('wp_spam_comment_activate_antispam', $preset['utm_campaign']);
+    }
+
+    public function testEmailBlacklistsCommentPassedEmailLink()
+    {
+        $link = LinkConstructor::buildCleanTalkLink(
+            'email_blacklists_comment_passed_email',
+            'blacklists/test@example.com'
+        );
+        $this->assertIsString($link);
+        $this->assertEquals(
+            'https://cleantalk.org/blacklists/test@example.com?utm_id=&utm_term=&utm_source=newsletter&utm_medium=email&utm_content=blacklists_check&utm_campaign=wp_spam_comment_passed',
+            $link
+        );
+    }
+
+    public function testEmailBlacklistsCommentPassedIpLink()
+    {
+        $link = LinkConstructor::buildCleanTalkLink(
+            'email_blacklists_comment_passed_ip',
+            'blacklists/1.2.3.4'
+        );
+        $this->assertIsString($link);
+        $this->assertEquals(
+            'https://cleantalk.org/blacklists/1.2.3.4?utm_id=&utm_term=&utm_source=newsletter&utm_medium=ip&utm_content=blacklists_check&utm_campaign=wp_spam_comment_passed',
+            $link
+        );
+    }
+
+    public function testEmailBlacklistsCommentActivateAntispamEmailLink()
+    {
+        $link = LinkConstructor::buildCleanTalkLink(
+            'email_blacklists_comment_activate_antispam_email',
+            'blacklists/test@example.com'
+        );
+        $this->assertIsString($link);
+        $this->assertEquals(
+            'https://cleantalk.org/blacklists/test@example.com?utm_id=&utm_term=&utm_source=newsletter&utm_medium=email&utm_content=blacklists_check&utm_campaign=wp_spam_comment_activate_antispam',
+            $link
+        );
+    }
+
+    public function testEmailBlacklistsCommentActivateAntispamIpLink()
+    {
+        $link = LinkConstructor::buildCleanTalkLink(
+            'email_blacklists_comment_activate_antispam_ip',
+            'blacklists/1.2.3.4'
+        );
+        $this->assertIsString($link);
+        $this->assertEquals(
+            'https://cleantalk.org/blacklists/1.2.3.4?utm_id=&utm_term=&utm_source=newsletter&utm_medium=ip&utm_content=blacklists_check&utm_campaign=wp_spam_comment_activate_antispam',
+            $link
+        );
+    }
+
+    public function testEmailAndIpPresetsHaveDifferentMedium()
+    {
+        $email_preset = LinkConstructor::$utm_presets['email_blacklists_comment_passed_email'];
+        $ip_preset    = LinkConstructor::$utm_presets['email_blacklists_comment_passed_ip'];
+        $this->assertNotSame($email_preset['utm_medium'], $ip_preset['utm_medium']);
+        $this->assertSame('email', $email_preset['utm_medium']);
+        $this->assertSame('ip', $ip_preset['utm_medium']);
+    }
+
     public function testRenewalLink()
     {
         $token = 'test_token';

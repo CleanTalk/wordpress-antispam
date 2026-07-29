@@ -76,7 +76,6 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
         /*
          * Emails
          */
-        //https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=wp_spam_registration_passed
         'email_wp_spam_registration_passed' => array(
             'utm_id' => '',
             'utm_term' => '',
@@ -84,7 +83,7 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_medium' => 'email',
             'utm_content' => 'wp_spam_registration_passed',
         ),
-        'email_blacklists_comment_passed' => array(
+        'email_blacklists_comment_passed_email' => array(
             'utm_id' => '',
             'utm_term' => '',
             'utm_source' => 'newsletter',
@@ -92,11 +91,27 @@ class LinkConstructor extends \Cleantalk\Common\LinkConstructor
             'utm_content' => 'blacklists_check',
             'utm_campaign' => 'wp_spam_comment_passed',
         ),
-        'email_blacklists_comment_activate_antispam' => array(
+        'email_blacklists_comment_passed_ip' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'newsletter',
+            'utm_medium' => 'ip',
+            'utm_content' => 'blacklists_check',
+            'utm_campaign' => 'wp_spam_comment_passed',
+        ),
+        'email_blacklists_comment_activate_antispam_email' => array(
             'utm_id' => '',
             'utm_term' => '',
             'utm_source' => 'newsletter',
             'utm_medium' => 'email',
+            'utm_content' => 'blacklists_check',
+            'utm_campaign' => 'wp_spam_comment_activate_antispam',
+        ),
+        'email_blacklists_comment_activate_antispam_ip' => array(
+            'utm_id' => '',
+            'utm_term' => '',
+            'utm_source' => 'newsletter',
+            'utm_medium' => 'ip',
             'utm_content' => 'blacklists_check',
             'utm_campaign' => 'wp_spam_comment_activate_antispam',
         ),

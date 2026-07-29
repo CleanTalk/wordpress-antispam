@@ -784,21 +784,24 @@ function apbct_comment__wordpress__show_blacklists($notify_message, $comment_id)
     }
 
     if ( is_object($comment_details) && isset($comment_details->comment_author_email, $comment_details->comment_author_IP) ) {
-        $utm_preset = $apbct->key_is_ok
-            ? 'email_blacklists_comment_passed'
-            : 'email_blacklists_comment_activate_antispam';
+        $utm_preset_email = $apbct->key_is_ok
+            ? 'email_blacklists_comment_passed_email'
+            : 'email_blacklists_comment_activate_antispam_email';
+        $utm_preset_ip = $apbct->key_is_ok
+            ? 'email_blacklists_comment_passed_ip'
+            : 'email_blacklists_comment_activate_antispam_ip';
 
         $links = PHP_EOL;
         $links .= esc_html__('Check for spam:', 'cleantalk-spam-protect');
         $links .= PHP_EOL;
         $links .= LinkConstructor::buildCleanTalkLink(
-            $utm_preset,
+            $utm_preset_email,
             'blacklists/' . $comment_details->comment_author_email
         );
         $links .= PHP_EOL;
         if ( ! empty($comment_details->comment_author_IP) ) {
             $links .= LinkConstructor::buildCleanTalkLink(
-                $utm_preset,
+                $utm_preset_ip,
                 'blacklists/' . $comment_details->comment_author_IP
             );
             $links .= PHP_EOL;
