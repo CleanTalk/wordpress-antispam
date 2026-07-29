@@ -103,17 +103,17 @@ function apbct_settings__set_fields()
 {
     global $apbct;
 
-    $additional_ac_title = '';
+    $additional_ac_description = '';
     if ( $apbct->api_key && is_null($apbct->fw_stats['firewall_updating_id']) ) {
         if ( $apbct->settings['sfw__enabled'] && ! $apbct->stats['sfw']['entries'] ) {
-            $additional_ac_title =
-                ' <span style="color:red">'
+            $additional_ac_description =
+                '<br><span style="color:black">'
                 . esc_html__(
                     'The functionality was disabled because SpamFireWall database is empty. Please, do the synchronization or',
                     'cleantalk-spam-protect'
                 )
                 . ' '
-                . '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('settings_support_open', 'my/support/open')) . '" target="_blank" style="color:red">'
+                . '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('settings_support_open', 'my/support/open')) . '" target="_blank" style="color:black">'
                 . esc_html__(
                     'contact to our support.',
                     'cleantalk-spam-protect'
@@ -183,9 +183,8 @@ function apbct_settings__set_fields()
                 ),
                 'sfw__anti_crawler'           => array(
                     'type'        => 'checkbox',
-                    'title'       => 'Anti-Crawler' . $additional_ac_title, // Do not to localize this phrase
+                    'title'       => 'Anti-Crawler', // Do not to localize this phrase
                     'class'       => 'apbct_settings-field_wrapper',
-                    'parent'      => 'sfw__enabled',
                     'description' =>
                         __(
                             'Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).',
@@ -196,11 +195,13 @@ function apbct_settings__set_fields()
                             'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.',
                             'cleantalk-spam-protect'
                         )
-                        . '<br><b>'
+                        . '<br><b style="color:black">'
                         . __(
-                            'This option works only when SpamFireWall is enabled.',
+                            'SpamFireWall if Anti-Crawler has been enabled',
                             'cleantalk-spam-protect'
-                        ) . '</b>',
+                        )
+                        . '</b>'
+                        . $additional_ac_description,
                     'long_description' => true,
                 ),
                 'data__email_decoder__status'        => array(
@@ -858,7 +859,7 @@ function apbct_settings__set_fields()
                             'cleantalk-spam-protect'
                         )
                         . $additional_sfw_description,
-                    'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler', 'sfw__random_get', 'misc__force_sfw_update_button'),
+                    'childrens'   => array('sfw__anti_flood', 'sfw__random_get', 'misc__force_sfw_update_button'),
                     'long_description' => true,
                 ),
                 'sfw__random_get'             => array(
@@ -2393,6 +2394,11 @@ function apbct_settings__validate($incoming_settings)
     /**
      * -- SFW rules --
      */
+
+    // Anti-Crawler is an add-on to SFW, so SFW is enabled automatically with it
+    if ( ! empty($incoming_settings['sfw__anti_crawler']) ) {
+        $incoming_settings['sfw__enabled'] = 1;
+    }
 
     // Actions with toggle SFW settings
     // SFW was enabled
