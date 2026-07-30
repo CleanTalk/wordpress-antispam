@@ -2,7 +2,6 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-
 class EventPrime extends IntegrationBase
 {
     private $is_register_form;
