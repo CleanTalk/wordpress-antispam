@@ -31,7 +31,6 @@ class EventPrime extends IntegrationBase
 
             apbct_form__get_no_cookie_data($input_data);
 
-            // Extract event_token before ct_gfa_dto() — it doesn't pass it through
             $event_token = '';
             if (isset($input_data['ct_bot_detector_event_token'])) {
                 $event_token = $input_data['ct_bot_detector_event_token'];
