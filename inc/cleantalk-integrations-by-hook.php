@@ -516,6 +516,12 @@ $apbct_active_integrations = array(
         'ajax'    => true,
         'ajax_and_post' => true
     ),
+    'EventPrime' => array(
+        'hook'    => ['ep_submit_register_form', 'ep_save_event_booking'],
+        'setting' => 'forms__registrations_test',
+        'ajax'    => true,
+        'ajax_and_post' => true
+    ),
 );
 
 add_action('plugins_loaded', function () use ($apbct_active_integrations) {

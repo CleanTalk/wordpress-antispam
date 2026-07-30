@@ -1752,6 +1752,18 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'Email Subscribers by Icegram Express - skip subscribe action';
         }
+
+        // EventPrime - skip actions
+        if (
+            apbct_is_plugin_active('eventprime-event-calendar-management/event-prime.php') &&
+            (
+                Post::equal('action', 'ep_submit_register_form') ||
+                Post::equal('action', 'ep_rg_check_email') ||
+                Post::equal('action', 'ep_save_event_booking')
+            )
+        ) {
+            return 'EventPrime - skip actions';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
