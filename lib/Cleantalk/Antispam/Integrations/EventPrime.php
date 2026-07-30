@@ -2,7 +2,6 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\ApbctWP\Variables\Post;
 
 class EventPrime extends IntegrationBase
 {
