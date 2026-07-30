@@ -25,7 +25,7 @@ class EventPrime extends IntegrationBase
                 $input_data = array_merge($input_data, $parsed_data);
             }
 
-            if (! isset($input_data['ep_rg_field_email'])) {
+            if ($this->is_checkout_form && !isset($input_data['ep_rg_field_email'])) {
                 return null;
             }
 
@@ -42,7 +42,7 @@ class EventPrime extends IntegrationBase
             }
 
             $processed_post = apply_filters('apbct__filter_post', $input_data);
-            $data = ct_gfa_dto($processed_post)->getArray();
+            $data = ct_gfa_dto($processed_post, $this->is_checkout_form ? $input_data['ep_rg_field_email'] : '')->getArray();
 
             if (!empty($event_token)) {
                 $data['event_token'] = $event_token;
