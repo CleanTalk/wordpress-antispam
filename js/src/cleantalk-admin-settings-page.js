@@ -470,7 +470,7 @@ function apbctManageEmailEncoderCustomTextField() {
 function apbctManageAntiCrawlerDependency() {
     const antiCrawler = document.querySelector('#apbct_setting_sfw__anti_crawler');
     const spamFireWall = document.querySelector('#apbct_setting_sfw__enabled');
-    if (antiCrawler === null || spamFireWall === null) {
+    if (!antiCrawler || !spamFireWall) {
         return;
     }
     antiCrawler.addEventListener('change', () => {
