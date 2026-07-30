@@ -53,9 +53,9 @@ class EventPrime extends IntegrationBase
                 $data['event_token'] = $event_token;
             }
 
-
-            $data['register'] = $this->is_register_form ? true : '';
-
+            if ($this->is_register_form) {
+                $data['register'] = true;
+            }
             return $data;
         }
 
