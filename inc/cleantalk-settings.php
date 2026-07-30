@@ -197,6 +197,14 @@ function apbct_settings__set_fields()
 
         //Description of advanced settings
         'advanced_settings'     => array(
+            'fields' => array(),
+            'notification'      => __('The default settings correspond to the optimal work of the service and their change is required only in special cases.', 'cleantalk-spam-protect'),
+            'html_before'       => '<div id="apbct_settings__before_advanced_settings"></div>'
+                . '<div id="apbct_settings__advanced_settings" style="display: none;">'
+                . '<div id="apbct_settings__advanced_settings_inner">',
+        ),
+        'anti_crawl_settings'     => array(
+            'title'          => 'Anti-Crawler',
             'fields' => array(
                 'sfw__anti_crawler'           => array(
                     'type'        => 'checkbox',
@@ -214,7 +222,7 @@ function apbct_settings__set_fields()
                         )
                         . '<br><b style="color:black">'
                         . __(
-                            'SpamFireWall if Anti-Crawler has been enabled',
+                            'SpamFireWall will be enabled automatically when Anti-Crawler is enabled',
                             'cleantalk-spam-protect'
                         )
                         . '</b>'
@@ -222,10 +230,6 @@ function apbct_settings__set_fields()
                     'long_description' => true,
                 ),
             ),
-            'notification'      => __('The default settings correspond to the optimal work of the service and their change is required only in special cases.', 'cleantalk-spam-protect'),
-            'html_before'       => '<div id="apbct_settings__before_advanced_settings"></div>'
-            . '<div id="apbct_settings__advanced_settings" style="display: none;">'
-            . '<div id="apbct_settings__advanced_settings_inner">',
         ),
 
         // Forms protection
