@@ -30,9 +30,6 @@ class WPSearchForm extends IntegrationByClassBase
         global $apbct;
         if ($apbct->settings['forms__search_test']) {
             add_filter('get_search_form', array($this, 'apbctFormSearchAddFields'), 999);
-            // The block search form (core/search) is rendered by render_block_core_search()
-            // and does not fire get_search_form, so it is handled on its dedicated render hook.
-            add_filter('render_block_core/search', array($this, 'apbctFormSearchAddFields'), 999);
         }
         if ($this->isNativeSearchFormRequest()) {
             // Default search
