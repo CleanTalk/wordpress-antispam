@@ -42,7 +42,13 @@ class EventPrime extends IntegrationBase
             }
 
             $processed_post = apply_filters('apbct__filter_post', $input_data);
-            $data = ct_gfa_dto($processed_post, $this->is_checkout_form ? $input_data['ep_rg_field_email'] : '')->getArray();
+            $data = ct_gfa_dto(
+                $processed_post,
+                $this->is_checkout_form &&
+                isset($processed_post['ep_rg_field_email']) ?
+                $processed_post['ep_rg_field_email'] :
+                ''
+            )->getArray();
 
             if (!empty($event_token)) {
                 $data['event_token'] = $event_token;
