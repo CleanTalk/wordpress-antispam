@@ -4129,12 +4129,9 @@ class ApbctHandler {
 
                 let cookiesArray = cleantalkStorageDataArray;
 
-                // if honeypot data provided store it in a short-lived native cookie to read on the search request.
-                // The search form is GET and the field is stripped from the URL, so the value travels in a cookie.
-                // The expiry keeps it bound to the imminent submit so it can't go stale on search-result reloads.
+                // if honeypot data provided add the fields to the parsed data
                 if ( hpValue !== null ) {
-                    const hpExpires = new Date(Date.now() + 30000).toUTCString();
-                    ctSetCookie('apbct_search_form__honeypot_value', hpValue, hpExpires);
+                    cookiesArray.apbct_search_form__honeypot_value = hpValue;
                 }
 
                 // set event token
