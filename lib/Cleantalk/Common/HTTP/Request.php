@@ -227,8 +227,11 @@ class Request
             $request_result = array('error' => curl_error($ch));
         }
 
-        curl_close($ch);
-
+        if (PHP_VERSION_ID < 80000) {
+            curl_close($ch);
+        } else {
+            unset($ch);
+        }
 
         return new Response($request_result, $curl_info);
     }

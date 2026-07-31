@@ -1,12 +1,8 @@
 <?php
 
-namespace Antispam\IntegrationsByHook;
-
 use Cleantalk\Antispam\Integrations\FluentForm;
-use Cleantalk\ApbctWP\State;
-use PHPUnit\Framework\TestCase;
 
-class TestFluentForms extends TestCase
+class TestFluentForms extends ApbctTestCase
 {
 	private $post;
 
@@ -16,8 +12,6 @@ class TestFluentForms extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        global $apbct;
-        $apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
         $this->fluentForm = new FluentForm();
         $this->post = array (
             'ct_bot_detector_event_token' => 'e38086feb53a3e02c9e65631bbe538575cfba5cacac48bb4925776db6a00386e',
@@ -31,8 +25,6 @@ class TestFluentForms extends TestCase
 
     protected function tearDown(): void
     {
-        global $apbct;
-        unset($apbct);
         $_POST = [];
         global $fluentformCleantalkExecuted;
         $fluentformCleantalkExecuted = null;
