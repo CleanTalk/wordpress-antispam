@@ -18,7 +18,7 @@ class Integrations
     {
         $this->integrations = $integrations;
 
-        foreach ($this->integrations as $_integration_name => $integration_info) {
+        foreach ($this->integrations as $integration_name => $integration_info) {
             // If ajax and hook data are not specified in the integration, then we handle this case.
             if (!isset($integration_info['ajax'])) {
                 $integration_info['ajax'] = false;
@@ -39,25 +39,32 @@ class Integrations
                 }
             }
 
+            // Bind integration name explicitly: several integrations can share the same hook
+            // (init, wp_loaded, ...), and getCurrentIntegrationTriggered() would always
+            // resolve to the first one in the list.
+            $callback = function ($argument = null) use ($integration_name) {
+                return $this->checkSpam($argument, $integration_name);
+            };
+
             if ( $integration_info['ajax'] ) {
                 if ( is_array($integration_info['hook']) ) {
                     foreach ( $integration_info['hook'] as $hook ) {
-                        add_action('wp_ajax_' . $hook, array($this, 'checkSpam'), 1);
-                        add_action('wp_ajax_nopriv_' . $hook, array($this, 'checkSpam'), 1);
+                        add_action('wp_ajax_' . $hook, $callback, 1);
+                        add_action('wp_ajax_nopriv_' . $hook, $callback, 1);
                     }
                 } else {
-                    add_action('wp_ajax_' . $integration_info['hook'], array($this, 'checkSpam'), 1);
-                    add_action('wp_ajax_nopriv_' . $integration_info['hook'], array($this, 'checkSpam'), 1);
+                    add_action('wp_ajax_' . $integration_info['hook'], $callback, 1);
+                    add_action('wp_ajax_nopriv_' . $integration_info['hook'], $callback, 1);
                 }
             }
 
             if ( !$integration_info['ajax'] || !empty($integration_info['ajax_and_post']) ) {
                 if ( is_array($integration_info['hook']) ) {
                     foreach ( $integration_info['hook'] as $hook ) {
-                        add_action($hook, array($this, 'checkSpam'));
+                        add_action($hook, $callback);
                     }
                 } else {
-                    add_action($integration_info['hook'], array($this, 'checkSpam'));
+                    add_action($integration_info['hook'], $callback);
                 }
             }
         }

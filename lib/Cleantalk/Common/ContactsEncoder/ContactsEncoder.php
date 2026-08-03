@@ -306,6 +306,11 @@ abstract class ContactsEncoder
                     return $matches[0][0];
                 }
 
+                // skip encoding inside select option values/text — breaks form submission
+                if ( isset($matches[0][0]) && $this->helper->isInsideOptionTag($matches[0][0], $content) ) {
+                    return $matches[0][0];
+                }
+
                 if ( isset($matches[0][0]) && $this->helper->isMailto($matches[0][0]) ) {
                     return $this->encodeMailtoLinkV2($matches[0], $content);
                 }
@@ -342,6 +347,10 @@ abstract class ContactsEncoder
 
                 //chek if email is placed in excluded attributes and return unchanged if so
                 if ( isset($matches[0]) && $this->helper->hasAttributeExclusions($matches[0], $this->temp_content) ) {
+                    return $matches[0];
+                }
+
+                if ( isset($matches[0]) && $this->helper->isInsideOptionTag($matches[0], $this->temp_content) ) {
                     return $matches[0];
                 }
 

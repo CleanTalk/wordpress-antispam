@@ -3566,10 +3566,11 @@ function apbct_get_spoilers_links()
                          . '</span>';
 
     $import_export = '';
-    if (! $apbct->data['wl_mode_enabled'] &&
-        (is_main_site() ||
-            ($apbct->network_settings['multisite__work_mode'] == 1 &&
-            $apbct->network_settings['multisite__allow_custom_settings'])
+    if (
+        is_main_site() ||
+        (
+            $apbct->network_settings['multisite__work_mode'] == 1 &&
+            $apbct->network_settings['multisite__allow_custom_settings']
         )
     ) {
         $import_export = '<span class="apbct_bottom_links--other">'
