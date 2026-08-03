@@ -118,7 +118,8 @@ abstract class Queue
                             'firewall_updating_id' => $apbct->fw_stats['firewall_updating_id'],
                             'stage'                => 'Repeat ' . $stage_to_execute['name']
                         ),
-                        array('async')
+                        array('async'),
+                        false
                     );
                 }
 

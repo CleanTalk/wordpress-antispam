@@ -1404,7 +1404,8 @@ function apbct_sfw_update__worker($checker_work = false)
     return Helper::httpRequestRcToHost(
         'sfw_update__worker',
         array('firewall_updating_id' => $apbct->fw_stats['firewall_updating_id']),
-        array('async')
+        array('async'),
+        false
     );
 }
 
