@@ -397,7 +397,6 @@ function apbct_admin__init()
 
     // Settings Templates
     if (
-        ! $apbct->data['wl_mode_enabled'] &&
         ! is_multisite() ||
         is_main_site() ||
         ( ! is_main_site() && $apbct->network_settings['multisite__allow_custom_settings'])
@@ -429,7 +428,7 @@ function apbct_admin__plugin_action_links($links, $_file)
 }
 
 /**
- * Change th plugin description on all plugins page.
+ * Change the plugin description on all plugins page.
  * @param $all_plugins
  * @return array
  */
@@ -438,10 +437,14 @@ function apbct_admin__change_plugin_description($all_plugins)
     global $apbct;
     if (
         $apbct->data["wl_mode_enabled"] &&
-        isset($all_plugins['cleantalk-spam-protect/cleantalk.php']) &&
-        $apbct->data["wl_antispam_description"]
+        isset($all_plugins['cleantalk-spam-protect/cleantalk.php'])
     ) {
-        $all_plugins['cleantalk-spam-protect/cleantalk.php']['Description'] = $apbct->data["wl_antispam_description"];
+        if ( $apbct->data["wl_antispam_description"] ) {
+            $all_plugins['cleantalk-spam-protect/cleantalk.php']['Description'] = $apbct->data["wl_antispam_description"];
+        }
+        if ( ! empty($apbct->data['wl_brandname']) ) {
+            $all_plugins['cleantalk-spam-protect/cleantalk.php']['Name'] = $apbct->data['wl_brandname'] . ' Anti-Spam';
+        }
     }
     return $all_plugins;
 }
@@ -467,17 +470,26 @@ function apbct_admin__register_plugin_links($links, $file, $plugin_data)
 
     $actual_plugin_name = $apbct->plugin_name;
     if (isset($apbct->data['wl_brandname']) && $apbct->data['wl_brandname'] !== APBCT_NAME) {
-        $actual_plugin_name = $apbct->data['wl_brandname'] . "&nbsp; Anti-Spam";
+        $actual_plugin_name = $apbct->data['wl_brandname'] . ' Anti-Spam';
     }
 
     if ( $apbct->white_label || $apbct->data["wl_mode_enabled"] ) {
         $links   = array_slice($links, 0, 1);
         if (isset($links[0])) {
+            $wl_brand_js = esc_js($apbct->data['wl_brandname']);
+            $plugin_name_js = esc_js($plugin_name);
+            $actual_plugin_name_js = esc_js($actual_plugin_name);
             $links[0] .= "<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
             function changedPluginName(){
                 jQuery('.plugin-title strong').each(function(i, item){
-                if(jQuery(item).html() == '{$plugin_name}')
-                    jQuery(item).html('{$actual_plugin_name}');
+                if(jQuery(item).html() == '{$plugin_name_js}' || jQuery(item).html() == '{$actual_plugin_name_js}')
+                    jQuery(item).html('{$actual_plugin_name_js}');
+                });
+                jQuery('#cleantalk-spam-protect-update .update-message p').each(function(i, item){
+                    var html = jQuery(item).html();
+                    if (html && html.indexOf('CleanTalk') >= 0) {
+                        jQuery(item).html(html.replace(/Anti-?Spam by CleanTalk/g, '{$wl_brand_js}'));
+                    }
                 });
             }
             changedPluginName();

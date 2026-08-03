@@ -442,7 +442,6 @@ Upd. Settings. Implement honey test.
 New. Settings. Getting apikey wizard.
 New. RateLimit. Enabled the RateLimit shared library
 New. Footer. New link on Website Feedback Plugin
-New. RateLimit. Enabled the RateLimit shared library
 Upd. Contacts Encoder. Flow improvements.
 Upd. ContactEncoder. Improve shortcode flow.
 Mod. BannerReview. Changing the design of the review banner
