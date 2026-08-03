@@ -109,8 +109,17 @@ class ServiceConstants
             'string',
             'Provides AJAX route type'
         );
+        $this->self_owned_access_key = new ApbctConstant(
+            array(
+                'APBCT_SERVICE__SELF_OWNED_ACCESS_KEY',
+                'CLEANTALK_ACCESS_KEY',
+            ),
+            'string',
+            'Provides user own access key.'
+        );
         $this->bot_detector_enabled = new ApbctConstant(
             array('APBCT_SERVICE__BOT_DETECTOR_ENABLED'),
+            'bool',
             'Allows to set Bot-Detector enabled/disabled'
         );
         $this->place_public_js_scripts_in_footer = new ApbctConstant(

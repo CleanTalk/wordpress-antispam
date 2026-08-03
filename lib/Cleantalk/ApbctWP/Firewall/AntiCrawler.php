@@ -709,13 +709,13 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         }
 
         // skip for RSS Feed requests
-        if ($apbct->constants->skip_anticrawler_on_rss_feed->isDefined()) {
+        if ($this->apbct->constants->skip_anticrawler_on_rss_feed->isDefined()) {
             if (Server::getString('REQUEST_URI') &&
                 preg_match_all('/feed/i', Server::getString('REQUEST_URI'))
             ) {
                 $this->debug(
                     'exclusions precheck: RSS feed requests disabled by service constant',
-                    $this->apbct->service_constants->skip_anticrawler_on_rss_feed->allowed_public_names
+                    $this->apbct->constants->skip_anticrawler_on_rss_feed->allowed_public_names
                 );
                 return true;
             }

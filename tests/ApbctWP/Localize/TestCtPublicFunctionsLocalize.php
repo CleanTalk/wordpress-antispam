@@ -28,6 +28,8 @@ class TestCtPublicFunctionsLocalize extends \PHPUnit\Framework\TestCase
 
         // Assert
         $this->assertArrayHasKey('bot_detector_enabled', $localize_data);
-        $this->assertArrayNotHasKey('data__bot_detector_enabled', $localize_data);
+        $this->assertArrayHasKey('data__bot_detector_enabled', $localize_data);
+        // The setting itself is gone since 6.76.0, the value is computed - see apbct__is_bot_detector_enabled()
+        $this->assertContains($localize_data['data__bot_detector_enabled'], array(0, 1));
     }
 }

@@ -1933,8 +1933,8 @@ function apbct__is_bot_detector_enabled()
     global $apbct;
 
     // Constant is preferred
-    if ( isset($apbct->service_constants->bot_detector_enabled) && $apbct->service_constants->bot_detector_enabled->isDefined() ) {
-        return (bool) $apbct->service_constants->bot_detector_enabled->getValue();
+    if ( isset($apbct->constants->bot_detector_enabled) && $apbct->constants->bot_detector_enabled->isDefined() ) {
+        return (bool) $apbct->constants->bot_detector_enabled->getValue();
     }
     // Check by $apbct->data
     if ( isset($apbct->data['bot_detector_enabled']) ) {
