@@ -18,17 +18,23 @@ class ApbctConstant
      */
     public $description;
 
-    public function __construct(array $allowed_public_names, $description = '')
+    private $type;
+
+    private $defined_name = false;
+
+    public function __construct(array $allowed_public_names, $type, $description = '')
     {
         $this->allowed_public_names = $allowed_public_names;
         $this->description = $description;
+        $this->type = $type;
+        $this->defined_name = $this->getDefinedName();
     }
 
     /**
      * If defined, returns the name of the first defined constant from the allowed names. Return false if none of the constants are defined.
-     * @return false|string
+     * @return string|false
      */
-    public function isDefined()
+    private function getDefinedName()
     {
         foreach ($this->allowed_public_names as $name) {
             if (defined($name)) {
@@ -39,16 +45,34 @@ class ApbctConstant
     }
 
     /**
+     * If defined and type is correct.
+     * @return bool
+     */
+    public function isDefinedAndTypeOK()
+    {
+        return $this->defined_name && gettype(constant($this->defined_name)) === $this->type;
+    }
+
+
+    /**
+     * Return the fact of definition
+     * @return bool
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function isDefined()
+    {
+        return (bool)$this->defined_name;
+    }
+
+    /**
      * Returns the value of the first defined constant from the allowed names. Return null if none of the constants are defined.
      *
-     * @return string|null
+     * @return mixed|null
      */
     public function getValue()
     {
-        foreach ($this->allowed_public_names as $name) {
-            if (defined($name)) {
-                return (string)constant($name);
-            }
+        if ($this->defined_name) {
+            return constant($this->defined_name);
         }
         return null;
     }
@@ -59,7 +83,7 @@ class ApbctConstant
     public function getData()
     {
         return array(
-            'is_defined'           => $this->isDefined(),
+            'is_defined'           => $this->defined_name,
             'value'                => $this->getValue(),
             'description'          => $this->description,
         );
