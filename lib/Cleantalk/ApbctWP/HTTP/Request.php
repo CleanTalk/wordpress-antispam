@@ -259,6 +259,7 @@ class Request extends \Cleantalk\Common\HTTP\Request
         $this->options['verify'] = $ca;
 
         if ( class_exists('\WpOrg\Requests\Requests') ) {
+            /** @psalm-suppress UndefinedClass */
             \WpOrg\Requests\Requests::set_certificate_path($ca);
         } elseif ( class_exists('\Requests') ) {
             \Requests::set_certificate_path($ca);
