@@ -63,6 +63,6 @@ class TestCleantalkCommon extends TestCase
      * and injecting it into the state. Constant:: is static, so there is nothing to inject, and
      * defining APBCT_SERVICE__BOT_DETECTOR_ENABLED for real is not an option either: it is
      * process-global and would override the data-driven cases above and in TestCleantalkPublic.
-     * Constant resolution itself is covered by TestConstant.
+     * Constant resolution should be covered by dedicated unit tests for Cleantalk\ApbctWP\Constant.
      */
 }
