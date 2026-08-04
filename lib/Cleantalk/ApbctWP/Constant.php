@@ -3,10 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 /**
- * Static registry of the plugin service constants.
- *
- * Replaces the `$apbct->constants-><name>->isDefinedAndTypeOK()` chain with a single static call:
- *
+ * Replaces the `$apbct->service_constants-><name>->isDefined()` / `getValue()` usage with a single static call:
  *     Constant::is(Constant::APBCT_SERVICE__SFW_FORCE_DIRECT_UPDATE)         // just defined & of the declared type
  *     Constant::is(Constant::APBCT_SERVICE__SFW_FORCE_DIRECT_UPDATE, false)  // ... and strictly equals false
  *
