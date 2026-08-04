@@ -42,7 +42,7 @@ function apbct_init()
 
     // Localize data
     if ( ! apbct_exclusions_check__url() ) {
-        if (Constant::is(Constant::APBCT_SERVICE__PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER)) {
+        if (Constant::is(Constant::APBCT_SERVICE__PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER, true)) {
             add_action('wp_footer', array(LocalizeHandler::class, 'handle'), 1);
             add_action('login_footer', array(LocalizeHandler::class, 'handle'), 1);
         } else {
@@ -822,7 +822,7 @@ function ct_die($_comment_id, $_comment_status)
     do_action('apbct_pre_block_page', $ct_comment);
 
     $message_title = __('Spam protection', 'cleantalk-spam-protect');
-    if ( ! Constant::is(Constant::APBCT_SERVICE__DISABLE_BLOCKING_TITLE) ) {
+    if ( ! Constant::is(Constant::APBCT_SERVICE__DISABLE_BLOCKING_TITLE, true) ) {
         $message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ' . $message_title;
     }
     if ( Post::get('et_pb_contact_email') ) {
@@ -879,7 +879,7 @@ function ct_die_extended($comment_body)
     }, 999, 1);
 
     $message_title = __('Spam protection', 'cleantalk-spam-protect');
-    if ( ! Constant::is(Constant::APBCT_SERVICE__DISABLE_BLOCKING_TITLE) ) {
+    if ( ! Constant::is(Constant::APBCT_SERVICE__DISABLE_BLOCKING_TITLE, true) ) {
         $message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ' . $message_title;
     }
 
@@ -1264,7 +1264,7 @@ function apbct_enqueue_and_localize_public_scripts()
 {
     global $apbct;
 
-    $in_footer = Constant::is(Constant::APBCT_SERVICE__PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER);
+    $in_footer = Constant::is(Constant::APBCT_SERVICE__PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER, true);
     // Different JS params
     $bundle_name = ApbctJsBundleResolver::getBundleName($apbct->settings);
     ApbctEnqueue::getInstance()->js($bundle_name, array(), $in_footer);
