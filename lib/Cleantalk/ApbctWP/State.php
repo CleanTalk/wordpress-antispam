@@ -397,10 +397,6 @@ class State extends \Cleantalk\Common\State
       * @var LoginIPKeeper
       */
     public $login_ip_keeper;
-     /**
-      * @var ServiceConstants
-      */
-    public $constants;
 
     private $auto_save_defaults_list = array();
 
@@ -547,8 +543,6 @@ class State extends \Cleantalk\Common\State
             // Limit for firewall logs sending.
             define('APBCT_SFW_SEND_LOGS_LIMIT', 1000);
         }
-
-        $this->constants = new ServiceConstants();
     }
 
     protected function setOptions()

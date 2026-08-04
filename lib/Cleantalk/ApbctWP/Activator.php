@@ -26,7 +26,7 @@ class Activator
             $apbct->stats['plugin']['activation__times']              += 1;
             $apbct->save('stats');
 
-            if ( $network_wide && ! $apbct->constants->self_owned_access_key->isDefinedAndTypeOK() ) {
+            if ( $network_wide && ! Constant::is(Constant::APBCT_SERVICE__SELF_OWNED_ACCESS_KEY) ) {
                 $initial_blog = get_current_blog_id();
                 $blogs        = array_keys($wpdb->get_results('SELECT blog_id FROM ' . $wpdb->blogs, OBJECT_K));
                 foreach ( $blogs as $blog ) {

@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\ApbctEnqueue;
+use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Localize\LocalizeHandler;
 use Cleantalk\ApbctWP\Sanitize;
@@ -41,7 +42,7 @@ function apbct_init()
 
     // Localize data
     if ( ! apbct_exclusions_check__url() ) {
-        if ($apbct->constants->place_public_js_scripts_in_footer->isDefined()) {
+        if (Constant::is(Constant::APBCT_SERVICE__PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER)) {
             add_action('wp_footer', array(LocalizeHandler::class, 'handle'), 1);
             add_action('login_footer', array(LocalizeHandler::class, 'handle'), 1);
         } else {
@@ -811,7 +812,7 @@ function apbct_comment__wordpress__show_blacklists($notify_message, $comment_id)
  */
 function ct_die($_comment_id, $_comment_status)
 {
-    global $ct_comment, $ct_jp_comments, $apbct;
+    global $ct_comment, $ct_jp_comments;
 
     // JCH Optimize caching preventing
     add_filter('jch_optimize_page_cache_set_caching', static function ($_is_cache_active) {
@@ -821,7 +822,7 @@ function ct_die($_comment_id, $_comment_status)
     do_action('apbct_pre_block_page', $ct_comment);
 
     $message_title = __('Spam protection', 'cleantalk-spam-protect');
-    if ( ! $apbct->constants->disable_blocking_title->isDefined() ) {
+    if ( ! Constant::is(Constant::APBCT_SERVICE__DISABLE_BLOCKING_TITLE) ) {
         $message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ' . $message_title;
     }
     if ( Post::get('et_pb_contact_email') ) {
@@ -870,7 +871,7 @@ function ct_die($_comment_id, $_comment_status)
  */
 function ct_die_extended($comment_body)
 {
-    global $ct_jp_comments, $apbct;
+    global $ct_jp_comments;
 
     // JCH Optimize caching preventing
     add_filter('jch_optimize_page_cache_set_caching', static function ($_is_cache_active) {
@@ -878,7 +879,7 @@ function ct_die_extended($comment_body)
     }, 999, 1);
 
     $message_title = __('Spam protection', 'cleantalk-spam-protect');
-    if ( !$apbct->constants->disable_blocking_title->isDefined() ) {
+    if ( ! Constant::is(Constant::APBCT_SERVICE__DISABLE_BLOCKING_TITLE) ) {
         $message_title = '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> ' . $message_title;
     }
 
@@ -1263,7 +1264,7 @@ function apbct_enqueue_and_localize_public_scripts()
 {
     global $apbct;
 
-    $in_footer = $apbct->constants->place_public_js_scripts_in_footer->isDefined();
+    $in_footer = Constant::is(Constant::APBCT_SERVICE__PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER);
     // Different JS params
     $bundle_name = ApbctJsBundleResolver::getBundleName($apbct->settings);
     ApbctEnqueue::getInstance()->js($bundle_name, array(), $in_footer);

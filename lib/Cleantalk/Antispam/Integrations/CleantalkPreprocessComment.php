@@ -3,6 +3,7 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\CleantalkRealPerson;
+use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Cookie;
@@ -64,9 +65,10 @@ class CleantalkPreprocessComment extends IntegrationBase
         $this->wp_comment_post_id = $comment_post_id;
 
         $this->post_info = array();
-        $this->comments_check_number_needs_to_skip_request = $apbct->constants->skip_on_approved_comments_number->isDefinedAndTypeOK()
-            ? $apbct->constants->skip_on_approved_comments_number->getValue()
-            : 3;
+        $this->comments_check_number_needs_to_skip_request = Constant::getValue(
+            Constant::APBCT_SERVICE__SKIP_ON_APPROVED_COMMENTS_NUMBER,
+            3
+        );
 
         /**
          * Custom mail notifications processing
@@ -317,7 +319,7 @@ class CleantalkPreprocessComment extends IntegrationBase
     {
         $ct_result = $this->base_call_result['ct_result'];
 
-        global $ct_comment, $ct_stop_words, $apbct;
+        global $ct_comment, $ct_stop_words;
         $ct_comment = $message;
         $ct_stop_words = $ct_result->stop_words;
         /**
@@ -332,7 +334,7 @@ class CleantalkPreprocessComment extends IntegrationBase
         $err_text =
             '<center>'
             . (
-                $apbct->constants->disable_blocking_title->isDefined()
+                Constant::is(Constant::APBCT_SERVICE__DISABLE_BLOCKING_TITLE)
                     ? ''
                     : '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> '
             )

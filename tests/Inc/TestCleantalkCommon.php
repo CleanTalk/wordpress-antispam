@@ -2,8 +2,6 @@
 
 namespace Inc;
 
-use Cleantalk\ApbctWP\ApbctConstant;
-use Cleantalk\ApbctWP\ServiceConstants;
 use Cleantalk\ApbctWP\State;
 use PHPUnit\Framework\TestCase;
 
@@ -60,22 +58,19 @@ class TestCleantalkCommon extends TestCase
         $this->assertTrue($bot_detector_state);
     }
 
+    /**
+     * The service constant wins over $apbct->data. A PHP constant cannot be undefined once set,
+     * so each case gets its own process.
+     *
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
     public function testApbctIsBotDetectorEnabledByConstant()
     {
         // Arrange
         global $apbct;
-        $apbct_constant_mock = $this->getMockBuilder(ApbctConstant::class)
-                     ->onlyMethods(['isDefined', 'getValue'])
-                     ->disableOriginalConstructor()
-                     ->getMock();
-
-        $apbct_constant_mock->method('isDefined')
-             ->willReturn(true);
-
-        $apbct_constant_mock->method('getValue')
-                               ->willReturn(true);
-        $apbct->service_constants = new ServiceConstants();
-        $apbct->service_constants->bot_detector_enabled = $apbct_constant_mock;
+        $apbct->data['bot_detector_enabled'] = 0;
+        define('APBCT_SERVICE__BOT_DETECTOR_ENABLED', true);
 
         // Act
         $bot_detector_state = apbct__is_bot_detector_enabled();
@@ -84,22 +79,16 @@ class TestCleantalkCommon extends TestCase
         $this->assertTrue($bot_detector_state);
     }
 
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
     public function testApbctIsBotDetectorDisabledByConstant()
     {
         // Arrange
         global $apbct;
-        $apbct_constant_mock = $this->getMockBuilder(ApbctConstant::class)
-                                    ->onlyMethods(['isDefined', 'getValue'])
-                                    ->disableOriginalConstructor()
-                                    ->getMock();
-
-        $apbct_constant_mock->method('isDefined')
-                            ->willReturn(true);
-
-        $apbct_constant_mock->method('getValue')
-                            ->willReturn(false);
-        $apbct->service_constants = new ServiceConstants();
-        $apbct->service_constants->bot_detector_enabled = $apbct_constant_mock;
+        $apbct->data['bot_detector_enabled'] = 1;
+        define('APBCT_SERVICE__BOT_DETECTOR_ENABLED', false);
 
         // Act
         $bot_detector_state = apbct__is_bot_detector_enabled();

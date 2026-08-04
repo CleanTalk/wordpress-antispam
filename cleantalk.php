@@ -15,6 +15,7 @@ use Cleantalk\Antispam\ScriptsIntegration\CleantalkScriptsIntegrator;
 use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
+use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Antispam\ForceProtection;
 use Cleantalk\ApbctWP\API;
@@ -275,7 +276,7 @@ function apbct_register_my_rest_routes()
 // Database prefix
 global $wpdb, $wp_version;
 $apbct->db_prefix = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $wpdb->prefix : $wpdb->base_prefix;
-$apbct->db_prefix = ! $apbct->white_label && $apbct->constants->self_owned_access_key->isDefinedAndTypeOK() ? $wpdb->base_prefix : $wpdb->prefix;
+$apbct->db_prefix = ! $apbct->white_label && Constant::is(Constant::APBCT_SERVICE__SELF_OWNED_ACCESS_KEY) ? $wpdb->base_prefix : $wpdb->prefix;
 
 /** @todo HARDCODE FIX */
 if ( $apbct->plugin_version === '1.0.0' ) {
@@ -1265,7 +1266,7 @@ function apbct_sfw_update__switch_to_direct()
 
     $apbct->fw_stats['reason_direct_update_log'] = null;
 
-    if ($apbct->constants->sfw_force_direct_update->isDefined()) {
+    if (Constant::is(Constant::APBCT_SERVICE__SFW_FORCE_DIRECT_UPDATE)) {
         $apbct->fw_stats['reason_direct_update_log'] = 'constant exists';
         return true;
     }
@@ -2820,15 +2821,15 @@ function ct_account_status_check($api_key = null, $process_errors = true)
             : 0;
 
         //todo:temporary solution for description, until we found the way to transfer this from cloud
-        if ($apbct->constants->whitelabel_plugin_description->isDefinedAndTypeOK()) {
+        if (Constant::is(Constant::APBCT_SERVICE__WHITELABEL_PLUGIN_DESCRIPTION)) {
             /** @psalm-suppress PossiblyInvalidArrayAssignment */
-            $result['wl_antispam_description'] = esc_html($apbct->constants->whitelabel_plugin_description->getValue());
+            $result['wl_antispam_description'] = esc_html(Constant::getValue(Constant::APBCT_SERVICE__WHITELABEL_PLUGIN_DESCRIPTION));
         }
 
         //todo:temporary solution for FAQ
-        if ($apbct->constants->whitelabel_faq_link->isDefinedAndTypeOK()) {
+        if (Constant::is(Constant::APBCT_SERVICE__WHITELABEL_FAQ_LINK)) {
             /** @psalm-suppress PossiblyInvalidArrayAssignment */
-            $result['wl_faq_url'] = esc_url($apbct->constants->whitelabel_faq_link->getValue());
+            $result['wl_faq_url'] = esc_url(Constant::getValue(Constant::APBCT_SERVICE__WHITELABEL_FAQ_LINK));
         }
 
         if ( isset($result['wl_status']) && $result['wl_status'] === 'ON' ) {

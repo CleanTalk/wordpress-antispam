@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\AJAXService;
+use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -2129,10 +2130,9 @@ function apbct_settings__get_ajax_type()
     global $apbct;
 
     //force ajax route type if constant is defined and compatible
-    if ($apbct->constants->set_ajax_route_type->isDefinedAndTypeOK()
-        && in_array($apbct->constants->set_ajax_route_type->getValue(), array('rest','admin_ajax'))
-    ) {
-        return $apbct->constants->set_ajax_route_type->getValue();
+    $forced_ajax_route_type = Constant::getValue(Constant::APBCT_SERVICE__SET_AJAX_ROUTE_TYPE);
+    if ( in_array($forced_ajax_route_type, array('rest', 'admin_ajax'), true) ) {
+        return $forced_ajax_route_type;
     }
 
     // Check rest availability
