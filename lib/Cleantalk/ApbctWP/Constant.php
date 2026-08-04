@@ -176,7 +176,7 @@ class Constant
     /**
      * Registry cache. Built once per request by self::getRegistry().
      *
-     * @var array[]|null
+     * @var array<string, array{names: string[], type: string, description: string}>|null
      */
     private static $registry;
 
@@ -271,12 +271,12 @@ class Constant
     {
         $result = array();
 
-        foreach ( array_keys(self::getRegistry()) as $constant ) {
+        foreach ( self::getRegistry() as $constant => $entry ) {
             $defined_name = self::getDefinedName($constant);
             $result[]     = array(
                 'is_defined'  => $defined_name,
                 'value'       => $defined_name === false ? null : constant($defined_name),
-                'description' => self::getRegistry()[$constant]['description'],
+                'description' => $entry['description'],
             );
         }
 
@@ -334,8 +334,13 @@ class Constant
     private static function typeIsValid($constant, $value)
     {
         $registry = self::getRegistry();
-        $type     = $registry[$constant]['type'];
-        $type     = isset(self::$type_aliases[$type]) ? self::$type_aliases[$type] : $type;
+
+        if ( ! isset($registry[$constant]) ) {
+            return false;
+        }
+
+        $type = $registry[$constant]['type'];
+        $type = isset(self::$type_aliases[$type]) ? self::$type_aliases[$type] : $type;
 
         return gettype($value) === $type;
     }
@@ -343,7 +348,7 @@ class Constant
     /**
      * Canonical name => allowed public names (canonical first, then legacy), declared type, description.
      *
-     * @return array[]
+     * @return array<string, array{names: string[], type: string, description: string}>
      */
     private static function getRegistry()
     {

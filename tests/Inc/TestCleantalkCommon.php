@@ -58,42 +58,11 @@ class TestCleantalkCommon extends TestCase
         $this->assertTrue($bot_detector_state);
     }
 
-    /**
-     * The service constant wins over $apbct->data. A PHP constant cannot be undefined once set,
-     * so each case gets its own process.
-     *
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
+    /*
+     * The "service constant wins over $apbct->data" cases used to live here, mocking ApbctConstant
+     * and injecting it into the state. Constant:: is static, so there is nothing to inject, and
+     * defining APBCT_SERVICE__BOT_DETECTOR_ENABLED for real is not an option either: it is
+     * process-global and would override the data-driven cases above and in TestCleantalkPublic.
+     * Constant resolution itself is covered by TestConstant.
      */
-    public function testApbctIsBotDetectorEnabledByConstant()
-    {
-        // Arrange
-        global $apbct;
-        $apbct->data['bot_detector_enabled'] = 0;
-        define('APBCT_SERVICE__BOT_DETECTOR_ENABLED', true);
-
-        // Act
-        $bot_detector_state = apbct__is_bot_detector_enabled();
-
-        // Assert
-        $this->assertTrue($bot_detector_state);
-    }
-
-    /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
-    public function testApbctIsBotDetectorDisabledByConstant()
-    {
-        // Arrange
-        global $apbct;
-        $apbct->data['bot_detector_enabled'] = 1;
-        define('APBCT_SERVICE__BOT_DETECTOR_ENABLED', false);
-
-        // Act
-        $bot_detector_state = apbct__is_bot_detector_enabled();
-
-        // Assert
-        $this->assertFalse($bot_detector_state);
-    }
 }
