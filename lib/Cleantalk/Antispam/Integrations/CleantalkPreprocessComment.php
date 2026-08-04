@@ -334,7 +334,7 @@ class CleantalkPreprocessComment extends IntegrationBase
         $err_text =
             '<center>'
             . (
-                Constant::is(Constant::APBCT_SERVICE__DISABLE_BLOCKING_TITLE)
+                Constant::is(Constant::APBCT_SERVICE__DISABLE_BLOCKING_TITLE, true)
                     ? ''
                     : '<b style="color: #49C73B;">Clean</b><b style="color: #349ebf;">Talk.</b> '
             )
