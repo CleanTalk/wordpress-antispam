@@ -578,8 +578,8 @@ button[value="save_changes"]:disabled {
 .apbct-real-user-popup-img {
     align-self: start;
     margin: 0!important;
-    height: max-content;
-    vertical-align: sub;
+    height: 1.1em;
+    vertical-align: initial;
 }
 
 @keyframes apbct_pulsate {

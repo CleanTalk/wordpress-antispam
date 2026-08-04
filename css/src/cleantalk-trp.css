@@ -73,8 +73,8 @@
 .apbct-real-user-popup-img {
     align-self: start;
     margin: 0!important;
-    height: max-content;
-    vertical-align: center;
+    height: .9em;
+    vertical-align: sub;
 }
 
 .apbct-real-user-popup-header {
