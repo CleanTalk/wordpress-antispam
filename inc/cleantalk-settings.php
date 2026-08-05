@@ -3,6 +3,7 @@
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentSettings;
 use Cleantalk\ApbctWP\AJAXService;
+use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
@@ -492,7 +493,7 @@ function apbct_settings__set_fields()
                     'title'       => __("Don't check trusted user's comments", 'cleantalk-spam-protect'),
                     'description' => sprintf(
                         __("Don't check comments for users with above %d comments.", 'cleantalk-spam-protect'),
-                        defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3
+                        Constant::getValue(Constant::APBCT_SERVICE__SKIP_ON_APPROVED_COMMENTS_NUMBER, 3)
                     ),
                 ),
                 'data__use_ajax'                       => array(
@@ -1148,7 +1149,7 @@ function apbct_settings__set_fields__network($fields)
                         '</a>'
                     ),
                     'childrens'   => array('multisite__white_label__plugin_name'),
-                    'disabled'    => defined('CLEANTALK_ACCESS_KEY') ||
+                    'disabled'    => Constant::is(Constant::APBCT_SERVICE__SELF_OWNED_ACCESS_KEY) ||
                                      ! isset($apbct->network_settings['multisite__work_mode']) ||
                                      $apbct->network_settings['multisite__work_mode'] != 1,
                     'parent'      => 'multisite__work_mode',
@@ -1757,7 +1758,7 @@ function apbct_settings__error__output($return = false)
 
     $out = '';
 
-    if ( ! empty($apbct->errors) && ! defined('CLEANTALK_ACCESS_KEY') ) {
+    if ( ! empty($apbct->errors) && ! Constant::is(Constant::APBCT_SERVICE__SELF_OWNED_ACCESS_KEY) ) {
         $errors = $apbct->errors;
 
         $error_texts = array(
@@ -2051,7 +2052,10 @@ function apbct_settings__field__apikey()
 
     $template = @file_get_contents(CLEANTALK_PLUGIN_DIR . 'templates/settings/settings_key_wrapper.html');
 
-    $define_key_is_provided_by_admin = APBCT_WPMS && ! is_main_site() && ( ! $apbct->allow_custom_key || defined('CLEANTALK_ACCESS_KEY'));
+    $define_key_is_provided_by_admin = APBCT_WPMS && ! is_main_site() && (
+                ! $apbct->allow_custom_key ||
+                Constant::is(Constant::APBCT_SERVICE__SELF_OWNED_ACCESS_KEY)
+            );
     $define_show_key_field = ! (apbct_api_key__is_correct($apbct->api_key) && isset($apbct->data["key_changed"]) && $apbct->data["key_changed"]);
     $define_show_deobfuscating_href = apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok && (!isset($apbct->data["key_changed"]) || !$apbct->data["key_changed"]);
 
@@ -2424,8 +2428,10 @@ function apbct_settings__validate($incoming_settings)
 
     $apbct->data['key_changed'] = $incoming_settings['apikey'] !== $apbct->settings['apikey'];
 
+    $predefined_key = Constant::getValue(Constant::APBCT_SERVICE__SELF_OWNED_ACCESS_KEY, false);
+
     $incoming_settings['apikey'] = ! empty($incoming_settings['apikey']) ? trim($incoming_settings['apikey']) : '';
-    $incoming_settings['apikey'] = defined('CLEANTALK_ACCESS_KEY') ? CLEANTALK_ACCESS_KEY : $incoming_settings['apikey'];
+    $incoming_settings['apikey'] = $predefined_key !== false ? $predefined_key : $incoming_settings['apikey'];
     $incoming_settings['apikey'] = ! is_main_site() && $apbct->white_label && $apbct->settings['apikey'] ? $apbct->settings['apikey'] : $incoming_settings['apikey'];
     $incoming_settings['apikey'] = is_main_site() || $apbct->allow_custom_key || $apbct->white_label ? $incoming_settings['apikey'] : $apbct->network_settings['apikey'];
     $incoming_settings['apikey'] = is_main_site() || ! isset($incoming_settings['multisite__white_label']) || ! $incoming_settings['multisite__white_label']

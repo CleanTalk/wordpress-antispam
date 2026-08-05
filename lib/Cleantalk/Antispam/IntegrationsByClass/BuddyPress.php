@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Antispam\IntegrationsByClass;
 
+use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
@@ -78,7 +79,7 @@ class BuddyPress extends IntegrationByClassBase
         }
 
         // Check for quantity of comments
-        $comments_check_number = defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3;
+        $comments_check_number = Constant::getValue(Constant::APBCT_SERVICE__SKIP_ON_APPROVED_COMMENTS_NUMBER, 3);
 
         if ( $apbct->settings['comments__check_comments_number'] ) {
             $args             = array(
