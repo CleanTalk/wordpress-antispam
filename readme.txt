@@ -429,7 +429,6 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 = 6.85 05.08.2026 =
 Fix. Code. Unit tests isolation implemented.
 Fix. Integrations. Fixed Forminator multi-step form email gathering.
-Fix. Integrations. Skip FluentForm dropdown contact encode.
 Fix. Integration. Tutor LMS - tutors signup catching implemented.
 Fix. Settings. Fix work of templates in WL mode.
 Fix. Settings. Improve compatibility with third-party plugins.
