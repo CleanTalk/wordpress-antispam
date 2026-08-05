@@ -19,6 +19,7 @@ if ( ! file_exists( $_tests_dir . '/includes/functions.php' ) ) {
 
 // Give access to tests_add_filter() function.
 require_once $_tests_dir . '/includes/functions.php';
+require_once __DIR__ . '/ApbctTestCase.php';
 
 /**
  * Manually load the plugin being tested.
