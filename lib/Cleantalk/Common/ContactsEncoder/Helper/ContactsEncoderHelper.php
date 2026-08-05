@@ -13,7 +13,6 @@ class ContactsEncoderHelper
      */
     private $attribute_exclusions_signs = array(
         'input' => array('placeholder', 'value'),
-        'option' => array('value'),
         'sc-customer-email' => array('placeholder', 'value'),
         'img' => array('alt', 'title'),
         'div' => array('data-et-multi-view'),
@@ -96,39 +95,6 @@ class ContactsEncoderHelper
         }
 
         return strpos($email, 'mailto:') !== false;
-    }
-
-    /**
-     * Check if the given email is inside an option element text (not attributes).
-     *
-     * @param string $email
-     * @param string $content
-     *
-     * @return bool
-     */
-    public function isInsideOptionTag($email, $content)
-    {
-        $pos = strpos($content, $email);
-        if ($pos === false) {
-            return false;
-        }
-
-        $last_option_start = strrpos(substr($content, 0, $pos), '<option');
-        if ($last_option_start === false) {
-            return false;
-        }
-
-        $option_tag_end = strpos($content, '>', $last_option_start);
-        if ($option_tag_end === false || $pos <= $option_tag_end) {
-            return false;
-        }
-
-        $option_close = stripos($content, '</option>', $option_tag_end);
-        if ($option_close === false) {
-            return false;
-        }
-
-        return $pos > $option_tag_end && $pos < $option_close;
     }
 
     /**
