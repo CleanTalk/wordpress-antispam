@@ -421,4 +421,15 @@ class ExcludedEncodeContentSCTest extends TestCase
         // esc_html should not affect a plain email address
         $this->assertEquals($originalString, $result);
     }
+
+    /**
+     * Themes may call apply_filters('the_title', $title) with a single argument.
+     * filterTheTitle must accept that without ArgumentCountError on PHP 8+.
+     */
+    public function testFilterTheTitleAcceptsSingleArgument(): void
+    {
+        $title = 'Plain title without shortcode';
+        $result = $this->exclude_content_sc->filterTheTitle($title);
+        $this->assertSame($title, $result);
+    }
 }

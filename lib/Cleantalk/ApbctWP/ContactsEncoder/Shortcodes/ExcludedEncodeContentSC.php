@@ -916,12 +916,12 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
 
     /**
      * @param string $title
-     * @param int $post_id
+     * @param int    $post_id Optional. Not always passed: themes may call apply_filters('the_title', $title) with 1 arg.
      *
      * @return string
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function filterTheTitle($title, $post_id)
+    public function filterTheTitle($title, $post_id = 0)
     {
         if ( is_admin() && ! wp_doing_ajax() ) {
             return $title;
