@@ -2946,6 +2946,8 @@ function apbct_settings__get_key_auto($direct_call = false)
 
     $language = is_string($language) ? $language : null;
 
+    $lead_source = apbct_settings__is_wizard_ajax_request() ? 'apbct_wizard_auto' : '';
+
     $result = \Cleantalk\ApbctWP\API::methodGetApiKey(
         'antispam',
         $filtered_admin_email,
@@ -2957,7 +2959,8 @@ function apbct_settings__get_key_auto($direct_call = false)
         $wpms,
         $white_label,
         $hoster_api_key,
-        $filtered_admin_email !== $admin_email
+        $filtered_admin_email !== $admin_email,
+        $lead_source
     );
 
     if ( ! empty($result['error']) ) {

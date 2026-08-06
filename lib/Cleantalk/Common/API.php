@@ -61,6 +61,8 @@ class API
      * @param bool $wpms
      * @param bool $white_label
      * @param string $hoster_api_key
+     * @param bool $email_filtered
+     * @param string $lead_source Source of the registration
      *
      * @return array|bool
      */
@@ -75,7 +77,8 @@ class API
         $wpms = false,
         $white_label = false,
         $hoster_api_key = '',
-        $email_filtered = false
+        $email_filtered = false,
+        $lead_source = ''
     ) {
         $request = array(
             'method_name'          => 'get_api_key',
@@ -89,7 +92,8 @@ class API
             'wpms_setup'           => $wpms,
             'hoster_whitelabel'    => $white_label,
             'hoster_api_key'       => $hoster_api_key,
-            'email_filtered'       => $email_filtered
+            'email_filtered'       => $email_filtered,
+            'lead_source'          => $lead_source,
         );
 
         return static::sendRequest($request);
