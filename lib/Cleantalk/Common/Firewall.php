@@ -34,8 +34,14 @@ class Firewall
     public $debug_data = '';
 
     /**
-     * Statuses from the lowest priority to the highest. A result of a personal list is raised above
-     * the whole array by self::prioritize().
+     * Statuses from the lowest priority to the highest. The position in this array IS the priority,
+     * self::calculatePriority() does nothing but look the status up here.
+     *
+     * A result of the personal lists of the site owner carries the is_personal flag, which is not a
+     * part of the status itself - the very same DENY_SFW comes both from the personal and from the
+     * common list. Such results are listed here with the PERSONAL__ prefix, so that both variants
+     * can take their own place in the order. A personal status absent from the list falls back to
+     * the position of its common variant.
      *
      * Note the position of PASS_SFW__BY_WHITELIST: it is the global (non-personal) white list of the
      * cloud - good bots and the other common exclusions. It has to stay UNDER the DENY_* statuses,
@@ -55,6 +61,8 @@ class Firewall
         'DENY_ANTICRAWLER_UA',
         'DENY_ANTICRAWLER',
         'DENY_SFW',
+        'PERSONAL__DENY_SFW',
+        'PERSONAL__PASS_SFW__BY_WHITELIST',
         // Highest
     );
 
@@ -203,8 +211,7 @@ class Firewall
             foreach ($this->fw_modules as $module) {
                 if (array_key_exists($module->module_name, $results)) {
                     foreach ($results[$module->module_name] as $fw_result) {
-                        $priority = array_search($fw_result['status'], $this->statuses_priority) +
-                                    (isset($fw_result['is_personal']) && $fw_result['is_personal'] ? count($this->statuses_priority) : 0);
+                        $priority = $this->calculatePriority($fw_result);
                         if ($priority >= $current_fw_result_priority) {
                             $current_fw_result_priority = $priority;
                             $result['status']           = TT::getArrayValueAsString($fw_result, 'status');
@@ -225,6 +232,32 @@ class Firewall
         $result['passed'] = strpos($result['status'], 'PASS') !== false;
 
         return $result;
+    }
+
+    /**
+     * Returns the position of a single firewall result in self::$statuses_priority.
+     *
+     * A result of a personal list is looked up by the PERSONAL__ prefixed status first, so it takes
+     * its own place in the order. If there is no such entry, the common variant is used.
+     *
+     * @param array $fw_result
+     *
+     * @return int
+     */
+    private function calculatePriority($fw_result)
+    {
+        $status = TT::getArrayValueAsString($fw_result, 'status');
+
+        if (isset($fw_result['is_personal']) && $fw_result['is_personal']) {
+            $personal_priority = array_search('PERSONAL__' . $status, $this->statuses_priority);
+            if ($personal_priority !== false) {
+                return $personal_priority;
+            }
+        }
+
+        $priority = array_search($status, $this->statuses_priority);
+
+        return $priority === false ? 0 : $priority;
     }
 
     /**
