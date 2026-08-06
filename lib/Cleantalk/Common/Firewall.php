@@ -130,9 +130,11 @@ class Firewall
         foreach ($this->fw_modules as $module) {
             if (array_key_exists($module->module_name, $results)) {
                 foreach ($results[$module->module_name] as $result) {
+                    $status = TT::getArrayValueAsString($result, 'status');
+                    $ip     = TT::getArrayValueAsString($result, 'ip');
                     if (
                         in_array(
-                            $result['status'],
+                            $status,
                             array(
                                 'PASS_SFW__BY_WHITELIST',
                                 'PASS_SFW',
@@ -140,14 +142,19 @@ class Firewall
                                 'PASS_ANTICRAWLER',
                                 'PASS_ANTICRAWLER_UA',
                                 'PASS_ANTIFLOOD_UA'
-                            )
+                            ),
+                            true
                         )
                     ) {
                         continue;
                     }
+                    // Skip empty/invalid IPs — they break cloud SFW log collectors.
+                    if ( $ip === '' || Helper::ipValidate($ip) === false ) {
+                        continue;
+                    }
                     $module->updateLog(
-                        $result['ip'],
-                        $result['status'],
+                        $ip,
+                        $status,
                         isset($result['network']) ? $result['network'] : null,
                         isset($result['is_personal']) ? $result['is_personal'] : 'NULL'
                     );

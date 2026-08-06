@@ -478,6 +478,10 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     {
         /** @psalm-suppress InvalidLiteralArgument */
 
+        if ( Helper::ipValidate($ip) === false ) {
+            return;
+        }
+
         if ( strpos($status, '_UA') !== false ) {
             $id_str = $ip . $this->module_name . '_UA';
         } else {
