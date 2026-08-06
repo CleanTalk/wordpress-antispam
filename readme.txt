@@ -1,4 +1,4 @@
-=== Spam protection, Anti-Spam, FireWall by CleanTalk ===
+=== Spam protection, Honeypot, Anti-Spam by CleanTalk ===
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: antispam, honeypot, bot, captcha, spam
 Requires at least: 4.7
@@ -7,7 +7,7 @@ Requires PHP: 7.2
 Stable tag: 6.85
 License: GPLv2
 
-Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
+Top-rated antispam for contact forms, comments, WooCommerce, eCommerce, and login. No CAPTCHAs, no friction, just background anti spam protection.
 
 == Description ==
 
