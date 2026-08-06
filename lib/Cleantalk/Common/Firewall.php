@@ -33,6 +33,14 @@ class Firewall
     public $debug;
     public $debug_data = '';
 
+    /**
+     * Statuses from the lowest priority to the highest. A result of a personal list is raised above
+     * the whole array by self::prioritize().
+     *
+     * Note the position of PASS_SFW__BY_WHITELIST: it is the global (non-personal) white list of the
+     * cloud - good bots and the other common exclusions. It has to stay UNDER the DENY_* statuses,
+     * so a black listed User-Agent outweighs a good bot IP.
+     */
     private $statuses_priority = array(
         // Lowest
         'PASS_SFW',
@@ -41,12 +49,12 @@ class Firewall
         'PASS_ANTIFLOOD',
         'PASS_ANTICRAWLER_UA',
         'PASS_ANTICRAWLER',
+        'PASS_SFW__BY_WHITELIST',
         'DENY_ANTIFLOOD_UA',
         'DENY_ANTIFLOOD',
         'DENY_ANTICRAWLER_UA',
         'DENY_ANTICRAWLER',
         'DENY_SFW',
-        'PASS_SFW__BY_WHITELIST',
         // Highest
     );
 
@@ -109,7 +117,11 @@ class Firewall
 
         $results = array();
 
-        // Checking
+        // Checking.
+        // Every module has to be run before any decision is made. An early exit here would hide the
+        // results of the modules below - e.g. a UA black list hit of the AntiCrawler would never be
+        // taken into account if the SFW had found the IP in the white list or in a trusted network.
+        // The whole picture is collected first, the decision is made by self::prioritize().
         foreach ($this->fw_modules as $module) {
             if (isset($module->isExcluded) && $module->isExcluded) {
                 continue;
@@ -119,12 +131,9 @@ class Firewall
             if ( ! empty($module_results)) {
                 $results[$module->module_name] = $module_results;
             }
-
-            if ($this->isWhitelisted($results)) {
-                // Break protection logic if it whitelisted or trusted network.
-                break;
-            }
         }
+
+        $this->isWhitelisted($results);
 
         // Write Logs
         foreach ($this->fw_modules as $module) {
