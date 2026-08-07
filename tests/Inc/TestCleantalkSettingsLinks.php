@@ -100,10 +100,10 @@ class TestCleantalkSettingsLinks extends TestCase
 
         $fields = apbct_settings__set_fields();
 
-        // The anti_crawler title should contain the support link
-        $anti_crawler = $fields['advanced_settings']['fields']['sfw__anti_crawler'];
-        $this->assertStringContainsString('my/support/open', $anti_crawler['title']);
-        $this->assertStringContainsString('utm_content=sfw_support_link', $anti_crawler['title']);
+        // The anti_crawler description should contain the support link
+        $anti_crawler = $fields['sfw_features']['fields']['sfw__anti_crawler'];
+        $this->assertStringContainsString('my/support/open', $anti_crawler['description']);
+        $this->assertStringContainsString('utm_content=sfw_support_link', $anti_crawler['description']);
     }
 
     // =========================================================================
