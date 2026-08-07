@@ -2714,9 +2714,6 @@ function apbct_settings__sync($direct_call = false)
     // Feedback with app_agent
     ct_send_feedback('0:' . APBCT_AGENT); // 0 - request_id, agent version.
 
-    // Key is good by default
-    $apbct->data['key_is_ok'] = true;
-
     // Checking account status
     $result = ct_account_status_check($apbct->settings['apikey']);
 
@@ -2740,8 +2737,11 @@ function apbct_settings__sync($direct_call = false)
 
         // Updating brief data for dashboard widget
         cleantalk_get_brief_data($apbct->settings['apikey']);
-        // Key is not valid
-    } else {
+        // Key is not valid — but only when the cloud explicitly rejected it (not on connection errors)
+    } elseif (
+        empty($apbct->errors['account_check']) ||
+        ! apbct__is_connection_error_result($apbct->errors['account_check'])
+    ) {
         $apbct->data['key_is_ok'] = false;
         $apbct->errorAdd(
             'key_invalid',

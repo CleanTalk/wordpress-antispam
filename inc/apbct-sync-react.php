@@ -45,27 +45,33 @@ function apbct_react_access_key_check()
     $apbct->errorDeleteAll(true);
 
     $account_is_ok = (bool) ct_account_status_check($apbct->settings['apikey']);
+    $connection_error = ! empty($apbct->errors['account_check'])
+        && apbct__is_connection_error_result($apbct->errors['account_check']);
 
     if ( $account_is_ok ) {
         $apbct->data['key_is_ok'] = true;
         $apbct->errorDelete('key_invalid key_get', 'save');
+        $message = '';
+    } elseif ( $connection_error ) {
+        // Keep key status; surface the real transport error instead of "key invalid"
+        $last_error = end($apbct->errors['account_check']);
+        $message    = __('Error occurred while checking account status.', 'cleantalk-spam-protect');
+        if ( is_array($last_error) && isset($last_error['error']) ) {
+            $message = (string) $last_error['error'];
+        }
     } else {
         $apbct->data['key_is_ok'] = false;
         $apbct->errorAdd(
             'key_invalid',
             __('Testing failed. Please check the Access key.', 'cleantalk-spam-protect')
         );
+        $message = __('Testing failed. Please check the Access key.', 'cleantalk-spam-protect');
     }
 
     $apbct->data['key_changed'] = false;
     $apbct->saveData();
 
-    apbct_react_sync_json_response(
-        $account_is_ok,
-        $account_is_ok
-            ? ''
-            : __('Testing failed. Please check the Access key.', 'cleantalk-spam-protect')
-    );
+    apbct_react_sync_json_response($account_is_ok, $message);
 }
 
 function apbct_react_sfw_update()

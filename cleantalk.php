@@ -2755,6 +2755,43 @@ function apbct_cookies_test()
 }
 
 /**
+ * Whether an API result is a transport/connection failure (not an invalid Access key).
+ *
+ * @param mixed $result API result array, error string, or errors['account_check'] bucket
+ * @return bool
+ */
+function apbct__is_connection_error_result($result)
+{
+    if ( is_array($result) ) {
+        if ( isset($result['error']) ) {
+            $result = $result['error'];
+        } else {
+            // State::errorAdd stores a list of error entries under the type key
+            $last = end($result);
+            if ( is_array($last) && isset($last['error']) ) {
+                $result = $last['error'];
+            } elseif ( is_string($last) ) {
+                $result = $last;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    if ( ! is_string($result) || $result === '' ) {
+        return false;
+    }
+
+    $error = strtolower($result);
+
+    return strpos($error, 'connection_error') !== false
+        || strpos($error, 'json_decode_error') !== false
+        || strpos($error, 'curl error') !== false
+        || strpos($error, 'failed to connect') !== false
+        || strpos($error, 'operation timed out') !== false;
+}
+
+/**
  * Inner function - Account status check. Scheduled in 1800 seconds for default!
  * @param $api_key
  * @param $process_errors
@@ -2764,12 +2801,15 @@ function ct_account_status_check($api_key = null, $process_errors = true)
 {
     global $apbct;
 
-    $api_key = $api_key ?: $apbct->api_key;
-    $result  = API::methodNoticePaidTill(
+    $previous_key_is_ok = ! empty($apbct->data['key_is_ok']);
+    $api_key            = $api_key ?: $apbct->api_key;
+    $result             = API::methodNoticePaidTill(
         $api_key,
         preg_replace('/http[s]?:\/\//', '', get_option('home'), 1),
         ! is_main_site() && $apbct->white_label ? 'anti-spam-hosting' : 'antispam'
     );
+
+    $is_connection_error = ! empty($result['error']) && apbct__is_connection_error_result($result);
 
     if ( empty($result['error']) || ! empty($result['valid']) ) {
         // Notices
@@ -2865,6 +2905,11 @@ function ct_account_status_check($api_key = null, $process_errors = true)
     if ( ! empty($result['valid']) ) {
         $apbct->data['key_is_ok'] = true;
         $result                   = true;
+    } elseif ( $is_connection_error ) {
+        // Transport/SSL/timeout failures must not mark the Access key as invalid.
+        // @see https://app.doboard.com/1/task/54504
+        $apbct->data['key_is_ok'] = $previous_key_is_ok;
+        $result                   = false;
     } else {
         $apbct->data['key_is_ok'] = false;
         $result                   = false;
