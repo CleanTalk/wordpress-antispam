@@ -2394,18 +2394,24 @@ function apbct_settings__validate($incoming_settings)
      * -- SFW rules --
      */
 
+    $sfw_enabled_before  = ! empty($apbct->settings['sfw__enabled']);
+    $sfw_enabled_after   = ! empty($incoming_settings['sfw__enabled']);
+    $sfw_enabled_incomed = isset($incoming_settings['sfw__enabled']);
+
     // Anti-Crawler is an add-on to SFW, so SFW is enabled automatically with it
     if ( ! empty($incoming_settings['sfw__anti_crawler']) ) {
         $incoming_settings['sfw__enabled'] = 1;
+        $sfw_enabled_after                 = true;
+        $sfw_enabled_incomed               = true;
     }
 
     // Actions with toggle SFW settings
     // SFW was enabled
-    if ( ! $apbct->settings['sfw__enabled'] && isset($incoming_settings['sfw__enabled']) && $incoming_settings['sfw__enabled'] ) {
+    if ( ! $sfw_enabled_before && $sfw_enabled_after ) {
         $cron = new Cron();
         $cron->updateTask('sfw_update', 'apbct_sfw_update__init', 86400, time() + 180);
         // SFW was disabled
-    } elseif ( $apbct->settings['sfw__enabled'] && (isset($incoming_settings['sfw__enabled']) && ! $incoming_settings['sfw__enabled'] ) ) {
+    } elseif ( $sfw_enabled_before && $sfw_enabled_incomed && ! $sfw_enabled_after ) {
         apbct_sfw__clear();
     }
 
