@@ -4,6 +4,7 @@ namespace Cleantalk\ApbctWP;
 
 use AllowDynamicProperties;
 use ArrayObject;
+use Cleantalk\Antispam\Integrations\NextendSocialLogin;
 use Cleantalk\ApbctWP\FindSpam\LoginIPKeeper;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateSentinel;
 use Cleantalk\ApbctWP\ServiceConstants;
@@ -531,6 +532,10 @@ class State extends \Cleantalk\Common\State
             // Table with session data.
             define('APBCT_SPAMSCAN_LOGS', $db_prefix . 'cleantalk_spamscan_logs');
         }
+        if ( ! defined('APBCT_TBL_RATE_LIMITS')) {
+            // Table with rate limit data.
+            define('APBCT_TBL_RATE_LIMITS', $db_prefix . 'cleantalk_rate_limits');
+        }
         if ( ! defined('APBCT_SELECT_LIMIT')) {
             // Select limit for logs.
             define('APBCT_SELECT_LIMIT', 5000);
@@ -1011,6 +1016,13 @@ class State extends \Cleantalk\Common\State
         //moosend plugin requires alt sessions https://doboard.com/1/task/13735
         if (apbct_is_plugin_active('moosend-email-marketing/index.php')) {
             $result = 'plugin_active__moosend-email-marketing';
+        }
+
+        //nextend social login requires alt sessions https://app.doboard.com/1/task/53787
+        if (apbct_is_plugin_active('nextend-facebook-connect/nextend-facebook-connect.php')) {
+            if (NextendSocialLogin::isOAuthProviderEnabled('nsl_google')) {
+                $result = 'plugin_active__nextend-facebook-connect';
+            }
         }
 
         return $get_reason ? $result : $result !== false;

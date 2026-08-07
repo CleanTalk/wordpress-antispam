@@ -4,13 +4,14 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.82.99-dev
+  Version: 6.85.99-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
   Domain Path: /i18n
 */
 
+use Cleantalk\Antispam\ScriptsIntegration\CleantalkScriptsIntegrator;
 use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
@@ -608,27 +609,8 @@ add_action('mec_booking_end_form_step_2', function () {
 
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
-    if (
-        apbct_is_plugin_active('fluentformpro/fluentformpro.php') &&
-        (
-            apbct_is_in_uri('ff_landing=') ||
-            (
-                // Load scripts for logged in users if constant is defined
-                apbct_is_user_logged_in() &&
-                (defined('APBCT_FF_JS_SCRIPTS_LOAD') &&
-                APBCT_FF_JS_SCRIPTS_LOAD == true)
-            )
-        )
-    ) {
-        add_action('wp_head', function () {
-            echo '<script data-pagespeed-no-defer="" src="'
-                . APBCT_URL_PATH
-                . '/js/apbct-public-bundle.min.js'
-                . '?ver=' . APBCT_VERSION . '" id="ct_public_functions-js"></script>';
-            echo '<script src="' . APBCT_BOT_DETECTOR_SCRIPT_URL . '?ver='
-                . APBCT_VERSION . '" async id="ct_bot_detector-js" data-wp-strategy="async"></script>';
-        }, 100);
-    }
+    $sci = new CleantalkScriptsIntegrator();
+    $sci->run();
 
     SFWUpdateHelper::processSFWOutdatedError($apbct);
 
@@ -720,6 +702,7 @@ if ( is_admin() || is_network_admin() ) {
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-find-spam.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-admin.php');
     require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-settings.php');
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/apbct-sync-react.php');
 
     add_action('admin_init', 'apbct_admin__init', 1);
 
@@ -887,12 +870,15 @@ function apbct_sfw__check()
     global $apbct, $spbc, $cleantalk_url_exclusions;
 
     // Turn off the SpamFireWall if current url in the exceptions list and WordPress core pages
+    $core_page_to_skip_check = array('/feed');
     if ( ! empty($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions) ) {
-        $core_page_to_skip_check = array('/feed');
-        foreach ( array_merge($cleantalk_url_exclusions, $core_page_to_skip_check) as $v ) {
-            if ( apbct_is_in_uri($v) ) {
-                return;
-            }
+        $cleantalk_url_exclusions = array_merge($cleantalk_url_exclusions, $core_page_to_skip_check);
+    } else {
+        $cleantalk_url_exclusions = $core_page_to_skip_check;
+    }
+    foreach ( $cleantalk_url_exclusions as $v ) {
+        if ( apbct_is_in_uri($v) ) {
+            return;
         }
     }
 
@@ -1011,14 +997,30 @@ function apbct_plugin_redirect()
 {
     global $apbct;
     wp_suspend_cache_addition(true);
+    $redirect = get_option('ct_plugin_do_activation_redirect', false);
     if (
-        get_option('ct_plugin_do_activation_redirect', false) &&
+        $redirect &&
         delete_option('ct_plugin_do_activation_redirect') &&
         ! Get::get('activate-multi')
     ) {
         ct_account_status_check(null, false);
         apbct_sfw_update__init(3); // Updating SFW
-        wp_redirect($apbct->settings_link);
+
+        if ( is_string($redirect) && $redirect !== '1' ) {
+            $redirect_url = $redirect;
+        } else {
+            $redirect_url = $apbct->settings_link;
+            if (
+                function_exists('apbct_settings__needs_signup_wizard') &&
+                apbct_settings__needs_signup_wizard() &&
+                empty($apbct->api_key)
+            ) {
+                $redirect_url = apbct_settings__get_signup_wizard_url();
+            }
+        }
+
+        wp_safe_redirect($redirect_url);
+        exit;
     }
     wp_suspend_cache_addition(false);
 }
@@ -1402,7 +1404,8 @@ function apbct_sfw_update__worker($checker_work = false)
     return Helper::httpRequestRcToHost(
         'sfw_update__worker',
         array('firewall_updating_id' => $apbct->fw_stats['firewall_updating_id']),
-        array('async')
+        array('async'),
+        false
     );
 }
 
@@ -2342,6 +2345,9 @@ function apbct_rc__update_settings($source)
 
     foreach ( $apbct->default_settings as $setting => $def_value ) {
         if ( array_key_exists($setting, $source) ) {
+            if ($setting === 'apikey') {
+                continue;
+            }
             $var  = $source[$setting];
             $type = gettype($def_value);
             settype($var, $type);

@@ -391,12 +391,12 @@ function apbct_admin__init()
     add_action('wp_ajax_apbct_sync', 'apbct_settings__sync');
 
     add_action('wp_ajax_apbct_get_key_auto', 'apbct_settings__get_key_auto');
+    add_action('wp_ajax_apbct_save_key', 'apbct_settings__save_key');
 
     add_action('wp_ajax_apbct_update_account_email', 'apbct_settings__update_account_email');
 
     // Settings Templates
     if (
-        ! $apbct->data['wl_mode_enabled'] &&
         ! is_multisite() ||
         is_main_site() ||
         ( ! is_main_site() && $apbct->network_settings['multisite__allow_custom_settings'])
@@ -428,7 +428,7 @@ function apbct_admin__plugin_action_links($links, $_file)
 }
 
 /**
- * Change th plugin description on all plugins page.
+ * Change the plugin description on all plugins page.
  * @param $all_plugins
  * @return array
  */
@@ -437,10 +437,14 @@ function apbct_admin__change_plugin_description($all_plugins)
     global $apbct;
     if (
         $apbct->data["wl_mode_enabled"] &&
-        isset($all_plugins['cleantalk-spam-protect/cleantalk.php']) &&
-        $apbct->data["wl_antispam_description"]
+        isset($all_plugins['cleantalk-spam-protect/cleantalk.php'])
     ) {
-        $all_plugins['cleantalk-spam-protect/cleantalk.php']['Description'] = $apbct->data["wl_antispam_description"];
+        if ( $apbct->data["wl_antispam_description"] ) {
+            $all_plugins['cleantalk-spam-protect/cleantalk.php']['Description'] = $apbct->data["wl_antispam_description"];
+        }
+        if ( ! empty($apbct->data['wl_brandname']) ) {
+            $all_plugins['cleantalk-spam-protect/cleantalk.php']['Name'] = $apbct->data['wl_brandname'] . ' Anti-Spam';
+        }
     }
     return $all_plugins;
 }
@@ -466,17 +470,26 @@ function apbct_admin__register_plugin_links($links, $file, $plugin_data)
 
     $actual_plugin_name = $apbct->plugin_name;
     if (isset($apbct->data['wl_brandname']) && $apbct->data['wl_brandname'] !== APBCT_NAME) {
-        $actual_plugin_name = $apbct->data['wl_brandname'] . "&nbsp; Anti-Spam";
+        $actual_plugin_name = $apbct->data['wl_brandname'] . ' Anti-Spam';
     }
 
     if ( $apbct->white_label || $apbct->data["wl_mode_enabled"] ) {
         $links   = array_slice($links, 0, 1);
         if (isset($links[0])) {
+            $wl_brand_js = esc_js($apbct->data['wl_brandname']);
+            $plugin_name_js = esc_js($plugin_name);
+            $actual_plugin_name_js = esc_js($actual_plugin_name);
             $links[0] .= "<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
             function changedPluginName(){
                 jQuery('.plugin-title strong').each(function(i, item){
-                if(jQuery(item).html() == '{$plugin_name}')
-                    jQuery(item).html('{$actual_plugin_name}');
+                if(jQuery(item).html() == '{$plugin_name_js}' || jQuery(item).html() == '{$actual_plugin_name_js}')
+                    jQuery(item).html('{$actual_plugin_name_js}');
+                });
+                jQuery('#cleantalk-spam-protect-update .update-message p').each(function(i, item){
+                    var html = jQuery(item).html();
+                    if (html && html.indexOf('CleanTalk') >= 0) {
+                        jQuery(item).html(html.replace(/Anti-?Spam by CleanTalk/g, '{$wl_brand_js}'));
+                    }
                 });
             }
             changedPluginName();
@@ -523,7 +536,7 @@ function apbct_admin__enqueue_scripts($hook)
 
     // Scripts to all admin pages
     ApbctEnqueue::getInstance()->js('common-cleantalk-modal.js', array('jquery'));
-    ApbctEnqueue::getInstance()->js('cleantalk-admin.js', array('common-cleantalk-modal-js', 'jquery'));
+    ApbctEnqueue::getInstance()->js('cleantalk-admin.js', array('wp-i18n','common-cleantalk-modal-js', 'jquery'));
     ApbctEnqueue::getInstance()->css('cleantalk-admin.css');
     ApbctEnqueue::getInstance()->css('cleantalk-icons.css');
     ApbctEnqueue::getInstance()->css('cleantalk-email-decoder.css');
@@ -537,7 +550,6 @@ function apbct_admin__enqueue_scripts($hook)
         'logo_small_colored' => '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'new_window_gif'     => APBCT_URL_PATH . "/inc/images/new_window.gif",
         'notice_when_deleting_user_text' => esc_html__('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.', 'cleantalk-spam-protect'),
-        'apbctNoticeDismissSuccess'       => esc_html__('Thank you for the review! We strive to make our Anti-Spam plugin better every day.', 'cleantalk-spam-protect'),
         'apbctNoticeForceProtectionOn'       => esc_html__('This option affects the reflection of the page by checking the user and adds a cookie "apbct_force_protection_check", which serves as an indicator of successful or unsuccessful verification. If the check is successful, it will no longer run.', 'cleantalk-spam-protect'),
         'links' => array(
             'users_editscreen'    => LinkConstructor::buildCleanTalkLink('admin_blacklists_avatar_link', 'blacklists/{TARGET}'),
@@ -607,6 +619,14 @@ function apbct_admin__enqueue_scripts($hook)
             'key_is_ok'   => ! empty($apbct->key_is_ok) && !empty($apbct->settings['apikey']),
             'support_user_creation_msg_array' => SupportUser::getMessages(),
         ));
+
+        wp_enqueue_script('wp-i18n');
+        ApbctEnqueue::getInstance()->js(
+            'public/apbct-react-bundle.js',
+            array('wp-i18n', 'cleantalk-admin-js'),
+            true
+        );
+        wp_set_script_translations('apbct-react-bundle-js', 'cleantalk-spam-protect');
 
         ApbctEnqueue::getInstance()->js('common-cleantalk-modal.min.js');
     }

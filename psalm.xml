@@ -26,6 +26,9 @@
             <directory name="node_modules" />
             <directory name="**/node_modules" />
             <file name="lib/Cleantalk/Templates/Singleton.php"/>
+            <file name="lib/Cleantalk/Common/Templates/Singleton.php"/>
+            <directory name="lib/Cleantalk/Common/RateLimiter"/>
+            <directory name="lib/Cleantalk/Common/Templates"/>
             <file name="lib/Cleantalk/ApbctWP/CleantalkListTable.php"/>
             <file name="inc/cleantalk-public-validate-skip-functions.php"/>
             <directory name="lib/Cleantalk/Common/ContactsEncoder" />

@@ -83,12 +83,27 @@ class API extends \Cleantalk\Common\API
         // Adding agent version to data
         $data['agent'] = defined('APBCT_AGENT') ? APBCT_AGENT : '';
 
+        $options = ['timeout' => $timeout];
+        // Proxy settings from wp-config.php constants.
+        if ( defined('WP_PROXY_HOST') && WP_PROXY_HOST !== '' && defined('WP_PROXY_PORT') && WP_PROXY_PORT !== '' ) {
+            $proxy_port = (int) WP_PROXY_PORT;
+            $options['proxy'] = WP_PROXY_HOST . ':' . $proxy_port; // WP HTTP API branch
+            // cURL branch (avoid referencing CURLOPT_* when ext-curl is not available)
+            if ( function_exists('curl_init') && defined('CURLOPT_PROXY') && defined('CURLOPT_PROXYPORT') ) {
+                $options[CURLOPT_PROXY]     = WP_PROXY_HOST;
+                $options[CURLOPT_PROXYPORT] = $proxy_port;
+                if ( defined('WP_PROXY_USERNAME') && WP_PROXY_USERNAME !== '' && defined('CURLOPT_PROXYUSERPWD') ) {
+                    $options[CURLOPT_PROXYUSERPWD] = WP_PROXY_USERNAME . ':' . (defined('WP_PROXY_PASSWORD') ? WP_PROXY_PASSWORD : '');
+                }
+            }
+        }
+
         $http = new Request();
 
         $request = $http->setUrl($url)
                     ->setData($data)
                     ->setPresets(['retry_with_socket'])
-                    ->setOptions(['timeout' => $timeout]);
+                    ->setOptions($options);
         if ( isset($data['method_name']) ) {
             $request->addCallback(
                 __CLASS__ . '::checkResponse',

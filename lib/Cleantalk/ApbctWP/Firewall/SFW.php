@@ -398,7 +398,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
             $block_message = sprintf(
                 esc_html__('SpamFireWall is checking your browser and IP %s for spam bots', 'cleantalk-spam-protect'),
-                '<a href="https://cleantalk.org/blacklists/' . $result['ip'] . '" target="_blank">' . $result['ip'] . '</a>'
+                '<a href="https://cleantalk.org/blacklists/' . esc_attr($result['ip']) . '" target="_blank">' . esc_html($result['ip']) . '</a>'
             );
 
             $request_uri = $this->server__request_uri;
@@ -437,16 +437,16 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     'This is the testing page for SpamFireWall',
                     'cleantalk-spam-protect'
                 ) : ''),
-                '{CLEANTALK_URL}'                  => $apbct->data['wl_url'],
-                '{REMOTE_ADDRESS}'                 => $result['ip'],
-                '{SERVICE_ID}'                     => $apbct->data['service_id'] . ', ' . $net_count,
+                '{CLEANTALK_URL}'                  => esc_url($apbct->data['wl_url']),
+                '{REMOTE_ADDRESS}'                 => esc_html($result['ip']),
+                '{SERVICE_ID}'                     => esc_html($apbct->data['service_id']) . ', ' . esc_html($net_count),
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . '</p>',
-                '{REQUEST_URI}'                    => $request_uri,
+                '{REQUEST_URI}'                    => esc_url($request_uri),
 
                 // Cookie
                 '{COOKIE_PREFIX}'                  => '',
-                '{COOKIE_DOMAIN}'                  => $this->cookie_domain,
+                '{COOKIE_DOMAIN}'                  => esc_html($this->cookie_domain),
                 '{COOKIE_SFW}'                     => $cookie_val,
                 '{COOKIE_ANTICRAWLER}'             => hash('sha256', $apbct->api_key . $apbct->data['salt']),
 
@@ -456,13 +456,13 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 '{TEST_IP__HEADER}'                => '',
                 '{TEST_IP}'                        => '',
                 '{REAL_IP}'                        => '',
-                '{SCRIPT_URL}'                     => $js_url,
+                '{SCRIPT_URL}'                     => esc_url($js_url),
 
                 // Message about IP status
                 '{MESSAGE_IP_STATUS}'              => '',
 
                 // Custom Logo
-                '{CUSTOM_LOGO}'                    => $custom_logo_img
+                '{CUSTOM_LOGO}'                    => wp_kses_post($custom_logo_img)
             );
 
             /**
@@ -491,7 +491,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                         break;
                 }
 
-                $replaces['{MESSAGE_IP_STATUS}'] = "<h3 style='color:$message_ip_status_color;'>$message_ip_status</h3>";
+                $replaces['{MESSAGE_IP_STATUS}'] = "<h3 style='color:" . esc_attr($message_ip_status_color) . "'>" . esc_html($message_ip_status) . "</h3>";
             }
 
             // Test
@@ -502,22 +502,22 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 );
                 $replaces['{REAL_IP__HEADER}'] = 'Real IP:';
                 $replaces['{TEST_IP__HEADER}'] = 'Test IP:';
-                $replaces['{TEST_IP}']         = $this->test_ip;
-                $replaces['{REAL_IP}']         = $this->real_ip;
+                $replaces['{TEST_IP}']         = esc_html($this->test_ip);
+                $replaces['{REAL_IP}']         = esc_html($this->real_ip);
             }
 
             // Debug
             if ($this->debug) {
                 $debug = '<h1>Headers</h1>'
-                         . var_export(apache_request_headers(), true)
+                         . '<pre>' . esc_html(var_export(apache_request_headers(), true)) . '</pre>'
                          . '<h1>REMOTE_ADDR</h1>'
-                         . $this->server__remote_addr
+                         . esc_html($this->server__remote_addr)
                          . '<h1>SERVER_ADDR</h1>'
-                         . $this->server__remote_addr
+                         . esc_html($this->server__remote_addr)
                          . '<h1>IP_ARRAY</h1>'
-                         . var_export($this->ip_array, true)
+                         . esc_html(var_export($this->ip_array, true))
                          . '<h1>ADDITIONAL</h1>'
-                         . var_export($this->debug_data, true);
+                         . esc_html(var_export($this->debug_data, true));
             }
             $replaces['{DEBUG}'] = isset($debug) ? $debug : '';
 

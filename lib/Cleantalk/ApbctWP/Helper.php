@@ -125,9 +125,24 @@ class Helper extends \Cleantalk\Common\Helper
             $patterns
         );
 
+        // Issue before RC test: test validates token without consuming; real call consumes it.
+        if ($rc_action === 'sfw_update__worker') {
+            $self_token = RemoteCalls::issueSfwUpdateWorkerSelfToken();
+            if ($self_token !== '') {
+                $request_params[RemoteCalls::SFW_WORKER_SELF_TOKEN_PARAM] = $self_token;
+            }
+        }
+
         if ($do_check) {
             $result__rc_check_website = static::httpRequestRcToHostTest($rc_action, $request_params, $patterns);
             if ( ! empty($result__rc_check_website['error'])) {
+                // Drop unused token if connectivity probe failed.
+                if ( ! empty($request_params[RemoteCalls::SFW_WORKER_SELF_TOKEN_PARAM]) ) {
+                    RemoteCalls::consumeSfwUpdateWorkerSelfToken(
+                        $request_params[RemoteCalls::SFW_WORKER_SELF_TOKEN_PARAM]
+                    );
+                }
+
                 return $result__rc_check_website;
             }
         }

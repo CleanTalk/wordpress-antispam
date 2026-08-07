@@ -174,15 +174,19 @@ class CleantalkSettingsTemplates
         $templatesSet .= '</select></p>';
         $button       = $this->getImportButton();
 
-        $templatesDeleteTip =
-            //HANDLE LINK
-            sprintf(
-                /* translators: CleanTalk dash bord (Settings Templates) URL */
-                __('Deleting templates is available in the <a href="%s" target="_blank">CleanTalk Dashboard</a>', 'cleantalk-spam-protect'),
-                'https://cleantalk.org/my/services_templates?product=antispam&user_token=' . Escape::escHtml($apbct->user_token)
-            );
+        $templatesDeleteTip = '';
+        if ( empty($apbct->data['wl_mode_enabled']) ) {
+            $templatesDeleteTip =
+                //HANDLE LINK
+                sprintf(
+                    /* translators: CleanTalk dash bord (Settings Templates) URL */
+                    __('Deleting templates is available in the <a href="%s" target="_blank">CleanTalk Dashboard</a>', 'cleantalk-spam-protect'),
+                    'https://cleantalk.org/my/services_templates?product=antispam&user_token=' . Escape::escHtml($apbct->user_token)
+                );
+            $templatesDeleteTip = '<br><small>' . $templatesDeleteTip . '</small>';
+        }
 
-        return $templatesSet . '<br>' . $button . '<br><small>' . $templatesDeleteTip . '</small><br><hr>';
+        return $templatesSet . '<br>' . $button . $templatesDeleteTip . '<br><hr>';
     }
 
     public function getHtmlContentExport($templates)
@@ -216,7 +220,14 @@ class CleantalkSettingsTemplates
         } else {
             $current_template_name = 'default';
         }
-        $content = '<h2>' . esc_html__('CleanTalk settings templates', 'cleantalk-spam-protect') . '</h2>';
+        $title = __('CleanTalk settings templates', 'cleantalk-spam-protect');
+        if ( ! empty($apbct->data['wl_mode_enabled']) ) {
+            $brand_name = ! empty($apbct->data['wl_brandname'])
+                ? $apbct->data['wl_brandname']
+                : $apbct->data['wl_brandname_short'];
+            $title = $brand_name . ' ' . __('settings templates', 'cleantalk-spam-protect');
+        }
+        $content = '<h2>' . esc_html($title) . '</h2>';
         $content .= '<p>' . esc_html__('You are currently using:', 'cleantalk-spam-protect') . ' ' . $current_template_name . '</p>';
 
         return $content;

@@ -85,6 +85,9 @@ class Woocommerce extends IntegrationByClassBase
         // Restore Spam Order
         add_action('wp_ajax_apbct_restore_spam_order', array(WcSpamOrdersFunctions::class, 'restoreOrderAction'));
 
+        // Details
+        add_action('wp_ajax_apbct_details_spam_order', array(WcSpamOrdersFunctions::class, 'detailsOrderAction'));
+
         // Uni CPO integration, remove service fields from order items
         add_action('woocommerce_checkout_create_order_line_item', [$this, 'removeServiceFieldsFromOrderItems'], 100, 4);
     }
@@ -319,17 +322,20 @@ class Woocommerce extends IntegrationByClassBase
     {
         global $wpdb;
 
-        $query = 'INSERT INTO ' . APBCT_TBL_WC_SPAM_ORDERS . ' (order_details, customer_details) 
-            VALUES (%s, %s) 
-            ON DUPLICATE KEY UPDATE order_details = %s, customer_details = %s';
+        $current_timestamp = time();
+        $query = 'INSERT INTO ' . APBCT_TBL_WC_SPAM_ORDERS . ' (order_details, customer_details, order_date) 
+            VALUES (%s, %s, %s) 
+            ON DUPLICATE KEY UPDATE order_details = %s, customer_details = %s, order_date = %s;';
 
         // store blocked order from ajax checkout
         if (!empty($_POST)) {
             $prepared_query = $wpdb->prepare($query, [
                 json_encode(wc()->session->cart),
                 json_encode($_POST),
+                $current_timestamp,
                 json_encode(wc()->session->cart),
                 json_encode($_POST),
+                $current_timestamp,
             ]);
 
             $wpdb->query($prepared_query);
@@ -366,8 +372,10 @@ class Woocommerce extends IntegrationByClassBase
         $prepared_query = $wpdb->prepare($query, [
             json_encode(wc()->session->cart),
             json_encode($customer_data),
+            $current_timestamp,
             json_encode(wc()->session->cart),
             json_encode($customer_data),
+            $current_timestamp,
         ]);
 
         $wpdb->query($prepared_query);

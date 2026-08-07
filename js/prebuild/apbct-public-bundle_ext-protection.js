@@ -3081,7 +3081,7 @@ class ApbctHandler {
         ctPublic.force_alt_cookies = jetpackCommentsForm;
 
         /**
-         * NOT ADD ANY NEW INTEGRATION IN THIS FLOW
+         * DO NOT ADD ANY NEW INTEGRATION IN THIS FLOW
          */
 
         setTimeout(function() {
@@ -3114,8 +3114,19 @@ class ApbctHandler {
             ) ||
             document.querySelector('div.fluent_booking_wrap') !== null || // Fluent Booking Pro
             document.querySelector('div.fcal_calendar_slot_wrap ') !== null || // Fluent Booking / Calendar Pro
-            document.querySelectorAll('script[id*="smart-forms"]').length > 0
+            document.querySelectorAll('script[id*="smart-forms"]').length > 0 ||
+            document.querySelector('[id^="amelia-app-booking"], .amelia-frontend, .amelia-v2-booking') !== null
         ) {
+            const originalOpen = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+                try {
+                    this._apbctAjaxCallUrl = typeof url === 'string' ? url : '';
+                } catch (e) {
+                    // ignore
+                }
+                return originalOpen.call(this, method, url, ...rest);
+            };
+
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
                 let isNeedToAddCleantalkDataCheckString = body && typeof body === 'string' &&
@@ -3139,6 +3150,13 @@ class ApbctHandler {
                     body instanceof FormData &&
                     (
                         body.has('action') && body.get('action') === 'fluent_cal_schedule_meeting'
+                    );
+
+                let isNeedToAddCleantalkDataCheckJsonData = body && typeof body === 'string' &&
+                    (
+                        // For Amelia booking integration
+                        typeof this._apbctAjaxCallUrl === 'string' &&
+                        this._apbctAjaxCallUrl.indexOf('action=wpamelia_api') !== -1
                     );
 
                 if (isNeedToAddCleantalkDataCheckString) {
@@ -3188,6 +3206,43 @@ class ApbctHandler {
                         const eventToken = new ApbctHandler().toolGetEventToken();
                         if (eventToken) {
                             body.append('ct_bot_detector_event_token', eventToken);
+                        }
+                    }
+                }
+
+                if (isNeedToAddCleantalkDataCheckJsonData) {
+                    if (!(
+                        +ctPublic.bot_detector_enabled &&
+                        apbctLocalStorage.get('bot_detector_event_token')
+                    )) {
+                        let noCookieData = getNoCookieData();
+                        try {
+                            const bodyObj = JSON.parse(body);
+                            if (
+                                bodyObj && typeof bodyObj === 'object' &&
+                                !Object.prototype.hasOwnProperty.call(bodyObj, 'ct_no_cookie_hidden_field')
+                            ) {
+                                bodyObj.ct_no_cookie_hidden_field = noCookieData;
+                                body = JSON.stringify(bodyObj);
+                            }
+                        } catch (e) {
+                            // body is not JSON — leave as is
+                        }
+                    } else {
+                        const eventToken = new ApbctHandler().toolGetEventToken();
+                        if (eventToken) {
+                            try {
+                                const bodyObj = JSON.parse(body);
+                                if (
+                                    bodyObj && typeof bodyObj === 'object' &&
+                                    !Object.prototype.hasOwnProperty.call(bodyObj, 'ct_bot_detector_event_token')
+                                ) {
+                                    bodyObj.ct_bot_detector_event_token = eventToken;
+                                    body = JSON.stringify(bodyObj);
+                                }
+                            } catch (e) {
+                                // body is not JSON — leave as is
+                            }
                         }
                     }
                 }
@@ -3349,7 +3404,148 @@ class ApbctHandler {
             return skipUrls.some((skipUrl) => url.includes(skipUrl));
         };
 
-        // Override window.fetch
+        // Logic for iframes that use common general window fetch
+
+        /**
+         * Run the matching external form handler(s), if any, and return
+         * whether the original fetch request should be prevented.
+         * @param {string} url
+         * @param {Array} args Original fetch() arguments.
+         * @return {Promise<boolean>}
+         */
+        const processIframeCommonFetch = async function(url, args) {
+            if (!+ctPublic.settings__forms__check_external) {
+                return false;
+            }
+
+            for (const handler of iframeCommonFetchHandlers) {
+                if (handler.matches(url, args)) {
+                    const form = handler.getForm();
+                    const blocked = await runIframeCommonFetchCheck(form);
+                    if (blocked) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        };
+
+        /**
+         * Config-driven list of external form providers.
+         * Adding a new provider only requires a new entry here — no need
+         * to duplicate the Promise/AJAX/blocked-check boilerplate above.
+         */
+        const iframeCommonFetchHandlers = [
+            {
+                name: 'bitrix24',
+                matches: (url, args) =>
+                    document.querySelector('.b24-form') &&
+                    url.includes('bitrix/services/main/ajax.php?action=crm.site.form.fill') &&
+                    args[1].body instanceof FormData,
+                getForm: () => document.querySelector('.b24-form form'),
+            },
+            {
+                name: 'sender',
+                matches: (url, args) =>
+                    url.includes('stats.sender.net/forms') &&
+                    typeof args[1].body === 'string',
+                getForm: () => {
+                    const iframes = document.querySelectorAll('iframe');
+                    for (let i = 0; i < iframes.length; i++) {
+                        try {
+                            // contentDocument access can throw on cross-origin iframes
+                            const doc = iframes[i].contentDocument;
+                            if (doc && doc.querySelectorAll('#sender-form-content').length > 0) {
+                                return doc.querySelector('#sender-form-content');
+                            }
+                        } catch (e) {
+                            // Ignore inaccessible (cross-origin) iframes
+                        }
+                    }
+                    return null;
+                },
+            },
+        ];
+
+        /**
+         * Run the CleanTalk ajax check for a given external form and decide
+         * whether the original fetch request should be blocked.
+         * Centralizes the isInternalCall flag handling, the sendAJAX call,
+         * and the "blocked" detection so providers don't duplicate this logic.
+         * @param {HTMLFormElement|null} form
+         * @return {Promise<boolean>} True if the request should be blocked.
+         */
+        const runIframeCommonFetchCheck = async function(form) {
+            if (!form) {
+                return false;
+            }
+
+            const data = collectIframeFormFields(form);
+
+            // Set internal call flag before making our own AJAX request
+            isInternalCall = true;
+            try {
+                // Check form request - wrap in Promise to wait for completion
+                const result = await new Promise((resolve, reject) => {
+                    apbct_public_sendAJAX(
+                        data,
+                        {
+                            async: true,
+                            callback: resolve,
+                            onErrorCallback: reject,
+                        },
+                    );
+                });
+
+                // blocked
+                const isBlocked =
+                    (result.apbct !== undefined && +result.apbct.blocked) ||
+                    (result.data !== undefined && result.data.message !== undefined);
+
+                if (isBlocked) {
+                    new ApbctShowForbidden().parseBlockMessage(result);
+                }
+
+                return isBlocked;
+            } catch (e) {
+                return false;
+            } finally {
+                isInternalCall = false;
+            }
+        };
+
+        // === Shared logic for external form providers (Bitrix24, sender.com, ...) ===
+
+        /**
+         * Collect form field values into a payload for the ajax check request.
+         * Shared by all external form providers so each handler only needs
+         * to know how to locate its own form element.
+         * @param {HTMLFormElement} form
+         * @return {object}
+         */
+        const collectIframeFormFields = function(form) {
+            const data = {
+                action: 'cleantalk_force_ajax_check',
+            };
+
+            for (const field of form.elements) {
+                if (field.name) {
+                    data[field.name] = field.value;
+                }
+            }
+
+            if (+ctPublic.bot_detector_enabled) {
+                data['ct_bot_detector_event_token'] = apbctLocalStorage.get('bot_detector_event_token');
+            } else {
+                data['ct_no_cookie_hidden_field'] = getNoCookieData();
+            }
+
+            return data;
+        };
+
+        // MAIN FETCH INTERCEPT LOGIC - OVERRIDE WINDOW.FETCH
+
         window.fetch = async function(...args) {
             // Prevent recursion - if this is our internal call, pass through without processing
             if (isInternalCall) {
@@ -3471,64 +3667,8 @@ class ApbctHandler {
                     }
                 }
 
-                // === Bitrix24 external form ===
-                if (
-                    +ctPublic.settings__forms__check_external &&
-                    document.querySelectorAll('.b24-form').length > 0 &&
-                    args[0].includes('bitrix/services/main/ajax.php?action=crm.site.form.fill') &&
-                    args[1].body instanceof FormData
-                ) {
-                    const currentTargetForm = document.querySelector('.b24-form form');
-                    if (currentTargetForm) {
-                        let data = {
-                            action: 'cleantalk_force_ajax_check',
-                        };
-                        for (const field of currentTargetForm.elements) {
-                            if (field.name) {
-                                data[field.name] = field.value;
-                            }
-                        }
-
-                        // Set internal call flag before making our own AJAX request
-                        isInternalCall = true;
-                        try {
-                            // Check form request - wrap in Promise to wait for completion
-                            await new Promise((resolve, reject) => {
-                                apbct_public_sendAJAX(
-                                    data,
-                                    {
-                                        async: true,
-                                        callback: function(result) {
-                                            // allowed
-                                            if ((result.apbct === undefined && result.data === undefined) ||
-                                                (result.apbct !== undefined && !+result.apbct.blocked)
-                                            ) {
-                                                preventOriginalFetch = false;
-                                            }
-
-                                            // blocked
-                                            if ((result.apbct !== undefined && +result.apbct.blocked) ||
-                                                (result.data !== undefined && result.data.message !== undefined)
-                                            ) {
-                                                preventOriginalFetch = true;
-                                                new ApbctShowForbidden().parseBlockMessage(result);
-                                            }
-                                            resolve(result);
-                                        },
-                                        onErrorCallback: function(error) {
-                                            preventOriginalFetch = false;
-                                            reject(error);
-                                        },
-                                    },
-                                );
-                            });
-                        } catch (e) {
-                            preventOriginalFetch = false;
-                        } finally {
-                            isInternalCall = false;
-                        }
-                    }
-                }
+                // === Bitrix24 / sender.com external forms (config-driven, see externalFormHandlers) ===
+                preventOriginalFetch = await processIframeCommonFetch(url, args);
 
                 // Return original fetch result if not prevented
                 if (!preventOriginalFetch) {
@@ -3958,7 +4098,7 @@ class ApbctHandler {
     searchFormHandler(e, targetForm) {
         try {
             // get honeypot field and it's value
-            const honeyPotField = targetForm.querySelector('[name*="apbct_email_id__"]');
+            const honeyPotField = targetForm.querySelector('[name*="apbct__email_id__"]');
             let hpValue = null;
             if (
                 honeyPotField !== null &&

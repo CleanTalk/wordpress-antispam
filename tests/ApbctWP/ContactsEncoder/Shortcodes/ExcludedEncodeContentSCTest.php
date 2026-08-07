@@ -47,11 +47,14 @@ class ExcludedEncodeContentSCTest extends TestCase
     }
 
     /**
-     * Test callback with valid content containing data-original-string
+     * Test callback with valid content containing data-original-string (buffer mode).
      */
     public function testCallbackWithValidContent(): void
     {
-        // Prepare test data
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+
         $originalString = 'test@example.com';
         $encodedString = $this->contacts_encoder->modifyContent($originalString);
 
@@ -61,10 +64,36 @@ class ExcludedEncodeContentSCTest extends TestCase
     }
 
     /**
+     * Test callback stores placeholder when buffer mode is off.
+     */
+    public function testCallbackWithValidContentBufferOffReturnsPlaceholder(): void
+    {
+        global $apbct;
+
+        $previous_buffer = $apbct->settings['data__email_decoder_buffer'];
+        $apbct->settings['data__email_decoder_buffer'] = false;
+
+        try {
+            $originalString = 'test@example.com';
+            $encodedString = $this->contacts_encoder->modifyContent($originalString);
+
+            $result = $this->exclude_content_sc->callback([], $encodedString, '');
+
+            $this->assertStringContainsString('APBCT_SHORT_CODE_SKIP', $result);
+        } finally {
+            $apbct->settings['data__email_decoder_buffer'] = $previous_buffer;
+        }
+    }
+
+    /**
      * Test callback with content without data-original-string
      */
     public function testCallbackWithContentWithoutDataAttribute(): void
     {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+
         $content = '<span>Some text without data attribute</span>';
 
         $result = $this->exclude_content_sc->callback([], $content, '');
@@ -87,13 +116,80 @@ class ExcludedEncodeContentSCTest extends TestCase
         $this->contacts_encoder->dropInstance(); // Need to rebuild the object after the settings changed
         $this->contacts_encoder = apbctGetContactsEncoder();
 
-        $result = $this->exclude_content_sc->changeContentAfterEncoderModify('');
+        $result = $this->exclude_content_sc->changeContentAfterEncoderModify($content);
 
         $this->assertEquals($content, $result);
     }
 
     /**
-     * Test changeContentAfterEncoderModify when buffer is off but in the_title hook
+     * Test changeContentAfterEncoderModify uses apbct->buffer during shutdown when content is empty
+     */
+    public function testChangeContentAfterEncoderModifyWithBufferOnUsesBufferDuringShutdown(): void
+    {
+        global $apbct;
+
+        $content = 'original buffer content test@example.com';
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->buffer = $content;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $shortcodeMock = $this->getMockBuilder(ExcludedEncodeContentSC::class)
+                              ->setMethods(['getCurrentAction'])
+                              ->getMock();
+        $shortcodeMock->method('getCurrentAction')->willReturn('shutdown');
+
+        $result = $shortcodeMock->changeContentAfterEncoderModify('');
+
+        $this->assertEquals($content, $result);
+    }
+
+    /**
+     * Test changeContentAfterEncoderModify when buffer is off and not in the_title
+     */
+    public function testChangeContentAfterEncoderModifyWithBufferOffOnTheContent(): void
+    {
+        global $apbct;
+
+        $content = '<p>[apbct_skip_encoding]asfg@srth.rew[/apbct_skip_encoding]</p>';
+
+        $apbct->settings['data__email_decoder_buffer'] = false;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $protected_content = $this->exclude_content_sc->changeContentBeforeEncoderModify($content);
+        $encoded_content = $this->contacts_encoder->modifyContent($protected_content);
+        $result = $this->exclude_content_sc->changeContentAfterEncoderModify($encoded_content);
+
+        $this->assertEquals('<p>asfg@srth.rew</p>', $result);
+    }
+
+    /**
+     * Test changeContentAfterEncoderModify when buffer is off and not in the_title
+     */
+    public function testChangeContentAfterEncoderModifyWithBufferOffSkipsPhoneAndEmail(): void
+    {
+        global $apbct;
+
+        $content = '[apbct_skip_encoding]asfg@srth.rew[/apbct_skip_encoding] [apbct_skip_encoding]+79991112233[/apbct_skip_encoding]';
+
+        $apbct->settings['data__email_decoder_buffer'] = false;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $protected_content = $this->exclude_content_sc->changeContentBeforeEncoderModify($content);
+        $encoded_content = $this->contacts_encoder->modifyContent($protected_content);
+        $result = $this->exclude_content_sc->changeContentAfterEncoderModify($encoded_content);
+
+        $this->assertEquals('asfg@srth.rew +79991112233', $result);
+    }
+
+    /**
+     * Test changeContentAfterEncoderModify when buffer is off for title-like content
      */
     public function testChangeContentAfterEncoderModifyInTheTitleHook(): void
     {
@@ -103,22 +199,12 @@ class ExcludedEncodeContentSCTest extends TestCase
 
         $apbct->settings['data__email_decoder_buffer'] = false;
         $apbct->saveSettings();
-        $this->contacts_encoder->dropInstance(); // Need to rebuild the object after the settings changed
+        $this->contacts_encoder->dropInstance();
         $this->contacts_encoder = apbctGetContactsEncoder();
 
-        // Create a partial mock that overrides getCurrentAction
-        $shortcodeMock = $this->getMockBuilder(ExcludedEncodeContentSC::class)
-                              ->setMethods(['getCurrentAction'])
-                              ->getMock();
-
-        // Mock getCurrentAction to return 'the_title'
-        $shortcodeMock->expects($this->once())
-                      ->method('getCurrentAction')
-                      ->willReturn('the_title');
-
-        $encoded_content = $this->contacts_encoder->modifyContent($content);
-
-        $result = $shortcodeMock->changeContentAfterEncoderModify($encoded_content);
+        $protected_content = $this->exclude_content_sc->changeContentBeforeEncoderModify($content);
+        $encoded_content = $this->contacts_encoder->modifyContent($protected_content);
+        $result = $this->exclude_content_sc->changeContentAfterEncoderModify($encoded_content);
 
         $this->assertEquals('title with test@example.com', $result);
     }
@@ -134,11 +220,14 @@ class ExcludedEncodeContentSCTest extends TestCase
         $apbct->saveSettings();
         $this->contacts_encoder->dropInstance(); // Need to rebuild the object after the settings changed
         $this->contacts_encoder = apbctGetContactsEncoder();
-        $apbct->buffer = 'buffer [apbct_skip_encoding]first[/apbct_skip_encoding] and [apbct_skip_encoding]second[/apbct_skip_encoding]';
+        $buffer_content = 'buffer [apbct_skip_encoding]first[/apbct_skip_encoding] and [apbct_skip_encoding]second[/apbct_skip_encoding]';
+        $apbct->buffer = $buffer_content;
 
         $shortcodeMock = $this->getMockBuilder(ExcludedEncodeContentSC::class)
-                              ->setMethods(['callback'])
+                              ->setMethods(['callback', 'getCurrentAction'])
                               ->getMock();
+
+        $shortcodeMock->method('getCurrentAction')->willReturn('shutdown');
 
         // Expect two calls to callback
         $matcher = $this->exactly(2);
@@ -156,7 +245,7 @@ class ExcludedEncodeContentSCTest extends TestCase
                           return '';
                       });
 
-        $result = $shortcodeMock->changeContentAfterEncoderModify('input');
+        $result = $shortcodeMock->changeContentAfterEncoderModify($buffer_content);
 
         $this->assertEquals('buffer decoded first and decoded second', $result);
     }
@@ -172,17 +261,20 @@ class ExcludedEncodeContentSCTest extends TestCase
         $apbct->saveSettings();
         $this->contacts_encoder->dropInstance(); // Need to rebuild the object after the settings changed
         $this->contacts_encoder = apbctGetContactsEncoder();
-        $apbct->buffer = 'buffer [apbct_skip_encoding]content[/apbct_skip_encoding]';
+        $buffer_content = 'buffer [apbct_skip_encoding]content[/apbct_skip_encoding]';
+        $apbct->buffer = $buffer_content;
 
         $shortcodeMock = $this->getMockBuilder(ExcludedEncodeContentSC::class)
-                              ->setMethods(['callback'])
+                              ->setMethods(['callback', 'getCurrentAction'])
                               ->getMock();
+
+        $shortcodeMock->method('getCurrentAction')->willReturn('shutdown');
 
         $shortcodeMock->expects($this->once())
                       ->method('callback')
                       ->willReturn('content'); // Return unmodified content
 
-        $result = $shortcodeMock->changeContentAfterEncoderModify('input');
+        $result = $shortcodeMock->changeContentAfterEncoderModify($buffer_content);
 
         // Expect content not to change, but tags are removed
         $this->assertEquals('buffer content', $result);
@@ -193,6 +285,10 @@ class ExcludedEncodeContentSCTest extends TestCase
      */
     public function testCallbackSanitizesDirectScriptInjection(): void
     {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+
         $content = '<script>alert(document.domain)</script>';
         $result = $this->exclude_content_sc->callback([], $content, '');
         $this->assertStringNotContainsString('<script>', $result);
@@ -203,6 +299,10 @@ class ExcludedEncodeContentSCTest extends TestCase
      */
     public function testCallbackSanitizesScriptInSpanFallback(): void
     {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+
         $content = '<span><script>alert(1)</script></span>';
         $result = $this->exclude_content_sc->callback([], $content, '');
         $this->assertStringNotContainsString('<script>', $result);
@@ -265,7 +365,7 @@ class ExcludedEncodeContentSCTest extends TestCase
         $this->contacts_encoder->dropInstance();
         $this->contacts_encoder = apbctGetContactsEncoder();
 
-        $result = $this->exclude_content_sc->changeContentAfterEncoderModify('');
+        $result = $this->exclude_content_sc->changeContentAfterEncoderModify($content);
 
         // Content should be returned unchanged because shortcode is inside HTML tag
         $this->assertEquals($content, $result);
@@ -289,7 +389,7 @@ class ExcludedEncodeContentSCTest extends TestCase
         $this->contacts_encoder->dropInstance();
         $this->contacts_encoder = apbctGetContactsEncoder();
 
-        $result = $this->exclude_content_sc->changeContentAfterEncoderModify('');
+        $result = $this->exclude_content_sc->changeContentAfterEncoderModify($content);
 
         // Full block should be skipped if ANY shortcode is inside HTML tag
         $this->assertEquals($content, $result);

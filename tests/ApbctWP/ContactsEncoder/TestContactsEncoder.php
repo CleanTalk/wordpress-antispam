@@ -4,6 +4,7 @@ namespace ApbctWP\ContactsEncoder;
 
 use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\State;
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use PHPUnit\Framework\TestCase;
 
@@ -22,6 +23,41 @@ class TestEmailEncoder extends TestCase
         global $apbct;
         $apbct->api_key         = 'testapikey';
         $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->clearDecoderPassedCookie();
+    }
+
+    private function clearDecoderPassedCookie(): void
+    {
+        $cookie_name = apbct__get_cookie_prefix() . 'apbct_email_encoder_passed';
+        unset($_COOKIE[$cookie_name]);
+
+        $cookie_instance = Cookie::getInstance();
+        $ref = new \ReflectionClass($cookie_instance);
+        while ($ref) {
+            if ($ref->hasProperty('variables')) {
+                $prop = $ref->getProperty('variables');
+                $prop->setAccessible(true);
+                $variables = $prop->getValue($cookie_instance);
+                unset($variables[$cookie_name]);
+                $prop->setValue($cookie_instance, $variables);
+                break;
+            }
+            $ref = $ref->getParentClass();
+        }
+    }
+
+    private function setDecoderPassedCookie(): string
+    {
+        global $apbct;
+        $apbct->data['key_is_ok'] = true;
+        $apbct->data['cookies_type'] = 'native';
+        $pass_key = apbct_get_email_encoder_pass_key();
+        $cookie_name = apbct__get_cookie_prefix() . 'apbct_email_encoder_passed';
+        $this->clearDecoderPassedCookie();
+        $_COOKIE[$cookie_name] = $pass_key;
+        Cookie::set('apbct_email_encoder_passed', $pass_key);
+
+        return $pass_key;
     }
 
     public function testPlainTextEncodeDecodeSSL()
@@ -262,6 +298,80 @@ class TestEmailEncoder extends TestCase
         $this->assertNotEquals($apbct->buffer, $test_string);
     }
 
+    public function testModifyBufferPreservesParagraphWrapperAroundShortcode()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->contacts_encoder->runEncoding();
+
+        $apbct->buffer = '<p>[apbct_encode_data]any data to encode[/apbct_encode_data]</p>';
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertStringStartsWith('<p>', $apbct->buffer);
+        $this->assertStringContainsString('</p>', $apbct->buffer);
+        $this->assertStringNotContainsString('[apbct_encode_data]', $apbct->buffer);
+        $this->assertStringContainsString('apbct-email-encoder', $apbct->buffer);
+    }
+
+    public function testModifyBufferPreservesParagraphWrapperAroundPlainEmailAndShortcode()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->contacts_encoder->runEncoding();
+
+        $apbct->buffer =
+            '<p>s@cleantalk.org</p>' .
+            '<p>[apbct_encode_data]any data to encode[/apbct_encode_data]</p>' .
+            '<p>[apbct_encode_data]plain shortcode line[/apbct_encode_data]</p>';
+
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertEquals(3, substr_count($apbct->buffer, '<p>'));
+        $this->assertEquals(3, substr_count($apbct->buffer, '</p>'));
+        $this->assertStringNotContainsString('[apbct_encode_data]', $apbct->buffer);
+        $this->assertStringContainsString('apbct-email-encoder', $apbct->buffer);
+    }
+
+    public function testModifyBufferSkipsEncodingWhenDecoderCookieSet()
+    {
+        global $apbct;
+
+        $pass_key = $this->setDecoderPassedCookie();
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->contacts_encoder->runEncoding();
+
+        $this->assertEquals($pass_key, Cookie::get('apbct_email_encoder_passed'));
+
+        $apbct->buffer =
+            '<p>any text to encode</p>' .
+            '<p>email test1@te.st</p>' .
+            '<p>text and email, email - test2@te.st</p>';
+
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertEquals(3, substr_count($apbct->buffer, '<p>'));
+        $this->assertEquals(3, substr_count($apbct->buffer, '</p>'));
+        $this->assertStringNotContainsString('apbct-email-encoder', $apbct->buffer);
+        $this->assertStringContainsString('any text to encode', $apbct->buffer);
+        $this->assertStringContainsString('test1@te.st', $apbct->buffer);
+        $this->assertStringContainsString('test2@te.st', $apbct->buffer);
+    }
+
     public function testBufferOutput()
     {
         global $apbct;
@@ -274,9 +384,202 @@ class TestEmailEncoder extends TestCase
         $this->assertEquals($this->plain_text, $output);
     }
 
+    // =========================================================================
+    // compileResponse — sanitization tests
+    // =========================================================================
+
+    /**
+     * compileResponse returns false when an empty array is passed.
+     */
+    public function testCompileResponseReturnsFalseOnEmptyInput()
+    {
+        $result = $this->contacts_encoder->compileResponse([], true);
+        $this->assertFalse($result);
+    }
+
+    /**
+     * compileResponse returns false when a non-array is passed.
+     */
+    public function testCompileResponseReturnsFalseOnNonArrayInput()
+    {
+        $result = $this->contacts_encoder->compileResponse(null, true);
+        $this->assertFalse($result);
+    }
+
+    /**
+     * When is_allowed = true the decoded_email is present in the result
+     * and passes through wp_kses_post (escKsesPost).
+     */
+    public function testCompileResponseDecodedEmailPresentWhenAllowed()
+    {
+        $encoded = 'encodedKey';
+        $decoded = 'user@example.com';
+
+        $result = $this->contacts_encoder->compileResponse([$encoded => $decoded], true);
+
+        $this->assertIsArray($result);
+        $this->assertCount(1, $result);
+        $this->assertTrue($result[0]['is_allowed']);
+        $this->assertFalse($result[0]['show_comment']);
+        $this->assertEquals($decoded, $result[0]['decoded_email']);
+        $this->assertEquals($encoded, $result[0]['encoded_email']);
+    }
+
+    /**
+     * When is_allowed = false the decoded_email must be an empty string —
+     * contact data must not be exposed to blocked visitors.
+     */
+    public function testCompileResponseDecodedEmailEmptyWhenNotAllowed()
+    {
+        $encoded = 'encodedKey';
+        $decoded = 'user@example.com';
+
+        $result = $this->contacts_encoder->compileResponse([$encoded => $decoded], false);
+
+        $this->assertIsArray($result);
+        $this->assertFalse($result[0]['is_allowed']);
+        $this->assertTrue($result[0]['show_comment']);
+        $this->assertSame('', $result[0]['decoded_email']);
+    }
+
+    /**
+     * escHtml (esc_html) must escape HTML special characters in the comment field.
+     * e.g. <script>alert(1)</script> → &lt;script&gt;alert(1)&lt;/script&gt;
+     */
+    public function testCompileResponseCommentIsEscapedByEscHtml()
+    {
+        // Simulate a comment that contains XSS payload — arrives from API response
+        $xss_comment    = '<script>alert(1)</script>';
+        $expected_comment = esc_html($xss_comment); // &lt;script&gt;alert(1)&lt;/script&gt;
+
+        // Inject the comment via reflection so we don't need a real API call
+        $reflection = new \ReflectionClass($this->contacts_encoder);
+        $prop = $reflection->getProperty('comment');
+        $prop->setAccessible(true);
+        $prop->setValue($this->contacts_encoder, $xss_comment);
+
+        $result = $this->contacts_encoder->compileResponse(['key' => 'val'], true);
+
+        $this->assertSame($expected_comment, $result[0]['comment']);
+        $this->assertStringNotContainsString('<script>', $result[0]['comment']);
+    }
+
+    /**
+     * escHtml must escape angle brackets, quotes and ampersands in the comment.
+     */
+    public function testCompileResponseCommentEscapesSpecialHtmlChars()
+    {
+        $raw_comment      = '"Hello" & <World>';
+        $expected_comment = esc_html($raw_comment);
+
+        $reflection = new \ReflectionClass($this->contacts_encoder);
+        $prop = $reflection->getProperty('comment');
+        $prop->setAccessible(true);
+        $prop->setValue($this->contacts_encoder, $raw_comment);
+
+        $result = $this->contacts_encoder->compileResponse(['key' => 'val'], true);
+
+        $this->assertSame($expected_comment, $result[0]['comment']);
+    }
+
+    /**
+     * escKsesPost (wp_kses_post) must strip disallowed tags from decoded_email
+     * while keeping safe tags like <a>.
+     */
+    public function testCompileResponseDecodedEmailStripsDisallowedTagsViaKsesPost()
+    {
+        $encoded = 'encodedKey';
+        // <script> must be stripped; <a> is allowed by wp_kses_post
+        $decoded_with_script = '<script>evil()</script><a href="mailto:u@e.com">u@e.com</a>';
+        $expected = wp_kses_post(strip_tags($decoded_with_script, '<a>'));
+
+        $result = $this->contacts_encoder->compileResponse([$encoded => $decoded_with_script], true);
+
+        $this->assertStringNotContainsString('<script>', $result[0]['decoded_email']);
+        $this->assertSame($expected, $result[0]['decoded_email']);
+    }
+
+    /**
+     * strip_tags with '<a>' allowlist must remove all tags except <a> before kses.
+     * Verifies the strip_tags → escKsesPost chain for decoded_email.
+     */
+    public function testCompileResponseDecodedEmailStripTagsAllowsOnlyAnchor()
+    {
+        $encoded = 'encodedKey';
+        $decoded = '<b>bold</b> <a href="#">link</a> <img src="x">';
+        $expected = wp_kses_post(strip_tags($decoded, '<a>'));
+
+        $result = $this->contacts_encoder->compileResponse([$encoded => $decoded], true);
+
+        $this->assertStringNotContainsString('<b>', $result[0]['decoded_email']);
+        $this->assertStringNotContainsString('<img', $result[0]['decoded_email']);
+        $this->assertStringContainsString('<a', $result[0]['decoded_email']);
+        $this->assertSame($expected, $result[0]['decoded_email']);
+    }
+
+    /**
+     * strip_tags on encoded_email key must allow only <a> tag.
+     */
+    public function testCompileResponseEncodedEmailStripsTagsAllowsOnlyAnchor()
+    {
+        $encoded = '<b>boldKey</b><a href="#">anchorKey</a>';
+        $decoded = 'user@example.com';
+        $expected_encoded = strip_tags($encoded, '<a>');
+
+        $result = $this->contacts_encoder->compileResponse([$encoded => $decoded], true);
+
+        $this->assertSame($expected_encoded, $result[0]['encoded_email']);
+        $this->assertStringNotContainsString('<b>', $result[0]['encoded_email']);
+    }
+
+    /**
+     * compileResponse correctly handles multiple entries in a single call.
+     */
+    public function testCompileResponseHandlesMultipleEntries()
+    {
+        $data = [
+            'encoded1' => 'user1@example.com',
+            'encoded2' => 'user2@example.com',
+            'encoded3' => 'user3@example.com',
+        ];
+
+        $result = $this->contacts_encoder->compileResponse($data, true);
+
+        $this->assertIsArray($result);
+        $this->assertCount(3, $result);
+
+        foreach ($result as $index => $item) {
+            $this->assertArrayHasKey('is_allowed', $item);
+            $this->assertArrayHasKey('decoded_email', $item);
+            $this->assertArrayHasKey('encoded_email', $item);
+            $this->assertArrayHasKey('comment', $item);
+            $this->assertArrayHasKey('show_comment', $item);
+            $this->assertNotEmpty($item['decoded_email']);
+        }
+    }
+
+    /**
+     * When is_allowed = false and multiple entries are passed,
+     * all decoded_email fields must be empty strings.
+     */
+    public function testCompileResponseAllDecodedEmailsEmptyWhenNotAllowed()
+    {
+        $data = [
+            'encoded1' => 'user1@example.com',
+            'encoded2' => 'user2@example.com',
+        ];
+
+        $result = $this->contacts_encoder->compileResponse($data, false);
+
+        foreach ($result as $item) {
+            $this->assertSame('', $item['decoded_email']);
+        }
+    }
+
     public function tearDown() : void
     {
         global $apbct;
         $apbct->buffer = '';
+        $this->clearDecoderPassedCookie();
     }
 }
