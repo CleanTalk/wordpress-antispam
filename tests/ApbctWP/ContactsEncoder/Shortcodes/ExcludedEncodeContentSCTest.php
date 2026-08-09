@@ -311,6 +311,29 @@ class ExcludedEncodeContentSCTest extends TestCase
     }
 
     /**
+     * get_header/get_footer fire as actions with a nullable template name.
+     * Filters hooked there must not pass null into preg_*.
+     */
+    public function testChangeContentBeforeEncoderModifyAcceptsNullFromGetHeader(): void
+    {
+        $this->assertSame(
+            '',
+            $this->exclude_content_sc->changeContentBeforeEncoderModify(null)
+        );
+    }
+
+    /**
+     * @see testChangeContentBeforeEncoderModifyAcceptsNullFromGetHeader
+     */
+    public function testChangeContentAfterEncoderModifyAcceptsNullFromGetHeader(): void
+    {
+        $this->assertSame(
+            '',
+            $this->exclude_content_sc->changeContentAfterEncoderModify(null)
+        );
+    }
+
+    /**
      * Test that shortcode inside HTML attribute is detected
      */
     public function testOffsetDetectionInsideHtmlTag(): void
