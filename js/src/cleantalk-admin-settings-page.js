@@ -400,6 +400,9 @@ jQuery(document).ready(function() {
     // Hide/show EmailEncoder replacing text textarea
     apbctManageEmailEncoderCustomTextField();
 
+    // Turn SpamFireWall on with Anti-Crawler
+    apbctManageAntiCrawlerDependency();
+
     if (window.location.hash) {
         const anchor = window.location.hash.substring(1);
         handleAnchorDetection(anchor);
@@ -458,6 +461,27 @@ function apbctManageEmailEncoderCustomTextField() {
                 }
             }
         });
+    });
+}
+
+/**
+ * Anti-Crawler is an add-on to SFW, so check SpamFireWall on enabling Anti-Crawler
+ */
+function apbctManageAntiCrawlerDependency() {
+    const antiCrawler = document.querySelector('#apbct_setting_sfw__anti_crawler');
+    const spamFireWall = document.querySelector('#apbct_setting_sfw__enabled');
+    if (!antiCrawler || !spamFireWall) {
+        return;
+    }
+    antiCrawler.addEventListener('change', () => {
+        if (! antiCrawler.checked || spamFireWall.checked) {
+            return;
+        }
+        spamFireWall.checked = true;
+        const childrens = spamFireWall.getAttribute('apbct_children');
+        if (childrens !== null) {
+            apbctSettingsDependencies(childrens, 1);
+        }
     });
 }
 
