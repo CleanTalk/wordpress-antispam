@@ -90,20 +90,43 @@ class RemoteCalls
     {
         global $apbct;
 
-        // Resolve IP of the client making the request and verify hostname from it to be in the list of RC servers hostnames
-        $client_ip = Helper::ipGet('remote_addr');
-        $verified_hostname = $client_ip ? \Cleantalk\Common\Helper::ipResolve($client_ip) : false;
-        $is_noc_request = ! $apbct->key_is_ok &&
-            Request::get('spbc_remote_call_action') &&
-            in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct')) &&
-            $verified_hostname !== false &&
-            in_array($verified_hostname, self::RC_SERVERS, true);
-
         // no token needs for this action, at least for now
         // todo Probably we still need to validate this, consult with analytics team
         $is_wp_nonce_request = $apbct->key_is_ok && Request::get('spbc_remote_call_action') === 'get_fresh_wpnonce';
 
-        return $is_wp_nonce_request || $is_noc_request;
+        if ( $is_wp_nonce_request ) {
+            return true;
+        }
+
+        // The cheap request checks are done first, the client IP is resolved only if all of them pass.
+        return ! $apbct->key_is_ok &&
+            Request::get('spbc_remote_call_action') &&
+            in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct')) &&
+            self::isRequestFromRcServer();
+    }
+
+    /**
+     * Verify that the request is made by one of the CleanTalk RC servers.
+     *
+     * Resolves IP of the client making the request and verifies the hostname from it to be
+     * in the list of RC servers hostnames.
+     *
+     * Performs DNS lookups, so it has to be called only after all the cheap checks passed -
+     * an unauthorized request must never be able to trigger a DNS resolving.
+     *
+     * @return bool
+     */
+    private static function isRequestFromRcServer()
+    {
+        $client_ip = Helper::ipGet('remote_addr');
+
+        if ( ! $client_ip ) {
+            return false;
+        }
+
+        $verified_hostname = \Cleantalk\Common\Helper::ipResolve($client_ip);
+
+        return $verified_hostname !== false && in_array($verified_hostname, self::RC_SERVERS, true);
     }
 
     /**
@@ -122,16 +145,6 @@ class RemoteCalls
         // Rate limit check — block abusive IPs before any cooldown logic
         if ( ! self::rateLimitCheck() ) {
             die('FAIL ' . json_encode(array('error' => 'RATE_LIMIT_EXCEEDED')));
-        }
-
-        // Sensitive plugin-lifecycle actions must additionally originate from a verified CleanTalk RC server.
-        if ( in_array($action, self::$pluginLifecycleActions, true) ) {
-            // Resolve the client IP to a hostname (reverse DNS) and check it against the RC servers allowlist.
-            $client_ip = Helper::ipGet('remote_addr');
-            $verified_hostname = $client_ip ? \Cleantalk\Common\Helper::ipResolve($client_ip) : false;
-            if ( $verified_hostname === false || ! in_array($verified_hostname, self::RC_SERVERS, true) ) {
-                die('FAIL ' . json_encode(array('error' => 'FORBIDDEN_SOURCE')));
-            }
         }
 
         if ( isset($apbct->remote_calls[$action]) ) {
@@ -155,6 +168,16 @@ class RemoteCalls
                     (self::checkToken($token)) ||
                     (self::isAllowedWithoutToken($action) && self::checkWithoutToken())
                 ) {
+                    // Sensitive plugin-lifecycle actions must additionally originate from a verified
+                    // CleanTalk RC server. Checked after the token validation, so a request with a
+                    // wrong token is rejected without any DNS resolving.
+                    if (
+                        in_array($action, self::$pluginLifecycleActions, true) &&
+                        ! self::isRequestFromRcServer()
+                    ) {
+                        die('FAIL ' . json_encode(array('error' => 'FORBIDDEN_SOURCE')));
+                    }
+
                     // Update last_call only for authorized requests
                     $apbct->remote_calls[$action]['last_call'] = time();
                     $apbct->save('remote_calls');

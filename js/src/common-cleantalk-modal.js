@@ -153,7 +153,9 @@ var cleantalkModal = cleantalkModal || { // eslint-disable-line no-var
             if (serviceContentRegex.test(this.loaded) || this.ignoreURLConvert) {
                 content.innerHTML = this.sanitizeHtml(this.loaded);
             } else {
-                content.innerHTML = this.sanitizeHtml(this.loaded.replace(urlRegex, '<a href="$1" target="_blank">$1</a>'));
+                content.innerHTML = this.sanitizeHtml(
+                    this.loaded.replace(urlRegex, '<a href="$1" target="_blank">$1</a>'),
+                );
             }
         } else {
             content.innerHTML = 'Loading...';
@@ -222,6 +224,40 @@ var cleantalkModal = cleantalkModal || { // eslint-disable-line no-var
         );
     },
 
+    /**
+     * Allowlist of HTML tags that may appear in the modal content.
+     * Tag names are compared as they are reported by the parser, so only HTML elements
+     * (always uppercase) can match here - SVG/MathML elements never do.
+     */
+    allowedTags: [
+        'A', 'B', 'BLOCKQUOTE', 'BR', 'BUTTON', 'CODE', 'DD', 'DIV', 'DL', 'DT', 'EM', 'FIELDSET',
+        'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'I', 'IMG', 'INPUT', 'LABEL', 'LEGEND', 'LI',
+        'OL', 'OPTGROUP', 'OPTION', 'P', 'PRE', 'SELECT', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP',
+        'TABLE', 'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH', 'THEAD', 'TR', 'U', 'UL',
+    ],
+
+    /**
+     * Allowlist of attributes. Everything else (including every on* handler,
+     * form/formaction, srcset, namespaced attributes) is dropped.
+     * Attributes prefixed with 'data-' are allowed too, see isAttributeAllowed().
+     */
+    allowedAttributes: [
+        'alt', 'checked', 'class', 'cols', 'disabled', 'for', 'height', 'href', 'id', 'maxlength',
+        'multiple', 'name', 'placeholder', 'readonly', 'rel', 'required', 'rows', 'selected',
+        'size', 'src', 'style', 'target', 'title', 'type', 'value', 'width',
+    ],
+
+    // Attributes holding an URL - their value is additionally checked by isSafeUrl().
+    allowedUrlAttributes: ['href', 'src'],
+
+    allowedUrlSchemes: ['http', 'https', 'mailto'],
+
+    /**
+     * Sanitize an untrusted HTML string with a strict allowlist.
+     *
+     * @param {string} dirty Untrusted HTML.
+     * @return {string} Sanitized HTML.
+     */
     sanitizeHtml: function( dirty ) {
         if ( typeof dirty !== 'string' || dirty === '' ) {
             return '';
@@ -230,33 +266,96 @@ var cleantalkModal = cleantalkModal || { // eslint-disable-line no-var
         let template = document.createElement( 'template' );
         template.innerHTML = dirty;
 
-        let forbiddenTags = ['SCRIPT', 'IFRAME', 'OBJECT', 'EMBED', 'BASE', 'LINK', 'META'];
+        // Comments are never needed here and are a known mXSS vector.
+        let walker = document.createTreeWalker( template.content, NodeFilter.SHOW_COMMENT );
+        let comments = [];
+        while ( walker.nextNode() ) {
+            comments.push( walker.currentNode );
+        }
+        comments.forEach( function( comment ) {
+            comment.remove();
+        } );
 
+        let self = this;
         template.content.querySelectorAll( '*' ).forEach( function( el ) {
-            if ( forbiddenTags.indexOf( el.tagName ) !== -1 ) {
+            // Tag names are compared as the parser reports them - do not normalize the case here.
+            // HTML elements are always uppercase, while foreign content (SVG, MathML) keeps its
+            // lowercase names, so it never matches the allowlist and is dropped as a whole
+            // together with its own script vectors: <svg><script>, <math><annotation-xml>, xlink:href.
+            if ( self.allowedTags.indexOf( el.tagName ) === -1 ) {
                 el.remove();
                 return;
             }
 
             Array.prototype.slice.call( el.attributes ).forEach( function( attr ) {
-                let name = attr.name.toLowerCase();
-                let value = attr.value.replace( /\s+/g, '' ).toLowerCase();
-
-                if ( name.indexOf( 'on' ) === 0 ) {
-                    el.removeAttribute( attr.name );
-                    return;
-                }
-
-                if (
-                    ( name === 'href' || name === 'src' || name === 'xlink:href' || name === 'formaction' ) &&
-                    ( value.indexOf( 'javascript:' ) === 0 || value.indexOf( 'data:text/html' ) === 0 )
-                ) {
+                if ( ! self.isAttributeAllowed( attr ) ) {
                     el.removeAttribute( attr.name );
                 }
             } );
         } );
 
         return template.innerHTML;
+    },
+
+    /**
+     * Check an attribute against the allowlist.
+     *
+     * @param {Attr} attr Attribute to check.
+     * @return {boolean} True if the attribute may be kept.
+     */
+    isAttributeAllowed: function( attr ) {
+        if ( attr.namespaceURI !== null ) {
+            return false;
+        }
+
+        let name = attr.name.toLowerCase();
+
+        if ( name.indexOf( 'data-' ) === 0 ) {
+            return true;
+        }
+
+        if ( this.allowedAttributes.indexOf( name ) === -1 ) {
+            return false;
+        }
+
+        if ( this.allowedUrlAttributes.indexOf( name ) !== -1 ) {
+            return this.isSafeUrl( attr.value );
+        }
+
+        if ( name === 'style' ) {
+            return this.isSafeCss( attr.value );
+        }
+
+        return true;
+    },
+
+    /**
+     * Check that an URL has no scheme or one of the allowed schemes.
+     *
+     * @param {string} value Attribute value.
+     * @return {boolean} True if the URL may be kept.
+     */
+    isSafeUrl: function( value ) {
+        let normalized = String( value ).replace( /[\u0000-\u0020\u007F-\u00A0]+/g, '' ).toLowerCase();
+        let scheme = normalized.match( /^([a-z][a-z0-9+.\-]*):/ );
+
+        if ( scheme === null ) {
+            return true;
+        }
+
+        return this.allowedUrlSchemes.indexOf( scheme[1] ) !== -1;
+    },
+
+    /**
+     * Check an inline style value for the constructs able to execute code or load remote content.
+     *
+     * @param {string} value Attribute value.
+     * @return {boolean} True if the style may be kept.
+     */
+    isSafeCss: function( value ) {
+        let normalized = String( value ).replace( /[\u0000-\u0020\u007F]+/g, '' ).toLowerCase();
+
+        return ! /(expression\(|javascript:|vbscript:|url\(|@import|-moz-binding|behavior:)/.test( normalized );
     },
 
     close: function() {
@@ -282,6 +381,7 @@ document.addEventListener('click', function( e ) {
 });
 document.addEventListener('cleantalkModalContentLoaded', function( e ) {
     if ( cleantalkModal.opened && cleantalkModal.loaded ) {
-        document.getElementById( 'cleantalk-modal-content' ).innerHTML = cleantalkModal.sanitizeHtml( cleantalkModal.loaded );
+        document.getElementById( 'cleantalk-modal-content' ).innerHTML =
+            cleantalkModal.sanitizeHtml( cleantalkModal.loaded );
     }
 });
