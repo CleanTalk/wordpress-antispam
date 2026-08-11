@@ -193,6 +193,29 @@ class TestEmailEncoder extends TestCase
         $this->assertRegExp($regexp_for_replace, $result);
     }
 
+    /**
+     * Emails inside <option> must stay plain so select/Fluent Forms submit valid values (#53406).
+     */
+    public function testModifyContentSkipsEmailsInsideOptionTags()
+    {
+        $email_in_option = 'dropdown@example.com';
+        $email_outside = 'public@example.com';
+        $content = '<p>Contact ' . $email_outside . '</p>'
+            . '<select name="department">'
+            . '<option value="' . $email_in_option . '">' . $email_in_option . '</option>'
+            . '</select>';
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        $this->assertStringContainsString(
+            '<option value="' . $email_in_option . '">' . $email_in_option . '</option>',
+            $result
+        );
+        $this->assertStringNotContainsString('%%APBCT_OPTION_SKIP_', $result);
+        $this->assertStringNotContainsString($email_outside, $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+    }
+
     public function testEncodingPhoneNumbers()
     {
         global $apbct;

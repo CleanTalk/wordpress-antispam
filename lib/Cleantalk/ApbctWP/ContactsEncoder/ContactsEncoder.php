@@ -140,6 +140,46 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     }
 
     /**
+     * Skip email encoding inside <option> (value + text).
+     * Fluent Forms / select dropdowns break when option emails are encoded (#53406).
+     * Kept in ApbctWP (not Common / contacts-encoder) while the shared library update is blocked.
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    public function modifyGlobalEmails($content)
+    {
+        if ( ! is_string($content) || $content === '' || stripos($content, '<option') === false ) {
+            return parent::modifyGlobalEmails($content);
+        }
+
+        $placeholders = array();
+        $protected = preg_replace_callback(
+            '/<option\b[^>]*>.*?<\/option>/is',
+            static function ($matches) use (&$placeholders) {
+                $key = '%%APBCT_OPTION_SKIP_' . count($placeholders) . '%%';
+                $placeholders[$key] = $matches[0];
+
+                return $key;
+            },
+            $content
+        );
+
+        if ( ! is_string($protected) ) {
+            return parent::modifyGlobalEmails($content);
+        }
+
+        $encoded = parent::modifyGlobalEmails($protected);
+
+        if ( $placeholders === array() ) {
+            return $encoded;
+        }
+
+        return strtr($encoded, $placeholders);
+    }
+
+    /**
      * Wrapper. Encode any string.
      * @param $string
      * @param string $mode
