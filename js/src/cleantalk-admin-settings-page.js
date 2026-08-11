@@ -407,6 +407,14 @@ jQuery(document).ready(function() {
         const anchor = window.location.hash.substring(1);
         handleAnchorDetection(anchor);
     }
+
+    // Fullpage trial/renew banner dismiss handler
+    jQuery('body').on('click', '.apbct-trial-renew-fullpage .notice-dismiss', function(e) {
+        e.preventDefault();
+        sessionStorage.setItem('apbct_trial_fullpage_dismissed', '1');
+        jQuery('.apbct-trial-renew-fullpage').hide();
+        jQuery('#apbct-settings-page-wrap').show();
+    });
 });
 
 /**

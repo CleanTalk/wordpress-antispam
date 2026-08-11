@@ -726,3 +726,172 @@ button[value="save_changes"]:disabled {
         flex-direction: column;
     }
 }
+
+/* Fullpage trial/renew banner */
+.apbct-trial-renew-fullpage {
+    display: flex;
+    position: fixed;
+    width: stretch;
+    top: 0;
+    bottom: 0;
+    overflow-y: auto;
+    justify-content: center;
+    align-items: flex-start;
+    font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    color: #444;
+    background-color: #f0f0f0;
+    z-index: 99;
+}
+
+.apbct-trial-renew-fullpage-notice {
+	padding: 32px 64px 64px 64px !important;
+	margin-top: 5em !important;
+	margin-bottom: 5em !important;
+}
+
+.apbct-trial-renew-fullpage-body {
+	margin-top: 32px;
+	margin-left: 32px;
+}
+
+.apbct-banner-header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.apbct-trial-renew-fullpage-body .apbct-banner-button-wrapper {
+    display: flex;
+    margin: 0;
+}
+
+.apbct-trial-renew-fullpage-image {
+	flex: 1 1 0;
+	min-width: 0;
+	max-width: 576px;
+	height: auto;
+	object-fit: contain;
+    margin: auto 0;
+	align-self: flex-start;
+}
+
+.apbct-banner-desc-block-row {
+	line-height: 22px;
+}
+
+.apbct-banner-red-point {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	background-color: #BB3323;
+	border-radius: 50%;
+	margin-right: 8px;
+	vertical-align: middle;
+}
+
+.apbct-banner-error {
+    background-color: #ffffff !important;
+    box-shadow: 0px 4px 15px #84848440 !important;
+    border-left-color: #BB3323 !important;
+}
+
+.apbct-banner-background-container {
+	display: grid;
+    max-width: 644px;
+	gap: 16px;
+	padding: 32px;
+	background-color: #F3F6F9;
+	border-radius: 8px;
+}
+
+.apbct-banner-desc-block-title {
+	font-size: 18px;
+	font-weight: bold;
+	line-height: 22px;
+	color: #0A0A0A;
+	margin-bottom: 8px;
+}
+
+.apbct-banner-stat-value {
+	margin-bottom: 0px;
+	color: #444444;
+	vertical-align: middle;
+}
+
+.apbct-banner-desc-block-text {
+	font-size: 14px;
+	line-height: 22px;
+	color: #717182;
+	margin-left: 12px;
+	margin-top: 0;
+	vertical-align: middle;
+}
+
+.apbct-banner-desc-blocks {
+	display: grid;
+	gap: 16px;
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+.apbct-banner-desc-blocks-content {
+	display: flex;
+	gap: 72px;
+	flex-wrap: wrap;
+	justify-content: center;
+	margin: 32px 0;
+}
+
+.apbct-banner-check {
+    vertical-align: middle;
+}
+
+.apbct-trial-renew-upgrade {
+    display: none;
+    text-align: center;
+}
+
+.apbct-trial-renew-upgrade-link {
+    font-size: 16px;
+    line-height: 22px;
+    letter-spacing: 0%;
+    text-decoration: underline solid 0% #026E88 !important;
+    text-underline-offset: 25%;
+    color: #026E88 !important;
+}
+
+@media (max-width: 1366px) {
+    .apbct-banner-header {
+        display: grid;
+        gap: 16px;
+    }
+
+    .apbct-banner-desc-blocks-content {
+        display: grid;
+        gap: 38px;
+        place-items: center;
+    }
+
+    .apbct-trial-renew-upgrade {
+        display: block;
+    }
+}
+
+@media (max-width: 1200px) {
+	.apbct-banner-desc-blocks-content { gap: 32px; }
+}
+
+@media (max-width: 782px) {
+    .apbct-trial-renew-fullpage { padding-top: 50px; padding-bottom: 50px; }
+	.apbct-trial-renew-fullpage-notice { padding: 24px 24px 32px 24px !important; }
+	.apbct-trial-renew-fullpage-body { margin-top: 20px; margin-left: 0; }
+	.apbct-banner-desc-blocks-content { gap: 24px; }
+	.apbct-banner-background-container { padding: 20px; }
+	.apbct-trial-renew-fullpage-image { width: 100%; }
+}
+
+@media (max-width: 480px) {
+	.apbct-trial-renew-fullpage-notice { padding: 16px 12px 24px 12px !important; }
+	.apbct-banner-background-container { padding: 16px; }
+	.apbct-banner-desc-blocks-content { gap: 16px; }
+	.apbct-banner-desc-block-title { font-size: 16px; }
+}
