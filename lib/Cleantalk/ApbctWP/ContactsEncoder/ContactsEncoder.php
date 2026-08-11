@@ -158,6 +158,10 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $protected = preg_replace_callback(
             '/<option\b[^>]*>.*?<\/option>/is',
             static function ($matches) use (&$placeholders) {
+                if ( ! isset($matches[0]) ) {
+                    return '';
+                }
+
                 $key = '%%APBCT_OPTION_SKIP_' . count($placeholders) . '%%';
                 $placeholders[$key] = $matches[0];
 
