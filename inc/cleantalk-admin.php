@@ -38,16 +38,22 @@ add_action('comment_trash_to_unapproved', 'apbct_comment__remove_meta_approved',
 /**
  * Crunch for Anti-Bot
  * Hooked by 'admin_head'
+ *
+ * Cookie value must not equal RemoteCalls token. Only privileged users may receive it.
  */
 function apbct_admin_set_cookie_for_anti_bot()
 {
     global $apbct;
 
+    if ( ! current_user_can('manage_options') ) {
+        return;
+    }
+
     if ( $apbct->data['key_is_ok'] ) {
         echo
             '<script ' . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . '>
                 var ctSecure = location.protocol === "https:" ? "; secure" : "";
-                document.cookie = "wordpress_apbct_antibot=' . hash('sha256', $apbct->api_key . $apbct->data['salt']) . '; path=/; expires=0; samesite=lax" + ctSecure;
+                document.cookie = "wordpress_apbct_antibot=' . apbct_get_anti_bot_cookie_hash() . '; path=/; expires=0; samesite=lax" + ctSecure;
             </script>';
     }
 }
