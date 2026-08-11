@@ -261,6 +261,12 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
+    // aMember Pro signup (/am/signup) — detected by POST fingerprint; aMember bootstraps WP
+    'AmemberRegister' => array(
+        'hook'    => 'wp_loaded',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
     //elementor_pro_forms_send_form
     'ElementorPro' => array(
         'hook'    => 'elementor_pro_forms_send_form',
@@ -513,6 +519,12 @@ $apbct_active_integrations = array(
     'EmailSubscribers' => array(
         'hook'    => ['es_add_subscriber', 'ig_es_validate_subscription'],
         'setting' => 'forms__contact_forms_test',
+        'ajax'    => true,
+        'ajax_and_post' => true
+    ),
+    'EventPrime' => array(
+        'hook'    => ['ep_submit_register_form', 'ep_save_event_booking'],
+        'setting' => 'forms__registrations_test',
         'ajax'    => true,
         'ajax_and_post' => true
     ),

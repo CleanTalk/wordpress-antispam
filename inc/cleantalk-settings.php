@@ -103,17 +103,17 @@ function apbct_settings__set_fields()
 {
     global $apbct;
 
-    $additional_ac_title = '';
+    $additional_ac_description = '';
     if ( $apbct->api_key && is_null($apbct->fw_stats['firewall_updating_id']) ) {
         if ( $apbct->settings['sfw__enabled'] && ! $apbct->stats['sfw']['entries'] ) {
-            $additional_ac_title =
-                ' <span style="color:red">'
+            $additional_ac_description =
+                '<br><span style="color:black">'
                 . esc_html__(
                     'The functionality was disabled because SpamFireWall database is empty. Please, do the synchronization or',
                     'cleantalk-spam-protect'
                 )
                 . ' '
-                . '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('settings_support_open', 'my/support/open')) . '" target="_blank" style="color:red">'
+                . '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('settings_support_open', 'my/support/open')) . '" target="_blank" style="color:black">'
                 . esc_html__(
                     'contact to our support.',
                     'cleantalk-spam-protect'
@@ -181,28 +181,6 @@ function apbct_settings__set_fields()
                     ),
                     'long_description' => true,
                 ),
-                'sfw__anti_crawler'           => array(
-                    'type'        => 'checkbox',
-                    'title'       => 'Anti-Crawler' . $additional_ac_title, // Do not to localize this phrase
-                    'class'       => 'apbct_settings-field_wrapper',
-                    'parent'      => 'sfw__enabled',
-                    'description' =>
-                        __(
-                            'Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).',
-                            'cleantalk-spam-protect'
-                        )
-                        . '<br>'
-                        . __(
-                            'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.',
-                            'cleantalk-spam-protect'
-                        )
-                        . '<br><b>'
-                        . __(
-                            'This option works only when SpamFireWall is enabled.',
-                            'cleantalk-spam-protect'
-                        ) . '</b>',
-                    'long_description' => true,
-                ),
                 'data__email_decoder__status'        => array(
                     'type'        => 'custom_html',
                     'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
@@ -222,10 +200,9 @@ function apbct_settings__set_fields()
             'fields' => array(),
             'notification'      => __('The default settings correspond to the optimal work of the service and their change is required only in special cases.', 'cleantalk-spam-protect'),
             'html_before'       => '<div id="apbct_settings__before_advanced_settings"></div>'
-            . '<div id="apbct_settings__advanced_settings" style="display: none;">'
-            . '<div id="apbct_settings__advanced_settings_inner">',
+                . '<div id="apbct_settings__advanced_settings" style="display: none;">'
+                . '<div id="apbct_settings__advanced_settings_inner">',
         ),
-
         // Forms protection
         'forms_protection'      => array(
             'title'          => __('Forms to protect', 'cleantalk-spam-protect'),
@@ -858,7 +835,7 @@ function apbct_settings__set_fields()
                             'cleantalk-spam-protect'
                         )
                         . $additional_sfw_description,
-                    'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler', 'sfw__random_get', 'misc__force_sfw_update_button'),
+                    'childrens'   => array('sfw__anti_flood', 'sfw__random_get', 'misc__force_sfw_update_button'),
                     'long_description' => true,
                 ),
                 'sfw__random_get'             => array(
@@ -880,6 +857,29 @@ function apbct_settings__set_fields()
                     'callback'    => 'apbct_settings__custom_logo',
                     'title'       => __('Custom logo on SpamFireWall blocking pages', 'cleantalk-spam-protect'),
                     'parent'      => 'sfw__enabled',
+                ),
+                'sfw__anti_crawler'           => array(
+                    'type'        => 'checkbox',
+                    'title'       => 'Anti-Crawler', // Do not to localize this phrase
+                    'class'       => 'apbct_settings-field_wrapper',
+                    'description' =>
+                        __(
+                            'Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).',
+                            'cleantalk-spam-protect'
+                        )
+                        . '<br>'
+                        . __(
+                            'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.',
+                            'cleantalk-spam-protect'
+                        )
+                        . '<br><b style="color:black">'
+                        . __(
+                            'SpamFireWall will be enabled automatically when Anti-Crawler is enabled',
+                            'cleantalk-spam-protect'
+                        )
+                        . '</b>'
+                        . $additional_ac_description,
+                    'long_description' => true,
                 ),
                 'sfw__anti_flood'             => array(
                     'type'        => 'checkbox',
@@ -2403,13 +2403,24 @@ function apbct_settings__validate($incoming_settings)
      * -- SFW rules --
      */
 
+    $sfw_enabled_before  = ! empty($apbct->settings['sfw__enabled']);
+    $sfw_enabled_after   = ! empty($incoming_settings['sfw__enabled']);
+    $sfw_enabled_incomed = isset($incoming_settings['sfw__enabled']);
+
+    // Anti-Crawler is an add-on to SFW, so SFW is enabled automatically with it
+    if ( ! empty($incoming_settings['sfw__anti_crawler']) ) {
+        $incoming_settings['sfw__enabled'] = 1;
+        $sfw_enabled_after                 = true;
+        $sfw_enabled_incomed               = true;
+    }
+
     // Actions with toggle SFW settings
     // SFW was enabled
-    if ( ! $apbct->settings['sfw__enabled'] && isset($incoming_settings['sfw__enabled']) && $incoming_settings['sfw__enabled'] ) {
+    if ( ! $sfw_enabled_before && $sfw_enabled_after ) {
         $cron = new Cron();
         $cron->updateTask('sfw_update', 'apbct_sfw_update__init', 86400, time() + 180);
         // SFW was disabled
-    } elseif ( $apbct->settings['sfw__enabled'] && (isset($incoming_settings['sfw__enabled']) && ! $incoming_settings['sfw__enabled'] ) ) {
+    } elseif ( $sfw_enabled_before && $sfw_enabled_incomed && ! $sfw_enabled_after ) {
         apbct_sfw__clear();
     }
 
@@ -2955,6 +2966,8 @@ function apbct_settings__get_key_auto($direct_call = false)
 
     $language = is_string($language) ? $language : null;
 
+    $lead_source = apbct_settings__is_wizard_ajax_request() ? 'apbct_wizard_auto' : '';
+
     $result = \Cleantalk\ApbctWP\API::methodGetApiKey(
         'antispam',
         $filtered_admin_email,
@@ -2966,7 +2979,8 @@ function apbct_settings__get_key_auto($direct_call = false)
         $wpms,
         $white_label,
         $hoster_api_key,
-        $filtered_admin_email !== $admin_email
+        $filtered_admin_email !== $admin_email,
+        $lead_source
     );
 
     if ( ! empty($result['error']) ) {
@@ -3575,10 +3589,11 @@ function apbct_get_spoilers_links()
                          . '</span>';
 
     $import_export = '';
-    if (! $apbct->data['wl_mode_enabled'] &&
-        (is_main_site() ||
-            ($apbct->network_settings['multisite__work_mode'] == 1 &&
-            $apbct->network_settings['multisite__allow_custom_settings'])
+    if (
+        is_main_site() ||
+        (
+            $apbct->network_settings['multisite__work_mode'] == 1 &&
+            $apbct->network_settings['multisite__allow_custom_settings']
         )
     ) {
         $import_export = '<span class="apbct_bottom_links--other">'

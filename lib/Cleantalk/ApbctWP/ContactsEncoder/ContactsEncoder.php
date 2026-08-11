@@ -164,6 +164,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     public function modifyShortcodeContent($content, $mode = Params::OBFUSCATION_MODE_BLUR, $replacing_text = null)
     {
+        global $apbct;
         // split content by emails to array
         $parts = preg_split($this->plain_email_pattern, $content, -1, PREG_SPLIT_DELIM_CAPTURE);
 
@@ -178,6 +179,11 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             } else {
                 $result .= $this->modifyAny($part, $mode, $replacing_text);
             }
+        }
+
+        //fix for wpautop when encoder is disabled
+        if ( !$apbct->settings['data__email_decoder'] ) {
+            $result = wpautop($result);
         }
 
         return $result;

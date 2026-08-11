@@ -419,7 +419,91 @@ class TestRemoteCalls extends TestCase
 
         $this->assertStringContainsString("'rc_remote_call'", $source, 'Rate limit type must be rc_remote_call');
         $this->assertStringContainsString('10', $source, 'Rate limit must be set to 10 requests');
-        $this->assertStringContainsString('60', $source, 'Rate limit period must be 60 seconds');
+        $this->assertStringContainsString('60', $source, 'Default rate limit period must be 60 seconds');
+        $this->assertStringContainsString('SFW_WORKER_SELF_TOKEN_PARAM', $source, 'SFW worker must use self-token for elevated limit');
+        $this->assertStringContainsString('SFW_WORKER_SELF_RATE_PERIOD', $source, 'SFW worker self-calls must use elevated period');
+        $this->assertStringNotContainsString('isSelfRemoteCall', $source, 'Host/IP self-detection must not gate SFW worker rate limit');
+        $this->assertSame(120, RemoteCalls::SFW_WORKER_SELF_RATE_PERIOD);
+        $this->assertSame(120, RemoteCalls::SFW_WORKER_SELF_TOKEN_TTL);
+    }
+
+    /** @test */
+    public function issueAndConsumeSfwUpdateWorkerSelfTokenIsOneTime()
+    {
+        delete_option(RemoteCalls::SFW_WORKER_SELF_TOKEN_OPTION);
+
+        $token = RemoteCalls::issueSfwUpdateWorkerSelfToken();
+        $this->assertNotSame('', $token);
+        $this->assertRegExp('/^[a-f0-9]{32}$/', $token);
+
+        $this->assertTrue(RemoteCalls::isValidSfwUpdateWorkerSelfToken($token));
+        $this->assertTrue(RemoteCalls::consumeSfwUpdateWorkerSelfToken($token));
+        $this->assertFalse(
+            RemoteCalls::isValidSfwUpdateWorkerSelfToken($token),
+            'Token must be invalid after consume'
+        );
+        $this->assertFalse(
+            RemoteCalls::consumeSfwUpdateWorkerSelfToken($token),
+            'Token must be one-time and invalid after consume'
+        );
+    }
+
+    /** @test */
+    public function isValidSfwUpdateWorkerSelfTokenDoesNotConsume()
+    {
+        delete_option(RemoteCalls::SFW_WORKER_SELF_TOKEN_OPTION);
+
+        $token = RemoteCalls::issueSfwUpdateWorkerSelfToken();
+        $this->assertTrue(RemoteCalls::isValidSfwUpdateWorkerSelfToken($token));
+        $this->assertTrue(RemoteCalls::isValidSfwUpdateWorkerSelfToken($token));
+        $this->assertTrue(RemoteCalls::consumeSfwUpdateWorkerSelfToken($token));
+    }
+
+    /** @test */
+    public function consumeSfwUpdateWorkerSelfTokenRejectsEmptyAndUnknown()
+    {
+        delete_option(RemoteCalls::SFW_WORKER_SELF_TOKEN_OPTION);
+
+        $this->assertFalse(RemoteCalls::consumeSfwUpdateWorkerSelfToken(''));
+        $this->assertFalse(RemoteCalls::consumeSfwUpdateWorkerSelfToken('deadbeefdeadbeefdeadbeefdeadbeef'));
+    }
+
+    /** @test */
+    public function consumeSfwUpdateWorkerSelfTokenRejectsExpired()
+    {
+        delete_option(RemoteCalls::SFW_WORKER_SELF_TOKEN_OPTION);
+
+        $token = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        update_option(
+            RemoteCalls::SFW_WORKER_SELF_TOKEN_OPTION,
+            array($token => time() - 1),
+            false
+        );
+
+        $this->assertFalse(RemoteCalls::consumeSfwUpdateWorkerSelfToken($token));
+    }
+
+    /** @test */
+    public function sensitiveDataListContainsSfwWorkerSelfToken()
+    {
+        $reflection = new ReflectionClass(RemoteCalls::class);
+        $property = $reflection->getProperty('sensitiveData');
+        $property->setAccessible(true);
+
+        $sensitiveData = $property->getValue();
+
+        $this->assertContains('apbct_sfw_worker_self_token', $sensitiveData);
+    }
+
+    /** @test */
+    public function httpRequestRcToHostIssuesSelfTokenOnlyForSfwWorker()
+    {
+        $helperFile = (new ReflectionClass(\Cleantalk\ApbctWP\Helper::class))->getFileName();
+        $source = file_get_contents($helperFile);
+
+        $this->assertStringContainsString("issueSfwUpdateWorkerSelfToken", $source);
+        $this->assertStringContainsString("SFW_WORKER_SELF_TOKEN_PARAM", $source);
+        $this->assertStringContainsString("\$rc_action === 'sfw_update__worker'", $source);
     }
 
     /** @test */

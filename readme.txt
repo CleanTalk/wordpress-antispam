@@ -1,13 +1,13 @@
-=== CleanTalk Anti-Spam. Spam Firewall & Bot protection ===
+=== Spam protection, Anti-Spam, FireWall by CleanTalk ===
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: antispam, honeypot, bot, captcha, spam
 Requires at least: 4.7
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 6.84
+Stable tag: 6.85
 License: GPLv2
 
-Top-rated antispam for contact forms, comments, WooCommerce, eCommerce, and login. No CAPTCHAs, no friction, just background anti spam protection.
+Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
 
 == Description ==
 
@@ -425,6 +425,23 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.85 05.08.2026 =
+Fix. Code. Unit tests isolation implemented.
+Fix. Integrations. Fixed Forminator multi-step form email gathering.
+Fix. Integration. Tutor LMS - tutors signup catching implemented.
+Fix. Settings. Fix work of templates in WL mode.
+Fix. Settings. Improve compatibility with third-party plugins.
+Fix. Settings. Update certificate requirements.
+Fix. WC spam orders. Unused code removed.
+New. Integrations. Event Prime integration implemented.
+New. Integrations. Add AMember integration implemented.
+Upd. ContactEncoder. Improve skip shortcode work.
+Upd. SFW. Update SFW worker remote call.
+Upd. Honeypot. Hidden fields updated.
+Upd. Integrations. Nextend Social Login. Set altsession mode if Google auth provided and set up.
+Upd. Remote Calls. Call \'update_settings\' has been updated.
+Upd. Spam orders. New column `order_date` added.
 
 = 6.84 23.07.2026 =
 New. Integration. WooCommerce. Spam order details modal windows implemented.
