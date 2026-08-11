@@ -39,15 +39,10 @@ add_action('comment_trash_to_unapproved', 'apbct_comment__remove_meta_approved',
  * Crunch for Anti-Bot
  * Hooked by 'admin_head'
  *
- * Cookie value must not equal RemoteCalls token. Only privileged users may receive it.
  */
 function apbct_admin_set_cookie_for_anti_bot()
 {
     global $apbct;
-
-    if ( ! current_user_can('manage_options') ) {
-        return;
-    }
 
     if ( $apbct->data['key_is_ok'] ) {
         echo

@@ -1248,9 +1248,7 @@ function apbct__is_hosting_license()
 }
 
 /**
- * Antibot cookie value. Purposefully distinct from RemoteCalls token material
- * (md5/sha256 of api_key, or api_key+salt in hosting-license mode) so the cookie
- * cannot be reused as a bearer token.
+ * Antibot cookie value
  *
  * @param string|null $api_key
  * @param string|null $salt
