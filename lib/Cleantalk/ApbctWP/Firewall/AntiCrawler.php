@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
+use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Validate;
@@ -709,13 +710,13 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         }
 
         // skip for RSS Feed requests
-        if ($this->apbct->service_constants->skip_anticrawler_on_rss_feed->isDefined()) {
+        if (Constant::is(Constant::APBCT_SERVICE__SKIP_ANTICRAWLER_ON_RSS_FEED)) {
             if (Server::getString('REQUEST_URI') &&
                 preg_match_all('/feed/i', Server::getString('REQUEST_URI'))
             ) {
                 $this->debug(
                     'exclusions precheck: RSS feed requests disabled by service constant',
-                    $this->apbct->service_constants->skip_anticrawler_on_rss_feed->allowed_public_names
+                    Constant::getNames(Constant::APBCT_SERVICE__SKIP_ANTICRAWLER_ON_RSS_FEED)
                 );
                 return true;
             }

@@ -66,7 +66,7 @@ class AdminNotices
         $this->is_cleantalk_page = Get::get('page') &&
                                    in_array(Get::get('page'), array('cleantalk', 'ct_check_spam', 'ct_check_users'));
 
-        $self_owned_key = $this->apbct->moderate_ip == 0 && ! defined('CLEANTALK_ACCESS_KEY');
+        $self_owned_key = $this->apbct->moderate_ip == 0 && ! Constant::is(Constant::APBCT_SERVICE__SELF_OWNED_ACCESS_KEY);
         $is_dashboard   = is_network_admin() || is_admin();
         $is_admin       = current_user_can('activate_plugins');
         $uid            = get_current_user_id();
