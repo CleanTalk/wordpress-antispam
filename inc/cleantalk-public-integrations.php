@@ -882,17 +882,6 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
     if ( Post::getString('wp-submit') && Post::getString('log') && Post::getString('pwd') ) {
         return $errors;
     }
-    // miniOrange OTP Verification: OTP validate re-submits registration without JS/bot-detector
-    // (registration was already checked on the first submit before the OTP popup)
-    if (
-        apbct_is_plugin_active('miniorange-otp-verification/miniorange_validation_settings.php') &&
-        Post::getString('option') === 'miniorange-validate-otp-form' &&
-        Post::getString('mopopup_wpnonce') !== ''
-    ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
-        return $errors;
-    }
 
     $facebook = false;
     // Facebook registration
