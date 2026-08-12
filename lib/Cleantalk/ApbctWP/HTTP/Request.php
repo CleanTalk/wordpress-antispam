@@ -185,6 +185,7 @@ class Request extends \Cleantalk\Common\HTTP\Request
 
         if ( $apbct->settings['wp__use_builtin_http_api'] ) {
             $this->options['useragent'] = self::AGENT;
+            $this->options['verifyname'] = true;
             $this->ensureSslCertificatePath();
         }
     }
