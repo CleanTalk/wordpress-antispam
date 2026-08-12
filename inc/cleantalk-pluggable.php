@@ -1229,6 +1229,26 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'Plugin Name: DIGITS: WordPress Mobile Number Signup and Login; ajax login action digits_forms_ajax';
         }
 
+        // Plugin Name: miniOrange OTP Verification - AJAX OTP generate/validate
+        if (
+            apbct_is_plugin_active('miniorange-otp-verification/miniorange_validation_settings.php') &&
+            (
+                in_array(
+                    Post::getString('option'),
+                    array(
+                        'miniorange-ajax-otp-generate',
+                        'miniorange-ajax-otp-validate',
+                        'mo_ajax_form_validate',
+                    ),
+                    true
+                ) ||
+                Post::getString('mo_external_popup_option') === 'mo_ajax_form_validate' ||
+                Get::getString('mo_wcreg_option') === 'miniorange-wc-reg-verify'
+            )
+        ) {
+            return 'miniOrange OTP Verification ajax request';
+        }
+
         // Plugin Name: Ultimate Addons for Beaver Builder: Exclude login form request
         if (
             apbct_is_plugin_active('bb-ultimate-addon/bb-ultimate-addon.php') &&
@@ -2035,6 +2055,25 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             wp_verify_nonce(Post::getString('woocommerce-register-nonce'), 'woocommerce-register')
         ) {
             return 'WooCommerce register request (have to be processed by hook `woocommerce_registration_errors`)';
+        }
+
+        // Plugin Name: miniOrange OTP Verification - OTP popup POSTs have no JS/bot-detector data
+        if (
+            apbct_is_plugin_active('miniorange-otp-verification/miniorange_validation_settings.php') &&
+            Post::getString('mopopup_wpnonce') !== '' &&
+            in_array(
+                Post::getString('option'),
+                array(
+                    'miniorange-validate-otp-form',
+                    'miniorange-validate-otp-choice-form',
+                    'verification_resend_otp',
+                    'verification_resend_otp_both',
+                    'validation_goBack',
+                ),
+                true
+            )
+        ) {
+            return 'miniOrange OTP Verification popup request';
         }
     }
 
