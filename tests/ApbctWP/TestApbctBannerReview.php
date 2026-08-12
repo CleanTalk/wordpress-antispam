@@ -1,220 +1,112 @@
 <?php
 
-use Cleantalk\ApbctWP\ApbctBannerReview;
-use Cleantalk\Common\UniversalBanner\BannerDataDto;
+use Cleantalk\ApbctWP\AdminBannersModule\AdminBannerReview;
 use PHPUnit\Framework\TestCase;
 
 class TestApbctBannerReview extends TestCase
 {
-    /**
-     * @var BannerDataDto
-     */
-    private $banner_data;
-
     protected function setUp(): void
     {
-        $this->banner_data = new BannerDataDto();
-        $this->banner_data->type = 'review';
-        $this->banner_data->text = 'Share your positive experience';
-        $this->banner_data->secondary_text = 'You have been using CleanTalk Anti-Spam';
-        $this->banner_data->button_url = 'https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5';
-        $this->banner_data->button_text = 'SHARE YOUR FEEDBACK';
-        $this->banner_data->additional_text = 'Already posted the review';
-        $this->banner_data->level = 'success';
+        global $apbct;
+        $apbct->notice_review = 1;
+        $apbct->white_label = false;
+        $apbct->data['wl_brandname'] = 'CleanTalk Anti-Spam';
+    }
+
+    protected function tearDown(): void
+    {
+        global $apbct;
+        $apbct->notice_review = 0;
+    }
+
+    private function renderBanner()
+    {
+        $banner = new AdminBannerReview();
+        ob_start();
+        $banner->show();
+        return ob_get_clean();
     }
 
     public function testConstructorDoesNotThrow()
     {
-        $banner = new ApbctBannerReview(
-            $this->banner_data,
-            'options-general.php?page=cleantalk',
-            'https://example.com/wp-content/plugins/cleantalk-spam-protect/inc/images'
-        );
-
-        $this->assertInstanceOf(ApbctBannerReview::class, $banner);
+        $banner = new AdminBannerReview();
+        $this->assertInstanceOf(AdminBannerReview::class, $banner);
     }
 
-    public function testEchoBannerBodyContainsBannerId()
+    public function testDisplayContainsBannerId()
     {
-        $banner = new ApbctBannerReview(
-            $this->banner_data,
-            'options-general.php?page=cleantalk',
-            'https://example.com/inc/images'
-        );
-
-        ob_start();
-        $banner->echoBannerBody();
-        $output = ob_get_clean();
-
+        $output = $this->renderBanner();
         $this->assertStringContainsString('id="cleantalk_notice_review"', $output);
     }
 
-    public function testEchoBannerBodyContainsApbctNoticeClass()
+    public function testDisplayContainsApbctNoticeClass()
     {
-        $banner = new ApbctBannerReview(
-            $this->banner_data,
-            'options-general.php?page=cleantalk',
-            'https://example.com/inc/images'
-        );
-
-        ob_start();
-        $banner->echoBannerBody();
-        $output = ob_get_clean();
-
+        $output = $this->renderBanner();
         $this->assertStringContainsString('apbct-notice', $output);
         $this->assertStringContainsString('apbct-banner-success', $output);
         $this->assertStringContainsString('is-dismissible', $output);
     }
 
-    public function testEchoBannerBodyContainsLogoImage()
+    public function testDisplayContainsLogoImage()
     {
-        $images_url = 'https://example.com/inc/images';
-        $banner = new ApbctBannerReview(
-            $this->banner_data,
-            'options-general.php?page=cleantalk',
-            $images_url
-        );
-
-        ob_start();
-        $banner->echoBannerBody();
-        $output = ob_get_clean();
-
+        $output = $this->renderBanner();
         $this->assertStringContainsString('logo-cleantalk1.svg', $output);
         $this->assertStringContainsString('review.svg', $output);
     }
 
-    public function testEchoBannerBodyContainsSettingsLink()
+    public function testDisplayContainsSettingsLink()
     {
-        $settings_link = 'options-general.php?page=cleantalk';
-        $banner = new ApbctBannerReview(
-            $this->banner_data,
-            $settings_link,
-            'https://example.com/inc/images'
-        );
-
-        ob_start();
-        $banner->echoBannerBody();
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString($settings_link, $output);
+        $output = $this->renderBanner();
+        $this->assertStringContainsString('options-general.php?page=cleantalk', $output);
         $this->assertStringContainsString('apbct-banner-link', $output);
     }
 
-    public function testEchoBannerBodyContainsTitleAndSubtitle()
+    public function testDisplayContainsReviewButton()
     {
-        $banner = new ApbctBannerReview(
-            $this->banner_data,
-            'options-general.php?page=cleantalk',
-            'https://example.com/inc/images'
-        );
-
-        ob_start();
-        $banner->echoBannerBody();
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('Share your positive experience', $output);
-        $this->assertStringContainsString('You have been using CleanTalk Anti-Spam', $output);
-    }
-
-    public function testEchoBannerBodyContainsReviewButton()
-    {
-        $banner = new ApbctBannerReview(
-            $this->banner_data,
-            'options-general.php?page=cleantalk',
-            'https://example.com/inc/images'
-        );
-
-        ob_start();
-        $banner->echoBannerBody();
-        $output = ob_get_clean();
-
+        $output = $this->renderBanner();
         $this->assertStringContainsString(
             'https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5',
             $output
         );
-        $this->assertStringContainsString('SHARE YOUR FEEDBACK', $output);
         $this->assertStringContainsString('apbct-banner-button-green', $output);
     }
 
-    public function testEchoBannerBodyContainsDismissLink()
+    public function testDisplayContainsDismissLink()
     {
-        $banner = new ApbctBannerReview(
-            $this->banner_data,
-            'options-general.php?page=cleantalk',
-            'https://example.com/inc/images'
-        );
-
-        ob_start();
-        $banner->echoBannerBody();
-        $output = ob_get_clean();
-
-        $this->assertStringContainsString('Already posted the review', $output);
+        $output = $this->renderBanner();
         $this->assertStringContainsString('notice-dismiss-link', $output);
         $this->assertStringContainsString('apbct-banner-dismiss-link', $output);
     }
 
-    public function testEchoBannerBodyEscapesHtmlInText()
+    public function testDoesNotShowWhenReviewFlagIsZero()
     {
-        $this->banner_data->text = '<script>alert("xss")</script>';
-        $this->banner_data->secondary_text = '<img onerror="alert(1)">';
+        global $apbct;
+        $apbct->notice_review = 0;
 
-        $banner = new ApbctBannerReview(
-            $this->banner_data,
-            'options-general.php?page=cleantalk',
-            'https://example.com/inc/images'
-        );
-
-        ob_start();
-        $banner->echoBannerBody();
-        $output = ob_get_clean();
-
-        // Raw HTML tags must not be present - they should be escaped
-        $this->assertStringNotContainsString('<script>', $output);
-        $this->assertStringNotContainsString('<img onerror', $output);
-        $this->assertStringContainsString('&lt;script&gt;', $output);
-        $this->assertStringContainsString('&lt;img', $output);
+        $output = $this->renderBanner();
+        $this->assertEmpty($output);
     }
 
-    public function testEchoBannerBodyEscapesUrlInButtonHref()
+    public function testDoesNotShowWhenWhiteLabelEnabled()
     {
-        $this->banner_data->button_url = 'javascript:alert(1)';
+        global $apbct;
+        $apbct->white_label = true;
 
-        $banner = new ApbctBannerReview(
-            $this->banner_data,
-            'options-general.php?page=cleantalk',
-            'https://example.com/inc/images'
-        );
-
-        ob_start();
-        $banner->echoBannerBody();
-        $output = ob_get_clean();
-
-        // esc_url should strip javascript: protocol
-        $this->assertStringNotContainsString('javascript:', $output);
+        $output = $this->renderBanner();
+        $this->assertEmpty($output);
     }
 
-    public function testEchoBannerBodyTrimsTrailingSlashFromImagesUrl()
+    public function testHidingTimeIs365Days()
     {
-        $banner = new ApbctBannerReview(
-            $this->banner_data,
-            'options-general.php?page=cleantalk',
-            'https://example.com/inc/images/'
-        );
-
-        ob_start();
-        $banner->echoBannerBody();
-        $output = ob_get_clean();
-
-        // Should not contain double slashes in image paths
-        $this->assertStringNotContainsString('images//logo', $output);
-        $this->assertStringNotContainsString('images//review', $output);
+        $reflection = new \ReflectionClass(AdminBannerReview::class);
+        $constant = $reflection->getConstant('HIDING_TIME');
+        $this->assertEquals(365, $constant);
     }
 
     public function testDaysIntervalHidingReviewNotice()
     {
         $reflection = new \ReflectionClass(\Cleantalk\ApbctWP\AdminNotices::class);
         $constant = $reflection->getConstant('DAYS_INTERVAL_HIDING_REVIEW_NOTICE');
-
         $this->assertEquals(365, $constant);
     }
 
@@ -222,7 +114,6 @@ class TestApbctBannerReview extends TestCase
     {
         $reflection = new \ReflectionClass(\Cleantalk\ApbctWP\AdminNotices::class);
         $constant = $reflection->getConstant('DAYS_INTERVAL_HIDING_NOTICE');
-
         $this->assertEquals(14, $constant);
     }
 }

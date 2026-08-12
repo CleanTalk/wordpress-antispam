@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\AJAXService;
+use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -1752,6 +1753,18 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         ) {
             return 'Email Subscribers by Icegram Express - skip subscribe action';
         }
+
+        // EventPrime - skip actions
+        if (
+            apbct_is_plugin_active('eventprime-event-calendar-management/event-prime.php') &&
+            (
+                Post::equal('action', 'ep_submit_register_form') ||
+                Post::equal('action', 'ep_rg_check_email') ||
+                Post::equal('action', 'ep_save_event_booking')
+            )
+        ) {
+            return 'EventPrime - skip actions';
+        }
     } else {
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
@@ -2129,10 +2142,9 @@ function apbct_settings__get_ajax_type()
     global $apbct;
 
     //force ajax route type if constant is defined and compatible
-    if ($apbct->service_constants->set_ajax_route_type->isDefined()
-        && in_array($apbct->service_constants->set_ajax_route_type->getValue(), array('rest','admin_ajax'))
-    ) {
-        return $apbct->service_constants->set_ajax_route_type->getValue();
+    $forced_ajax_route_type = Constant::getValue(Constant::APBCT_SERVICE__SET_AJAX_ROUTE_TYPE);
+    if ( in_array($forced_ajax_route_type, array('rest', 'admin_ajax'), true) ) {
+        return $forced_ajax_route_type;
     }
 
     // Check rest availability

@@ -6,7 +6,6 @@ use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\RateLimit\ApbctRateLimiter;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
-use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\Common\RateLimiter\RateLimiterConfig;
 use Cleantalk\Common\TT;
@@ -28,6 +27,36 @@ class RemoteCalls
         'netserv3.cleantalk.org',
         'netserv4.cleantalk.org',
     ];
+
+    /**
+     * Request param with one-time self-call token for SFW worker rate-limit exemption.
+     */
+    const SFW_WORKER_SELF_TOKEN_PARAM = 'apbct_sfw_worker_self_token';
+
+    /**
+     * Option that stores issued SFW worker self-tokens: token => expiry unix time.
+     */
+    const SFW_WORKER_SELF_TOKEN_OPTION = 'cleantalk_sfw_worker_self_tokens';
+
+    /**
+     * TTL for SFW worker self-tokens (seconds). Covers slow HTTP round-trips.
+     */
+    const SFW_WORKER_SELF_TOKEN_TTL = 120;
+
+    /**
+     * Soft cap of outstanding SFW worker self-tokens.
+     */
+    const SFW_WORKER_SELF_TOKEN_MAX_STORED = 50;
+
+    /**
+     * Elevated RC rate limit for validated SFW worker self-calls.
+     */
+    const SFW_WORKER_SELF_RATE_LIMIT = 100;
+
+    /**
+     * Rate-limit window (seconds) for validated SFW worker self-calls.
+     */
+    const SFW_WORKER_SELF_RATE_PERIOD = 120;
 
     /**
      * List of remote call actions that are allowed to use delay parameter
@@ -55,7 +84,8 @@ class RemoteCalls
         'user_token',
         'salt',
         'apikey',
-        'api_key'
+        'api_key',
+        'apbct_sfw_worker_self_token',
     ];
 
     /**
@@ -370,7 +400,8 @@ class RemoteCalls
     }
 
     /**
-     * Update settins
+     * Update settings.
+     * @deprecated Since 6.85, see https://app.doboard.com/1/task/36680
      */
     public static function action__update_settings() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
@@ -422,7 +453,7 @@ class RemoteCalls
         if ($apbct->settings['data__set_cookies'] == 3 && $apbct->data['cookies_type'] === 'alternative') {
             $out['alt_sessions_auto_state_reason'] = $apbct->isAltSessionsRequired(true);
         }
-        $out['active_service_constants'] = $apbct->service_constants->getDefinitionsActive();
+        $out['active_service_constants'] = Constant::getDefinitionsActive();
 
         if ( APBCT_WPMS ) {
             $out['network_settings'] = $apbct->network_settings;
@@ -734,42 +765,146 @@ class RemoteCalls
         return $data;
     }
 
-    private static function isSelfRemoteCall(): bool
+    /**
+     * Issue a one-time token proving that sfw_update__worker RC was started by the plugin itself.
+     * Independent of REMOTE_ADDR / SERVER_ADDR (shared hosting, proxy, CDN safe).
+     *
+     * @return string Hex token or empty string if generation failed
+     */
+    public static function issueSfwUpdateWorkerSelfToken()
     {
-        $remote = Helper::ipGet('remote_addr', true);
-        $server = Server::getString('SERVER_ADDR');
+        try {
+            $token = bin2hex(random_bytes(16));
+        } catch (\Exception $e) {
+            return '';
+        }
 
-        if ( $remote === '' || $server === '' ) {
+        $tokens = self::getSfwUpdateWorkerSelfTokens();
+        $now = time();
+        $tokens = self::pruneSfwUpdateWorkerSelfTokens($tokens, $now);
+        $tokens[$token] = $now + self::SFW_WORKER_SELF_TOKEN_TTL;
+
+        if (count($tokens) > self::SFW_WORKER_SELF_TOKEN_MAX_STORED) {
+            asort($tokens);
+            $tokens = array_slice($tokens, -self::SFW_WORKER_SELF_TOKEN_MAX_STORED, null, true);
+        }
+
+        update_option(self::SFW_WORKER_SELF_TOKEN_OPTION, $tokens, false);
+
+        return $token;
+    }
+
+    /**
+     * Check whether a SFW worker self-token is currently valid (does not consume it).
+     * Used by RC test probes so the real worker call can still consume the same token.
+     *
+     * @param string $token
+     *
+     * @return bool
+     */
+    public static function isValidSfwUpdateWorkerSelfToken($token)
+    {
+        $token = (string) $token;
+        if ($token === '') {
             return false;
         }
 
-        if ( $remote === $server ) {
-            return true;
+        $tokens = self::getSfwUpdateWorkerSelfTokens();
+        $now = time();
+
+        return isset($tokens[$token]) && is_numeric($tokens[$token]) && (int) $tokens[$token] >= $now;
+    }
+
+    /**
+     * Validate and consume a one-time SFW worker self-token.
+     *
+     * @param string $token
+     *
+     * @return bool
+     */
+    public static function consumeSfwUpdateWorkerSelfToken($token)
+    {
+        $token = (string) $token;
+        if ($token === '') {
+            return false;
         }
 
-        $loopback = array('127.0.0.1', '::1');
+        $tokens = self::getSfwUpdateWorkerSelfTokens();
+        $now = time();
+        $tokens = self::pruneSfwUpdateWorkerSelfTokens($tokens, $now);
 
-        return in_array($remote, $loopback, true) && in_array($server, $loopback, true);
+        if ( ! isset($tokens[$token]) || $tokens[$token] < $now ) {
+            if (isset($tokens[$token])) {
+                unset($tokens[$token]);
+                update_option(self::SFW_WORKER_SELF_TOKEN_OPTION, $tokens, false);
+            }
+
+            return false;
+        }
+
+        unset($tokens[$token]);
+        update_option(self::SFW_WORKER_SELF_TOKEN_OPTION, $tokens, false);
+
+        return true;
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private static function getSfwUpdateWorkerSelfTokens()
+    {
+        $tokens = get_option(self::SFW_WORKER_SELF_TOKEN_OPTION, array());
+
+        return is_array($tokens) ? $tokens : array();
+    }
+
+    /**
+     * @param array<string, int> $tokens
+     * @param int                $now
+     *
+     * @return array<string, int>
+     */
+    private static function pruneSfwUpdateWorkerSelfTokens(array $tokens, $now)
+    {
+        foreach ($tokens as $stored_token => $expiry) {
+            if ( ! is_string($stored_token) || ! is_numeric($expiry) || (int) $expiry < $now ) {
+                unset($tokens[$stored_token]);
+            }
+        }
+
+        return $tokens;
     }
 
     /**
      * Rate limit check for remote calls.
      * Blocks abusive IPs that exceed 10 requests per 60 seconds.
+     * SFW worker self-calls with a valid one-time token get an elevated limit / longer window.
+     * RC test probes with a valid token skip the limiter without consuming the token.
      *
      * @return bool True if request is allowed, false if rate limited
      */
     private static function rateLimitCheck()
     {
         $limit = 10;
+        $period = 60;
 
         $action = strtolower(Request::getString('spbc_remote_call_action'));
+        $self_token = Request::getString(self::SFW_WORKER_SELF_TOKEN_PARAM);
 
-        // Self-RC for SFW queue — raise rate limit (not skip)
-        if (self::isSelfRemoteCall() && $action === 'sfw_update__worker') {
-            $limit = 100;
+        // Self-RC for SFW queue — prove with one-time token, not by host/IP
+        if ($action === 'sfw_update__worker' && $self_token !== '') {
+            // Connectivity test must not burn the one-time token (real worker call consumes it).
+            if (Request::get('test') && self::isValidSfwUpdateWorkerSelfToken($self_token)) {
+                return true;
+            }
+
+            if (self::consumeSfwUpdateWorkerSelfToken($self_token)) {
+                $limit = self::SFW_WORKER_SELF_RATE_LIMIT;
+                $period = self::SFW_WORKER_SELF_RATE_PERIOD;
+            }
         }
 
-        $config = new RateLimiterConfig('rc_remote_call', $limit, 60);
+        $config = new RateLimiterConfig('rc_remote_call', $limit, $period);
         $limiter = new ApbctRateLimiter($config);
 
         // If rate limiter failed (e.g. table missing), allow the request through

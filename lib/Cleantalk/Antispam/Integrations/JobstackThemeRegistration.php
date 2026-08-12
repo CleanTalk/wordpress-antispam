@@ -9,11 +9,12 @@ class JobstackThemeRegistration extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        if ( Post::get('new_user_submit') ) {
+        // Only Jobstack theme registration form
+        if ( ! Post::get('new_user_submit') || ! Post::get('new_user_email') ) {
             return null;
         }
 
-        $form_data = [];
+        $form_data = array();
         $form_data['email'] = TT::toString(Post::get('new_user_email'));
 
         /**

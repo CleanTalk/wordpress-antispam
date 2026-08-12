@@ -172,10 +172,16 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      */
     protected function restorePlaceholders($content)
     {
+        global $apbct;
         $content = $content === null ? '' : $content;
 
         foreach ($this->shortcode_replacements as $placeholder => $original) {
-            $content = str_replace($placeholder, wp_kses_post($original), $content);
+            $original = wp_kses_post($original);
+            //fix for wpautop when encoder is disabled
+            if ( !$apbct->settings['data__email_decoder'] ) {
+                $original = wpautop($original);
+            }
+            $content = str_replace($placeholder, $original, $content);
         }
 
         $this->resetShortcodeReplacements();

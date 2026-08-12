@@ -21,6 +21,27 @@ class Request extends \Cleantalk\Common\HTTP\Request
                 ? $this->requestMulti()
                 : $this->requestSingle();
 
+            // Transient SSL CA / cURL 77 — retry with TLS still enabled (helps sync & API)
+            if (
+                ! is_array($this->url) &&
+                ! in_array('async', $this->presets, true) &&
+                $this->response instanceof Response &&
+                $this->response->getError() &&
+                $this->isSslCaError($this->response->getError())
+            ) {
+                for ( $attempt = 1; $attempt <= 2; $attempt++ ) {
+                    sleep(1);
+                    $this->ensureSslCertificatePath();
+                    $this->response = $this->requestSingle();
+                    if (
+                        ! $this->response->getError() ||
+                        ! $this->isSslCaError($this->response->getError())
+                    ) {
+                        break;
+                    }
+                }
+            }
+
             return $this->runCallbacks();
         }
 
@@ -164,6 +185,7 @@ class Request extends \Cleantalk\Common\HTTP\Request
 
         if ( $apbct->settings['wp__use_builtin_http_api'] ) {
             $this->options['useragent'] = self::AGENT;
+            $this->ensureSslCertificatePath();
         }
     }
 
@@ -222,6 +244,46 @@ class Request extends \Cleantalk\Common\HTTP\Request
                 }
             }
         }
+    }
+
+    /**
+     * Point Requests library to WordPress CA bundle instead of missing default cacert.pem.
+     */
+    private function ensureSslCertificatePath()
+    {
+        $ca = defined('APBCT_CASERT_PATH') ? APBCT_CASERT_PATH : '';
+        if ( ! $ca || ! @is_readable($ca) ) {
+            return;
+        }
+
+        $this->options['verify'] = $ca;
+
+        if ( class_exists('\WpOrg\Requests\Requests') ) {
+            /** @psalm-suppress UndefinedClass */
+            \WpOrg\Requests\Requests::set_certificate_path($ca);
+        } elseif ( class_exists('\Requests') ) {
+            \Requests::set_certificate_path($ca);
+        }
+    }
+
+    /**
+     * @param mixed $error Response::getError() value (array|string|null)
+     */
+    private function isSslCaError($error)
+    {
+        if ( is_array($error) && isset($error['error']) ) {
+            $error = $error['error'];
+        }
+
+        if ( ! is_string($error) ) {
+            return false;
+        }
+
+        $error = strtolower($error);
+
+        return strpos($error, 'curl error 77') !== false
+            || strpos($error, 'ssl ca cert') !== false
+            || strpos($error, 'certificate verify locations') !== false;
     }
 
     /**

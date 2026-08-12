@@ -57,11 +57,6 @@ class AdminNotices
     private $settings_link;
 
     /**
-     * @var string
-     */
-    private $user_token;
-
-    /**
      * AdminNotices constructor.
      */
     private function __construct()
@@ -70,9 +65,8 @@ class AdminNotices
         $this->apbct             = $apbct;
         $this->is_cleantalk_page = Get::get('page') &&
                                    in_array(Get::get('page'), array('cleantalk', 'ct_check_spam', 'ct_check_users'));
-        $this->user_token        = $this->apbct->user_token ?: '';
 
-        $self_owned_key = $this->apbct->moderate_ip == 0 && ! defined('CLEANTALK_ACCESS_KEY');
+        $self_owned_key = $this->apbct->moderate_ip == 0 && ! Constant::is(Constant::APBCT_SERVICE__SELF_OWNED_ACCESS_KEY);
         $is_dashboard   = is_network_admin() || is_admin();
         $is_admin       = current_user_can('activate_plugins');
         $uid            = get_current_user_id();
@@ -232,107 +226,54 @@ class AdminNotices
     }
 
     /**
-     * Callback for the notice hook
+     * Callback for the notice hook.
+     * Shows the new-style trial/renew banner.
+     * Handles both trial and renew conditions (trial takes priority).
+     *
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function notice_trial() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if ($this->apbct->notice_show &&
-            $this->apbct->notice_trial == 1 &&
-            $this->apbct->moderate_ip == 0 &&
-            ! $this->apbct->white_label
-        ) {
-            $banner_data = new BannerDataDto();
-            $banner_data->type = 'trial';
-
-            $banner_data->text = sprintf(
-                __("%s trial period ends, please upgrade to next year!", 'cleantalk-spam-protect'),
-                $this->apbct->plugin_name
-            );
-
-            $banner_data->button_url = LinkConstructor::buildRenewalLink($this->user_token, 'renew_notice_trial');
-            $banner_data->button_text = __('Upgrade', 'cleantalk-spam-protect');
-
-            $banner_data->additional_text = sprintf(
-                __('Account status updates every 24 hours or click Settings -> %s -> Synchronize with Cloud.', 'cleantalk-spam-protect'),
-                $this->apbct->data['wl_brandname']
-            );
-
-            $banner_data->level = isset($this->apbct->data['notice_trial_level']) ? $this->apbct->data['notice_trial_level'] : 'error';
-            $banner_data->is_dismissible = ! $this->is_cleantalk_page;
-
-            $banner = new ApbctUniversalBanner($banner_data);
-            $banner->echoBannerBody();
-
-            $this->apbct->notice_show = false;
-        }
+        $this->showTrialAndRenewBanner();
     }
 
     /**
-     * Callback for the notice hook
-     * @deprecated
+     * Callback for the notice hook.
+     * Uses the same banner as notice_trial — both share AdminBannerTrialAndRenew.
+     * Acts as fallback if notice_trial was dismissed.
+     *
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function notice_renew() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if ($this->apbct->notice_show &&
-            $this->apbct->notice_renew == 1 &&
-            $this->apbct->moderate_ip == 0 &&
-            ! $this->apbct->white_label
-        ) {
-            $banner_data = new BannerDataDto();
-            $banner_data->type = 'renew';
+        $this->showTrialAndRenewBanner();
+    }
 
-            $banner_data->text = __("Please renew your Anti-Spam license for next year!", 'cleantalk-spam-protect');
-
-            $banner_data->button_url = LinkConstructor::buildRenewalLink($this->user_token, 'renew_notice_renew');
-            $banner_data->button_text = __('Upgrade', 'cleantalk-spam-protect');
-
-            $banner_data->additional_text = sprintf(
-                __('Account status updates every 24 hours or click Settings -> %s -> Synchronize with Cloud.', 'cleantalk-spam-protect'),
-                $this->apbct->data['wl_brandname']
-            );
-
-            $banner_data->level = isset($this->apbct->data['notice_renew_level']) ? $this->apbct->data['notice_renew_level'] : 'error';
-            $banner_data->is_dismissible = ! $this->is_cleantalk_page;
-
-            $banner = new ApbctUniversalBanner($banner_data);
-            $banner->echoBannerBody();
-
-            $this->apbct->notice_show = false;
+    /**
+     * Show trial/renew banner only once per page load.
+     *
+     * @return void
+     */
+    private function showTrialAndRenewBanner()
+    {
+        static $shown = false;
+        if ($shown) {
+            return;
         }
+
+        $banner = new \Cleantalk\ApbctWP\AdminBannersModule\AdminBannerTrialAndRenew();
+        $banner->show();
+        $shown = true;
     }
 
     /**
      * Callback for the notice hook
-     * @deprecated
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function notice_review() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if ($this->apbct->notice_review == 1 &&
-            ! $this->apbct->white_label
-        ) {
-            $banner_data = new BannerDataDto();
-            $banner_data->type = 'review';
-
-            $banner_data->text = __("Share your positive experience — leave a rating on WordPress", 'cleantalk-spam-protect');
-
-            $banner_data->secondary_text = sprintf(
-                __("You've been using %s — tell us about your experience. Your feedback helps other users find the right solution and helps us make the plugin even better.", 'cleantalk-spam-protect'),
-                $this->apbct->data['wl_brandname']
-            );
-
-            $banner_data->button_url = 'https://wordpress.org/support/plugin/cleantalk-spam-protect/reviews/?filter=5';
-            $banner_data->button_text = __('SHARE YOUR FEEDBACK', 'cleantalk-spam-protect');
-
-            $banner_data->additional_text = __('Already posted the review', 'cleantalk-spam-protect');
-
-            $banner_data->level = isset($this->apbct->data['notice_review_level']) ? $this->apbct->data['notice_review_level'] : 'success';
-
-            $banner = new ApbctBannerReview($banner_data, $this->settings_link, APBCT_IMG_ASSETS_PATH);
-            $banner->echoBannerBody();
-        }
+        $banner = new \Cleantalk\ApbctWP\AdminBannersModule\AdminBannerReview();
+        $banner->show();
     }
 
     /**
