@@ -177,6 +177,11 @@ class Woocommerce extends IntegrationByClassBase
     {
         global $apbct, $cleantalk_executed;
 
+        if ( ! $apbct->settings['data__wc_store_blocked_orders'] ) {
+            // The checkout is left to WooCommerce as is: no check, no blocked order to store.
+            return;
+        }
+
         if ( count($errors->errors) ) {
             return;
         }
@@ -230,14 +235,10 @@ class Woocommerce extends IntegrationByClassBase
             ct_hash($ct_result->id);
 
             if ( $ct_result->allow == 0 ) {
-                if ( $apbct->settings['data__wc_store_blocked_orders'] ) {
-                    $this->storeBlockedOrder();
-                }
+                $this->handleBlockedOrder();
                 wp_send_json(array(
-                    'result'   => 'failure',
-                    'messages' => "<ul class=\"woocommerce-error\"><li>" . $ct_result->comment . "</li></ul>",
-                    'refresh'  => 'false',
-                    'reload'   => 'false'
+                    'result'   => 'success',
+                    'redirect' => $this->getBlockedOrderRedirectUrl(),
                 ));
             }
         }
@@ -251,6 +252,11 @@ class Woocommerce extends IntegrationByClassBase
     public function checkoutCheckFromRest($order)
     {
         global $apbct, $cleantalk_executed;
+
+        if ( ! $apbct->settings['data__wc_store_blocked_orders'] ) {
+            // The checkout is left to WooCommerce as is: no check, no blocked order to store.
+            return;
+        }
 
         if ( is_null($order) || ! ($order instanceof \WC_Order) ) {
             return;
@@ -286,11 +292,15 @@ class Woocommerce extends IntegrationByClassBase
             ct_hash($ct_result->id);
 
             if ( $ct_result->allow == 0 ) {
-                if ( $apbct->settings['data__wc_store_blocked_orders'] ) {
-                    $this->storeBlockedOrder();
-                }
+                $response = $this->getStoreApiPassedResponse($order);
+
+                $this->handleBlockedOrder();
 
                 if ( $order->get_status() === 'pending' || $order->get_status() === 'checkout-draft' ) {
+                    if ( function_exists('wc_release_stock_for_order') ) {
+                        wc_release_stock_for_order($order);
+                    }
+
                     try {
                         $order->delete(true);
                     } catch (\Exception $e) {
@@ -298,20 +308,65 @@ class Woocommerce extends IntegrationByClassBase
                     }
                 }
 
-                $response = [
-                        'code' => 'woocommerce_store_api_checkout_order_processed',
-                        'message' => $ct_result->comment,
-                        'data' => [
-                                'status' => 403
-                        ]
-                ];
-
                 if ( ! headers_sent() ) {
-                    http_response_code(403);
+                    header('Content-Type: application/json; charset=utf-8');
                 }
                 die(json_encode($response));
             }
         }
+    }
+
+    /**
+     * Common actions for an order blocked as spam.
+     *
+     * @return void
+     * @psalm-suppress UndefinedFunction
+     */
+    private function handleBlockedOrder()
+    {
+        $this->storeBlockedOrder();
+
+        if ( function_exists('wc') && ! is_null(wc()->cart) ) {
+            wc()->cart->empty_cart();
+        }
+    }
+
+    /**
+     * URL of the page shown to the visitor whose order was blocked.
+     *
+     * @return string
+     * @psalm-suppress UndefinedFunction
+     */
+    private function getBlockedOrderRedirectUrl()
+    {
+        return wc_get_endpoint_url('order-received', '', wc_get_checkout_url());
+    }
+
+    /**
+     * Response for the Store API checkout route imitating a passed checkout.
+     *
+     * @param \WC_Order $order
+     *
+     * @return array
+     * @psalm-suppress UndefinedClass, UndefinedFunction
+     */
+    private function getStoreApiPassedResponse($order)
+    {
+        return array(
+            'order_id'         => $order->get_id(),
+            'status'           => $order->get_status(),
+            'order_key'        => $order->get_order_key(),
+            'customer_note'    => $order->get_customer_note(),
+            'customer_id'      => $order->get_customer_id(),
+            'billing_address'  => $order->get_address('billing'),
+            'shipping_address' => $order->get_address('shipping'),
+            'payment_method'   => $order->get_payment_method(),
+            'payment_result'   => array(
+                'payment_status'  => 'success',
+                'payment_details' => array(),
+                'redirect_url'    => $this->getBlockedOrderRedirectUrl(),
+            ),
+        );
     }
 
     /**
