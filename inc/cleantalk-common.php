@@ -1247,6 +1247,28 @@ function apbct__is_hosting_license()
     return $apbct->data['moderate_ip'] && $apbct->data['ip_license'];
 }
 
+/**
+ * Antibot cookie value
+ *
+ * @param string|null $api_key
+ * @param string|null $salt
+ *
+ * @return string
+ */
+function apbct_get_anti_bot_cookie_hash($api_key = null, $salt = null)
+{
+    global $apbct;
+
+    if ( $api_key === null ) {
+        $api_key = isset($apbct->api_key) ? (string) $apbct->api_key : '';
+    }
+    if ( $salt === null ) {
+        $salt = isset($apbct->data['salt']) ? (string) $apbct->data['salt'] : '';
+    }
+
+    return hash('sha256', $api_key . $salt . '_antibot');
+}
+
 function apbct_add_async_attribute($tag, $handle)
 {
     global $apbct;
