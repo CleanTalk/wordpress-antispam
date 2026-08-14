@@ -76,6 +76,10 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      */
     public function changeContentBeforeEncoderModify($content)
     {
+        if ( ! is_string($content) ) {
+            return $content;
+        }
+
         if ($this->isShortcodeInsideHtmlAttribute($content)) {
             return $content;
         }
@@ -101,6 +105,10 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      */
     public function changeContentAfterEncoderModify($content)
     {
+        if ( ! is_string($content) ) {
+            return $content;
+        }
+
         global $apbct;
 
         if ( ! $apbct->settings['data__email_decoder_buffer'] ) {
