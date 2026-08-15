@@ -365,6 +365,45 @@ class TestEmailEncoder extends TestCase
         $this->assertStringContainsString('apbct-email-encoder', $apbct->buffer);
     }
 
+    public function testModifyBufferPreservesWpGridBuilderInlineScript()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->contacts_encoder->runEncoding();
+
+        $wpgb_script =
+            '<script>(function(){var wpgb=WP_Grid_Builder.instance(1);if(!wpgb.init){return}wpgb.init()})();</script>';
+        $wpgb_script_src =
+            '<script src="https://example.com/wp-content/plugins/wp-grid-builder/public/js/layout.js?ver=2.3.5"></script>';
+        $wpgb_noscript =
+            '<noscript><style>.wp-grid-builder .wpgb-card.wpgb-card-hidden .wpgb-card-wrapper{opacity:1!important}</style></noscript>';
+        $apbct->buffer =
+            '<head><title>test</title></head><body>' .
+            '<p>contact@example.com</p>' .
+            $wpgb_script .
+            $wpgb_script_src .
+            $wpgb_noscript .
+            '<style>.wpgb-card-wrapper{opacity:1!important}</style></body>';
+
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertStringContainsString($wpgb_script, $apbct->buffer);
+        $this->assertStringContainsString($wpgb_script_src, $apbct->buffer);
+        $this->assertStringContainsString($wpgb_noscript, $apbct->buffer);
+        $this->assertStringContainsString('.wpgb-card-wrapper{opacity:1!important}', $apbct->buffer);
+        $this->assertStringContainsString('apbct-wpgb-opacity-fix', $apbct->buffer);
+        $this->assertStringContainsString('wpgb-card-media-thumbnail', $apbct->buffer);
+        $this->assertStringContainsString('apbct-wpgb-styles-css', $apbct->buffer);
+        $this->assertStringContainsString('wp-grid-builder/public/css/style.css?ver=2.3.5', $apbct->buffer);
+        $this->assertStringContainsString('apbct-email-encoder', $apbct->buffer);
+        $this->assertStringNotContainsString('contact@example.com', $apbct->buffer);
+    }
+
     public function testModifyBufferSkipsEncodingWhenDecoderCookieSet()
     {
         global $apbct;
