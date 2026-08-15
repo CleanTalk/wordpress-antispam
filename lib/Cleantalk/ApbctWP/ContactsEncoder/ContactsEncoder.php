@@ -217,7 +217,11 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     private function protectWpGridBuilderRegions($content)
     {
-        if ( stripos($content, 'wpgb') === false && stripos($content, 'WP_Grid_Builder') === false ) {
+        if (
+            stripos($content, 'wpgb') === false
+            && stripos($content, 'WP_Grid_Builder') === false
+            && stripos($content, 'wp-grid-builder') === false
+        ) {
             return $content;
         }
 
@@ -269,7 +273,9 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     private function isWpGridBuilderRegion($chunk)
     {
-        return stripos($chunk, 'wpgb') !== false || stripos($chunk, 'WP_Grid_Builder') !== false;
+        return stripos($chunk, 'wpgb') !== false
+            || stripos($chunk, 'WP_Grid_Builder') !== false
+            || stripos($chunk, 'wp-grid-builder') !== false;
     }
 
     /**

@@ -393,6 +393,7 @@ class TestEmailEncoder extends TestCase
         $this->contacts_encoder->modifyBuffer();
 
         $this->assertStringContainsString($wpgb_script, $apbct->buffer);
+        $this->assertStringContainsString($wpgb_script_src, $apbct->buffer);
         $this->assertStringContainsString($wpgb_noscript, $apbct->buffer);
         $this->assertStringContainsString('.wpgb-card-wrapper{opacity:1!important}', $apbct->buffer);
         $this->assertStringContainsString('apbct-wpgb-opacity-fix', $apbct->buffer);
