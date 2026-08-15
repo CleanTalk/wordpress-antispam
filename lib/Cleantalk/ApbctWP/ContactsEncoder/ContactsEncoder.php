@@ -38,6 +38,11 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     /**
      * @var string[]
      */
+    private $wpgb_region_placeholders = array();
+
+    /**
+     * @var string[]
+     */
     public $decoded_contacts_array = array();
 
     /**
@@ -181,6 +186,178 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         }
 
         return strtr($encoded, $placeholders);
+    }
+
+    /**
+     * Protect WP Grid Builder assets before buffer-mode encoding.
+     * Inline scripts/styles/noscript and grid markup must not be modified (#54940).
+     *
+     * @param string $content
+     * @param bool $skip_exclusions
+     *
+     * @return string
+     */
+    public function modifyContent($content, $skip_exclusions = false)
+    {
+        if ( ! is_string($content) || $content === '' ) {
+            return parent::modifyContent($content, $skip_exclusions);
+        }
+
+        $content = $this->protectWpGridBuilderRegions($content);
+        $content = parent::modifyContent($content, $skip_exclusions);
+        $content = $this->restoreWpGridBuilderRegions($content);
+
+        return $this->appendWpGridBuilderFix($content);
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return string
+     */
+    private function protectWpGridBuilderRegions($content)
+    {
+        if ( stripos($content, 'wpgb') === false && stripos($content, 'WP_Grid_Builder') === false ) {
+            return $content;
+        }
+
+        $this->wpgb_region_placeholders = array();
+
+        foreach ( array('noscript', 'script', 'style') as $tag ) {
+            $content = preg_replace_callback(
+                '/<' . $tag . '\b[^>]*>.*?<\/' . $tag . '>/is',
+                function ($matches) {
+                    if ( ! isset($matches[0]) || ! $this->isWpGridBuilderRegion($matches[0]) ) {
+                        return isset($matches[0]) ? $matches[0] : '';
+                    }
+
+                    $placeholder = '%%APBCT_WPGB_REGION_' . count($this->wpgb_region_placeholders) . '%%';
+                    $this->wpgb_region_placeholders[$placeholder] = $matches[0];
+
+                    return $placeholder;
+                },
+                $content
+            );
+
+            if ( ! is_string($content) ) {
+                return $content;
+            }
+        }
+
+        $content = preg_replace_callback(
+            '/<link\b[^>]*\/?>/is',
+            function ($matches) {
+                if ( ! isset($matches[0]) || ! $this->isWpGridBuilderRegion($matches[0]) ) {
+                    return isset($matches[0]) ? $matches[0] : '';
+                }
+
+                $placeholder = '%%APBCT_WPGB_REGION_' . count($this->wpgb_region_placeholders) . '%%';
+                $this->wpgb_region_placeholders[$placeholder] = $matches[0];
+
+                return $placeholder;
+            },
+            $content
+        );
+
+        return $content;
+    }
+
+    /**
+     * @param string $chunk
+     *
+     * @return bool
+     */
+    private function isWpGridBuilderRegion($chunk)
+    {
+        return stripos($chunk, 'wpgb') !== false || stripos($chunk, 'WP_Grid_Builder') !== false;
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return string
+     */
+    private function restoreWpGridBuilderRegions($content)
+    {
+        if ( $this->wpgb_region_placeholders === array() ) {
+            return $content;
+        }
+
+        $content = strtr($content, $this->wpgb_region_placeholders);
+        $this->wpgb_region_placeholders = array();
+
+        return $content;
+    }
+
+    /**
+     * WPGB hides grids with opacity:0.01 until JS finishes init; buffer encoding can drop front CSS (#54940).
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    private function appendWpGridBuilderFix($content)
+    {
+        if ( stripos($content, 'wp-grid-builder') === false && stripos($content, 'wpgb') === false ) {
+            return $content;
+        }
+
+        if ( stripos($content, 'apbct-wpgb-opacity-fix') !== false ) {
+            return $content;
+        }
+
+        $fix =
+            '<style id="apbct-wpgb-opacity-fix">'
+            . '.wp-grid-builder,.wpgb-layout,.wpgb-main,.wpgb-viewport,.wpgb-wrapper{position:relative}'
+            . '.wp-grid-builder.wpgb-enabled{opacity:1!important;visibility:visible!important;pointer-events:auto!important}'
+            . '.wpgb-card-media{position:relative;overflow:hidden}'
+            . '.wpgb-card-media svg[data-ratio]{display:block;width:100%;height:auto}'
+            . '.wpgb-card-media-thumbnail{bottom:0;left:0;overflow:hidden;position:absolute;right:0;top:0}'
+            . '.wpgb-card-media-thumbnail a{bottom:0;left:0;position:absolute;right:0;top:0}'
+            . '.wpgb-card-media-thumbnail div{background-position:50% 50%;background-repeat:no-repeat;background-size:cover;bottom:0;left:0;position:absolute;right:0;top:0}'
+            . '</style>';
+
+        $style_url = $this->getWpGridBuilderStyleUrl($content);
+        if (
+            $style_url !== ''
+            && stripos($content, 'wp-grid-builder/public/css/style.css') === false
+        ) {
+            $fix =
+                '<link rel="stylesheet" id="apbct-wpgb-styles-css" href="' . esc_url($style_url) . '" media="all" />'
+                . $fix;
+        }
+
+        if ( preg_match('/<\/head>/i', $content) ) {
+            return preg_replace('/<\/head>/i', $fix . '</head>', $content, 1);
+        }
+
+        return $fix . $content;
+    }
+
+    /**
+     * Resolve WP Grid Builder front stylesheet URL from enqueued asset tags in HTML.
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    private function getWpGridBuilderStyleUrl($content)
+    {
+        $patterns = array(
+            '#((?:https?:)?//[^"\'\\s]+/wp-content/plugins/wp-grid-builder)/public/js/[^"\'\\s]+\\?ver=([^"\'\\s&]+)#i',
+            '#(/wp-content/plugins/wp-grid-builder)/public/js/[^"\'\\s]+\\?ver=([^"\'\\s&]+)#i',
+        );
+
+        foreach ( $patterns as $pattern ) {
+            if (
+                preg_match($pattern, $content, $matches)
+                && isset($matches[1], $matches[2])
+            ) {
+                return $matches[1] . '/public/css/style.css?ver=' . $matches[2];
+            }
+        }
+
+        return '';
     }
 
     /**
