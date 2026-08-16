@@ -571,17 +571,30 @@ class CEIntegrationGridBuilder
 
         $path = wp_parse_url($url, PHP_URL_PATH);
 
-        if ( ! is_string($path) || $path === '' || ! defined('ABSPATH') ) {
+        if (
+            ! is_string($path)
+            || $path === ''
+            || strpos($path, '..') !== false
+            || preg_match('/\.css$/i', $path) !== 1
+            || ! defined('ABSPATH')
+        ) {
             return '';
         }
 
         $local = ABSPATH . ltrim($path, '/');
+        $resolved = realpath($local);
+        $abspath = realpath(ABSPATH);
 
-        if ( ! is_readable($local) ) {
+        if (
+            $resolved === false
+            || $abspath === false
+            || strpos($resolved, $abspath) !== 0
+            || ! is_readable($resolved)
+        ) {
             return '';
         }
 
-        $css = file_get_contents($local);
+        $css = file_get_contents($resolved);
 
         if ( ! is_string($css) || ! $this->isCardCssChunk($css) ) {
             return '';

@@ -523,6 +523,29 @@ class TestEmailEncoder extends TestCase
         $this->assertStringNotContainsString('opacity:0.01', $result);
     }
 
+    public function testReadCssFromSrcRejectsTraversalAndNonCssPaths()
+    {
+        $read_css = $this->invokeReadCssFromSrc(
+            'https://example.org/wp-content/../wp-config.php'
+        );
+
+        $this->assertSame('', $read_css);
+
+        $read_css = $this->invokeReadCssFromSrc(
+            'https://example.org/wp-content/plugins/cleantalk-spam-protect/cleantalk.php'
+        );
+
+        $this->assertSame('', $read_css);
+    }
+
+    public function testReadCssFromSrcReadsValidCssUnderAbspath()
+    {
+        $fixture_path = '/wp-content/plugins/cleantalk-spam-protect/tests/fixtures/wpgb-card-fixture.css';
+        $read_css = $this->invokeReadCssFromSrc('https://example.org' . $fixture_path);
+
+        $this->assertStringContainsString('.wpgb-card-1 .wpgb-block-5{background:#fff', $read_css);
+    }
+
     public function testModifyBufferSkipsEncodingWhenDecoderCookieSet()
     {
         global $apbct;
@@ -755,6 +778,20 @@ class TestEmailEncoder extends TestCase
         foreach ($result as $item) {
             $this->assertSame('', $item['decoded_email']);
         }
+    }
+
+    /**
+     * @param string $url
+     *
+     * @return string
+     */
+    private function invokeReadCssFromSrc($url)
+    {
+        $integration = $this->contacts_encoder->getGridBuilderIntegration();
+        $method = new \ReflectionMethod($integration, 'readCssFromSrc');
+        $method->setAccessible(true);
+
+        return $method->invoke($integration, $url);
     }
 
     public function tearDown() : void
