@@ -820,7 +820,7 @@ class TestEmailEncoder extends TestCase
         $filename = 'wpgb-card-fixture-' . uniqid('', true) . '.css';
         $absolute_path = $absolute_dir . '/' . $filename;
 
-        file_put_contents($absolute_path, $css_content);
+        $this->assertNotFalse(file_put_contents($absolute_path, $css_content));
         $this->read_css_fixture_files[] = $absolute_path;
 
         return '/' . $relative_dir . '/' . $filename;

@@ -584,11 +584,13 @@ class CEIntegrationGridBuilder
         $local = ABSPATH . ltrim($path, '/');
         $resolved = realpath($local);
         $abspath = realpath(ABSPATH);
+        $abspath_prefix = is_string($abspath) ? trailingslashit($abspath) : '';
 
         if (
             $resolved === false
             || $abspath === false
-            || strpos($resolved, $abspath) !== 0
+            || $abspath_prefix === ''
+            || strpos($resolved, $abspath_prefix) !== 0
             || ! is_readable($resolved)
         ) {
             return '';
