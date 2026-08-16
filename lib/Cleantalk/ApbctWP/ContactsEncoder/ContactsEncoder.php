@@ -10,6 +10,7 @@ use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use Cleantalk\ApbctWP\ContactsEncoder\Exclusions\ExclusionsService;
+use Cleantalk\ApbctWP\ContactsEncoder\Integrations\CEIntegrationGridBuilder;
 use Cleantalk\Common\TT;
 use Cleantalk\Variables\Post;
 
@@ -36,9 +37,9 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     private $buffer_modified = false;
 
     /**
-     * @var string[]
+     * @var CEIntegrationGridBuilder
      */
-    private $wpgb_region_placeholders = array();
+    private $grid_builder_integration;
 
     /**
      * @var string[]
@@ -55,6 +56,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         parent::init($params);
         $this->exclusions = new ExclusionsService($params);
         $this->shortcodes = new ShortCodesService($params);
+        $this->grid_builder_integration = new CEIntegrationGridBuilder();
 
         $this->shortcodes->registerAll();
 
@@ -92,6 +94,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
 
         // Search data to buffer
         if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post() && !is_admin()) {
+            $this->grid_builder_integration->registerStyleCaptureHooks();
             add_action('wp', 'apbct_buffer__start');
             add_action('shutdown', 'apbct_buffer__end', 0); // Collect $apbct->buffer
             add_action('shutdown', array($this, 'modifyBuffer'), 1); // Before apbct_buffer__output (priority 2)
@@ -203,167 +206,25 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             return parent::modifyContent($content, $skip_exclusions);
         }
 
-        $content = $this->protectWpGridBuilderRegions($content);
-        $content = parent::modifyContent($content, $skip_exclusions);
-        $content = $this->restoreWpGridBuilderRegions($content);
-
-        return $this->appendWpGridBuilderFix($content);
-    }
-
-    /**
-     * @param string $content
-     *
-     * @return string
-     */
-    private function protectWpGridBuilderRegions($content)
-    {
-        if (
-            stripos($content, 'wpgb') === false
-            && stripos($content, 'WP_Grid_Builder') === false
-            && stripos($content, 'wp-grid-builder') === false
-        ) {
+        if ( ! $skip_exclusions && $this->exclusions->doReturnContentBeforeModify($content) ) {
             return $content;
         }
 
-        $this->wpgb_region_placeholders = array();
-
-        foreach ( array('noscript', 'script', 'style') as $tag ) {
-            $content = preg_replace_callback(
-                '/<' . $tag . '\b[^>]*>.*?<\/' . $tag . '>/is',
-                function ($matches) {
-                    if ( ! isset($matches[0]) || ! $this->isWpGridBuilderRegion($matches[0]) ) {
-                        return isset($matches[0]) ? $matches[0] : '';
-                    }
-
-                    $placeholder = '%%APBCT_WPGB_REGION_' . count($this->wpgb_region_placeholders) . '%%';
-                    $this->wpgb_region_placeholders[$placeholder] = $matches[0];
-
-                    return $placeholder;
-                },
-                $content
-            );
-
-            if ( ! is_string($content) ) {
-                return $content;
+        return $this->grid_builder_integration->modifyContent(
+            $content,
+            function ($protected_content) use ($skip_exclusions) {
+                return parent::modifyContent($protected_content, $skip_exclusions);
             }
-        }
-
-        $content = preg_replace_callback(
-            '/<link\b[^>]*\/?>/is',
-            function ($matches) {
-                if ( ! isset($matches[0]) || ! $this->isWpGridBuilderRegion($matches[0]) ) {
-                    return isset($matches[0]) ? $matches[0] : '';
-                }
-
-                $placeholder = '%%APBCT_WPGB_REGION_' . count($this->wpgb_region_placeholders) . '%%';
-                $this->wpgb_region_placeholders[$placeholder] = $matches[0];
-
-                return $placeholder;
-            },
-            $content
         );
-
-        return $content;
     }
 
     /**
-     * @param string $chunk
-     *
-     * @return bool
+     * @return CEIntegrationGridBuilder
+     * @psalm-suppress PossiblyUnusedMethod
      */
-    private function isWpGridBuilderRegion($chunk)
+    public function getGridBuilderIntegration()
     {
-        return stripos($chunk, 'wpgb') !== false
-            || stripos($chunk, 'WP_Grid_Builder') !== false
-            || stripos($chunk, 'wp-grid-builder') !== false;
-    }
-
-    /**
-     * @param string $content
-     *
-     * @return string
-     */
-    private function restoreWpGridBuilderRegions($content)
-    {
-        if ( $this->wpgb_region_placeholders === array() ) {
-            return $content;
-        }
-
-        $content = strtr($content, $this->wpgb_region_placeholders);
-        $this->wpgb_region_placeholders = array();
-
-        return $content;
-    }
-
-    /**
-     * WPGB hides grids with opacity:0.01 until JS finishes init; buffer encoding can drop front CSS (#54940).
-     *
-     * @param string $content
-     *
-     * @return string
-     */
-    private function appendWpGridBuilderFix($content)
-    {
-        if ( stripos($content, 'wp-grid-builder') === false && stripos($content, 'wpgb') === false ) {
-            return $content;
-        }
-
-        if ( stripos($content, 'apbct-wpgb-opacity-fix') !== false ) {
-            return $content;
-        }
-
-        $fix =
-            '<style id="apbct-wpgb-opacity-fix">'
-            . '.wp-grid-builder,.wpgb-layout,.wpgb-main,.wpgb-viewport,.wpgb-wrapper{position:relative}'
-            . '.wp-grid-builder.wpgb-enabled{opacity:1!important;visibility:visible!important;pointer-events:auto!important}'
-            . '.wpgb-card-media{position:relative;overflow:hidden}'
-            . '.wpgb-card-media svg[data-ratio]{display:block;width:100%;height:auto}'
-            . '.wpgb-card-media-thumbnail{bottom:0;left:0;overflow:hidden;position:absolute;right:0;top:0}'
-            . '.wpgb-card-media-thumbnail a{bottom:0;left:0;position:absolute;right:0;top:0}'
-            . '.wpgb-card-media-thumbnail div{background-position:50% 50%;background-repeat:no-repeat;background-size:cover;bottom:0;left:0;position:absolute;right:0;top:0}'
-            . '</style>';
-
-        $style_url = $this->getWpGridBuilderStyleUrl($content);
-        if (
-            $style_url !== ''
-            && stripos($content, 'wp-grid-builder/public/css/style.css') === false
-        ) {
-            $fix =
-                '<link rel="stylesheet" id="apbct-wpgb-styles-css" href="' . esc_url($style_url) . '" media="all" />'
-                . $fix;
-        }
-
-        if ( preg_match('/<\/head>/i', $content) ) {
-            return preg_replace('/<\/head>/i', $fix . '</head>', $content, 1);
-        }
-
-        return $fix . $content;
-    }
-
-    /**
-     * Resolve WP Grid Builder front stylesheet URL from enqueued asset tags in HTML.
-     *
-     * @param string $content
-     *
-     * @return string
-     */
-    private function getWpGridBuilderStyleUrl($content)
-    {
-        $patterns = array(
-            '#((?:https?:)?//[^"\'\\s]+/wp-content/plugins/wp-grid-builder)/public/js/[^"\'\\s]+\\?ver=([^"\'\\s&]+)#i',
-            '#(/wp-content/plugins/wp-grid-builder)/public/js/[^"\'\\s]+\\?ver=([^"\'\\s&]+)#i',
-        );
-
-        foreach ( $patterns as $pattern ) {
-            if (
-                preg_match($pattern, $content, $matches)
-                && isset($matches[1], $matches[2])
-            ) {
-                return $matches[1] . '/public/css/style.css?ver=' . $matches[2];
-            }
-        }
-
-        return '';
+        return $this->grid_builder_integration;
     }
 
     /**
