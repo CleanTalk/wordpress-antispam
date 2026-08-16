@@ -18,11 +18,17 @@ class TestEmailEncoder extends TestCase
 
     private $plain_text = 'This is a plain text';
 
+    /**
+     * @var string[]
+     */
+    private $read_css_fixture_files = array();
+
     public function setUp(): void
     {
         global $apbct;
         $apbct->api_key         = 'testapikey';
         $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->read_css_fixture_files = array();
         $this->clearDecoderPassedCookie();
     }
 
@@ -540,8 +546,9 @@ class TestEmailEncoder extends TestCase
 
     public function testReadCssFromSrcReadsValidCssUnderAbspath()
     {
-        $fixture_path = '/wp-content/plugins/cleantalk-spam-protect/tests/fixtures/wpgb-card-fixture.css';
-        $read_css = $this->invokeReadCssFromSrc('https://example.org' . $fixture_path);
+        $css_content = '.wpgb-card-1 .wpgb-block-5{background:#fff;padding:4px 8px}';
+        $url_path = $this->createReadCssFixtureUnderAbspath($css_content);
+        $read_css = $this->invokeReadCssFromSrc('https://example.org' . $url_path);
 
         $this->assertStringContainsString('.wpgb-card-1 .wpgb-block-5{background:#fff', $read_css);
     }
@@ -794,10 +801,43 @@ class TestEmailEncoder extends TestCase
         return $method->invoke($integration, $url);
     }
 
+    /**
+     * @param string $css_content
+     *
+     * @return string
+     */
+    private function createReadCssFixtureUnderAbspath($css_content)
+    {
+        $this->assertTrue(defined('ABSPATH'));
+
+        $relative_dir = 'wp-content/uploads/apbct-test-fixtures';
+        $absolute_dir = ABSPATH . $relative_dir;
+
+        if ( ! is_dir($absolute_dir) ) {
+            wp_mkdir_p($absolute_dir);
+        }
+
+        $filename = 'wpgb-card-fixture-' . uniqid('', true) . '.css';
+        $absolute_path = $absolute_dir . '/' . $filename;
+
+        file_put_contents($absolute_path, $css_content);
+        $this->read_css_fixture_files[] = $absolute_path;
+
+        return '/' . $relative_dir . '/' . $filename;
+    }
+
     public function tearDown() : void
     {
         global $apbct;
         $apbct->buffer = '';
         $this->clearDecoderPassedCookie();
+
+        foreach ( $this->read_css_fixture_files as $fixture_file ) {
+            if ( is_string($fixture_file) && is_file($fixture_file) ) {
+                unlink($fixture_file);
+            }
+        }
+
+        $this->read_css_fixture_files = array();
     }
 }
