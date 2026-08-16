@@ -96,6 +96,9 @@ class State extends \Cleantalk\Common\State
         'data__email_decoder_encode_phone_numbers' => 0,
         'data__email_decoder_encode_email_addresses' => 1,
         'data__wc_store_blocked_orders'            => 0,
+        // Protection mode: 0 - Full / 1 - Lite (assets only on listed pages)
+        'data__protection_mode'                    => 0,
+        'data__protection_mode__urls'              => '',
 
         // Exclusions
         // Send to the cloud some excepted requests

@@ -400,6 +400,9 @@ jQuery(document).ready(function() {
     // Hide/show EmailEncoder replacing text textarea
     apbctManageEmailEncoderCustomTextField();
 
+    // Hide/show Lite mode pages textarea
+    apbctManageProtectionModeUrlsField();
+
     if (window.location.hash) {
         const anchor = window.location.hash.substring(1);
         handleAnchorDetection(anchor);
@@ -455,6 +458,36 @@ function apbctManageEmailEncoderCustomTextField() {
                     replacingTextWrapperSub.classList.remove('hidden');
                 } else {
                     replacingTextWrapperSub.classList.add('hidden');
+                }
+            }
+        });
+    });
+}
+
+/**
+ * Hide/show Lite mode pages textarea
+ */
+function apbctManageProtectionModeUrlsField() {
+    const urlsField = document
+        .querySelector('#apbct_setting_data__protection_mode__urls');
+    let urlsFieldWrapper;
+    if (urlsField !== null) {
+        urlsFieldWrapper = typeof urlsField.parentElement !== 'undefined' ?
+            urlsField.parentElement :
+            null;
+    }
+    document.querySelectorAll('.apbct_setting---data__protection_mode').forEach((elem) => {
+        // visibility set on saved settings: hide when Full (0)
+        if (urlsFieldWrapper && elem.checked && elem.value === '0') {
+            urlsFieldWrapper.classList.add('hidden');
+        }
+        // visibility set on change
+        elem.addEventListener('click', (event) => {
+            if (typeof urlsFieldWrapper !== 'undefined' && urlsFieldWrapper !== null) {
+                if (event.target.value === '1') {
+                    urlsFieldWrapper.classList.remove('hidden');
+                } else {
+                    urlsFieldWrapper.classList.add('hidden');
                 }
             }
         });

@@ -40,7 +40,7 @@ function apbct_init()
     }
 
     // Localize data
-    if ( ! apbct_exclusions_check__url() ) {
+    if ( ! apbct_exclusions_check__url() && apbct_is_assets_allowed_on_current_page() ) {
         if (defined('CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER') && CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER) {
             add_action('wp_footer', array(LocalizeHandler::class, 'handle'), 1);
             add_action('login_footer', array(LocalizeHandler::class, 'handle'), 1);
@@ -1138,6 +1138,10 @@ function apbct_login__scripts()
 {
     global $apbct;
 
+    if ( ! apbct_is_assets_allowed_on_current_page() ) {
+        return;
+    }
+
     apbct_enqueue_and_localize_public_scripts();
 
     $apbct->public_script_loaded = true;
@@ -1205,7 +1209,7 @@ function ct_enqueue_scripts_public($_hook)
 {
     global $current_user, $apbct;
 
-    if ( apbct_exclusions_check__url() || apbct_is_amp_request() ) {
+    if ( apbct_exclusions_check__url() || apbct_is_amp_request() || ! apbct_is_assets_allowed_on_current_page() ) {
         return;
     }
 
@@ -1232,7 +1236,7 @@ function ct_enqueue_styles_public()
 {
     global $apbct, $current_user;
 
-    if ( apbct_exclusions_check__url() ) {
+    if ( apbct_exclusions_check__url() || ! apbct_is_assets_allowed_on_current_page() ) {
         return;
     }
 
