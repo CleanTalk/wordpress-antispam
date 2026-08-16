@@ -429,6 +429,30 @@ class TestEmailEncoder extends TestCase
         $this->assertStringNotContainsString('apbct-wpgb-card-inline-css', $apbct->buffer);
     }
 
+    public function testModifyBufferPreservesWpGridBuilderMultiDigitCardCss()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->contacts_encoder->runEncoding();
+
+        $card_css =
+            '<style id="wpgb-styles-inline-css">.wpgb-card-12 .wpgb-block-10{background:#fff;padding:4px 8px}</style>';
+        $apbct->buffer =
+            '<head><title>test</title>' . $card_css . '</head><body>' .
+            '<div class="wp-grid-builder wpgb-grid-20"><div class="wpgb-block-10">10+vat</div></div>' .
+            '<p>contact@example.com</p></body>';
+
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertStringContainsString('.wpgb-card-12 .wpgb-block-10{background:#fff', $apbct->buffer);
+        $this->assertStringNotContainsString('contact@example.com', $apbct->buffer);
+    }
+
     public function testModifyBufferInjectsCapturedWpGridBuilderCardCss()
     {
         $card_css = '.wpgb-card-1 .wpgb-block-5{position:absolute;top:12px;left:12px;background:#fff;padding:4px 8px}';

@@ -379,7 +379,7 @@ class CEIntegrationGridBuilder
         }
 
         return is_string($chunk)
-            && preg_match('/\.wpgb-(?:block|card)-\d/i', $chunk) === 1;
+            && preg_match('/\.wpgb-(?:block|card)-\d+/i', $chunk) === 1;
     }
 
     /**
@@ -467,7 +467,7 @@ class CEIntegrationGridBuilder
     private function isCardCssChunk($css)
     {
         return is_string($css)
-            && preg_match('/(?:^|[\s{,>+~])\.wpgb-(?:block|card)-\d/i', $css) === 1;
+            && preg_match('/(?:^|[\s{,>+~])\.wpgb-(?:block|card)-\d+/i', $css) === 1;
     }
 
     /**
