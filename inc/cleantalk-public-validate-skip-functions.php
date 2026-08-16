@@ -100,6 +100,10 @@ function skip_for_ct_contact_form_validate()
         //Skip lost-password form check
         '7' =>
             (apbct_is_in_uri('/wp-admin/')
+             && ! (
+                 apbct_is_in_uri('admin-post.php')
+                 && Post::getString('action') === 'wms_contact'
+             )
              && (empty($_POST['your-phone'])
                  && empty($_POST['your-email'])
                  && empty($_POST['your-message']))),
