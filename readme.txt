@@ -2,7 +2,7 @@
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: antispam, honeypot, bot, captcha, spam
 Requires at least: 4.7
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.2
 Stable tag: 6.85
 License: GPLv2
