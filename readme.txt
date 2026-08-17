@@ -4,7 +4,7 @@ Tags: antispam, honeypot, bot, captcha, spam
 Requires at least: 4.7
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 6.85
+Stable tag: 6.86
 License: GPLv2
 
 Spam protection, anti-spam, firewall, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
