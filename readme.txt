@@ -426,6 +426,30 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 
 == Changelog ==
 
+= 6.86 19.08.2026 =
+* New. Banners. New banner design
+* Fix. Wizarg. Edit style
+* Mod. Banners. Edit layout full page banner
+* Mod. Banners. Bringing banners to a unified look with spbct
+* Upd. TRP. Modified TRP badge size.
+* Fix. SFW. Improve gathering logs.
+* Upd. Renamed the account creation button and description. Add new params in request
+* Fix. ContactEncoder. Improve compabilities.
+* Fix. ContactEncoder. Improve statement before process data.
+* Upd. Integrations. Improve flow on external forms.
+* Customization Anti-Crawler options
+* Fix. ContactEncoder. Improve statement before process data.
+* Fix. Code. Improve structure.
+* Udp.Code.Constants 
+* Udp. Search form. Process requests only if a native search form is used.
+* Fix. Settings. Improve curl wrapper.
+* Fix. Integrations. Improve cowork with otp verification.
+* Upd. SFW. Improve AntiCrawler flow.
+* Fix. ContactEncoder. Improve compatibility with WP Grid Builder.
+* Fix. Integrations. Web Magic Studio.
+* Fix. Integrations. Improve detect Web Magic Studio.
+* Upd. Readme. Tested up to WP 7.1.
+
 = 6.85 05.08.2026 =
 Fix. Code. Unit tests isolation implemented.
 Fix. Integrations. Fixed Forminator multi-step form email gathering.
