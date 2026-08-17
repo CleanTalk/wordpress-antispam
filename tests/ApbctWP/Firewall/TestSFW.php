@@ -537,6 +537,35 @@ class TestSFW extends TestCase
         $sfw->updateLog('10.0.0.1', 'PASS_SFW', 'NULL', "abc; DROP TABLE users; --");
     }
 
+    /**
+     * @test
+     * updateLog() must skip empty/invalid IP — such rows break cloud collectors.
+     */
+    public function testUpdateLogSkipsEmptyIp()
+    {
+        $sfw = new SFW(
+            'wp_cleantalk_sfw_logs',
+            'test_personal_table',
+            array(
+                'api_key' => 'test_key',
+                'data__cookies_type' => 'native',
+                'sfw_common_table_name' => 'test_data_table',
+            )
+        );
+
+        $db = $this->getMockBuilder(stdClass::class)
+            ->addMethods(array('prepare', 'execute', 'getQuery'))
+            ->getMock();
+
+        $db->expects($this->never())->method('prepare');
+        $db->expects($this->never())->method('execute');
+
+        $sfw->setDb($db);
+        $sfw->updateLog('', 'DENY_SFW');
+        $sfw->updateLog('0.0.0.0', 'DENY_SFW');
+        $sfw->updateLog('not-an-ip', 'DENY_SFW');
+    }
+
     // =========================================================================
     // Helpers
     // =========================================================================

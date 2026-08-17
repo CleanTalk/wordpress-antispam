@@ -195,6 +195,10 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
      */
     public function updateLog($ip, $status)
     {
+        if ( Helper::ipValidate($ip) === false ) {
+            return;
+        }
+
         $id   = md5($ip . $this->module_name);
         $time = time();
 

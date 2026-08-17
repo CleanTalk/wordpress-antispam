@@ -311,6 +311,29 @@ class ExcludedEncodeContentSCTest extends TestCase
     }
 
     /**
+     * get_header/get_footer fire as actions with a nullable template name.
+     * Filters hooked there must not pass null into preg_*.
+     */
+    public function testChangeContentBeforeEncoderModifyAcceptsNullFromGetHeader(): void
+    {
+        $this->assertSame(
+            '',
+            $this->exclude_content_sc->changeContentBeforeEncoderModify(null)
+        );
+    }
+
+    /**
+     * @see testChangeContentBeforeEncoderModifyAcceptsNullFromGetHeader
+     */
+    public function testChangeContentAfterEncoderModifyAcceptsNullFromGetHeader(): void
+    {
+        $this->assertSame(
+            '',
+            $this->exclude_content_sc->changeContentAfterEncoderModify(null)
+        );
+    }
+
+    /**
      * Test that shortcode inside HTML attribute is detected
      */
     public function testOffsetDetectionInsideHtmlTag(): void
@@ -420,5 +443,16 @@ class ExcludedEncodeContentSCTest extends TestCase
 
         // esc_html should not affect a plain email address
         $this->assertEquals($originalString, $result);
+    }
+
+    /**
+     * Themes may call apply_filters('the_title', $title) with a single argument.
+     * filterTheTitle must accept that without ArgumentCountError on PHP 8+.
+     */
+    public function testFilterTheTitleAcceptsSingleArgument(): void
+    {
+        $title = 'Plain title without shortcode';
+        $result = $this->exclude_content_sc->filterTheTitle($title);
+        $this->assertSame($title, $result);
     }
 }

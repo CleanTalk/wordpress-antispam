@@ -237,6 +237,49 @@ class TestRemoteCalls extends TestCase
         $this->assertFalse($method->invoke(null, md5('anything')));
     }
 
+    /**
+     * Hosting-license: antibot cookie hash must not be accepted as RemoteCalls token.
+     *
+     * @test
+     */
+    public function hostingLicenseAntiBotCookieIsNotValidRemoteCallToken()
+    {
+        global $apbct;
+
+        $apbct = new stdClass();
+        $apbct->api_key = '';
+        $apbct->data = array(
+            'salt'        => 'hosting_salt_value',
+            'moderate_ip' => 1,
+            'ip_license'  => 1,
+        );
+
+        $legacy_leaked_hash = strtolower(hash('sha256', $apbct->api_key . $apbct->data['salt']));
+        $antibot_hash       = strtolower(apbct_get_anti_bot_cookie_hash($apbct->api_key, $apbct->data['salt']));
+        $valid_rc_token     = strtolower(hash('sha256', $apbct->api_key . $apbct->data['salt']));
+
+        $method = new ReflectionMethod(RemoteCalls::class, 'checkToken');
+        $method->setAccessible(true);
+
+        $this->assertNotEquals(
+            $antibot_hash,
+            $valid_rc_token,
+            'Antibot cookie must not equal hosting-license RC token'
+        );
+        $this->assertTrue(
+            $method->invoke(null, $valid_rc_token),
+            'Legitimate hosting-license RC token must still validate'
+        );
+        $this->assertFalse(
+            $method->invoke(null, $antibot_hash),
+            'Antibot cookie hash must not validate as RC token'
+        );
+        // Legacy leaked value (sha256(api_key+salt) without purpose suffix) remains a valid RC token
+        // by design for cloud compatibility — it must simply never be sent to the browser.
+        $this->assertTrue($method->invoke(null, $legacy_leaked_hash));
+        $this->assertSame($legacy_leaked_hash, $valid_rc_token);
+    }
+
     /** @test */
     public function itMapsSettingTitlesCorrectly()
     {

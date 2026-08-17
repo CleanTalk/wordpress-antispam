@@ -180,7 +180,7 @@ class TestAntiCrawler extends TestCase
 
         $this->assertNotSame('', $html);
         $this->assertStringContainsString('203.0.113.10', $html);
-        $this->assertStringContainsString(hash('sha256', $apbct->api_key . $apbct->data['salt']), $html);
+        $this->assertStringContainsString(apbct_get_anti_bot_cookie_hash($apbct->api_key, $apbct->data['salt']), $html);
     }
 
     private function bootstrapApbct(): void
