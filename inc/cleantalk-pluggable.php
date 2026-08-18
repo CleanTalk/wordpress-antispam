@@ -444,6 +444,21 @@ function apbct_is_in_uri($str)
 }
 
 /**
+ * Default wp-login.php login/lost-password flows are excluded from spam checks in PHP.
+ * Skip front-end protection (cookies/JS) there to avoid host WAF false positives on POST.
+ *
+ * @return bool
+ */
+function apbct_is_wp_login_excluded_from_protection()
+{
+    if ( ! apbct_is_in_uri('wp-login.php') ) {
+        return false;
+    }
+
+    return Get::getString('action') !== 'register';
+}
+
+/**
  * Checking if current request is a cron job
  * Support for WordPress < 4.8.0
  *

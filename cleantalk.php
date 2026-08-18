@@ -344,7 +344,8 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
     }
     if (
         empty($_POST) &&
-        $apbct->data['key_is_ok']
+        $apbct->data['key_is_ok'] &&
+        ! apbct_is_wp_login_excluded_from_protection()
     ) {
         if ( (isset($_GET['q']) && $_GET['q'] !== '') || empty($_GET) ) {
             apbct_cookie();

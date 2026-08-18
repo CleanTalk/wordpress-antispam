@@ -1138,6 +1138,10 @@ function apbct_login__scripts()
 {
     global $apbct;
 
+    if ( apbct_is_wp_login_excluded_from_protection() ) {
+        return;
+    }
+
     apbct_enqueue_and_localize_public_scripts();
 
     $apbct->public_script_loaded = true;
