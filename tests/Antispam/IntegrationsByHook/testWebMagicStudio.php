@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\Antispam\Integrations\WebMagicStudio;
+use Cleantalk\ApbctWP\Variables\Post;
 use PHPUnit\Framework\TestCase;
 
 class WebMagicStudioTest extends TestCase
@@ -16,11 +17,13 @@ class WebMagicStudioTest extends TestCase
     {
         $this->integration = new WebMagicStudio();
         $this->post_global = $_POST;
+        Post::getInstance()->variables = [];
     }
 
     protected function tearDown(): void
     {
         $_POST = $this->post_global;
+        Post::getInstance()->variables = [];
     }
 
     private function prepareDefaultPostData()
@@ -49,11 +52,13 @@ class WebMagicStudioTest extends TestCase
             'subject'        => 'A new website',
             'contact'        => true,
             'register'       => false,
+            'event_token'    => 'test_token',
         );
     }
 
     public function testGetDataForChecking()
     {
+        Post::getInstance()->variables = [];
         $_POST = $this->prepareDefaultPostData();
 
         $this->assertEquals(

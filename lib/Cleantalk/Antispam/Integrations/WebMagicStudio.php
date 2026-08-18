@@ -20,10 +20,10 @@ class WebMagicStudio extends IntegrationBase
         $input_array = apply_filters('apbct__filter_post', $_POST);
         $input_array['event_token'] = Post::getString('ct_bot_detector_event_token');
 
-        $email   = Post::getString('wms_email');
-        $name    = Post::getString('wms_name');
-        $message = Post::getString('wms_message');
-        $need    = Post::getString('wms_need');
+        $email   = isset($input_array['wms_email']) ? $input_array['wms_email'] : '';
+        $name    = isset($input_array['wms_name']) ? $input_array['wms_name'] : '';
+        $message = isset($input_array['wms_message']) ? $input_array['wms_message'] : '';
+        $need    = isset($input_array['wms_need']) ? $input_array['wms_need'] : '';
 
         $data = ct_gfa_dto($input_array, $email, $name)->getArray();
 
@@ -32,6 +32,7 @@ class WebMagicStudio extends IntegrationBase
         }
 
         $data['message'] = $message;
+        $data['event_token'] = isset($input_array['event_token']) ? $input_array['event_token'] : '';
 
         return $data;
     }
