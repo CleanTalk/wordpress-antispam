@@ -141,7 +141,7 @@ class Firewall
             }
         }
 
-        $this->isWhitelisted($results);
+        $this->setWhitelistedCookie($results);
 
         // Write Logs
         foreach ($this->fw_modules as $module) {
@@ -261,13 +261,13 @@ class Firewall
     }
 
     /**
-     * Check the result if it whitelisted or trusted network
+     * Set the white list cookie if any of the results is whitelisted or belongs to a trusted network.
      *
      * @param array $results
      *
-     * @return bool
+     * @return void
      */
-    private function isWhitelisted($results)
+    private function setWhitelistedCookie($results)
     {
         global $apbct;
 
@@ -284,12 +284,10 @@ class Firewall
                             Cookie::set('ct_sfw_ip_wl', $cookie_val, time() + 86400 * 30, '/', '', null, true, 'Lax');
                         }
 
-                        return true;
+                        return;
                     }
                 }
             }
         }
-
-        return false;
     }
 }
