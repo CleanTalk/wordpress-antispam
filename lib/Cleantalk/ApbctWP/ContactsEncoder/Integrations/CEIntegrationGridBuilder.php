@@ -48,6 +48,24 @@ class CEIntegrationGridBuilder
     }
 
     /**
+     * Apply WPGB layout/CSS fix without running email encoding (#54940).
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    public function applyCompatibilityFix($content)
+    {
+        if ( ! is_string($content) || $content === '' || ! $this->contentHasWpGridBuilder($content) ) {
+            return $content;
+        }
+
+        $this->prepareAssets($content);
+
+        return $this->appendFix($content);
+    }
+
+    /**
      * @return void
      */
     public function registerStyleCaptureHooks()

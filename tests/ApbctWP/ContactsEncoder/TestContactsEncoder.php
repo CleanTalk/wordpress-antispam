@@ -553,6 +553,42 @@ class TestEmailEncoder extends TestCase
         $this->assertStringContainsString('.wpgb-card-1 .wpgb-block-5{background:#fff', $read_css);
     }
 
+    public function testModifyBufferAppliesWpGridBuilderFixWhenLoggedInWithoutEncoding()
+    {
+        global $apbct;
+
+        $params = new Params();
+        $params->api_key = $apbct->api_key;
+        $params->is_logged_in = true;
+        $params->obfuscation_mode = $apbct->settings['data__email_decoder_obfuscation_mode'];
+        $params->obfuscation_text = $apbct->settings['data__email_decoder_obfuscation_custom_text'];
+        $params->do_encode_emails = (int) $apbct->settings['data__email_decoder_encode_email_addresses'];
+        $params->do_encode_phones = (int) $apbct->settings['data__email_decoder_encode_phone_numbers'];
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = ContactsEncoder::getInstance($params);
+        $this->contacts_encoder->runEncoding();
+
+        $apbct->buffer =
+            '<head><title>test</title></head><body>' .
+            '<div class="wp-grid-builder wpgb-grid-20 wpgb-enabled">' .
+            '<div class="wpgb-card-media-thumbnail"><div></div></div></div>' .
+            '<p>contact@example.com</p></body>';
+
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertStringContainsString('apbct-wpgb-opacity-fix', $apbct->buffer);
+        $this->assertStringContainsString('wpgb-card-media-thumbnail', $apbct->buffer);
+        $this->assertStringContainsString('contact@example.com', $apbct->buffer);
+        $this->assertStringNotContainsString('apbct-email-encoder', $apbct->buffer);
+
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+    }
+
     public function testModifyBufferSkipsEncodingWhenDecoderCookieSet()
     {
         global $apbct;

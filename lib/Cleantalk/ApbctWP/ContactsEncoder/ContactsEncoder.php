@@ -207,7 +207,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         }
 
         if ( ! $skip_exclusions && $this->exclusions->doReturnContentBeforeModify($content) ) {
-            return $content;
+            return $this->grid_builder_integration->applyCompatibilityFix($content);
         }
 
         return $this->grid_builder_integration->modifyContent(
