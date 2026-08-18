@@ -433,6 +433,15 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
+    'WebMagicStudio' => array(
+        'hook'    => array(
+            'admin_post_nopriv_wms_contact',
+            'admin_post_wms_contact',
+        ),
+        'setting' => 'forms__general_contact_forms_test',
+        'priority' => 1,
+        'ajax'    => false
+    ),
     'Newsletter' => array(
         'hook'    => 'newsletter_action',
         'setting' => 'forms__contact_forms_test',
