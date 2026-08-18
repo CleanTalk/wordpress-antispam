@@ -14,12 +14,25 @@ class WcSpamOrdersListTable extends CleantalkListTable
     protected $page_title = '';
     protected $wc_spam_orders_count = 0;
 
-    public function __construct()
+    /**
+     * Status links of the hosting page when the table is embedded into it.
+     * Null means the table is rendered on its own page and builds the links itself.
+     *
+     * @var array|null
+     */
+    protected $embedded_views = null;
+
+    /**
+     * @param array|null $embedded_views Status links of the hosting page, see $embedded_views
+     */
+    public function __construct($embedded_views = null)
     {
         parent::__construct(array(
             'singular' => 'wc_spam_orders',
             'plural'   => 'wc_spam_orders'
         ));
+
+        $this->embedded_views = is_array($embedded_views) ? $embedded_views : null;
 
         $this->bulk_actions_handler();
 
@@ -35,7 +48,10 @@ class WcSpamOrdersListTable extends CleantalkListTable
         $this->apbct      = $apbct;
         $this->page_title = 'WooCommerce spam orders';
 
-        $this->generatePageHeader();
+        // The hosting page renders its own header
+        if ( is_null($this->embedded_views) ) {
+            $this->generatePageHeader();
+        }
     }
 
     /**
@@ -88,11 +104,18 @@ class WcSpamOrdersListTable extends CleantalkListTable
                 continue;
             }
 
-            $delete_url = wp_nonce_url(
-                admin_url('admin.php?page=' . Get::getString('page') . '&action=delete&spam=' . $wc_spam_order->id),
-                'apbct_wc_spam_orders_row',
-                '_wpnonce'
+            // The status has to be kept, the hosting page is chosen by it
+            $current_status = Get::getString('status');
+            $delete_url = admin_url('admin.php?page=' . Get::getString('page'));
+            $delete_url = add_query_arg(
+                array_filter(array(
+                    'status' => $current_status,
+                    'action' => 'delete',
+                    'spam'   => $wc_spam_order->id,
+                )),
+                $delete_url
             );
+            $delete_url = wp_nonce_url($delete_url, 'apbct_wc_spam_orders_row', '_wpnonce');
             $actions = array(
                 'restore' => '<a class="apbct-restore-spam-order-button" data-spam-order-id="' . $wc_spam_order->id . '">' . esc_html__('Restore', 'cleantalk-spam-protect') . '</a>',
                 'delete'  => '<a onclick="return confirm(\'' . esc_attr(esc_html__('Are you sure?', 'cleantalk-spam-protect')) . '\')" href="' . esc_url($delete_url) . '">Delete</a>',
@@ -149,6 +172,10 @@ class WcSpamOrdersListTable extends CleantalkListTable
      */
     protected function get_views() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        if ( ! is_null($this->embedded_views) ) {
+            return $this->embedded_views;
+        }
+
         $current_status = $this->getCurrentStatus();
 
         $statuses = array(

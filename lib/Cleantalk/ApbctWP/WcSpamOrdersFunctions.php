@@ -6,6 +6,22 @@ use Cleantalk\ApbctWP\Variables\Post;
 
 class WcSpamOrdersFunctions
 {
+    /**
+     * Count of the stored blocked orders, used for the 'Spam' status counter of the orders list.
+     *
+     * @return int
+     */
+    public static function getSpamOrdersCount()
+    {
+        global $wpdb;
+
+        if ( ! defined('APBCT_TBL_WC_SPAM_ORDERS') ) {
+            return 0;
+        }
+
+        return (int)$wpdb->get_var('SELECT COUNT(*) FROM ' . APBCT_TBL_WC_SPAM_ORDERS . ';');
+    }
+
     public static function restoreOrderAction()
     {
         AJAXService::checkNonceRestrictingNonAdmins();
