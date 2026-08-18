@@ -299,14 +299,16 @@ class testEmailEncoderShortCodeEncode extends TestCase
             return 'ARBITRARY_SHORTCODE_EXECUTED';
         });
 
-        $content = '[apbct_encode_data][apbct_test_arbitrary_sc][/apbct_encode_data]';
-        $result  = $this->shortcode->changeContentAfterEncoderModify($content);
+        try {
+            $content = '[apbct_encode_data][apbct_test_arbitrary_sc][/apbct_encode_data]';
+            $result  = $this->shortcode->changeContentAfterEncoderModify($content);
 
-        $this->assertStringNotContainsString('ARBITRARY_SHORTCODE_EXECUTED', $result);
-        $this->assertStringContainsString('apbct-email-encoder', $result);
-        $this->assertStringNotContainsString('[apbct_test_arbitrary_sc]', $result);
-
-        remove_shortcode('apbct_test_arbitrary_sc');
+            $this->assertStringNotContainsString('ARBITRARY_SHORTCODE_EXECUTED', $result);
+            $this->assertStringContainsString('apbct-email-encoder', $result);
+            $this->assertStringNotContainsString('[apbct_test_arbitrary_sc]', $result);
+        } finally {
+            remove_shortcode('apbct_test_arbitrary_sc');
+        }
     }
 
     public function testUnclosedEncodeDataTagDoesNotExecuteOtherShortcodes()
@@ -315,13 +317,15 @@ class testEmailEncoderShortCodeEncode extends TestCase
             return 'ARBITRARY_SHORTCODE_EXECUTED';
         });
 
-        $content = '[apbct_encode_data][apbct_test_arbitrary_sc]';
-        $result  = $this->shortcode->changeContentAfterEncoderModify($content);
+        try {
+            $content = '[apbct_encode_data][apbct_test_arbitrary_sc]';
+            $result  = $this->shortcode->changeContentAfterEncoderModify($content);
 
-        $this->assertStringNotContainsString('ARBITRARY_SHORTCODE_EXECUTED', $result);
-        $this->assertEquals($content, $result);
-
-        remove_shortcode('apbct_test_arbitrary_sc');
+            $this->assertStringNotContainsString('ARBITRARY_SHORTCODE_EXECUTED', $result);
+            $this->assertEquals($content, $result);
+        } finally {
+            remove_shortcode('apbct_test_arbitrary_sc');
+        }
     }
 
     public function testAdjacentShortcodesOutsideEncodeDataAreNotExecuted()
@@ -330,13 +334,15 @@ class testEmailEncoderShortCodeEncode extends TestCase
             return 'ARBITRARY_SHORTCODE_EXECUTED';
         });
 
-        $content = '[apbct_encode_data]safe@example.com[/apbct_encode_data][apbct_test_arbitrary_sc]';
-        $result  = $this->shortcode->changeContentAfterEncoderModify($content);
+        try {
+            $content = '[apbct_encode_data]safe@example.com[/apbct_encode_data][apbct_test_arbitrary_sc]';
+            $result  = $this->shortcode->changeContentAfterEncoderModify($content);
 
-        $this->assertStringNotContainsString('ARBITRARY_SHORTCODE_EXECUTED', $result);
-        $this->assertStringContainsString('[apbct_test_arbitrary_sc]', $result);
-
-        remove_shortcode('apbct_test_arbitrary_sc');
+            $this->assertStringNotContainsString('ARBITRARY_SHORTCODE_EXECUTED', $result);
+            $this->assertStringContainsString('[apbct_test_arbitrary_sc]', $result);
+        } finally {
+            remove_shortcode('apbct_test_arbitrary_sc');
+        }
     }
 
 }
