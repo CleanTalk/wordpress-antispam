@@ -235,7 +235,7 @@ class Firewall
     }
 
     /**
-     * Returns the position of a single firewall result in self::$statuses_priority.
+     * Returns the position of a single firewall result in $this->statuses_priority.
      *
      * A result of a personal list is looked up by the PERSONAL__ prefixed status first, so it takes
      * its own place in the order. If there is no such entry, the common variant is used.
