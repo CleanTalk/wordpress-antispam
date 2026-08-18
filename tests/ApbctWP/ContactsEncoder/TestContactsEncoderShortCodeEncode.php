@@ -303,7 +303,8 @@ class testEmailEncoderShortCodeEncode extends TestCase
         $result  = $this->shortcode->changeContentAfterEncoderModify($content);
 
         $this->assertStringNotContainsString('ARBITRARY_SHORTCODE_EXECUTED', $result);
-        $this->assertStringContainsString('[apbct_test_arbitrary_sc]', $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+        $this->assertStringNotContainsString('[apbct_test_arbitrary_sc]', $result);
 
         remove_shortcode('apbct_test_arbitrary_sc');
     }

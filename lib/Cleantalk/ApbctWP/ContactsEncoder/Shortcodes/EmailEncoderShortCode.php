@@ -44,7 +44,7 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
             $pattern,
             function ($matches) {
                 $atts = array();
-                if ( isset($matches[1]) && preg_match('/\[' . preg_quote($this->public_name, '/') . '([^\]]*)\]/', $matches[1], $tag_matches) ) {
+                if ( isset($matches[1]) && preg_match('/\[' . preg_quote($this->public_name, '/') . '([^\]]*)\]/', $matches[1], $tag_matches) && isset($tag_matches[1]) ) {
                     $parsed_atts = shortcode_parse_atts($tag_matches[1]);
                     $atts = is_array($parsed_atts) ? $parsed_atts : array();
                 }
