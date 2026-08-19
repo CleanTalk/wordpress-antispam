@@ -276,7 +276,7 @@
 
 .apbct-banner-button {
 	display: block;
-	padding: 16px 50px;
+	padding: 17px 53px;
 	color: #FFFFFF !important;
 	border-radius: 8px;
 	font-size: 16px;
@@ -284,14 +284,6 @@
 	text-decoration: none !important;
 	text-align: center;
 	align-content: center;
-}
-
-.apbct-banner-button-green {
-	background-color: #00BB5D !important;
-}
-
-.apbct-banner-button-green:hover {
-	background-color: #00a34f !important;
 }
 
 .apbct-banner-button-wrapper {
@@ -334,4 +326,32 @@
 	font-size: 14px;
 	line-height: 22px;
 	color: #646464 !important;
+}
+
+/* Trial/Renew banner styles */
+.apbct-notice.apbct-banner-error {
+	padding: 16px 32px !important;
+	background-color: #ffffff !important;
+	box-shadow: 0px 4px 15px #84848440 !important;
+	border-left-color: #BB3323 !important;
+}
+
+.apbct-notice.apbct-banner-error .notice-dismiss::before {
+	color: #646464;
+}
+
+.apbct-banner-button-green {
+	background-color: #00BB5D !important;
+}
+
+.apbct-banner-button-green:hover {
+	background-color: #00a34f !important;
+}
+
+.apbct-banner-button-red {
+	background-color: #BB3323 !important;
+}
+
+.apbct-banner-button-red:hover {
+	background-color: #A82E20 !important;
 }

@@ -3,6 +3,7 @@
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentSettings;
 use Cleantalk\ApbctWP\AJAXService;
+use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
@@ -103,17 +104,17 @@ function apbct_settings__set_fields()
 {
     global $apbct;
 
-    $additional_ac_title = '';
+    $additional_ac_description = '';
     if ( $apbct->api_key && is_null($apbct->fw_stats['firewall_updating_id']) ) {
         if ( $apbct->settings['sfw__enabled'] && ! $apbct->stats['sfw']['entries'] ) {
-            $additional_ac_title =
-                ' <span style="color:red">'
+            $additional_ac_description =
+                '<br><span style="color:black">'
                 . esc_html__(
                     'The functionality was disabled because SpamFireWall database is empty. Please, do the synchronization or',
                     'cleantalk-spam-protect'
                 )
                 . ' '
-                . '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('settings_support_open', 'my/support/open')) . '" target="_blank" style="color:red">'
+                . '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('settings_support_open', 'my/support/open')) . '" target="_blank" style="color:black">'
                 . esc_html__(
                     'contact to our support.',
                     'cleantalk-spam-protect'
@@ -181,28 +182,6 @@ function apbct_settings__set_fields()
                     ),
                     'long_description' => true,
                 ),
-                'sfw__anti_crawler'           => array(
-                    'type'        => 'checkbox',
-                    'title'       => 'Anti-Crawler' . $additional_ac_title, // Do not to localize this phrase
-                    'class'       => 'apbct_settings-field_wrapper',
-                    'parent'      => 'sfw__enabled',
-                    'description' =>
-                        __(
-                            'Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).',
-                            'cleantalk-spam-protect'
-                        )
-                        . '<br>'
-                        . __(
-                            'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.',
-                            'cleantalk-spam-protect'
-                        )
-                        . '<br><b>'
-                        . __(
-                            'This option works only when SpamFireWall is enabled.',
-                            'cleantalk-spam-protect'
-                        ) . '</b>',
-                    'long_description' => true,
-                ),
                 'data__email_decoder__status'        => array(
                     'type'        => 'custom_html',
                     'title'       => __('Encode contact data', 'cleantalk-spam-protect'),
@@ -222,10 +201,9 @@ function apbct_settings__set_fields()
             'fields' => array(),
             'notification'      => __('The default settings correspond to the optimal work of the service and their change is required only in special cases.', 'cleantalk-spam-protect'),
             'html_before'       => '<div id="apbct_settings__before_advanced_settings"></div>'
-            . '<div id="apbct_settings__advanced_settings" style="display: none;">'
-            . '<div id="apbct_settings__advanced_settings_inner">',
+                . '<div id="apbct_settings__advanced_settings" style="display: none;">'
+                . '<div id="apbct_settings__advanced_settings_inner">',
         ),
-
         // Forms protection
         'forms_protection'      => array(
             'title'          => __('Forms to protect', 'cleantalk-spam-protect'),
@@ -492,7 +470,7 @@ function apbct_settings__set_fields()
                     'title'       => __("Don't check trusted user's comments", 'cleantalk-spam-protect'),
                     'description' => sprintf(
                         __("Don't check comments for users with above %d comments.", 'cleantalk-spam-protect'),
-                        defined('CLEANTALK_CHECK_COMMENTS_NUMBER') ? CLEANTALK_CHECK_COMMENTS_NUMBER : 3
+                        Constant::getValue(Constant::APBCT_SERVICE__SKIP_ON_APPROVED_COMMENTS_NUMBER, 3)
                     ),
                 ),
                 'data__use_ajax'                       => array(
@@ -858,7 +836,7 @@ function apbct_settings__set_fields()
                             'cleantalk-spam-protect'
                         )
                         . $additional_sfw_description,
-                    'childrens'   => array('sfw__anti_flood', 'sfw__anti_crawler', 'sfw__random_get', 'misc__force_sfw_update_button'),
+                    'childrens'   => array('sfw__anti_flood', 'sfw__random_get', 'misc__force_sfw_update_button'),
                     'long_description' => true,
                 ),
                 'sfw__random_get'             => array(
@@ -880,6 +858,29 @@ function apbct_settings__set_fields()
                     'callback'    => 'apbct_settings__custom_logo',
                     'title'       => __('Custom logo on SpamFireWall blocking pages', 'cleantalk-spam-protect'),
                     'parent'      => 'sfw__enabled',
+                ),
+                'sfw__anti_crawler'           => array(
+                    'type'        => 'checkbox',
+                    'title'       => 'Anti-Crawler', // Do not to localize this phrase
+                    'class'       => 'apbct_settings-field_wrapper',
+                    'description' =>
+                        __(
+                            'Plugin shows SpamFireWall stop page for any bot, except allowed bots (Google, Yahoo and etc).',
+                            'cleantalk-spam-protect'
+                        )
+                        . '<br>'
+                        . __(
+                            'Anti-Crawler includes blocking bots by the User-Agent. Use Personal lists in the Dashboard to filter specific User-Agents.',
+                            'cleantalk-spam-protect'
+                        )
+                        . '<br><b style="color:black">'
+                        . __(
+                            'SpamFireWall will be enabled automatically when Anti-Crawler is enabled',
+                            'cleantalk-spam-protect'
+                        )
+                        . '</b>'
+                        . $additional_ac_description,
+                    'long_description' => true,
                 ),
                 'sfw__anti_flood'             => array(
                     'type'        => 'checkbox',
@@ -1148,7 +1149,7 @@ function apbct_settings__set_fields__network($fields)
                         '</a>'
                     ),
                     'childrens'   => array('multisite__white_label__plugin_name'),
-                    'disabled'    => defined('CLEANTALK_ACCESS_KEY') ||
+                    'disabled'    => Constant::is(Constant::APBCT_SERVICE__SELF_OWNED_ACCESS_KEY) ||
                                      ! isset($apbct->network_settings['multisite__work_mode']) ||
                                      $apbct->network_settings['multisite__work_mode'] != 1,
                     'parent'      => 'multisite__work_mode',
@@ -1466,9 +1467,18 @@ function apbct_settings__display()
         $actual_plugin_name = $apbct->data['wl_brandname'];
     }
 
+    // Show fullpage trial/renew banner instead of settings if conditions are met
+    $trial_or_renew_fullpage_banner = new \Cleantalk\ApbctWP\AdminBannersModule\AdminBannerTrialAndRenewFullpage();
+    $trial_fullpage_style = '';
+    if ($trial_or_renew_fullpage_banner->needToShow()) {
+        $trial_or_renew_fullpage_banner->display();
+        $trial_fullpage_style = 'display:none;';
+    }
+
     apbct_settings__render_react_mount();
 
     $settings_wrap_style = apbct_settings__is_signup_wizard() ? 'display:none;' : '';
+    $settings_wrap_style .= $trial_fullpage_style;
     echo '<div id="apbct-settings-page-wrap" style="' . esc_attr($settings_wrap_style) . '">';
 
     // Title
@@ -1757,7 +1767,7 @@ function apbct_settings__error__output($return = false)
 
     $out = '';
 
-    if ( ! empty($apbct->errors) && ! defined('CLEANTALK_ACCESS_KEY') ) {
+    if ( ! empty($apbct->errors) && ! Constant::is(Constant::APBCT_SERVICE__SELF_OWNED_ACCESS_KEY) ) {
         $errors = $apbct->errors;
 
         $error_texts = array(
@@ -2051,7 +2061,10 @@ function apbct_settings__field__apikey()
 
     $template = @file_get_contents(CLEANTALK_PLUGIN_DIR . 'templates/settings/settings_key_wrapper.html');
 
-    $define_key_is_provided_by_admin = APBCT_WPMS && ! is_main_site() && ( ! $apbct->allow_custom_key || defined('CLEANTALK_ACCESS_KEY'));
+    $define_key_is_provided_by_admin = APBCT_WPMS && ! is_main_site() && (
+                ! $apbct->allow_custom_key ||
+                Constant::is(Constant::APBCT_SERVICE__SELF_OWNED_ACCESS_KEY)
+            );
     $define_show_key_field = ! (apbct_api_key__is_correct($apbct->api_key) && isset($apbct->data["key_changed"]) && $apbct->data["key_changed"]);
     $define_show_deobfuscating_href = apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok && (!isset($apbct->data["key_changed"]) || !$apbct->data["key_changed"]);
 
@@ -2394,13 +2407,24 @@ function apbct_settings__validate($incoming_settings)
      * -- SFW rules --
      */
 
+    $sfw_enabled_before  = ! empty($apbct->settings['sfw__enabled']);
+    $sfw_enabled_after   = ! empty($incoming_settings['sfw__enabled']);
+    $sfw_enabled_incomed = isset($incoming_settings['sfw__enabled']);
+
+    // Anti-Crawler is an add-on to SFW, so SFW is enabled automatically with it
+    if ( ! empty($incoming_settings['sfw__anti_crawler']) ) {
+        $incoming_settings['sfw__enabled'] = 1;
+        $sfw_enabled_after                 = true;
+        $sfw_enabled_incomed               = true;
+    }
+
     // Actions with toggle SFW settings
     // SFW was enabled
-    if ( ! $apbct->settings['sfw__enabled'] && isset($incoming_settings['sfw__enabled']) && $incoming_settings['sfw__enabled'] ) {
+    if ( ! $sfw_enabled_before && $sfw_enabled_after ) {
         $cron = new Cron();
         $cron->updateTask('sfw_update', 'apbct_sfw_update__init', 86400, time() + 180);
         // SFW was disabled
-    } elseif ( $apbct->settings['sfw__enabled'] && (isset($incoming_settings['sfw__enabled']) && ! $incoming_settings['sfw__enabled'] ) ) {
+    } elseif ( $sfw_enabled_before && $sfw_enabled_incomed && ! $sfw_enabled_after ) {
         apbct_sfw__clear();
     }
 
@@ -2424,8 +2448,10 @@ function apbct_settings__validate($incoming_settings)
 
     $apbct->data['key_changed'] = $incoming_settings['apikey'] !== $apbct->settings['apikey'];
 
+    $predefined_key = Constant::getValue(Constant::APBCT_SERVICE__SELF_OWNED_ACCESS_KEY, false);
+
     $incoming_settings['apikey'] = ! empty($incoming_settings['apikey']) ? trim($incoming_settings['apikey']) : '';
-    $incoming_settings['apikey'] = defined('CLEANTALK_ACCESS_KEY') ? CLEANTALK_ACCESS_KEY : $incoming_settings['apikey'];
+    $incoming_settings['apikey'] = $predefined_key !== false ? $predefined_key : $incoming_settings['apikey'];
     $incoming_settings['apikey'] = ! is_main_site() && $apbct->white_label && $apbct->settings['apikey'] ? $apbct->settings['apikey'] : $incoming_settings['apikey'];
     $incoming_settings['apikey'] = is_main_site() || $apbct->allow_custom_key || $apbct->white_label ? $incoming_settings['apikey'] : $apbct->network_settings['apikey'];
     $incoming_settings['apikey'] = is_main_site() || ! isset($incoming_settings['multisite__white_label']) || ! $incoming_settings['multisite__white_label']
@@ -2946,6 +2972,8 @@ function apbct_settings__get_key_auto($direct_call = false)
 
     $language = is_string($language) ? $language : null;
 
+    $lead_source = apbct_settings__is_wizard_ajax_request() ? 'apbct_wizard_auto' : '';
+
     $result = \Cleantalk\ApbctWP\API::methodGetApiKey(
         'antispam',
         $filtered_admin_email,
@@ -2957,7 +2985,8 @@ function apbct_settings__get_key_auto($direct_call = false)
         $wpms,
         $white_label,
         $hoster_api_key,
-        $filtered_admin_email !== $admin_email
+        $filtered_admin_email !== $admin_email,
+        $lead_source
     );
 
     if ( ! empty($result['error']) ) {

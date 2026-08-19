@@ -6,6 +6,7 @@ use Cleantalk\Antispam\CleantalkResponse;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\BaseCall\DefaultParams;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
+use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\DTO\GetFieldsAnyDTO;
@@ -218,7 +219,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
          * @since 6.58.99
          */
         if (
-            $apbct->service_constants->disable_empty_email_exception->isDefined() &&
+            Constant::is(Constant::APBCT_SERVICE__DISABLE_EMPTY_EMAIL_EXCEPTION) &&
             !$apbct->settings['data__general_postdata_test']
         ) {
             $params['exception_action'] = 0;
@@ -1880,7 +1881,7 @@ function apbct__bot_detector_get_fd_log()
     );
     // Initialize result array with default values
 
-    if (defined('APBCT_DO_NOT_COLLECT_FRONTEND_DATA_LOGS')) {
+    if (Constant::is(Constant::APBCT_SERVICE__DO_NOT_COLLECT_FRONTEND_DATA_LOGS)) {
         $result['plugin_status'] = 'OK';
         $result['error_msg'] = 'bot detector logs collection is disabled via constant definition';
         return json_encode($result);
@@ -1955,8 +1956,8 @@ function apbct__is_bot_detector_enabled()
     global $apbct;
 
     // Constant is preferred
-    if ( isset($apbct->service_constants->bot_detector_enabled) && $apbct->service_constants->bot_detector_enabled->isDefined() ) {
-        return (bool) $apbct->service_constants->bot_detector_enabled->getValue();
+    if ( Constant::is(Constant::APBCT_SERVICE__BOT_DETECTOR_ENABLED) ) {
+        return (bool) Constant::getValue(Constant::APBCT_SERVICE__BOT_DETECTOR_ENABLED);
     }
     // Check by $apbct->data
     if ( isset($apbct->data['bot_detector_enabled']) ) {
