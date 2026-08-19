@@ -78,7 +78,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     {
         // get_header / get_footer pass null as the template name via do_action().
         if ( ! is_string($content) ) {
-            return '';
+            return $content;
         }
 
         if ($this->isShortcodeInsideHtmlAttribute($content)) {
@@ -108,7 +108,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     {
         // get_header / get_footer pass null as the template name via do_action().
         if ( ! is_string($content) ) {
-            return '';
+            return $content;
         }
 
         global $apbct;
