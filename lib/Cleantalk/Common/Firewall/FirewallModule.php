@@ -107,11 +107,11 @@ class FirewallModule extends FirewallModuleAbstract
         }, 999, 1);
         // Headers
         if (headers_sent() === false) {
+            http_response_code(403);
             header('Expires: ' . date(DATE_RFC822, mktime(0, 0, 0, 1, 1, 1971)));
             header('Cache-Control: no-store, no-cache, must-revalidate');
             header('Cache-Control: post-check=0, pre-check=0', false);
             header('Pragma: no-cache');
-            header("HTTP/1.0 403 Forbidden");
         }
 
         if ( ! defined('DONOTCACHEPAGE')) {

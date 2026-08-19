@@ -675,6 +675,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
      * Determine whether the current request should bypass AntiCrawler checks.
      *
      * Returns true (excluded) when any of the following conditions is met:
+     * - The request uses the WordPress HTTP API loopback User-Agent (Site Health, cron, updates).
+     * - The request is a WP Rocket cache-preload hit (no JS, so it cannot pass the antibot cookie).
      * - The URI points to a W3 Total Cache minified asset listed in the w3tc_minify option.
      * - The skip_anticrawler_on_rss_feed service constant is defined and the request is an RSS feed.
      * - An SFW test is running and the visitor holds a valid antibot cookie or bot-detector param.
@@ -684,6 +686,16 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
      */
     private function checkExclusions()
     {
+        if ( $this->isWordPressLoopbackUserAgent() ) {
+            $this->debug('exclusions precheck: WordPress loopback user-agent');
+            return true;
+        }
+
+        if ( strpos($this->server__http_user_agent, 'WP Rocket/Preload') !== false ) {
+            $this->debug('exclusions precheck: WP Rocket preload user-agent');
+            return true;
+        }
+
         /**
          * Check if W3 Total Cache minified files requested during Anti-Crawler Work.
          * All the next conditions should be true:
@@ -758,6 +770,18 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         }
 
         return false;
+    }
+
+    /**
+     * WordPress core loopbacks (Site Health, updates, cron) use the HTTP API
+     * default User-Agent "WordPress/{version}; {url}" and never run JavaScript,
+     * so Anti-Crawler would log the first hit and 403 the rest.
+     *
+     * @return bool
+     */
+    private function isWordPressLoopbackUserAgent()
+    {
+        return (bool) preg_match('#^WordPress/\d#', $this->server__http_user_agent);
     }
 
     /**

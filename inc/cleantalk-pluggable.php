@@ -2236,6 +2236,18 @@ function apbct__is_wp_rocket_preloader_request()
 }
 
 /**
+ * True for WordPress HTTP API loopback requests (Site Health, updates, cron).
+ * Default WP user-agent: "WordPress/{version}; {siteurl}"
+ *
+ * @return bool
+ */
+function apbct__is_wordpress_loopback_request()
+{
+    return isset($_SERVER['HTTP_USER_AGENT'])
+        && preg_match('#^WordPress/\d#', $_SERVER['HTTP_USER_AGENT']) === 1;
+}
+
+/**
  * Generates MD5 hash for email encoder pass key
  *
  * @return string

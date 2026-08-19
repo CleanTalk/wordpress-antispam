@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\Firewall\AntiCrawler;
+use Cleantalk\ApbctWP\Variables\Server;
 use PHPUnit\Framework\TestCase;
 
 class TestAntiCrawler extends TestCase
@@ -32,6 +33,8 @@ class TestAntiCrawler extends TestCase
         $this->initialCookie = $_COOKIE;
 
         $this->bootstrapApbct();
+
+        Server::getInstance()->variables = array();
 
         $_SERVER['HTTPS'] = '';
         $_SERVER['HTTP_USER_AGENT'] = 'phpunit-agent';
@@ -181,6 +184,42 @@ class TestAntiCrawler extends TestCase
         $this->assertNotSame('', $html);
         $this->assertStringContainsString('203.0.113.10', $html);
         $this->assertStringContainsString(apbct_get_anti_bot_cookie_hash($apbct->api_key, $apbct->data['salt']), $html);
+    }
+
+    public function testIsExcludedForWordPressLoopbackUserAgent(): void
+    {
+        Server::getInstance()->variables = array();
+        $_SERVER['HTTP_USER_AGENT'] = 'WordPress/7.0.4; https://20thcenturybox.com';
+
+        $module = new AntiCrawler('', '');
+
+        $this->assertTrue($module->isExcluded);
+    }
+
+    public function testIsExcludedForWpRocketPreloadUserAgent(): void
+    {
+        Server::getInstance()->variables = array();
+        $_SERVER['HTTP_USER_AGENT'] = 'WP Rocket/Preload';
+
+        $module = new AntiCrawler('', '');
+
+        $this->assertTrue($module->isExcluded);
+    }
+
+    public function testIsNotExcludedForRegularUserAgent(): void
+    {
+        $module = new AntiCrawler('', '');
+
+        $this->assertFalse($module->isExcluded);
+    }
+
+    public function testWordPressLoopbackHelperDetectsDefaultWpHttpUserAgent(): void
+    {
+        $_SERVER['HTTP_USER_AGENT'] = 'WordPress/7.0.4; https://example.com';
+        $this->assertTrue(apbct__is_wordpress_loopback_request());
+
+        $_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0';
+        $this->assertFalse(apbct__is_wordpress_loopback_request());
     }
 
     private function bootstrapApbct(): void
