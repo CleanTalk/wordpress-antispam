@@ -2,8 +2,6 @@
 
 namespace Inc;
 
-use Cleantalk\ApbctWP\ApbctConstant;
-use Cleantalk\ApbctWP\ServiceConstants;
 use Cleantalk\ApbctWP\State;
 use PHPUnit\Framework\TestCase;
 
@@ -60,51 +58,11 @@ class TestCleantalkCommon extends TestCase
         $this->assertTrue($bot_detector_state);
     }
 
-    public function testApbctIsBotDetectorEnabledByConstant()
-    {
-        // Arrange
-        global $apbct;
-        $apbct_constant_mock = $this->getMockBuilder(ApbctConstant::class)
-                     ->onlyMethods(['isDefined', 'getValue'])
-                     ->disableOriginalConstructor()
-                     ->getMock();
-
-        $apbct_constant_mock->method('isDefined')
-             ->willReturn(true);
-
-        $apbct_constant_mock->method('getValue')
-                               ->willReturn(true);
-        $apbct->service_constants = new ServiceConstants();
-        $apbct->service_constants->bot_detector_enabled = $apbct_constant_mock;
-
-        // Act
-        $bot_detector_state = apbct__is_bot_detector_enabled();
-
-        // Assert
-        $this->assertTrue($bot_detector_state);
-    }
-
-    public function testApbctIsBotDetectorDisabledByConstant()
-    {
-        // Arrange
-        global $apbct;
-        $apbct_constant_mock = $this->getMockBuilder(ApbctConstant::class)
-                                    ->onlyMethods(['isDefined', 'getValue'])
-                                    ->disableOriginalConstructor()
-                                    ->getMock();
-
-        $apbct_constant_mock->method('isDefined')
-                            ->willReturn(true);
-
-        $apbct_constant_mock->method('getValue')
-                            ->willReturn(false);
-        $apbct->service_constants = new ServiceConstants();
-        $apbct->service_constants->bot_detector_enabled = $apbct_constant_mock;
-
-        // Act
-        $bot_detector_state = apbct__is_bot_detector_enabled();
-
-        // Assert
-        $this->assertFalse($bot_detector_state);
-    }
+    /*
+     * The "service constant wins over $apbct->data" cases used to live here, mocking ApbctConstant
+     * and injecting it into the state. Constant:: is static, so there is nothing to inject, and
+     * defining APBCT_SERVICE__BOT_DETECTOR_ENABLED for real is not an option either: it is
+     * process-global and would override the data-driven cases above and in TestCleantalkPublic.
+     * Constant resolution should be covered by dedicated unit tests for Cleantalk\ApbctWP\Constant.
+     */
 }

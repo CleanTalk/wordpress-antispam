@@ -7,7 +7,6 @@ use ArrayObject;
 use Cleantalk\Antispam\Integrations\NextendSocialLogin;
 use Cleantalk\ApbctWP\FindSpam\LoginIPKeeper;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateSentinel;
-use Cleantalk\ApbctWP\ServiceConstants;
 
 /**
  * CleanTalk Anti-Spam State class
@@ -398,10 +397,6 @@ class State extends \Cleantalk\Common\State
       * @var LoginIPKeeper
       */
     public $login_ip_keeper;
-     /**
-      * @var ServiceConstants
-      */
-    public $service_constants;
 
     private $auto_save_defaults_list = array();
 
@@ -548,8 +543,6 @@ class State extends \Cleantalk\Common\State
             // Limit for firewall logs sending.
             define('APBCT_SFW_SEND_LOGS_LIMIT', 1000);
         }
-
-        $this->service_constants = new ServiceConstants();
     }
 
     protected function setOptions()

@@ -10,6 +10,7 @@ use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use Cleantalk\ApbctWP\ContactsEncoder\Exclusions\ExclusionsService;
+use Cleantalk\ApbctWP\ContactsEncoder\Integrations\CEIntegrationGridBuilder;
 use Cleantalk\Common\TT;
 use Cleantalk\Variables\Post;
 
@@ -36,6 +37,11 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     private $buffer_modified = false;
 
     /**
+     * @var CEIntegrationGridBuilder
+     */
+    private $grid_builder_integration;
+
+    /**
      * @var string[]
      */
     public $decoded_contacts_array = array();
@@ -50,6 +56,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         parent::init($params);
         $this->exclusions = new ExclusionsService($params);
         $this->shortcodes = new ShortCodesService($params);
+        $this->grid_builder_integration = new CEIntegrationGridBuilder();
 
         $this->shortcodes->registerAll();
 
@@ -87,6 +94,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
 
         // Search data to buffer
         if ($apbct->settings['data__email_decoder_buffer'] && !apbct_is_ajax() && !apbct_is_rest() && !apbct_is_post() && !is_admin()) {
+            $this->grid_builder_integration->registerStyleCaptureHooks();
             add_action('wp', 'apbct_buffer__start');
             add_action('shutdown', 'apbct_buffer__end', 0); // Collect $apbct->buffer
             add_action('shutdown', array($this, 'modifyBuffer'), 1); // Before apbct_buffer__output (priority 2)
@@ -137,6 +145,86 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         }
 
         return $html;
+    }
+
+    /**
+     * Skip email encoding inside <option> (value + text).
+     * Fluent Forms / select dropdowns break when option emails are encoded (#53406).
+     * Kept in ApbctWP (not Common / contacts-encoder) while the shared library update is blocked.
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    public function modifyGlobalEmails($content)
+    {
+        if ( ! is_string($content) || $content === '' || stripos($content, '<option') === false ) {
+            return parent::modifyGlobalEmails($content);
+        }
+
+        $placeholders = array();
+        $protected = preg_replace_callback(
+            '/<option\b[^>]*>.*?<\/option>/is',
+            static function ($matches) use (&$placeholders) {
+                if ( ! isset($matches[0]) ) {
+                    return '';
+                }
+
+                $key = '%%APBCT_OPTION_SKIP_' . count($placeholders) . '%%';
+                $placeholders[$key] = $matches[0];
+
+                return $key;
+            },
+            $content
+        );
+
+        if ( ! is_string($protected) ) {
+            return parent::modifyGlobalEmails($content);
+        }
+
+        $encoded = parent::modifyGlobalEmails($protected);
+
+        if ( $placeholders === array() ) {
+            return $encoded;
+        }
+
+        return strtr($encoded, $placeholders);
+    }
+
+    /**
+     * Protect WP Grid Builder assets before buffer-mode encoding.
+     * Inline scripts/styles/noscript and grid markup must not be modified (#54940).
+     *
+     * @param string $content
+     * @param bool $skip_exclusions
+     *
+     * @return string
+     */
+    public function modifyContent($content, $skip_exclusions = false)
+    {
+        if ( ! is_string($content) || $content === '' ) {
+            return parent::modifyContent($content, $skip_exclusions);
+        }
+
+        if ( ! $skip_exclusions && $this->exclusions->doReturnContentBeforeModify($content) ) {
+            return $content;
+        }
+
+        return $this->grid_builder_integration->modifyContent(
+            $content,
+            function ($protected_content) use ($skip_exclusions) {
+                return parent::modifyContent($protected_content, $skip_exclusions);
+            }
+        );
+    }
+
+    /**
+     * @return CEIntegrationGridBuilder
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function getGridBuilderIntegration()
+    {
+        return $this->grid_builder_integration;
     }
 
     /**

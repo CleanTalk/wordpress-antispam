@@ -288,6 +288,11 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
      */
     public function updateLog($ip, $status, $network = 'NULL', $source = 'NULL')
     {
+        // Empty/invalid IP aggregates into one DB row (md5(''+module)) and breaks cloud collectors.
+        if ( Helper::ipValidate($ip) === false ) {
+            return;
+        }
+
         $id   = md5($ip . $this->module_name);
         $time = time();
         $blocked = strpos($status, 'DENY') !== false ? 1 : 0;
@@ -448,7 +453,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 '{COOKIE_PREFIX}'                  => '',
                 '{COOKIE_DOMAIN}'                  => esc_html($this->cookie_domain),
                 '{COOKIE_SFW}'                     => $cookie_val,
-                '{COOKIE_ANTICRAWLER}'             => hash('sha256', $apbct->api_key . $apbct->data['salt']),
+                '{COOKIE_ANTICRAWLER}'             => apbct_get_anti_bot_cookie_hash($apbct->api_key, $apbct->data['salt']),
 
                 // Test
                 '{TEST_TITLE}'                     => '',
@@ -600,8 +605,17 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
             //Compile logs
             $ids_to_delete = array();
+            $ids_invalid   = array();
             $data          = array();
             foreach ($logs as $_key => &$value) {
+                $ip = isset($value['ip']) ? trim((string)$value['ip']) : '';
+
+                // Do not send empty/invalid IPs — they break cloud collectors.
+                if ( Helper::ipValidate($ip) === false ) {
+                    $ids_invalid[] = $value['id'];
+                    continue;
+                }
+
                 $ids_to_delete[] = $value['id'];
 
                 // Converting statuses to API format
@@ -634,7 +648,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 $additional = $additional ?: 'EMPTY_ASSOCIATIVE_ARRAY';
 
                 $data[] = array(
-                    trim($value['ip']),
+                    $ip,
                     // IP
                     $value['blocked_entries'],
                     // Count showing of block pages
@@ -653,6 +667,15 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 );
             }
             unset($value);
+
+            // Drop invalid local rows so they cannot accumulate again.
+            if ( count($ids_invalid) ) {
+                $db->execute("DELETE FROM $log_table WHERE id IN ( '" . implode('\',\'', $ids_invalid) . "' );");
+            }
+
+            if ( ! count($data) ) {
+                return array('rows' => 0);
+            }
 
             //Sending the request
             $result = API::methodSfwLogs($ct_key, $data);

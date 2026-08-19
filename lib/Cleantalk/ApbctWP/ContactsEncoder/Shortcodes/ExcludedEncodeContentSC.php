@@ -70,12 +70,17 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     /**
      * Replace skip-encoding shortcodes with placeholders before ContactsEncoder::modifyContent().
      *
-     * @param string $content
+     * @param string|null $content Content string, or null when hooked to get_header/get_footer actions.
      *
      * @return string
      */
     public function changeContentBeforeEncoderModify($content)
     {
+        // get_header / get_footer pass null as the template name via do_action().
+        if ( ! is_string($content) ) {
+            return '';
+        }
+
         if ($this->isShortcodeInsideHtmlAttribute($content)) {
             return $content;
         }
@@ -95,12 +100,17 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      * This method runs at the end of Contacts Encoder and tries to process unprocessed shortcodes
      * The unprocessed shortcodes may be only in `the_title` hook
      *
-     * @param string $content
+     * @param string|null $content Content string, or null when hooked to get_header/get_footer actions.
      *
      * @return string Replaces $apbct->buffer by probably modified content or just return probably modified $content
      */
     public function changeContentAfterEncoderModify($content)
     {
+        // get_header / get_footer pass null as the template name via do_action().
+        if ( ! is_string($content) ) {
+            return '';
+        }
+
         global $apbct;
 
         if ( ! $apbct->settings['data__email_decoder_buffer'] ) {
@@ -150,6 +160,10 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      */
     protected function processSkipEncodingShortcodes($content)
     {
+        if ( ! is_string($content) ) {
+            return '';
+        }
+
         if ($this->isShortcodeInsideHtmlAttribute($content)) {
             return $content;
         }
@@ -512,12 +526,16 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     /**
      * Check whether shortcode is inside an HTML attribute rather than element text.
      *
-     * @param string $content
+     * @param string|null $content
      *
      * @return bool
      */
     protected function isShortcodeInsideHtmlAttribute($content)
     {
+        if ( ! is_string($content) ) {
+            return false;
+        }
+
         preg_match_all(
             '/\[\/?apbct_skip_encoding(?:\s[^\]]*)?\]/',
             $content,
@@ -916,12 +934,12 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
 
     /**
      * @param string $title
-     * @param int $post_id
+     * @param int    $post_id Optional. Not always passed: themes may call apply_filters('the_title', $title) with 1 arg.
      *
      * @return string
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function filterTheTitle($title, $post_id)
+    public function filterTheTitle($title, $post_id = 0)
     {
         if ( is_admin() && ! wp_doing_ajax() ) {
             return $title;

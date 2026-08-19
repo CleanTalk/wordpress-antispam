@@ -18,11 +18,17 @@ class TestEmailEncoder extends TestCase
 
     private $plain_text = 'This is a plain text';
 
+    /**
+     * @var string[]
+     */
+    private $read_css_fixture_files = array();
+
     public function setUp(): void
     {
         global $apbct;
         $apbct->api_key         = 'testapikey';
         $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->read_css_fixture_files = array();
         $this->clearDecoderPassedCookie();
     }
 
@@ -193,6 +199,29 @@ class TestEmailEncoder extends TestCase
         $this->assertRegExp($regexp_for_replace, $result);
     }
 
+    /**
+     * Emails inside <option> must stay plain so select/Fluent Forms submit valid values (#53406).
+     */
+    public function testModifyContentSkipsEmailsInsideOptionTags()
+    {
+        $email_in_option = 'dropdown@example.com';
+        $email_outside = 'public@example.com';
+        $content = '<p>Contact ' . $email_outside . '</p>'
+            . '<select name="department">'
+            . '<option value="' . $email_in_option . '">' . $email_in_option . '</option>'
+            . '</select>';
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        $this->assertStringContainsString(
+            '<option value="' . $email_in_option . '">' . $email_in_option . '</option>',
+            $result
+        );
+        $this->assertStringNotContainsString('%%APBCT_OPTION_SKIP_', $result);
+        $this->assertStringNotContainsString($email_outside, $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+    }
+
     public function testEncodingPhoneNumbers()
     {
         global $apbct;
@@ -340,6 +369,188 @@ class TestEmailEncoder extends TestCase
         $this->assertEquals(3, substr_count($apbct->buffer, '</p>'));
         $this->assertStringNotContainsString('[apbct_encode_data]', $apbct->buffer);
         $this->assertStringContainsString('apbct-email-encoder', $apbct->buffer);
+    }
+
+    public function testModifyBufferPreservesWpGridBuilderInlineScript()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->contacts_encoder->runEncoding();
+
+        $wpgb_script =
+            '<script>(function(){var wpgb=WP_Grid_Builder.instance(1);if(!wpgb.init){return}wpgb.init()})();</script>';
+        $wpgb_script_src =
+            '<script src="https://example.com/wp-content/plugins/wp-grid-builder/public/js/layout.js?ver=2.3.5"></script>';
+        $wpgb_noscript =
+            '<noscript><style>.wp-grid-builder .wpgb-card.wpgb-card-hidden .wpgb-card-wrapper{opacity:1!important}</style></noscript>';
+        $apbct->buffer =
+            '<head><title>test</title></head><body>' .
+            '<p>contact@example.com</p>' .
+            $wpgb_script .
+            $wpgb_script_src .
+            $wpgb_noscript .
+            '<style>.wpgb-card-wrapper{opacity:1!important}</style></body>';
+
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertStringContainsString($wpgb_script, $apbct->buffer);
+        $this->assertStringContainsString($wpgb_script_src, $apbct->buffer);
+        $this->assertStringContainsString($wpgb_noscript, $apbct->buffer);
+        $this->assertStringContainsString('.wpgb-card-wrapper{opacity:1!important}', $apbct->buffer);
+        $this->assertStringContainsString('apbct-wpgb-opacity-fix', $apbct->buffer);
+        $this->assertStringContainsString('wpgb-card-media-thumbnail', $apbct->buffer);
+        $this->assertStringContainsString('apbct-wpgb-styles-css', $apbct->buffer);
+        $this->assertStringContainsString('wp-grid-builder/public/css/style.css?ver=2.3.5', $apbct->buffer);
+        $this->assertStringContainsString('apbct-email-encoder', $apbct->buffer);
+        $this->assertStringNotContainsString('contact@example.com', $apbct->buffer);
+    }
+
+    public function testModifyBufferPreservesWpGridBuilderCardCss()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->contacts_encoder->runEncoding();
+
+        $card_css =
+            '<style id="wpgb-styles-inline-css">.wpgb-card-1 .wpgb-block-5{position:absolute;top:12px;left:12px;background:#fff;padding:4px 8px}</style>';
+        $apbct->buffer =
+            '<head><title>test</title>' . $card_css . '</head><body>' .
+            '<div class="wp-grid-builder wpgb-grid-20"><div class="wpgb-block-5">35+vat</div></div>' .
+            '<p>contact@example.com</p></body>';
+
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertStringContainsString('.wpgb-card-1 .wpgb-block-5{position:absolute', $apbct->buffer);
+        $this->assertStringNotContainsString('contact@example.com', $apbct->buffer);
+        $this->assertStringNotContainsString('apbct-wpgb-card-inline-css', $apbct->buffer);
+    }
+
+    public function testModifyBufferPreservesWpGridBuilderMultiDigitCardCss()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->contacts_encoder->runEncoding();
+
+        $card_css =
+            '<style id="wpgb-styles-inline-css">.wpgb-card-12 .wpgb-block-10{background:#fff;padding:4px 8px}</style>';
+        $apbct->buffer =
+            '<head><title>test</title>' . $card_css . '</head><body>' .
+            '<div class="wp-grid-builder wpgb-grid-20"><div class="wpgb-block-10">10+vat</div></div>' .
+            '<p>contact@example.com</p></body>';
+
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertStringContainsString('.wpgb-card-12 .wpgb-block-10{background:#fff', $apbct->buffer);
+        $this->assertStringNotContainsString('contact@example.com', $apbct->buffer);
+    }
+
+    public function testModifyBufferInjectsCapturedWpGridBuilderCardCss()
+    {
+        $card_css = '.wpgb-card-1 .wpgb-block-5{position:absolute;top:12px;left:12px;background:#fff;padding:4px 8px}';
+        $integration = $this->contacts_encoder->getGridBuilderIntegration();
+        $integration->setCardInlineCssForTests($card_css);
+
+        $result = $integration->appendFix(
+            '<head><title>test</title></head><body><div class="wp-grid-builder wpgb-grid-20"></div></body>'
+        );
+
+        $this->assertStringContainsString('apbct-wpgb-card-inline-css', $result);
+        $this->assertStringContainsString($card_css, $result);
+    }
+
+    public function testModifyBufferDoesNotInjectGenericWpGridBuilderHeadCssAsCardCss()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->contacts_encoder->runEncoding();
+
+        $generic_css =
+            '.wp-grid-builder:not(.wpgb-template),.wpgb-facet{opacity:0.01}';
+        $apbct->buffer =
+            '<head><title>test</title>' .
+            '<style id="wpgb-head-inline-css">' . $generic_css . '</style></head><body>' .
+            '<div class="wp-grid-builder wpgb-grid-20"><div class="wpgb-block-5">35+vat</div></div>' .
+            '<p>contact@example.com</p></body>';
+
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertStringNotContainsString('apbct-wpgb-card-inline-css', $apbct->buffer);
+        $this->assertStringNotContainsString('contact@example.com', $apbct->buffer);
+    }
+
+    public function testAppendWpGridBuilderFixInjectsMissingCardStylesheetLink()
+    {
+        $card_css_url = 'https://example.com/wp-content/uploads/wp-grid-builder/styles/card-1.min.css';
+        $integration = $this->contacts_encoder->getGridBuilderIntegration();
+        $integration->setStylesheetLinksForTests(array('wpgb-card-1' => $card_css_url));
+
+        $result = $integration->appendFix(
+            '<head><title>test</title></head><body><div class="wp-grid-builder wpgb-grid-20"></div></body>'
+        );
+
+        $this->assertStringContainsString('apbct-wpgb-card-css-wpgb-card-1', $result);
+        $this->assertStringContainsString($card_css_url, $result);
+    }
+
+    public function testAppendWpGridBuilderFixReplacesInvalidCardCssPlaceholder()
+    {
+        $card_css = '.wpgb-card-1 .wpgb-block-5{background:#fff;padding:4px 8px}';
+        $integration = $this->contacts_encoder->getGridBuilderIntegration();
+        $integration->setCardInlineCssForTests($card_css);
+
+        $result = $integration->appendFix(
+            '<head><title>test</title>' .
+            '<style id="apbct-wpgb-card-inline-css">.wp-grid-builder:not(.wpgb-template){opacity:0.01}</style>' .
+            '</head><body><div class="wp-grid-builder wpgb-grid-20"></div></body>'
+        );
+
+        $this->assertEquals(1, substr_count($result, 'apbct-wpgb-card-inline-css'));
+        $this->assertStringContainsString($card_css, $result);
+        $this->assertStringNotContainsString('opacity:0.01', $result);
+    }
+
+    public function testReadCssFromSrcRejectsTraversalAndNonCssPaths()
+    {
+        $read_css = $this->invokeReadCssFromSrc(
+            'https://example.org/wp-content/../wp-config.php'
+        );
+
+        $this->assertSame('', $read_css);
+
+        $read_css = $this->invokeReadCssFromSrc(
+            'https://example.org/wp-content/plugins/cleantalk-spam-protect/cleantalk.php'
+        );
+
+        $this->assertSame('', $read_css);
+    }
+
+    public function testReadCssFromSrcReadsValidCssUnderAbspath()
+    {
+        $css_content = '.wpgb-card-1 .wpgb-block-5{background:#fff;padding:4px 8px}';
+        $url_path = $this->createReadCssFixtureUnderAbspath($css_content);
+        $read_css = $this->invokeReadCssFromSrc('https://example.org' . $url_path);
+
+        $this->assertStringContainsString('.wpgb-card-1 .wpgb-block-5{background:#fff', $read_css);
     }
 
     public function testModifyBufferSkipsEncodingWhenDecoderCookieSet()
@@ -576,10 +787,57 @@ class TestEmailEncoder extends TestCase
         }
     }
 
+    /**
+     * @param string $url
+     *
+     * @return string
+     */
+    private function invokeReadCssFromSrc($url)
+    {
+        $integration = $this->contacts_encoder->getGridBuilderIntegration();
+        $method = new \ReflectionMethod($integration, 'readCssFromSrc');
+        $method->setAccessible(true);
+
+        return $method->invoke($integration, $url);
+    }
+
+    /**
+     * @param string $css_content
+     *
+     * @return string
+     */
+    private function createReadCssFixtureUnderAbspath($css_content)
+    {
+        $this->assertTrue(defined('ABSPATH'));
+
+        $relative_dir = 'wp-content/uploads/apbct-test-fixtures';
+        $absolute_dir = ABSPATH . $relative_dir;
+
+        if ( ! is_dir($absolute_dir) ) {
+            wp_mkdir_p($absolute_dir);
+        }
+
+        $filename = 'wpgb-card-fixture-' . uniqid('', true) . '.css';
+        $absolute_path = $absolute_dir . '/' . $filename;
+
+        $this->assertNotFalse(file_put_contents($absolute_path, $css_content));
+        $this->read_css_fixture_files[] = $absolute_path;
+
+        return '/' . $relative_dir . '/' . $filename;
+    }
+
     public function tearDown() : void
     {
         global $apbct;
         $apbct->buffer = '';
         $this->clearDecoderPassedCookie();
+
+        foreach ( $this->read_css_fixture_files as $fixture_file ) {
+            if ( is_string($fixture_file) && is_file($fixture_file) ) {
+                unlink($fixture_file);
+            }
+        }
+
+        $this->read_css_fixture_files = array();
     }
 }

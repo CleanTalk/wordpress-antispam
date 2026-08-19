@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\Firewall;
 
+use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Validate;
@@ -315,7 +316,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
      */
     private function visitorHasAntiBotCookie()
     {
-        $hash = hash('sha256', $this->api_key . $this->apbct->data['salt']);
+        $hash = apbct_get_anti_bot_cookie_hash($this->api_key, $this->apbct->data['salt']);
         return Cookie::getString(self::COOKIE_NAME__ANTIBOT) === $hash;
     }
 
@@ -461,7 +462,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         $script =
         "<script>
             window.addEventListener('DOMContentLoaded', function () {
-                ctSetCookie( " . json_encode(self::COOKIE_NAME__ANTIBOT) . ", '" . hash('sha256', $apbct->api_key . $apbct->data['salt']) . "', 0 );
+                ctSetCookie( " . json_encode(self::COOKIE_NAME__ANTIBOT) . ", '" . apbct_get_anti_bot_cookie_hash($apbct->api_key, $apbct->data['salt']) . "', 0 );
             });
         </script>";
 
@@ -477,6 +478,10 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     public function updateLog($ip, $status)
     {
         /** @psalm-suppress InvalidLiteralArgument */
+
+        if ( Helper::ipValidate($ip) === false ) {
+            return;
+        }
 
         if ( strpos($status, '_UA') !== false ) {
             $id_str = $ip . $this->module_name . '_UA';
@@ -580,7 +585,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                 '{REMOTE_ADDRESS}'                 => esc_html($ip),
                 '{SERVICE_ID}'                     => esc_html($this->apbct->data['service_id']) . ', ' . esc_html($net_count),
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
-                '{COOKIE_ANTICRAWLER}'             => hash('sha256', $apbct->api_key . $apbct->data['salt']),
+                '{COOKIE_ANTICRAWLER}'             => apbct_get_anti_bot_cookie_hash($apbct->api_key, $apbct->data['salt']),
                 '{COOKIE_ANTICRAWLER_PASSED}'      => '1',
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . "</p>",
                 '{SCRIPT_URL}'                     => esc_url($js_url),
@@ -709,13 +714,13 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         }
 
         // skip for RSS Feed requests
-        if ($this->apbct->service_constants->skip_anticrawler_on_rss_feed->isDefined()) {
+        if (Constant::is(Constant::APBCT_SERVICE__SKIP_ANTICRAWLER_ON_RSS_FEED)) {
             if (Server::getString('REQUEST_URI') &&
                 preg_match_all('/feed/i', Server::getString('REQUEST_URI'))
             ) {
                 $this->debug(
                     'exclusions precheck: RSS feed requests disabled by service constant',
-                    $this->apbct->service_constants->skip_anticrawler_on_rss_feed->allowed_public_names
+                    Constant::getNames(Constant::APBCT_SERVICE__SKIP_ANTICRAWLER_ON_RSS_FEED)
                 );
                 return true;
             }
@@ -728,9 +733,9 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         //skip check if SFW test is running
         if (
             Get::get('sfw_test_ip') &&
-            (Cookie::getString(self::COOKIE_NAME__ANTIBOT) == hash(
-                'sha256',
-                $this->api_key . $this->apbct->data['salt']
+            (Cookie::getString(self::COOKIE_NAME__ANTIBOT) == apbct_get_anti_bot_cookie_hash(
+                $this->api_key,
+                $this->apbct->data['salt']
             ) ||
             RequestParameters::get(self::PARAM_NAME__BOT_DETECTOR_EXIST, true) == '1')
         ) {
