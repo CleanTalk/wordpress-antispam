@@ -48,6 +48,5 @@ class UserRegistrationPro extends IntegrationBase
                 'message' => $message
             )
         );
-        die();
     }
 }

@@ -24,7 +24,6 @@ class ElementorUltimateAddonsRegister extends IntegrationBase
                 )
             )
         );
-        return false;
     }
 
     public function allow()

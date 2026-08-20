@@ -41,6 +41,5 @@ class ChatyContactForm extends IntegrationBase
             'message' => $message,
         ];
         wp_send_json($response);
-        exit;
     }
 }

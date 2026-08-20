@@ -2236,6 +2236,58 @@ function apbct__is_wp_rocket_preloader_request()
 }
 
 /**
+ * True for WordPress HTTP API loopback requests (Site Health, updates, cron).
+ * Default WP user-agent: "WordPress/{version}; {siteurl}"
+ *
+ * Requires both the WordPress UA prefix and that the URL in the UA belongs
+ * to this site. UA-only matching would skip Anti-Crawler for any spoofed
+ * WordPress client, including requests from other sites.
+ *
+ * Do not require REMOTE_ADDR === SERVER_ADDR: php-fpm loopbacks often arrive
+ * from the public origin IP while SERVER_ADDR is 127.0.0.1.
+ *
+ * @return bool
+ */
+function apbct__is_wordpress_loopback_request()
+{
+    if ( ! isset($_SERVER['HTTP_USER_AGENT']) ) {
+        return false;
+    }
+
+    if ( preg_match('#^WordPress/\d[\d.]*;\s+(\S+)#', $_SERVER['HTTP_USER_AGENT'], $matches) !== 1 ) {
+        return false;
+    }
+
+    $ua_url = isset($matches[1]) ? $matches[1] : '';
+    if ( $ua_url === '' ) {
+        return false;
+    }
+
+    $ua_host = wp_parse_url($ua_url, PHP_URL_HOST);
+    if ( ! is_string($ua_host) || $ua_host === '' ) {
+        return false;
+    }
+    $ua_host = strtolower($ua_host);
+
+    $site_hosts = array();
+    foreach ( array(home_url(), site_url()) as $url ) {
+        $host = wp_parse_url($url, PHP_URL_HOST);
+        if ( is_string($host) && $host !== '' ) {
+            $site_hosts[] = strtolower($host);
+        }
+    }
+
+    if ( isset($_SERVER['HTTP_HOST']) ) {
+        $host_header = preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST']);
+        if ( is_string($host_header) && $host_header !== '' ) {
+            $site_hosts[] = strtolower($host_header);
+        }
+    }
+
+    return in_array($ua_host, $site_hosts, true);
+}
+
+/**
  * Generates MD5 hash for email encoder pass key
  *
  * @return string
