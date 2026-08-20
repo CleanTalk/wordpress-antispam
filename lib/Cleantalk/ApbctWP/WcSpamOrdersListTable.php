@@ -11,7 +11,6 @@ class WcSpamOrdersListTable extends CleantalkListTable
     protected $apbct;
 
     protected $wc_active = false;
-    protected $page_title = '';
     protected $wc_spam_orders_count = 0;
 
     /**
@@ -45,13 +44,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
         $this->prepare_items();
 
         global $apbct;
-        $this->apbct      = $apbct;
-        $this->page_title = 'WooCommerce spam orders';
-
-        // The hosting page renders its own header
-        if ( is_null($this->embedded_views) ) {
-            $this->generatePageHeader();
-        }
+        $this->apbct = $apbct;
     }
 
     /**
@@ -591,10 +584,16 @@ class WcSpamOrdersListTable extends CleantalkListTable
         );
     }
 
-    private function generatePageHeader()
+    /**
+     * Notices shown above the table: the stored orders count and the warnings about the data.
+     *
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function renderPageNotices()
     {
         if ( ! apbct_api_key__is_correct() ) {
-            if ( 1 == $this->spam_checker->getApbct()->moderate_ip ) {
+            if ( 1 == $this->apbct->moderate_ip ) {
                 echo '<h3>'
                      . sprintf(
                          __(
@@ -612,39 +611,31 @@ class WcSpamOrdersListTable extends CleantalkListTable
         }
 
         ?>
-        <div class="wrap">
-            <h2>
-                <?php
-                if ($this->apbct->data["wl_mode_enabled"]) {
-                    echo $this->apbct->data["wl_brandname"];
-                } else {
-                    echo '<img src="' . $this->apbct->logo__small__colored . '" alt="CleanTalk logo"/>' . $this->apbct->plugin_name;
-                }
-                ?>
-            </h2>
-            <a style="color: gray; margin-left: 23px;" href="<?php
-            echo $this->apbct->settings_link; ?>"><?php
-                _e('Plugin Settings', 'cleantalk-spam-protect'); ?></a>
-            <br/>
-            <h3><?php
-                echo $this->page_title; ?></h3>
-            <p>Total count of spam orders: <?php
-                echo $this->wc_spam_orders_count ?></p>
-            <p>Please do backup of WordPress database before delete any orders!</p>
-            <p>Results are based on the decision of our spam checking system and do not give a complete guarantee that
-                these orders are spam.</p>
-            <?php
-            if ($this->apbct->settings['data__wc_store_blocked_orders'] != 1) {
-                echo '<p style="color: red;">'
-                . __(
-                    'To store WooCommerce spam orders, enable the "Store blocked WooCommerce orders" option in CleanTalk settings.',
-                    'cleantalk-spam-protect'
-                )
-                . '</p>';
-            }
-            ?>
-        </div>
+        <p><?php
+            printf(
+                /* translators: %s: count of the stored spam orders */
+                esc_html__('Total count of spam orders: %s', 'cleantalk-spam-protect'),
+                esc_html(number_format_i18n($this->wc_spam_orders_count))
+            ); ?></p>
+        <p><?php
+            esc_html_e(
+                'Please do backup of WordPress database before delete any orders!',
+                'cleantalk-spam-protect'
+            ); ?></p>
+        <p><?php
+            esc_html_e(
+                'Results are based on the decision of our spam checking system and do not give a complete guarantee that these orders are spam.',
+                'cleantalk-spam-protect'
+            ); ?></p>
         <?php
+        if ($this->apbct->settings['data__wc_store_blocked_orders'] != 1) {
+            echo '<p style="color: red;">'
+            . esc_html__(
+                'To store WooCommerce spam orders, enable the "Store blocked WooCommerce orders" option in CleanTalk settings.',
+                'cleantalk-spam-protect'
+            )
+            . '</p>';
+        }
     }
 
     private function deleteFromDb($spam_ids)

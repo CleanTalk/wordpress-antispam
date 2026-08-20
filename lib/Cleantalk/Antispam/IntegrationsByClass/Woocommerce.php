@@ -95,28 +95,6 @@ class Woocommerce extends IntegrationByClassBase
     public function doAdminWork()
     {
         add_action('current_screen', [$this, 'addOrdersListStatusViews']);
-
-        add_action('admin_menu', function () {
-            add_submenu_page(
-                'woocommerce',
-                __("WooCommerce spam orders", 'cleantalk-spam-protect'),
-                __("WooCommerce spam orders", 'cleantalk-spam-protect'),
-                'activate_plugins',
-                'apbct_wc_spam_orders',
-                function () {
-                    ?>
-                    <div class="wrap">
-                        <form action="" method="POST">
-                        <?php
-                        $list_table = new \Cleantalk\ApbctWP\WcSpamOrdersListTable();
-                        $list_table->display();
-                        ?>
-                        </form>
-                    </div>
-                    <?php
-                }
-            );
-        });
     }
 
     public function addActions()
@@ -731,19 +709,14 @@ class Woocommerce extends IntegrationByClassBase
      */
     public function renderSpamOrdersPage()
     {
-        $post_type = get_post_type_object('shop_order');
-        $title     = $post_type && isset($post_type->labels->name)
-            ? $post_type->labels->name
-            : __('Orders', 'cleantalk-spam-protect');
+        $list_table = new \Cleantalk\ApbctWP\WcSpamOrdersListTable($this->getOrdersListViews());
         ?>
         <div class="wrap">
-            <h1 class="wp-heading-inline"><?php echo esc_html($title); ?></h1>
+            <h1 class="wp-heading-inline"><?php esc_html_e('Spam orders', 'cleantalk-spam-protect'); ?></h1>
             <hr class="wp-header-end">
+            <?php $list_table->renderPageNotices(); ?>
             <form action="" method="POST">
-                <?php
-                $list_table = new \Cleantalk\ApbctWP\WcSpamOrdersListTable($this->getOrdersListViews());
-                $list_table->display();
-                ?>
+                <?php $list_table->display(); ?>
             </form>
         </div>
         <?php
