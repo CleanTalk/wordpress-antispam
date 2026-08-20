@@ -611,18 +611,21 @@ class WcSpamOrdersListTable extends CleantalkListTable
         }
 
         ?>
+        <a style="color: gray; margin-left: 23px;" href="<?php
+        echo esc_url(TT::toString($this->apbct->settings_link)); ?>"><?php
+            esc_html_e('Plugin Settings', 'cleantalk-spam-protect'); ?></a>
         <p><?php
             printf(
                 /* translators: %s: count of the stored spam orders */
-                esc_html__('Total count of spam orders: %s', 'cleantalk-spam-protect'),
+                esc_html__('Total count of spam orders: %s.', 'cleantalk-spam-protect'),
                 esc_html(number_format_i18n($this->wc_spam_orders_count))
-            ); ?></p>
-        <p><?php
+            );
+            echo ' ';
             esc_html_e(
                 'Please do backup of WordPress database before delete any orders!',
                 'cleantalk-spam-protect'
-            ); ?></p>
-        <p><?php
+            );
+            echo ' ';
             esc_html_e(
                 'Results are based on the decision of our spam checking system and do not give a complete guarantee that these orders are spam.',
                 'cleantalk-spam-protect'
