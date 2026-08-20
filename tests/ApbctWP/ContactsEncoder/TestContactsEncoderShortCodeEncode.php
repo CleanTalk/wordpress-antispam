@@ -3,6 +3,7 @@
 namespace ApbctWP\ContactsEncoder;
 
 use Cleantalk\ApbctWP\ContactsEncoder\Shortcodes\EncodeContentSC;
+use Cleantalk\ApbctWP\ContactsEncoder\Shortcodes\ShortCodesService;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use PHPUnit\Framework\TestCase;
@@ -13,6 +14,11 @@ class testEmailEncoderShortCodeEncode extends TestCase
      * @var EncodeContentSC
      */
     private $shortcode;
+
+    /**
+     * @var ShortCodesService
+     */
+    private $shortcodes_service;
 
     protected function setUp(): void
     {
@@ -27,6 +33,7 @@ class testEmailEncoderShortCodeEncode extends TestCase
         $params = new Params();
         $params->api_key = $apbct->api_key;
         $this->shortcode = new EncodeContentSC($params);
+        $this->shortcodes_service = new ShortCodesService($params);
         $this->shortcode->register();
         $this->clearDecoderPassedCookie();
     }
@@ -342,6 +349,32 @@ class testEmailEncoderShortCodeEncode extends TestCase
             $this->assertStringContainsString('[apbct_test_arbitrary_sc]', $result);
         } finally {
             remove_shortcode('apbct_test_arbitrary_sc');
+        }
+    }
+
+    public function testBufferModeDoesNotAbsorbCommentsFromEncodeDataTags()
+    {
+        global $apbct;
+
+        $previous_buffer_setting = $apbct->settings['data__email_decoder_buffer'];
+        $apbct->settings['data__email_decoder_buffer'] = true;
+
+        $html = '<div id="comments" class="comments-area"><ol class="comment-list">'
+            . '<li class="comment"><div class="comment-content">[apbct_encode_data]</div></li>'
+            . '<li class="comment"><div class="comment-content">Second comment text</div></li>'
+            . '<li class="comment"><div class="comment-content">[apbct_encode_data]z[/apbct_encode_data][/apbct_encode_data]</div></li>'
+            . '</ol></div>';
+
+        try {
+            $buffer = $this->shortcodes_service->modifyBufferBefore($html);
+            $buffer = apbctGetContactsEncoder()->modifyContent($buffer);
+            $buffer = $this->shortcodes_service->modifyBufferAfter($buffer);
+
+            $this->assertStringContainsString('Second comment text', $buffer);
+            $this->assertStringContainsString('[apbct_encode_data]', $buffer);
+            $this->assertStringNotContainsString('apbct-email-encoder', $buffer);
+        } finally {
+            $apbct->settings['data__email_decoder_buffer'] = $previous_buffer_setting;
         }
     }
 
