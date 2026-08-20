@@ -48,4 +48,16 @@ class TestCEIntegrationCommentList extends TestCase
 
         $this->assertSame($html, $integration->protect($html));
     }
+
+    public function testRestoreClearsPlaceholdersForSubsequentCalls()
+    {
+        $html = '<ol class="comment-list"><li>one</li></ol>';
+
+        $integration = new CEIntegrationCommentList();
+        $protected   = $integration->protect($html);
+        $restored    = $integration->restore($protected);
+
+        $this->assertSame($html, $restored);
+        $this->assertSame($protected, $integration->restore($protected));
+    }
 }

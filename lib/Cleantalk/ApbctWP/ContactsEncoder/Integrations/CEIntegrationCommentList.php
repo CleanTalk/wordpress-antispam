@@ -51,7 +51,10 @@ class CEIntegrationCommentList
             return $content;
         }
 
-        return strtr($content, $this->region_placeholders);
+        $content = strtr($content, $this->region_placeholders);
+        $this->region_placeholders = array();
+
+        return $content;
     }
 
     /**
