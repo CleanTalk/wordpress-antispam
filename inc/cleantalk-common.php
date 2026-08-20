@@ -1877,12 +1877,10 @@ function apbct__bot_detector_get_fd_log()
     $result = array(
         'plugin_status' => 'OK',
         'error_msg' => '',
-        'frontend_data_log' => ''
+        'apbct_browser_state' => apbct__bot_detector_get_browser_state_default(),
     );
-    // Initialize result array with default values
 
     if (Constant::is(Constant::APBCT_SERVICE__DO_NOT_COLLECT_FRONTEND_DATA_LOGS)) {
-        $result['plugin_status'] = 'OK';
         $result['error_msg'] = 'bot detector logs collection is disabled via constant definition';
         return json_encode($result);
     }
@@ -1891,26 +1889,79 @@ function apbct__bot_detector_get_fd_log()
         if ( ! apbct__is_bot_detector_enabled() ) {
             throw new \Exception('bot detector library usage is disabled');
         }
-        // Retrieve bot detector frontend data log from Alt Sessions
-        $alt_sessions_fd_log = AltSessions::get('ct_bot_detector_frontend_data_log');
-        // Check if the retrieved data is a string
-        if ( !is_string($alt_sessions_fd_log) || '' === $alt_sessions_fd_log ) {
-            throw new \Exception('no log found in alt sessions');
+
+        $browser_state = apbct__bot_detector_get_browser_state();
+
+        if ( empty($browser_state) ) {
+            throw new \Exception('no browser state provided by the transport');
         }
-        // Encode the retrieved data to JSON format
-        $param_bot_detector_fd_log = json_decode($alt_sessions_fd_log, true);
-        // Check if the JSON encoding was successful
-        if ( empty($param_bot_detector_fd_log) ) {
-            throw new \Exception('can not decode data from alt sessions');
-        }
+
+        $result['apbct_browser_state'] = $browser_state;
     } catch (Exception $e) {
         $result['plugin_status'] = 'ERROR';
         $result['error_msg'] = $e->getMessage();
-        return json_encode($result);
     }
-    $result['frontend_data_log'] = $param_bot_detector_fd_log;
+
     // Return the result as a JSON encoded string
     return json_encode($result);
+}
+
+/**
+ * Default browser state - nothing is known about the service in the visitor browser.
+ *
+ * @return array
+ */
+function apbct__bot_detector_get_browser_state_default()
+{
+    return array(
+        'frontend_data_log' => '',
+        'botd_logic_loaded' => 0,
+        'botd_wrapper_loaded' => 0,
+    );
+}
+
+/**
+ * Get the browser state gathered by the plugin JS.
+ *
+ * The state comes with the transport the site is currently configured to use:
+ * NoCookie hidden field or alternative sessions are both covered by RequestParameters,
+ * the XHR interception passes the state as a plain POST field.
+ * Native cookies do not transfer the state at all - the cookie size limit risk is too high.
+ *
+ * @return array Empty array if no state provided.
+ */
+function apbct__bot_detector_get_browser_state()
+{
+    $raw_state = RequestParameters::get('apbct_browser_state');
+
+    // XHR interception transport - look at the POST directly
+    if ( empty($raw_state) ) {
+        $raw_state = Post::get('apbct_browser_state');
+    }
+
+    // XHR interception transport - the state could be wrapped to the data[] array
+    if ( empty($raw_state) ) {
+        $post_data = Post::get('data');
+        if ( is_array($post_data) && ! empty($post_data['apbct_browser_state']) ) {
+            $raw_state = $post_data['apbct_browser_state'];
+        }
+    }
+
+    if ( empty($raw_state) ) {
+        return array();
+    }
+
+    $state = is_string($raw_state) ? json_decode($raw_state, true) : $raw_state;
+
+    if ( ! is_array($state) ) {
+        return array();
+    }
+
+    return array(
+        'frontend_data_log' => TT::getArrayValueAsString($state, 'frontend_data_log'),
+        'botd_logic_loaded' => TT::getArrayValueAsInt($state, 'botd_logic_loaded'),
+        'botd_wrapper_loaded' => TT::getArrayValueAsInt($state, 'botd_wrapper_loaded'),
+    );
 }
 
 function apbct__bot_detector_get_custom_exclusion_from_settings()

@@ -487,6 +487,15 @@ function getNoCookieData() { // eslint-disable-line no-unused-vars
     let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
     let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
     let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
+
+    // Bot detector browser state is transferred with the hidden field on the NoCookie mode
+    if (typeof apbctGetBrowserStatePair === 'function') {
+        const browserState = apbctGetBrowserStatePair();
+        if (browserState) {
+            noCookieData[browserState.key] = browserState.value;
+        }
+    }
+
     noCookieData = JSON.stringify(noCookieData);
 
     return '_ct_no_cookie_data_' + btoa(unescape(encodeURIComponent(noCookieData)));
