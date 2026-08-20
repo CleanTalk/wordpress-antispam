@@ -189,11 +189,21 @@ class TestAntiCrawler extends TestCase
     public function testIsExcludedForWordPressLoopbackUserAgent(): void
     {
         Server::getInstance()->variables = array();
-        $_SERVER['HTTP_USER_AGENT'] = 'WordPress/7.0.4; https://20thcenturybox.com';
+        $_SERVER['HTTP_USER_AGENT'] = 'WordPress/7.0.4; ' . home_url('/');
 
         $module = new AntiCrawler('', '');
 
         $this->assertTrue($module->isExcluded);
+    }
+
+    public function testIsNotExcludedForForeignWordPressHttpUserAgent(): void
+    {
+        Server::getInstance()->variables = array();
+        $_SERVER['HTTP_USER_AGENT'] = 'WordPress/7.0.4; https://20thcenturybox.com';
+
+        $module = new AntiCrawler('', '');
+
+        $this->assertFalse($module->isExcluded);
     }
 
     public function testIsExcludedForWpRocketPreloadUserAgent(): void
@@ -215,8 +225,11 @@ class TestAntiCrawler extends TestCase
 
     public function testWordPressLoopbackHelperDetectsDefaultWpHttpUserAgent(): void
     {
-        $_SERVER['HTTP_USER_AGENT'] = 'WordPress/7.0.4; https://example.com';
+        $_SERVER['HTTP_USER_AGENT'] = 'WordPress/7.0.4; ' . home_url('/');
         $this->assertTrue(apbct__is_wordpress_loopback_request());
+
+        $_SERVER['HTTP_USER_AGENT'] = 'WordPress/7.0.4; https://othersite.example';
+        $this->assertFalse(apbct__is_wordpress_loopback_request());
 
         $_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0';
         $this->assertFalse(apbct__is_wordpress_loopback_request());

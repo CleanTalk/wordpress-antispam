@@ -781,7 +781,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
      */
     private function isWordPressLoopbackUserAgent()
     {
-        return (bool) preg_match('#^WordPress/\d#', $this->server__http_user_agent);
+        return apbct__is_wordpress_loopback_request();
     }
 
     /**
