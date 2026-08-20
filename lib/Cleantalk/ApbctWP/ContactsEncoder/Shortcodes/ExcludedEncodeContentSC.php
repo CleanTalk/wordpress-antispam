@@ -73,12 +73,13 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      * @param string|null $content Content string, or null when hooked to get_header/get_footer actions.
      *
      * @return string
+     * @psalm-suppress NullableReturnStatement
      */
     public function changeContentBeforeEncoderModify($content)
     {
         // get_header / get_footer pass null as the template name via do_action().
         if ( ! is_string($content) ) {
-            return '';
+            return $content;
         }
 
         if ($this->isShortcodeInsideHtmlAttribute($content)) {
@@ -103,12 +104,13 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      * @param string|null $content Content string, or null when hooked to get_header/get_footer actions.
      *
      * @return string Replaces $apbct->buffer by probably modified content or just return probably modified $content
+     * @psalm-suppress NullableReturnStatement
      */
     public function changeContentAfterEncoderModify($content)
     {
         // get_header / get_footer pass null as the template name via do_action().
         if ( ! is_string($content) ) {
-            return '';
+            return $content;
         }
 
         global $apbct;
