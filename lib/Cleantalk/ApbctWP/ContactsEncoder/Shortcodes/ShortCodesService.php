@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\ContactsEncoder\Shortcodes;
 
+use Cleantalk\ApbctWP\ContactsEncoder\Integrations\CEIntegrationCommentList;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
 
 /**
@@ -14,6 +15,11 @@ class ShortCodesService
     public $shortcode_to_exclude;
 
     public $shortcodes_registered = false;
+
+    /**
+     * @var CEIntegrationCommentList
+     */
+    private $comment_list_integration;
 
     /**
      * @return void
@@ -65,6 +71,7 @@ class ShortCodesService
     {
         $this->encode = new EncodeContentSC($params);
         $this->shortcode_to_exclude = new ExcludedEncodeContentSC();
+        $this->comment_list_integration = new CEIntegrationCommentList();
     }
 
     public function addActionsBeforeModify($hook, $priority = 1)
@@ -100,6 +107,7 @@ class ShortCodesService
     {
         $this->encode->resetShortcodeReplacements();
         $this->shortcode_to_exclude->resetShortcodeReplacements();
+        $buffer = $this->comment_list_integration->protect($buffer);
         $buffer = $this->shortcode_to_exclude->changeContentBeforeEncoderModify($buffer);
 
         return $this->encode->changeContentBeforeEncoderModify($buffer);
@@ -120,11 +128,14 @@ class ShortCodesService
 
         if ( $apbct->settings['data__email_decoder_buffer'] ) {
             $buffer = $this->shortcode_to_exclude->finalizeBufferAfterEncoding($buffer);
+            $buffer = $this->comment_list_integration->restore($buffer);
             $apbct->buffer = $buffer;
 
             return $buffer;
         }
 
-        return $this->shortcode_to_exclude->changeContentAfterEncoderModify($buffer);
+        $buffer = $this->shortcode_to_exclude->changeContentAfterEncoderModify($buffer);
+
+        return $this->comment_list_integration->restore($buffer);
     }
 }
