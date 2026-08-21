@@ -1926,7 +1926,7 @@ function apbct__bot_detector_get_browser_state_default()
  * The state comes with the transport the site is currently configured to use:
  * NoCookie hidden field or alternative sessions are both covered by RequestParameters,
  * the XHR interception passes the state as a plain POST field.
- * Native cookies do not transfer the state at all - the cookie size limit risk is too high.
+ * Native cookies do not store the state in cookies (cookie size limits), but the JS interceptors may still POST it.
  *
  * @return array Empty array if no state provided.
  */
