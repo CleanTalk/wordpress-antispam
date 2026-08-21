@@ -611,16 +611,12 @@ class WcSpamOrdersListTable extends CleantalkListTable
         }
 
         ?>
-        <a style="color: gray; margin-left: 23px;" href="<?php
-        echo esc_url(TT::toString($this->apbct->settings_link)); ?>"><?php
-            esc_html_e('Plugin Settings', 'cleantalk-spam-protect'); ?></a>
         <p><?php
             printf(
-                /* translators: %s: count of the stored spam orders */
-                esc_html__('Total count of spam orders: %s.', 'cleantalk-spam-protect'),
+                esc_html__('Total count of spam orders: %s', 'cleantalk-spam-protect'),
                 esc_html(number_format_i18n($this->wc_spam_orders_count))
-            );
-            echo ' ';
+            ); ?></p>
+        <p><?php
             esc_html_e(
                 'Please do backup of WordPress database before delete any orders!',
                 'cleantalk-spam-protect'
@@ -631,11 +627,15 @@ class WcSpamOrdersListTable extends CleantalkListTable
                 'cleantalk-spam-protect'
             ); ?></p>
         <?php
-        if ($this->apbct->settings['data__wc_store_blocked_orders'] != 1) {
+        if ($this->apbct->settings['forms__wc_checkout_test'] != 1) {
             echo '<p style="color: red;">'
-            . esc_html__(
-                'To store WooCommerce spam orders, enable the "Store blocked WooCommerce orders" option in CleanTalk settings.',
-                'cleantalk-spam-protect'
+            . sprintf(
+                esc_html__(
+                    'To store Spam orders, enable the "Store blocked WooCommerce orders" option in %1$sCleanTalk settings%2$s.',
+                    'cleantalk-spam-protect'
+                ),
+                '<a href="' . esc_url(TT::toString($this->apbct->settings_link)) . '">',
+                '</a>'
             )
             . '</p>';
         }
