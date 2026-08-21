@@ -152,7 +152,7 @@ if ( defined('CLEANTALK_SERVER') ) {
 }
 
 if ( ! defined('APBCT_BOT_DETECTOR_SCRIPT_URL') ) {
-    define('APBCT_BOT_DETECTOR_SCRIPT_URL', '/js-bot-detector-fd_log_av/ct-bot-detector-wrapper.js');
+    define('APBCT_BOT_DETECTOR_SCRIPT_URL', 'https://fd.cleantalk.org/ct-bot-detector-wrapper.js');
 }
 
 /**

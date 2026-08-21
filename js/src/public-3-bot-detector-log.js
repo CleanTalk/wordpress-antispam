@@ -20,6 +20,10 @@ class ApbctBrowserState {
      */
     static toJson() {
         try {
+            if (!+ctPublicFunctions.bot_detector_enabled) {
+                return '';
+            }
+
             const log = localStorage.getItem(ApbctBrowserState.LOG_KEY);
             return JSON.stringify({
                 botd_logic_loaded: ApbctBrowserState.botdLogicLoaded,
