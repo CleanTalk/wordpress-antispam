@@ -612,11 +612,6 @@ class WcSpamOrdersListTable extends CleantalkListTable
 
         ?>
         <p><?php
-            printf(
-                esc_html__('Total count of spam orders: %s', 'cleantalk-spam-protect'),
-                esc_html(number_format_i18n($this->wc_spam_orders_count))
-            ); ?></p>
-        <p><?php
             esc_html_e(
                 'Please do backup of WordPress database before delete any orders!',
                 'cleantalk-spam-protect'
