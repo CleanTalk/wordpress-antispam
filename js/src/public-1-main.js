@@ -2106,9 +2106,6 @@ async function apbct_ready() {
 
     new ApbctShowForbidden().prepareBlockForAjaxForms();
 
-    // Bot detector frontend_data service state collecting
-    apbctBrowserStateInit();
-
     // Try to get gathering if no worked bot-detector
     let gatheringLoaded = false;
 

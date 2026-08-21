@@ -523,7 +523,21 @@ function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
         noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
     }
 
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
+    let browserStateData = {};
+    if (typeof apbctGetBrowserStatePair === 'function') {
+        const browserState = apbctGetBrowserStatePair();
+        if (browserState) {
+            browserStateData[browserState.key] = browserState.value;
+        }
+    }
+
+    return {
+        ...noCookieDataLocal,
+        ...noCookieDataSession,
+        ...noCookieDataTypo,
+        ...noCookieDataFromUserActivity,
+        ...browserStateData,
+    };
 }
 
 /**
