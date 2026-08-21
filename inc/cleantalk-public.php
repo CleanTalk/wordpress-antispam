@@ -715,13 +715,22 @@ function ct_add_hidden_fields(
 /**
  * Changes whether notify admin/athor or not.
  *
+ * WordPress 7.1 checks comment approval before the notify_post_author filter.
+ * Returning true unconditionally would send mail for spam/trash/unapproved comments.
+ *
  * @param bool $maybe_notify notify flag
  * @param int $comment_ID Comment id
  *
  * @return bool flag
  */
-function apbct_comment__Wordpress__doNotify($_maybe_notify, $_comment_ID)
+function apbct_comment__Wordpress__doNotify($maybe_notify, $comment_ID)
 {
+    $comment = get_comment($comment_ID);
+
+    if ( ! ( $comment instanceof WP_Comment ) || '1' !== $comment->comment_approved ) {
+        return $maybe_notify;
+    }
+
     return true;
 }
 
