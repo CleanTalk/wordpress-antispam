@@ -532,9 +532,16 @@ class WcSpamOrdersListTable extends CleantalkListTable
         $totals = array();
 
         foreach ( $wc_spam_orders as $key => $wc_spam_order ) {
-            $totals[$key] = is_string($wc_spam_order->order_details)
-                ? (float) $this->calcOrderTotal($wc_spam_order->order_details)
-                : 0;
+            $calculated_total = is_string($wc_spam_order->order_details)
+                ? $this->calcOrderTotal($wc_spam_order->order_details)
+                : null;
+
+            if ( is_null($calculated_total) ) {
+                // Keep undecodable totals consistently at the end for both ASC and DESC.
+                $calculated_total = $order === 'DESC' ? -PHP_FLOAT_MAX : PHP_FLOAT_MAX;
+            }
+
+            $totals[$key] = (float) $calculated_total;
         }
 
         uasort($totals, static function ($a, $b) {
@@ -622,7 +629,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
                 'cleantalk-spam-protect'
             ); ?></p>
         <?php
-        if ($this->apbct->settings['forms__wc_checkout_test'] != 1) {
+        if ( empty($this->apbct->settings['data__wc_store_blocked_orders']) ) {
             echo '<p style="color: red;">'
             . sprintf(
                 esc_html__(
