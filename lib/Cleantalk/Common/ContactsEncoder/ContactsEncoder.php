@@ -928,7 +928,7 @@ abstract class ContactsEncoder
      */
     private function generateAriaLabelPlaceholder()
     {
-        return '%%APBCT_ARIA_' . bin2hex(random_bytes(16)) . '%%';
+        return '%%APBCT_ARIA_' . bin2hex(openssl_random_pseudo_bytes(16)) . '%%';
     }
 
     /**
