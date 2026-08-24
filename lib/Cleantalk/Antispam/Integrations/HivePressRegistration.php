@@ -35,6 +35,5 @@ class HivePressRegistration extends IntegrationBase
                 'error' => ['message' => $message],
             ]
         );
-        die();
     }
 }
