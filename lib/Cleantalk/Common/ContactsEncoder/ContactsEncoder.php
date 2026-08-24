@@ -89,20 +89,9 @@ abstract class ContactsEncoder
     protected $global_tel_pattern;
 
     /**
-     * @var array
-     * @psalm-suppress PossiblyUnusedProperty
-     */
-    protected $aria_matches = array();
-
-    /**
      * @var array Placeholder => original aria-label for restore
      */
     protected $aria_placeholders = array();
-
-    /**
-     * @var int Counter for unique aria-label placeholders
-     */
-    protected $aria_index = 0;
 
     /**
      * Attributes with possible email-like content to drop from the content to avoid unnecessary encoding.
@@ -904,17 +893,14 @@ abstract class ContactsEncoder
     private function handleAriaLabelContent($content, $reverse = false)
     {
         if ( !$reverse ) {
-            $this->aria_matches = array();
             $this->aria_placeholders = array();
-            $this->aria_index = 0;
             return preg_replace_callback($this->aria_regex, array($this, 'replaceAriaLabelWithPlaceholder'), $content);
         }
         if ( !empty($this->aria_placeholders) ) {
             foreach ($this->aria_placeholders as $placeholder => $original) {
-                $content = str_replace($placeholder, $original, $content);
+                $content = $this->restoreAriaLabelPlaceholder($content, $placeholder, $original);
             }
             $this->aria_placeholders = array();
-            $this->aria_index = 0;
         }
         return $content;
     }
@@ -930,8 +916,37 @@ abstract class ContactsEncoder
             return '';
         }
         $original = $matches[0];
-        $placeholder = 'ct_temp_aria_' . $this->aria_index++;
+        $placeholder = $this->generateAriaLabelPlaceholder();
         $this->aria_placeholders[$placeholder] = $original;
         return $placeholder;
+    }
+
+    /**
+     * Build an unguessable placeholder so attacker-controlled content cannot collide with it.
+     *
+     * @return string
+     */
+    private function generateAriaLabelPlaceholder()
+    {
+        return '%%APBCT_ARIA_' . bin2hex(random_bytes(16)) . '%%';
+    }
+
+    /**
+     * Restore a single aria-label placeholder at its first occurrence only.
+     *
+     * @param string $content
+     * @param string $placeholder
+     * @param string $original
+     *
+     * @return string
+     */
+    private function restoreAriaLabelPlaceholder($content, $placeholder, $original)
+    {
+        $pos = strpos($content, $placeholder);
+        if ( $pos === false ) {
+            return $content;
+        }
+
+        return substr($content, 0, $pos) . $original . substr($content, $pos + strlen($placeholder));
     }
 }

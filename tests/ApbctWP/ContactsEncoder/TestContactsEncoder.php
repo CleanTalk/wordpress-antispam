@@ -222,6 +222,55 @@ class TestEmailEncoder extends TestCase
         $this->assertStringContainsString('apbct-email-encoder', $result);
     }
 
+    /**
+     * aria-label values must survive email encoding round-trip intact.
+     */
+    public function testModifyContentPreservesAriaLabelWithEmail()
+    {
+        $email = 'info@example.com';
+        $content = '<button aria-label="Contact us at ' . $email . '">Click</button>';
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        $this->assertStringContainsString('aria-label="Contact us at ' . $email . '"', $result);
+        $this->assertStringNotContainsString('%%APBCT_ARIA_', $result);
+        $this->assertStringNotContainsString('ct_temp_aria_', $result);
+    }
+
+    /**
+     * CVE-2026-77830: planted ct_temp_aria_0 must not be rewritten during aria-label restore.
+     */
+    public function testModifyContentDoesNotRestorePlantedCtTempAriaToken()
+    {
+        $payload = '<blockquote cite=" aria-label=" > <a title="test">test</a></blockquote>'
+            . '<a >ct_temp_aria_0</a>'
+            . '<a title="style=display:block;content-visibility:auto oncontentvisibilityautostatechange=alert(2026)//">test</a>';
+
+        $result = $this->contacts_encoder->modifyContent($payload);
+
+        $this->assertStringContainsString('ct_temp_aria_0', $result);
+        $this->assertNotRegExp('/>aria-label=/', $result);
+    }
+
+    /**
+     * CVE-2026-77830: Wordfence PoC must not produce aria-label markup breakout after encoding.
+     */
+    public function testModifyContentWordfenceAriaLabelXssPayloadDoesNotBreakOut()
+    {
+        $payload = '<blockquote cite=" aria-label=" > <a title="test">test</a></blockquote>' . "\n"
+            . '<a >ct_temp_aria_0</a>'
+            . '<a title="style=display:block;content-visibility:auto '
+            . 'oncontentvisibilityautostatechange=alert(2026)//">test</a>';
+
+        $result = $this->contacts_encoder->modifyContent($payload);
+
+        $planted_token_preserved = strpos($result, 'ct_temp_aria_0') !== false;
+        $breakout_injected = (bool) preg_match('/>aria-label=/', $result);
+
+        $this->assertTrue($planted_token_preserved, 'Planted ct_temp_aria_0 token must survive encoder round-trip.');
+        $this->assertFalse($breakout_injected, 'Encoder must not inject aria-label markup via token substitution.');
+    }
+
     public function testEncodingPhoneNumbers()
     {
         global $apbct;
