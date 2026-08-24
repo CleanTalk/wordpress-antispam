@@ -38,8 +38,6 @@ class UserRegistrationPro extends IntegrationBase
 
     /**
      * @param $message
-     *
-     * @psalm-suppress UnusedVariable
      */
     public function doBlock($message)
     {
@@ -48,6 +46,5 @@ class UserRegistrationPro extends IntegrationBase
                 'message' => $message
             )
         );
-        die();
     }
 }

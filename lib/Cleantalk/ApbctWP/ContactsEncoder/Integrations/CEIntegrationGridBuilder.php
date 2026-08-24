@@ -586,6 +586,12 @@ class CEIntegrationGridBuilder
         $abspath = realpath(ABSPATH);
         $abspath_prefix = is_string($abspath) ? trailingslashit($abspath) : '';
 
+        // Normalize directory separators for cross-platform strpos comparison
+        if ( is_string($resolved) ) {
+            $resolved = str_replace('\\', '/', $resolved);
+        }
+        $abspath_prefix = str_replace('\\', '/', $abspath_prefix);
+
         if (
             $resolved === false
             || $abspath === false

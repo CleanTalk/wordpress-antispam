@@ -2448,9 +2448,6 @@ function apbct_form__the7_contact_form()
                 );
 
                 wp_send_json($response);
-
-                // IMPORTANT: don't forget to "exit" @todo AG: Why? Exit does not terminate connection, but I can't see how it is applicable
-                exit;
             }
         }
     }
