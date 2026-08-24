@@ -622,7 +622,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
                 'cleantalk-spam-protect'
             ); ?></p>
         <?php
-        if ($this->apbct->settings['forms__wc_checkout_test'] != 1) {
+        if ( empty($this->apbct->settings['data__wc_store_blocked_orders']) ) {
             echo '<p style="color: red;">'
             . sprintf(
                 esc_html__(
