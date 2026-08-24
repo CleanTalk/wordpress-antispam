@@ -894,7 +894,6 @@ function ct_ajax_hook($message_obj = null)
                     'message' => $ct_result->comment
                 )
             );
-            die();
         }
 
         // Plugin Name: eForm - WordPress Form Builder; ajax action ipt_fsqm_save_form

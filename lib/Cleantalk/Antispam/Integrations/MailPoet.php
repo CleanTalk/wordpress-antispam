@@ -58,6 +58,5 @@ class MailPoet extends IntegrationBase
             ),
             403
         );
-        die();
     }
 }
