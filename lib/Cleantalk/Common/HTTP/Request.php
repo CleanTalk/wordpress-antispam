@@ -42,7 +42,7 @@ class Request
      *      get_code              - getting only HTTP response code
      *      async                 - async requests. Sends request and return 'true' value. Doesn't wait for response.
      *      get                   - makes GET-type request instead of default POST-type
-     *      ssl                   - uses SSL
+     *      ssl                   - ensure TLS peer/host verification and CA bundle (enabled by default)
      *      cache                 - allow caching for this request
      *      retry_with_socket     - make another request with socket if cURL failed to retrieve data
      */
@@ -110,7 +110,7 @@ class Request
      *      get_code              - getting only HTTP response code
      *      async                 - async requests. Sends request and return 'true' value. Doesn't wait for response.
      *      get                   - makes GET-type request instead of default POST-type
-     *      ssl                   - uses SSL
+     *      ssl                   - ensure TLS peer/host verification and CA bundle (enabled by default)
      *      cache                 - allow caching for this request
      *      retry_with_socket     - make another request with socket if cURL failed to retrieve data
      *
@@ -391,11 +391,10 @@ class Request
                     unset($this->options[$option_name]);
                     break;
                 case 'sslverify':
-                    if ( $option_value ) {
-                        $temp_options[CURLOPT_SSL_VERIFYPEER] = (bool)$option_value;      // Boolean
-                        $temp_options[CURLOPT_SSL_VERIFYHOST] = (int)(bool)$option_value; // Int 0|1
-                        unset($this->options[$option_name]);
-                    }
+                    $temp_options[CURLOPT_SSL_VERIFYPEER] = (bool)$option_value;
+                    // VERIFYHOST must be 2 for hostname check; 1 is deprecated and insecure
+                    $temp_options[CURLOPT_SSL_VERIFYHOST] = $option_value ? 2 : 0;
+                    unset($this->options[$option_name]);
                     break;
                 case 'sslcertificates':
                     $temp_options[CURLOPT_CAINFO] = $option_name; // String
@@ -428,33 +427,36 @@ class Request
      */
     protected function appendOptionsObligatory()
     {
-        // Merging OBLIGATORY options with GIVEN options
-        $this->options = array_replace(
-            array(
-                CURLOPT_URL            => ! is_array($this->url) ? $this->url : null,
-                CURLOPT_TIMEOUT        => 50,
-                CURLOPT_LOW_SPEED_TIME => 25,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_CONNECTTIMEOUT => 5000,
-                CURLOPT_FORBID_REUSE   => true,
-                CURLOPT_USERAGENT      => self::AGENT,
-                CURLOPT_POST           => true,
-                CURLOPT_POSTFIELDS     => $this->data,
-                CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_SSL_VERIFYHOST => 0,
-                CURLOPT_HTTPHEADER     => array(
-                    'Expect:',
-                    // Fix for large data and old servers http://php.net/manual/ru/function.curl-setopt.php#82418
-                    'Expires: ' . date(DATE_RFC822, mktime(0, 0, 0, 1, 1, 1971)),
-                    'Cache-Control: no-store, no-cache, must-revalidate',
-                    'Cache-Control: post-check=0, pre-check=0',
-                    'Pragma: no-cache',
-                ),
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_MAXREDIRS      => 5,
+        $defaults = array(
+            CURLOPT_URL            => ! is_array($this->url) ? $this->url : null,
+            CURLOPT_TIMEOUT        => 50,
+            CURLOPT_LOW_SPEED_TIME => 25,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 5000,
+            CURLOPT_FORBID_REUSE   => true,
+            CURLOPT_USERAGENT      => self::AGENT,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $this->data,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_HTTPHEADER     => array(
+                'Expect:',
+                // Fix for large data and old servers http://php.net/manual/ru/function.curl-setopt.php#82418
+                'Expires: ' . date(DATE_RFC822, mktime(0, 0, 0, 1, 1, 1971)),
+                'Cache-Control: no-store, no-cache, must-revalidate',
+                'Cache-Control: post-check=0, pre-check=0',
+                'Pragma: no-cache',
             ),
-            $this->options
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS      => 5,
         );
+
+        if ( defined('APBCT_CASERT_PATH') && APBCT_CASERT_PATH ) {
+            $defaults[CURLOPT_CAINFO] = APBCT_CASERT_PATH;
+        }
+
+        // Merging OBLIGATORY options with GIVEN options
+        $this->options = array_replace($defaults, $this->options);
     }
 
     /**

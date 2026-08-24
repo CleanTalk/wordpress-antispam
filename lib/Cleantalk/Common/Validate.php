@@ -82,8 +82,16 @@ class Validate
 
     public static function isUrl($url)
     {
-        return ( strpos($url, 'http://') !== false || strpos($url, 'https://') !== false ) &&
-               filter_var($url, FILTER_VALIDATE_URL);
+        if ( ! is_string($url) || $url === '' ) {
+            return false;
+        }
+
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+
+        // Allow only http/https. Checking the scheme prevents javascript:/data: bypasses
+        // that embed "http://" or "https://" in the rest of the string.
+        return in_array($scheme, array('http', 'https'), true) &&
+               (bool) filter_var($url, FILTER_VALIDATE_URL);
     }
 
     /**
