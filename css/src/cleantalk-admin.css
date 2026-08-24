@@ -105,6 +105,51 @@
 .apbct-details-spam-order-button {
 	color: gray;
 }
+
+/* WooCommerce orders list alike view of the spam orders table.
+   The order column has no width, so it takes all the space left. */
+.wp-list-table.wc_spam_orders .column-ct_order_date,
+.wp-list-table.wc_spam_orders .column-ct_status,
+.wp-list-table.wc_spam_orders .column-ct_total {
+	width: 15%;
+}
+
+.wp-list-table.wc_spam_orders td {
+	vertical-align: middle;
+}
+
+.wp-list-table.wc_spam_orders .apbct-order-view {
+	color: #2271b1;
+	text-decoration: none;
+}
+
+.wp-list-table.wc_spam_orders .apbct-order-view:hover {
+	color: #135e96;
+}
+
+.apbct-order-status {
+	display: inline-flex;
+	line-height: 2.5em;
+	color: #454545;
+	background: #e5e5e5;
+	border-radius: 4px;
+	border-bottom: 1px solid rgba(0, 0, 0, .05);
+	margin: -.25em 0;
+	cursor: inherit !important;
+	white-space: nowrap;
+	max-width: 100%;
+}
+
+.apbct-order-status > span {
+	margin: 0 1em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.apbct-order-status--spam {
+	background: #eba3a3;
+	color: #570000;
+}
 .ct-modal-buttons {
 	display: flex;
 	align-items: center;

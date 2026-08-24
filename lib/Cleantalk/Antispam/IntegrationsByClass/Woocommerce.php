@@ -94,27 +94,7 @@ class Woocommerce extends IntegrationByClassBase
 
     public function doAdminWork()
     {
-        add_action('admin_menu', function () {
-            add_submenu_page(
-                'woocommerce',
-                __("WooCommerce spam orders", 'cleantalk-spam-protect'),
-                __("WooCommerce spam orders", 'cleantalk-spam-protect'),
-                'activate_plugins',
-                'apbct_wc_spam_orders',
-                function () {
-                    ?>
-                    <div class="wrap">
-                        <form action="" method="POST">
-                        <?php
-                        $list_table = new \Cleantalk\ApbctWP\WcSpamOrdersListTable();
-                        $list_table->display();
-                        ?>
-                        </form>
-                    </div>
-                    <?php
-                }
-            );
-        });
+        add_action('current_screen', [$this, 'addOrdersListStatusViews']);
     }
 
     public function addActions()
@@ -177,6 +157,11 @@ class Woocommerce extends IntegrationByClassBase
     {
         global $apbct, $cleantalk_executed;
 
+        if ( ! $apbct->settings['data__wc_store_blocked_orders'] ) {
+            // The checkout is left to WooCommerce as is: no check, no blocked order to store.
+            return;
+        }
+
         if ( count($errors->errors) ) {
             return;
         }
@@ -230,14 +215,10 @@ class Woocommerce extends IntegrationByClassBase
             ct_hash($ct_result->id);
 
             if ( $ct_result->allow == 0 ) {
-                if ( $apbct->settings['data__wc_store_blocked_orders'] ) {
-                    $this->storeBlockedOrder();
-                }
+                $this->handleBlockedOrder();
                 wp_send_json(array(
-                    'result'   => 'failure',
-                    'messages' => "<ul class=\"woocommerce-error\"><li>" . $ct_result->comment . "</li></ul>",
-                    'refresh'  => 'false',
-                    'reload'   => 'false'
+                    'result'   => 'success',
+                    'redirect' => $this->getBlockedOrderRedirectUrl(),
                 ));
             }
         }
@@ -251,6 +232,11 @@ class Woocommerce extends IntegrationByClassBase
     public function checkoutCheckFromRest($order)
     {
         global $apbct, $cleantalk_executed;
+
+        if ( ! $apbct->settings['data__wc_store_blocked_orders'] ) {
+            // The checkout is left to WooCommerce as is: no check, no blocked order to store.
+            return;
+        }
 
         if ( is_null($order) || ! ($order instanceof \WC_Order) ) {
             return;
@@ -286,11 +272,15 @@ class Woocommerce extends IntegrationByClassBase
             ct_hash($ct_result->id);
 
             if ( $ct_result->allow == 0 ) {
-                if ( $apbct->settings['data__wc_store_blocked_orders'] ) {
-                    $this->storeBlockedOrder();
-                }
+                $response = $this->getStoreApiPassedResponse($order);
+
+                $this->handleBlockedOrder();
 
                 if ( $order->get_status() === 'pending' || $order->get_status() === 'checkout-draft' ) {
+                    if ( function_exists('wc_release_stock_for_order') ) {
+                        wc_release_stock_for_order($order);
+                    }
+
                     try {
                         $order->delete(true);
                     } catch (\Exception $e) {
@@ -298,20 +288,65 @@ class Woocommerce extends IntegrationByClassBase
                     }
                 }
 
-                $response = [
-                        'code' => 'woocommerce_store_api_checkout_order_processed',
-                        'message' => $ct_result->comment,
-                        'data' => [
-                                'status' => 403
-                        ]
-                ];
-
                 if ( ! headers_sent() ) {
-                    http_response_code(403);
+                    header('Content-Type: application/json; charset=utf-8');
                 }
                 die(json_encode($response));
             }
         }
+    }
+
+    /**
+     * Common actions for an order blocked as spam.
+     *
+     * @return void
+     * @psalm-suppress UndefinedFunction
+     */
+    private function handleBlockedOrder()
+    {
+        $this->storeBlockedOrder();
+
+        if ( function_exists('wc') && ! is_null(wc()->cart) ) {
+            wc()->cart->empty_cart();
+        }
+    }
+
+    /**
+     * URL of the page shown to the visitor whose order was blocked.
+     *
+     * @return string
+     * @psalm-suppress UndefinedFunction
+     */
+    private function getBlockedOrderRedirectUrl()
+    {
+        return wc_get_endpoint_url('order-received', '', wc_get_checkout_url());
+    }
+
+    /**
+     * Response for the Store API checkout route imitating a passed checkout.
+     *
+     * @param \WC_Order $order
+     *
+     * @return array
+     * @psalm-suppress UndefinedClass, UndefinedFunction
+     */
+    private function getStoreApiPassedResponse($order)
+    {
+        return array(
+            'order_id'         => $order->get_id(),
+            'status'           => $order->get_status(),
+            'order_key'        => $order->get_order_key(),
+            'customer_note'    => $order->get_customer_note(),
+            'customer_id'      => $order->get_customer_id(),
+            'billing_address'  => $order->get_address('billing'),
+            'shipping_address' => $order->get_address('shipping'),
+            'payment_method'   => $order->get_payment_method(),
+            'payment_result'   => array(
+                'payment_status'  => 'success',
+                'payment_details' => array(),
+                'redirect_url'    => $this->getBlockedOrderRedirectUrl(),
+            ),
+        );
     }
 
     /**
@@ -594,6 +629,209 @@ class Woocommerce extends IntegrationByClassBase
         ) {
             unset($query_vars['post_status'][$key]);
         }
+    }
+
+    /**
+     * Enable the always visible status links on the HPOS orders list
+     *
+     * @param \WP_Screen $current_screen
+     *
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function addOrdersListStatusViews($current_screen)
+    {
+        if ( ! isset($current_screen->id) || ! function_exists('wc_get_page_screen_id') ) {
+            return;
+        }
+
+        $orders_screen_id = wc_get_page_screen_id('shop_order');
+
+        // The legacy storage renders the orders on the posts list screen, the links there lead to another URL
+        if ( empty($orders_screen_id) || $orders_screen_id === 'shop_order' || $current_screen->id !== $orders_screen_id ) {
+            return;
+        }
+
+        add_filter('views_' . $orders_screen_id, [$this, 'addOrdersListStatusLinks']);
+
+        // The blocked orders are stored apart from the WooCommerce ones, so the 'Spam' view is rendered by the plugin
+        if ( Get::getString('status') === 'wc-spamorder' ) {
+            $this->replaceOrdersListRenderer($orders_screen_id);
+        }
+    }
+
+    /**
+     * Hand the orders page over to the spam orders table.
+     *
+     * The page content is printed by the WooCommerce page controller hooked to the page hook,
+     * so that callback is taken off and replaced. If it can not be found (the WooCommerce
+     * internals have changed), nothing is replaced to avoid rendering two tables at once.
+     *
+     * @param string $page_hook
+     *
+     * @return void
+     */
+    private function replaceOrdersListRenderer($page_hook)
+    {
+        global $wp_filter;
+
+        if ( ! isset($wp_filter[$page_hook]) || ! isset($wp_filter[$page_hook]->callbacks) ) {
+            return;
+        }
+
+        $removed = false;
+
+        foreach ( $wp_filter[$page_hook]->callbacks as $priority => $callbacks ) {
+            foreach ( $callbacks as $callback ) {
+                if ( ! isset($callback['function'][0]) || ! is_object($callback['function'][0]) ) {
+                    continue;
+                }
+
+                if ( strpos(get_class($callback['function'][0]), 'Admin\\Orders\\PageController') === false ) {
+                    continue;
+                }
+
+                $removed = remove_action($page_hook, $callback['function'], $priority) || $removed;
+            }
+        }
+
+        if ( $removed ) {
+            add_action($page_hook, [$this, 'renderSpamOrdersPage']);
+        }
+    }
+
+    /**
+     * The spam orders table shown in place of the WooCommerce orders list,
+     * keeping the page markup and the status links of the original page.
+     *
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function renderSpamOrdersPage()
+    {
+        $list_table = new \Cleantalk\ApbctWP\WcSpamOrdersListTable($this->getOrdersListViews());
+        ?>
+        <div class="wrap">
+            <h1 class="wp-heading-inline"><?php esc_html_e('Spam orders', 'cleantalk-spam-protect'); ?></h1>
+            <hr class="wp-header-end">
+            <?php $list_table->renderPageNotices(); ?>
+            <form action="" method="POST">
+                <?php $list_table->display(); ?>
+            </form>
+        </div>
+        <?php
+    }
+
+    /**
+     * Status links of the orders list rebuilt the same way the WooCommerce list table does it:
+     * 'All' plus the statuses having orders. The links added by addOrdersListStatusLinks()
+     * are applied later, by the list table itself.
+     *
+     * @return array
+     */
+    private function getOrdersListViews()
+    {
+        if ( ! function_exists('wc_get_order_statuses') || ! function_exists('wc_orders_count') ) {
+            return array();
+        }
+
+        $views     = array();
+        $all_count = 0;
+
+        foreach ( wc_get_order_statuses() as $status => $label ) {
+            $count = wc_orders_count($status, 'shop_order');
+
+            $status_object = get_post_status_object($status);
+            if ( $status_object && ! empty($status_object->show_in_admin_all_list) ) {
+                $all_count += $count;
+            }
+
+            if ( $count > 0 ) {
+                $views[$status] = $this->getOrdersListStatusLink($status, $label, false);
+            }
+        }
+
+        return array_merge(
+            array('all' => $this->getOrdersListStatusLink('', __('All', 'cleantalk-spam-protect'), false, $all_count)),
+            $views
+        );
+    }
+
+    /**
+     * The orders list shows the statuses having orders only, so the spam workflow statuses
+     * are unreachable until an order gets marked as spam. Both of them are added back:
+     * 'Spam' itself and 'On hold' the unmarked orders are moved to.
+     *
+     * @param array $views
+     *
+     * @return array
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function addOrdersListStatusLinks($views)
+    {
+        if ( ! is_array($views) || ! function_exists('wc_get_order_statuses') ) {
+            return $views;
+        }
+
+        $order_statuses = wc_get_order_statuses();
+        $current_status = Get::getString('status');
+
+        foreach ( array('wc-on-hold', 'wc-spamorder') as $status ) {
+            if ( isset($views[$status]) || ! isset($order_statuses[$status]) ) {
+                continue;
+            }
+
+            $views[$status] = $this->getOrdersListStatusLink(
+                $status,
+                $order_statuses[$status],
+                $current_status === $status
+            );
+        }
+
+        return $views;
+    }
+
+    /**
+     * @param string $status Empty for the 'All' link
+     * @param string $label
+     * @param bool $is_current
+     * @param int|null $count Known count, counted by the status when not given
+     *
+     * @return string
+     */
+    private function getOrdersListStatusLink($status, $label, $is_current, $count = null)
+    {
+        if ( is_null($count) ) {
+            $count = $this->getOrdersListStatusCount($status);
+        }
+
+        $url = admin_url('admin.php?page=wc-orders');
+        if ( ! empty($status) ) {
+            $url = add_query_arg('status', $status, $url);
+        }
+
+        return sprintf(
+            '<a href="%s"%s>%s <span class="count">(%s)</span></a>',
+            esc_url($url),
+            $is_current ? ' class="current"' : '',
+            esc_html($label),
+            number_format_i18n($count)
+        );
+    }
+
+    /**
+     * @param string $status
+     *
+     * @return int
+     */
+    private function getOrdersListStatusCount($status)
+    {
+        // The blocked orders never become WooCommerce ones, they are counted in the plugin table
+        if ( $status === 'wc-spamorder' ) {
+            return WcSpamOrdersFunctions::getSpamOrdersCount();
+        }
+
+        return function_exists('wc_orders_count') ? wc_orders_count($status, 'shop_order') : 0;
     }
 
     /**

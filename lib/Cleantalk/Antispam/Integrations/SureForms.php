@@ -29,6 +29,5 @@ class SureForms extends IntegrationBase
                 'message' => $message
             )
         );
-        die();
     }
 }

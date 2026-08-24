@@ -11,15 +11,27 @@ class WcSpamOrdersListTable extends CleantalkListTable
     protected $apbct;
 
     protected $wc_active = false;
-    protected $page_title = '';
     protected $wc_spam_orders_count = 0;
 
-    public function __construct()
+    /**
+     * Status links of the hosting page when the table is embedded into it.
+     * Null means the table is rendered on its own page and builds the links itself.
+     *
+     * @var array|null
+     */
+    protected $embedded_views = null;
+
+    /**
+     * @param array|null $embedded_views Status links of the hosting page, see $embedded_views
+     */
+    public function __construct($embedded_views = null)
     {
         parent::__construct(array(
             'singular' => 'wc_spam_orders',
             'plural'   => 'wc_spam_orders'
         ));
+
+        $this->embedded_views = is_array($embedded_views) ? $embedded_views : null;
 
         $this->bulk_actions_handler();
 
@@ -32,10 +44,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
         $this->prepare_items();
 
         global $apbct;
-        $this->apbct      = $apbct;
-        $this->page_title = 'WooCommerce spam orders';
-
-        $this->generatePageHeader();
+        $this->apbct = $apbct;
     }
 
     /**
@@ -62,8 +71,13 @@ class WcSpamOrdersListTable extends CleantalkListTable
         $wc_spam_orders             = $this->getWcSpamOrders();
         $this->wc_spam_orders_count = count($wc_spam_orders);
 
+        // Blocked orders are never put on hold, so the view is always empty
+        if ( $this->getCurrentStatus() === 'on-hold' ) {
+            $wc_spam_orders = array();
+        }
+
         $this->set_pagination_args(array(
-            'total_items' => $this->wc_spam_orders_count,
+            'total_items' => count($wc_spam_orders),
             'per_page'    => $per_page,
         ));
 
@@ -83,29 +97,40 @@ class WcSpamOrdersListTable extends CleantalkListTable
                 continue;
             }
 
-            $delete_url = wp_nonce_url(
-                admin_url('admin.php?page=' . Get::getString('page') . '&action=delete&spam=' . $wc_spam_order->id),
-                'apbct_wc_spam_orders_row',
-                '_wpnonce'
+            // The status has to be kept, the hosting page is chosen by it
+            $current_status = Get::getString('status');
+            $delete_url = admin_url('admin.php?page=' . Get::getString('page'));
+            $delete_url = add_query_arg(
+                array_filter(array(
+                    'status' => $current_status,
+                    'action' => 'delete',
+                    'spam'   => $wc_spam_order->id,
+                )),
+                $delete_url
             );
+            $delete_url = wp_nonce_url($delete_url, 'apbct_wc_spam_orders_row', '_wpnonce');
             $actions = array(
                 'restore' => '<a class="apbct-restore-spam-order-button" data-spam-order-id="' . $wc_spam_order->id . '">' . esc_html__('Restore', 'cleantalk-spam-protect') . '</a>',
                 'delete'  => '<a onclick="return confirm(\'' . esc_attr(esc_html__('Are you sure?', 'cleantalk-spam-protect')) . '\')" href="' . esc_url($delete_url) . '">Delete</a>',
                 'details' => '<a class="apbct-details-spam-order-button" role="button" tabindex="0" data-spam-order-id="' . esc_attr($wc_spam_order->id) . '">' . esc_html__('See details', 'cleantalk-spam-protect') . '</a>',
             );
 
-            $order_id_column = sprintf('%1$s %2$s', $wc_spam_order->id, $this->row_actions($actions));
+            $order_column = sprintf(
+                '%1$s %2$s',
+                $this->renderOrderColumn($wc_spam_order->id, $wc_spam_order->customer_details),
+                $this->row_actions($actions)
+            );
 
-            $order_details_column    = $this->renderOrderDetailsColumn($wc_spam_order->order_details);
-            $customer_details_column = $this->renderCustomerDetailsColumn($wc_spam_order->customer_details);
-            $order_date_column       = $this->renderOrderDateColumn($wc_spam_order->order_date);
+            $order_date_column = $this->renderOrderDateColumn($wc_spam_order->order_date);
+            $status_column     = $this->renderStatusColumn();
+            $total_column      = $this->renderTotalColumn($wc_spam_order->order_details);
 
             $this->items[] = array(
-                'cb'                  => $wc_spam_order->id,
-                'ct_order_id'         => $order_id_column,
-                'ct_order_details'    => $order_details_column,
-                'ct_customer_details' => $customer_details_column,
-                'ct_order_date'       => $order_date_column,
+                'cb'            => $wc_spam_order->id,
+                'ct_order'      => $order_column,
+                'ct_order_date' => $order_date_column,
+                'ct_status'     => $status_column,
+                'ct_total'      => $total_column,
             );
         }
     }
@@ -113,11 +138,11 @@ class WcSpamOrdersListTable extends CleantalkListTable
     public function get_columns() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $columns = array(
-            'cb'                  => '<input type="checkbox" />',
-            'ct_order_id'         => esc_html__('ID', 'cleantalk-spam-protect'),
-            'ct_order_details'    => esc_html__('Order details', 'cleantalk-spam-protect'),
-            'ct_customer_details' => esc_html__('Customer details', 'cleantalk-spam-protect'),
-            'ct_order_date'       => esc_html__('Order date', 'cleantalk-spam-protect'),
+            'cb'            => '<input type="checkbox" />',
+            'ct_order'      => esc_html__('Order', 'cleantalk-spam-protect'),
+            'ct_order_date' => esc_html__('Date', 'cleantalk-spam-protect'),
+            'ct_status'     => esc_html__('Status', 'cleantalk-spam-protect'),
+            'ct_total'      => esc_html__('Total', 'cleantalk-spam-protect'),
         );
 
         return $columns;
@@ -126,8 +151,79 @@ class WcSpamOrdersListTable extends CleantalkListTable
     protected function get_sortable_columns() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         return array(
+            'ct_order'      => array('id', false),
             'ct_order_date' => array('order_date', false),
+            'ct_total'      => array('total', false),
         );
+    }
+
+    /**
+     * Statuses row above the table, the same one as the WooCommerce orders list has.
+     * Every stored order is a blocked spam one, so the "On hold" view is always empty.
+     *
+     * @return array
+     */
+    protected function get_views() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        if ( ! is_null($this->embedded_views) ) {
+            return $this->embedded_views;
+        }
+
+        $current_status = $this->getCurrentStatus();
+
+        $statuses = array(
+            'all'     => array(esc_html__('All', 'cleantalk-spam-protect'), $this->wc_spam_orders_count),
+            'on-hold' => array(esc_html__('On hold', 'cleantalk-spam-protect'), 0),
+            'spam'    => array(esc_html__('Spam', 'cleantalk-spam-protect'), $this->wc_spam_orders_count),
+        );
+
+        $views = array();
+
+        foreach ( $statuses as $status => $status_data ) {
+            list($title, $count) = $status_data;
+
+            $url = admin_url('admin.php?page=' . Get::getString('page'));
+            if ( $status !== 'all' ) {
+                $url = add_query_arg('status', $status, $url);
+            }
+
+            $views[$status] = sprintf(
+                '<a href="%1$s"%2$s>%3$s <span class="count">(%4$d)</span></a>',
+                esc_url($url),
+                $status === $current_status ? ' class="current" aria-current="page"' : '',
+                $title,
+                $count
+            );
+        }
+
+        return $views;
+    }
+
+    /**
+     * Currently selected status view.
+     *
+     * @return string all|on-hold|spam
+     */
+    private function getCurrentStatus()
+    {
+        $status = Get::getString('status');
+
+        return in_array($status, array('on-hold', 'spam'), true) ? $status : 'all';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function display() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        $this->views();
+
+        parent::display();
+    }
+
+    public function no_items() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        esc_html_e('No orders found.', 'cleantalk-spam-protect');
     }
 
     public function get_bulk_actions() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
@@ -256,6 +352,45 @@ class WcSpamOrdersListTable extends CleantalkListTable
         return $result;
     }
 
+    /**
+     * Order number and the customer name, the same way as WooCommerce orders list does it.
+     *
+     * @param int|string $spam_order_id
+     * @param string $customer_details
+     *
+     * @return string
+     */
+    private function renderOrderColumn($spam_order_id, $customer_details)
+    {
+        $customer_details = json_decode($customer_details, true);
+
+        $customer_name = '';
+
+        if ( is_array($customer_details) ) {
+            $customer_name = trim(
+                TT::getArrayValueAsString($customer_details, 'billing_first_name')
+                . ' '
+                . TT::getArrayValueAsString($customer_details, 'billing_last_name')
+            );
+
+            if ( $customer_name === '' ) {
+                $customer_name = TT::getArrayValueAsString($customer_details, 'billing_email');
+            }
+        }
+
+        if ( $customer_name === '' ) {
+            $customer_name = esc_html__('Guest', 'cleantalk-spam-protect');
+        } else {
+            $customer_name = esc_html($customer_name);
+        }
+
+        return sprintf(
+            '<a class="apbct-details-spam-order-button apbct-order-view" role="button" tabindex="0" data-spam-order-id="%1$s"><strong>#%1$s %2$s</strong></a>',
+            esc_attr(TT::toString($spam_order_id)),
+            $customer_name
+        );
+    }
+
     private function renderOrderDateColumn($order_date)
     {
         if ( ! $order_date ) {
@@ -268,12 +403,94 @@ class WcSpamOrdersListTable extends CleantalkListTable
             return '-';
         }
 
+        // Fresh orders are shown as "5 minutes ago", the older ones as a date. Same as WooCommerce does.
+        $diff = time() - $timestamp;
+        if ( $diff >= 0 && $diff < DAY_IN_SECONDS ) {
+            /* translators: %s: human-readable time difference */
+            $show_date = sprintf(__('%s ago', 'cleantalk-spam-protect'), human_time_diff($timestamp, time()));
+        } else {
+            $show_date = date_i18n('M j, Y', $timestamp);                  // Feb 15, 2023
+        }
+
         return sprintf(
             '<time datetime="%1$s" title="%2$s">%3$s</time>',
             esc_attr(date_i18n('c', $timestamp)),                    // 2023-02-15T20:25:06+00:00
-            esc_html(date_i18n('d.m.Y H:i', $timestamp)),            // 15.02.2023 20:25
-            esc_html(date_i18n('M d, Y', $timestamp))                // Feb 15, 2023
+            esc_attr(date_i18n('d.m.Y H:i', $timestamp)),            // 15.02.2023 20:25
+            esc_html($show_date)
         );
+    }
+
+    /**
+     * Every stored order is a blocked spam one, so the status is always the same.
+     *
+     * @return string
+     */
+    private function renderStatusColumn()
+    {
+        return '<mark class="apbct-order-status apbct-order-status--spam"><span>'
+            . esc_html__('Spam', 'cleantalk-spam-protect')
+            . '</span></mark>';
+    }
+
+    /**
+     * @param string $order_details
+     *
+     * @return string Formatted order total or a dash if it can not be calculated.
+     */
+    private function renderTotalColumn($order_details)
+    {
+        $total = $this->calcOrderTotal($order_details);
+
+        if ( is_null($total) ) {
+            return '-';
+        }
+
+        /** @psalm-suppress UndefinedFunction */
+        return function_exists('wc_price')
+            ? wc_price($total)
+            : esc_html(number_format_i18n($total, 2));
+    }
+
+    /**
+     * Sums up the stored cart items. Cart data keeps the calculated line totals,
+     * the product price is used as a fallback only.
+     *
+     * @param string $order_details
+     *
+     * @return float|null Null if the order details can not be decoded.
+     *
+     * @psalm-suppress UndefinedFunction
+     */
+    private function calcOrderTotal($order_details)
+    {
+        $order_details = json_decode($order_details, true);
+
+        if ( ! is_array($order_details) ) {
+            return null;
+        }
+
+        $total = 0;
+
+        foreach ( $order_details as $order_detail ) {
+            if ( ! is_array($order_detail) ) {
+                continue;
+            }
+
+            if ( isset($order_detail['line_total']) ) {
+                $total += (float) $order_detail['line_total'] + (float) ($order_detail['line_tax'] ?? 0);
+                continue;
+            }
+
+            if ( isset($order_detail['product_id']) && function_exists('wc_get_product') && class_exists('\WC_Product') ) {
+                $wc_product       = wc_get_product($order_detail['product_id']);
+                $wc_product_class = '\WC_Product';
+                if ( $wc_product instanceof $wc_product_class ) {
+                    $total += (float) $wc_product->get_price() * (float) ($order_detail['quantity'] ?? 1);
+                }
+            }
+        }
+
+        return (float) $total;
     }
 
     /**
@@ -288,20 +505,69 @@ class WcSpamOrdersListTable extends CleantalkListTable
 
         $sql = 'SELECT * FROM ' . APBCT_TBL_WC_SPAM_ORDERS;
 
-        if ($orderby) {
-            $sql .= ' ORDER BY ' . $orderby . ' ' . $order;
-        }
+        // The newest spam orders are shown first by default, the same way as WooCommerce orders list does it.
+        $sql .= ' ORDER BY ' . ($orderby ? $orderby : 'order_date') . ' ' . $order;
 
         $result = $wpdb->get_results($sql, OBJECT);
 
-        return is_array($result) ? $result : array();
+        $result = is_array($result) ? $result : array();
+
+        if ( Get::getString('orderby') === 'total' ) {
+            $result = $this->sortByTotal($result, $order);
+        }
+
+        return $result;
+    }
+
+    /**
+     * The order total is not stored as a column, so it has to be sorted after the fetch.
+     *
+     * @param array $wc_spam_orders
+     * @param string $order ASC|DESC
+     *
+     * @return array
+     */
+    private function sortByTotal($wc_spam_orders, $order)
+    {
+        $totals = array();
+
+        foreach ( $wc_spam_orders as $key => $wc_spam_order ) {
+            $calculated_total = is_string($wc_spam_order->order_details)
+                ? $this->calcOrderTotal($wc_spam_order->order_details)
+                : null;
+
+            if ( is_null($calculated_total) ) {
+                // Keep undecodable totals consistently at the end for both ASC and DESC.
+                $calculated_total = $order === 'DESC' ? -PHP_FLOAT_MAX : PHP_FLOAT_MAX;
+            }
+
+            $totals[$key] = (float) $calculated_total;
+        }
+
+        uasort($totals, static function ($a, $b) {
+            if ( $a === $b ) {
+                return 0;
+            }
+            return $a < $b ? -1 : 1;
+        });
+
+        if ( $order === 'DESC' ) {
+            $totals = array_reverse($totals, true);
+        }
+
+        $sorted = array();
+        foreach ( array_keys($totals) as $key ) {
+            $sorted[] = $wc_spam_orders[$key];
+        }
+
+        return $sorted;
     }
 
     private function getSqlOrderBy()
     {
         $order_by = Get::getString('orderby');
-        $allowed_order_by = array_keys($this->get_sortable_columns());
-        return in_array('ct_' . $order_by, $allowed_order_by) ? $order_by : '';
+        $allowed_order_by = array('id', 'order_date');
+        return in_array($order_by, $allowed_order_by, true) ? $order_by : '';
     }
 
     private function removeSpam($ids)
@@ -325,10 +591,16 @@ class WcSpamOrdersListTable extends CleantalkListTable
         );
     }
 
-    private function generatePageHeader()
+    /**
+     * Notices shown above the table: the stored orders count and the warnings about the data.
+     *
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function renderPageNotices()
     {
         if ( ! apbct_api_key__is_correct() ) {
-            if ( 1 == $this->spam_checker->getApbct()->moderate_ip ) {
+            if ( 1 == $this->apbct->moderate_ip ) {
                 echo '<h3>'
                      . sprintf(
                          __(
@@ -346,39 +618,29 @@ class WcSpamOrdersListTable extends CleantalkListTable
         }
 
         ?>
-        <div class="wrap">
-            <h2>
-                <?php
-                if ($this->apbct->data["wl_mode_enabled"]) {
-                    echo $this->apbct->data["wl_brandname"];
-                } else {
-                    echo '<img src="' . $this->apbct->logo__small__colored . '" alt="CleanTalk logo"/>' . $this->apbct->plugin_name;
-                }
-                ?>
-            </h2>
-            <a style="color: gray; margin-left: 23px;" href="<?php
-            echo $this->apbct->settings_link; ?>"><?php
-                _e('Plugin Settings', 'cleantalk-spam-protect'); ?></a>
-            <br/>
-            <h3><?php
-                echo $this->page_title; ?></h3>
-            <p>Total count of spam orders: <?php
-                echo $this->wc_spam_orders_count ?></p>
-            <p>Please do backup of WordPress database before delete any orders!</p>
-            <p>Results are based on the decision of our spam checking system and do not give a complete guarantee that
-                these orders are spam.</p>
-            <?php
-            if ($this->apbct->settings['data__wc_store_blocked_orders'] != 1) {
-                echo '<p style="color: red;">'
-                . __(
-                    'To store WooCommerce spam orders, enable the "Store blocked WooCommerce orders" option in CleanTalk settings.',
-                    'cleantalk-spam-protect'
-                )
-                . '</p>';
-            }
-            ?>
-        </div>
+        <p><?php
+            esc_html_e(
+                'Please do backup of WordPress database before delete any orders!',
+                'cleantalk-spam-protect'
+            );
+            echo ' ';
+            esc_html_e(
+                'Results are based on the decision of our spam checking system and do not give a complete guarantee that these orders are spam.',
+                'cleantalk-spam-protect'
+            ); ?></p>
         <?php
+        if ( empty($this->apbct->settings['data__wc_store_blocked_orders']) ) {
+            echo '<p style="color: red;">'
+            . sprintf(
+                esc_html__(
+                    'To store Spam orders, enable the "Store blocked WooCommerce orders" option in %1$sCleanTalk settings%2$s.',
+                    'cleantalk-spam-protect'
+                ),
+                '<a href="' . esc_url(TT::toString($this->apbct->settings_link)) . '">',
+                '</a>'
+            )
+            . '</p>';
+        }
     }
 
     private function deleteFromDb($spam_ids)

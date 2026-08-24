@@ -94,7 +94,7 @@ class State extends \Cleantalk\Common\State
         'data__email_decoder_obfuscation_custom_text' => '',
         'data__email_decoder_encode_phone_numbers' => 0,
         'data__email_decoder_encode_email_addresses' => 1,
-        'data__wc_store_blocked_orders'            => 0,
+        'data__wc_store_blocked_orders'            => 1,
 
         // Exclusions
         // Send to the cloud some excepted requests
