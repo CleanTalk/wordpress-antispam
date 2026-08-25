@@ -894,6 +894,9 @@ abstract class ContactsEncoder
     {
         if ( !$reverse ) {
             $this->aria_placeholders = array();
+            if ( !$this->isSecureAriaLabelPlaceholderAvailable() ) {
+                return $content;
+            }
             return preg_replace_callback($this->aria_regex, array($this, 'replaceAriaLabelWithPlaceholder'), $content);
         }
         if ( !empty($this->aria_placeholders) ) {
@@ -917,18 +920,40 @@ abstract class ContactsEncoder
         }
         $original = $matches[0];
         $placeholder = $this->generateAriaLabelPlaceholder();
+        if ( $placeholder === null ) {
+            return $original;
+        }
         $this->aria_placeholders[$placeholder] = $original;
         return $placeholder;
     }
 
     /**
+     * Whether a cryptographically secure placeholder can be generated.
+     *
+     * @return bool
+     */
+    private function isSecureAriaLabelPlaceholderAvailable()
+    {
+        return function_exists('openssl_random_pseudo_bytes');
+    }
+
+    /**
      * Build an unguessable placeholder so attacker-controlled content cannot collide with it.
      *
-     * @return string
+     * @return string|null Null when no secure entropy source is available.
      */
     private function generateAriaLabelPlaceholder()
     {
-        return '%%APBCT_ARIA_' . bin2hex(openssl_random_pseudo_bytes(16)) . '%%';
+        if ( !function_exists('openssl_random_pseudo_bytes') ) {
+            return null;
+        }
+
+        $bytes = openssl_random_pseudo_bytes(16);
+        if ( is_string($bytes) && strlen($bytes) === 16 ) {
+            return '%%APBCT_ARIA_' . bin2hex($bytes) . '%%';
+        }
+
+        return null;
     }
 
     /**
