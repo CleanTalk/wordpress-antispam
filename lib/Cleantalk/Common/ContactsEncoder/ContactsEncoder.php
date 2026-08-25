@@ -934,6 +934,10 @@ abstract class ContactsEncoder
      */
     private function isSecureAriaLabelPlaceholderAvailable()
     {
+        if ( function_exists('random_bytes') ) {
+            return true;
+        }
+
         return function_exists('openssl_random_pseudo_bytes');
     }
 
@@ -944,13 +948,23 @@ abstract class ContactsEncoder
      */
     private function generateAriaLabelPlaceholder()
     {
-        if ( !function_exists('openssl_random_pseudo_bytes') ) {
-            return null;
+        if ( function_exists('random_bytes') ) {
+            try {
+                $bytes = random_bytes(16);
+                if ( is_string($bytes) && strlen($bytes) === 16 ) {
+                    return '%%APBCT_ARIA_' . bin2hex($bytes) . '%%';
+                }
+            } catch ( \Exception $e ) {
+                // fall through to openssl
+            }
         }
 
-        $bytes = openssl_random_pseudo_bytes(16);
-        if ( is_string($bytes) && strlen($bytes) === 16 ) {
-            return '%%APBCT_ARIA_' . bin2hex($bytes) . '%%';
+        if ( function_exists('openssl_random_pseudo_bytes') ) {
+            $crypto_strong = false;
+            $bytes = openssl_random_pseudo_bytes(16, $crypto_strong);
+            if ( $crypto_strong && is_string($bytes) && strlen($bytes) === 16 ) {
+                return '%%APBCT_ARIA_' . bin2hex($bytes) . '%%';
+            }
         }
 
         return null;
