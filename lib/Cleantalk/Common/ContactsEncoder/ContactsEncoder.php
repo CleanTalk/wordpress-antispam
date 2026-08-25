@@ -253,7 +253,9 @@ abstract class ContactsEncoder
         }
 
         // modify content to prevent aria-label replaces by hiding it
-        $content = $this->handleAriaLabelContent($content);
+        if ( $this->do_encode_emails || $this->do_encode_phones ) {
+            $content = $this->handleAriaLabelContent($content);
+        }
 
         // will use this in regexp callback
         $this->temp_content = $content;

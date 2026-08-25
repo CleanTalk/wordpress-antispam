@@ -249,7 +249,7 @@ class TestEmailEncoder extends TestCase
         $result = $this->contacts_encoder->modifyContent($payload);
 
         $this->assertStringContainsString('ct_temp_aria_0', $result);
-        $this->assertNotRegExp('/>aria-label=/', $result);
+        $this->assertNotRegExp('/>\s*aria-label\s*=/', $result);
     }
 
     /**
@@ -265,7 +265,7 @@ class TestEmailEncoder extends TestCase
         $result = $this->contacts_encoder->modifyContent($payload);
 
         $planted_token_preserved = strpos($result, 'ct_temp_aria_0') !== false;
-        $breakout_injected = (bool) preg_match('/>aria-label=/', $result);
+        $breakout_injected = (bool) preg_match('/>\s*aria-label\s*=/', $result);
 
         $this->assertTrue($planted_token_preserved, 'Planted ct_temp_aria_0 token must survive encoder round-trip.');
         $this->assertFalse($breakout_injected, 'Encoder must not inject aria-label markup via token substitution.');
