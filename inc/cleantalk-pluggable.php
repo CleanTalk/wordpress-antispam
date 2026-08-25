@@ -2342,6 +2342,8 @@ function apbct_get_inline_script_tag($javascript, $attributes = array())
         }
     }
 
+    $javascript = preg_replace('#</script#i', '<\/script', $javascript);
+
     return '<script' . $attr_string . '>' . $javascript . '</script>';
 }
 
