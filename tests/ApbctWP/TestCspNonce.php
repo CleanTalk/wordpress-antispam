@@ -1,10 +1,21 @@
 <?php
 
+use Cleantalk\ApbctWP\State;
+
 class TestCspNonce extends \PHPUnit\Framework\TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        global $apbct;
+        $apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
+    }
+
     protected function tearDown(): void
     {
         remove_all_filters('apbct_csp_nonce');
+        global $apbct;
+        unset($apbct);
         parent::tearDown();
     }
 

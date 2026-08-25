@@ -40,7 +40,7 @@ class CtPublicFunctionsLocalize
         return apbct_get_inline_script_tag(
             'var ' . self::NAME . ' = ' . json_encode(self::getData()),
             array(
-                'data-no-defer' => true,
+                'data-no-defer' => '1',
                 'data-ezscrex' => 'false',
                 'data-cfasync' => 'false',
                 'data-pagespeed-no-defer' => true,

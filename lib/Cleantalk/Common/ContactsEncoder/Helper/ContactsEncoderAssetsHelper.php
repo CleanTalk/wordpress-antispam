@@ -26,6 +26,6 @@ class ContactsEncoderAssetsHelper
     public static function renderJsTag()
     {
         $jsContent = file_get_contents(self::getJsPath());
-        return apbct_get_inline_script_tag($jsContent);
+        return "<script>{$jsContent}</script>";
     }
 }
