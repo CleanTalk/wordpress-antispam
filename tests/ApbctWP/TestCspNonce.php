@@ -4,10 +4,14 @@ use Cleantalk\ApbctWP\State;
 
 class TestCspNonce extends \PHPUnit\Framework\TestCase
 {
+    /** @var mixed */
+    private $original_apbct;
+
     protected function setUp(): void
     {
         parent::setUp();
         global $apbct;
+        $this->original_apbct = $apbct;
         $apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
     }
 
@@ -15,7 +19,7 @@ class TestCspNonce extends \PHPUnit\Framework\TestCase
     {
         remove_all_filters('apbct_csp_nonce');
         global $apbct;
-        unset($apbct);
+        $apbct = $this->original_apbct;
         parent::tearDown();
     }
 
