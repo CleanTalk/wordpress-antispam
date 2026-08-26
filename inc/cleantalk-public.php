@@ -1348,26 +1348,25 @@ function apbct_generate_trusted_text_html($type = 'div')
         . '" target="_blank" rel="nofollow">'
         . 'CleanTalk Anti-Spam'
         . '</a>';
+    /* translators: %s: HTML link to CleanTalk Anti-Spam */
+    $protected_by_text = sprintf(__('Protected by %s', 'cleantalk-spam-protect'), $cleantalk_tag_with_ref_link);
 
     if ( $type === 'div' || $type === 'center' ) {
         $trusted_text = '<div class="' . $css_class . '">'
             . '<p>'
-            . 'Protected by '
-            . $cleantalk_tag_with_ref_link
+            . $protected_by_text
             . '</p>'
             . '</div>';
     }
     if ( strpos($type, 'label') !== false ) {
         $trusted_text = '<label for="hidden_trusted_text" type="hidden" class="' . $css_class . '">'
-            . 'Protected by '
-            . $cleantalk_tag_with_ref_link
+            . $protected_by_text
             . '</label>'
             . '<input type="hidden" name="hidden_trusted_text" id="hidden_trusted_text">';
     }
     if ( $type === 'span' ) {
         $trusted_text = '<span class="' . $css_class . '">'
-            . 'Protected by '
-            . $cleantalk_tag_with_ref_link
+            . $protected_by_text
             . '</span>';
     }
     return $trusted_text;
