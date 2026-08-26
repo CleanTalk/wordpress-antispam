@@ -18,7 +18,7 @@
         "wp-cli/wp-cli-bundle": "*",
         "mockery/mockery": "*",
         "cleantalk/apbct-installer": "*",
-        "cleantalk/contacts-encoder": "2.0.18",
+        "cleantalk/contacts-encoder": "2.0.18.4",
         "cleantalk/rate-limiter": "*"
     },
     "scripts": {
