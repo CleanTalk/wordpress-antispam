@@ -459,12 +459,11 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     {
         global $apbct;
 
-        $script =
-        "<script>
-            window.addEventListener('DOMContentLoaded', function () {
+        $script = apbct_get_inline_script_tag(
+            "window.addEventListener('DOMContentLoaded', function () {
                 ctSetCookie( " . json_encode(self::COOKIE_NAME__ANTIBOT) . ", '" . apbct_get_anti_bot_cookie_hash($apbct->api_key, $apbct->data['salt']) . "', 0 );
-            });
-        </script>";
+            });"
+        );
 
         echo $script;
     }

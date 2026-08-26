@@ -594,28 +594,25 @@ function apbct_hook__wp_footer()
                                 }";
         }
 
-        $cookie_bot_asset = (class_exists('Cookiebot_WP')) ? 'data-cookieconsent="ignore"' : '';
+        $script_attrs = array();
+        if ( class_exists('Cookiebot_WP') ) {
+            $script_attrs['data-cookieconsent'] = 'ignore';
+        }
 
-        $script =
-            '<script ' . $cookie_bot_asset
-            . ">				
-                    document.addEventListener('DOMContentLoaded', function () {
+        $script = apbct_get_inline_script_tag(
+            "document.addEventListener('DOMContentLoaded', function () {
                         setTimeout(function(){
                             if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
                                 " . $send_way_asset . "
                             }
-                        }," . $timeout . ")					    
-                    })				
-                </script>";
+                        }," . $timeout . ")
+                    })",
+            $script_attrs
+        );
 
         echo Escape::escKses(
             $script,
-            array(
-                'script' => array(
-                    'type' => true,
-                    'data-cookieconsent' => true
-                )
-            )
+            apbct_get_inline_script_kses()
         );
     }
 }
@@ -674,18 +671,24 @@ function ct_add_hidden_fields(
             return;
         }
 
+        $script_attrs = array();
+        if ( class_exists('Cookiebot_WP') ) {
+            $script_attrs['data-cookieconsent'] = 'ignore';
+        }
+
         $ct_input_challenge = sprintf("'%s'", is_null($ct_checkjs_key) ? $ct_checkjs_def : $ct_checkjs_key);
         $field_id           = $field_name . '_' . $field_id_hash;
-        $html               = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />
-		<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
-			setTimeout(function(){
+        $html               = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />"
+            . apbct_get_inline_script_tag(
+                "setTimeout(function(){
 				var ct_input_name = \"{$field_id}\";
 				if (document.getElementById(ct_input_name) !== null) {
 					var ct_input_value = document.getElementById(ct_input_name).value;
 					document.getElementById(ct_input_name).value = document.getElementById(ct_input_name).value.replace(ct_input_value, {$ct_input_challenge});
 				}
-			}, 1000);
-		</script>";
+			}, 1000);",
+                $script_attrs
+            );
     }
 
     // Simplify JS code and Fixing issue with wpautop()
@@ -696,16 +699,15 @@ function ct_add_hidden_fields(
     } else {
         echo Escape::escKses(
             $html,
-            array(
-                'script' => array(
-                    'type' => true,
-                    'data-cookieconsent' => true
-                ),
+            array_merge(
+                apbct_get_inline_script_kses(),
+                array(
                 'input' => array(
                     'type' => true,
                     'id' => true,
                     'name' => true,
                     'value' => true
+                )
                 )
             )
         );
