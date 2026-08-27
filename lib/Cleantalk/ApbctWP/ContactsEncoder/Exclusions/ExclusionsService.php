@@ -224,6 +224,12 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
 
     /**
      * Check content if it contains exclusions from exclusion list
+     *
+     * Applies filter "apbct_email_encoder_content_exclusions_signs" to extend the built-in signs.
+     * Each item must be an array of strings; encoding is skipped when all strings of an item are found.
+     *
+     * @see https://cleantalk.org/help/using-shortcodes-hooks-to-encode-contact-data#exclude
+     *
      * @param string $content - content to check
      * @return bool - true if exclusions found, else - false
      */
@@ -232,28 +238,35 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
         if (!is_string($content) || $content === '') {
             return false;
         }
-        if ( is_array($this->content_exclusions_signs) ) {
-            foreach ( array_values($this->content_exclusions_signs) as $_signs_array => $signs ) {
-                //process each of subarrays of signs
-                $signs_found_count = 0;
-                if ( isset($signs) && is_array($signs) ) {
-                    //chek all the signs in the sub-array
-                    foreach ( $signs as $sign ) {
-                        if ( is_string($sign) ) {
-                            if ( strpos($content, $sign) === false ) {
-                                continue;
-                            } else {
-                                $signs_found_count++;
-                            }
+
+        $filtered_signs = apply_filters(
+            'apbct_email_encoder_content_exclusions_signs',
+            $this->content_exclusions_signs
+        );
+        if ( ! is_array($filtered_signs) ) {
+            $filtered_signs = $this->content_exclusions_signs;
+        }
+
+        foreach ( array_values($filtered_signs) as $_signs_array => $signs ) {
+            //process each of subarrays of signs
+            $signs_found_count = 0;
+            if ( isset($signs) && is_array($signs) ) {
+                //chek all the signs in the sub-array
+                foreach ( $signs as $sign ) {
+                    if ( is_string($sign) ) {
+                        if ( strpos($content, $sign) === false ) {
+                            continue;
+                        } else {
+                            $signs_found_count++;
                         }
                     }
-                    //if each of signs in the sub-array are found return true
-                    if ( $signs_found_count === count($signs) ) {
-                        if (in_array('et_pb_contact_form', $signs) && !is_admin()) {
-                            return false;
-                        }
-                        return true;
+                }
+                //if each of signs in the sub-array are found return true
+                if ( $signs_found_count === count($signs) && $signs_found_count > 0 ) {
+                    if (in_array('et_pb_contact_form', $signs) && !is_admin()) {
+                        return false;
                     }
+                    return true;
                 }
             }
         }

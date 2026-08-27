@@ -12,7 +12,7 @@ class ContactsEncoderHelper
      * @var array[]
      */
     private $attribute_exclusions_signs = array(
-        'input' => array('placeholder', 'value'),
+        'input' => array('placeholder', 'value', 'data-mask'),
         'sc-customer-email' => array('placeholder', 'value'),
         'img' => array('alt', 'title'),
         'div' => array('data-et-multi-view'),
@@ -129,29 +129,112 @@ class ContactsEncoderHelper
 
     /**
      * Check if email is placed in the tag that has attributes of exclusions.
+     *
+     * Applies filter "apbct_email_encoder_attribute_exclusions_signs" (tag => attribute names)
+     * and "apbct_skip_email_encoder_on_attribute_list" (flat list of attribute names, any tag).
+     *
      * @param string $email_match - email
      * @param string $temp_content - email
      * @return bool
      */
     public function hasAttributeExclusions($email_match, $temp_content)
     {
-        $email_match = preg_quote($email_match);
-        foreach ( $this->attribute_exclusions_signs as $tag => $array_of_attributes ) {
+        if ( ! is_string($email_match) || $email_match === '' || ! is_string($temp_content) ) {
+            return false;
+        }
+
+        $quoted_match = preg_quote($email_match, '/');
+        $attribute_signs = $this->getAttributeExclusionsSigns();
+
+        foreach ( $attribute_signs as $tag => $array_of_attributes ) {
+            if ( ! is_array($array_of_attributes) ) {
+                continue;
+            }
             foreach ( $array_of_attributes as $attribute ) {
-                //do not remove IDE highlighted unnecessary escape!
-                $pattern = '/<'
-                           . $tag
-                           . '+\s+[^>]*\b'
-                           . $attribute
-                           . '=((\\\')|")?[^"]*\b'
-                           . $email_match
-                           . '\b[^"]*((\\\')|")?"[^>]*>/';
-                preg_match($pattern, $temp_content, $attr_match);
-                if ( !empty($attr_match) ) {
+                if ( ! is_string($attribute) || $attribute === '' ) {
+                    continue;
+                }
+                if ( $this->isMatchInsideAttribute($quoted_match, $attribute, $temp_content, $tag) ) {
                     return true;
                 }
             }
         }
+
+        foreach ( $this->getAttributeExclusionsList() as $attribute ) {
+            if ( $this->isMatchInsideAttribute($quoted_match, $attribute, $temp_content) ) {
+                return true;
+            }
+        }
+
         return false;
+    }
+
+    /**
+     * @return array
+     */
+    private function getAttributeExclusionsSigns()
+    {
+        $signs = $this->attribute_exclusions_signs;
+        if ( function_exists('apply_filters') ) {
+            /** @psalm-suppress UndefinedFunction */
+            $filtered = apply_filters('apbct_email_encoder_attribute_exclusions_signs', $signs);
+            if ( is_array($filtered) ) {
+                return $filtered;
+            }
+        }
+
+        return $signs;
+    }
+
+    /**
+     * Flat list of HTML attribute names to skip encoding in, regardless of tag.
+     *
+     * @return array
+     */
+    private function getAttributeExclusionsList()
+    {
+        if ( ! function_exists('apply_filters') ) {
+            return array();
+        }
+
+        /** @psalm-suppress UndefinedFunction */
+        $attribute_list = apply_filters('apbct_skip_email_encoder_on_attribute_list', array());
+        if ( ! is_array($attribute_list) ) {
+            return array();
+        }
+
+        $result = array();
+        foreach ( $attribute_list as $attribute ) {
+            if ( is_string($attribute) && $attribute !== '' ) {
+                $result[] = $attribute;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param string $quoted_match
+     * @param string $attribute
+     * @param string $content
+     * @param string|null $tag
+     * @return bool
+     */
+    private function isMatchInsideAttribute($quoted_match, $attribute, $content, $tag = null)
+    {
+        $quoted_attribute = preg_quote($attribute, '/');
+        $tag_prefix = $tag === null
+            ? ''
+            : '<' . preg_quote($tag, '/') . '\s+[^>]*';
+
+        $pattern = '/'
+                   . $tag_prefix
+                   . '\b'
+                   . $quoted_attribute
+                   . '\s*=\s*(["\'])[^"\']*'
+                   . $quoted_match
+                   . '[^"\']*\1/';
+
+        return (bool) preg_match($pattern, $content);
     }
 }
