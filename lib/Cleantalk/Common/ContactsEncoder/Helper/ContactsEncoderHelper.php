@@ -19,6 +19,18 @@ class ContactsEncoderHelper
     );
 
     /**
+     * Runtime map of tag => attribute names. Null means use the built-in defaults.
+     * @var array[]|null
+     */
+    private $runtime_attribute_exclusions_signs;
+
+    /**
+     * Flat list of HTML attribute names to skip encoding in, regardless of tag.
+     * @var string[]
+     */
+    private $attribute_exclusions_list = array();
+
+    /**
      * Checking if the string contains mailto: link
      *
      * @param string $string
@@ -128,10 +140,91 @@ class ContactsEncoderHelper
     }
 
     /**
-     * Check if email is placed in the tag that has attributes of exclusions.
+     * Built-in tag => attribute map. Returned as a copy so callers can mutate it safely.
      *
-     * Applies filter "apbct_email_encoder_attribute_exclusions_signs" (tag => attribute names)
-     * and "apbct_skip_email_encoder_on_attribute_list" (flat list of attribute names, any tag).
+     * @return array[]
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function getDefaultAttributeExclusionsSigns()
+    {
+        $copy = array();
+        foreach ( $this->attribute_exclusions_signs as $tag => $attributes ) {
+            $copy[$tag] = is_array($attributes) ? array_values($attributes) : $attributes;
+        }
+
+        return $copy;
+    }
+
+    /**
+     * Replace the working tag => attribute map (e.g. after a host-app filter).
+     *
+     * @param array $map
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function setAttributeExclusionsMap(array $map)
+    {
+        $this->runtime_attribute_exclusions_signs = $map;
+    }
+
+    /**
+     * Merge extra attribute names for a tag into the working map.
+     *
+     * @param string $tag
+     * @param string[] $attributes
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function addAttributeExclusions($tag, array $attributes)
+    {
+        if ( ! is_string($tag) || $tag === '' ) {
+            return;
+        }
+
+        $map = $this->getWorkingAttributeExclusionsSigns();
+        if ( ! isset($map[$tag]) || ! is_array($map[$tag]) ) {
+            $map[$tag] = array();
+        }
+
+        foreach ( $attributes as $attribute ) {
+            if ( is_string($attribute) && $attribute !== '' && ! in_array($attribute, $map[$tag], true) ) {
+                $map[$tag][] = $attribute;
+            }
+        }
+
+        $this->runtime_attribute_exclusions_signs = $map;
+    }
+
+    /**
+     * Replace the flat list of attribute names skipped on any tag.
+     *
+     * @param array $names
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function setAttributeNames(array $names)
+    {
+        $this->attribute_exclusions_list = $this->sanitizeAttributeNames($names);
+    }
+
+    /**
+     * Append attribute names skipped on any tag.
+     *
+     * @param string[] $names
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function addAttributeNames(array $names)
+    {
+        foreach ( $this->sanitizeAttributeNames($names) as $attribute ) {
+            if ( ! in_array($attribute, $this->attribute_exclusions_list, true) ) {
+                $this->attribute_exclusions_list[] = $attribute;
+            }
+        }
+    }
+
+    /**
+     * Check if email is placed in the tag that has attributes of exclusions.
      *
      * @param string $email_match - email
      * @param string $temp_content - email
@@ -144,7 +237,7 @@ class ContactsEncoderHelper
         }
 
         $quoted_match = preg_quote($email_match, '/');
-        $attribute_signs = $this->getAttributeExclusionsSigns();
+        $attribute_signs = $this->getWorkingAttributeExclusionsSigns();
 
         foreach ( $attribute_signs as $tag => $array_of_attributes ) {
             if ( ! is_array($array_of_attributes) ) {
@@ -160,7 +253,7 @@ class ContactsEncoderHelper
             }
         }
 
-        foreach ( $this->getAttributeExclusionsList() as $attribute ) {
+        foreach ( $this->attribute_exclusions_list as $attribute ) {
             if ( $this->isMatchInsideAttribute($quoted_match, $attribute, $temp_content) ) {
                 return true;
             }
@@ -172,39 +265,21 @@ class ContactsEncoderHelper
     /**
      * @return array
      */
-    private function getAttributeExclusionsSigns()
+    private function getWorkingAttributeExclusionsSigns()
     {
-        $signs = $this->attribute_exclusions_signs;
-        if ( function_exists('apply_filters') ) {
-            /** @psalm-suppress UndefinedFunction */
-            $filtered = apply_filters('apbct_email_encoder_attribute_exclusions_signs', $signs);
-            if ( is_array($filtered) ) {
-                return $filtered;
-            }
-        }
-
-        return $signs;
+        return is_array($this->runtime_attribute_exclusions_signs)
+            ? $this->runtime_attribute_exclusions_signs
+            : $this->attribute_exclusions_signs;
     }
 
     /**
-     * Flat list of HTML attribute names to skip encoding in, regardless of tag.
-     *
-     * @return array
+     * @param array $names
+     * @return string[]
      */
-    private function getAttributeExclusionsList()
+    private function sanitizeAttributeNames(array $names)
     {
-        if ( ! function_exists('apply_filters') ) {
-            return array();
-        }
-
-        /** @psalm-suppress UndefinedFunction */
-        $attribute_list = apply_filters('apbct_skip_email_encoder_on_attribute_list', array());
-        if ( ! is_array($attribute_list) ) {
-            return array();
-        }
-
         $result = array();
-        foreach ( $attribute_list as $attribute ) {
+        foreach ( $names as $attribute ) {
             if ( is_string($attribute) && $attribute !== '' ) {
                 $result[] = $attribute;
             }

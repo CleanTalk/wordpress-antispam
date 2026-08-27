@@ -913,6 +913,35 @@ class TestEmailEncoder extends TestCase
         $this->assertStringContainsString('apbct-email-encoder', $result);
     }
 
+    public function testAttributeExclusionsSignsFilter()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_BLUR;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        add_filter('apbct_email_encoder_attribute_exclusions_signs', function ($signs) {
+            $signs['span'] = array('data-phone-mask');
+            return $signs;
+        });
+
+        $mask = '(999) 321-1233';
+        $visible_phone = '(800) 555-1234';
+        $content = 'Call ' . $visible_phone
+            . ' <span data-phone-mask="' . $mask . '"></span>';
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        remove_all_filters('apbct_email_encoder_attribute_exclusions_signs');
+
+        $this->assertStringContainsString('data-phone-mask="' . $mask . '"', $result);
+        $this->assertStringNotContainsString($visible_phone, $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+    }
+
     public function tearDown() : void
     {
         global $apbct;

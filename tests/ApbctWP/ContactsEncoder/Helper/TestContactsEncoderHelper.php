@@ -15,14 +15,6 @@ class TestContactsEncoderHelper extends TestCase
     protected function setUp(): void
     {
         $this->helper = new ContactsEncoderHelper();
-        remove_all_filters('apbct_email_encoder_attribute_exclusions_signs');
-        remove_all_filters('apbct_skip_email_encoder_on_attribute_list');
-    }
-
-    protected function tearDown(): void
-    {
-        remove_all_filters('apbct_email_encoder_attribute_exclusions_signs');
-        remove_all_filters('apbct_skip_email_encoder_on_attribute_list');
     }
 
     public function testHasAttributeExclusionsForInputDataMask()
@@ -49,15 +41,22 @@ class TestContactsEncoderHelper extends TestCase
         $this->assertFalse($this->helper->hasAttributeExclusions($phone, $content));
     }
 
-    public function testHasAttributeExclusionsHonorsAttributeListFilter()
+    public function testHasAttributeExclusionsHonorsAddAttributeNames()
     {
-        add_filter('apbct_skip_email_encoder_on_attribute_list', function ($attribute_list) {
-            $attribute_list[] = 'data-phone-format';
-            return $attribute_list;
-        });
+        $this->helper->addAttributeNames(array('data-phone-format'));
 
         $mask = '(999) 321-1233';
         $content = '<span data-phone-format="' . $mask . '"></span>';
+
+        $this->assertTrue($this->helper->hasAttributeExclusions($mask, $content));
+    }
+
+    public function testHasAttributeExclusionsHonorsAddAttributeExclusions()
+    {
+        $this->helper->addAttributeExclusions('span', array('data-phone-mask'));
+
+        $mask = '(999) 321-1233';
+        $content = '<span data-phone-mask="' . $mask . '"></span>';
 
         $this->assertTrue($this->helper->hasAttributeExclusions($mask, $content));
     }
