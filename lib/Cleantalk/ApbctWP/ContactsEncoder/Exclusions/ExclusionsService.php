@@ -251,7 +251,7 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
             //process each of subarrays of signs
             $signs_found_count = 0;
             if ( isset($signs) && is_array($signs) ) {
-                //chek all the signs in the sub-array
+                //check all the signs in the sub-array
                 foreach ( $signs as $sign ) {
                     if ( is_string($sign) ) {
                         if ( strpos($content, $sign) === false ) {

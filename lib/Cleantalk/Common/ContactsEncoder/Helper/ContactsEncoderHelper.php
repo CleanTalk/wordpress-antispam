@@ -298,8 +298,9 @@ class ContactsEncoderHelper
     private function isMatchInsideAttribute($quoted_match, $attribute, $content, $tag = null)
     {
         $quoted_attribute = preg_quote($attribute, '/');
+        // Always require an HTML tag so plain text like attr="..." is not treated as markup.
         $tag_prefix = $tag === null
-            ? ''
+            ? '<[a-zA-Z][\w:-]*\s+[^>]*'
             : '<' . preg_quote($tag, '/') . '\s+[^>]*';
 
         $pattern = '/'
