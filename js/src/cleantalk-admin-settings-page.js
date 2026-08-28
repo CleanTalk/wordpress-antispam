@@ -712,7 +712,7 @@ function onApbctCookieTypeChange(event) { // eslint-disable-line no-unused-vars
                     'Switching cookie mode to \'On\' or \'Off\' may affect filtering quality. ',
                     'cleantalk-spam-protect',
                 ) +
-                __('The recommended setting is \'Auto\'."', 'cleantalk-spam-protect')
+                __('The recommended setting is \'Auto\'.', 'cleantalk-spam-protect')
             ),
             '',
             (decision)=>{
