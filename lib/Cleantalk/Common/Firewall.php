@@ -3,6 +3,7 @@
 namespace Cleantalk\Common;
 
 use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\Firewall\FirewallModule;
 use Cleantalk\ApbctWP\Variables\Get;
 
@@ -25,6 +26,11 @@ use Cleantalk\ApbctWP\Variables\Get;
 class Firewall
 {
     public $ip_array = array();
+
+    /**
+     * @var array example array ( 'ua', 'ua_id', 'ua_status')
+     */
+    public $user_agent_data = array();
 
     // Database
     protected $db;
@@ -64,6 +70,7 @@ class Firewall
         $this->db       = $db;
         $this->debug    = (bool)Get::get('debug');
         $this->ip_array = $this->ipGet();
+        $this->user_agent_data = $this->getUserAgentData();
     }
 
     /**
@@ -81,6 +88,40 @@ class Firewall
         return ! empty($result) ? array('real' => $result) : array();
     }
 
+    public function getUserAgentData()
+    {
+        $server_ua = TT::toString(Server::get('HTTP_USER_AGENT'));
+        $ua_table = defined('APBCT_TBL_AC_UA_BL') ? APBCT_TBL_AC_UA_BL : null;
+
+        if ( $ua_table ) {
+            $ua_bl_query = "SELECT * FROM $ua_table ORDER BY `ua_status` DESC;";
+            $ua_bl_results = $this->db->fetchAll($ua_bl_query);
+            foreach ( $ua_bl_results as $ua_bl_result ) {
+                if (
+                    ! empty($ua_bl_result['ua_template']) &&
+                    preg_match(
+                        '%' . str_replace(array('"', '%'), array('', '\%'), $ua_bl_result['ua_template']) . '%i',
+                        $server_ua
+                    ) &&
+                    ! in_array(preg_last_error(), array(PREG_BACKTRACK_LIMIT_ERROR, PREG_RECURSION_LIMIT_ERROR), true)
+                ) {
+                    $ua_id = TT::getArrayValueAsString($ua_bl_result, 'id');
+
+                    return array(
+                        'ua' => $server_ua,
+                        'ua_id' => $ua_id,
+                        'ua_status' => TT::getArrayValueAsString($ua_bl_result, 'ua_status'),
+                    );
+                }
+            }
+        }
+        return array(
+            'ua' => $server_ua,
+            'ua_id' => null,
+            'ua_status' => null,
+        );
+    }
+
     /**
      * Loads the FireWall module to the array.
      * For inner usage only.
@@ -90,11 +131,12 @@ class Firewall
      */
     public function loadFwModule(FirewallModule $module)
     {
-        if ( ! in_array($module, $this->fw_modules)) {
+        if ( ! in_array($module, $this->fw_modules) ) {
             $module->setDb($this->db);
             $module->ipAppendAdditional($this->ip_array);
             $this->fw_modules[$module->module_name] = $module;
             $module->setIpArray($this->ip_array);
+            $module->setUserAgentData($this->user_agent_data);
         }
     }
 
@@ -120,8 +162,11 @@ class Firewall
                 $results[$module->module_name] = $module_results;
             }
 
-            if ($this->isWhitelisted($results)) {
-                // Break protection logic if it whitelisted or trusted network.
+            if (
+                $this->isWhitelisted($results) &&
+                ( isset($this->user_agent_data['ua_status']) && (int) $this->user_agent_data['ua_status'] !== 0 )
+            ) {
+                // Break protection logic if it whitelisted, or trusted network, or user-agent not blocked.
                 break;
             }
         }

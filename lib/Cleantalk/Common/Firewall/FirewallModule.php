@@ -80,6 +80,14 @@ class FirewallModule extends FirewallModuleAbstract
     }
 
     /**
+     * @param array $user_agent_data
+     */
+    public function setUserAgentData($user_agent_data)
+    {
+        $this->user_agent_data = $user_agent_data;
+    }
+
+    /**
      * @param $result
      *
      * @psalm-suppress PossiblyUnusedMethod
