@@ -202,7 +202,7 @@ class ConnectionReports
         // Remove reports older than 6 months
         $six_months_ago = time() - (6 * 30 * 24 * 60 * 60);
         foreach ($reports_data as $report) {
-            if (isset($report['date_timestamp']) && $report['date_timestamp'] < $six_months_ago) {
+            if ( isset($report['date_timestamp'], $report['id']) && $report['date_timestamp'] < $six_months_ago ) {
                 $ids_to_delete[] = $report['id'];
             }
         }
