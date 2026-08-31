@@ -253,9 +253,9 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
      * @param string $status
      * @return array
      */
-    private function makeResult($ip, $status)
+    private function makeResult($ip, $status, $is_personal = false)
     {
-        return array('ip' => $ip, 'is_personal' => false, 'status' => $status);
+        return array('ip' => $ip, 'is_personal' => $is_personal, 'status' => $status);
     }
 
     /**
@@ -294,9 +294,12 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                 }
 
                 // Blacklisted — record but continue to cookie check
+                // HardCode - write AC dined by UA as personal: blacklisted user-agent may be only personally
+                // `is_personal` makes priority bigger, but we don't have a personal flag in the AC module yet, so this fix is needed
+                $is_personal = true;
                 return array(
-                    'entries'      => array($this->makeResult($current_ip, 'DENY_ANTICRAWLER_UA')),
-                    'early_return' => false,
+                    'entries'      => array($this->makeResult($current_ip, 'DENY_ANTICRAWLER_UA', $is_personal)),
+                    'early_return' => true,
                 );
             }
         }
