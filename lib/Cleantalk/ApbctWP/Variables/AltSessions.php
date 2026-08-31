@@ -207,7 +207,6 @@ class AltSessions
         $cookies_to_set = str_replace('\\', '', $cookies_to_set);
 
         //handle php8+ JSON throws
-        $cookies_array = null;
         try {
             $cookies_array = json_decode($cookies_to_set, true);
         } catch ( \Exception $e ) {
@@ -236,7 +235,6 @@ class AltSessions
             wp_send_json(array(
                 'success' => false,
                 'error' => 'AltSessions: Internal JSON error: $cookies_array is not an array.'));
-            return;
         }
 
         // Incoming data validation against allowed alt cookies
