@@ -115,6 +115,7 @@ class Firewall
                         );
                     }
                 }
+            }
         }
         return array(
             'ua' => $server_ua,
