@@ -12,11 +12,23 @@ class ContactsEncoderHelper
      * @var array[]
      */
     private $attribute_exclusions_signs = array(
-        'input' => array('placeholder', 'value'),
+        'input' => array('placeholder', 'value', 'data-mask'),
         'sc-customer-email' => array('placeholder', 'value'),
         'img' => array('alt', 'title'),
         'div' => array('data-et-multi-view'),
     );
+
+    /**
+     * Runtime map of tag => attribute names. Null means use the built-in defaults.
+     * @var array[]|null
+     */
+    private $runtime_attribute_exclusions_signs;
+
+    /**
+     * Flat list of HTML attribute names to skip encoding in, regardless of tag.
+     * @var string[]
+     */
+    private $attribute_exclusions_list = array();
 
     /**
      * Checking if the string contains mailto: link
@@ -128,30 +140,177 @@ class ContactsEncoderHelper
     }
 
     /**
+     * Built-in tag => attribute map. Returned as a copy so callers can mutate it safely.
+     *
+     * @return array[]
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function getDefaultAttributeExclusionsSigns()
+    {
+        $copy = array();
+        foreach ( $this->attribute_exclusions_signs as $tag => $attributes ) {
+            $copy[$tag] = is_array($attributes) ? array_values($attributes) : $attributes;
+        }
+
+        return $copy;
+    }
+
+    /**
+     * Replace the working tag => attribute map (e.g. after a host-app filter).
+     *
+     * @param array $map
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function setAttributeExclusionsMap(array $map)
+    {
+        $this->runtime_attribute_exclusions_signs = $map;
+    }
+
+    /**
+     * Merge extra attribute names for a tag into the working map.
+     *
+     * @param string $tag
+     * @param string[] $attributes
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function addAttributeExclusions($tag, array $attributes)
+    {
+        if ( ! is_string($tag) || $tag === '' ) {
+            return;
+        }
+
+        $map = $this->getWorkingAttributeExclusionsSigns();
+        if ( ! isset($map[$tag]) || ! is_array($map[$tag]) ) {
+            $map[$tag] = array();
+        }
+
+        foreach ( $attributes as $attribute ) {
+            if ( is_string($attribute) && $attribute !== '' && ! in_array($attribute, $map[$tag], true) ) {
+                $map[$tag][] = $attribute;
+            }
+        }
+
+        $this->runtime_attribute_exclusions_signs = $map;
+    }
+
+    /**
+     * Replace the flat list of attribute names skipped on any tag.
+     *
+     * @param array $names
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function setAttributeNames(array $names)
+    {
+        $this->attribute_exclusions_list = $this->sanitizeAttributeNames($names);
+    }
+
+    /**
+     * Append attribute names skipped on any tag.
+     *
+     * @param string[] $names
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function addAttributeNames(array $names)
+    {
+        foreach ( $this->sanitizeAttributeNames($names) as $attribute ) {
+            if ( ! in_array($attribute, $this->attribute_exclusions_list, true) ) {
+                $this->attribute_exclusions_list[] = $attribute;
+            }
+        }
+    }
+
+    /**
      * Check if email is placed in the tag that has attributes of exclusions.
+     *
      * @param string $email_match - email
      * @param string $temp_content - email
      * @return bool
      */
     public function hasAttributeExclusions($email_match, $temp_content)
     {
-        $email_match = preg_quote($email_match);
-        foreach ( $this->attribute_exclusions_signs as $tag => $array_of_attributes ) {
+        if ( ! is_string($email_match) || $email_match === '' || ! is_string($temp_content) ) {
+            return false;
+        }
+
+        $quoted_match = preg_quote($email_match, '/');
+        $attribute_signs = $this->getWorkingAttributeExclusionsSigns();
+
+        foreach ( $attribute_signs as $tag => $array_of_attributes ) {
+            if ( ! is_array($array_of_attributes) ) {
+                continue;
+            }
             foreach ( $array_of_attributes as $attribute ) {
-                //do not remove IDE highlighted unnecessary escape!
-                $pattern = '/<'
-                           . $tag
-                           . '+\s+[^>]*\b'
-                           . $attribute
-                           . '=((\\\')|")?[^"]*\b'
-                           . $email_match
-                           . '\b[^"]*((\\\')|")?"[^>]*>/';
-                preg_match($pattern, $temp_content, $attr_match);
-                if ( !empty($attr_match) ) {
+                if ( ! is_string($attribute) || $attribute === '' ) {
+                    continue;
+                }
+                if ( $this->isMatchInsideAttribute($quoted_match, $attribute, $temp_content, $tag) ) {
                     return true;
                 }
             }
         }
+
+        foreach ( $this->attribute_exclusions_list as $attribute ) {
+            if ( $this->isMatchInsideAttribute($quoted_match, $attribute, $temp_content) ) {
+                return true;
+            }
+        }
+
         return false;
+    }
+
+    /**
+     * @return array
+     */
+    private function getWorkingAttributeExclusionsSigns()
+    {
+        return is_array($this->runtime_attribute_exclusions_signs)
+            ? $this->runtime_attribute_exclusions_signs
+            : $this->attribute_exclusions_signs;
+    }
+
+    /**
+     * @param array $names
+     * @return string[]
+     */
+    private function sanitizeAttributeNames(array $names)
+    {
+        $result = array();
+        foreach ( $names as $attribute ) {
+            if ( is_string($attribute) && $attribute !== '' ) {
+                $result[] = $attribute;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param string $quoted_match
+     * @param string $attribute
+     * @param string $content
+     * @param string|null $tag
+     * @return bool
+     */
+    private function isMatchInsideAttribute($quoted_match, $attribute, $content, $tag = null)
+    {
+        $quoted_attribute = preg_quote($attribute, '/');
+        // Always require an HTML tag so plain text like attr="..." is not treated as markup.
+        $tag_prefix = $tag === null
+            ? '<[a-zA-Z][\w:-]*\s+[^>]*'
+            : '<' . preg_quote($tag, '/') . '\s+[^>]*';
+
+        $pattern = '/'
+                   . $tag_prefix
+                   . '\b'
+                   . $quoted_attribute
+                   . '\s*=\s*(["\'])[^"\']*'
+                   . $quoted_match
+                   . '[^"\']*\1/';
+
+        return (bool) preg_match($pattern, $content);
     }
 }

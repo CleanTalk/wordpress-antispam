@@ -553,6 +553,42 @@ class TestEmailEncoder extends TestCase
         $this->assertStringContainsString('.wpgb-card-1 .wpgb-block-5{background:#fff', $read_css);
     }
 
+    public function testModifyBufferAppliesWpGridBuilderFixWhenLoggedInWithoutEncoding()
+    {
+        global $apbct;
+
+        $params = new Params();
+        $params->api_key = $apbct->api_key;
+        $params->is_logged_in = true;
+        $params->obfuscation_mode = $apbct->settings['data__email_decoder_obfuscation_mode'];
+        $params->obfuscation_text = $apbct->settings['data__email_decoder_obfuscation_custom_text'];
+        $params->do_encode_emails = (int) $apbct->settings['data__email_decoder_encode_email_addresses'];
+        $params->do_encode_phones = (int) $apbct->settings['data__email_decoder_encode_phone_numbers'];
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = ContactsEncoder::getInstance($params);
+        $this->contacts_encoder->runEncoding();
+
+        $apbct->buffer =
+            '<head><title>test</title></head><body>' .
+            '<div class="wp-grid-builder wpgb-grid-20 wpgb-enabled">' .
+            '<div class="wpgb-card-media-thumbnail"><div></div></div></div>' .
+            '<p>contact@example.com</p></body>';
+
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertStringContainsString('apbct-wpgb-opacity-fix', $apbct->buffer);
+        $this->assertStringContainsString('wpgb-card-media-thumbnail', $apbct->buffer);
+        $this->assertStringContainsString('contact@example.com', $apbct->buffer);
+        $this->assertStringNotContainsString('apbct-email-encoder', $apbct->buffer);
+
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+    }
+
     public function testModifyBufferSkipsEncodingWhenDecoderCookieSet()
     {
         global $apbct;
@@ -824,6 +860,86 @@ class TestEmailEncoder extends TestCase
         $this->read_css_fixture_files[] = $absolute_path;
 
         return '/' . $relative_dir . '/' . $filename;
+    }
+
+    public function testGravityFormsPhoneMaskIsNotEncodedWhileOtherPhonesAre()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_BLUR;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $mask = '(999) 999-9999';
+        $visible_phone = '(800) 555-1234';
+        $content = 'Call ' . $visible_phone
+            . ' <input type="tel" class="large" data-mask="' . $mask . '" />';
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        $this->assertStringContainsString('data-mask="' . $mask . '"', $result);
+        $this->assertStringNotContainsString($visible_phone, $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+    }
+
+    public function testSkipEncoderOnAttributeListFilter()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_BLUR;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        add_filter('apbct_skip_email_encoder_on_attribute_list', function ($attribute_list) {
+            $attribute_list[] = 'data-phone-format';
+            return $attribute_list;
+        });
+
+        $mask = '(999) 321-1233';
+        $visible_phone = '(800) 555-1234';
+        $content = 'Call ' . $visible_phone
+            . ' <span data-phone-format="' . $mask . '"></span>';
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        remove_all_filters('apbct_skip_email_encoder_on_attribute_list');
+
+        $this->assertStringContainsString('data-phone-format="' . $mask . '"', $result);
+        $this->assertStringNotContainsString($visible_phone, $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+    }
+
+    public function testAttributeExclusionsSignsFilter()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_BLUR;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        add_filter('apbct_email_encoder_attribute_exclusions_signs', function ($signs) {
+            $signs['span'] = array('data-phone-mask');
+            return $signs;
+        });
+
+        $mask = '(999) 321-1233';
+        $visible_phone = '(800) 555-1234';
+        $content = 'Call ' . $visible_phone
+            . ' <span data-phone-mask="' . $mask . '"></span>';
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        remove_all_filters('apbct_email_encoder_attribute_exclusions_signs');
+
+        $this->assertStringContainsString('data-phone-mask="' . $mask . '"', $result);
+        $this->assertStringNotContainsString($visible_phone, $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
     }
 
     public function tearDown() : void

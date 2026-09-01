@@ -107,11 +107,11 @@ class FirewallModule extends FirewallModuleAbstract
         }, 999, 1);
         // Headers
         if (headers_sent() === false) {
+            $this->sendForbiddenStatus();
             header('Expires: ' . date(DATE_RFC822, mktime(0, 0, 0, 1, 1, 1971)));
             header('Cache-Control: no-store, no-cache, must-revalidate');
             header('Cache-Control: post-check=0, pre-check=0', false);
             header('Pragma: no-cache');
-            header("HTTP/1.0 403 Forbidden");
         }
 
         if ( ! defined('DONOTCACHEPAGE')) {
@@ -129,5 +129,28 @@ class FirewallModule extends FirewallModuleAbstract
         if (function_exists('wpfc_exclude_current_page')) {
             wpfc_exclude_current_page();
         }
+    }
+
+    /**
+     * Set HTTP 403 via the status line (header('HTTP/...')), not http_response_code().
+     * PHP 8.4+ warns and ignores http_response_code() after header('HTTP/...') / WP status_header().
+     */
+    protected function sendForbiddenStatus()
+    {
+        if (headers_sent()) {
+            return;
+        }
+
+        if (function_exists('status_header')) {
+            status_header(403);
+            return;
+        }
+
+        $protocol = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0';
+        if ( ! in_array($protocol, array('HTTP/1.0', 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0', 'HTTP/3'), true) ) {
+            $protocol = 'HTTP/1.0';
+        }
+
+        header($protocol . ' 403 Forbidden', true, 403);
     }
 }

@@ -347,6 +347,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
      && empty(Post::get('action')) //bbPress
      && ! \Cleantalk\Variables\Server::inUri('/favicon.ico') // /favicon request rewritten cookies fix
      && ! apbct__is_wp_rocket_preloader_request()
+     && ! apbct__is_wordpress_loopback_request()
 ) {
     if ( $apbct->data['cookies_type'] !== 'alternative' ) {
         if ( !$apbct->settings['forms__search_test'] && !Get::get('s') ) { //skip cookie set for search form redirect page
@@ -357,7 +358,8 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
     }
     if (
         empty($_POST) &&
-        $apbct->data['key_is_ok']
+        $apbct->data['key_is_ok'] &&
+        ! apbct_is_wp_login_excluded_from_protection()
     ) {
         if ( (isset($_GET['q']) && $_GET['q'] !== '') || empty($_GET) ) {
             apbct_cookie();
@@ -613,11 +615,11 @@ add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts'
 
 
 add_action('mec_booking_end_form_step_2', function () {
-    echo "<script>
-        if (typeof ctPublic.force_alt_cookies == 'undefined' || (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)) {
+    echo apbct_get_inline_script_tag(
+        "if (typeof ctPublic.force_alt_cookies == 'undefined' || (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)) {
 			ctNoCookieAttachHiddenFieldsToForms();
-		}
-    </script>";
+		}"
+    );
 });
 
 // Public actions
