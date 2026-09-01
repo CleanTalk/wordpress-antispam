@@ -426,6 +426,27 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 
 == Changelog ==
 
+= 6.87 02.09.2026 =
+Fix. Integrations. Improve statement to attaching assets on login page.
+Fix. ContactEncoder. Improve compatibility with WP Grid Builder.
+New. Integrations. Add compatibility with WebMagicStudio. (#860)
+Fix. ContactEncoder. Improve shortcode statement. (#861)
+Fix. FW. Improve AC module to correct processing loopback. (#862)
+Fix. FW. Improve flow on block page to reduce duplicate headers.
+Fix. ContactEncoder. Improve shortcode statement. (#863)
+Upd. Code. Security review
+Fix. Settings. Update notify statement for approved comments.
+Ref. Cookie. Removing unnecessary code
+New. Settings. Add CSP nonce support. (#868)
+Fix. Settings. Add localize to form sign.
+Fix. Settings. Improve template processing.
+Fix. ContactEncoder. Skip encoding inside excluded HTML attributes. (#869)
+New. Settings. Warn user before cookie mode changed if a cache detected in the environment.
+CP. Typo fix.
+Fix. Connection reports. Deleted old (6 months) reports. (#871)
+Fix. Request. Fallback to socket when cURL is unavailable
+New. Settings. Warn user before cookie mode changed if a cache detected in the environment.
+
 = 6.86 19.08.2026 =
 * New. Banners. New banner design
 * Fix. Wizarg. Edit style
@@ -440,7 +461,7 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 * Customization Anti-Crawler options
 * Fix. ContactEncoder. Improve statement before process data.
 * Fix. Code. Improve structure.
-* Udp.Code.Constants 
+* Udp.Code.Constants
 * Udp. Search form. Process requests only if a native search form is used.
 * Fix. Settings. Improve curl wrapper.
 * Fix. Integrations. Improve cowork with otp verification.
@@ -540,156 +561,5 @@ Fix. Integration. WooCommerce register requests protection fixed.
 * Fix. NoCookieData. Correcting an error when encoding a NoCookie array
 * Fix. CheckForSpam. Editing the deletion of spam check logs
 * Mod. AntiCrawler. Editing the option description
-
-= 6.78 29.04.2026 =
-* Removing the link to install "Gravity Forms to doBoard" (#784)
-* Mod. BloomForms. Editing the integration with BloomForms
-* Update inc/cleantalk-settings.php
-* Upd. Integrations. Improve Divi newsletters flow to attach meta data to request.
-* Add "Read more" link to cleantalk page (#782)
-* New. BaseCall. Default params class.
-* Fix. REST API. Updated 'email' argument type from 'email' to 'string' in callbacks.
-* Fix. GFA. Replaced email regex with isEmailLike method and added unit tests for validation.
-* Upd. Integrations. Improve Divi newsletters flow to attach meta data to request. (#786)
-* Ref. AntiCrawler. Module flow refactored. (#788)
-
-= 6.77 16.04.2026 =
-* Fix. AltSession. Correcting the issue of array conversion
-* New. BookingCalendar. New integration with BookingCalendar
-* Upd. Settings. Updated flow to check pingback. (#764) (#773) (#774)
-* Fix. CF7. Edit honeypot
-* Fix. Integration. EDD integration fixed. (#770)
-* Fix. Code. Editing the bot detector settings
-* Fix. Exclusion. Skip request from Metorik Helper
-* Fix. Common. Add bot detector state to ct_options. (#778)
-* Fix. WPMS. Errors output for WPMS mutual-mutual mode fixed. (#772)
-* Fix. WPMS. Settings for `mutual/mutual` fixed.
-* Fix. WPMS. Settings page error fixed.
-
-= 6.76 02.04.2026 =
-* Mod. ForceAltCookies. Removed the use of force alt cookies for integration with piotnet-addons-for-elementor
-* Upd. Integrations. Improve FluentBooking flow to attach meta data to request.
-* Upd. Settings. Updated flow to check pingback.
-* Upd. Settings. Bot Detector setting - bot-detector setting removed.
-* Fix. Code. Unit tests fixed: TestFluentForms, TestNinjaForms.
-* Fix. JS. Gathering. Passing js_on independent of gathering loaded.
-* Fix. Integrations. QuForm. Fixed js_on param gathering.
-
-= 6.75 19.03.2026 =
-* Upd. JS. catchJqueryAjax. Refactored to also use ajaxPrefilter. Bloomform now skip using force alt-sessions.
-* Upd. ContactEncoder. Improve aria labels protect.
-* Upd. Integration. HivePress forms protection improved.
-* Upd. Settings. SFW outdated message refactored.
-* Upd. Settings. Error. Fixed case when SFW outdated error is not removable.
-* Upd. TRP. TRP popup text and styles updated.
-* Fix. Integrations. Improve statement to protect memberpress.
-* Fix. Integrations. Improved membershippro processing statement.
-* Fix. Integration. Gravity forms integration fixed.
-* Add. Integrations. Added Elfsight compability.
-* Fix. RemoteCalls. Changes to the RC functionality
-* Upd. Settings. Improved copability.
-* Fix. Contacts Encoder. Shortcode for exclude encoding.
-* Upd. BotDetector. Update load strategy.
-* Upd. BotDetector. Update load strategy for fluent booking and fluent form.
-
-= 6.74 05.03.2026 =
-* Mod. SFW. Atomic approach to updating SFW
-* Upd. Exclusions. Ajax. Plugin "cart-recovery".
-* Fix. Code. JS loading by defer fixed.
-* Mod. OtterForms. Changing integration from a hook to a route
-* Mod. OtterForms. Changing the integration, renaming the request interception method
-* Upd. Connection reports. Email subject updated.
-* Fix. JS. catchFetchRequest. Origin fetch definitions.
-* Upd. Exclusions. Ajax. Plugin "invoicing".
-* Upd. Gravity Forms. Skipped request extended log.
-* Fix. Translate. Fixed msgids.
-* Upd. Connection reports. Email title edited.
-* Upd. Connection reports. Service id added.
-* Fix. SubmitTime. Calculation of the submit time when enabling the gathering script
-* Upd. SFW updates sentinel. Updated report.
-* Upd. Settings. Updated RC to init settings update.
-* Fix. SubmitTime. Editing the creation of a timestamp
-
-= 6.73.1 19.02.2026 =
-* Fix. Code. JS loading by `defer` fixed.
-
-= 6.73 19.02.2026 =
-* Upd. Code. SFW Update. HTTP multi request refactored.
-* New. ShadowrootProtection. Implementation of form protection in Shadowroot elements, integration with Mailchimp shadowroot
-* Mod. ShadowrootPrt. Architectural changes in logic, the addition of situational callbacks
-* Fix. CurlMulti. Editing implementation comments
-* Fix. Integration. Ninja forms. Filter NF common fields before processing.
-* Fix. Exclusions. "woocommerce-abandoned-cart"
-* Fix. Exclusions. "woo-abandoned-cart-recovery"
-* Fix. Exclusions. "abandoned-cart-capture"
-* Fix. Code. Returned the lost code during the merge
-* Fix. FluentForm. Vendor integration compliance fixed.
-* Upd. Integrations. Elementor UltimateAddons Register integration handler to use ajax middleware.
-* Fix. IntegMailChimp. Clearing all fields except for the field whose name contains message
-* Fix. Code. Edit Remote Calls
-* Fix. AdminActions. Checking permissions for Actions
-* Upd. Exclusions. Ajax. Plugin "wp-multi-step-checkout".
-* Fix. Exclusions. Ajax. Plugin "woo-abandoned-cart-recovery". Fixed condition.
-* Code. Unit tests for apbct_is_skip_request() refactored.
-* Fix. Code. Escaping woocommerce order data
-* Upd. Exclusions. Ajax. Plugin "woocommerce-sendinblue-newsletter-subscription"
-* Fix. Remote Calls. Skip check if no sign of RC action provided in Request.
-* Fix. Exclusion. Added path invoice4u/v1/callback.
-* Fix. Contact Encoder. Every hook that has actions BEFORE modify now have actions AFTER.
-* Fix. Enqueue. Script individual-disable-comments.js renamed to cleantalk-individual-disable-comments.js
-* Upd. CommentsCheck. Improve statement.
-* Upd. JS parameters. Gathering dynamic lod implemented.
-* Fix. Connection reports. Email for reports fixed.
-* Fix. Integration. SmartQuizBuilder integration fixed.
-* Fix. ContentEncoder. Editing the data type in the 3rd str_replace argument
-
-= 6.72 05.02.2026 =
-* Upd. WooCommSpamOrders. Added a hint for the disabled option to save spam orders.
-* Fix. Integrations. Fluent Forms. Visible fields collection fixed.
-* Fix. Integrations. Skip encoding for woo registration button. (#722)
-* Upd. Integration. Mailpoet. Visible fields gathering.
-* Upd. Visible fields extractor. Static method to get a new extractor.
-* Fix. Integration. Exclusions for WC requests fixed.
-* Fix. Integrations. GiveWP multi-page form. Exclude requests without email.
-* Fix. Integrations. GiveWP. Skip external forms check.
-* Fix. Integrations. GiveWP. Bot detector token. Intercept iframe fetch to add field if available.
-* Fix. Integrations. Fixed fetch request fields assignment (NoCookie|EventToken)
-* Fix. Woocommerce. Stored oreders. Fixed code error.
-* Mod. ContentEncoder. The ability to exclude the main page by hook
-* Fix. Code. Getting cleantalk addresses fixed.
-* Fix. Integrations. Add event token in jQuery catching for forms of "wpr_form_builder_email" action.
-* Upd. Footer. Footer promo link added. (#729)
-* Fix. Integrations. WooCommerce. Stripe express checkout address normalize excluded.
-* Fix. Integrations. Paid Membership Pro. Login form excluded.
-* Upd. Updater. Add index update mechanism. (#721)
-* Fix. Skip Elementor login widget request for WooCommerce checkout.
-* Fix. Integration. Mailpoet integration fixed.
-
-= 6.71.1 26.01.2026 =
-* Fix. Promotion. GF2DB promo setting and message reverted.
-
-= 6.71 22.01.2026 =
-* Fix. Integration. Woocommerce (checkout by REST) integration fixed.
-* Fix. Integration. Fluent forms integration fixed
-* Fix. Integration. Klaviyo (external forms) integration fixed.
-* Upd. PHPUnit. testIsAllowMessage/User refactored
-* Fix. Settings. Description for Send connection reports fixed.
-* Fix. Contacts Encoder. Exclusions fixed.
-* Fix. Contacts Encoder. Regex pattern for emails fixed.
-* Upd. Links. UTM preset for bbPress spam scanner added.
-* Fix. Fetch request catching. Fixed case with empty GET requests from pojo-accessebility plugin.
-* Fix. SFW pages. Fixed bundle name with resolver.
-* Fix. Common. Helper. PHP 8.4. Function str_getcsv() escape argument added
-* Fix. Workflow. Make the zip with subfolder instead of zip-root.
-* Fix. Exclusions by URL. Fixed validation and URL gain for ajax requests.
-* Upd. Requirements Checker. Modified curl_multi_exec to curl_multi array of functions.
-* Upd. SFW update. Do not start update if curl multi funcs are not available.
-* Fix. Integrations. Excluded recaptcha from cloning and ensured it is reinserted into the origin form during processing.
-* Fix. Integrations. Update condition to skip check of account update for logged in users.
-* New. Promotions. GF2DB.
-* New. Settings. Added RC to init settings update.
-* New. Integration. Bit Form integration implemented.
-* Upd. Code. PHP compatibility increased to 7.2.
-* New. Settings. Added project management menu item.
 
 = Look for early changelogs in <a href="https://github.com/CleanTalk/wordpress-antispam/blob/master/changelog.txt" target="_blank">changelog.txt</a>=
