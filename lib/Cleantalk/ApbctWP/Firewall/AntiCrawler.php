@@ -251,6 +251,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
      *
      * @param string $ip
      * @param string $status
+     * @param bool   $is_personal
      * @return array
      */
     private function makeResult($ip, $status, $is_personal = false)
