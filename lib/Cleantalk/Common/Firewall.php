@@ -90,7 +90,7 @@ class Firewall
 
     public function getUserAgentData()
     {
-        $server_ua = TT::toString(Server::get('HTTP_USER_AGENT'));
+        $server_ua = Server::getString('HTTP_USER_AGENT');
         $ua_table = defined('APBCT_TBL_AC_UA_BL') ? APBCT_TBL_AC_UA_BL : null;
 
         if ( $ua_table ) {
