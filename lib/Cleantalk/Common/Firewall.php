@@ -97,23 +97,24 @@ class Firewall
             $ua_bl_query = "SELECT * FROM $ua_table ORDER BY `ua_status` DESC;";
             $ua_bl_results = $this->db->fetchAll($ua_bl_query);
             foreach ( $ua_bl_results as $ua_bl_result ) {
-                if (
-                    ! empty($ua_bl_result['ua_template']) &&
-                    preg_match(
-                        '%' . str_replace(array('"', '%'), array('', '\%'), $ua_bl_result['ua_template']) . '%i',
-                        $server_ua
-                    ) &&
-                    ! in_array(preg_last_error(), array(PREG_BACKTRACK_LIMIT_ERROR, PREG_RECURSION_LIMIT_ERROR), true)
-                ) {
-                    $ua_id = TT::getArrayValueAsString($ua_bl_result, 'id');
+                if ( ! empty($ua_bl_result['ua_template']) ) {
+                    $pattern = '%' . str_replace(array('"', '%'), array('', '\%'), $ua_bl_result['ua_template']) . '%i';
+                    $match = preg_match($pattern, $server_ua);
 
-                    return array(
-                        'ua' => $server_ua,
-                        'ua_id' => $ua_id,
-                        'ua_status' => TT::getArrayValueAsString($ua_bl_result, 'ua_status'),
-                    );
+                    if ( $match === false && in_array(preg_last_error(), array(PREG_BACKTRACK_LIMIT_ERROR, PREG_RECURSION_LIMIT_ERROR), true) ) {
+                        continue;
+                    }
+
+                    if ( $match === 1 ) {
+                        $ua_id = TT::getArrayValueAsString($ua_bl_result, 'id');
+
+                        return array(
+                            'ua' => $server_ua,
+                            'ua_id' => $ua_id,
+                            'ua_status' => TT::getArrayValueAsString($ua_bl_result, 'ua_status'),
+                        );
+                    }
                 }
-            }
         }
         return array(
             'ua' => $server_ua,
