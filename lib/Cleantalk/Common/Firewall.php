@@ -164,7 +164,7 @@ class Firewall
 
             if (
                 $this->isWhitelisted($results) &&
-                ( isset($this->user_agent_data['ua_status']) && (int) $this->user_agent_data['ua_status'] !== 0 )
+                ( ! isset($this->user_agent_data['ua_status']) || (int) $this->user_agent_data['ua_status'] !== 0 )
             ) {
                 // Break protection logic if it whitelisted, or trusted network, or user-agent not blocked.
                 break;
