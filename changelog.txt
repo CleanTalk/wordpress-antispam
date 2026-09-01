@@ -151,6 +151,7 @@
 * New. Integration. Bit Form integration implemented.
 * Upd. Code. PHP compatibility increased to 7.2.
 * New. Settings. Added project management menu item.
+* Fix. SFW. User agents priority fixed. (#874)
 
 = 6.70.1 19.12.2025 =
 * Fix. Integration. Fluent forms integration fixed (fix for commit ae74511a96417b607f2b79b83ef984de7eac0588).
