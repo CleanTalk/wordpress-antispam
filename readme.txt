@@ -445,7 +445,6 @@ New. Settings. Warn user before cookie mode changed if a cache detected in the e
 CP. Typo fix.
 Fix. Connection reports. Deleted old (6 months) reports. (#871)
 Fix. Request. Fallback to socket when cURL is unavailable
-New. Settings. Warn user before cookie mode changed if a cache detected in the environment.
 
 = 6.86 19.08.2026 =
 * New. Banners. New banner design
