@@ -50,7 +50,7 @@ class IMetricDTO
      * Calculated as: peak_memory_at_end - peak_memory_on_start
      * Set during IMetricService::finalizeDTO()
      *
-     * @var float
+     * @var int
      * @psalm-suppress PossiblyUnusedProperty
      */
     public $peak_memory_diff_kb = 0;
@@ -60,7 +60,7 @@ class IMetricDTO
      * Calculated as: end_time_ms - timer_on_start_msec
      * Set during IMetricService::finalizeDTO()
      *
-     * @var float
+     * @var int
      * @psalm-suppress PossiblyUnusedProperty
      */
     public $total_exec_time_ms = 0;
@@ -109,7 +109,7 @@ class IMetricDTO
      * Set by IMetricService::startGlobalSeeking() and should not be modified directly.
      * Excluded from JSON output via getArray()
      *
-     * @var float
+     * @var int
      */
     public $timer_on_start_msec = 0;
 
@@ -119,7 +119,7 @@ class IMetricDTO
      * Set by IMetricService::startGlobalSeeking() and should not be modified directly.
      * Excluded from JSON output via getArray()
      *
-     * @var float
+     * @var int
      * @psalm-suppress PossiblyUnusedProperty
      */
     public $memory_usage_on_start_kb = 0;
@@ -130,7 +130,7 @@ class IMetricDTO
      * Set by IMetricService::startGlobalSeeking() and should not be modified directly.
      * Excluded from JSON output via getArray()
      *
-     * @var float
+     * @var int
      */
     public $peak_memory_on_start_kb = 0;
 

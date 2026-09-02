@@ -140,11 +140,11 @@ class IMetricService
      *
      * Uses microtime() for high precision timing.
      *
-     * @return float Current time in milliseconds, rounded to 1 decimal place
+     * @return int Current time in milliseconds
      */
     private static function getCurrentTimeMS()
     {
-        return round(microtime(true) * 1000, 1);
+        return (int)(microtime(true) * 1000);
     }
 
     /**
@@ -152,11 +152,11 @@ class IMetricService
      *
      * Retrieves memory_get_usage() and converts to KB.
      *
-     * @return float Current memory usage in KB
+     * @return int Current memory usage in KB
      */
     private static function getCurrentMemoryUsageKb()
     {
-        return round(memory_get_usage() / 1024);
+        return (int)(memory_get_usage() / 1024);
     }
 
     /**
@@ -165,11 +165,11 @@ class IMetricService
      * Retrieves memory_get_peak_usage() and converts to KB.
      * Note: Peak memory can only increase, never decrease during execution.
      *
-     * @return float Peak memory usage in KB
+     * @return int Peak memory usage in KB
      */
     private static function getPeakMemoryUsageKb()
     {
-        return round(memory_get_peak_usage() / 1024);
+        return (int)(memory_get_peak_usage() / 1024);
     }
 
     /**
