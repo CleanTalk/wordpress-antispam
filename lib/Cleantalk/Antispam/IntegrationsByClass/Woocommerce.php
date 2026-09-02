@@ -38,7 +38,10 @@ class Woocommerce extends IntegrationByClassBase
 {
     private $event_token = null;
 
-    public $imetric_dto_version = '1.0.0';
+    public function __construct()
+    {
+        $this->imetric_dto_version = '1.0.0';
+    }
 
     /**
      * @return void

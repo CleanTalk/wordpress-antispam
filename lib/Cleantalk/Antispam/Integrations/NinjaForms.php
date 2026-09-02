@@ -14,7 +14,10 @@ use Cleantalk\Common\TT;
 class NinjaForms extends IntegrationBase
 {
     private $sender_email = ''; // needs to provide to final actions
-    public $imetric_dto_version = '1.0.0';
+    public function __construct()
+    {
+        $this->imetric_dto_version = '1.0.0';
+    }
     public function getDataForChecking($argument)
     {
         global $apbct, $cleantalk_executed;
