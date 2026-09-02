@@ -3151,6 +3151,15 @@ class ApbctHandler {
             result.no_cookie = 1;
         }
 
+        // WordPress login form (wp-login.php is excluded from spam check in PHP)
+        if (
+            (form.id && form.id === 'loginform') ||
+            form.action.toString().indexOf('wp-login.php') !== -1
+        ) {
+            result.visible_fields = 1;
+            result.no_cookie = 1;
+        }
+
         return result;
     }
 

@@ -178,7 +178,7 @@ class AltSessions
         if ( $request instanceof WP_REST_Request ) {
             $nonce = TT::toString($request->get_header('x_wp_nonce'));
             $action = 'wp_rest';
-            $cookies_to_set = $request->get_param('cookies');
+            $cookies_to_set = TT::toString($request->get_param('cookies'));
         } else {
             $nonce = TT::toString(Post::getString('_ajax_nonce'));
             $action = 'ct_secret_stuff';
@@ -231,10 +231,10 @@ class AltSessions
         }
 
         //other versions json errors if json_decode returns null
-        if ( is_null($cookies_array) ) {
+        if ( ! is_array($cookies_array) ) {
             wp_send_json(array(
                 'success' => false,
-                'error' => 'AltSessions: Internal JSON error: $cookies_array is null.'));
+                'error' => 'AltSessions: Internal JSON error: $cookies_array is not an array.'));
         }
 
         // Incoming data validation against allowed alt cookies

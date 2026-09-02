@@ -49,6 +49,8 @@ class Integrations
                 return $this->checkSpam($argument, $integration_name);
             };
 
+            $priority = isset($integration_info['priority']) ? (int)$integration_info['priority'] : 10;
+
             if ( $integration_info['ajax'] ) {
                 if ( is_array($integration_info['hook']) ) {
                     foreach ( $integration_info['hook'] as $hook ) {
@@ -64,10 +66,10 @@ class Integrations
             if ( !$integration_info['ajax'] || !empty($integration_info['ajax_and_post']) ) {
                 if ( is_array($integration_info['hook']) ) {
                     foreach ( $integration_info['hook'] as $hook ) {
-                        add_action($hook, $callback);
+                        add_action($hook, $callback, $priority);
                     }
                 } else {
-                    add_action($integration_info['hook'], $callback);
+                    add_action($integration_info['hook'], $callback, $priority);
                 }
             }
         }
