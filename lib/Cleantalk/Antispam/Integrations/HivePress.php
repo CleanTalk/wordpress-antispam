@@ -39,6 +39,5 @@ class HivePress extends IntegrationBase
                 'error' => ['message' => $message],
             ]
         );
-        die();
     }
 }

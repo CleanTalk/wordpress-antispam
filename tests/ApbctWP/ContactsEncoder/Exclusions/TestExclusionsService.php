@@ -27,6 +27,9 @@ class TestExclusionsService extends TestCase
 
         // Reset any previously added filters
         remove_all_filters('apbct_skip_email_encoder_on_uri_chunk_list');
+        remove_all_filters('apbct_email_encoder_content_exclusions_signs');
+        remove_all_filters('apbct_email_encoder_attribute_exclusions_signs');
+        remove_all_filters('apbct_skip_email_encoder_on_attribute_list');
 
         // Reset Server variables cache using reflection
         $this->resetServerCache();
@@ -36,6 +39,9 @@ class TestExclusionsService extends TestCase
     {
         // Clean up filters after each test
         remove_all_filters('apbct_skip_email_encoder_on_uri_chunk_list');
+        remove_all_filters('apbct_email_encoder_content_exclusions_signs');
+        remove_all_filters('apbct_email_encoder_attribute_exclusions_signs');
+        remove_all_filters('apbct_skip_email_encoder_on_attribute_list');
 
         // Reset Server variables cache
         $this->resetServerCache();
@@ -592,6 +598,55 @@ class TestExclusionsService extends TestCase
         $apbct->settings['data__email_decoder'] = 1;
 
         $result = $this->invokePrivateMethod($this->exclusions_service, 'byPluginSetting', [$apbct]);
+
+        $this->assertFalse($result);
+    }
+
+    /**
+     * Test byContentSigns honors apbct_email_encoder_content_exclusions_signs
+     */
+    public function testByContentSignsHonorsContentExclusionsSignsFilter()
+    {
+        add_filter('apbct_email_encoder_content_exclusions_signs', function ($signs) {
+            $signs[] = array('gf-custom-skip-encode');
+            return $signs;
+        });
+
+        $content = '<div class="gf-custom-skip-encode">test@example.com</div>';
+        $result = $this->invokePrivateMethod($this->exclusions_service, 'byContentSigns', [$content]);
+
+        $this->assertTrue($result);
+    }
+
+    /**
+     * Test doReturnContentBeforeModify returns byContentSigns when custom signs match via filter
+     */
+    public function testDoReturnContentBeforeModifyReturnsByContentSignsForCustomFilterSigns()
+    {
+        $_SERVER['REQUEST_URI'] = '/contact/';
+
+        add_filter('apbct_email_encoder_content_exclusions_signs', function ($signs) {
+            $signs[] = array('data-mask');
+            return $signs;
+        });
+
+        $content = '<input type="tel" data-mask="(999) 999-9999" />';
+        $result = $this->exclusions_service->doReturnContentBeforeModify($content);
+
+        $this->assertEquals('byContentSigns', $result);
+    }
+
+    /**
+     * Test byContentSigns ignores non-array values from the filter
+     */
+    public function testByContentSignsIgnoresNonArrayFilterResult()
+    {
+        add_filter('apbct_email_encoder_content_exclusions_signs', function () {
+            return 'not-an-array';
+        });
+
+        $content = '<div class="gf-custom-skip-encode">test@example.com</div>';
+        $result = $this->invokePrivateMethod($this->exclusions_service, 'byContentSigns', [$content]);
 
         $this->assertFalse($result);
     }

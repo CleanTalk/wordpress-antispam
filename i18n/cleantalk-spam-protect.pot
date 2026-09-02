@@ -1539,6 +1539,12 @@ msgstr ""
 msgid "Protect logged in Users"
 msgstr ""
 
+#. %s: HTML link to CleanTalk Anti-Spam
+#: inc/cleantalk-public.php:1337
+#, php-format
+msgid "Protected by %s"
+msgstr ""
+
 #: inc/cleantalk-settings.php:1817
 msgid "Protection is active"
 msgstr ""
