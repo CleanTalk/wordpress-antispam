@@ -2,9 +2,7 @@
 
 namespace Cleantalk\Antispam;
 
-use Cleantalk\Antispam\IntegrationMetrics\IMetricDTO;
 use Cleantalk\Antispam\IntegrationMetrics\IMetricService;
-use Cleantalk\Antispam\Integrations\IntegrationBase;
 use Cleantalk\Antispam\IntegrationsByClass\IntegrationByClassBase;
 
 class IntegrationsByClass
