@@ -449,7 +449,7 @@ if ($integration instanceof IntegrationBase || $integration instanceof Integrati
                 if ($current_size > $max_var_size_kb) {
                     $max_var_size_kb = $current_size;
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 // is unserializable, skip
             }
         }
