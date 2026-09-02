@@ -437,8 +437,8 @@ if ($integration instanceof IntegrationBase || $integration instanceof Integrati
      */
     public static function dumpVarsSize($integration, array $vars = [], string $span = 'undefined_variable_span')
     {
-        $dto = $integration->getImetricDTO();
-        if (!$dto || empty($vars)) {
+        $dto = $integration->getIMetricDTO();
+        if (!$dto || $dto->is_released || empty($vars)) {
             return;
         }
         $max_var_size_kb = 0;
