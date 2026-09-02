@@ -4,6 +4,8 @@ namespace Cleantalk\Antispam\IntegrationsByClass;
 
 use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
+use Cleantalk\Antispam\IntegrationMetrics\IMetricDTO;
+use Cleantalk\Antispam\IntegrationMetrics\IMetricService;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -35,6 +37,8 @@ use Cleantalk\ApbctWP\Variables\Server;
 class Woocommerce extends IntegrationByClassBase
 {
     private $event_token = null;
+
+    public $imetric_dto_version = '1.0.0';
 
     /**
      * @return void
@@ -177,6 +181,11 @@ class Woocommerce extends IntegrationByClassBase
     {
         global $apbct, $cleantalk_executed;
 
+        IMetricService::seek(
+            $this,
+            __FUNCTION__
+        );
+
         if ( count($errors->errors) ) {
             return;
         }
@@ -214,7 +223,11 @@ class Woocommerce extends IntegrationByClassBase
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
             'post_info'       => $post_info,
-            'sender_info'     => array('sender_url' => null, 'sender_emails_array' => $sender_emails_array)
+            'sender_info'     => array(
+                    'sender_url' => null,
+                    'sender_emails_array' => $sender_emails_array,
+                    IMetricDTO::$SENDER_INFO_KEY => IMetricService::finalizeDTO($this)
+            )
         );
 
         $base_call_result = apbct_base_call($base_call_data);
@@ -256,6 +269,11 @@ class Woocommerce extends IntegrationByClassBase
             return;
         }
 
+        IMetricService::seek(
+            $this,
+            __FUNCTION__
+        );
+
         $sender_email    = $order->get_billing_email();
         $sender_nickname = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
         $message         = $order->get_customer_note();
@@ -269,7 +287,7 @@ class Woocommerce extends IntegrationByClassBase
             'sender_email'    => $sender_email,
             'sender_nickname' => $sender_nickname,
             'post_info'       => $post_info,
-            'sender_info'     => array('sender_url' => null),
+            'sender_info'     => array('sender_url' => null, IMetricDTO::$SENDER_INFO_KEY => IMetricService::finalizeDTO($this)),
             'event_token'     => $this->event_token,
         );
 
@@ -398,6 +416,11 @@ class Woocommerce extends IntegrationByClassBase
     {
         global $apbct;
 
+        IMetricService::seek(
+            $this,
+            __FUNCTION__
+        );
+
         $data = Post::get('data');
         if (is_array($data) && isset($data['ct_bot_detector_event_token'])) {
             $event_token = $data['ct_bot_detector_event_token'];
@@ -422,7 +445,7 @@ class Woocommerce extends IntegrationByClassBase
                 'message'     => $message,
                 'post_info'   => $post_info,
                 'js_on'       => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
-                'sender_info' => array('sender_url' => null),
+                'sender_info' => array('sender_url' => null, IMetricDTO::$SENDER_INFO_KEY => IMetricService::finalizeDTO($this)),
                 'exception_action' => false,
                 'event_token' => $event_token,
             )
@@ -450,6 +473,10 @@ class Woocommerce extends IntegrationByClassBase
     {
         global $apbct;
 
+        IMetricService::seek(
+            $this,
+            __FUNCTION__
+        );
         if ( ! $apbct->stats['no_cookie_data_taken'] && $request->get_param('ct_no_cookie_hidden_field') ) {
             apbct_form__get_no_cookie_data(
                 ['ct_no_cookie_hidden_field' => $request->get_param('ct_no_cookie_hidden_field')],
@@ -470,12 +497,13 @@ class Woocommerce extends IntegrationByClassBase
         $post_info = array();
         $post_info['comment_type'] = 'order__add_to_cart';
         $post_info['post_url']     = Sanitize::cleanUrl(Server::get('HTTP_REFERER'));
+
         $base_call_result = apbct_base_call(
             array(
                 'message'     => $message,
                 'post_info'   => $post_info,
                 'js_on'       => apbct_js_test(Sanitize::cleanTextField(Cookie::get('ct_checkjs')), true),
-                'sender_info' => array('sender_url' => null),
+                'sender_info' => array('sender_url' => null, IMetricDTO::$SENDER_INFO_KEY => IMetricService::finalizeDTO($this)),
                 'exception_action' => false,
                 'event_token' => $event_token,
             )
