@@ -48,6 +48,24 @@ class CEIntegrationGridBuilder
     }
 
     /**
+     * Apply WPGB layout/CSS fix without running email encoding (#54940).
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    public function applyCompatibilityFix($content)
+    {
+        if ( ! is_string($content) || $content === '' || ! $this->contentHasWpGridBuilder($content) ) {
+            return $content;
+        }
+
+        $this->prepareAssets($content);
+
+        return $this->appendFix($content);
+    }
+
+    /**
      * @return void
      */
     public function registerStyleCaptureHooks()
@@ -585,6 +603,12 @@ class CEIntegrationGridBuilder
         $resolved = realpath($local);
         $abspath = realpath(ABSPATH);
         $abspath_prefix = is_string($abspath) ? trailingslashit($abspath) : '';
+
+        // Normalize directory separators for cross-platform strpos comparison
+        if ( is_string($resolved) ) {
+            $resolved = str_replace('\\', '/', $resolved);
+        }
+        $abspath_prefix = str_replace('\\', '/', $abspath_prefix);
 
         if (
             $resolved === false

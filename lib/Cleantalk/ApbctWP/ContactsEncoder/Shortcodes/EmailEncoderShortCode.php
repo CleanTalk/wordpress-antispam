@@ -16,23 +16,45 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
     protected $public_name;
 
     /**
-     * Processes the content by checking for and executing the shortcode.
+     * Process only this encoder's shortcode tags in the content.
+     *
+     * Must not call do_shortcode() on the full string: untrusted content (e.g. comments)
+     * could trigger execution of arbitrary site shortcodes nested in or beside the tag.
      *
      * @param string $content The content to process.
-     * @return string The processed content with the shortcode executed, if present.
+     * @return string The processed content with only this shortcode executed.
      */
     protected function doCallbackAction($content)
     {
-        if ( ! is_string($content) ) {
+        if ( ! is_string($content) || $this->public_name === '' ) {
             return $content;
         }
 
-        // Check if shortcode exists in content
-        if (has_shortcode($content, $this->public_name)) {
-            // Process the shortcode
-            $content = do_shortcode($content);
+        if ( ! has_shortcode($content, $this->public_name) ) {
+            return $content;
         }
-        return $content;
+
+        $pattern = sprintf(
+            '/(\[%s(?:\s[^\]]*)?\])([\s\S]*?)(\[\/%s\])/s',
+            preg_quote($this->public_name, '/'),
+            preg_quote($this->public_name, '/')
+        );
+
+        return preg_replace_callback(
+            $pattern,
+            function ($matches) {
+                $atts = array();
+                if ( isset($matches[1]) && preg_match('/\[' . preg_quote($this->public_name, '/') . '([^\]]*)\]/', $matches[1], $tag_matches) && isset($tag_matches[1]) ) {
+                    $parsed_atts = shortcode_parse_atts($tag_matches[1]);
+                    $atts = is_array($parsed_atts) ? $parsed_atts : array();
+                }
+
+                $inner_content = isset($matches[2]) ? $matches[2] : '';
+
+                return $this->callback($atts, $inner_content, $this->public_name);
+            },
+            $content
+        );
     }
 
     /**
