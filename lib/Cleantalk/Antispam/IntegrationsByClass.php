@@ -53,13 +53,7 @@ class IntegrationsByClass
              */
             $integration = new $class();
 
-            /**
-             * @var IMetricDTO $imetric_dto
-             */
             $imetric_dto = IMetricService::getDTO($integration);
-            /**
-             * @var IntegrationBase $integration
-             */
             if ($imetric_dto) {
                 $integration->setIMetricDTO($imetric_dto);
             }

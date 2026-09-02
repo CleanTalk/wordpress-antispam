@@ -106,13 +106,8 @@ class Integrations
 
                     return true;
                 }
-                /**
-                 * @var IMetricDTO $imetric_dto
-                 */
+
                 $imetric_dto = IMetricService::getDTO($integration);
-                /**
-                 * @var IntegrationBase $integration
-                 */
                 if ($imetric_dto) {
                     $integration->setIMetricDTO($imetric_dto);
                 }
@@ -185,7 +180,6 @@ class Integrations
                                 // Page URL must be an previous page
                             ),
                         );
-                        error_log('CTDEBUG [' . __FUNCTION__ . '] [$base_call_data] ' . var_export($base_call_data,true));
                     }
 
                     // Set registration flag - will be used to select method
