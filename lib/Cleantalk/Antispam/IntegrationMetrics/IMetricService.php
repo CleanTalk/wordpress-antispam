@@ -252,12 +252,12 @@ class IMetricService
      */
     public static function lease($integration, string $span_name = 'undefined_span')
     {
-if ($integration instanceof IntegrationBase || $integration instanceof IntegrationByClassBase) {
-    $dto = $integration->getIMetricDTO();
-    if ($dto && !$dto->is_released && isset($dto->spans[$span_name]) && is_array($dto->spans[$span_name])) {
-        $dto->spans[$span_name] = self::releaseSpan($dto->spans[$span_name]);
-    }
-}
+        if ($integration instanceof IntegrationBase || $integration instanceof IntegrationByClassBase) {
+            $dto = $integration->getIMetricDTO();
+            if ($dto && !$dto->is_released && isset($dto->spans[$span_name]) && is_array($dto->spans[$span_name])) {
+                $dto->spans[$span_name] = self::releaseSpan($dto->spans[$span_name]);
+            }
+        }
     }
 
     /**

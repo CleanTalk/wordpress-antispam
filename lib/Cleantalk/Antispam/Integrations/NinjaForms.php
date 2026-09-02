@@ -14,6 +14,10 @@ use Cleantalk\Common\TT;
 class NinjaForms extends IntegrationBase
 {
     private $sender_email = ''; // needs to provide to final actions
+
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function __construct()
     {
         $this->imetric_dto_version = '1.0.0';
