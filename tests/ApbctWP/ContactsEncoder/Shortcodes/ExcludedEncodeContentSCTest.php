@@ -312,12 +312,11 @@ class ExcludedEncodeContentSCTest extends TestCase
 
     /**
      * get_header/get_footer fire as actions with a nullable template name.
-     * Filters hooked there must not pass null into preg_*.
+     * Filters hooked there must not pass null into preg_* and should preserve the value.
      */
     public function testChangeContentBeforeEncoderModifyAcceptsNullFromGetHeader(): void
     {
-        $this->assertSame(
-            '',
+        $this->assertNull(
             $this->exclude_content_sc->changeContentBeforeEncoderModify(null)
         );
     }
@@ -327,8 +326,7 @@ class ExcludedEncodeContentSCTest extends TestCase
      */
     public function testChangeContentAfterEncoderModifyAcceptsNullFromGetHeader(): void
     {
-        $this->assertSame(
-            '',
+        $this->assertNull(
             $this->exclude_content_sc->changeContentAfterEncoderModify(null)
         );
     }

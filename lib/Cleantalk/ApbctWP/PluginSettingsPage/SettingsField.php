@@ -228,6 +228,34 @@ class SettingsField
         return $out;
     }
 
+    private function getRadioChildrenChunk($option)
+    {
+        $chunk = '';
+        if (isset($this->params['childrens'], $option['childrens_enable'])) {
+            $additional_onchange = '';
+            if (
+                $this->anyCacheDetectedInEnvironment() &&
+                isset($this->params['name']) && $this->params['name'] === 'data__set_cookies'
+            ) {
+                $additional_onchange = 'onApbctCookieTypeChange(event);';
+            }
+
+            $chunk = sprintf(
+                ' onchange="apbctSettingsDependencies(\'%s\', %s); %s"',
+                $this->children_string,
+                $option['childrens_enable'],
+                $additional_onchange
+            );
+        }
+
+        return $chunk;
+    }
+
+    public function anyCacheDetectedInEnvironment()
+    {
+        return apbct_is_varnish_cache_exists() || apbct_is_advanced_cache_exists() || apbct_is_10web_booster_exists() || apbct_is_cache_plugins_exists();
+    }
+
     /**
      * @return string
      */
@@ -255,7 +283,7 @@ class SettingsField
                     'name_id' => isset($this->params['name'], $option['label']) ? $this->params['name'] . '__' . $option['label'] : '',
                     'value' => $option['val'],
                     'disabled' => $this->disabled_string,
-                    'childrens' => isset($this->params['childrens'], $option['childrens_enable']) ? ' onchange="apbctSettingsDependencies(\'' . $this->children_string . '\', ' . $option['childrens_enable'] . ')"' : '',
+                    'childrens' => $this->getRadioChildrenChunk($option),
                     'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
                     'checked' => $this->value == $option['val'] ? ' checked' : '',
                     'label' => isset($option['label']) ? $option['label'] : '',

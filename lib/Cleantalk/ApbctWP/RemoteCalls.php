@@ -20,6 +20,15 @@ class RemoteCalls
     const MAX_DELAY = 10;
 
     /**
+     * CleanTalk RC servers allowlist. A request is trusted as an NOC remote call only if its
+     * reverse-resolved hostname matches one of these.
+     */
+    const RC_SERVERS = [
+        'netserv3.cleantalk.org',
+        'netserv4.cleantalk.org',
+    ];
+
+    /**
      * Request param with one-time self-call token for SFW worker rate-limit exemption.
      */
     const SFW_WORKER_SELF_TOKEN_PARAM = 'apbct_sfw_worker_self_token';
@@ -61,6 +70,16 @@ class RemoteCalls
         'post_api_key',
     ];
 
+    /**
+     * Sensitive plugin-lifecycle actions that must additionally originate from a verified CleanTalk RC server.
+     */
+    private static $pluginLifecycleActions = [
+        'install_plugin',
+        'activate_plugin',
+        'deactivate_plugin',
+        'uninstall_plugin',
+    ];
+
     private static $sensitiveData = [
         'user_token',
         'salt',
@@ -88,8 +107,8 @@ class RemoteCalls
     public static function checkWithToken()
     {
         return Request::get('spbc_remote_call_token') &&
-               Request::get('spbc_remote_call_action') &&
-               in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct'));
+            Request::get('spbc_remote_call_action') &&
+            in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct'));
     }
 
     private static function isAllowedWithoutToken($rc)
@@ -101,24 +120,43 @@ class RemoteCalls
     {
         global $apbct;
 
-        $rc_servers = [
-            'netserv3.cleantalk.org',
-            'netserv4.cleantalk.org',
-        ];
-        // Resolve IP of the client making the request and verify hostname from it to be in the list of RC servers hostnames
-        $client_ip = Helper::ipGet('remote_addr');
-        $verified_hostname = $client_ip ? \Cleantalk\Common\Helper::ipResolve($client_ip) : false;
-        $is_noc_request = ! $apbct->key_is_ok &&
-            Request::get('spbc_remote_call_action') &&
-            in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct')) &&
-            $verified_hostname !== false &&
-            in_array($verified_hostname, $rc_servers, true);
-
         // no token needs for this action, at least for now
         // todo Probably we still need to validate this, consult with analytics team
         $is_wp_nonce_request = $apbct->key_is_ok && Request::get('spbc_remote_call_action') === 'get_fresh_wpnonce';
 
-        return $is_wp_nonce_request || $is_noc_request;
+        if ( $is_wp_nonce_request ) {
+            return true;
+        }
+
+        // The cheap request checks are done first, the client IP is resolved only if all of them pass.
+        return ! $apbct->key_is_ok &&
+            Request::get('spbc_remote_call_action') &&
+            in_array(Request::get('plugin_name'), array('antispam', 'anti-spam', 'apbct')) &&
+            self::isRequestFromRcServer();
+    }
+
+    /**
+     * Verify that the request is made by one of the CleanTalk RC servers.
+     *
+     * Resolves IP of the client making the request and verifies the hostname from it to be
+     * in the list of RC servers hostnames.
+     *
+     * Performs DNS lookups, so it has to be called only after all the cheap checks passed -
+     * an unauthorized request must never be able to trigger a DNS resolving.
+     *
+     * @return bool
+     */
+    private static function isRequestFromRcServer()
+    {
+        $client_ip = Helper::ipGet('remote_addr');
+
+        if ( ! $client_ip ) {
+            return false;
+        }
+
+        $verified_hostname = \Cleantalk\Common\Helper::ipResolve($client_ip);
+
+        return $verified_hostname !== false && in_array($verified_hostname, self::RC_SERVERS, true);
     }
 
     /**
@@ -160,6 +198,16 @@ class RemoteCalls
                     (self::checkToken($token)) ||
                     (self::isAllowedWithoutToken($action) && self::checkWithoutToken())
                 ) {
+                    // Sensitive plugin-lifecycle actions must additionally originate from a verified
+                    // CleanTalk RC server. Checked after the token validation, so a request with a
+                    // wrong token is rejected without any DNS resolving.
+                    if (
+                        in_array($action, self::$pluginLifecycleActions, true) &&
+                        ! self::isRequestFromRcServer()
+                    ) {
+                        die('FAIL ' . json_encode(array('error' => 'FORBIDDEN_SOURCE')));
+                    }
+
                     // Update last_call only for authorized requests
                     $apbct->remote_calls[$action]['last_call'] = time();
                     $apbct->save('remote_calls');

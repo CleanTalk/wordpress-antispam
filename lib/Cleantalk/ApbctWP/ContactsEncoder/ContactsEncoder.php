@@ -63,6 +63,26 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $this->registerHookHandler();
     }
 
+    /**
+     * Push WP filter results into the common helper.
+     * Applied on each encode so theme functions.php (and tests) can register after init.
+     *
+     * @return void
+     */
+    private function applyAttributeExclusionHooks()
+    {
+        $signs = apply_filters(
+            'apbct_email_encoder_attribute_exclusions_signs',
+            $this->helper->getDefaultAttributeExclusionsSigns()
+        );
+        $this->helper->setAttributeExclusionsMap(
+            is_array($signs) ? $signs : $this->helper->getDefaultAttributeExclusionsSigns()
+        );
+
+        $attribute_list = apply_filters('apbct_skip_email_encoder_on_attribute_list', array());
+        $this->helper->setAttributeNames(is_array($attribute_list) ? $attribute_list : array());
+    }
+
     public function runEncoding($content = '')
     {
         global $apbct;
@@ -74,11 +94,6 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             'get_footer',
             'get_header',
             'get_the_excerpt',
-            'comment_text',
-            'comment_excerpt',
-            'comment_url',
-            'get_comment_author_url',
-            'get_comment_author_url_link',
             'widget_title',
             'widget_text',
             'widget_content',
@@ -158,6 +173,8 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     public function modifyGlobalEmails($content)
     {
+        $this->applyAttributeExclusionHooks();
+
         if ( ! is_string($content) || $content === '' || stripos($content, '<option') === false ) {
             return parent::modifyGlobalEmails($content);
         }
@@ -202,6 +219,8 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     public function modifyContent($content, $skip_exclusions = false)
     {
+        $this->applyAttributeExclusionHooks();
+
         if ( ! is_string($content) || $content === '' ) {
             return parent::modifyContent($content, $skip_exclusions);
         }
