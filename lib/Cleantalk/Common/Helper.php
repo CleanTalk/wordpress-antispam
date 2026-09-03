@@ -600,8 +600,24 @@ class Helper
      */
     public static function dnsResolve($host, $out = false)
     {
-        // Check if the $url is set and it is an url
-        if ( ! $host || ! filter_var($host, FILTER_VALIDATE_URL)) {
+        // Validate/normalize host (accept hostname or IP; URLs and host:port are also supported)
+        if ( ! $host || ! is_string($host) ) {
+            return $out;
+        }
+
+        if ( strpos($host, '://') !== false ) {
+            $parsed_host = parse_url($host, PHP_URL_HOST);
+            if ( is_string($parsed_host) && $parsed_host !== '' ) {
+                $host = $parsed_host;
+            }
+        }
+
+        if ( strpos($host, ':') !== false && ! filter_var($host, FILTER_VALIDATE_IP) ) {
+            $host = strstr($host, ':', true);
+        }
+
+        if ( ! filter_var($host, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME)
+             && ! filter_var($host, FILTER_VALIDATE_IP) ) {
             return $out;
         }
 
