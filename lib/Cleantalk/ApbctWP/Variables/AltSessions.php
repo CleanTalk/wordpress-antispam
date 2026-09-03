@@ -29,7 +29,7 @@ class AltSessions
         'ct_has_key_up' => 'bool',
         'ct_has_scrolled' => 'bool',
         'ct_mouse_moved' => 'bool',
-        'wordpress_apbct_antibot' => 'hash',
+        'apbct_antibot' => 'hash',
         'apbct_anticrawler_passed' => 'int',
         'apbct_antiflood_passed' => 'int',
         'ct_sfw_pass_key' => 'string',
