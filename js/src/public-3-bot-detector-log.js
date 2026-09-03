@@ -25,10 +25,17 @@ class ApbctBrowserState {
             }
 
             const log = localStorage.getItem(ApbctBrowserState.LOG_KEY);
+            let logObject;
+            try {
+                logObject = typeof log === 'string' ? JSON.parse(log) : null;
+            } catch (e) {
+                logObject = null;
+            }
+
             return JSON.stringify({
                 botd_logic_loaded: ApbctBrowserState.botdLogicLoaded,
                 botd_wrapper_loaded: ApbctBrowserState.botdWrapperLoaded,
-                frontend_data_log: typeof log === 'string' ? log : '',
+                frontend_data_log: logObject,
             });
         } catch (e) {
             return '';
