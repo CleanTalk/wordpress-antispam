@@ -600,7 +600,7 @@ class Helper
      */
     public static function dnsResolve($host, $out = false)
     {
-        // Check if the $url is set and it is an url
+        // Validate/normalize host (accept hostname or IP; URLs and host:port are also supported)
         if ( ! $host || ! is_string($host) ) {
             return $out;
         }
