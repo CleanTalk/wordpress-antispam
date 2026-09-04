@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Antispam\IntegrationMetrics;
 
+use Cleantalk\ApbctWP\Constant;
+
 /**
  * Integration Metrics DTO Trait
  *
@@ -106,10 +108,21 @@ trait IMetricDTOTrait
      *   }
      * </code>
      *
+     * If the constant APBCT_SERVICE__DISABLE_INTEGRATION_METRICS is defined and true,
+     * this method will return null regardless of the stored DTO.
+     *
      * @return IMetricDTO|null The stored metrics DTO, or null if not set
      */
     public function getIMetricDTO()
     {
+        if ($this->imetricIsDisabled()) {
+            return null;
+        }
         return $this->imetric_dto;
+    }
+
+    public function imetricIsDisabled(): bool
+    {
+        return Constant::is(Constant::APBCT_SERVICE__DISABLE_INTEGRATION_METRICS);
     }
 }
