@@ -496,8 +496,6 @@ class SettingsField
             'disabled' => $this->disabled_string,
             'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
             'childrens' => isset($this->params['childrens']) ? 'onchange="apbctSettingsDependencies(\'' . $this->children_string . '\')" ' : '',
-            // Escape stored setting to keep any HTML/JS in textarea content inert (defense-in-depth against tainted
-            // stored values that may have bypassed setting validation).
             'value' => esc_textarea((string)$raw_value),
         ];
 
