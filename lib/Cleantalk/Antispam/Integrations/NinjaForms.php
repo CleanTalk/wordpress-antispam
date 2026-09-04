@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\Antispam\IntegrationMetrics\IMetricService;
 use Cleantalk\ApbctWP\DTO\GetFieldsAnyDTO;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\GetFieldsAny;
@@ -13,6 +14,14 @@ use Cleantalk\Common\TT;
 class NinjaForms extends IntegrationBase
 {
     private $sender_email = ''; // needs to provide to final actions
+
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function __construct()
+    {
+        $this->imetric_dto_version = '1.0.0';
+    }
     public function getDataForChecking($argument)
     {
         global $apbct, $cleantalk_executed;
@@ -44,6 +53,7 @@ class NinjaForms extends IntegrationBase
             $gfa_dto = $this->getGFANew();
         } catch (\Exception $_e) {
             // It is possible here check the reason if the new way collecting fields is not available.
+            IMetricService::setCustomField($this->imetric_dto, 'nf_old_gfa_used', true);
             $gfa_dto = $this->getGFAOld();
         }
 
@@ -63,6 +73,7 @@ class NinjaForms extends IntegrationBase
                 $form_data = json_decode(stripslashes(Post::getString('formData')), true);
             }
             $form_fields = $form_data['fields'] ?? array();
+            IMetricService::setCustomField($this->imetric_dto, 'nf_fields_count', count($form_fields));
             $gfa_dto = $this->updateEmailNicknameFromNFService($gfa_dto, $form_fields);
         }
 
@@ -82,6 +93,7 @@ class NinjaForms extends IntegrationBase
         $fields_visibility_data = GetFieldsAny::getVisibleFieldsData($form_data, true);
         $this->setVisibleFieldsData($fields_visibility_data);
 
+        IMetricService::dumpVarsSize($this, get_defined_vars(), __FUNCTION__);
         return $gfa_dto->getArray();
     }
 
@@ -180,6 +192,7 @@ class NinjaForms extends IntegrationBase
      */
     public function getGFANew(): GetFieldsAnyDTO
     {
+        IMetricService::seek($this, __FUNCTION__);
         $form_data = json_decode(Post::getString('formData'), true);
         if ( ! $form_data ) {
             $form_data = json_decode(stripslashes(TT::toString(Post::get('formData'))), true);
@@ -251,7 +264,9 @@ class NinjaForms extends IntegrationBase
             }
         }
 
-        return ct_gfa_dto($fields, $nf_prior_email, $nickname, $nf_emails_array);
+        $gfa = ct_gfa_dto($fields, $nf_prior_email, $nickname, $nf_emails_array);
+        IMetricService::lease($this, __FUNCTION__);
+        return $gfa;
     }
 
     /**
@@ -259,6 +274,7 @@ class NinjaForms extends IntegrationBase
      */
     public function getGFAOld(): GetFieldsAnyDTO
     {
+        IMetricService::seek($this, __FUNCTION__);
         /**
          * Filter for POST
          */
@@ -272,7 +288,9 @@ class NinjaForms extends IntegrationBase
             : $input_array;
 
         // Return the collected fields data
-        return ct_gfa_dto($input_data);
+        $gfa = ct_gfa_dto($input_data);
+        IMetricService::lease($this, __FUNCTION__);
+        return $gfa;
     }
 
 
@@ -293,6 +311,7 @@ class NinjaForms extends IntegrationBase
      */
     public function updateEmailNicknameFromNFService(GetFieldsAnyDTO $gfa_dto, array $nf_form_fields): GetFieldsAnyDTO
     {
+        IMetricService::seek($this, __FUNCTION__);
         if ( function_exists('Ninja_Forms') && !empty($nf_form_fields) ) {
             /** @psalm-suppress UndefinedFunction */
             $nf_form_fields_info = Ninja_Forms()->form()->get_fields();
@@ -323,6 +342,7 @@ class NinjaForms extends IntegrationBase
             // if email is empty, fill it with data from Ninja Forms, if not empty, keep DTO
             $gfa_dto->email = empty($gfa_dto->email) ? $email : $gfa_dto->email;
         }
+        IMetricService::lease($this, __FUNCTION__);
         return $gfa_dto;
     }
 
