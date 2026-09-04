@@ -2642,6 +2642,15 @@ function getNoCookieData() { // eslint-disable-line no-unused-vars
     let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
     let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
     let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
+
+    // Bot detector browser state is transferred with the hidden field on the NoCookie mode
+    if (typeof apbctGetBrowserStatePair === 'function') {
+        const browserState = apbctGetBrowserStatePair();
+        if (browserState) {
+            noCookieData[browserState.key] = browserState.value;
+        }
+    }
+
     noCookieData = JSON.stringify(noCookieData);
 
     return '_ct_no_cookie_data_' + btoa(unescape(encodeURIComponent(noCookieData)));
@@ -2669,7 +2678,21 @@ function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
         noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
     }
 
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
+    let browserStateData = {};
+    if (typeof apbctGetBrowserStatePair === 'function') {
+        const browserState = apbctGetBrowserStatePair();
+        if (browserState) {
+            browserStateData[browserState.key] = browserState.value;
+        }
+    }
+
+    return {
+        ...noCookieDataLocal,
+        ...noCookieDataSession,
+        ...noCookieDataTypo,
+        ...noCookieDataFromUserActivity,
+        ...browserStateData,
+    };
 }
 
 /**
@@ -3314,6 +3337,9 @@ class ApbctHandler {
                     const eventTokenKey = useUnwrappedCleantalkKeys ?
                         'ct_bot_detector_event_token' :
                         'data%5Bct_bot_detector_event_token%5D';
+                    const browserStateKey = useUnwrappedCleantalkKeys ?
+                        'apbct_browser_state' :
+                        'data%5Bapbct_browser_state%5D';
 
                     if (!(
                         +ctPublic.bot_detector_enabled &&
@@ -3338,6 +3364,12 @@ class ApbctHandler {
                         }
                     }
 
+                    const browserState = apbctGetBrowserStatePair();
+                    if (browserState && body.indexOf('apbct_browser_state') === -1) {
+                        addidionalCleantalkData += '&' + browserStateKey + '=' +
+                            encodeURIComponent(browserState.value);
+                    }
+
                     body += addidionalCleantalkData;
                 }
 
@@ -3353,6 +3385,11 @@ class ApbctHandler {
                         if (eventToken) {
                             body.append('ct_bot_detector_event_token', eventToken);
                         }
+                    }
+
+                    const browserState = apbctGetBrowserStatePair();
+                    if (browserState && !body.has(browserState.key)) {
+                        body.append(browserState.key, browserState.value);
                     }
                 }
 
@@ -3389,6 +3426,22 @@ class ApbctHandler {
                             } catch (e) {
                                 // body is not JSON — leave as is
                             }
+                        }
+                    }
+
+                    const browserState = apbctGetBrowserStatePair();
+                    if (browserState) {
+                        try {
+                            const bodyObj = JSON.parse(body);
+                            if (
+                                bodyObj && typeof bodyObj === 'object' &&
+                                !Object.prototype.hasOwnProperty.call(bodyObj, browserState.key)
+                            ) {
+                                bodyObj[browserState.key] = browserState.value;
+                                body = JSON.stringify(bodyObj);
+                            }
+                        } catch (e) {
+                            // body is not JSON — leave as is
                         }
                     }
                 }
@@ -3448,6 +3501,11 @@ class ApbctHandler {
                                 } else {
                                     args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
                                 }
+
+                                const browserState = apbctGetBrowserStatePair();
+                                if (browserState) {
+                                    args[1].body.append(browserState.key, browserState.value);
+                                }
                             }
                         }
                     } catch (e) {
@@ -3504,6 +3562,22 @@ class ApbctHandler {
          * @return {string|FormData} Modified body.
          */
         const attachFieldsToBody = function(body, fieldPair = false) {
+            const fieldPairs = [fieldPair, apbctGetBrowserStatePair()];
+
+            for (const pair of fieldPairs) {
+                body = attachFieldPairToBody(body, pair);
+            }
+
+            return body;
+        };
+
+        /**
+         * Attach a single key/value pair to fetch request body
+         * @param {string|FormData} body Fetch request data body.
+         * @param {object|bool} fieldPair Key value to inject.
+         * @return {string|FormData} Modified body.
+         */
+        const attachFieldPairToBody = function(body, fieldPair = false) {
             if (fieldPair) {
                 if (body instanceof FormData || typeof body.append === 'function') {
                     body.append(fieldPair.key, fieldPair.value);
@@ -3800,10 +3874,14 @@ class ApbctHandler {
                         const batchPayload = JSON.parse(args[1].body);
                         if (batchPayload.requests && Array.isArray(batchPayload.requests)) {
                             const fieldPair = selectFieldsData(+ctPublic.bot_detector_enabled);
+                            const browserState = apbctGetBrowserStatePair();
                             for (const req of batchPayload.requests) {
                                 const isAddItem = req.path === '/wc/store/v1/cart/add-item';
                                 if (isAddItem && req.body && fieldPair && fieldPair.key) {
                                     req.body[fieldPair.key] = fieldPair.value;
+                                }
+                                if (isAddItem && req.body && browserState) {
+                                    req.body[browserState.key] = browserState.value;
                                 }
                             }
                             args[1].body = JSON.stringify(batchPayload);
@@ -4053,6 +4131,16 @@ class ApbctHandler {
                 }
             }
 
+            // Bot detector browser state
+            const browserState = apbctGetBrowserStatePair();
+            if (browserState) {
+                if (sourceSign.keepUnwrapped) {
+                    ajaxDataFormData.append(browserState.key, browserState.value);
+                } else {
+                    ajaxDataFormData.append('data[' + browserState.key + ']', browserState.value);
+                }
+            }
+
             // Visible fields
             if (sourceSign.attachVisibleFieldsData) {
                 let visibleFieldsSearchResult = false;
@@ -4111,6 +4199,15 @@ class ApbctHandler {
         let eventToken = '';
         let noCookieData = '';
         let visibleFieldsString = '';
+        let browserStateString = '';
+
+        const browserState = apbctGetBrowserStatePair();
+        if (browserState) {
+            const browserStateKey = sourceSign.keepUnwrapped ?
+                'apbct_browser_state' :
+                'data%5Bapbct_browser_state%5D';
+            browserStateString = browserStateKey + '=' + encodeURIComponent(browserState.value) + '&';
+        }
 
         if (
             +ctPublic.bot_detector_enabled &&
@@ -4152,7 +4249,7 @@ class ApbctHandler {
             }
         }
 
-        return noCookieData + eventToken + visibleFieldsString + ajaxDataString;
+        return noCookieData + eventToken + browserStateString + visibleFieldsString + ajaxDataString;
     }
 
     /**
@@ -5836,67 +5933,107 @@ function apbctCancelAutocomplete(element) {
     }));
 }
 
-let botDetectorLogLastUpdate = 0;
-let botDetectorLogEventTypesCollected = [];
-
-// bot_detector frontend_data log alt session saving cron
-if (
-    ctPublicFunctions.hasOwnProperty('bot_detector_enabled') &&
-    +ctPublicFunctions.bot_detector_enabled &&
-    ctPublicFunctions.hasOwnProperty('data__frontend_data_log_enabled') &&
-    ctPublicFunctions.data__frontend_data_log_enabled == 1
-) {
-    sendBotDetectorLogToAltSessions(1000);
-}
-
 /**
- * Send BotDetector logs data to alternative sessions.
- * If log_last_update has changed and log contains new event types, the log will be sent to the alternative sessions.
- * @param {int} cronStartTimeout delay before cron start
- * @param {int} interval check fires on interval
+ * Bot detector browser state.
+ *
+ * The state is passed to the site backend with the current JS->PHP transport and goes
+ * to the moderate request as sender_info.bot_detector_frontend_data_log.
  */
-function sendBotDetectorLogToAltSessions(cronStartTimeout = 3000, interval = 1000) {
-    setTimeout(function() {
-        setInterval(function() {
-            const currentLog = apbctLocalStorage.get('ct_bot_detector_frontend_data_log');
-            if (needsSaveLogToAltSessions(currentLog)) {
-                botDetectorLogLastUpdate = currentLog.log_last_update;
-                // the log will be taken from javascriptclientdata
-                ctSetAlternativeCookie([], {forceAltCookies: true});
-            }
-        }, interval);
-    }, cronStartTimeout);
-}
+class ApbctBrowserState {
+    static STATE_KEY = 'apbct_browser_state';
+    static LOG_KEY = 'ct_bot_detector_frontend_data_log';
+    static SCRIPT_SIGNS = {
+        botd_wrapper_loaded: 'ct-bot-detector-wrapper',
+        botd_logic_loaded: 'ct-bot-detector.min',
+    };
+    static botdWrapperLoaded = 0;
+    static botdLogicLoaded = 0;
 
-/**
- * Check if the log needs to be saved to the alt sessions. If the log has new event types, it will be saved.
- * @param {object} currentLog
- * @return {boolean}
- */
-function needsSaveLogToAltSessions(currentLog) {
-    if (
-        currentLog && currentLog.hasOwnProperty('log_last_update') &&
-        botDetectorLogLastUpdate !== currentLog.log_last_update
-    ) {
+    /**
+     * Get the current browser state as a JSON string ready to be transferred.
+     * @return {string} Empty string if the bot detector is disabled or on any collecting error.
+     */
+    static toJson() {
         try {
-            for (let i = 0; i < currentLog.records.length; i++) {
-                const currentType = currentLog.records[i].frontend_data.js_event;
-                // check if this event type was already collected
-                if (currentType !== undefined && botDetectorLogEventTypesCollected.includes(currentType)) {
-                    continue;
-                }
-                // add new event type to collection, this type will be sent to the alt sessions further
-                botDetectorLogEventTypesCollected.push(currentType);
-                return true;
+            if (!+ctPublicFunctions.bot_detector_enabled) {
+                return '';
             }
+
+            const prefix = (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.cookiePrefix) ?
+                ctPublicFunctions.cookiePrefix :
+                '';
+            const logKey = prefix + ApbctBrowserState.LOG_KEY;
+            const noPrefixLogKey = ApbctBrowserState.LOG_KEY;
+
+            let logObject = null;
+
+            // try to get both types of keys
+            if (typeof apbctLocalStorage !== 'undefined' && apbctLocalStorage.get) {
+                logObject = apbctLocalStorage.get(logKey) || null;
+                if (!logObject) {
+                    logObject = apbctLocalStorage.get(noPrefixLogKey) || null;
+                }
+            } else {
+                let rawLog = localStorage.getItem(logKey);
+                if (!rawLog) {
+                    rawLog = localStorage.getItem(noPrefixLogKey) || null;
+                }
+                try {
+                    logObject = typeof rawLog === 'string' ? JSON.parse(rawLog) : null;
+                } catch (e) {
+                    logObject = null;
+                }
+            }
+
+            return JSON.stringify({
+                botd_logic_loaded: ApbctBrowserState.botdLogicLoaded,
+                botd_wrapper_loaded: ApbctBrowserState.botdWrapperLoaded,
+                frontend_data_log: logObject,
+            });
         } catch (e) {
-            console.log('APBCT: bot detector log collection error: ' . e.toString());
+            return '';
         }
     }
-    return false;
+
+    /**
+     * Look for the bot detector scripts in the page DOM.
+     * @return {boolean} True if both scripts are found.
+     */
+    static detectScripts() {
+        const scripts = document.getElementsByTagName('script');
+
+        for (let i = 0; i < scripts.length; i++) {
+            const src = scripts[i].getAttribute('src');
+            if (!src) {
+                continue;
+            }
+            if (src.indexOf(ApbctBrowserState.SCRIPT_SIGNS.botd_wrapper_loaded) !== -1) {
+                ApbctBrowserState.botdWrapperLoaded = 1;
+            } else if (src.indexOf(ApbctBrowserState.SCRIPT_SIGNS.botd_logic_loaded) !== -1) {
+                ApbctBrowserState.botdLogicLoaded = 1;
+            }
+        }
+
+        // The bot detector logic sets this flag on its own start
+
+        return !!ApbctBrowserState.botdWrapperLoaded && !!ApbctBrowserState.botdLogicLoaded;
+    }
 }
 
+/**
+ * Get the browser state as a key/value pair to attach it to an intercepted request.
+ * @return {{key: string, value: string}|false} False if there is nothing to attach.
+ */
+function apbctGetBrowserStatePair() { // eslint-disable-line no-unused-vars
+    try {
+        ApbctBrowserState.detectScripts();
 
+        const state = ApbctBrowserState.toJson();
+        return state ? {key: ApbctBrowserState.STATE_KEY, value: state} : false;
+    } catch (e) {
+        return false;
+    }
+}
 
 let ctCheckedEmails = {};
 let ctCheckedEmailsExist = {};

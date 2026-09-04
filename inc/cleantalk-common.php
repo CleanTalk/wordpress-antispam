@@ -5,6 +5,7 @@ use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\CleantalkResponse;
 use Cleantalk\ApbctWP\API;
 use Cleantalk\ApbctWP\BaseCall\DefaultParams;
+use Cleantalk\ApbctWP\BotDetectorService;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\Cron;
@@ -1813,156 +1814,41 @@ function apbct_get_event_token($params)
 }
 
 /**
- * Do prepare exclusions for skippping bot-detector event token field.
+ * Prepare exclusions for skippping bot-detector event token field.
+ * @deprecated since 6.88, use BotDetectorService::getPreparedExclusions() instead
  * @return string JSOn
  */
 function apbct__bot_detector_get_prepared_exclusion()
 {
-    global $apbct;
-    $bot_detector_exclusions = array();
-
-    //start exclusion there
-
-    //todo if do need to add a built-ib exclusion, use $exlusion_format
-    //set regexp to chek within attributes
-    //    $exlusion_format = array(
-    //        'exclusion_id' => '',
-    //        'signs_to_check' => array(
-    //            'form_attributes'               => '',
-    //            'form_children_attributes'      => '',
-    //            'form_parent_attributes'        => ''
-    //        )
-    //    );
-    if ($apbct->settings['exclusions__bot_detector']) {
-        $bot_detector_exclusions = array_merge(
-            $bot_detector_exclusions,
-            apbct__bot_detector_get_custom_exclusion_from_settings()
-        );
-    }
-
-    //start validate
-    $bot_detector_exclusions_valid = array();
-    foreach ($bot_detector_exclusions as $exclusion) {
-        if (
-            empty($exclusion['exclusion_id']) ||
-            (
-                empty($exclusion['signs_to_check']['form_attributes']) &&
-                empty($exclusion['signs_to_check']['form_children_attributes']) &&
-                empty($exclusion['signs_to_check']['form_parent_attributes'])
-            )
-        ) {
-            continue;
-        }
-        $bot_detector_exclusions_valid[] = $exclusion;
-    }
-
-    //prepare for early localize
-    $bot_detector_exclusions_valid = json_encode($bot_detector_exclusions_valid);
-    return $bot_detector_exclusions_valid !== false ? $bot_detector_exclusions_valid : '{}';
+    return BotDetectorService::getPreparedExclusions();
 }
 
+/**
+ * @deprecated since 6.88, use BotDetectorService::getFrontendDataLog() instead
+ * @return string
+ */
 function apbct__bot_detector_get_fired_exclusions()
 {
-    return Cookie::get('ct_bot_detector_form_exclusion');
+    return BotDetectorService::getFiredExclusions();
 }
 
 /**
  * Return bot detector frontend data log from Alt Sessions if data found.
  * Format: JSON.
- *
+ * @deprecated since 6.88, use BotDetectorService::getFrontendDataLog() instead
  * @return string JSON encoded bot detector frontend data log.
  */
 function apbct__bot_detector_get_fd_log()
 {
-    $result = array(
-        'plugin_status' => 'OK',
-        'error_msg' => '',
-        'frontend_data_log' => ''
-    );
-    // Initialize result array with default values
-
-    if (Constant::is(Constant::APBCT_SERVICE__DO_NOT_COLLECT_FRONTEND_DATA_LOGS)) {
-        $result['plugin_status'] = 'OK';
-        $result['error_msg'] = 'bot detector logs collection is disabled via constant definition';
-        return json_encode($result);
-    }
-
-    try {
-        if ( ! apbct__is_bot_detector_enabled() ) {
-            throw new \Exception('bot detector library usage is disabled');
-        }
-        // Retrieve bot detector frontend data log from Alt Sessions
-        $alt_sessions_fd_log = AltSessions::get('ct_bot_detector_frontend_data_log');
-        // Check if the retrieved data is a string
-        if ( !is_string($alt_sessions_fd_log) || '' === $alt_sessions_fd_log ) {
-            throw new \Exception('no log found in alt sessions');
-        }
-        // Encode the retrieved data to JSON format
-        $param_bot_detector_fd_log = json_decode($alt_sessions_fd_log, true);
-        // Check if the JSON encoding was successful
-        if ( empty($param_bot_detector_fd_log) ) {
-            throw new \Exception('can not decode data from alt sessions');
-        }
-    } catch (Exception $e) {
-        $result['plugin_status'] = 'ERROR';
-        $result['error_msg'] = $e->getMessage();
-        return json_encode($result);
-    }
-    $result['frontend_data_log'] = $param_bot_detector_fd_log;
-    // Return the result as a JSON encoded string
-    return json_encode($result);
-}
-
-function apbct__bot_detector_get_custom_exclusion_from_settings()
-{
-    global $apbct;
-
-    $exlusion_format = array(
-        'exclusion_id' => '',
-        'signs_to_check' => array(
-            'form_attributes'               => '',
-            'form_children_attributes'      => '',
-            'form_parent_attributes'        => ''
-        )
-    );
-
-    $exclusions = array();
-    if (!$apbct->settings['exclusions__bot_detector']) {
-        return $exclusions;
-    }
-
-    foreach ($exlusion_format['signs_to_check'] as $sign => $_val) {
-        $setting_name = 'exclusions__bot_detector__' . $sign;
-        if (!empty($apbct->settings[$setting_name])) {
-            $regexps = explode(',', $apbct->settings[$setting_name]);
-            for ( $i = 0; $i < count($regexps); $i++ ) {
-                $form_exclusion = $exlusion_format;
-                $form_exclusion['exclusion_id'] = 'exclusion_' . $i;
-                $form_exclusion['signs_to_check'][$sign] = $regexps[$i];
-                $exclusions[] = $form_exclusion;
-            }
-        }
-    }
-    return $exclusions;
+    return BotDetectorService::getFrontendDataLog();
 }
 
 /**
  * Check if Bot-Detector is enabled/disabled
- *
+ * @deprecated since 6.88, use BotDetectorService::enabled() instead
  * @return bool
  */
 function apbct__is_bot_detector_enabled()
 {
-    global $apbct;
-
-    // Constant is preferred
-    if ( Constant::is(Constant::APBCT_SERVICE__BOT_DETECTOR_ENABLED) ) {
-        return (bool) Constant::getValue(Constant::APBCT_SERVICE__BOT_DETECTOR_ENABLED);
-    }
-    // Check by $apbct->data
-    if ( isset($apbct->data['bot_detector_enabled']) ) {
-        return (bool) $apbct->data['bot_detector_enabled'];
-    }
-    // By default - enabled
-    return true;
+    return BotDetectorService::isEnabled();
 }
