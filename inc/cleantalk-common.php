@@ -1814,8 +1814,8 @@ function apbct_get_event_token($params)
 }
 
 /**
- * Do prepare exclusions for skippping bot-detector event token field.
- * @deprecated since 6.88, use BotDetectorService::getFrontendDataLog() instead
+ * Prepare exclusions for skippping bot-detector event token field.
+ * @deprecated since 6.88, use BotDetectorService::getPreparedExclusions() instead
  * @return string JSOn
  */
 function apbct__bot_detector_get_prepared_exclusion()

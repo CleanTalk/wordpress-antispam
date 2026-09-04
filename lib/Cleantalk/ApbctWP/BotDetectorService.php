@@ -77,7 +77,7 @@ class BotDetectorService
     }
 
     /**
-     * Do prepare exclusions for skippping bot-detector event token field.
+     * Prepare exclusions for skippping bot-detector event token field.
      * @return string JSON encoded array of valid exclusions. If no valid exclusions, returns '{}'.
      */
     public static function getPreparedExclusions()
