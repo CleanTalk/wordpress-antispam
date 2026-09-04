@@ -15,6 +15,11 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      */
     protected $public_name;
 
+    /**
+     * @var string Wrapper template overridden by child classes as the placeholder source.
+     */
+    protected $exclusion_wrapper = '';
+
     // Placeholder nonce for ensuring unique placeholders per render.
     protected $placeholder_nonce = '';
 
@@ -32,7 +37,7 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
             $this->placeholder_nonce = $this->generatePlaceholderNonce();
         }
 
-        $wrapper = isset($this->exclusion_wrapper) ? (string)$this->exclusion_wrapper : '';
+        $wrapper = (string)$this->exclusion_wrapper;
         $placeholder = preg_replace(
             '/EE\_\d+/',
             'EE_' . (string)$counter . '_' . $this->placeholder_nonce,
