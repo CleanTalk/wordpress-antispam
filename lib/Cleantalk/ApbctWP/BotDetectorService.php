@@ -18,7 +18,7 @@ class BotDetectorService
 
     public static function getWrapperUrl(): string
     {
-        return 'https://moderate-next.cleantalk.org/dev/ct-bot-detector.min.js';
+        return 'https://fd.cleantalk.org/ct-bot-detector-wrapper.js';
     }
 
     /**
