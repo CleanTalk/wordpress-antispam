@@ -5115,12 +5115,30 @@ class ApbctBrowserState {
                 return '';
             }
 
-            const log = localStorage.getItem(ApbctBrowserState.LOG_KEY);
-            let logObject;
-            try {
-                logObject = typeof log === 'string' ? JSON.parse(log) : null;
-            } catch (e) {
-                logObject = null;
+            const prefix = (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.cookiePrefix) ?
+                ctPublicFunctions.cookiePrefix :
+                '';
+            const logKey = prefix + ApbctBrowserState.LOG_KEY;
+            const noPrefixLogKey = ApbctBrowserState.LOG_KEY;
+
+            let logObject = null;
+
+            // try to get both types of keys
+            if (typeof apbctLocalStorage !== 'undefined' && apbctLocalStorage.get) {
+                logObject = apbctLocalStorage.get(logKey) || null;
+                if (!logObject) {
+                    logObject = apbctLocalStorage.get(noPrefixLogKey) || null;
+                }
+            } else {
+                let rawLog = localStorage.getItem(logKey);
+                if (!rawLog) {
+                    rawLog = localStorage.getItem(noPrefixLogKey) || null;
+                }
+                try {
+                    logObject = typeof rawLog === 'string' ? JSON.parse(rawLog) : null;
+                } catch (e) {
+                    logObject = null;
+                }
             }
 
             return JSON.stringify({
