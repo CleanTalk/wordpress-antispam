@@ -15,6 +15,61 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      */
     protected $public_name;
 
+    // Placeholder nonce for ensuring unique placeholders per render.
+    protected $placeholder_nonce = '';
+
+    /**
+     * Build a placeholder for the given counter using the child's $exclusion_wrapper as a template.
+     * Lazy-initialises the per-render nonce so replacements survive isolated render passes.
+     *
+     * @param int $counter
+     *
+     * @return string
+     */
+    protected function buildPlaceholder($counter)
+    {
+        if ($this->placeholder_nonce === '') {
+            $this->placeholder_nonce = $this->generatePlaceholderNonce();
+        }
+
+        $wrapper = isset($this->exclusion_wrapper) ? (string)$this->exclusion_wrapper : '';
+        $placeholder = preg_replace(
+            '/EE\_\d+/',
+            'EE_' . (string)$counter . '_' . $this->placeholder_nonce,
+            $wrapper
+        );
+
+        return is_null($placeholder) ? $wrapper : $placeholder;
+    }
+
+    /**
+     * Rotates the placeholder nonce to ensure unique placeholders for subsequent renders.
+     * @return void
+     */
+    protected function rotatePlaceholderNonce()
+    {
+        $this->placeholder_nonce = $this->generatePlaceholderNonce();
+    }
+
+    /**
+     * Generates a new high-entropy nonce for placeholders.
+     * @return string
+     */
+    protected function generatePlaceholderNonce()
+    {
+        if (function_exists('random_bytes')) {
+            try {
+                return bin2hex(random_bytes(16));
+            } catch (\Exception $e) {
+                // fall through to WP fallback
+            }
+        }
+        if (function_exists('wp_generate_password')) {
+            return strtolower(wp_generate_password(32, false));
+        }
+        return substr(hash('sha256', uniqid((string)mt_rand(), true)), 0, 32);
+    }
+
     /**
      * Process only this encoder's shortcode tags in the content.
      *
