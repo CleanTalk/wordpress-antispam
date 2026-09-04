@@ -412,7 +412,7 @@ class SettingsField
         $data = [
             'name' => isset($this->params['name']) ? $this->params['name'] : '',
             'type' => isset($this->params['type']) ? $this->params['type'] : '',
-            'value' => $this->value,
+            'value' => esc_attr(is_array($this->value) ? implode(', ', $this->value) : (string)$this->value),
             'placeholder' => isset($this->params['placeholder']) ? 'placeholder="' . $this->params['placeholder'] . '"' : '',
             'disabled' => $this->disabled_string,
             'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
@@ -482,6 +482,11 @@ class SettingsField
     {
         $title_layout = '<h4 class="apbct_settings-field_title apbct_settings-field_title--{{type}}">{{title}} {{popup_description}}</h4>';
 
+        $raw_value = empty($this->value) ? TT::getArrayValueAsString($this->params, 'value') : $this->value;
+        if (is_array($raw_value)) {
+            $raw_value = implode(', ', $raw_value);
+        }
+
         $data = [
             'title' => isset($this->params['title']) ? $this->params['title'] : '',
             'type' => isset($this->params['type']) ? $this->params['type'] : '',
@@ -491,7 +496,9 @@ class SettingsField
             'disabled' => $this->disabled_string,
             'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
             'childrens' => isset($this->params['childrens']) ? 'onchange="apbctSettingsDependencies(\'' . $this->children_string . '\')" ' : '',
-            'value' => empty($this->value) ? TT::getArrayValueAsString($this->params, 'value') : $this->value,
+            // Escape stored setting to keep any HTML/JS in textarea content inert (defense-in-depth against tainted
+            // stored values that may have bypassed setting validation).
+            'value' => esc_textarea((string)$raw_value),
         ];
 
         $layout = '';
@@ -519,7 +526,7 @@ class SettingsField
         $data = [
             'name' => isset($this->params['name']) ? $this->params['name'] : '',
             'type' => isset($this->params['type']) ? $this->params['type'] : '',
-            'value' => $this->value,
+            'value' => esc_attr(is_array($this->value) ? implode(', ', $this->value) : (string)$this->value),
             'disabled' => $this->disabled_string,
             'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
             'childrens' => isset($this->params['childrens']) ? 'onchange="apbctSettingsDependencies(\'' . $this->children_string . '\')" ' : '',

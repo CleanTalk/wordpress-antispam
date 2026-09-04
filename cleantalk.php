@@ -2350,35 +2350,6 @@ function apbct_rc__uninstall_plugin__check_deactivate()
 }
 
 /**
- * @param $source
- *
- * @return bool
- */
-function apbct_rc__update_settings($source)
-{
-    global $apbct;
-
-    foreach ( $apbct->default_settings as $setting => $def_value ) {
-        if ( array_key_exists($setting, $source) ) {
-            if ($setting === 'apikey') {
-                continue;
-            }
-            $var  = $source[$setting];
-            $type = gettype($def_value);
-            settype($var, $type);
-            if ( $type === 'string' ) {
-                $var = preg_replace(array('/=/', '/`/'), '', $var);
-            }
-            $apbct->settings[$setting] = $var;
-        }
-    }
-
-    $apbct->save('settings');
-
-    return true;
-}
-
-/**
  * @param string $key
  * @param string $plugin
  *
