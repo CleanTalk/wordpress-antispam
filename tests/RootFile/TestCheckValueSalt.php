@@ -49,18 +49,24 @@ class TestCheckValueSalt extends TestCase
     {
         global $apbct;
 
-        $with_salt = md5($apbct->api_key . $apbct->data['salt']);
+        $with_suffix = md5($apbct->api_key . $apbct->data['salt'] . '_apbct_cookies_test');
         $without_salt = md5($apbct->api_key);
+        $rc_bearer = md5($apbct->api_key . $apbct->data['salt']);
 
         $this->assertNotEquals(
             $without_salt,
-            $with_salt,
+            $with_suffix,
             'check_value must not equal md5(api_key) alone - salt must change the hash'
+        );
+        $this->assertNotEquals(
+            $rc_bearer,
+            $with_suffix,
+            'check_value must not equal the RC bearer md5(api_key + salt) - purpose suffix must domain-separate it'
         );
     }
 
     /**
-     * Test that apbct_cookies_test() validates a cookie computed WITH salt.
+     * Test that apbct_cookies_test() validates a cookie computed WITH salt and purpose suffix.
      */
     public function testApbctCookiesTestValidatesWithSalt()
     {
@@ -68,7 +74,7 @@ class TestCheckValueSalt extends TestCase
 
         $cookie_test_value = array(
             'cookies_names' => array(),
-            'check_value'   => md5($apbct->api_key . $apbct->data['salt']),
+            'check_value'   => md5($apbct->api_key . $apbct->data['salt'] . '_apbct_cookies_test'),
         );
 
         $cookie_prefix = function_exists('apbct__get_cookie_prefix') ? apbct__get_cookie_prefix() : '';
@@ -111,7 +117,7 @@ class TestCheckValueSalt extends TestCase
 
         $cookie_test_value = array(
             'cookies_names' => array('ct_ps_timestamp'),
-            'check_value'   => md5($apbct->api_key . $apbct->data['salt'] . $timestamp),
+            'check_value'   => md5($apbct->api_key . $apbct->data['salt'] . '_apbct_cookies_test' . $timestamp),
         );
 
         $cookie_prefix = function_exists('apbct__get_cookie_prefix') ? apbct__get_cookie_prefix() : '';
