@@ -2397,11 +2397,23 @@ function apbct_settings__validate($incoming_settings)
 
     // Set missing network settings from default.
     $stored_network_options = get_site_option($apbct->option_prefix . '_network_settings', array());
+    $incoming_work_mode     = isset($incoming_settings['multisite__work_mode'])
+        ? $incoming_settings['multisite__work_mode']
+        : null;
     $incoming_settings = apbct_settings__set_missed_network_settings(
         $incoming_settings,
         is_array($stored_network_options) ? $stored_network_options : array(),
         $apbct->default_network_settings
     );
+
+    if ( APBCT_WPMS && is_main_site() && $incoming_work_mode !== null ) {
+        $previous_work_mode = isset($apbct->network_settings['multisite__work_mode'])
+            ? (int) $apbct->network_settings['multisite__work_mode']
+            : 0;
+        if ( $previous_work_mode !== (int) $incoming_work_mode ) {
+            apbct_settings__clear_errors(true);
+        }
+    }
 
     /**
      * -- SFW rules --
@@ -2717,6 +2729,40 @@ function apbct_settings__validate($incoming_settings)
     return $incoming_settings;
 }
 
+/**
+ * Clear plugin errors on the current site.
+ * When $all_blogs is true on WPMS, also wipe errors on every blog.
+ *
+ * @param bool $all_blogs
+ *
+ * @return void
+ */
+function apbct_settings__clear_errors($all_blogs = false)
+{
+    global $apbct, $wpdb;
+
+    $apbct->errorDeleteAll(true);
+
+    if ( ! $all_blogs || ! APBCT_WPMS ) {
+        return;
+    }
+
+    $option_name     = $apbct->option_prefix . '_errors';
+    $current_blog_id = get_current_blog_id();
+    $wp_blogs        = $wpdb->get_results('SELECT blog_id FROM ' . $wpdb->blogs, OBJECT_K);
+
+    if ( ! is_array($wp_blogs) ) {
+        return;
+    }
+
+    foreach ( $wp_blogs as $blog ) {
+        if ( (int) $blog->blog_id === (int) $current_blog_id ) {
+            continue;
+        }
+        update_blog_option($blog->blog_id, $option_name, array());
+    }
+}
+
 function apbct_settings__sync($direct_call = false)
 {
     if ( ! $direct_call ) {
@@ -2734,8 +2780,12 @@ function apbct_settings__sync($direct_call = false)
         die(json_encode($out));
     }
 
-    //Clearing all errors
-    $apbct->errorDeleteAll(true);
+    // Clearing all errors. Mutual Access Key (mode 2): wipe leftover banners on every blog.
+    $clear_all_blogs = APBCT_WPMS
+        && is_main_site()
+        && isset($apbct->network_settings['multisite__work_mode'])
+        && (int) $apbct->network_settings['multisite__work_mode'] === 2;
+    apbct_settings__clear_errors($clear_all_blogs);
 
     // Feedback with app_agent
     ct_send_feedback('0:' . APBCT_AGENT); // 0 - request_id, agent version.
