@@ -18,7 +18,7 @@ class BotDetectorService
 
     public static function getWrapperUrl(): string
     {
-        return 'https://fd.cleantalk.org/ct-bot-detector-wrapper.js';
+        return 'https://moderate-next.cleantalk.org/dev/ct-bot-detector.min.js';
     }
 
     /**
@@ -209,6 +209,8 @@ class BotDetectorService
      */
     public static function getBrowserState(array $sources = array())
     {
+        $raw_state = null;
+
         if (!empty($sources['request_parameters'])) {
             $raw_state = $sources['request_parameters'];
         }
