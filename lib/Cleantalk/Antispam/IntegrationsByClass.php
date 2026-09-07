@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Antispam;
 
+use Cleantalk\Antispam\IntegrationMetrics\IMetricService;
 use Cleantalk\Antispam\IntegrationsByClass\IntegrationByClassBase;
 
 class IntegrationsByClass
@@ -49,6 +50,11 @@ class IntegrationsByClass
              * @var IntegrationByClassBase $integration
              */
             $integration = new $class();
+
+            $imetric_dto = IMetricService::getDTO($integration);
+            if ($imetric_dto) {
+                $integration->setIMetricDTO($imetric_dto);
+            }
 
             // Public work
             if ($integration->isSkipIntegration()) {

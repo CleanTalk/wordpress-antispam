@@ -171,6 +171,10 @@ class Constant
     const CLEANTALK_SERVER = 'APBCT_SERVICE__PREDEFINED_CLEANTALK_SERVER_URL';
 
     /**
+     * If defined, integration metrics will be disabled.
+     */
+    const APBCT_SERVICE__DISABLE_INTEGRATION_METRICS = 'APBCT_SERVICE__DISABLE_INTEGRATION_METRICS';
+    /**
      * Registry cache. Built once per request by self::getRegistry().
      *
      * @var array<string, array{names: string[], type: string, description: string}>|null
@@ -464,6 +468,13 @@ class Constant
                     ),
                     'type'        => 'string',
                     'description' => 'Provides own URL of API server.',
+                ),
+                self::APBCT_SERVICE__DISABLE_INTEGRATION_METRICS   => array(
+                    'names'       => array(
+                        self::APBCT_SERVICE__DISABLE_INTEGRATION_METRICS,
+                    ),
+                    'type'        => 'bool',
+                    'description' => 'If defined, integration metrics will be disabled.',
                 ),
             );
         }

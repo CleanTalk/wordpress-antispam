@@ -2,8 +2,12 @@
 
 namespace Cleantalk\Antispam\IntegrationsByClass;
 
+use Cleantalk\Antispam\IntegrationMetrics\IMetricDTOTrait;
+
 abstract class IntegrationByClassBase
 {
+    use IMetricDTOTrait;
+
     /**
      * Do not apply actions on hooks if true;
      * @return bool
