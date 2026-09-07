@@ -18,8 +18,16 @@
         "wp-cli/wp-cli-bundle": "*",
         "mockery/mockery": "*",
         "cleantalk/apbct-installer": "*",
-        "cleantalk/contacts-encoder": "2.0.18.7",
+        "cleantalk/contacts-encoder": "dev-master",
         "cleantalk/rate-limiter": "*"
+    },
+    "replace": {
+        "cleantalk/antispam": "*",
+        "cleantalk/helper": "*",
+        "cleantalk/http": "*",
+        "cleantalk/variables": "*",
+        "cleantalk/cleaner": "*",
+        "cleantalk/mloader": "*"
     },
     "scripts": {
         "test": [

@@ -2390,7 +2390,7 @@ function apbct_rc__insert_auth_key($key, $plugin)
         require_once(ABSPATH . '/wp-admin/includes/plugin.php');
 
         if ( is_plugin_active($plugin) ) {
-            $key = trim($key);
+            $key = trim($key, " \n\r\t\v\x00");
 
             if ( $key && preg_match('/^[a-z\d]{3,30}$/', $key) ) {
                 $result = API::methodNoticePaidTill(

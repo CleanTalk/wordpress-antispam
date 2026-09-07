@@ -591,7 +591,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
 
         $protected_contacts = array();
         foreach ( $matches[1] as $inner_match ) {
-            $inner = trim($inner_match[0]);
+            $inner = trim($inner_match[0], " \n\r\t\v\x00");
             if ( $inner !== '' ) {
                 $protected_contacts[$inner] = true;
             }
@@ -615,7 +615,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
 
         $result .= $this->stripProtectedContactsFromPlainText(substr($title, $offset), array_keys($protected_contacts));
 
-        return trim(preg_replace('/\s+/', ' ', $result));
+        return trim(preg_replace('/\s+/', ' ', $result), " \n\r\t\v\x00");
     }
 
     /**
@@ -913,7 +913,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
 
         if ( $strip_html ) {
             $result = wp_strip_all_tags($result);
-            $result = trim(preg_replace('/\s+/', ' ', $result));
+            $result = trim(preg_replace('/\s+/', ' ', $result), " \n\r\t\v\x00");
         }
 
         return $result;
@@ -931,7 +931,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         $title = preg_replace('/\[apbct_skip_encoding\](.*?)\[\/apbct_skip_encoding\]/s', '$1', $title);
         $title = preg_replace('/\[\/?apbct_skip_encoding\]/', '', $title);
 
-        return trim(preg_replace('/\s+/', ' ', $title));
+        return trim(preg_replace('/\s+/', ' ', $title), " \n\r\t\v\x00");
     }
 
     /**

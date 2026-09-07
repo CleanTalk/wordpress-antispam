@@ -524,7 +524,7 @@ class RemoteCalls
             header("Content-Type: application/json");
         }
 
-        $key = trim(Request::getString('api_key'));
+        $key = trim(Request::getString('api_key'), " \n\r\t\v\x00");
         if ( ! apbct_api_key__is_correct($key) ) {
             die(json_encode(['FAIL' => ['error' => 'Api key is incorrect']]));
         }

@@ -17,7 +17,7 @@ class ClassifiedListingRegister extends IntegrationBase
             return null;
         }
 
-        $form_data['username'] = isset($_POST['username']) && is_string($_POST['username']) ? trim($_POST['username']) : '';
+        $form_data['username'] = isset($_POST['username']) && is_string($_POST['username']) ? trim($_POST['username'], " \n\r\t\v\x00") : '';
         $form_data['email']    = isset($_POST['email']) ? $_POST['email'] : '';
         if ( ! empty($_POST['first_name']) ) {
             $form_data['first_name'] = $_POST['first_name'];
