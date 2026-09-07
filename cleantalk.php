@@ -1879,6 +1879,8 @@ function apbct_sfw_update__end_of_update($is_first_updating = false)
 
     // Delete update errors
     $apbct->errorDelete('sfw_update', true);
+    // Delete outdated errors
+    $apbct->errorDelete('sfw_outdated', true);
 
     // Running sfw update once again in 12 min if entries is < 4000
     if ( $is_first_updating &&
