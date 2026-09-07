@@ -1,6 +1,23 @@
 {
   "name": "cleantalk/contacts-encoder",
-  "description": "CleanTalk ContactsEncoder class",
+  "description": "Email obfuscation for email addresses and phone numbers. Stops smart bots via the CleanTalk anti-spam cloud. Works with any framework or plain HTML.",
+  "homepage": "https://cleantalk.org/contact-encoder",
+  "keywords": [
+    "email-obfuscation",
+    "email-protection",
+    "anti-spam",
+    "spam-protection",
+    "bot-protection",
+    "phone-number",
+    "contact-form",
+    "privacy",
+    "gdpr",
+    "mailto"
+  ],
+  "support": {
+    "issues": "https://github.com/CleanTalk/contacts-encoder/issues",
+    "source": "https://github.com/CleanTalk/contacts-encoder"
+  },
   "authors": [
     {
       "name": "CleanTalk Team",
@@ -8,6 +25,9 @@
     }
   ],
   "license": "GPL-3.0-or-later",
+  "require": {
+    "cleantalk/antispam": "^1.6"
+  },
   "require-dev": {
     "vimeo/psalm": "^4.8",
     "phpunit/phpunit": "^8.5.52",
@@ -25,7 +45,8 @@
   },
   "config": {
     "allow-plugins": {
-      "dealerdirect/phpcodesniffer-composer-installer": true
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "cleantalk/apbct-installer": false
     }
   },
   "autoload": {

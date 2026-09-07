@@ -13,6 +13,7 @@ class ContactsEncoderHelper
      */
     private $attribute_exclusions_signs = array(
         'input' => array('placeholder', 'value', 'data-mask'),
+        'option' => array('value'),
         'sc-customer-email' => array('placeholder', 'value'),
         'img' => array('alt', 'title'),
         'div' => array('data-et-multi-view'),
@@ -57,16 +58,16 @@ class ContactsEncoderHelper
     /**
      * Checking if the string contains mailto: link
      *
-     * @param array $match
+     * @param string $email
      * @param string $content
      *
      * @return bool
      */
-    public function isMailtoAdditionalCopy($match, $content)
+    public function isMailtoAdditionalCopy($email, $content)
     {
-        $position = isset($match[1]) ? (int)$match[1] : null;
+        $position = strpos($content, $email);
 
-        if (null === $position) {
+        if ($position === false) {
             return false;
         }
 
@@ -84,29 +85,36 @@ class ContactsEncoderHelper
     }
 
     /**
-     * Checking if email in link
+     * Check if the given email is inside an option element text (not attributes).
      *
-     * @param array $matches
+     * @param string $email
      * @param string $content
      *
      * @return bool
      */
-    public function isEmailInLink($matches, $content)
+    public function isInsideOptionTag($email, $content)
     {
-        $email = isset($matches[0]) && is_string($matches[0]) ? $matches[0] : null;
-        $position = isset($matches[1]) ? (int)$matches[1] : null;
-
-        if (null === $position || null === $email) {
+        $pos = strpos($content, $email);
+        if ($pos === false) {
             return false;
         }
 
-        $href_position = strrpos(substr($content, 0, $position), 'href=');
-
-        if ( $href_position !== false && $href_position + 6 == $position ) {
-            return true;
+        $last_option_start = strrpos(substr($content, 0, $pos), '<option');
+        if ($last_option_start === false) {
+            return false;
         }
 
-        return strpos($email, 'mailto:') !== false;
+        $option_tag_end = strpos($content, '>', $last_option_start);
+        if ($option_tag_end === false || $pos <= $option_tag_end) {
+            return false;
+        }
+
+        $option_close = stripos($content, '</option>', $last_option_start);
+        if ($option_close === false) {
+            return false;
+        }
+
+        return $pos > $option_tag_end && $pos < $option_close;
     }
 
     /**
@@ -240,7 +248,7 @@ class ContactsEncoderHelper
         $attribute_signs = $this->getWorkingAttributeExclusionsSigns();
 
         foreach ( $attribute_signs as $tag => $array_of_attributes ) {
-            if ( ! is_array($array_of_attributes) ) {
+            if ( ! is_string($tag) || $tag === '' || ! is_array($array_of_attributes) ) {
                 continue;
             }
             foreach ( $array_of_attributes as $attribute ) {
