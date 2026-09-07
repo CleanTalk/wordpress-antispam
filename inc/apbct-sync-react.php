@@ -42,7 +42,11 @@ function apbct_react_access_key_check()
         );
     }
 
-    $apbct->errorDeleteAll(true);
+    $clear_all_blogs = APBCT_WPMS
+        && is_main_site()
+        && isset($apbct->network_settings['multisite__work_mode'])
+        && (int) $apbct->network_settings['multisite__work_mode'] === 2;
+    apbct_settings__clear_errors($clear_all_blogs);
 
     $account_is_ok = (bool) ct_account_status_check($apbct->settings['apikey']);
     $connection_error = ! empty($apbct->errors['account_check'])

@@ -151,4 +151,55 @@ class SettingsTest extends TestCase
             $this->assertIsArray($fields[$key], "Key '{$key}' should be an array");
         }
     }
+
+    public function test_apbct_settings__clear_errors_current_site()
+    {
+        global $apbct;
+
+        $apbct->errorAdd('sfw_outdated', 'SpamFireWall database is outdated.');
+        $this->assertTrue($apbct->errorExists('sfw_outdated'));
+
+        apbct_settings__clear_errors(false);
+
+        $this->assertFalse($apbct->errorExists('sfw_outdated'));
+        $this->assertSame(array(), (array) $apbct->errors);
+        $this->assertSame(array(), get_option($apbct->option_prefix . '_errors'));
+    }
+
+    public function test_apbct_settings__clear_errors_all_blogs_on_wpms()
+    {
+        global $apbct;
+
+        if ( ! is_multisite() ) {
+            $this->markTestSkipped('Requires WordPress Multisite');
+        }
+
+        $option_name = $apbct->option_prefix . '_errors';
+        $stale_error = array(
+            'sfw_outdated' => array(
+                array(
+                    'error'      => 'SpamFireWall database is outdated.',
+                    'error_time' => time(),
+                ),
+            ),
+        );
+
+        $apbct->errorAdd('sfw_outdated', 'SpamFireWall database is outdated.');
+
+        $blogs = get_sites(array('number' => 20));
+        foreach ( $blogs as $blog ) {
+            update_blog_option((int) $blog->blog_id, $option_name, $stale_error);
+        }
+
+        apbct_settings__clear_errors(true);
+
+        $this->assertFalse($apbct->errorExists('sfw_outdated'));
+        foreach ( $blogs as $blog ) {
+            $this->assertSame(
+                array(),
+                get_blog_option((int) $blog->blog_id, $option_name),
+                'Errors must be cleared on blog ' . $blog->blog_id
+            );
+        }
+    }
 }
