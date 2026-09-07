@@ -275,10 +275,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      */
     protected function createPlaceholder($content)
     {
-        $placeholder = preg_replace('/EE\_\d+/', 'EE_' . (string)$this->shortcode_counter++, $this->exclusion_wrapper);
-        if (is_null($placeholder)) {
-            $placeholder = $this->exclusion_wrapper;
-        }
+        $placeholder = $this->buildPlaceholder($this->shortcode_counter++);
         $this->shortcode_replacements[$placeholder] = $content;
 
         return $placeholder;
@@ -291,6 +288,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     {
         $this->shortcode_replacements = array();
         $this->shortcode_counter = 0;
+        $this->rotatePlaceholderNonce();
     }
 
     /**
