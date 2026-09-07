@@ -36,7 +36,7 @@ class AltSessions
         'ct_sfw_passed' => 'int',
         'ct_gathering_loaded' => 'bool',
         'apbct_search_form__honeypot_value' => 'string',
-        'apbct_browser_state' => 'json',
+        'apbct_browser_state' => 'array',
     ];
 
     /**
@@ -267,6 +267,11 @@ class AltSessions
                     break;
                 case 'url':
                     if ( ! filter_var($value, FILTER_VALIDATE_URL) ) {
+                        unset($cookies_array[$name]);
+                    }
+                    break;
+                case 'array':
+                    if ( ! is_array($value) ) {
                         unset($cookies_array[$name]);
                     }
                     break;

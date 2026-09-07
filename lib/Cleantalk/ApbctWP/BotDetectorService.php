@@ -18,7 +18,7 @@ class BotDetectorService
 
     public static function getWrapperUrl(): string
     {
-        return 'https://fd.cleantalk.org/ct-bot-detector-wrapper.js';
+        return 'https://moderate-next.cleantalk.org/dev/ct-bot-detector.min.js';
     }
 
     /**
@@ -163,13 +163,11 @@ class BotDetectorService
             'apbct_browser_state' => self::$default_browser_state,
         );
 
-        if (Constant::is(Constant::APBCT_SERVICE__DO_NOT_COLLECT_FRONTEND_DATA_LOGS)) {
-            $result['error_msg'] = 'bot detector logs collection is disabled via constant definition';
-            $json = @json_encode($result);
-            return $json ?: 'JSON_ENCODE_ERROR';
-        }
-
         try {
+            if (Constant::is(Constant::APBCT_SERVICE__DO_NOT_COLLECT_FRONTEND_DATA_LOGS)) {
+                throw new \Exception('bot detector logs collection is disabled via constant definition');
+            }
+
             if ( ! self::isEnabled() ) {
                 throw new \Exception('bot detector library usage is disabled');
             }
@@ -203,7 +201,7 @@ class BotDetectorService
      * The state comes with the transport the site is currently configured to use:
      * NoCookie hidden field or alternative sessions are both covered by RequestParameters,
      * the XHR interception passes the state as a plain POST field.
-     * Native cookies do not store the state in cookies (cookie size limits), but the JS interceptors may still POST it.
+     * Native cookies do not store the state in cookies (cookie size limits)
      *
      * @return array Empty array if no state provided.
      */

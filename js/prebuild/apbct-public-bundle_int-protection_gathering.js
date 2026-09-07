@@ -4912,6 +4912,7 @@ async function apbct_ready() {
             const eventTokenTransport = new ApbctEventTokenTransport();
             eventTokenTransport.attachEventTokenToMultipageGravityForms();
             eventTokenTransport.attachEventTokenToWoocommerceGetRequestAddToCart();
+            ApbctBrowserState.startCookieSyncPolling();
         }
 
         const attachData = new ApbctAttachData();
@@ -5948,50 +5949,49 @@ class ApbctBrowserState {
     };
     static botdWrapperLoaded = 0;
     static botdLogicLoaded = 0;
+    static lastSentOnTS = null;
 
     /**
      * Get the current browser state as a JSON string ready to be transferred.
      * @return {string} Empty string if the bot detector is disabled or on any collecting error.
      */
-    static toJson() {
+    static getFrontendDataLog() {
+        const prefix = (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.cookiePrefix) ?
+            ctPublicFunctions.cookiePrefix :
+            '';
+        const logKey = prefix + ApbctBrowserState.LOG_KEY;
+        const noPrefixLogKey = ApbctBrowserState.LOG_KEY;
+
+        if (typeof apbctLocalStorage !== 'undefined' && apbctLocalStorage.get) {
+            const logObject = apbctLocalStorage.get(logKey) || apbctLocalStorage.get(noPrefixLogKey) || null;
+            return logObject && typeof logObject === 'string' ? JSON.parse(logObject) : logObject;
+        }
+
+        let rawLog = localStorage.getItem(logKey);
+        if (!rawLog) {
+            rawLog = localStorage.getItem(noPrefixLogKey) || null;
+        }
+
         try {
-            if (!+ctPublicFunctions.bot_detector_enabled) {
-                return '';
-            }
+            return typeof rawLog === 'string' ? JSON.parse(rawLog) : rawLog;
+        } catch (e) {
+            return null;
+        }
+    }
 
-            const prefix = (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.cookiePrefix) ?
-                ctPublicFunctions.cookiePrefix :
-                '';
-            const logKey = prefix + ApbctBrowserState.LOG_KEY;
-            const noPrefixLogKey = ApbctBrowserState.LOG_KEY;
-
-            let logObject = null;
-
-            // try to get both types of keys
-            if (typeof apbctLocalStorage !== 'undefined' && apbctLocalStorage.get) {
-                logObject = apbctLocalStorage.get(logKey) || null;
-                if (!logObject) {
-                    logObject = apbctLocalStorage.get(noPrefixLogKey) || null;
-                }
-            } else {
-                let rawLog = localStorage.getItem(logKey);
-                if (!rawLog) {
-                    rawLog = localStorage.getItem(noPrefixLogKey) || null;
-                }
-                try {
-                    logObject = typeof rawLog === 'string' ? JSON.parse(rawLog) : null;
-                } catch (e) {
-                    logObject = null;
-                }
-            }
-
+    /**
+     * Convert to JSON string for sending to the backend.
+     * @return {string|false}
+     */
+    static asJSON() {
+        try {
             return JSON.stringify({
                 botd_logic_loaded: ApbctBrowserState.botdLogicLoaded,
                 botd_wrapper_loaded: ApbctBrowserState.botdWrapperLoaded,
-                frontend_data_log: logObject,
+                frontend_data_log: ApbctBrowserState.getFrontendDataLog(),
             });
         } catch (e) {
-            return '';
+            return false;
         }
     }
 
@@ -6018,6 +6018,55 @@ class ApbctBrowserState {
 
         return !!ApbctBrowserState.botdWrapperLoaded && !!ApbctBrowserState.botdLogicLoaded;
     }
+
+    /**
+     * Sync browser state to the cookie each second when bot detector is enabled.
+     */
+    static startCookieSyncPolling() {
+        if (ctPublicFunctions.data__cookies_type === 'native') {
+            return;
+        }
+        ApbctBrowserState.lastSentOnTS = null;
+
+        if (ctPublicFunctions.data__cookies_type === 'alternative') {
+            const forms = document.getElementsByTagName('form');
+            for (let i = 0; i < forms.length; i++) {
+                forms[i].addEventListener('submit', () => {
+                    ApbctBrowserState.cookieSync();
+                });
+            }
+        }
+        setInterval(() => {
+            ApbctBrowserState.cookieSync();
+        }, 1000);
+    }
+
+    /**
+     * Sync data to cookie
+     */
+    static cookieSync() {
+        const fdLog = ApbctBrowserState.getFrontendDataLog();
+
+        if (!Array.isArray(fdLog) || fdLog.length <= 1) {
+            return;
+        }
+
+        const lastValue = fdLog[fdLog.length - 1];
+        const lastTS = lastValue && lastValue[2];
+
+        if (lastTS !== undefined && ApbctBrowserState.lastSentOnTS !== lastTS) {
+            ApbctBrowserState.lastSentOnTS = lastTS;
+            const browserState = apbctGetBrowserStatePair();
+            const json = ApbctBrowserState.asJSON();
+            if (json && browserState && browserState.key && browserState.value) {
+                if ( ctPublicFunctions.data__cookies_type === 'alternative') {
+                    ctSetAlternativeCookie([[browserState.key, json]]);
+                } else if (ctPublicFunctions.data__cookies_type === 'none') {
+                    ctNoCookieAttachHiddenFieldsToForms();
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -6027,8 +6076,7 @@ class ApbctBrowserState {
 function apbctGetBrowserStatePair() { // eslint-disable-line no-unused-vars
     try {
         ApbctBrowserState.detectScripts();
-
-        const state = ApbctBrowserState.toJson();
+        const state = ApbctBrowserState.asJSON();
         return state ? {key: ApbctBrowserState.STATE_KEY, value: state} : false;
     } catch (e) {
         return false;

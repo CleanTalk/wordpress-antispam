@@ -1,10 +1,12 @@
 <?php
 
 use Cleantalk\ApbctWP\ApbctEnqueue;
+use Cleantalk\ApbctWP\BotDetectorService;
 use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Localize\LocalizeHandler;
 use Cleantalk\ApbctWP\Sanitize;
+use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
@@ -38,6 +40,16 @@ function apbct_init()
         )
     ) {
         $apbct->pixel_url = apbct_get_pixel_url(true);
+    }
+
+    //drop alt session browser state data
+    if (
+        $apbct->settings['data__set_cookies'] === '2' &&
+        BotDetectorService::isEnabled() &&
+        !BotDetectorService::isNoScripFlow() &&
+        !empty(AltSessions::get('apbct_browser_state'))
+    ) {
+        AltSessions::set('apbct_browser_state', false);
     }
 
     // Localize data
@@ -1308,7 +1320,7 @@ function apbct_enqueue_and_localize_public_scripts()
  */
 function apbct_bot_detector_scripts_exclusion()
 {
-    return \Cleantalk\ApbctWP\BotDetectorService::isNoScripFlow();
+    return BotDetectorService::isNoScripFlow();
 }
 
 

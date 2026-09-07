@@ -303,6 +303,12 @@ class TestBotDetectorService extends ApbctTestCase
         AltSessions::set('apbct_browser_state', $this->makeRawBrowserState());
 
         $this->assertSuccessfulLogResult(BotDetectorService::getFrontendDataLog());
+
+        AltSessions::set('apbct_browser_state', false);
+
+        $result = json_decode(BotDetectorService::getFrontendDataLog(), true);
+
+        $this->assertSame('no browser state provided by the transport', $result['error_msg']);
     }
 
     public function test_getFrontendDataLog_readsFromNoCookie()
