@@ -69,9 +69,9 @@ class CleantalkWpDieOnComment extends IntegrationBase
             // first call in the flow - collect data for further instance calling
             $comment_data = wp_unslash($_POST);
             $comment_content        = TT::getArrayValueAsString($comment_data, 'comment');
-            $comment_author         = trim(strip_tags(TT::getArrayValueAsString($comment_data, 'author')));
-            $comment_author_email   = trim(TT::getArrayValueAsString($comment_data, 'email'));
-            $comment_author_url     = trim(TT::getArrayValueAsString($comment_data, 'url'));
+            $comment_author         = trim(strip_tags(TT::getArrayValueAsString($comment_data, 'author')), " \n\r\t\v\x00");
+            $comment_author_email   = trim(TT::getArrayValueAsString($comment_data, 'email'), " \n\r\t\v\x00");
+            $comment_author_url     = trim(TT::getArrayValueAsString($comment_data, 'url'), " \n\r\t\v\x00");
 
             $user = function_exists('apbct_wp_get_current_user') ? apbct_wp_get_current_user() : null;
 

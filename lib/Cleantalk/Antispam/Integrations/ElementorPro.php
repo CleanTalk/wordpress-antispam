@@ -58,7 +58,7 @@ class ElementorPro extends IntegrationBase
                         foreach ( $matches as $match ) {
                             $sender_nickname .= isset($match[0]) && isset($form_data[$match[0]]) ? $form_data[$match[0]] . ' ' : '';
                         }
-                        $sender_nickname = trim($sender_nickname);
+                        $sender_nickname = trim($sender_nickname, " \n\r\t\v\x00");
                     }
                 }
             }

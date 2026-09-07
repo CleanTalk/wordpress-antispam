@@ -14,16 +14,16 @@ class AmemberRegister extends IntegrationBase
 
         $form_data = array();
         $form_data['email'] = isset($_POST['email']) && is_string($_POST['email'])
-            ? trim($_POST['email'])
+            ? trim($_POST['email'], " \n\r\t\v\x00")
             : '';
         $form_data['username'] = isset($_POST['login']) && is_string($_POST['login'])
-            ? trim($_POST['login'])
+            ? trim($_POST['login'], " \n\r\t\v\x00")
             : '';
         if ( ! empty($_POST['name_f']) && is_string($_POST['name_f']) ) {
-            $form_data['first_name'] = trim($_POST['name_f']);
+            $form_data['first_name'] = trim($_POST['name_f'], " \n\r\t\v\x00");
         }
         if ( ! empty($_POST['name_l']) && is_string($_POST['name_l']) ) {
-            $form_data['last_name'] = trim($_POST['name_l']);
+            $form_data['last_name'] = trim($_POST['name_l'], " \n\r\t\v\x00");
         }
 
         /**
