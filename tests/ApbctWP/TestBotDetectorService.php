@@ -22,6 +22,7 @@ class TestBotDetectorService extends ApbctTestCase
         $apbct->settings['exclusions__bot_detector__form_children_attributes'] = '';
         $apbct->settings['exclusions__bot_detector__form_parent_attributes'] = '';
         $this->resetTransports();
+        AltSessions::set('apbct_browser_state', false);
     }
 
     protected function tearDown(): void
@@ -69,8 +70,7 @@ class TestBotDetectorService extends ApbctTestCase
     public function test_getWrapperUrl_returnsNonEmptyString()
     {
         $url = BotDetectorService::getWrapperUrl();
-        $this->assertIsString($url);
-        $this->assertNotEmpty($url);
+        $this->assertEquals('https://fd.cleantalk.org/ct-bot-detector-wrapper.js', $url);
     }
 
     // ------------------------------------------------------------------
@@ -174,6 +174,7 @@ class TestBotDetectorService extends ApbctTestCase
 
         $this->assertSame(array(array('ok')), $state['frontend_data_log']);
         $this->assertSame(1, $state['botd_logic_loaded']);
+        $this->assertSame('request_parameters', $state['log_source']);
     }
 
     public function test_getBrowserState_returnsEmptyOnInvalidJson()
@@ -304,6 +305,11 @@ class TestBotDetectorService extends ApbctTestCase
 
         $this->assertSuccessfulLogResult(BotDetectorService::getFrontendDataLog());
 
+        $result = json_decode(BotDetectorService::getFrontendDataLog(), true);
+
+        $this->assertSame('request_parameters', $result['apbct_browser_state']['log_source']);
+
+
         AltSessions::set('apbct_browser_state', false);
 
         $result = json_decode(BotDetectorService::getFrontendDataLog(), true);
@@ -318,6 +324,9 @@ class TestBotDetectorService extends ApbctTestCase
         NoCookie::set('apbct_browser_state', $this->makeRawBrowserState());
 
         $this->assertSuccessfulLogResult(BotDetectorService::getFrontendDataLog());
+
+        $result = json_decode(BotDetectorService::getFrontendDataLog(), true);
+        $this->assertSame('request_parameters', $result['apbct_browser_state']['log_source']);
     }
 
     public function test_getFrontendDataLog_readsFromPost()
@@ -325,6 +334,9 @@ class TestBotDetectorService extends ApbctTestCase
         $_POST['apbct_browser_state'] = $this->makeRawBrowserState();
 
         $this->assertSuccessfulLogResult(BotDetectorService::getFrontendDataLog());
+
+        $result = json_decode(BotDetectorService::getFrontendDataLog(), true);
+        $this->assertSame('post_browser_state', $result['apbct_browser_state']['log_source']);
     }
 
     public function test_getFrontendDataLog_readsFromPostDataArray()
@@ -332,6 +344,9 @@ class TestBotDetectorService extends ApbctTestCase
         $_POST['data'] = array('apbct_browser_state' => $this->makeRawBrowserState());
 
         $this->assertSuccessfulLogResult(BotDetectorService::getFrontendDataLog());
+
+        $result = json_decode(BotDetectorService::getFrontendDataLog(), true);
+        $this->assertSame('post_data', $result['apbct_browser_state']['log_source']);
     }
 
     public function test_getFrontendDataLog_returnsErrorWhenDisabled()

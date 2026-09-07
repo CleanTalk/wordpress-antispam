@@ -28,7 +28,14 @@ class ApbctBrowserState {
 
         if (typeof apbctLocalStorage !== 'undefined' && apbctLocalStorage.get) {
             const logObject = apbctLocalStorage.get(logKey) || apbctLocalStorage.get(noPrefixLogKey) || null;
-            return logObject && typeof logObject === 'string' ? JSON.parse(logObject) : logObject;
+            if (logObject && typeof logObject === 'string') {
+                try {
+                    return JSON.parse(logObject);
+                } catch (e) {
+                    return '';
+                }
+            }
+            return logObject;
         }
 
         let rawLog = localStorage.getItem(logKey);
@@ -39,7 +46,7 @@ class ApbctBrowserState {
         try {
             return typeof rawLog === 'string' ? JSON.parse(rawLog) : rawLog;
         } catch (e) {
-            return null;
+            return '';
         }
     }
 

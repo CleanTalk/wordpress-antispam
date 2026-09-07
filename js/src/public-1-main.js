@@ -2165,7 +2165,9 @@ async function apbct_ready() {
             const eventTokenTransport = new ApbctEventTokenTransport();
             eventTokenTransport.attachEventTokenToMultipageGravityForms();
             eventTokenTransport.attachEventTokenToWoocommerceGetRequestAddToCart();
-            ApbctBrowserState.startCookieSyncPolling();
+            if (typeof ApbctBrowserState !== 'undefined') {
+                ApbctBrowserState.startCookieSyncPolling();
+            }
         }
 
         const attachData = new ApbctAttachData();

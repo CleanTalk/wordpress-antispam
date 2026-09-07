@@ -18,7 +18,7 @@ class BotDetectorService
 
     public static function getWrapperUrl(): string
     {
-        return 'https://moderate-next.cleantalk.org/dev/ct-bot-detector.min.js';
+        return 'https://fd.cleantalk.org/ct-bot-detector-wrapper.js';
     }
 
     /**
@@ -208,14 +208,19 @@ class BotDetectorService
     public static function getBrowserState(array $sources = array())
     {
         $raw_state = null;
+        $log_source = 'unknown';
 
         if (!empty($sources['request_parameters'])) {
             $raw_state = $sources['request_parameters'];
+            $log_source = 'request_parameters';
         }
 
         // XHR interception transport - look at the POST directly
         if ( empty($raw_state) ) {
             $raw_state = $sources['post_browser_state'] ?? null;
+            if ($raw_state) {
+                $log_source = 'post_browser_state';
+            }
         }
 
         // XHR interception transport - the state could be wrapped to the data[] array
@@ -223,6 +228,7 @@ class BotDetectorService
             $post_data = $sources['post_data'] ?? null;
             if ( is_array($post_data) && ! empty($post_data['apbct_browser_state']) ) {
                 $raw_state = $post_data['apbct_browser_state'];
+                $log_source = 'post_data';
             }
         }
 
@@ -262,6 +268,7 @@ class BotDetectorService
 
         return array(
             'frontend_data_log' => $fd_log,
+            'log_source' => $log_source,
             'botd_logic_loaded' => TT::getArrayValueAsInt($state, 'botd_logic_loaded'),
             'botd_wrapper_loaded' => TT::getArrayValueAsInt($state, 'botd_wrapper_loaded'),
         );
