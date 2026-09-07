@@ -60,12 +60,13 @@ class ContactsEncoderHelper
      *
      * @param string $email
      * @param string $content
+     * @param int|false|null $position Known match offset; null looks up the first occurrence
      *
      * @return bool
      */
-    public function isMailtoAdditionalCopy($email, $content)
+    public function isMailtoAdditionalCopy($email, $content, $position = null)
     {
-        $position = strpos($content, $email);
+        $position = $this->resolveMatchPosition($email, $content, $position);
 
         if ($position === false) {
             return false;
@@ -89,12 +90,13 @@ class ContactsEncoderHelper
      *
      * @param string $email
      * @param string $content
+     * @param int|false|null $position Known match offset; null looks up the first occurrence
      *
      * @return bool
      */
-    public function isInsideOptionTag($email, $content)
+    public function isInsideOptionTag($email, $content, $position = null)
     {
-        $pos = strpos($content, $email);
+        $pos = $this->resolveMatchPosition($email, $content, $position);
         if ($pos === false) {
             return false;
         }
@@ -121,12 +123,12 @@ class ContactsEncoderHelper
      * Check if the given email is inside a script tag
      * @param string $email The email to check
      * @param string $content The full content
+     * @param int|false|null $position Known match offset; null looks up the first occurrence
      * @return bool
      */
-    public function isInsideScriptTag($email, $content)
+    public function isInsideScriptTag($email, $content, $position = null)
     {
-        // Find position of the email in content
-        $pos = strpos($content, $email);
+        $pos = $this->resolveMatchPosition($email, $content, $position);
         if ($pos === false) {
             return false;
         }
@@ -236,12 +238,20 @@ class ContactsEncoderHelper
      *
      * @param string $email_match - email
      * @param string $temp_content - email
+     * @param int|false|null $position Known match offset; null accepts any occurrence
      * @return bool
      */
-    public function hasAttributeExclusions($email_match, $temp_content)
+    public function hasAttributeExclusions($email_match, $temp_content, $position = null)
     {
         if ( ! is_string($email_match) || $email_match === '' || ! is_string($temp_content) ) {
             return false;
+        }
+
+        if ( $position !== null ) {
+            $position = $this->resolveMatchPosition($email_match, $temp_content, $position);
+            if ( $position === false ) {
+                return false;
+            }
         }
 
         $quoted_match = preg_quote($email_match, '/');
@@ -255,14 +265,14 @@ class ContactsEncoderHelper
                 if ( ! is_string($attribute) || $attribute === '' ) {
                     continue;
                 }
-                if ( $this->isMatchInsideAttribute($quoted_match, $attribute, $temp_content, $tag) ) {
+                if ( $this->isMatchInsideAttribute($quoted_match, $attribute, $temp_content, $tag, $position) ) {
                     return true;
                 }
             }
         }
 
         foreach ( $this->attribute_exclusions_list as $attribute ) {
-            if ( $this->isMatchInsideAttribute($quoted_match, $attribute, $temp_content) ) {
+            if ( $this->isMatchInsideAttribute($quoted_match, $attribute, $temp_content, null, $position) ) {
                 return true;
             }
         }
@@ -297,13 +307,42 @@ class ContactsEncoderHelper
     }
 
     /**
+     * @param string $needle
+     * @param string $haystack
+     * @param int|false|null $position
+     * @return int|false
+     */
+    private function resolveMatchPosition($needle, $haystack, $position)
+    {
+        if ( $position === null ) {
+            return strpos($haystack, $needle);
+        }
+
+        if ( $position === false || ! is_int($position) || $position < 0 || ! is_string($needle) || $needle === '' ) {
+            return false;
+        }
+
+        $length = strlen($needle);
+        if ( $position > strlen($haystack) - $length ) {
+            return false;
+        }
+
+        if ( substr($haystack, $position, $length) !== $needle ) {
+            return false;
+        }
+
+        return $position;
+    }
+
+    /**
      * @param string $quoted_match
      * @param string $attribute
      * @param string $content
      * @param string|null $tag
+     * @param int|null $position
      * @return bool
      */
-    private function isMatchInsideAttribute($quoted_match, $attribute, $content, $tag = null)
+    private function isMatchInsideAttribute($quoted_match, $attribute, $content, $tag = null, $position = null)
     {
         $quoted_attribute = preg_quote($attribute, '/');
         // Always require an HTML tag so plain text like attr="..." is not treated as markup.
@@ -319,6 +358,25 @@ class ContactsEncoderHelper
                    . $quoted_match
                    . '[^"\']*\1/';
 
-        return (bool) preg_match($pattern, $content);
+        if ( $position === null ) {
+            return (bool) preg_match($pattern, $content);
+        }
+
+        if ( ! preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE) || ! isset($matches[0]) ) {
+            return false;
+        }
+
+        foreach ( $matches[0] as $match ) {
+            if ( ! isset($match[0], $match[1]) ) {
+                continue;
+            }
+            $start = $match[1];
+            $end = $start + strlen($match[0]);
+            if ( $position >= $start && $position < $end ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

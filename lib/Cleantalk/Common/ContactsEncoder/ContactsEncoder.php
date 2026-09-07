@@ -295,40 +295,41 @@ class ContactsEncoder
 
         $this->temp_content = $content;
 
-        $replacing_result = preg_replace_callback($this->global_email_pattern, function ($matches) {
-            if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) && isset($matches[0]) ) {
+        $match_cursor = 0;
+        $replacing_result = preg_replace_callback($this->global_email_pattern, function ($matches) use (&$match_cursor) {
+            if ( ! isset($matches[0]) ) {
+                return '';
+            }
+
+            $position = $this->advanceMatchCursor($matches[0], $match_cursor);
+
+            if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
                 return $matches[0];
             }
 
             //chek if email is placed in excluded attributes and return unchanged if so
-            if ( isset($matches[0]) && $this->helper->hasAttributeExclusions($matches[0], $this->temp_content) ) {
+            if ( $this->helper->hasAttributeExclusions($matches[0], $this->temp_content, $position) ) {
                 return $matches[0];
             }
 
             // skip encoding if the content in script tag
-            if ( isset($matches[0]) && $this->helper->isInsideScriptTag($matches[0], $this->temp_content) ) {
+            if ( $this->helper->isInsideScriptTag($matches[0], $this->temp_content, $position) ) {
                 return $matches[0];
             }
 
-            if ( isset($matches[0]) && $this->helper->isInsideOptionTag($matches[0], $this->temp_content) ) {
+            if ( $this->helper->isInsideOptionTag($matches[0], $this->temp_content, $position) ) {
                 return $matches[0];
             }
 
-            if (
-                isset($matches[0]) && $this->helper->isMailtoAdditionalCopy($matches[0], $this->temp_content)
-            ) {
+            if ( $this->helper->isMailtoAdditionalCopy($matches[0], $this->temp_content, $position) ) {
                 return '';
             }
 
-            if ( isset($matches[0]) &&  $this->helper->isMailto($matches[0]) ) {
+            if ( $this->helper->isMailto($matches[0]) ) {
                 return $this->encodeMailtoLink($matches[0]);
             }
 
-            if ( isset($matches[0]) ) {
-                return $this->encodePlainEmail($matches[0]);
-            }
-
-            return '';
+            return $this->encodePlainEmail($matches[0]);
         }, $content);
 
         if ( $owns_aria_protection ) {
@@ -356,41 +357,44 @@ class ContactsEncoder
         $this->temp_content = $content;
 
         $phones_pattern = $this->global_phones_pattern;
+        $match_cursor = 0;
         $replacing_result = preg_replace_callback(
             $phones_pattern,
-            function ($matches) {
-                if ( isset($matches[0]) ) {
-                    if ( $this->helper->isTelTag($matches[0]) ) {
-                        return $this->encodeTelLink($matches[0]);
-                    }
-
-                    // symbols clearance
-                    $item_length = strlen(str_replace([' ', '(', ')', '-', '+', '.'], '', $matches[0]));
-
-                    // check length
-                    if ( $item_length > 12 || $item_length < 8 ) {
-                        return $matches[0];
-                    }
-
-                    // check attribute exclusions
-                    if ( $this->helper->hasAttributeExclusions($matches[0], $this->temp_content) ) {
-                        return $matches[0];
-                    }
-
-                    // check if in script
-                    if ( $this->helper->isInsideScriptTag($matches[0], $this->temp_content) ) {
-                        return $matches[0];
-                    }
-
-                    return $this->encodeAny(
-                        $matches[0],
-                        $this->global_obfuscation_mode,
-                        $this->global_replacing_text,
-                        true
-                    );
+            function ($matches) use (&$match_cursor) {
+                if ( ! isset($matches[0]) ) {
+                    return '';
                 }
 
-                return '';
+                $position = $this->advanceMatchCursor($matches[0], $match_cursor);
+
+                if ( $this->helper->isTelTag($matches[0]) ) {
+                    return $this->encodeTelLink($matches[0]);
+                }
+
+                // symbols clearance
+                $item_length = strlen(str_replace([' ', '(', ')', '-', '+', '.'], '', $matches[0]));
+
+                // check length
+                if ( $item_length > 12 || $item_length < 8 ) {
+                    return $matches[0];
+                }
+
+                // check attribute exclusions
+                if ( $this->helper->hasAttributeExclusions($matches[0], $this->temp_content, $position) ) {
+                    return $matches[0];
+                }
+
+                // check if in script
+                if ( $this->helper->isInsideScriptTag($matches[0], $this->temp_content, $position) ) {
+                    return $matches[0];
+                }
+
+                return $this->encodeAny(
+                    $matches[0],
+                    $this->global_obfuscation_mode,
+                    $this->global_replacing_text,
+                    true
+                );
             },
             $content
         );
@@ -401,6 +405,23 @@ class ContactsEncoder
 
         //please keep this var (do not simplify the code) for further debug
         return $replacing_result;
+    }
+
+    /**
+     * Advance the left-to-right cursor so repeated contacts use their own offset.
+     *
+     * @param string $match
+     * @param int $cursor
+     * @return int|false
+     */
+    private function advanceMatchCursor($match, &$cursor)
+    {
+        $position = strpos($this->temp_content, $match, $cursor);
+        if ( $position !== false ) {
+            $cursor = $position + strlen($match);
+        }
+
+        return $position;
     }
 
     /*
