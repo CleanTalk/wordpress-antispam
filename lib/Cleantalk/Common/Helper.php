@@ -616,9 +616,15 @@ class Helper
             $host = strstr($host, ':', true);
         }
 
+        $is_ip = filter_var($host, FILTER_VALIDATE_IP);
+
         if ( ! filter_var($host, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME)
-             && ! filter_var($host, FILTER_VALIDATE_IP) ) {
+             && ! $is_ip ) {
             return $out;
+        }
+
+        if ( $is_ip ) {
+            return $host;
         }
 
         // Get DNS records about URL
