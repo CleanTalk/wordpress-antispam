@@ -42,11 +42,6 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     private $grid_builder_integration;
 
     /**
-     * @var string[]
-     */
-    public $decoded_contacts_array = array();
-
-    /**
      * @var null|string Comment from API response
      */
     private $comment;
