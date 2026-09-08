@@ -5903,6 +5903,10 @@ class ApbctBrowserState {
      * @return {boolean} True if both scripts are found.
      */
     static detectScripts() {
+        if (ApbctBrowserState.botdWrapperLoaded && ApbctBrowserState.botdLogicLoaded) {
+            return true;
+        }
+
         const scripts = document.getElementsByTagName('script');
 
         for (let i = 0; i < scripts.length; i++) {

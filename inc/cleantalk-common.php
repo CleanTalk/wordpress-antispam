@@ -1845,7 +1845,7 @@ function apbct__bot_detector_get_fd_log()
 
 /**
  * Check if Bot-Detector is enabled/disabled
- * @deprecated since 6.88, use BotDetectorService::enabled() instead
+ * @deprecated since 6.88, use BotDetectorService::isEnabled() instead
  * @return bool
  */
 function apbct__is_bot_detector_enabled()

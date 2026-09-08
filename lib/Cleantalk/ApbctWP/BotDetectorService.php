@@ -165,7 +165,8 @@ class BotDetectorService
 
         try {
             if (Constant::is(Constant::APBCT_SERVICE__DO_NOT_COLLECT_FRONTEND_DATA_LOGS)) {
-                throw new \Exception('bot detector logs collection is disabled via constant definition');
+                $result['plugin_status'] = 'OK';
+                $result['error_msg'] = 'bot detector logs collection is disabled via constant definition';
             }
 
             if ( ! self::isEnabled() ) {
@@ -191,8 +192,15 @@ class BotDetectorService
         }
 
         // Return the result as a JSON encoded string
-        $json = @json_encode($result);
-        return $json ?: 'JSON_ENCODE_ERROR';
+        $json = json_encode($result);
+        if ($json === false) {
+            $json = json_encode(array(
+                'plugin_status' => 'ERROR',
+                'error_msg' => 'json_encode failed: ' . json_last_error_msg(),
+                'apbct_browser_state' => self::$default_browser_state,
+            ));
+        }
+        return $json !== false ? $json : '{"plugin_status":"ERROR","error_msg":"json_encode failed","apbct_browser_state":{}}';
     }
 
     /**
