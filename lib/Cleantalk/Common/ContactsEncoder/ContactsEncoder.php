@@ -530,7 +530,7 @@ class ContactsEncoder
         // Get inner tag text and place it in $matches[1]
         preg_match($this->global_tel_pattern, $tel_link_str, $matches);
         if ( isset($matches[1]) ) {
-            $mailto_inner_text = preg_replace_callback('/' . self::PHONE_NUMBER . '/', function ($matches) {
+            $tel_inner_text = preg_replace_callback('/' . self::PHONE_NUMBER . '/', function ($matches) {
                 if (isset($matches[0])) {
                     $obfuscator = new Obfuscator();
                     return $obfuscator->processPhone($matches[0]);
@@ -540,7 +540,7 @@ class ContactsEncoder
         $tel_link_str = preg_replace('/^tel:/i', '', $tel_link_str);
         $encoded      = $this->encoder->encodeString($tel_link_str);
 
-        $text = isset($mailto_inner_text) ? $mailto_inner_text : $tel_link_str;
+        $text = isset($tel_inner_text) ? $tel_inner_text : $tel_link_str;
 
         return 'tel:' . $text . '" data-original-string="' . $encoded . '" title="' . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8');
     }
