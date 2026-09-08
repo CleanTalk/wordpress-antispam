@@ -22,7 +22,6 @@ class TestBotDetectorService extends ApbctTestCase
         $apbct->settings['exclusions__bot_detector__form_children_attributes'] = '';
         $apbct->settings['exclusions__bot_detector__form_parent_attributes'] = '';
         $this->resetTransports();
-        AltSessions::set('apbct_browser_state', false);
     }
 
     protected function tearDown(): void
@@ -41,7 +40,6 @@ class TestBotDetectorService extends ApbctTestCase
         $_POST = array();
         Post::getInstance()->variables = array();
         NoCookie::$no_cookies_data = array();
-        AltSessions::wipe();
     }
 
     private function makeRawBrowserState($log = '[["success"],[true]]')
@@ -299,24 +297,6 @@ class TestBotDetectorService extends ApbctTestCase
     // getFrontendDataLog() — integration over real transports
     // ------------------------------------------------------------------
 
-    public function test_getFrontendDataLog_readsFromAltSessions()
-    {
-        AltSessions::set('apbct_browser_state', $this->makeRawBrowserState());
-
-        $this->assertSuccessfulLogResult(BotDetectorService::getFrontendDataLog());
-
-        $result = json_decode(BotDetectorService::getFrontendDataLog(), true);
-
-        $this->assertSame('request_parameters', $result['apbct_browser_state']['log_source']);
-
-
-        AltSessions::set('apbct_browser_state', false);
-
-        $result = json_decode(BotDetectorService::getFrontendDataLog(), true);
-
-        $this->assertSame('no browser state provided by the transport', $result['error_msg']);
-    }
-
     public function test_getFrontendDataLog_readsFromNoCookie()
     {
         global $apbct;
@@ -353,7 +333,6 @@ class TestBotDetectorService extends ApbctTestCase
     {
         global $apbct;
         $apbct->data['bot_detector_enabled'] = '0';
-        AltSessions::set('apbct_browser_state', $this->makeRawBrowserState());
 
         $result = json_decode(BotDetectorService::getFrontendDataLog(), true);
 

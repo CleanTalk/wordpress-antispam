@@ -6,7 +6,6 @@ use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Localize\LocalizeHandler;
 use Cleantalk\ApbctWP\Sanitize;
-use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
@@ -41,17 +40,6 @@ function apbct_init()
     ) {
         $apbct->pixel_url = apbct_get_pixel_url(true);
     }
-
-    //drop alt session browser state data
-    if (
-        $apbct->settings['data__set_cookies'] === '2' &&
-        BotDetectorService::isEnabled() &&
-        !BotDetectorService::isNoScripFlow() &&
-        !empty(AltSessions::get('apbct_browser_state'))
-    ) {
-        AltSessions::set('apbct_browser_state', false);
-    }
-
     // Localize data
     if ( ! apbct_exclusions_check__url() ) {
         if (Constant::is(Constant::APBCT_SERVICE__PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER, true)) {

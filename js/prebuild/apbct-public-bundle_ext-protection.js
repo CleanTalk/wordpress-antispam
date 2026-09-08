@@ -4912,9 +4912,6 @@ async function apbct_ready() {
             const eventTokenTransport = new ApbctEventTokenTransport();
             eventTokenTransport.attachEventTokenToMultipageGravityForms();
             eventTokenTransport.attachEventTokenToWoocommerceGetRequestAddToCart();
-            if (typeof ApbctBrowserState !== 'undefined') {
-                ApbctBrowserState.startCookieSyncPolling();
-            }
         }
 
         const attachData = new ApbctAttachData();
@@ -6342,9 +6339,13 @@ class ApbctBrowserState {
         botd_wrapper_loaded: 'ct-bot-detector-wrapper',
         botd_logic_loaded: 'ct-bot-detector.min',
     };
+    /**
+     * This LS key is set on bot-detector side
+     * @type {string}
+     */
+    static TRANSPORT_ENABLED_SIGN_KEY = 'bot_detector_log_transport_enabled';
     static botdWrapperLoaded = 0;
     static botdLogicLoaded = 0;
-    static lastSentOnTS = null;
 
     /**
      * Get the current browser state as a JSON string ready to be transferred.
@@ -6382,19 +6383,16 @@ class ApbctBrowserState {
     }
 
     /**
-     * Convert to JSON string for sending to the backend.
-     * @return {string|false}
+     *
+     * @return {object}
      */
-    static asJSON() {
-        try {
-            return JSON.stringify({
-                botd_logic_loaded: ApbctBrowserState.botdLogicLoaded,
-                botd_wrapper_loaded: ApbctBrowserState.botdWrapperLoaded,
-                frontend_data_log: ApbctBrowserState.getFrontendDataLog(),
-            });
-        } catch (e) {
-            return false;
-        }
+    static asDTO() {
+        return {
+            botd_logic_loaded: ApbctBrowserState.botdLogicLoaded,
+            botd_wrapper_loaded: ApbctBrowserState.botdWrapperLoaded,
+            frontend_data_log: '',
+            transport_enabled: 1,
+        };
     }
 
     /**
@@ -6417,57 +6415,7 @@ class ApbctBrowserState {
         }
 
         // The bot detector logic sets this flag on its own start
-
         return !!ApbctBrowserState.botdWrapperLoaded && !!ApbctBrowserState.botdLogicLoaded;
-    }
-
-    /**
-     * Sync browser state to the cookie each second when bot detector is enabled.
-     */
-    static startCookieSyncPolling() {
-        if (ctPublicFunctions.data__cookies_type === 'native') {
-            return;
-        }
-        ApbctBrowserState.lastSentOnTS = null;
-
-        if (ctPublicFunctions.data__cookies_type === 'alternative') {
-            const forms = document.getElementsByTagName('form');
-            for (let i = 0; i < forms.length; i++) {
-                forms[i].addEventListener('submit', () => {
-                    ApbctBrowserState.cookieSync();
-                });
-            }
-        }
-        setInterval(() => {
-            ApbctBrowserState.cookieSync();
-        }, 1000);
-    }
-
-    /**
-     * Sync data to cookie
-     */
-    static cookieSync() {
-        const fdLog = ApbctBrowserState.getFrontendDataLog();
-
-        if (!Array.isArray(fdLog) || fdLog.length <= 1) {
-            return;
-        }
-
-        const lastValue = fdLog[fdLog.length - 1];
-        const lastTS = lastValue && lastValue[2];
-
-        if (lastTS !== undefined && ApbctBrowserState.lastSentOnTS !== lastTS) {
-            ApbctBrowserState.lastSentOnTS = lastTS;
-            const browserState = apbctGetBrowserStatePair();
-            const json = ApbctBrowserState.asJSON();
-            if (json && browserState && browserState.key && browserState.value) {
-                if ( ctPublicFunctions.data__cookies_type === 'alternative') {
-                    ctSetAlternativeCookie([[browserState.key, json]]);
-                } else if (ctPublicFunctions.data__cookies_type === 'none') {
-                    ctNoCookieAttachHiddenFieldsToForms();
-                }
-            }
-        }
     }
 }
 
@@ -6478,8 +6426,18 @@ class ApbctBrowserState {
 function apbctGetBrowserStatePair() { // eslint-disable-line no-unused-vars
     try {
         ApbctBrowserState.detectScripts();
-        const state = ApbctBrowserState.asJSON();
-        return state ? {key: ApbctBrowserState.STATE_KEY, value: state} : false;
+        let state = ApbctBrowserState.asDTO();
+        if ( ApbctBrowserState.botdLogicLoaded ) {
+            const transportEnabled = localStorage.getItem(ApbctBrowserState.TRANSPORT_ENABLED_SIGN_KEY) === '1';
+            if (transportEnabled) {
+                state.frontend_data_log = ApbctBrowserState.getFrontendDataLog();
+            } else {
+                state.transport_enabled = 0;
+            }
+        } else {
+            state.frontend_data_log = ApbctBrowserState.getFrontendDataLog();
+        }
+        return {key: ApbctBrowserState.STATE_KEY, value: JSON.stringify(state)};
     } catch (e) {
         return false;
     }

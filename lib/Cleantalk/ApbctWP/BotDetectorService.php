@@ -271,6 +271,7 @@ class BotDetectorService
             'log_source' => $log_source,
             'botd_logic_loaded' => TT::getArrayValueAsInt($state, 'botd_logic_loaded'),
             'botd_wrapper_loaded' => TT::getArrayValueAsInt($state, 'botd_wrapper_loaded'),
+            'transport_enabled' => TT::getArrayValueAsInt($state, 'transport_enabled'),
         );
     }
 }
