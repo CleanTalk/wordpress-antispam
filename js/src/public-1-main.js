@@ -590,6 +590,9 @@ class ApbctHandler {
                     const eventTokenKey = useUnwrappedCleantalkKeys ?
                         'ct_bot_detector_event_token' :
                         'data%5Bct_bot_detector_event_token%5D';
+                    const browserStateKey = useUnwrappedCleantalkKeys ?
+                        'apbct_browser_state' :
+                        'data%5Bapbct_browser_state%5D';
 
                     if (!(
                         +ctPublic.bot_detector_enabled &&
@@ -614,6 +617,12 @@ class ApbctHandler {
                         }
                     }
 
+                    const browserState = apbctGetBrowserStatePair();
+                    if (browserState && body.indexOf('apbct_browser_state') === -1) {
+                        addidionalCleantalkData += '&' + browserStateKey + '=' +
+                            encodeURIComponent(browserState.value);
+                    }
+
                     body += addidionalCleantalkData;
                 }
 
@@ -629,6 +638,11 @@ class ApbctHandler {
                         if (eventToken) {
                             body.append('ct_bot_detector_event_token', eventToken);
                         }
+                    }
+
+                    const browserState = apbctGetBrowserStatePair();
+                    if (browserState && !body.has(browserState.key)) {
+                        body.append(browserState.key, browserState.value);
                     }
                 }
 
@@ -665,6 +679,22 @@ class ApbctHandler {
                             } catch (e) {
                                 // body is not JSON — leave as is
                             }
+                        }
+                    }
+
+                    const browserState = apbctGetBrowserStatePair();
+                    if (browserState) {
+                        try {
+                            const bodyObj = JSON.parse(body);
+                            if (
+                                bodyObj && typeof bodyObj === 'object' &&
+                                !Object.prototype.hasOwnProperty.call(bodyObj, browserState.key)
+                            ) {
+                                bodyObj[browserState.key] = browserState.value;
+                                body = JSON.stringify(bodyObj);
+                            }
+                        } catch (e) {
+                            // body is not JSON — leave as is
                         }
                     }
                 }
@@ -724,6 +754,11 @@ class ApbctHandler {
                                 } else {
                                     args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
                                 }
+
+                                const browserState = apbctGetBrowserStatePair();
+                                if (browserState) {
+                                    args[1].body.append(browserState.key, browserState.value);
+                                }
                             }
                         }
                     } catch (e) {
@@ -780,6 +815,22 @@ class ApbctHandler {
          * @return {string|FormData} Modified body.
          */
         const attachFieldsToBody = function(body, fieldPair = false) {
+            const fieldPairs = [fieldPair, apbctGetBrowserStatePair()];
+
+            for (const pair of fieldPairs) {
+                body = attachFieldPairToBody(body, pair);
+            }
+
+            return body;
+        };
+
+        /**
+         * Attach a single key/value pair to fetch request body
+         * @param {string|FormData} body Fetch request data body.
+         * @param {object|bool} fieldPair Key value to inject.
+         * @return {string|FormData} Modified body.
+         */
+        const attachFieldPairToBody = function(body, fieldPair = false) {
             if (fieldPair) {
                 if (body instanceof FormData || typeof body.append === 'function') {
                     body.append(fieldPair.key, fieldPair.value);
@@ -1076,10 +1127,14 @@ class ApbctHandler {
                         const batchPayload = JSON.parse(args[1].body);
                         if (batchPayload.requests && Array.isArray(batchPayload.requests)) {
                             const fieldPair = selectFieldsData(+ctPublic.bot_detector_enabled);
+                            const browserState = apbctGetBrowserStatePair();
                             for (const req of batchPayload.requests) {
                                 const isAddItem = req.path === '/wc/store/v1/cart/add-item';
                                 if (isAddItem && req.body && fieldPair && fieldPair.key) {
                                     req.body[fieldPair.key] = fieldPair.value;
+                                }
+                                if (isAddItem && req.body && browserState) {
+                                    req.body[browserState.key] = browserState.value;
                                 }
                             }
                             args[1].body = JSON.stringify(batchPayload);
@@ -1329,6 +1384,16 @@ class ApbctHandler {
                 }
             }
 
+            // Bot detector browser state
+            const browserState = apbctGetBrowserStatePair();
+            if (browserState) {
+                if (sourceSign.keepUnwrapped) {
+                    ajaxDataFormData.append(browserState.key, browserState.value);
+                } else {
+                    ajaxDataFormData.append('data[' + browserState.key + ']', browserState.value);
+                }
+            }
+
             // Visible fields
             if (sourceSign.attachVisibleFieldsData) {
                 let visibleFieldsSearchResult = false;
@@ -1387,6 +1452,15 @@ class ApbctHandler {
         let eventToken = '';
         let noCookieData = '';
         let visibleFieldsString = '';
+        let browserStateString = '';
+
+        const browserState = apbctGetBrowserStatePair();
+        if (browserState) {
+            const browserStateKey = sourceSign.keepUnwrapped ?
+                'apbct_browser_state' :
+                'data%5Bapbct_browser_state%5D';
+            browserStateString = browserStateKey + '=' + encodeURIComponent(browserState.value) + '&';
+        }
 
         if (
             +ctPublic.bot_detector_enabled &&
@@ -1428,7 +1502,7 @@ class ApbctHandler {
             }
         }
 
-        return noCookieData + eventToken + visibleFieldsString + ajaxDataString;
+        return noCookieData + eventToken + browserStateString + visibleFieldsString + ajaxDataString;
     }
 
     /**
