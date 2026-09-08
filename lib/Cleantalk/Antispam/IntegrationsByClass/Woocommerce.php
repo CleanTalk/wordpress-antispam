@@ -654,10 +654,38 @@ class Woocommerce extends IntegrationByClassBase
 
         add_filter('views_' . $orders_screen_id, [$this, 'addOrdersListStatusLinks']);
 
+        // WooCommerce replaces the whole list with a notice while the store has no orders of its own.
+        // The status links go away with it, so the 'Spam' view becomes unreachable - keep the list on screen.
+        add_filter(
+            'woocommerce_shop_order_list_table_should_render_blank_state',
+            [$this, 'keepOrdersListWhenSpamOrdersExist']
+        );
+
         // The blocked orders are stored apart from the WooCommerce ones, so the 'Spam' view is rendered by the plugin
         if ( Get::getString('status') === 'wc-spamorder' ) {
             $this->replaceOrdersListRenderer($orders_screen_id);
         }
+    }
+
+    /**
+     * Keep the orders list on screen when the store has no orders of its own but spam ones exist.
+     *
+     * A brand new store has nothing in the WooCommerce tables, so the list is replaced with the
+     * "When you receive a new order, it will appear here." notice. The blocked orders live in a table
+     * of the plugin and are not counted there, so the shop owner loses the only way to reach them.
+     *
+     * @param bool|null $should_render_blank_state Null keeps the WooCommerce own decision
+     *
+     * @return bool|null
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function keepOrdersListWhenSpamOrdersExist($should_render_blank_state)
+    {
+        if ( WcSpamOrdersFunctions::getSpamOrdersCount() > 0 ) {
+            return false;
+        }
+
+        return $should_render_blank_state;
     }
 
     /**
