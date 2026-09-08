@@ -40,7 +40,7 @@ class ContactsEncoderHelper
      */
     public function isMailto($string)
     {
-        return strpos($string, 'mailto:') !== false;
+        return stripos($string, 'mailto:') !== false;
     }
 
     /**
@@ -52,7 +52,7 @@ class ContactsEncoderHelper
      */
     public function isTelTag($string)
     {
-        return strpos($string, 'tel:') !== false;
+        return stripos($string, 'tel:') !== false;
     }
 
     /**

@@ -149,7 +149,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     public function modifyFormFieldDisplay($html, $field, $display_context, $post_id)
     {
-        if (mb_strpos($html, 'mailto:') !== false) {
+        if (mb_stripos($html, 'mailto:') !== false) {
             $html = html_entity_decode($html);
             return $this->modifyContent($html);
         }
