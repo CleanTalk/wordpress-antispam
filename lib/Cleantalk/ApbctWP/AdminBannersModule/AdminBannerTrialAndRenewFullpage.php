@@ -48,8 +48,8 @@ class AdminBannerTrialAndRenewFullpage extends AdminBannerAbstract
                 ? __('Upgrade Your License to Keep Your Site Secure', 'cleantalk-spam-protect')
                 : __('Renew Your License to Keep Your Site Secure', 'cleantalk-spam-protect'),
             'subtitle' => $apbct->notice_trial == 1
-                ? __('Trial period is now over, please upgrade to premium version to keep your site secure and safe!', 'cleantalk-spam-protect')
-                : __('Your license has expired, please renew it to keep your site secure and safe!', 'cleantalk-spam-protect'),
+                ? __('Trial period is now over, please upgrade to premium version to keep your site protected and safe!', 'cleantalk-spam-protect')
+                : __('Your license has expired, please renew it to keep your site protected and safe!', 'cleantalk-spam-protect'),
             'network_statistics_title' => (
                 __('Our Protection Network Statistics:', 'cleantalk-spam-protect')
             ),
