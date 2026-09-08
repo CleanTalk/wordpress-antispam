@@ -50,8 +50,13 @@ class ContactsEncoder
     const EMAIL_PATTERN = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b';
     const EMAIL_PATTERN_DOMAIN_CATCHING = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b)';
     const PHONE_NUMBER = '\+\d{8,12}';
+    /**
+     * URI schemes are case-insensitive (RFC 3986). Clients often write Mailto:/Tel:.
+     */
+    const MAILTO_SCHEME_PATTERN = '(?i:mailto):';
+    const TEL_SCHEME_PATTERN = '(?i:tel):';
     const PHONE_NUMBERS_PATTERNS = [
-        '(tel:' . self::PHONE_NUMBER . ')',                        // tel:+XXXXXXXXXX
+        '(' . self::TEL_SCHEME_PATTERN . self::PHONE_NUMBER . ')', // tel:+XXXXXXXXXX
         '([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)',                       // +X XXX XXXXXXX, +X(XXX)XXXXX, etc.
         '(\(\d{3}\)\s?\d{3}-\d{4})',                               // (XXX) XXX-XXXX, (XXX) XXX XXXX
         '(\+\d{1,3}\.\d{1,3}\.((\d{3}\.\d{4})|\d{7})(?![\w.]))',   // +X?.XX?.XXX.XXXX
@@ -63,17 +68,17 @@ class ContactsEncoder
     protected $aria_regex;
 
     /**
-     * @var string example: '/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b))/'
+     * @var string example: '/((?i:mailto):\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b))/'
      */
     protected $global_email_pattern;
 
     /**
-     * @var string example: '/(tel:\+\d{8,12})|([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)|(\(\d{3}\)\s?\d{3}-\d{4})|(\+\d{1,3}\.\d{1,3}\.((\d{3}\.\d{4})|\d{7})(?![\w.]))'/'
+     * @var string example: '/((?i:tel):\+\d{8,12})|([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)|(\(\d{3}\)\s?\d{3}-\d{4})|(\+\d{1,3}\.\d{1,3}\.((\d{3}\.\d{4})|\d{7})(?![\w.]))/'
      */
     protected $global_phones_pattern;
 
     /**
-     * @var string example: '/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/'
+     * @var string example: '/(?i:mailto):(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/'
      */
     protected $global_mailto_pattern;
 
@@ -83,7 +88,7 @@ class ContactsEncoder
     protected $plain_email_pattern;
 
     /**
-     * @var string example: '/tel:(\+\d{8,12})/'
+     * @var string example: '/(?i:tel):(\+\d{8,12})/'
      * @ToDo Is this regexp is actual and right?
      */
     protected $global_tel_pattern;
@@ -202,11 +207,11 @@ class ContactsEncoder
     {
         $this->aria_regex = self::ARIA_LABEL_PATTERN;
 
-        $this->global_email_pattern = '/(mailto\:\b' . self::EMAIL_PATTERN . ')|(\b' . self::EMAIL_PATTERN_DOMAIN_CATCHING . ')/';
+        $this->global_email_pattern = '/(' . self::MAILTO_SCHEME_PATTERN . '\b' . self::EMAIL_PATTERN . ')|(\b' . self::EMAIL_PATTERN_DOMAIN_CATCHING . ')/';
         $this->global_phones_pattern = '/' . implode('|', self::PHONE_NUMBERS_PATTERNS) . '/';
-        $this->global_mailto_pattern = '/mailto\:(' . self::EMAIL_PATTERN . ')/';
+        $this->global_mailto_pattern = '/' . self::MAILTO_SCHEME_PATTERN . '(' . self::EMAIL_PATTERN . ')/';
         $this->plain_email_pattern = '/(\b' . self::EMAIL_PATTERN . '\b)/';
-        $this->global_tel_pattern = '/tel:(' . self::PHONE_NUMBER . ')/';
+        $this->global_tel_pattern = '/' . self::TEL_SCHEME_PATTERN . '(' . self::PHONE_NUMBER . ')/';
     }
 
     /**
@@ -505,7 +510,7 @@ class ContactsEncoder
                 }
             }, $matches[1]);
         }
-        $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
+        $mailto_link_str = preg_replace('/^mailto:/i', '', $mailto_link_str);
         $encoded = $this->encoder->encodeString($mailto_link_str);
 
         $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
@@ -532,7 +537,7 @@ class ContactsEncoder
                 }
             }, $matches[1]);
         }
-        $tel_link_str = str_replace('tel:', '', $tel_link_str);
+        $tel_link_str = preg_replace('/^tel:/i', '', $tel_link_str);
         $encoded      = $this->encoder->encodeString($tel_link_str);
 
         $text = isset($mailto_inner_text) ? $mailto_inner_text : $tel_link_str;
