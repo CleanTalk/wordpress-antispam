@@ -595,7 +595,7 @@ class Helper
      * @param      $host
      * @param bool $out
      *
-     * @return bool
+     * @return bool|string Resolved IP, the host itself when it is already an IP, or $out on failure
      * @psalm-suppress PossiblyUnusedMethod
      */
     public static function dnsResolve($host, $out = false)
