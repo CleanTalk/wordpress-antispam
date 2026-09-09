@@ -42,7 +42,9 @@ class TestEmailEncoder extends TestCase
         while ($ref) {
             if ($ref->hasProperty('variables')) {
                 $prop = $ref->getProperty('variables');
-                $prop->setAccessible(true);
+                if ( PHP_VERSION_ID < 80100 ) {
+                    $prop->setAccessible(true);
+                }
                 $variables = $prop->getValue($cookie_instance);
                 unset($variables[$cookie_name]);
                 $prop->setValue($cookie_instance, $variables);

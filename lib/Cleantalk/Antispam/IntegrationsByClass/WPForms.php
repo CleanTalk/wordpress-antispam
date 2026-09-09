@@ -98,7 +98,7 @@ class WPForms extends IntegrationByClassBase
 
             // add unique key if key exist
             if ($field_label) {
-                $field_label = mb_strtolower(trim($field_label));
+                $field_label = mb_strtolower(trim($field_label, " \n\r\t\v\x00"));
                 $field_label = str_replace(' ', '_', $field_label);
                 $field_label = preg_replace('/\W/u', '', $field_label);
 

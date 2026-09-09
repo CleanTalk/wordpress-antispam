@@ -134,9 +134,9 @@ class DbColumnCreator
                     if (!isset($match[1], $match[3])) {
                         continue;
                     }
-                    $keyword = strtoupper(trim($match[1]));
+                    $keyword = strtoupper(trim($match[1], " \n\r\t\v\x00"));
                     $explicit_name = !empty($match[2]) ? $match[2] : '';
-                    $columns_raw = trim($match[3]);
+                    $columns_raw = trim($match[3], " \n\r\t\v\x00");
 
                     // Skip PRIMARY KEY as it should already exist if table has primary key
                     if (strpos($keyword, 'PRIMARY') !== false) {
@@ -256,7 +256,7 @@ class DbColumnCreator
                 if (isset($schema_indexes[$index_name])) {
                     $index_def = $schema_indexes[$index_name];
                     if (preg_match('/\(([^)]+)\)/', $index_def, $col_match) && isset($col_match[1])) {
-                        $columns = trim($col_match[1]);
+                        $columns = trim($col_match[1], " \n\r\t\v\x00");
                         $add_type = (stripos($index_def, 'UNIQUE') !== false) ? 'UNIQUE INDEX' : 'INDEX';
                         $sql = "ALTER TABLE `$this->dbTableName` ADD $add_type `$index_name` ($columns)";
                         $result = $wpdb->query($sql);
@@ -293,7 +293,7 @@ class DbColumnCreator
                     // Create proper SQL: ALTER TABLE `table` ADD INDEX `name` (`column`)
                     // Parse the index definition to extract columns
                     if (preg_match('/\(([^)]+)\)/', $index_def, $col_match) && isset($col_match[1])) {
-                        $columns = trim($col_match[1]);
+                        $columns = trim($col_match[1], " \n\r\t\v\x00");
                         $add_type = (stripos($index_def, 'UNIQUE') !== false) ? 'UNIQUE INDEX' : 'INDEX';
                         $sql = "ALTER TABLE `$this->dbTableName` ADD $add_type `$diff_index_name` ($columns)";
                         $result = $wpdb->query($sql);

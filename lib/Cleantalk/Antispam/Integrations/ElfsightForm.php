@@ -35,8 +35,8 @@ class ElfsightForm extends IntegrationBase
             if (!is_object($field) || !isset($field->name)) {
                 continue;
             }
-            $value = isset($field->value) ? (is_string($field->value) ? trim($field->value) : $field->value) : '';
-            $name = mb_strtolower(trim($field->name));
+            $value = isset($field->value) ? (is_string($field->value) ? trim($field->value, " \n\r\t\v\x00") : $field->value) : '';
+            $name = mb_strtolower(trim($field->name, " \n\r\t\v\x00"));
 
             if (strpos($name, 'first') !== false && strpos($name, 'name') !== false) {
                 $result['nickname'] = $value;

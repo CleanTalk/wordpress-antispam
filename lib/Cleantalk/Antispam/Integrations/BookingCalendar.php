@@ -132,7 +132,7 @@ class BookingCalendar extends IntegrationBase
     {
         foreach ($parsed_formdata as $key => $field) {
             if (preg_match($pattern, $key)) {
-                $value = isset($field['value']) ? trim($field['value']) : '';
+                $value = isset($field['value']) ? trim($field['value'], " \n\r\t\v\x00") : '';
                 $type = isset($field['type']) ? $field['type'] : '';
 
                 // If type filter specified, check it
