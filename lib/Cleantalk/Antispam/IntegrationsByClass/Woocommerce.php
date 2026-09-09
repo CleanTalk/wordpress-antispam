@@ -34,7 +34,18 @@ use Cleantalk\ApbctWP\Variables\Server;
  */
 class Woocommerce extends IntegrationByClassBase
 {
+    /**
+     * Prefix of the transient keeping the details of a blocked order.
+     */
+    const BLOCKED_ORDER_TRANSIENT = 'apbct_blocked_order_';
+
     private $event_token = null;
+
+    /**
+     * Key of the transient holding the details of the order blocked in this request.
+     * @var string
+     */
+    private $blocked_order_key = '';
 
     /**
      * @return void
@@ -46,6 +57,12 @@ class Woocommerce extends IntegrationByClassBase
 
         // honeypot
         add_filter('woocommerce_checkout_fields', [$this, 'addHoneypotField']);
+
+        // The blocked visitor gets a thank you page with no order behind it - fill in the details.
+        // Only the redirect of a blocked order carries the key, so the rest of the pages are left alone.
+        if ( Get::getString('key') !== '' ) {
+            add_action('woocommerce_after_template_part', [$this, 'renderBlockedOrderOverview'], 10, 4);
+        }
 
         // add to cart hooks if cart works with non-ajax requests
         $this->addCartActions();
@@ -272,9 +289,10 @@ class Woocommerce extends IntegrationByClassBase
             ct_hash($ct_result->id);
 
             if ( $ct_result->allow == 0 ) {
-                $response = $this->getStoreApiPassedResponse($order);
+                // The details must be stored before the response carrying their key is built
+                $this->handleBlockedOrder($order);
 
-                $this->handleBlockedOrder();
+                $response = $this->getStoreApiPassedResponse($order);
 
                 if ( $order->get_status() === 'pending' || $order->get_status() === 'checkout-draft' ) {
                     if ( function_exists('wc_release_stock_for_order') ) {
@@ -302,13 +320,137 @@ class Woocommerce extends IntegrationByClassBase
      * @return void
      * @psalm-suppress UndefinedFunction
      */
-    private function handleBlockedOrder()
+    private function handleBlockedOrder($order = null)
     {
         $this->storeBlockedOrder();
+
+        $this->rememberBlockedOrderOverview($order);
 
         if ( function_exists('wc') && ! is_null(wc()->cart) ) {
             wc()->cart->empty_cart();
         }
+    }
+
+    /**
+     * Store the details of the blocked order to show them on the thank you page.
+     *
+     * The blocked order never becomes a WooCommerce one, so the thank you page has nothing to
+     * render and gives the spammer a hint that the order went wrong. The details are kept in a
+     * transient addressed by the key of the redirect URL and printed by renderBlockedOrderOverview().
+     *
+     * @param \WC_Order|null $order Order created by the Store API checkout, absent for the classic one
+     *
+     * @return void
+     * @psalm-suppress UndefinedClass, UndefinedFunction
+     */
+    private function rememberBlockedOrderOverview($order = null)
+    {
+        $overview = array(
+            'date'           => date_i18n(get_option('date_format')),
+            'total'          => $this->getBlockedOrderTotal($order),
+            'payment_method' => $this->getBlockedOrderPaymentMethod($order),
+        );
+
+        $this->blocked_order_key = 'wc_order_' . wp_generate_password(13, false);
+
+        set_transient(self::BLOCKED_ORDER_TRANSIENT . $this->blocked_order_key, $overview, HOUR_IN_SECONDS);
+    }
+
+    /**
+     * @param \WC_Order|null $order
+     *
+     * @return string Formatted total, the cart one when there is no order
+     * @psalm-suppress UndefinedClass, UndefinedFunction
+     */
+    private function getBlockedOrderTotal($order = null)
+    {
+        if ( $order instanceof \WC_Order ) {
+            return $order->get_formatted_order_total();
+        }
+
+        return ( function_exists('wc') && ! is_null(wc()->cart) ) ? wc()->cart->get_total() : '';
+    }
+
+    /**
+     * @param \WC_Order|null $order
+     *
+     * @return string Title of the chosen gateway, empty when it can not be resolved
+     * @psalm-suppress UndefinedClass, UndefinedFunction
+     */
+    private function getBlockedOrderPaymentMethod($order = null)
+    {
+        if ( $order instanceof \WC_Order ) {
+            return $order->get_payment_method_title();
+        }
+
+        $chosen_method = Post::getString('payment_method');
+
+        if ( $chosen_method === '' || ! function_exists('WC') ) {
+            return '';
+        }
+
+        $gateways = WC()->payment_gateways() ? WC()->payment_gateways()->payment_gateways() : array();
+
+        return isset($gateways[$chosen_method]) ? $gateways[$chosen_method]->get_title() : '';
+    }
+
+    /**
+     * Print the order details on the thank you page shown to the blocked visitor.
+     *
+     * WooCommerce renders the details itself when an order stands behind the page. There is none
+     * for a blocked order, so the same markup is printed right after the template that says
+     * the order has been received.
+     *
+     * @param string $template_name
+     * @param string $template_path
+     * @param string $located
+     * @param array $args
+     *
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod, UndefinedFunction
+     */
+    public function renderBlockedOrderOverview($template_name, $template_path, $located, $args)
+    {
+        if ( $template_name !== 'checkout/order-received.php' || ! empty($args['order']) ) {
+            return;
+        }
+
+        $blocked_order_key = Get::getString('key');
+
+        if ( $blocked_order_key === '' ) {
+            return;
+        }
+
+        $overview = get_transient(self::BLOCKED_ORDER_TRANSIENT . $blocked_order_key);
+
+        if ( ! is_array($overview) || empty($overview['date']) ) {
+            return;
+        }
+
+        $rows = array(
+            'date'  => array(__('Date:', 'cleantalk-spam-protect'), $overview['date']),
+            'total' => array(__('Total:', 'cleantalk-spam-protect'), $overview['total']),
+        );
+
+        if ( ! empty($overview['payment_method']) ) {
+            $rows['method'] = array(
+                __('Payment method:', 'cleantalk-spam-protect'),
+                $overview['payment_method']
+            );
+        }
+
+        echo '<ul class="woocommerce-order-overview woocommerce-thankyou-order-details order_details">';
+
+        foreach ( $rows as $key => $row ) {
+            printf(
+                '<li class="woocommerce-order-overview__%1$s %1$s">%2$s <strong>%3$s</strong></li>',
+                esc_attr($key),
+                esc_html($row[0]),
+                wp_kses_post($row[1])
+            );
+        }
+
+        echo '</ul>';
     }
 
     /**
@@ -319,7 +461,12 @@ class Woocommerce extends IntegrationByClassBase
      */
     private function getBlockedOrderRedirectUrl()
     {
-        return wc_get_endpoint_url('order-received', '', wc_get_checkout_url());
+        $url = wc_get_endpoint_url('order-received', '', wc_get_checkout_url());
+
+        // The key makes the page look like the usual one and points at the stored details
+        return $this->blocked_order_key === ''
+            ? $url
+            : add_query_arg('key', $this->blocked_order_key, $url);
     }
 
     /**
