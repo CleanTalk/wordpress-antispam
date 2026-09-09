@@ -108,8 +108,8 @@ class ApbctCli extends WP_CLI_Command // phpcs:ignore PSR1.Classes.ClassDeclarat
         }
 
         if (isset($result['data']) && !empty($result['data']['auth_key']) && apbct_api_key__is_correct($result['data']['auth_key'])) {
-            $apbct->data['key_changed'] = trim($result['data']['auth_key']) !== $apbct->settings['apikey'];
-            $apbct->settings['apikey'] = trim($result['data']['auth_key']);
+            $apbct->data['key_changed'] = trim($result['data']['auth_key'], " \n\r\t\v\x00") !== $apbct->settings['apikey'];
+            $apbct->settings['apikey'] = trim($result['data']['auth_key'], " \n\r\t\v\x00");
             $apbct->api_key = $apbct->settings['apikey'];
             $this->prompt(__('Api key installed: ', 'cleantalk-spam-protect') . $apbct->settings['apikey']);
         }

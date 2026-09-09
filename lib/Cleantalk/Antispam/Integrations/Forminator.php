@@ -19,7 +19,7 @@ class Forminator extends IntegrationBase
             }
             // First non-empty email-* — empty email-2/3 from hidden multi-step pages must not win.
             if (is_string($key) && strpos($key, 'email-') === 0) {
-                $candidate = trim(str_replace(' ', '', TT::toString($value)));
+                $candidate = trim(str_replace(' ', '', TT::toString($value)), " \n\r\t\v\x00");
                 if ($candidate !== '' && $email === '') {
                     $email = $candidate;
                 }
@@ -38,7 +38,7 @@ class Forminator extends IntegrationBase
             is_array($tmp_data['emails_array'])
         ) {
             foreach ($tmp_data['emails_array'] as $emails_array_value) {
-                $candidate = trim(str_replace(' ', '', TT::toString($emails_array_value)));
+                $candidate = trim(str_replace(' ', '', TT::toString($emails_array_value)), " \n\r\t\v\x00");
                 if ($candidate !== '') {
                     $email = $candidate;
                     break;

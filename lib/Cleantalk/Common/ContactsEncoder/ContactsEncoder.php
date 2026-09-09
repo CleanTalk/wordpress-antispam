@@ -936,7 +936,11 @@ abstract class ContactsEncoder
      */
     private function isSecureAriaLabelPlaceholderAvailable()
     {
-        return function_exists('random_bytes') || function_exists('openssl_random_pseudo_bytes');
+        if ( function_exists('random_bytes') ) {
+            return true;
+        }
+
+        return function_exists('openssl_random_pseudo_bytes');
     }
 
     /**
@@ -946,37 +950,22 @@ abstract class ContactsEncoder
      */
     private function generateAriaLabelPlaceholder()
     {
-        $bytes = $this->getSecureRandomBytes(16);
-        if ( !is_string($bytes) || strlen($bytes) !== 16 ) {
-            return null;
-        }
-
-        return '%%APBCT_ARIA_' . bin2hex($bytes) . '%%';
-    }
-
-    /**
-     * @param int $length
-     *
-     * @return string|null
-     */
-    private function getSecureRandomBytes($length)
-    {
         if ( function_exists('random_bytes') ) {
             try {
-                // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.random_bytesFound
-                $bytes = random_bytes($length);
-                if ( is_string($bytes) && strlen($bytes) === $length ) {
-                    return $bytes;
+                $bytes = random_bytes(16);
+                if ( is_string($bytes) && strlen($bytes) === 16 ) {
+                    return '%%APBCT_ARIA_' . bin2hex($bytes) . '%%';
                 }
             } catch ( \Exception $e ) {
-                // Fall through to OpenSSL.
+                // fall through to openssl
             }
         }
 
         if ( function_exists('openssl_random_pseudo_bytes') ) {
-            $bytes = openssl_random_pseudo_bytes($length);
-            if ( is_string($bytes) && strlen($bytes) === $length ) {
-                return $bytes;
+            $crypto_strong = false;
+            $bytes = openssl_random_pseudo_bytes(16, $crypto_strong);
+            if ( $crypto_strong && is_string($bytes) && strlen($bytes) === 16 ) {
+                return '%%APBCT_ARIA_' . bin2hex($bytes) . '%%';
             }
         }
 
