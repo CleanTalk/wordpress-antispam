@@ -111,6 +111,10 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
 
                 $inner_content = isset($matches[2]) ? $matches[2] : '';
 
+                if ( $this->shortcodeContentContainsHtmlTags($inner_content) ) {
+                    return isset($matches[0]) ? $matches[0] : '';
+                }
+
                 return $this->callback($atts, $inner_content, $this->public_name);
             },
             $content
@@ -193,6 +197,26 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
         }
 
         return false;
+    }
+
+    /**
+     * Skip shortcode pairs whose inner content contains HTML tags.
+     *
+     * In buffer mode the lazy [tag]...[/tag] match can pair an opener in one
+     * fragment with a closer in another and swallow everything between them
+     * (comments, articles, any markup). A legitimate shortcode wraps text only.
+     *
+     * @param string $content Inner shortcode content.
+     *
+     * @return bool
+     */
+    protected function shortcodeContentContainsHtmlTags($content)
+    {
+        if ( ! is_string($content) || $content === '' ) {
+            return false;
+        }
+
+        return (bool) preg_match('/<\/?[a-zA-Z][a-zA-Z0-9:-]*(?:\s[^<>]*)?>/', $content);
     }
 
     /**

@@ -380,4 +380,76 @@ class testEmailEncoderShortCodeEncode extends TestCase
         }
     }
 
+    public function testBufferModeDoesNotAbsorbBlockThemeCommentsFromEncodeDataTags()
+    {
+        global $apbct;
+
+        $previous_buffer_setting = $apbct->settings['data__email_decoder_buffer'];
+        $apbct->settings['data__email_decoder_buffer'] = true;
+
+        $html = '<div class="wp-block-comments"><ol class="wp-block-comment-template">'
+            . '<li class="wp-block-comment"><div class="wp-block-comment-content">[apbct_encode_data]</div></li>'
+            . '<li class="wp-block-comment"><div class="wp-block-comment-content">Keep this block comment</div></li>'
+            . '<li class="wp-block-comment"><div class="wp-block-comment-content">[apbct_encode_data]z[/apbct_encode_data][/apbct_encode_data]</div></li>'
+            . '</ol></div>';
+
+        try {
+            $buffer = $this->shortcodes_service->modifyBufferBefore($html);
+            $buffer = apbctGetContactsEncoder()->modifyContent($buffer);
+            $buffer = $this->shortcodes_service->modifyBufferAfter($buffer);
+
+            $this->assertStringContainsString('Keep this block comment', $buffer);
+            $this->assertStringContainsString('[apbct_encode_data]', $buffer);
+            $this->assertStringNotContainsString('apbct-email-encoder', $buffer);
+        } finally {
+            $apbct->settings['data__email_decoder_buffer'] = $previous_buffer_setting;
+        }
+    }
+
+    public function testShortcodeWithHtmlTagsIsNotExtracted()
+    {
+        $content = '[apbct_encode_data]<p>Keep this paragraph</p>[/apbct_encode_data]';
+
+        $result = $this->shortcode->changeContentBeforeEncoderModify($content);
+
+        $this->assertSame($content, $result);
+        $this->assertCount(0, $this->shortcode->shortcode_replacements);
+    }
+
+    public function testShortcodeWithPlainTextIsStillExtracted()
+    {
+        $content = "[apbct_encode_data]\nuser@example.com\n[/apbct_encode_data]";
+
+        $result = $this->shortcode->changeContentBeforeEncoderModify($content);
+
+        $this->assertRegExp('/%%APBCT_SHORT_CODE_INCLUDE_EE_0_[a-f0-9]+%%/', $result);
+        $this->assertCount(1, $this->shortcode->shortcode_replacements);
+    }
+
+    public function testBufferModeDoesNotAbsorbArbitraryHtmlBetweenEncodeDataTags()
+    {
+        global $apbct;
+
+        $previous_buffer_setting = $apbct->settings['data__email_decoder_buffer'];
+        $apbct->settings['data__email_decoder_buffer'] = true;
+
+        $html = '<article>'
+            . '<p>[apbct_encode_data]</p>'
+            . '<p>Keep this article paragraph</p>'
+            . '<p>[/apbct_encode_data]</p>'
+            . '</article>';
+
+        try {
+            $buffer = $this->shortcodes_service->modifyBufferBefore($html);
+            $buffer = apbctGetContactsEncoder()->modifyContent($buffer);
+            $buffer = $this->shortcodes_service->modifyBufferAfter($buffer);
+
+            $this->assertStringContainsString('Keep this article paragraph', $buffer);
+            $this->assertStringContainsString('[apbct_encode_data]', $buffer);
+            $this->assertStringNotContainsString('apbct-email-encoder', $buffer);
+        } finally {
+            $apbct->settings['data__email_decoder_buffer'] = $previous_buffer_setting;
+        }
+    }
+
 }
