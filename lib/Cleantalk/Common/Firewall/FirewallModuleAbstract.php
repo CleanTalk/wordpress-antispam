@@ -40,6 +40,8 @@ abstract class FirewallModuleAbstract
 
     protected $ip_array = array();
 
+    protected $user_agent_data = array();
+
     protected $test_ip;
 
     protected $passed_ip;

@@ -1,3 +1,4 @@
+const {__} = wp.i18n;
 jQuery(document).ready(function() {
     // Crunch for Right to Left direction languages
     if (document.getElementsByClassName('apbct_settings-title')[0]) {
@@ -667,7 +668,7 @@ function apbctSettingsDependencies(ids, enable) { // eslint-disable-line no-unus
  * @param {HTMLElement} elem
  * @return {int|null}
  */
-function apbctSettingsDependenciesGetState(elem) {
+function apbctSettingsDependenciesGetState(elem) { // eslint-disable-line no-unused-vars
     let state;
 
     switch ( elem.getAttribute( 'type' ) ) {
@@ -682,6 +683,45 @@ function apbctSettingsDependenciesGetState(elem) {
     }
 
     return state;
+}
+
+/**
+ * Warn user about cookie type change if cache solutions found in environment.
+ * #Call inlined from SettingsField
+ * @param {object} event
+ */
+function onApbctCookieTypeChange(event) { // eslint-disable-line no-unused-vars
+    const switchToMode = event?.target?.value?.toString() || null;
+    if (
+        switchToMode !== null &&
+        (
+            switchToMode === '1' || // cookies on
+            switchToMode === '0' // cookies off
+        )
+    ) {
+        cleantalkModal.loaded = false;
+        cleantalkModal.open(false);
+        cleantalkModal.confirm(
+            __('Attention!', 'cleantalk-spam-protect'),
+            (
+                __(
+                    'Cache solutions detected. ',
+                    'cleantalk-spam-protect',
+                ) +
+                __(
+                    'Switching cookie mode to \'On\' or \'Off\' may affect filtering quality. ',
+                    'cleantalk-spam-protect',
+                ) +
+                __('The recommended setting is \'Auto\'.', 'cleantalk-spam-protect')
+            ),
+            '',
+            (decision)=>{
+                decision === true && jQuery('#apbct_setting_data__set_cookies__Auto').click();
+            },
+            __('Set to "Auto"', 'cleantalk-spam-protect'),
+            __('Confirm mode change', 'cleantalk-spam-protect'),
+        );
+    }
 }
 
 /**

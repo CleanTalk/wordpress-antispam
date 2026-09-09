@@ -2298,3 +2298,67 @@ function apbct_get_email_encoder_pass_key()
 
     return md5(Helper::ipGet() . $apbct->api_key . 'email_encoder');
 }
+
+/**
+ * Returns CSP nonce for CleanTalk inline scripts.
+ *
+ * @return string
+ */
+function apbct_get_csp_nonce()
+{
+    /**
+     * Filter CSP nonce for CleanTalk inline scripts.
+     *
+     * @param string $nonce CSP nonce value for script tags.
+     */
+    return (string) apply_filters('apbct_csp_nonce', '');
+}
+
+/**
+ * Returns inline script tag with optional CSP nonce.
+ *
+ * @param string $javascript JavaScript code.
+ * @param array<string, string|bool> $attributes Script tag attributes.
+ *
+ * @return string
+ */
+function apbct_get_inline_script_tag($javascript, $attributes = array())
+{
+    $nonce = apbct_get_csp_nonce();
+    if ( $nonce !== '' ) {
+        $attributes['nonce'] = $nonce;
+    }
+
+    if ( function_exists('wp_get_inline_script_tag') ) {
+        return wp_get_inline_script_tag($javascript, $attributes);
+    }
+
+    $attr_string = '';
+    foreach ( $attributes as $name => $value ) {
+        if ( $value === true ) {
+            $attr_string .= ' ' . esc_attr($name);
+        } elseif ( $value !== false && $value !== null && $value !== '' ) {
+            $attr_string .= ' ' . esc_attr($name) . '="' . esc_attr((string) $value) . '"';
+        }
+    }
+
+    $javascript = preg_replace('#</script#i', '<\/script', $javascript);
+
+    return '<script' . $attr_string . '>' . $javascript . '</script>';
+}
+
+/**
+ * Returns allowed HTML tags for inline CleanTalk scripts passed through kses.
+ *
+ * @return array<string, array<string, bool>>
+ */
+function apbct_get_inline_script_kses()
+{
+    return array(
+        'script' => array(
+            'type' => true,
+            'data-cookieconsent' => true,
+            'nonce' => true,
+        ),
+    );
+}

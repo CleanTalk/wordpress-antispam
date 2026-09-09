@@ -217,9 +217,15 @@ class TestApbctState extends TestCase
         //apbct_run_update_actions('6.1','6.2');
 
         //await udefined index
-        $this->expectException(Notice::class);
-        $db_result = get_option('cleantalk_fw_stats')['firewall_updating_id'];
-        delete_option('cleantalk_fw_stats');
+	    if (phpversion() <= 7.4) {
+		    $this->expectException(Notice::class);
+		    $db_result = get_option('cleantalk_fw_stats')['firewall_updating_id'];
+		    delete_option('cleantalk_fw_stats');
+	    } else {
+		    $this->expectWarning();
+		    $db_result = get_option('cleantalk_fw_stats')['firewall_updating_id'];
+		    delete_option('cleantalk_fw_stats');
+	    }
     }
 
     public function testInit()

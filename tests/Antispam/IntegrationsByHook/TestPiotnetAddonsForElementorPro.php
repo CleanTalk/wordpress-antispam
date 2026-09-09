@@ -95,8 +95,13 @@ class TestPiotnetAddonsForElementorPro extends TestCase
 
         // Act & Assert - class has a bug: it doesn't check json_decode result
         // This test documents current behavior (throws warning)
-        $this->expectWarning();
-        $result = $this->piotnet->getDataForChecking('default_value');
+	    if (phpversion() <= 7.4) {
+		    $this->expectWarning();
+		    $result = $this->piotnet->getDataForChecking('default_value');
+	    } else {
+		    $this->expectException('TypeError');
+		    $result = $this->piotnet->getDataForChecking('default_value');
+	    }
     }
 
     public function testGetDataForChecking_ProcessesValidFormData()

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.86.99-fix
+  Version: 6.87.99-fix
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -615,11 +615,11 @@ add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts'
 
 
 add_action('mec_booking_end_form_step_2', function () {
-    echo "<script>
-        if (typeof ctPublic.force_alt_cookies == 'undefined' || (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)) {
+    echo apbct_get_inline_script_tag(
+        "if (typeof ctPublic.force_alt_cookies == 'undefined' || (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)) {
 			ctNoCookieAttachHiddenFieldsToForms();
-		}
-    </script>";
+		}"
+    );
 });
 
 // Public actions
@@ -2350,35 +2350,6 @@ function apbct_rc__uninstall_plugin__check_deactivate()
 }
 
 /**
- * @param $source
- *
- * @return bool
- */
-function apbct_rc__update_settings($source)
-{
-    global $apbct;
-
-    foreach ( $apbct->default_settings as $setting => $def_value ) {
-        if ( array_key_exists($setting, $source) ) {
-            if ($setting === 'apikey') {
-                continue;
-            }
-            $var  = $source[$setting];
-            $type = gettype($def_value);
-            settype($var, $type);
-            if ( $type === 'string' ) {
-                $var = preg_replace(array('/=/', '/`/'), '', $var);
-            }
-            $apbct->settings[$setting] = $var;
-        }
-    }
-
-    $apbct->save('settings');
-
-    return true;
-}
-
-/**
  * @param string $key
  * @param string $plugin
  *
@@ -2656,7 +2627,7 @@ function apbct_cookie()
     // Cookie names to validate
     $cookie_test_value = array(
         'cookies_names' => array(),
-        'check_value'   => $apbct->api_key . $apbct->data['salt'],
+        'check_value'   => $apbct->api_key . $apbct->data['salt'] . '_apbct_cookies_test',
     );
 
     // We need to skip the domain attribute for prevent including the dot to the cookie's domain on the client.
@@ -2751,7 +2722,7 @@ function apbct_cookies_test()
             return 0;
         }
 
-        $check_string = $apbct->api_key . $apbct->data['salt'];
+        $check_string = $apbct->api_key . $apbct->data['salt'] . '_apbct_cookies_test';
         // generate value
         $cookie_names = TT::getArrayValueAsArray($cookie_test, 'cookies_names');
         foreach ( $cookie_names as $cookie_name ) {

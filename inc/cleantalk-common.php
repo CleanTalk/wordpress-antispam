@@ -1630,7 +1630,7 @@ function apbct_validate_api_response__service_template_get($template_id, $templa
             $services_templates_get_error = 'Parse services_templates_get API error: template_id is empty';
             break;
         }
-        if ( $template['template_id'] === (int)$template_id ) {
+        if ( (int)$template['template_id'] === (int)$template_id ) {
             if ( empty($template['options_site']) ) {
                 $services_templates_get_error = 'Parse services_templates_get API error: options_site is empty';
                 break;
