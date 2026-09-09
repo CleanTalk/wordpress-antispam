@@ -178,7 +178,7 @@ function ct_woocommerce_wishlist_check($args)
     $subject = '';
     $email   = $args['wishlist_owner_email'];
     if ( $args['wishlist_first_name'] !== '' || $args['wishlist_last_name'] !== '' ) {
-        $nickname = trim($args['wishlist_first_name'] . " " . $args['wishlist_last_name']);
+        $nickname = trim($args['wishlist_first_name'] . " " . $args['wishlist_last_name'], " \n\r\t\v\x00");
     } else {
         $nickname = '';
     }

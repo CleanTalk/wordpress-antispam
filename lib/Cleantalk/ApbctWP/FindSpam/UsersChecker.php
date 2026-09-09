@@ -175,7 +175,7 @@ class UsersChecker extends Checker
                 ? $ip_from_keeper
                 : false;
             $user_ip    = $ip_from_keeper;
-            $user_email = ! empty($user->user_email) ? trim($user->user_email) : false;
+            $user_email = ! empty($user->user_email) ? trim($user->user_email, " \n\r\t\v\x00") : false;
 
             // Validate IP and Email
             $user_ip    = filter_var($user_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);

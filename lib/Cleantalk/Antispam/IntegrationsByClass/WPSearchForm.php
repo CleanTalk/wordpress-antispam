@@ -83,7 +83,7 @@ class WPSearchForm extends IntegrationByClassBase
                 preg_match('/form.*method="(.*?)"/', $form_html, $matches);
                 $method = empty($matches[1])
                     ? 'get'
-                    : trim($matches[1]);
+                    : trim($matches[1], " \n\r\t\v\x00");
             }
             $form_method = strtolower($method);
             $form_sign = sprintf(
