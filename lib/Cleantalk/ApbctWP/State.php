@@ -58,6 +58,7 @@ class State extends \Cleantalk\Common\State
         'forms__wc_checkout_test'                  => 1, // WooCommerce checkout default test
         'forms__wc_register_from_order'            => 1, // Woocommerce registration during checkout
         'forms__wc_add_to_cart'                    => 0, // Woocommerce add to cart
+        'forms__wc_show_rejection_message'         => 0, // Tell the customer why the order was rejected
         'forms__search_test'                       => 1, // Test default WordPress form
         'forms__check_external'                    => 0,
         'forms__check_external__capture_buffer'    => 0,

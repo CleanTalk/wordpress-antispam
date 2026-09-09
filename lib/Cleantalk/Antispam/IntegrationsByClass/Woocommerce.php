@@ -232,6 +232,20 @@ class Woocommerce extends IntegrationByClassBase
             ct_hash($ct_result->id);
 
             if ( $ct_result->allow == 0 ) {
+                if ( $apbct->settings['forms__wc_show_rejection_message'] ) {
+                    // The customer is told why the order was rejected and is left on the checkout
+                    if ( $apbct->settings['data__wc_store_blocked_orders'] ) {
+                        $this->storeBlockedOrder();
+                    }
+
+                    wp_send_json(array(
+                        'result'   => 'failure',
+                        'messages' => '<ul class="woocommerce-error"><li>' . $ct_result->comment . '</li></ul>',
+                        'refresh'  => 'false',
+                        'reload'   => 'false'
+                    ));
+                }
+
                 $this->handleBlockedOrder();
                 wp_send_json(array(
                     'result'   => 'success',
@@ -289,10 +303,25 @@ class Woocommerce extends IntegrationByClassBase
             ct_hash($ct_result->id);
 
             if ( $ct_result->allow == 0 ) {
-                // The details must be stored before the response carrying their key is built
-                $this->handleBlockedOrder($order);
+                $show_rejection = (bool)$apbct->settings['forms__wc_show_rejection_message'];
 
-                $response = $this->getStoreApiPassedResponse($order);
+                if ( $show_rejection ) {
+                    // The customer is told why the order was rejected and is left on the checkout
+                    if ( $apbct->settings['data__wc_store_blocked_orders'] ) {
+                        $this->storeBlockedOrder();
+                    }
+
+                    $response = array(
+                        'code'    => 'woocommerce_store_api_checkout_order_processed',
+                        'message' => $ct_result->comment,
+                        'data'    => array('status' => 403),
+                    );
+                } else {
+                    // The details must be stored before the response carrying their key is built
+                    $this->handleBlockedOrder($order);
+
+                    $response = $this->getStoreApiPassedResponse($order);
+                }
 
                 if ( $order->get_status() === 'pending' || $order->get_status() === 'checkout-draft' ) {
                     if ( function_exists('wc_release_stock_for_order') ) {
@@ -307,6 +336,9 @@ class Woocommerce extends IntegrationByClassBase
                 }
 
                 if ( ! headers_sent() ) {
+                    if ( $show_rejection ) {
+                        http_response_code(403);
+                    }
                     header('Content-Type: application/json; charset=utf-8');
                 }
                 die(json_encode($response));

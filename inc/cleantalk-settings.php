@@ -364,9 +364,24 @@ function apbct_settings__set_fields()
                         array('val' => 0, 'label' => __('Off')),
                     ),
                 ),
+                'forms__wc_show_rejection_message' => array(
+                    'title' => __('Show rejection message to customers', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'This message tells the customer why their order was filtered, allowing them to fix the issue that caused it. However, this may result in multiple orders from the same customer because all rejected orders are saved in the Spam folder. By default, this option is OFF.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'class' => 'apbct_settings-field_wrapper--sub',
+                    'options' => array(
+                        array('val' => 1, 'label' => __('On')),
+                        array('val' => 0, 'label' => __('Off')),
+                    ),
+                ),
                 'data__wc_store_blocked_orders' => array(
                     'title' => __('Store blocked orders', 'cleantalk-spam-protect'),
-                    'description' => __('The orders which was blocked by the Anti-Spam will be stored and could be restored manually later if its needed.', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'Orders blocked by Anti-Spam will be stored and can be restored manually later if needed. If the option is OFF, the customer must fix the issue on their end to pass the anti-spam check and place an order. By default, this option is ON.',
+                        'cleantalk-spam-protect'
+                    ),
                     'class' => 'apbct_settings-field_wrapper--sub',
                     'options' => array(
                         array('val' => 1, 'label' => __('On')),

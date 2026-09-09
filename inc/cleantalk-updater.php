@@ -1378,6 +1378,14 @@ function apbct_update_to_6_60_0()
     }
 }
 
+function apbct_update_to_6_88_0()
+{
+    global $apbct;
+
+    $apbct->settings['forms__wc_show_rejection_message'] = 1;
+    $apbct->save('settings');
+}
+
 function apbct_update_to_6_76_0()
 {
     global $apbct;
