@@ -359,6 +359,7 @@ class testEmailEncoderShortCodeEncode extends TestCase
         global $apbct;
 
         $previous_buffer_setting = $apbct->settings['data__email_decoder_buffer'];
+        $previous_buffer = $apbct->buffer;
         $apbct->settings['data__email_decoder_buffer'] = true;
 
         $html = '<div id="comments" class="comments-area"><ol class="comment-list">'
@@ -377,6 +378,7 @@ class testEmailEncoderShortCodeEncode extends TestCase
             $this->assertStringNotContainsString('apbct-email-encoder', $buffer);
         } finally {
             $apbct->settings['data__email_decoder_buffer'] = $previous_buffer_setting;
+            $apbct->buffer = $previous_buffer;
         }
     }
 
@@ -385,6 +387,7 @@ class testEmailEncoderShortCodeEncode extends TestCase
         global $apbct;
 
         $previous_buffer_setting = $apbct->settings['data__email_decoder_buffer'];
+        $previous_buffer = $apbct->buffer;
         $apbct->settings['data__email_decoder_buffer'] = true;
 
         $html = '<div class="wp-block-comments"><ol class="wp-block-comment-template">'
@@ -403,6 +406,7 @@ class testEmailEncoderShortCodeEncode extends TestCase
             $this->assertStringNotContainsString('apbct-email-encoder', $buffer);
         } finally {
             $apbct->settings['data__email_decoder_buffer'] = $previous_buffer_setting;
+            $apbct->buffer = $previous_buffer;
         }
     }
 
@@ -431,6 +435,7 @@ class testEmailEncoderShortCodeEncode extends TestCase
         global $apbct;
 
         $previous_buffer_setting = $apbct->settings['data__email_decoder_buffer'];
+        $previous_buffer = $apbct->buffer;
         $apbct->settings['data__email_decoder_buffer'] = true;
 
         $html = '<article>'
@@ -449,6 +454,7 @@ class testEmailEncoderShortCodeEncode extends TestCase
             $this->assertStringNotContainsString('apbct-email-encoder', $buffer);
         } finally {
             $apbct->settings['data__email_decoder_buffer'] = $previous_buffer_setting;
+            $apbct->buffer = $previous_buffer;
         }
     }
 
