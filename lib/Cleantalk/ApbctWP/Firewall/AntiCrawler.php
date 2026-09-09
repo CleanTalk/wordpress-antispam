@@ -21,7 +21,7 @@ use Cleantalk\ApbctWP\ApbctJsBundleResolver;
  */
 class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
 {
-    const COOKIE_NAME__ANTIBOT = 'wordpress_apbct_antibot';
+    const COOKIE_NAME__ANTIBOT = 'apbct_antibot';
     const COOKIE_NAME__ANTICRAWLER_PASSED = 'apbct_anticrawler_passed';
     const PARAM_NAME__BOT_DETECTOR_EXIST = 'apbct_bot_detector_exist';
 

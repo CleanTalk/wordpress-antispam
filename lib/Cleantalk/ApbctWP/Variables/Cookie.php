@@ -13,7 +13,7 @@ class Cookie extends \Cleantalk\Variables\Cookie
     public static $force_to_use_alternative_cookies = array(
         'ct_sfw_pass_key',
         'ct_sfw_passed',
-        'wordpress_apbct_antibot',
+        'apbct_antibot',
         'apbct_anticrawler_passed',
         'apbct_antiflood_passed',
         'apbct_email_encoder_passed',
