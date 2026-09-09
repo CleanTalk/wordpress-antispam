@@ -627,6 +627,12 @@ class WcSpamOrdersListTable extends CleantalkListTable
             esc_html_e(
                 'Results are based on the decision of our spam checking system and do not give a complete guarantee that these orders are spam.',
                 'cleantalk-spam-protect'
+            );
+            echo ' ';
+            printf(
+                '<a href="%1$s">%2$s</a>',
+                esc_url(TT::toString($this->apbct->settings_link)),
+                esc_html__('Anti-Spam by CleanTalk', 'cleantalk-spam-protect')
             ); ?></p>
         <?php
         if ( empty($this->apbct->settings['data__wc_store_blocked_orders']) ) {
