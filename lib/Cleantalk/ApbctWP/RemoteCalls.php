@@ -116,6 +116,31 @@ class RemoteCalls
         return in_array($rc, self::$allowedActionsWithoutToken, true);
     }
 
+    /**
+     * Delay to wait before the remote call is passed to the host.
+     *
+     * Only the whitelisted actions are allowed to delay, and the delay itself is limited
+     * by self::MAX_DELAY.
+     *
+     * @param string $action Remote call action name, without the "action__" prefix
+     * @param mixed $delay Delay as it came in the request
+     *
+     * @return int|null Seconds to sleep, null when the call must be performed without a delay
+     * @psalm-return int<0, max>|null
+     */
+    private static function getDelayForAction($action, $delay)
+    {
+        if ( ! $delay || ! in_array(strtolower($action), self::$allowedActionsWithDelay, true) ) {
+            return null;
+        }
+
+        $delay = TT::toInt($delay);
+        $delay = max($delay, 0);
+        $delay = min($delay, self::MAX_DELAY);
+
+        return $delay;
+    }
+
     public static function checkWithoutToken()
     {
         global $apbct;
@@ -215,18 +240,13 @@ class RemoteCalls
                     // Flag to let plugin know that Remote Call is running.
                     $apbct->rc_running = true;
 
+                    $raw_action = $action;
                     $action = 'action__' . $action;
 
                     if ( method_exists(__CLASS__, $action) ) {
                         // Delay before perform action - only for whitelisted actions
-                        $current_action = strtolower(Request::getString('spbc_remote_call_action'));
-                        if (
-                            Request::get('delay') &&
-                            in_array($current_action, self::$allowedActionsWithDelay, true)
-                        ) {
-                            $delay = Request::getInt('delay');
-                            $delay = max($delay, 0);
-                            $delay = min($delay, self::MAX_DELAY);
+                        $delay = self::getDelayForAction($raw_action, Request::get('delay'));
+                        if ( ! is_null($delay) ) {
                             sleep($delay);
                             $params = $_REQUEST;
                             unset($params['delay']);
