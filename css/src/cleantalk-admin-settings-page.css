@@ -59,6 +59,10 @@ i.animate-spin {
     font-size: 14px;
     vertical-align: top;
 }
+.apbct_settings-field_title--with-help{
+    width: auto;
+    white-space: nowrap;
+}
 .apbct_settings-field_title--radio{
     display: inline-block;
     margin: 0;

@@ -651,6 +651,33 @@ class TestExclusionsService extends TestCase
         $this->assertFalse($result);
     }
 
+    public function testIsContactExcludedMatchesEmailAndPhoneVariants()
+    {
+        $params = new Params();
+        $params->api_key = 'testapikey';
+        $params->excluded_strings = array('keep@example.com', '+1 800 555-1234', 'company.org');
+        $service = new ExclusionsService($params);
+
+        $this->assertTrue($service->isContactExcluded('keep@example.com'));
+        $this->assertTrue($service->isContactExcluded('mailto:keep@example.com'));
+        $this->assertTrue($service->isContactExcluded('office@company.org'));
+        $this->assertTrue($service->isContactExcluded('(800) 555-1234'));
+        $this->assertFalse($service->isContactExcluded('public@other.net'));
+        $this->assertFalse($service->isContactExcluded('(800) 555-9999'));
+    }
+
+    public function testParseExcludedStringsSplitsLinesAndCommas()
+    {
+        $parsed = \Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService::parseExcludedStrings(
+            "keep@example.com\n+1 800 555-1234, example.com\n"
+        );
+
+        $this->assertSame(
+            array('keep@example.com', '+1 800 555-1234', 'example.com'),
+            $parsed
+        );
+    }
+
     /**
      * Helper method to invoke private methods for testing
      *
