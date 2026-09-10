@@ -593,9 +593,9 @@ class Helper
      * Resolve DNS to IP
      *
      * @param      $host
-     * @param bool $out
+     * @param bool|string $out
      *
-     * @return bool
+     * @return bool|string
      * @psalm-suppress PossiblyUnusedMethod
      */
     public static function dnsResolve($host, $out = false)
