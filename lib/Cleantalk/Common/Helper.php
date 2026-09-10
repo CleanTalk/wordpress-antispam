@@ -609,6 +609,28 @@ class Helper
             return $out;
         }
 
+        if ( strpos($host, '://') !== false ) {
+            $parsed_host = parse_url($host, PHP_URL_HOST);
+            if ( is_string($parsed_host) && $parsed_host !== '' ) {
+                $host = $parsed_host;
+            }
+        }
+
+        if ( strpos($host, ':') !== false && ! filter_var($host, FILTER_VALIDATE_IP) ) {
+            $host = strstr($host, ':', true);
+        }
+
+        $is_ip = filter_var($host, FILTER_VALIDATE_IP);
+
+        if ( ! filter_var($host, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME)
+             && ! $is_ip ) {
+            return $out;
+        }
+
+        if ( $is_ip ) {
+            return $host;
+        }
+
         // Get DNS records about URL
         if (function_exists('dns_get_record')) {
             $records = dns_get_record($host, DNS_A);
