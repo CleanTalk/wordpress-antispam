@@ -464,6 +464,9 @@ class TestEmailEncoder extends TestCase
         $long = ContactsEncoder::getExcludedStringsLongDescription();
         $this->assertIsString($long);
         $this->assertStringContainsString('128 characters', $long);
+        $this->assertStringContainsString('one value per line', $description);
+        $this->assertStringNotContainsString('comma', strtolower($description));
+        $this->assertStringNotContainsString('comma', strtolower($long));
         $this->assertStringNotContainsString('apbct_skip_encoding', $description);
         $this->assertStringNotContainsString('apbct_skip_encoding', $long);
     }

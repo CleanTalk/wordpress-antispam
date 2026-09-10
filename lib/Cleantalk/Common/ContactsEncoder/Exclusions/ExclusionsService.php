@@ -84,7 +84,7 @@ class ExclusionsService
     }
 
     /**
-     * Split a settings textarea into unique non-empty exclusion strings.
+     * Split a settings textarea into unique non-empty exclusion strings (one value per line).
      *
      * @param string $raw
      *
@@ -97,7 +97,7 @@ class ExclusionsService
             return array();
         }
 
-        $parts = preg_split('/[\r\n,]+/', $raw);
+        $parts = preg_split('/\R+/', $raw);
         if ( ! is_array($parts) ) {
             return array();
         }

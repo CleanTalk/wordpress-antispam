@@ -2726,12 +2726,11 @@ function apbct_settings__validate($incoming_settings)
         $incoming_settings['data__email_decoder_obfuscation_custom_text'] = ContactsEncoder::getDefaultReplacingText();
     }
 
-    $excluded_strings = apbct_settings__sanitize__exclusions(
+    $incoming_settings['data__email_decoder_excluded_strings'] = apbct_settings__sanitize__excluded_contact_strings(
         isset($incoming_settings['data__email_decoder_excluded_strings'])
             ? $incoming_settings['data__email_decoder_excluded_strings']
             : ''
     );
-    $incoming_settings['data__email_decoder_excluded_strings'] = $excluded_strings ? $excluded_strings : '';
 
     //sync discussion and plugin settings
     if (isset($incoming_settings['cleantalk_allowed_moderation'])) {
@@ -3279,6 +3278,32 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false, $url
         case 2:
             return implode("\r\n", $result);
     }
+}
+
+/**
+ * Sanitize the Contacts Encoder skip-list: one value per line, max 20 items, 128 chars each.
+ *
+ * @param mixed $exclusions
+ *
+ * @return string
+ */
+function apbct_settings__sanitize__excluded_contact_strings($exclusions)
+{
+    if ( ! is_string($exclusions) ) {
+        return '';
+    }
+
+    $parts = \Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService::parseExcludedStrings($exclusions);
+    $parts = array_slice($parts, 0, 20);
+    $result = array();
+    foreach ( $parts as $part ) {
+        $part = trim(substr($part, 0, 128), " \n\r\t\v\x00");
+        if ( $part !== '' ) {
+            $result[] = $part;
+        }
+    }
+
+    return implode("\n", array_values(array_unique($result)));
 }
 
 function apbct_settings__get__long_description()

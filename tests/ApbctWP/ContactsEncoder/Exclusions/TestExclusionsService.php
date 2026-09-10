@@ -666,14 +666,26 @@ class TestExclusionsService extends TestCase
         $this->assertFalse($service->isContactExcluded('(800) 555-9999'));
     }
 
-    public function testParseExcludedStringsSplitsLinesAndCommas()
+    public function testParseExcludedStringsSplitsLines()
     {
         $parsed = \Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService::parseExcludedStrings(
-            "keep@example.com\n+1 800 555-1234, example.com\n"
+            "keep@example.com\n+1 800 555-1234\nexample.com\n"
         );
 
         $this->assertSame(
             array('keep@example.com', '+1 800 555-1234', 'example.com'),
+            $parsed
+        );
+    }
+
+    public function testParseExcludedStringsKeepsCommaInsideALine()
+    {
+        $parsed = \Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService::parseExcludedStrings(
+            "keep@example.com, office@example.com\n+1 800 555-1234"
+        );
+
+        $this->assertSame(
+            array('keep@example.com, office@example.com', '+1 800 555-1234'),
             $parsed
         );
     }

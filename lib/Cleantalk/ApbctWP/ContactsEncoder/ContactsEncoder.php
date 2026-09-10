@@ -473,7 +473,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     public static function getExcludedStringsDescription()
     {
         return __(
-            'List emails, phone numbers or text fragments that must never be encoded. Use commas or new lines as separator. Each value is limited to 128 characters, up to 20 values.',
+            'List emails, phone numbers or text fragments that must never be encoded. Put one value per line. Each value is limited to 128 characters, up to 20 values.',
             'cleantalk-spam-protect'
         );
     }
@@ -491,7 +491,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $tmp = sprintf(
             $tmp,
             __('Use this list when you need a contact to stay readable everywhere, including titles, menus and widgets — WordPress does not run shortcodes in those places.', 'cleantalk-spam-protect'),
-            __('Put one value per line or separate them with commas:', 'cleantalk-spam-protect'),
+            __('Put one value per line:', 'cleantalk-spam-protect'),
             __('an email, e.g. support@example.com', 'cleantalk-spam-protect'),
             __('a phone number, e.g. +1 (234) 567-8901 — format differences are ignored', 'cleantalk-spam-protect'),
             __('a text fragment, e.g. example.com to skip all emails on that domain', 'cleantalk-spam-protect'),
