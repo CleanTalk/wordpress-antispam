@@ -590,12 +590,15 @@ class Helper
     }
 
     /**
-     * Resolve DNS to IP
+     * Resolve DNS to IP.
      *
-     * @param      $host
-     * @param bool|string $out
+     * $host must be a full URL that passes FILTER_VALIDATE_URL (scheme required).
+     * A bare hostname such as HTTP_HOST is rejected and $out is returned.
      *
-     * @return bool|string
+     * @param string $host Full URL (FILTER_VALIDATE_URL)
+     * @param bool|string $out Fallback when $host is invalid or lookup fails
+     *
+     * @return bool|string First A-record IPv4 on success, otherwise $out
      * @psalm-suppress PossiblyUnusedMethod
      */
     public static function dnsResolve($host, $out = false)

@@ -151,16 +151,23 @@ class ExclusionsService
                 return true;
             }
 
-            $exclusion_digits = $this->extractDigits($exclusion);
+            // Digit compare is for phones only. Emails with long number sequences
+            // must not match an excluded phone (or the other way around).
             if (
-                strlen($exclusion_digits) >= 8
-                && strlen($match_digits) >= 8
-                && (
-                    strpos($match_digits, $exclusion_digits) !== false
-                    || strpos($exclusion_digits, $match_digits) !== false
-                )
+                strpos($normalized_match, '@') === false
+                && strpos($normalized_exclusion, '@') === false
             ) {
-                return true;
+                $exclusion_digits = $this->extractDigits($exclusion);
+                if (
+                    strlen($exclusion_digits) >= 8
+                    && strlen($match_digits) >= 8
+                    && (
+                        strpos($match_digits, $exclusion_digits) !== false
+                        || strpos($exclusion_digits, $match_digits) !== false
+                    )
+                ) {
+                    return true;
+                }
             }
         }
 
