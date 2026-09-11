@@ -590,19 +590,23 @@ class Helper
     }
 
     /**
-     * Resolve DNS to IP
+     * Resolve DNS to IP.
      *
-     * @param      $host
+     * $host must be a full URL that passes FILTER_VALIDATE_URL (scheme required).
+     * A bare hostname such as HTTP_HOST, or any non-string value, is rejected
+     * and $out is returned.
      *
-     * @return false|string
+     * @param mixed $host Full URL (FILTER_VALIDATE_URL); other types are rejected
+     * @param bool|string $out Fallback when $host is invalid or lookup fails
+     *
+     * @return bool|string First A-record IPv4 on success, otherwise $out
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public static function dnsResolve($host)
+    public static function dnsResolve($host, $out = false)
     {
-        $out = false;
-        // Validate/normalize host (accept hostname or IP; URLs and host:port are also supported)
-        if ( ! $host || ! is_string($host) ) {
-            return false;
+        // Check if the $url is set and it is an url
+        if ( ! is_string($host) || $host === '' || ! filter_var($host, FILTER_VALIDATE_URL)) {
+            return $out;
         }
 
         if ( strpos($host, '://') !== false ) {
