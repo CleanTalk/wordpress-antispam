@@ -308,6 +308,10 @@ class ContactsEncoder
 
             $position = $this->advanceMatchCursor($matches[0], $match_cursor);
 
+            if ( $this->exclusions->isContactExcluded($matches[0]) ) {
+                return $matches[0];
+            }
+
             if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
                 return $matches[0];
             }
@@ -371,6 +375,10 @@ class ContactsEncoder
                 }
 
                 $position = $this->advanceMatchCursor($matches[0], $match_cursor);
+
+                if ( $this->exclusions->isContactExcluded($matches[0]) ) {
+                    return $matches[0];
+                }
 
                 if ( $this->helper->isTelTag($matches[0]) ) {
                     return $this->encodeTelLink($matches[0]);
