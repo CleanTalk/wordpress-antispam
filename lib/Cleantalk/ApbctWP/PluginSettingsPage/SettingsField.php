@@ -253,7 +253,8 @@ class SettingsField
 
     public function anyCacheDetectedInEnvironment()
     {
-        return apbct_is_varnish_cache_exists() || apbct_is_advanced_cache_exists() || apbct_is_10web_booster_exists() || apbct_is_cache_plugins_exists();
+        global $apbct;
+        return $apbct->isAltSessionsRequired();
     }
 
     /**
