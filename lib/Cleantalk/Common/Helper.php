@@ -598,11 +598,12 @@ class Helper
      * @return false|string
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public static function dnsResolve($host, $out = false)
+    public static function dnsResolve($host)
     {
+        $out = false;
         // Validate/normalize host (accept hostname or IP; URLs and host:port are also supported)
         if ( ! $host || ! is_string($host) ) {
-            return $out;
+            return false;
         }
 
         if ( strpos($host, '://') !== false ) {
@@ -620,7 +621,7 @@ class Helper
 
         if ( ! filter_var($host, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME)
              && ! $is_ip ) {
-            return $out;
+            return false;
         }
 
         if ( $is_ip ) {
