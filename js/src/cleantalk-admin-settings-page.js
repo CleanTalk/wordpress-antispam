@@ -705,7 +705,7 @@ function onApbctCookieTypeChange(event) { // eslint-disable-line no-unused-vars
             __('Attention!', 'cleantalk-spam-protect'),
             (
                 __(
-                    'Cache solutions detected. ',
+                    'Cache-problem solutions detected in the environment. ',
                     'cleantalk-spam-protect',
                 ) +
                 __(
