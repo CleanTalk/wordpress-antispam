@@ -602,7 +602,7 @@ class Helper
      * @return bool|string First A-record IPv4 on success, otherwise $out
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public static function dnsResolve($host)
+    public static function dnsResolve($host, $out = false)
     {
         // Check if the $url is set and it is an url
         if ( ! is_string($host) || $host === '' || ! filter_var($host, FILTER_VALIDATE_URL)) {
