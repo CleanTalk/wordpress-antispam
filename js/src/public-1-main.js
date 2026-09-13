@@ -1202,17 +1202,9 @@ class ApbctHandler {
             return ajaxObject.data.toString();
         }
         if ( typeof FormData !== 'undefined' && ajaxObject.data instanceof FormData ) {
-            try {
-                const parts = [];
-                ajaxObject.data.forEach(function(value, key) {
-                    parts.push(key + '=' + value);
-                });
-                return parts.join('&');
-            } catch (e) {
-                return '';
-            }
+            return this.getFormDataAsString(ajaxObject.data);
         }
-        if ( typeof ajaxObject.data === 'object' && ajaxObject.data !== null ) {
+        if ( this.isJQAjaxPlainObjectOrArray(ajaxObject.data) ) {
             try {
                 if ( typeof jQuery !== 'undefined' && typeof jQuery.param === 'function' ) {
                     return jQuery.param(ajaxObject.data, ajaxObject.traditional);
@@ -1222,6 +1214,51 @@ class ApbctHandler {
             }
         }
         return '';
+    }
+
+    /**
+     * Serialize FormData without FormData.forEach (missing in IE11).
+     * @param {FormData} formData
+     * @return {string}
+     */
+    getFormDataAsString(formData) {
+        if ( typeof formData.get === 'function' ) {
+            const action = formData.get('action');
+            if ( action ) {
+                return 'action=' + action;
+            }
+        }
+        if ( typeof formData.forEach !== 'function' ) {
+            return '';
+        }
+        try {
+            const parts = [];
+            formData.forEach(function(value, key) {
+                parts.push(key + '=' + value);
+            });
+            return parts.join('&');
+        } catch (e) {
+            return '';
+        }
+    }
+
+    /**
+     * True for arrays and plain objects that jQuery.param can serialize safely.
+     * @param {*} data
+     * @return {boolean}
+     */
+    isJQAjaxPlainObjectOrArray(data) {
+        if ( data === null || typeof data !== 'object' ) {
+            return false;
+        }
+        if ( Object.prototype.toString.call(data) === '[object Array]' ) {
+            return true;
+        }
+        if ( typeof jQuery !== 'undefined' && typeof jQuery.isPlainObject === 'function' ) {
+            return jQuery.isPlainObject(data);
+        }
+        const proto = Object.getPrototypeOf(data);
+        return proto === Object.prototype || proto === null;
     }
 
     /**
@@ -1342,7 +1379,7 @@ class ApbctHandler {
         if ( typeof FormData !== 'undefined' && ajaxData instanceof FormData ) {
             return this.injectCleantalkDataToJQAjaxFormData(sourceSign, ajaxData);
         }
-        if ( typeof ajaxData === 'object' && ajaxData !== null ) {
+        if ( this.isJQAjaxPlainObjectOrArray(ajaxData) ) {
             try {
                 if ( typeof jQuery !== 'undefined' && typeof jQuery.param === 'function' ) {
                     return this.injectCleantalkDataToJQAjaxString(
