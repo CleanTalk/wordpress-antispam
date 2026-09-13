@@ -3952,6 +3952,9 @@ class ApbctHandler {
             return this.getFormDataAsString(ajaxObject.data);
         }
         if ( this.isJQAjaxPlainObjectOrArray(ajaxObject.data) ) {
+            if ( !this.plainObjectLooksLikeJQAjaxCandidate(ajaxObject.data, ajaxObject.url) ) {
+                return '';
+            }
             try {
                 if ( typeof jQuery !== 'undefined' && typeof jQuery.param === 'function' ) {
                     return jQuery.param(ajaxObject.data, ajaxObject.traditional);
@@ -3964,39 +3967,59 @@ class ApbctHandler {
     }
 
     /**
-     * Serialize FormData without FormData.forEach (missing in IE11).
+     * Cheap check before jQuery.param: only known signs use action, twt_cc_signup, or wc-ajax URL.
+     * @param {object|Array} data
+     * @param {string=} url
+     * @return {boolean}
+     */
+    plainObjectLooksLikeJQAjaxCandidate(data, url) {
+        if ( typeof url === 'string' && url.indexOf('wc-ajax=add_to_cart') !== -1 ) {
+            return true;
+        }
+        if ( !data || typeof data !== 'object' ) {
+            return false;
+        }
+        if ( typeof data.action === 'string' && data.action !== '' ) {
+            return true;
+        }
+        return Object.prototype.hasOwnProperty.call(data, 'twt_cc_signup');
+    }
+
+    /**
+     * Serialize FormData for sign search.
+     * IE11 FormData has neither forEach nor get — caller must use originalOptions.
      * @param {FormData} formData
      * @return {string}
      */
     getFormDataAsString(formData) {
-        if ( typeof formData.forEach === 'function' ) {
-            try {
-                const parts = [];
-                formData.forEach(function(value, key) {
+        if ( typeof formData.get === 'function' ) {
+            const keysToProbe = [
+                'action',
+                'ur_frontend_form_nonce',
+                'twt_cc_signup',
+            ];
+            const parts = [];
+            for ( let i = 0; i < keysToProbe.length; i++ ) {
+                const key = keysToProbe[i];
+                const value = formData.get(key);
+                if ( value !== null ) {
                     parts.push(key + '=' + value);
-                });
-                return parts.join('&');
-            } catch (e) {
-                // Fall through to get() for hosts without a working forEach.
+                }
             }
+            return parts.join('&');
         }
-        if ( typeof formData.get !== 'function' ) {
+        if ( typeof formData.forEach !== 'function' ) {
             return '';
         }
-        const keysToProbe = [
-            'action',
-            'ur_frontend_form_nonce',
-            'twt_cc_signup',
-        ];
-        const parts = [];
-        for ( let i = 0; i < keysToProbe.length; i++ ) {
-            const key = keysToProbe[i];
-            const value = formData.get(key);
-            if ( value !== null ) {
+        try {
+            const parts = [];
+            formData.forEach(function(value, key) {
                 parts.push(key + '=' + value);
-            }
+            });
+            return parts.join('&');
+        } catch (e) {
+            return '';
         }
-        return parts.join('&');
     }
 
     /**
@@ -4134,17 +4157,26 @@ class ApbctHandler {
         const traditional = ajaxOptions && ajaxOptions.traditional;
         const keepOriginalType = ajaxOptions && ajaxOptions.processData === false;
 
+        if ( ajaxData === null || typeof ajaxData === 'undefined' ) {
+            return this.injectCleantalkDataToJQAjaxString(sourceSign, '');
+        }
         if ( typeof ajaxData === 'string' ) {
             return this.injectCleantalkDataToJQAjaxString(sourceSign, ajaxData);
         }
         if ( typeof URLSearchParams !== 'undefined' && ajaxData instanceof URLSearchParams ) {
             if ( keepOriginalType ) {
-                return this.injectCleantalkDataToJQAjaxKeyValue(sourceSign, ajaxData);
+                return this.injectCleantalkDataToJQAjaxKeyValue(
+                    sourceSign,
+                    this.cloneURLSearchParams(ajaxData),
+                );
             }
             return this.injectCleantalkDataToJQAjaxString(sourceSign, ajaxData.toString());
         }
         if ( typeof FormData !== 'undefined' && ajaxData instanceof FormData ) {
-            return this.injectCleantalkDataToJQAjaxFormData(sourceSign, ajaxData);
+            return this.injectCleantalkDataToJQAjaxFormData(
+                sourceSign,
+                this.cloneFormData(ajaxData),
+            );
         }
         if ( this.isJQAjaxPlainObjectOrArray(ajaxData) ) {
             if ( keepOriginalType ) {
@@ -4202,6 +4234,35 @@ class ApbctHandler {
         }
 
         return pairs;
+    }
+
+    /**
+     * Clone URLSearchParams so the caller's instance is not mutated.
+     * @param {URLSearchParams} params
+     * @return {URLSearchParams}
+     */
+    cloneURLSearchParams(params) {
+        return new URLSearchParams(params.toString());
+    }
+
+    /**
+     * Clone FormData when the browser can enumerate it; otherwise reuse the original.
+     * @param {FormData} formData
+     * @return {FormData}
+     */
+    cloneFormData(formData) {
+        if ( typeof formData.forEach !== 'function' ) {
+            return formData;
+        }
+        try {
+            const clone = new FormData();
+            formData.forEach(function(value, key) {
+                clone.append(key, value);
+            });
+            return clone;
+        } catch (e) {
+            return formData;
+        }
     }
 
     /**
