@@ -1159,188 +1159,197 @@ class ApbctHandler {
     }
 
     /**
-     * Prepare jQuery.ajaxSetup to add nocookie data to the jQuery ajax request.
+     * Prepare jQuery.ajaxPrefilter to add CleanTalk data to jQuery ajax requests.
      * Notes:
-     * - Do it just once, the ajaxSetup.beforeSend will be overwritten for any calls.
-     * - Signs of forms need to be caught will be checked during ajaxSetup.settings.data process on send.
+     * - ajaxSetup.beforeSend is not used: a request can supply its own beforeSend and drop the default.
+     * - ajaxPrefilter runs for every jQuery ajax call after options are merged, so injection is guaranteed.
+     * - Form signs are checked on the request data/url at send time.
      * - Any sign of the form HTML of the caller is insignificant in this process.
      * - This is the only place where we can found hard dependency on jQuery, if the form use it - the script
      * will work independing if jQuery is loaded by CleanTalk or not
      * @return {void}
      */
     catchJqueryAjax() {
-        if ( typeof jQuery !== 'undefined') {
-            // this code run on base ajax rules - so do not work due scripts use it's own ajax object injections
-            if ( typeof jQuery.ajaxSetup === 'function' ) {
-                jQuery.ajaxSetup({
-                    beforeSend: function(xhr, settings) {
-                        const handler = new ApbctHandler();
-                        const sourceSign = handler.searchSignsForJQAjaxInjection(settings, 'ajaxSetup');
-                        if (sourceSign.found !== false) {
-                            settings.data = handler.injectCleantalkDataToJQAjaxString(sourceSign, settings.data);
-                        }
-                    },
+        if ( typeof jQuery !== 'undefined' && typeof jQuery.ajaxPrefilter === 'function' ) {
+            jQuery.ajaxPrefilter(function(options, originalOptions, jqXHR) {
+                const handler = new ApbctHandler();
+                const sourceSign = handler.searchSignsForJQAjaxInjection(options);
+                if (sourceSign.found !== false) {
+                    options.data = handler.injectCleantalkDataToJQAjax(sourceSign, options.data);
+                }
+            });
+        }
+    }
+
+    /**
+     * Normalize jQuery ajax data to a query string for sign search.
+     * ajaxPrefilter may see a string, a plain object (not yet serialized) or FormData.
+     * @param {object} ajaxObject Ajax options object.
+     * @return {string}
+     */
+    getJQAjaxDataAsString(ajaxObject) {
+        if ( !ajaxObject || typeof ajaxObject !== 'object' ) {
+            return '';
+        }
+        if ( typeof ajaxObject.data === 'string' ) {
+            return ajaxObject.data;
+        }
+        if (
+            typeof ajaxObject.data === 'object' &&
+            ajaxObject.data !== null &&
+            typeof ajaxObject.data.forEach === 'function' &&
+            typeof ajaxObject.data.get === 'function'
+        ) {
+            try {
+                const parts = [];
+                ajaxObject.data.forEach(function(value, key) {
+                    parts.push(key + '=' + value);
                 });
-            }
-            // this code run on ANY ajax on ANY script queue status
-            // todo Probably move all ajaxSetup actions to ajaxPrefilter
-            if ( typeof jQuery.ajaxPrefilter === 'function' ) {
-                jQuery.ajaxPrefilter(function(options, originalOptions, jqXHR) {
-                    const handler = new ApbctHandler();
-                    const sourceSign = handler.searchSignsForJQAjaxInjection(options, 'ajaxPrefilter');
-                    if (sourceSign.found !== false) {
-                        if (typeof options.data === 'string') {
-                            options.data = handler.injectCleantalkDataToJQAjaxString(sourceSign, options.data);
-                        }
-                        if (
-                            typeof options.data === 'object' &&
-                            typeof options.data.append === 'function'
-                        ) {
-                            options.data = handler.injectCleantalkDataToJQAjaxFormData(sourceSign, options.data);
-                        }
-                    }
-                });
+                return parts.join('&');
+            } catch (e) {
+                return '';
             }
         }
+        if ( typeof ajaxObject.data === 'object' && ajaxObject.data !== null ) {
+            try {
+                if ( typeof jQuery !== 'undefined' && typeof jQuery.param === 'function' ) {
+                    return jQuery.param(ajaxObject.data);
+                }
+            } catch (e) {
+                return '';
+            }
+        }
+        return '';
     }
 
     /**
      * Search for sign within AJAX data to do inject CleanTalk data.
      * @param {object} ajaxObject Ajax object.
-     * @param {string} catchOn Function should be catched on.
      * @return {{found: boolean, keepUnwrapped: boolean, attachVisibleFieldsData: boolean}}
      */
-    searchSignsForJQAjaxInjection(ajaxObject, catchOn = 'ajaxSetup') {
+    searchSignsForJQAjaxInjection(ajaxObject) {
         let sourceSign = {
             'found': false,
             'keepUnwrapped': false,
             'attachVisibleFieldsData': false,
         };
-        // on ajaxSetup
-        if (catchOn === 'ajaxSetup') {
-            // settings data is string (important!)
-            if ( typeof ajaxObject.data === 'string' ) {
-                if (
-                    ajaxObject.data.indexOf('action=fl_builder_subscribe_form_submit') !== -1
-                ) {
-                    sourceSign.found = 'fl_builder_subscribe_form_submit';
-                }
-                if (
-                    ajaxObject.data.indexOf('twt_cc_signup') !== -1
-                ) {
-                    sourceSign.found = 'twt_cc_signup';
-                }
-                if (
-                    ajaxObject.data.indexOf('action=mailpoet') !== -1
-                ) {
-                    sourceSign.found = 'action=mailpoet';
-                    sourceSign.attachVisibleFieldsData = true;
-                }
+        const dataString = this.getJQAjaxDataAsString(ajaxObject);
 
-                if (
-                    ajaxObject.data.indexOf('action=user_registration') !== -1 &&
-                    ajaxObject.data.indexOf('ur_frontend_form_nonce') !== -1
-                ) {
-                    sourceSign.found = 'action=user_registration';
-                }
-
-                if (ajaxObject.data.indexOf('action=happyforms_message') !== -1) {
-                    sourceSign.found = 'action=happyforms_message';
-                }
-
-                if (
-                    ajaxObject.data.indexOf('action=new_activity_comment') !== -1
-                ) {
-                    sourceSign.found = 'action=new_activity_comment';
-                }
-                if (
-                    ajaxObject.data.indexOf('action=wwlc_create_user') !== -1
-                ) {
-                    sourceSign.found = 'action=wwlc_create_user';
-                }
-                if (
-                    ajaxObject.data.indexOf('action=WPBC_AJX_BOOKING__CREATE') !== -1
-                ) {
-                    sourceSign.found = 'action=WPBC_AJX_BOOKING__CREATE';
-                    sourceSign.keepUnwrapped = true;
-                    sourceSign.attachVisibleFieldsData = true;
-                }
-                if (
-                    ajaxObject.data.indexOf('action=drplus_signup') !== -1
-                ) {
-                    sourceSign.found = 'action=drplus_signup';
-                    sourceSign.keepUnwrapped = true;
-                }
-                if (
-                    ajaxObject.data.indexOf('action=bt_cc') !== -1
-                ) {
-                    sourceSign.found = 'action=bt_cc';
-                    sourceSign.keepUnwrapped = true;
-                }
-                if (
-                    ajaxObject.data.indexOf('action=wpr_form_builder_email') !== -1
-                ) {
-                    sourceSign.found = 'action=wpr_form_builder_email';
-                    sourceSign.keepUnwrapped = true;
-                }
-                if (
-                    ajaxObject.data.indexOf('action=nf_ajax_submit') !== -1
-                ) {
-                    sourceSign.found = 'action=nf_ajax_submit';
-                    sourceSign.keepUnwrapped = true;
-                    sourceSign.attachVisibleFieldsData = true;
-                }
-                if (
-                    ajaxObject.data.indexOf('action=uael_register_user') !== -1 &&
-                    ctPublic.data__cookies_type === 'none'
-                ) {
-                    sourceSign.found = 'action=uael_register_user';
-                    sourceSign.keepUnwrapped = true;
-                }
-                if (
-                    ajaxObject.data.indexOf('action=SQBSubmitQuizAjax') !== -1
-                ) {
-                    sourceSign.found = 'action=SQBSubmitQuizAjax';
-                    sourceSign.keepUnwrapped = true;
-                }
-                if (
-                    ajaxObject.data.indexOf('action=user_registration_user_form_submit') !== -1
-                ) {
-                    sourceSign.found = 'action=user_registration_user_form_submit';
-                    sourceSign.keepUnwrapped = true;
-                    sourceSign.attachVisibleFieldsData = true;
-                }
-            }
-            // wooocommerce add to cart is based on URL
-            if ( typeof ajaxObject.url === 'string' ) {
-                if (ajaxObject.url.indexOf('wc-ajax=add_to_cart') !== -1) {
-                    sourceSign.found = 'wc-ajax=add_to_cart';
-                }
-            }
+        if ( dataString.indexOf('action=fl_builder_subscribe_form_submit') !== -1 ) {
+            sourceSign.found = 'fl_builder_subscribe_form_submit';
+        }
+        if ( dataString.indexOf('twt_cc_signup') !== -1 ) {
+            sourceSign.found = 'twt_cc_signup';
+        }
+        if ( dataString.indexOf('action=mailpoet') !== -1 ) {
+            sourceSign.found = 'action=mailpoet';
+            sourceSign.attachVisibleFieldsData = true;
+        }
+        if (
+            dataString.indexOf('action=user_registration') !== -1 &&
+            dataString.indexOf('ur_frontend_form_nonce') !== -1
+        ) {
+            sourceSign.found = 'action=user_registration';
+        }
+        if ( dataString.indexOf('action=happyforms_message') !== -1 ) {
+            sourceSign.found = 'action=happyforms_message';
+        }
+        if ( dataString.indexOf('action=new_activity_comment') !== -1 ) {
+            sourceSign.found = 'action=new_activity_comment';
+        }
+        if ( dataString.indexOf('action=wwlc_create_user') !== -1 ) {
+            sourceSign.found = 'action=wwlc_create_user';
+        }
+        if ( dataString.indexOf('action=WPBC_AJX_BOOKING__CREATE') !== -1 ) {
+            sourceSign.found = 'action=WPBC_AJX_BOOKING__CREATE';
+            sourceSign.keepUnwrapped = true;
+            sourceSign.attachVisibleFieldsData = true;
+        }
+        if ( dataString.indexOf('action=drplus_signup') !== -1 ) {
+            sourceSign.found = 'action=drplus_signup';
+            sourceSign.keepUnwrapped = true;
+        }
+        if ( dataString.indexOf('action=bt_cc') !== -1 ) {
+            sourceSign.found = 'action=bt_cc';
+            sourceSign.keepUnwrapped = true;
+        }
+        if ( dataString.indexOf('action=wpr_form_builder_email') !== -1 ) {
+            sourceSign.found = 'action=wpr_form_builder_email';
+            sourceSign.keepUnwrapped = true;
+        }
+        if ( dataString.indexOf('action=nf_ajax_submit') !== -1 ) {
+            sourceSign.found = 'action=nf_ajax_submit';
+            sourceSign.keepUnwrapped = true;
+            sourceSign.attachVisibleFieldsData = true;
+        }
+        if (
+            dataString.indexOf('action=uael_register_user') !== -1 &&
+            ctPublic.data__cookies_type === 'none'
+        ) {
+            sourceSign.found = 'action=uael_register_user';
+            sourceSign.keepUnwrapped = true;
+        }
+        if ( dataString.indexOf('action=SQBSubmitQuizAjax') !== -1 ) {
+            sourceSign.found = 'action=SQBSubmitQuizAjax';
+            sourceSign.keepUnwrapped = true;
+        }
+        if ( dataString.indexOf('action=user_registration_user_form_submit') !== -1 ) {
+            sourceSign.found = 'action=user_registration_user_form_submit';
+            sourceSign.keepUnwrapped = true;
+            sourceSign.attachVisibleFieldsData = true;
+        }
+        if ( dataString.indexOf('action=bloom_subscribe') !== -1 ) {
+            sourceSign.found = 'action=bloom_subscribe';
+            sourceSign.keepUnwrapped = true;
+        }
+        if (
+            typeof ajaxObject.data === 'object' &&
+            ajaxObject.data !== null &&
+            typeof ajaxObject.data.get === 'function' &&
+            ajaxObject.data.get('action') === 'pafe_ajax_form_builder'
+        ) {
+            sourceSign.found = 'action=pafe_ajax_form_builder';
+            sourceSign.keepUnwrapped = true;
+        } else if ( dataString.indexOf('action=pafe_ajax_form_builder') !== -1 ) {
+            sourceSign.found = 'action=pafe_ajax_form_builder';
+            sourceSign.keepUnwrapped = true;
         }
 
-        // on ajaxPrefilter
-        if (catchOn === 'ajaxPrefilter') {
-            if (typeof ajaxObject.data === 'string') {
-                if (ajaxObject.data.indexOf('action=bloom_subscribe') !== -1) {
-                    sourceSign.found = 'action=bloom_subscribe';
-                    sourceSign.keepUnwrapped = true;
-                }
-            }
-
-            if (
-                typeof ajaxObject.data === 'object' &&
-                ajaxObject.data !== null &&
-                typeof ajaxObject.data.get === 'function'
-            ) {
-                if (ajaxObject.data.get('action') === 'pafe_ajax_form_builder') {
-                    sourceSign.found = 'action=pafe_ajax_form_builder';
-                    sourceSign.keepUnwrapped = true;
-                }
-            }
+        // woocommerce add to cart is based on URL
+        if ( typeof ajaxObject.url === 'string' && ajaxObject.url.indexOf('wc-ajax=add_to_cart') !== -1 ) {
+            sourceSign.found = 'wc-ajax=add_to_cart';
         }
 
         return sourceSign;
+    }
+
+    /**
+     * Inject CleanTalk data into jQuery ajax payload of any supported type.
+     * @param {object} sourceSign
+     * @param {*} ajaxData
+     * @return {*}
+     */
+    injectCleantalkDataToJQAjax(sourceSign, ajaxData) {
+        if ( typeof ajaxData === 'string' ) {
+            return this.injectCleantalkDataToJQAjaxString(sourceSign, ajaxData);
+        }
+        if (
+            typeof ajaxData === 'object' &&
+            ajaxData !== null &&
+            typeof ajaxData.append === 'function'
+        ) {
+            return this.injectCleantalkDataToJQAjaxFormData(sourceSign, ajaxData);
+        }
+        if ( typeof ajaxData === 'object' && ajaxData !== null ) {
+            try {
+                if ( typeof jQuery !== 'undefined' && typeof jQuery.param === 'function' ) {
+                    return this.injectCleantalkDataToJQAjaxString(sourceSign, jQuery.param(ajaxData));
+                }
+            } catch (e) {
+                return ajaxData;
+            }
+        }
+        return ajaxData;
     }
 
     /**
