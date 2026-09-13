@@ -1175,7 +1175,11 @@ class ApbctHandler {
                 const handler = new ApbctHandler();
                 const sourceSign = handler.searchSignsForJQAjaxInjection(options);
                 if (sourceSign.found !== false) {
-                    options.data = handler.injectCleantalkDataToJQAjax(sourceSign, options.data);
+                    options.data = handler.injectCleantalkDataToJQAjax(
+                        sourceSign,
+                        options.data,
+                        options.traditional,
+                    );
                 }
             });
         }
@@ -1183,7 +1187,7 @@ class ApbctHandler {
 
     /**
      * Normalize jQuery ajax data to a query string for sign search.
-     * ajaxPrefilter may see a string, a plain object (not yet serialized) or FormData.
+     * ajaxPrefilter may see a string, a plain object, FormData or URLSearchParams.
      * @param {object} ajaxObject Ajax options object.
      * @return {string}
      */
@@ -1194,12 +1198,10 @@ class ApbctHandler {
         if ( typeof ajaxObject.data === 'string' ) {
             return ajaxObject.data;
         }
-        if (
-            typeof ajaxObject.data === 'object' &&
-            ajaxObject.data !== null &&
-            typeof ajaxObject.data.forEach === 'function' &&
-            typeof ajaxObject.data.get === 'function'
-        ) {
+        if ( typeof URLSearchParams !== 'undefined' && ajaxObject.data instanceof URLSearchParams ) {
+            return ajaxObject.data.toString();
+        }
+        if ( typeof FormData !== 'undefined' && ajaxObject.data instanceof FormData ) {
             try {
                 const parts = [];
                 ajaxObject.data.forEach(function(value, key) {
@@ -1213,7 +1215,7 @@ class ApbctHandler {
         if ( typeof ajaxObject.data === 'object' && ajaxObject.data !== null ) {
             try {
                 if ( typeof jQuery !== 'undefined' && typeof jQuery.param === 'function' ) {
-                    return jQuery.param(ajaxObject.data);
+                    return jQuery.param(ajaxObject.data, ajaxObject.traditional);
                 }
             } catch (e) {
                 return '';
@@ -1327,23 +1329,26 @@ class ApbctHandler {
      * Inject CleanTalk data into jQuery ajax payload of any supported type.
      * @param {object} sourceSign
      * @param {*} ajaxData
+     * @param {boolean=} traditional jQuery traditional serialization flag from ajax options.
      * @return {*}
      */
-    injectCleantalkDataToJQAjax(sourceSign, ajaxData) {
+    injectCleantalkDataToJQAjax(sourceSign, ajaxData, traditional) {
         if ( typeof ajaxData === 'string' ) {
             return this.injectCleantalkDataToJQAjaxString(sourceSign, ajaxData);
         }
-        if (
-            typeof ajaxData === 'object' &&
-            ajaxData !== null &&
-            typeof ajaxData.append === 'function'
-        ) {
+        if ( typeof URLSearchParams !== 'undefined' && ajaxData instanceof URLSearchParams ) {
+            return this.injectCleantalkDataToJQAjaxString(sourceSign, ajaxData.toString());
+        }
+        if ( typeof FormData !== 'undefined' && ajaxData instanceof FormData ) {
             return this.injectCleantalkDataToJQAjaxFormData(sourceSign, ajaxData);
         }
         if ( typeof ajaxData === 'object' && ajaxData !== null ) {
             try {
                 if ( typeof jQuery !== 'undefined' && typeof jQuery.param === 'function' ) {
-                    return this.injectCleantalkDataToJQAjaxString(sourceSign, jQuery.param(ajaxData));
+                    return this.injectCleantalkDataToJQAjaxString(
+                        sourceSign,
+                        jQuery.param(ajaxData, traditional),
+                    );
                 }
             } catch (e) {
                 return ajaxData;
