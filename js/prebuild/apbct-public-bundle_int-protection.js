@@ -3920,7 +3920,7 @@ class ApbctHandler {
         if ( typeof jQuery !== 'undefined' && typeof jQuery.ajaxPrefilter === 'function' ) {
             jQuery.ajaxPrefilter(function(options, originalOptions, jqXHR) {
                 const handler = new ApbctHandler();
-                const sourceSign = handler.searchSignsForJQAjaxInjection(options);
+                const sourceSign = handler.searchSignsForJQAjaxInjection(options, originalOptions);
                 if (sourceSign.found !== false) {
                     options.data = handler.injectCleantalkDataToJQAjax(
                         sourceSign,
@@ -3977,20 +3977,24 @@ class ApbctHandler {
                 });
                 return parts.join('&');
             } catch (e) {
-                // Fall through to get() for IE11-like hosts.
+                // Fall through to get() for hosts without a working forEach.
             }
         }
         if ( typeof formData.get !== 'function' ) {
             return '';
         }
+        const keysToProbe = [
+            'action',
+            'ur_frontend_form_nonce',
+            'twt_cc_signup',
+        ];
         const parts = [];
-        const action = formData.get('action');
-        if ( action ) {
-            parts.push('action=' + action);
-        }
-        const nonce = formData.get('ur_frontend_form_nonce');
-        if ( nonce ) {
-            parts.push('ur_frontend_form_nonce=' + nonce);
+        for ( let i = 0; i < keysToProbe.length; i++ ) {
+            const key = keysToProbe[i];
+            const value = formData.get(key);
+            if ( value !== null ) {
+                parts.push(key + '=' + value);
+            }
         }
         return parts.join('&');
     }
@@ -4017,15 +4021,19 @@ class ApbctHandler {
     /**
      * Search for sign within AJAX data to do inject CleanTalk data.
      * @param {object} ajaxObject Ajax object.
+     * @param {object=} originalOptions Original jQuery ajax options before merge.
      * @return {{found: boolean, keepUnwrapped: boolean, attachVisibleFieldsData: boolean}}
      */
-    searchSignsForJQAjaxInjection(ajaxObject) {
+    searchSignsForJQAjaxInjection(ajaxObject, originalOptions) {
         let sourceSign = {
             'found': false,
             'keepUnwrapped': false,
             'attachVisibleFieldsData': false,
         };
-        const dataString = this.getJQAjaxDataAsString(ajaxObject);
+        let dataString = this.getJQAjaxDataAsString(ajaxObject);
+        if ( !dataString && originalOptions && originalOptions !== ajaxObject ) {
+            dataString = this.getJQAjaxDataAsString(originalOptions);
+        }
 
         if ( dataString.indexOf('action=fl_builder_subscribe_form_submit') !== -1 ) {
             sourceSign.found = 'fl_builder_subscribe_form_submit';
@@ -4140,6 +4148,9 @@ class ApbctHandler {
         }
         if ( this.isJQAjaxPlainObjectOrArray(ajaxData) ) {
             if ( keepOriginalType ) {
+                if ( Object.prototype.toString.call(ajaxData) === '[object Array]' ) {
+                    return ajaxData;
+                }
                 return this.injectCleantalkDataToJQAjaxPlainObject(sourceSign, ajaxData);
             }
             try {
@@ -4217,15 +4228,15 @@ class ApbctHandler {
     }
 
     /**
-     * Inject CleanTalk fields into a plain object/array without changing the payload type.
+     * Inject CleanTalk fields into a plain object without changing the payload type.
      * @param {object} sourceSign
-     * @param {object|Array} ajaxData
-     * @return {object|Array}
+     * @param {object} ajaxData
+     * @return {object}
      */
     injectCleantalkDataToJQAjaxPlainObject(sourceSign, ajaxData) {
-        const result = Object.prototype.toString.call(ajaxData) === '[object Array]' ?
-            ajaxData.slice() :
-            Object.assign({}, ajaxData);
+        const result = typeof jQuery !== 'undefined' && typeof jQuery.extend === 'function' ?
+            jQuery.extend({}, ajaxData) :
+            this.clonePlainObject(ajaxData);
         const pairs = this.getCleantalkJQAjaxFieldPairs(sourceSign);
         for ( let i = 0; i < pairs.length; i++ ) {
             result[pairs[i][0]] = pairs[i][1];
@@ -4241,6 +4252,21 @@ class ApbctHandler {
                 if ( typeof extracted === 'string' ) {
                     result.apbct_visible_fields = extracted;
                 }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * IE11-safe shallow copy of a plain object.
+     * @param {object} ajaxData
+     * @return {object}
+     */
+    clonePlainObject(ajaxData) {
+        const result = {};
+        for ( const key in ajaxData ) {
+            if ( Object.prototype.hasOwnProperty.call(ajaxData, key) ) {
+                result[key] = ajaxData[key];
             }
         }
         return result;
