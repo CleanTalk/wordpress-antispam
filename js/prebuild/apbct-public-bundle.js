@@ -3925,7 +3925,7 @@ class ApbctHandler {
                     options.data = handler.injectCleantalkDataToJQAjax(
                         sourceSign,
                         options.data,
-                        options.traditional,
+                        options,
                     );
                 }
             });
@@ -3969,24 +3969,30 @@ class ApbctHandler {
      * @return {string}
      */
     getFormDataAsString(formData) {
-        if ( typeof formData.get === 'function' ) {
-            const action = formData.get('action');
-            if ( action ) {
-                return 'action=' + action;
+        if ( typeof formData.forEach === 'function' ) {
+            try {
+                const parts = [];
+                formData.forEach(function(value, key) {
+                    parts.push(key + '=' + value);
+                });
+                return parts.join('&');
+            } catch (e) {
+                // Fall through to get() for IE11-like hosts.
             }
         }
-        if ( typeof formData.forEach !== 'function' ) {
+        if ( typeof formData.get !== 'function' ) {
             return '';
         }
-        try {
-            const parts = [];
-            formData.forEach(function(value, key) {
-                parts.push(key + '=' + value);
-            });
-            return parts.join('&');
-        } catch (e) {
-            return '';
+        const parts = [];
+        const action = formData.get('action');
+        if ( action ) {
+            parts.push('action=' + action);
         }
+        const nonce = formData.get('ur_frontend_form_nonce');
+        if ( nonce ) {
+            parts.push('ur_frontend_form_nonce=' + nonce);
+        }
+        return parts.join('&');
     }
 
     /**
@@ -4113,20 +4119,29 @@ class ApbctHandler {
      * Inject CleanTalk data into jQuery ajax payload of any supported type.
      * @param {object} sourceSign
      * @param {*} ajaxData
-     * @param {boolean=} traditional jQuery traditional serialization flag from ajax options.
+     * @param {object=} ajaxOptions jQuery ajax options (traditional, processData, contentType).
      * @return {*}
      */
-    injectCleantalkDataToJQAjax(sourceSign, ajaxData, traditional) {
+    injectCleantalkDataToJQAjax(sourceSign, ajaxData, ajaxOptions) {
+        const traditional = ajaxOptions && ajaxOptions.traditional;
+        const keepOriginalType = ajaxOptions && ajaxOptions.processData === false;
+
         if ( typeof ajaxData === 'string' ) {
             return this.injectCleantalkDataToJQAjaxString(sourceSign, ajaxData);
         }
         if ( typeof URLSearchParams !== 'undefined' && ajaxData instanceof URLSearchParams ) {
+            if ( keepOriginalType ) {
+                return this.injectCleantalkDataToJQAjaxKeyValue(sourceSign, ajaxData);
+            }
             return this.injectCleantalkDataToJQAjaxString(sourceSign, ajaxData.toString());
         }
         if ( typeof FormData !== 'undefined' && ajaxData instanceof FormData ) {
             return this.injectCleantalkDataToJQAjaxFormData(sourceSign, ajaxData);
         }
         if ( this.isJQAjaxPlainObjectOrArray(ajaxData) ) {
+            if ( keepOriginalType ) {
+                return this.injectCleantalkDataToJQAjaxPlainObject(sourceSign, ajaxData);
+            }
             try {
                 if ( typeof jQuery !== 'undefined' && typeof jQuery.param === 'function' ) {
                     return this.injectCleantalkDataToJQAjaxString(
@@ -4139,6 +4154,96 @@ class ApbctHandler {
             }
         }
         return ajaxData;
+    }
+
+    /**
+     * Collect CleanTalk fields to append to a key/value payload.
+     * @param {object} sourceSign
+     * @return {Array.<Array.<string>>}
+     */
+    getCleantalkJQAjaxFieldPairs(sourceSign) {
+        const pairs = [];
+        const wrapKey = function(key) {
+            return sourceSign.keepUnwrapped ? key : 'data[' + key + ']';
+        };
+
+        if (
+            +ctPublic.bot_detector_enabled &&
+            apbctLocalStorage.get('bot_detector_event_token')
+        ) {
+            const token = this.toolGetEventToken();
+            if ( token ) {
+                pairs.push([wrapKey('ct_bot_detector_event_token'), token]);
+            }
+        } else {
+            const noCookieData = getNoCookieData();
+            if ( noCookieData ) {
+                pairs.push([wrapKey('ct_no_cookie_hidden_field'), noCookieData]);
+            }
+        }
+
+        const browserState = apbctGetBrowserStatePair();
+        if ( browserState ) {
+            const browserStateKey = sourceSign.keepUnwrapped ?
+                browserState.key :
+                'data[' + browserState.key + ']';
+            pairs.push([browserStateKey, browserState.value]);
+        }
+
+        return pairs;
+    }
+
+    /**
+     * Inject CleanTalk fields into URLSearchParams without changing the payload type.
+     * @param {object} sourceSign
+     * @param {URLSearchParams} params
+     * @return {URLSearchParams}
+     */
+    injectCleantalkDataToJQAjaxKeyValue(sourceSign, params) {
+        const pairs = this.getCleantalkJQAjaxFieldPairs(sourceSign);
+        for ( let i = 0; i < pairs.length; i++ ) {
+            params.append(pairs[i][0], pairs[i][1]);
+        }
+        if ( sourceSign.attachVisibleFieldsData ) {
+            const extractor = ApbctVisibleFieldsExtractor.createExtractor(sourceSign.found);
+            if ( extractor ) {
+                const extracted = extractor.extract(params.toString());
+                if ( typeof extracted === 'string' ) {
+                    params.append('apbct_visible_fields', extracted);
+                }
+            }
+        }
+        return params;
+    }
+
+    /**
+     * Inject CleanTalk fields into a plain object/array without changing the payload type.
+     * @param {object} sourceSign
+     * @param {object|Array} ajaxData
+     * @return {object|Array}
+     */
+    injectCleantalkDataToJQAjaxPlainObject(sourceSign, ajaxData) {
+        const result = Object.prototype.toString.call(ajaxData) === '[object Array]' ?
+            ajaxData.slice() :
+            Object.assign({}, ajaxData);
+        const pairs = this.getCleantalkJQAjaxFieldPairs(sourceSign);
+        for ( let i = 0; i < pairs.length; i++ ) {
+            result[pairs[i][0]] = pairs[i][1];
+        }
+        if ( sourceSign.attachVisibleFieldsData ) {
+            const extractor = ApbctVisibleFieldsExtractor.createExtractor(sourceSign.found);
+            if (
+                extractor &&
+                typeof jQuery !== 'undefined' &&
+                typeof jQuery.param === 'function'
+            ) {
+                const extracted = extractor.extract(jQuery.param(ajaxData));
+                if ( typeof extracted === 'string' ) {
+                    result.apbct_visible_fields = extracted;
+                }
+            }
+        }
+        return result;
     }
 
     /**
