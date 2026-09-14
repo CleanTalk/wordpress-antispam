@@ -225,6 +225,94 @@ class TestEmailEncoder extends TestCase
     }
 
     /**
+     * Settings skip list keeps listed emails plain, including in title-like strings.
+     */
+    public function testModifyContentSkipsEmailsFromExcludedStringsSetting()
+    {
+        global $apbct;
+        $previous = isset($apbct->settings['data__email_decoder_excluded_strings'])
+            ? $apbct->settings['data__email_decoder_excluded_strings']
+            : '';
+
+        $keep = 'keep@example.com';
+        $encode = 'public@other.net';
+        $title = 'Contact ' . $keep . ' or ' . $encode;
+
+        $apbct->settings['data__email_decoder_excluded_strings'] = $keep;
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $result = $this->contacts_encoder->modifyContent($title);
+
+        $apbct->settings['data__email_decoder_excluded_strings'] = $previous;
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $this->assertStringContainsString($keep, $result);
+        $this->assertStringNotContainsString($encode, $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+    }
+
+    /**
+     * Domain fragment in the skip list excludes every matching email.
+     */
+    public function testModifyContentSkipsEmailsByDomainFragment()
+    {
+        global $apbct;
+        $previous = isset($apbct->settings['data__email_decoder_excluded_strings'])
+            ? $apbct->settings['data__email_decoder_excluded_strings']
+            : '';
+
+        $skip = 'office@company.org';
+        $encode = 'user@other.net';
+
+        $apbct->settings['data__email_decoder_excluded_strings'] = 'company.org';
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $result = $this->contacts_encoder->modifyContent($skip . ' ' . $encode);
+
+        $apbct->settings['data__email_decoder_excluded_strings'] = $previous;
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $this->assertStringContainsString($skip, $result);
+        $this->assertStringNotContainsString($encode, $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+    }
+
+    /**
+     * Phone skip list matches format variants by digits.
+     */
+    public function testModifyContentSkipsPhonesFromExcludedStringsSetting()
+    {
+        global $apbct;
+        $previous_strings = isset($apbct->settings['data__email_decoder_excluded_strings'])
+            ? $apbct->settings['data__email_decoder_excluded_strings']
+            : '';
+        $previous_phones = $apbct->settings['data__email_decoder_encode_phone_numbers'];
+
+        $keep = '(800) 555-1234';
+        $encode = '(800) 555-9999';
+
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 1;
+        $apbct->settings['data__email_decoder_excluded_strings'] = '+1 800 555-1234';
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $result = $this->contacts_encoder->modifyContent('Call ' . $keep . ' or ' . $encode);
+
+        $apbct->settings['data__email_decoder_excluded_strings'] = $previous_strings;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = $previous_phones;
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $this->assertStringContainsString($keep, $result);
+        $this->assertStringNotContainsString($encode, $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+    }
+
+    /**
      * aria-label values must survive email encoding round-trip intact.
      */
     public function testModifyContentPreservesAriaLabelWithEmail()
@@ -365,6 +453,22 @@ class TestEmailEncoder extends TestCase
         $this->assertIsString($description);
         $this->assertStringStartsWith('<', $description);
         $this->assertStringEndsWith('>', $description);
+    }
+
+    public function testGetExcludedStringsDescription()
+    {
+        $description = ContactsEncoder::getExcludedStringsDescription();
+        $this->assertIsString($description);
+        $this->assertNotEmpty($description);
+
+        $long = ContactsEncoder::getExcludedStringsLongDescription();
+        $this->assertIsString($long);
+        $this->assertStringContainsString('128 characters', $long);
+        $this->assertStringContainsString('one value per line', $description);
+        $this->assertStringNotContainsString('comma', strtolower($description));
+        $this->assertStringNotContainsString('comma', strtolower($long));
+        $this->assertStringNotContainsString('apbct_skip_encoding', $description);
+        $this->assertStringNotContainsString('apbct_skip_encoding', $long);
     }
 
     public function testModifyBuffer()

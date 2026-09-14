@@ -659,7 +659,8 @@ function apbct_settings__set_fields()
                         'data__email_decoder_obfuscation_mode',
                         'data__email_decoder_obfuscation_custom_text',
                         'data__email_decoder_encode_phone_numbers',
-                        'data__email_decoder_encode_email_addresses'
+                        'data__email_decoder_encode_email_addresses',
+                        'data__email_decoder_excluded_strings'
                     ),
                     'long_description' => true,
                 ),
@@ -674,6 +675,14 @@ function apbct_settings__set_fields()
                     'description' => ContactsEncoder::getPhonesEncodingDescription(),
                     'class'           => 'apbct_settings-field_wrapper--sub',
                     'parent'            => 'data__email_decoder',
+                    'long_description' => true,
+                ),
+                'data__email_decoder_excluded_strings'             => array(
+                    'type'        => 'textarea',
+                    'title'       => __('Do not encode these contacts', 'cleantalk-spam-protect'),
+                    'description' => ContactsEncoder::getExcludedStringsDescription(),
+                    'parent'      => 'data__email_decoder',
+                    'class'       => 'apbct_settings-field_wrapper--sub',
                     'long_description' => true,
                 ),
                 'data__email_decoder_obfuscation_mode'        => array(
@@ -2382,6 +2391,7 @@ function apbct_settings__validate($incoming_settings)
         'data__email_decoder_obfuscation_mode',
         'data__email_decoder_obfuscation_custom_text',
         'data__email_decoder_buffer',
+        'data__email_decoder_excluded_strings',
     );
     $incoming_settings = apbct_settings__keep_settings_state_values(
         $incoming_settings,
@@ -2715,6 +2725,12 @@ function apbct_settings__validate($incoming_settings)
         $apbct->errorDelete('email_encoder', true, 'settings_validate');
         $incoming_settings['data__email_decoder_obfuscation_custom_text'] = ContactsEncoder::getDefaultReplacingText();
     }
+
+    $incoming_settings['data__email_decoder_excluded_strings'] = apbct_settings__sanitize__excluded_contact_strings(
+        isset($incoming_settings['data__email_decoder_excluded_strings'])
+            ? $incoming_settings['data__email_decoder_excluded_strings']
+            : ''
+    );
 
     //sync discussion and plugin settings
     if (isset($incoming_settings['cleantalk_allowed_moderation'])) {
@@ -3264,6 +3280,32 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false, $url
     }
 }
 
+/**
+ * Sanitize the Contacts Encoder skip-list: one value per line, max 20 items, 128 chars each.
+ *
+ * @param mixed $exclusions
+ *
+ * @return string
+ */
+function apbct_settings__sanitize__excluded_contact_strings($exclusions)
+{
+    if ( ! is_string($exclusions) ) {
+        return '';
+    }
+
+    $parts = \Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService::parseExcludedStrings($exclusions);
+    $parts = array_slice($parts, 0, 20);
+    $result = array();
+    foreach ( $parts as $part ) {
+        $part = trim(substr($part, 0, 128), " \n\r\t\v\x00");
+        if ( $part !== '' ) {
+            $result[] = $part;
+        }
+    }
+
+    return implode("\n", array_values(array_unique($result)));
+}
+
 function apbct_settings__get__long_description()
 {
     global $apbct;
@@ -3433,6 +3475,10 @@ function apbct_settings__get_long_descriptions_data()
         'data__email_decoder_encode_phone_numbers' => array(
             'title' => __('Contact data encoding: phone numbers', 'cleantalk-spam-protect'),
             'desc'  => ContactsEncoder::getPhonesEncodingLongDescription(),
+        ),
+        'data__email_decoder_excluded_strings' => array(
+            'title' => __('Contact data encoding: do not encode these contacts', 'cleantalk-spam-protect'),
+            'desc'  => ContactsEncoder::getExcludedStringsLongDescription(),
         ),
         'data__email_decoder' => array(
             'title' => __('Contact data encoding', 'cleantalk-spam-protect'),

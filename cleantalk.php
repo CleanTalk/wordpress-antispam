@@ -3171,6 +3171,11 @@ function apbctGetContactsEncoder()
     $contacts_encoder_params->obfuscation_text = $apbct->settings['data__email_decoder_obfuscation_custom_text'];
     $contacts_encoder_params->do_encode_emails = (int)$apbct->settings['data__email_decoder_encode_email_addresses'];
     $contacts_encoder_params->do_encode_phones = (int)$apbct->settings['data__email_decoder_encode_phone_numbers'];
+    $contacts_encoder_params->excluded_strings = \Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService::parseExcludedStrings(
+        isset($apbct->settings['data__email_decoder_excluded_strings'])
+            ? $apbct->settings['data__email_decoder_excluded_strings']
+            : ''
+    );
 
     return ContactsEncoder::getInstance($contacts_encoder_params);
 }

@@ -122,6 +122,27 @@ class SettingsTest extends TestCase
         $this->assertIsString(apbct_settings__sanitize__exclusions('', 0));
     }
 
+    public function test_apbct_settings__sanitize__excluded_contact_strings()
+    {
+        $this->assertSame('', apbct_settings__sanitize__excluded_contact_strings(null));
+        $this->assertSame('', apbct_settings__sanitize__excluded_contact_strings(''));
+        $this->assertSame(
+            "keep@example.com\n+1 800 555-1234",
+            apbct_settings__sanitize__excluded_contact_strings("keep@example.com\n+1 800 555-1234\n")
+        );
+        $this->assertSame(
+            'keep@example.com, office@example.com',
+            apbct_settings__sanitize__excluded_contact_strings('keep@example.com, office@example.com')
+        );
+
+        $lines = array();
+        for ( $i = 1; $i <= 25; $i++ ) {
+            $lines[] = 'user' . $i . '@example.com';
+        }
+        $sanitized = apbct_settings__sanitize__excluded_contact_strings(implode("\n", $lines));
+        $this->assertCount(20, explode("\n", $sanitized));
+    }
+
     public function test_apbct_settings__set_fields()
     {
         $fields = apbct_settings__set_fields();

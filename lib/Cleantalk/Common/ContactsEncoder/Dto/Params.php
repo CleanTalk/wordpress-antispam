@@ -19,4 +19,11 @@ class Params
     public $obfuscation_text = 'hidden contact data';
     public $do_encode_emails = 1;
     public $do_encode_phones = 0;
+
+    /**
+     * Emails, phones or text fragments that must never be encoded.
+     *
+     * @var string[]
+     */
+    public $excluded_strings = array();
 }

@@ -651,6 +651,58 @@ class TestExclusionsService extends TestCase
         $this->assertFalse($result);
     }
 
+    public function testIsContactExcludedMatchesEmailAndPhoneVariants()
+    {
+        $params = new Params();
+        $params->api_key = 'testapikey';
+        $params->excluded_strings = array('keep@example.com', '+1 800 555-1234', 'company.org');
+        $service = new ExclusionsService($params);
+
+        $this->assertTrue($service->isContactExcluded('keep@example.com'));
+        $this->assertTrue($service->isContactExcluded('mailto:keep@example.com'));
+        $this->assertTrue($service->isContactExcluded('office@company.org'));
+        $this->assertTrue($service->isContactExcluded('(800) 555-1234'));
+        $this->assertFalse($service->isContactExcluded('public@other.net'));
+        $this->assertFalse($service->isContactExcluded('(800) 555-9999'));
+    }
+
+    public function testIsContactExcludedDoesNotCrossMatchEmailAndPhoneDigits()
+    {
+        $params = new Params();
+        $params->api_key = 'testapikey';
+        $params->excluded_strings = array('+1 800 555-1234', 'user12345678@example.com');
+        $service = new ExclusionsService($params);
+
+        $this->assertFalse($service->isContactExcluded('ticket18005551234@shop.com'));
+        $this->assertFalse($service->isContactExcluded('123-456-7890'));
+        $this->assertTrue($service->isContactExcluded('(800) 555-1234'));
+        $this->assertTrue($service->isContactExcluded('user12345678@example.com'));
+    }
+
+    public function testParseExcludedStringsSplitsLines()
+    {
+        $parsed = \Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService::parseExcludedStrings(
+            "keep@example.com\n+1 800 555-1234\nexample.com\n"
+        );
+
+        $this->assertSame(
+            array('keep@example.com', '+1 800 555-1234', 'example.com'),
+            $parsed
+        );
+    }
+
+    public function testParseExcludedStringsKeepsCommaInsideALine()
+    {
+        $parsed = \Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService::parseExcludedStrings(
+            "keep@example.com, office@example.com\n+1 800 555-1234"
+        );
+
+        $this->assertSame(
+            array('keep@example.com, office@example.com', '+1 800 555-1234'),
+            $parsed
+        );
+    }
+
     /**
      * Helper method to invoke private methods for testing
      *
