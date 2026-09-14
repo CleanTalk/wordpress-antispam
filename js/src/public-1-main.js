@@ -1441,27 +1441,23 @@ class ApbctHandler {
     collectKnownSignStringFromKeyValueBag(bag) {
         const knownKeys = this.getJQAjaxKnownSignKeys();
         const unwrapKey = this.unwrapJQAjaxFormDataKey;
-        if ( typeof bag.forEach === 'function' ) {
-            try {
-                const parts = [];
-                bag.forEach(function(value, key) {
-                    if ( typeof value !== 'string' && typeof value !== 'number' ) {
-                        return;
-                    }
-                    const valueAsString = String(value);
-                    const normalizedKey = unwrapKey(key);
-                    if (
-                        knownKeys[normalizedKey] ||
-                        valueAsString.indexOf('twt_cc_signup') !== -1 ||
-                        normalizedKey.indexOf('twt_cc_signup') !== -1
-                    ) {
-                        parts.push(normalizedKey + '=' + valueAsString);
-                    }
-                });
-                return parts.join('&');
-            } catch (e) {
-                // Fall through to get() if forEach exists but throws.
+        const parts = [];
+        const collected = this.forEachJQAjaxKeyValueBag(bag, function(value, key) {
+            if ( typeof value !== 'string' && typeof value !== 'number' ) {
+                return;
             }
+            const valueAsString = String(value);
+            const normalizedKey = unwrapKey(key);
+            if (
+                knownKeys[normalizedKey] ||
+                valueAsString.indexOf('twt_cc_signup') !== -1 ||
+                normalizedKey.indexOf('twt_cc_signup') !== -1
+            ) {
+                parts.push(normalizedKey + '=' + valueAsString);
+            }
+        });
+        if ( collected ) {
+            return parts.join('&');
         }
         if ( typeof bag.get !== 'function' ) {
             return '';
@@ -1471,15 +1467,52 @@ class ApbctHandler {
             'ur_frontend_form_nonce',
             'twt_cc_signup',
         ];
-        const parts = [];
+        const getParts = [];
         for ( let i = 0; i < keysToProbe.length; i++ ) {
             const key = keysToProbe[i];
             const value = this.getFormDataScalarValue(bag, [key, 'data[' + key + ']']);
             if ( value !== null ) {
-                parts.push(key + '=' + value);
+                getParts.push(key + '=' + value);
             }
         }
-        return parts.join('&');
+        return getParts.join('&');
+    }
+
+    /**
+     * Walk FormData/URLSearchParams via forEach, then entries() for polyfills that only have an iterator.
+     * @param {FormData|URLSearchParams} bag
+     * @param {Function} callback
+     * @return {boolean}
+     */
+    forEachJQAjaxKeyValueBag(bag, callback) {
+        if ( typeof bag.forEach === 'function' ) {
+            try {
+                bag.forEach(callback);
+                return true;
+            } catch (e) {
+                // Fall through to entries().
+            }
+        }
+        if ( typeof bag.entries !== 'function' ) {
+            return false;
+        }
+        try {
+            const iterator = bag.entries();
+            if ( !iterator || typeof iterator.next !== 'function' ) {
+                return false;
+            }
+            let step = iterator.next();
+            while ( !step.done ) {
+                const pair = step.value;
+                if ( pair ) {
+                    callback(pair[1], pair[0]);
+                }
+                step = iterator.next();
+            }
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 
     /**
@@ -1804,22 +1837,45 @@ class ApbctHandler {
                 }
             }
         }
-        if ( typeof formData.forEach !== 'function' ) {
-            return null;
-        }
-        let found = null;
-        formData.forEach(function(value, key) {
-            if ( found !== null ) {
-                return;
-            }
-            for ( let i = 0; i < keys.length; i++ ) {
-                if ( key === keys[i] ) {
-                    found = value;
+        if ( typeof formData.forEach === 'function' ) {
+            let found = null;
+            formData.forEach(function(value, key) {
+                if ( found !== null ) {
                     return;
                 }
+                for ( let i = 0; i < keys.length; i++ ) {
+                    if ( key === keys[i] ) {
+                        found = value;
+                        return;
+                    }
+                }
+            });
+            if ( found !== null ) {
+                return found;
             }
-        });
-        return found;
+        }
+        if ( typeof formData.entries === 'function' ) {
+            try {
+                const iterator = formData.entries();
+                if ( iterator && typeof iterator.next === 'function' ) {
+                    let step = iterator.next();
+                    while ( !step.done ) {
+                        const pair = step.value;
+                        if ( pair ) {
+                            for ( let i = 0; i < keys.length; i++ ) {
+                                if ( pair[0] === keys[i] ) {
+                                    return pair[1];
+                                }
+                            }
+                        }
+                        step = iterator.next();
+                    }
+                }
+            } catch (e) {
+                return null;
+            }
+        }
+        return null;
     }
 
     /**
@@ -2098,9 +2154,9 @@ class ApbctHandler {
         } else {
             noCookieData = getNoCookieData();
             if (sourceSign.keepUnwrapped) {
-                noCookieData = 'ct_no_cookie_hidden_field=' + noCookieData + '&';
+                noCookieData = 'ct_no_cookie_hidden_field=' + encodeURIComponent(noCookieData) + '&';
             } else {
-                noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + encodeURIComponent(noCookieData) + '&';
             }
         }
 
