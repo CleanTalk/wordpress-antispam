@@ -1384,6 +1384,7 @@ class ApbctHandler {
             ur_frontend_form_nonce: true,
             twt_cc_signup: true,
         };
+        const unwrapKey = this.unwrapJQAjaxFormDataKey;
         if ( typeof formData.forEach === 'function' ) {
             try {
                 const parts = [];
@@ -1392,8 +1393,9 @@ class ApbctHandler {
                         return;
                     }
                     const valueAsString = String(value);
-                    if ( knownKeys[key] || valueAsString.indexOf('twt_cc_signup') !== -1 ) {
-                        parts.push(key + '=' + valueAsString);
+                    const normalizedKey = unwrapKey(key);
+                    if ( knownKeys[normalizedKey] || valueAsString.indexOf('twt_cc_signup') !== -1 ) {
+                        parts.push(normalizedKey + '=' + valueAsString);
                     }
                 });
                 return parts.join('&');
@@ -1412,12 +1414,42 @@ class ApbctHandler {
         const parts = [];
         for ( let i = 0; i < keysToProbe.length; i++ ) {
             const key = keysToProbe[i];
-            const value = formData.get(key);
-            if ( value !== null && (typeof value === 'string' || typeof value === 'number') ) {
+            const value = this.getFormDataScalarValue(formData, [key, 'data[' + key + ']']);
+            if ( value !== null ) {
                 parts.push(key + '=' + value);
             }
         }
         return parts.join('&');
+    }
+
+    /**
+     * Treat data[action] as action for WP-style FormData payloads.
+     * @param {string} key
+     * @return {string}
+     */
+    unwrapJQAjaxFormDataKey(key) {
+        if ( typeof key !== 'string' ) {
+            return '';
+        }
+        if ( key.length > 6 && key.indexOf('data[') === 0 && key.charAt(key.length - 1) === ']' ) {
+            return key.slice(5, -1);
+        }
+        return key;
+    }
+
+    /**
+     * @param {FormData} formData
+     * @param {Array.<string>} keys
+     * @return {string|number|null}
+     */
+    getFormDataScalarValue(formData, keys) {
+        for ( let i = 0; i < keys.length; i++ ) {
+            const value = formData.get(keys[i]);
+            if ( value !== null && (typeof value === 'string' || typeof value === 'number') ) {
+                return value;
+            }
+        }
+        return null;
     }
 
     /**
