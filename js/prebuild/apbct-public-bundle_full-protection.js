@@ -3979,6 +3979,9 @@ class ApbctHandler {
         if ( !data || typeof data !== 'object' ) {
             return false;
         }
+        if ( Object.prototype.toString.call(data) === '[object Array]' ) {
+            return this.serializeArrayLooksLikeJQAjaxCandidate(data);
+        }
         if ( typeof data.action === 'string' && data.action !== '' ) {
             return true;
         }
@@ -3986,40 +3989,80 @@ class ApbctHandler {
     }
 
     /**
+     * $(form).serializeArray() is [{name, value}, ...], not a map with .action.
+     * @param {Array} entries
+     * @return {boolean}
+     */
+    serializeArrayLooksLikeJQAjaxCandidate(entries) {
+        for ( let i = 0; i < entries.length; i++ ) {
+            const entry = entries[i];
+            if ( !entry || typeof entry !== 'object' ) {
+                continue;
+            }
+            if ( entry.name === 'action' && typeof entry.value === 'string' && entry.value !== '' ) {
+                return true;
+            }
+            if ( entry.name === 'twt_cc_signup' ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * True when every item looks like a jQuery serializeArray entry.
+     * @param {Array} data
+     * @return {boolean}
+     */
+    isJQAjaxSerializeArray(data) {
+        if ( Object.prototype.toString.call(data) !== '[object Array]' || data.length === 0 ) {
+            return false;
+        }
+        for ( let i = 0; i < data.length; i++ ) {
+            const entry = data[i];
+            if ( !entry || typeof entry !== 'object' || typeof entry.name !== 'string' ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Serialize FormData for sign search.
-     * IE11 FormData has neither forEach nor get — caller must use originalOptions.
+     * Prefer forEach when present so every action sign is visible.
+     * get() is only a fallback. IE11 has neither — caller must use originalOptions.
      * @param {FormData} formData
      * @return {string}
      */
     getFormDataAsString(formData) {
-        if ( typeof formData.get === 'function' ) {
-            const keysToProbe = [
-                'action',
-                'ur_frontend_form_nonce',
-                'twt_cc_signup',
-            ];
-            const parts = [];
-            for ( let i = 0; i < keysToProbe.length; i++ ) {
-                const key = keysToProbe[i];
-                const value = formData.get(key);
-                if ( value !== null ) {
+        if ( typeof formData.forEach === 'function' ) {
+            try {
+                const parts = [];
+                formData.forEach(function(value, key) {
                     parts.push(key + '=' + value);
-                }
+                });
+                return parts.join('&');
+            } catch (e) {
+                // Fall through to get() if forEach exists but throws.
             }
-            return parts.join('&');
         }
-        if ( typeof formData.forEach !== 'function' ) {
+        if ( typeof formData.get !== 'function' ) {
             return '';
         }
-        try {
-            const parts = [];
-            formData.forEach(function(value, key) {
+        const keysToProbe = [
+            'action',
+            'ur_frontend_form_nonce',
+            'twt_cc_signup',
+        ];
+        const parts = [];
+        for ( let i = 0; i < keysToProbe.length; i++ ) {
+            const key = keysToProbe[i];
+            const value = formData.get(key);
+            if ( value !== null ) {
                 parts.push(key + '=' + value);
-            });
-            return parts.join('&');
-        } catch (e) {
-            return '';
+            }
         }
+        return parts.join('&');
     }
 
     /**
@@ -4181,6 +4224,9 @@ class ApbctHandler {
         if ( this.isJQAjaxPlainObjectOrArray(ajaxData) ) {
             if ( keepOriginalType ) {
                 if ( Object.prototype.toString.call(ajaxData) === '[object Array]' ) {
+                    if ( this.isJQAjaxSerializeArray(ajaxData) ) {
+                        return this.injectCleantalkDataToJQAjaxSerializeArray(sourceSign, ajaxData);
+                    }
                     return ajaxData;
                 }
                 return this.injectCleantalkDataToJQAjaxPlainObject(sourceSign, ajaxData);
@@ -4286,6 +4332,40 @@ class ApbctHandler {
             }
         }
         return params;
+    }
+
+    /**
+     * Inject CleanTalk fields into a jQuery serializeArray payload.
+     * @param {object} sourceSign
+     * @param {Array} ajaxData
+     * @return {Array}
+     */
+    injectCleantalkDataToJQAjaxSerializeArray(sourceSign, ajaxData) {
+        const result = ajaxData.slice();
+        const pairs = this.getCleantalkJQAjaxFieldPairs(sourceSign);
+        for ( let i = 0; i < pairs.length; i++ ) {
+            result.push({
+                name: pairs[i][0],
+                value: pairs[i][1],
+            });
+        }
+        if ( sourceSign.attachVisibleFieldsData ) {
+            const extractor = ApbctVisibleFieldsExtractor.createExtractor(sourceSign.found);
+            if (
+                extractor &&
+                typeof jQuery !== 'undefined' &&
+                typeof jQuery.param === 'function'
+            ) {
+                const extracted = extractor.extract(jQuery.param(ajaxData));
+                if ( typeof extracted === 'string' ) {
+                    result.push({
+                        name: 'apbct_visible_fields',
+                        value: extracted,
+                    });
+                }
+            }
+        }
+        return result;
     }
 
     /**
