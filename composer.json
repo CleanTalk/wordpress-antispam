@@ -16,7 +16,6 @@
         "yoast/phpunit-polyfills": "^1.0",
         "ext-dom": "*",
         "wp-cli/wp-cli-bundle": "*",
-        "mockery/mockery": "*",
         "cleantalk/apbct-installer": "*",
         "cleantalk/contacts-encoder": "^2.2.0",
         "cleantalk/rate-limiter": "*"
