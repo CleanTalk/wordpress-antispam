@@ -1177,12 +1177,52 @@ class ApbctHandler {
                 if (sourceSign.found !== false) {
                     options.data = handler.injectCleantalkDataToJQAjax(
                         sourceSign,
-                        options.data,
+                        handler.getJQAjaxPayloadForInject(options, originalOptions),
                         options,
                     );
                 }
             });
         }
+    }
+
+    /**
+     * jQuery.param() on URLSearchParams/FormData can collapse options.data to "".
+     * Sign search already falls back to originalOptions; inject must use that payload too.
+     * @param {object} options
+     * @param {object=} originalOptions
+     * @return {*}
+     */
+    getJQAjaxPayloadForInject(options, originalOptions) {
+        const current = options && options.data;
+        const original = originalOptions && originalOptions.data;
+        if ( this.jqAjaxPayloadWasCollapsed(current, original) ) {
+            return original;
+        }
+        return current;
+    }
+
+    /**
+     * @param {*} current
+     * @param {*} original
+     * @return {boolean}
+     */
+    jqAjaxPayloadWasCollapsed(current, original) {
+        if ( original === null || typeof original === 'undefined' ) {
+            return false;
+        }
+        if ( current === original ) {
+            return false;
+        }
+        const currentEmpty = current === '' || current === null || typeof current === 'undefined';
+        if ( !currentEmpty ) {
+            return false;
+        }
+        if ( typeof original === 'string' ) {
+            return original !== '';
+        }
+        return this.isJQAjaxFormData(original) ||
+            this.isJQAjaxURLSearchParams(original) ||
+            this.isJQAjaxPlainObjectOrArray(original);
     }
 
     /**
