@@ -4114,9 +4114,14 @@ class ApbctHandler {
         if ( this.isJQAjaxPlainObjectOrArray(data) || this.isJQAjaxURLSearchParams(data) ) {
             return false;
         }
-        return Object.prototype.toString.call(data) === '[object FormData]' ||
-            typeof data.forEach === 'function' ||
-            typeof data.get === 'function';
+        const tag = Object.prototype.toString.call(data);
+        if ( tag === '[object FormData]' ) {
+            return true;
+        }
+        if ( tag === '[object Headers]' || typeof data.getSetCookie === 'function' ) {
+            return false;
+        }
+        return typeof data.forEach === 'function' || typeof data.get === 'function';
     }
 
     /**
@@ -4126,11 +4131,10 @@ class ApbctHandler {
      * @return {string}
      */
     getFormDataAsString(formData) {
-        const knownKeys = {
-            action: true,
-            ur_frontend_form_nonce: true,
-            twt_cc_signup: true,
-        };
+        const knownKeys = Object.create(null);
+        knownKeys.action = true;
+        knownKeys.ur_frontend_form_nonce = true;
+        knownKeys.twt_cc_signup = true;
         const unwrapKey = this.unwrapJQAjaxFormDataKey;
         if ( typeof formData.forEach === 'function' ) {
             try {
