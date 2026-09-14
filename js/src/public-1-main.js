@@ -1584,7 +1584,8 @@ class ApbctHandler {
      * @param {object} sourceSign
      * @param {*} ajaxData
      * @param {object=} ajaxOptions jQuery ajax options (traditional, processData, contentType).
-     * Keep URLSearchParams/objects when processData or contentType is false: jQuery will not param() them.
+     * Keep URLSearchParams/objects when processData or contentType is false.
+     * URLSearchParams must also disable processData, or jQuery.param() later yields "".
      * @return {*}
      */
     injectCleantalkDataToJQAjax(sourceSign, ajaxData, ajaxOptions) {
@@ -1624,6 +1625,7 @@ class ApbctHandler {
         }
         if ( this.isJQAjaxURLSearchParams(ajaxData) ) {
             if ( keepOriginalType ) {
+                this.preserveJQAjaxURLSearchParamsOptions(ajaxOptions);
                 return this.injectCleantalkDataToJQAjaxKeyValue(
                     sourceSign,
                     this.cloneURLSearchParams(ajaxData),
@@ -1689,6 +1691,18 @@ class ApbctHandler {
         }
         ajaxOptions.processData = false;
         ajaxOptions.contentType = false;
+    }
+
+    /**
+     * jQuery.param(URLSearchParams) after the prefilter yields "". Keep the body as URLSearchParams.
+     * @param {object=} ajaxOptions
+     * @return {void}
+     */
+    preserveJQAjaxURLSearchParamsOptions(ajaxOptions) {
+        if ( !ajaxOptions || typeof ajaxOptions !== 'object' ) {
+            return;
+        }
+        ajaxOptions.processData = false;
     }
 
     /**
