@@ -361,6 +361,138 @@ class TestRemoteCalls extends TestCase
         $this->assertEquals(['sfw_update__worker'], $allowedActions);
     }
 
+    /** @test */
+    public function itAllowsDelayOnlyForWhitelistedAction()
+    {
+        $method = new ReflectionMethod(RemoteCalls::class, 'getDelayForAction');
+        $method->setAccessible(true);
+
+        $this->assertSame(5, $method->invoke(null, 'sfw_update__worker', 5));
+
+        $this->assertNull($method->invoke(null, 'sfw_update', 5));
+        $this->assertNull($method->invoke(null, 'debug', 5));
+        $this->assertNull($method->invoke(null, 'get_fresh_wpnonce', 5));
+        $this->assertNull($method->invoke(null, 'post_api_key', 5));
+        $this->assertNull($method->invoke(null, 'install_plugin', 5));
+        $this->assertNull($method->invoke(null, '', 5));
+    }
+
+    /** @test */
+    public function itIgnoresActionCaseWhenCheckingDelayPermission()
+    {
+        $method = new ReflectionMethod(RemoteCalls::class, 'getDelayForAction');
+        $method->setAccessible(true);
+
+        $this->assertSame(5, $method->invoke(null, 'SFW_UPDATE__WORKER', 5));
+        $this->assertSame(5, $method->invoke(null, 'Sfw_Update__Worker', 5));
+    }
+
+    /** @test */
+    public function itDoesNotAllowDelayForPrefixedActionName()
+    {
+        // perform() must pass the raw action name, not the one prefixed with 'action__'
+        $method = new ReflectionMethod(RemoteCalls::class, 'getDelayForAction');
+        $method->setAccessible(true);
+
+        $this->assertNull($method->invoke(null, 'action__sfw_update__worker', 5));
+    }
+
+    /** @test */
+    public function itReturnsNullWhenDelayParamIsEmpty()
+    {
+        // No delay param — the action must be performed right here, not passed to the host
+        $method = new ReflectionMethod(RemoteCalls::class, 'getDelayForAction');
+        $method->setAccessible(true);
+
+        $this->assertNull($method->invoke(null, 'sfw_update__worker', null));
+        $this->assertNull($method->invoke(null, 'sfw_update__worker', false));
+        $this->assertNull($method->invoke(null, 'sfw_update__worker', ''));
+        $this->assertNull($method->invoke(null, 'sfw_update__worker', '0'));
+        $this->assertNull($method->invoke(null, 'sfw_update__worker', 0));
+    }
+
+    /** @test */
+    public function itKeepsAllowedDelayValueAsIs()
+    {
+        $method = new ReflectionMethod(RemoteCalls::class, 'getDelayForAction');
+        $method->setAccessible(true);
+
+        $this->assertSame(1, $method->invoke(null, 'sfw_update__worker', 1));
+        $this->assertSame(3, $method->invoke(null, 'sfw_update__worker', 3));
+        $this->assertSame(
+            RemoteCalls::MAX_DELAY,
+            $method->invoke(null, 'sfw_update__worker', RemoteCalls::MAX_DELAY)
+        );
+    }
+
+    /** @test */
+    public function itCapsDelayAtMaxDelay()
+    {
+        $method = new ReflectionMethod(RemoteCalls::class, 'getDelayForAction');
+        $method->setAccessible(true);
+
+        $this->assertSame(
+            RemoteCalls::MAX_DELAY,
+            $method->invoke(null, 'sfw_update__worker', RemoteCalls::MAX_DELAY + 1)
+        );
+        $this->assertSame(RemoteCalls::MAX_DELAY, $method->invoke(null, 'sfw_update__worker', 999));
+        $this->assertSame(RemoteCalls::MAX_DELAY, $method->invoke(null, 'sfw_update__worker', PHP_INT_MAX));
+    }
+
+    /** @test */
+    public function itTurnsNegativeDelayIntoZeroButStillDelegatesToHost()
+    {
+        // Zero, not null: the call is still passed to the host, it just does not sleep
+        $method = new ReflectionMethod(RemoteCalls::class, 'getDelayForAction');
+        $method->setAccessible(true);
+
+        $this->assertSame(0, $method->invoke(null, 'sfw_update__worker', -1));
+        $this->assertSame(0, $method->invoke(null, 'sfw_update__worker', -999));
+        $this->assertSame(0, $method->invoke(null, 'sfw_update__worker', PHP_INT_MIN));
+    }
+
+    /** @test */
+    public function itCastsNonIntegerDelayToInt()
+    {
+        $method = new ReflectionMethod(RemoteCalls::class, 'getDelayForAction');
+        $method->setAccessible(true);
+
+        $this->assertSame(7, $method->invoke(null, 'sfw_update__worker', '7'));
+        $this->assertSame(7, $method->invoke(null, 'sfw_update__worker', 7.9));
+        $this->assertSame(0, $method->invoke(null, 'sfw_update__worker', 'abc'));
+        $this->assertSame(0, $method->invoke(null, 'sfw_update__worker', array(5)));
+    }
+
+    /** @test */
+    public function performDelegatesDelayDecisionToGetDelayForAction()
+    {
+        $method = new ReflectionMethod(RemoteCalls::class, 'perform');
+        $source = implode('', array_slice(
+            file($method->getFileName()),
+            $method->getStartLine() - 1,
+            $method->getEndLine() - $method->getStartLine() + 1
+        ));
+
+        $this->assertStringContainsString(
+            "self::getDelayForAction(\$raw_action, Request::get('delay'))",
+            $source,
+            'perform() must take the delay decision from getDelayForAction()'
+        );
+
+        // The branch is chosen by null, not by the value: a negative delay is still
+        // passed to the host instead of running the action locally
+        $this->assertStringContainsString(
+            'if ( ! is_null($delay) ) {',
+            $source,
+            'perform() must branch on null, not on the delay value'
+        );
+
+        $this->assertStringNotContainsString(
+            'allowedActionsWithDelay',
+            $source,
+            'The whitelist check belongs to getDelayForAction(), not to perform()'
+        );
+    }
     // =========================================================================
     // APBCT-W07: 'api_key' added to $sensitiveData list
     // =========================================================================
