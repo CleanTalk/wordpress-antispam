@@ -1228,6 +1228,7 @@ class ApbctHandler {
     /**
      * Normalize jQuery ajax data to a query string for sign search.
      * Objects and serializeArray are read structurally so search never calls jQuery.param.
+     * Also reads known sign fields from the URL (IE11 FormData cannot be enumerated).
      * @param {object} ajaxObject Ajax options object.
      * @return {string}
      */
@@ -1235,19 +1236,22 @@ class ApbctHandler {
         if ( !ajaxObject || typeof ajaxObject !== 'object' ) {
             return '';
         }
+        let fromData = '';
         if ( typeof ajaxObject.data === 'string' ) {
-            return ajaxObject.data;
+            fromData = ajaxObject.data;
+        } else if ( this.isJQAjaxPlainObjectOrArray(ajaxObject.data) ) {
+            fromData = this.getStructuredJQAjaxSignString(ajaxObject.data);
+        } else if ( this.isJQAjaxURLSearchParams(ajaxObject.data) ) {
+            fromData = this.collectKnownSignStringFromKeyValueBag(ajaxObject.data);
+        } else if ( this.isJQAjaxFormData(ajaxObject.data) ) {
+            fromData = this.collectKnownSignStringFromKeyValueBag(ajaxObject.data);
         }
-        if ( this.isJQAjaxPlainObjectOrArray(ajaxObject.data) ) {
-            return this.getStructuredJQAjaxSignString(ajaxObject.data);
+        // Native IE11 FormData is write-only (no get/forEach/entries). Signs then come from the URL.
+        const fromUrl = this.collectKnownSignStringFromUrl(ajaxObject.url);
+        if ( fromData && fromUrl ) {
+            return fromData + '&' + fromUrl;
         }
-        if ( this.isJQAjaxURLSearchParams(ajaxObject.data) ) {
-            return this.collectKnownSignStringFromKeyValueBag(ajaxObject.data);
-        }
-        if ( this.isJQAjaxFormData(ajaxObject.data) ) {
-            return this.collectKnownSignStringFromKeyValueBag(ajaxObject.data);
-        }
-        return '';
+        return fromData || fromUrl;
     }
 
     /**
@@ -1481,6 +1485,53 @@ class ApbctHandler {
     }
 
     /**
+     * Known sign fields from a request URL query. IE11-safe (no URLSearchParams).
+     * @param {string} url
+     * @return {string}
+     */
+    collectKnownSignStringFromUrl(url) {
+        if ( typeof url !== 'string' || url === '' ) {
+            return '';
+        }
+        const queryIndex = url.indexOf('?');
+        if ( queryIndex === -1 || queryIndex === url.length - 1 ) {
+            return '';
+        }
+        const hashIndex = url.indexOf('#', queryIndex);
+        const query = hashIndex === -1 ?
+            url.slice(queryIndex + 1) :
+            url.slice(queryIndex + 1, hashIndex);
+        const knownKeys = this.getJQAjaxKnownSignKeys();
+        const unwrapKey = this.unwrapJQAjaxFormDataKey;
+        const parts = [];
+        const pairs = query.split('&');
+        for ( let i = 0; i < pairs.length; i++ ) {
+            const pair = pairs[i];
+            if ( !pair ) {
+                continue;
+            }
+            const eq = pair.indexOf('=');
+            let rawKey = eq === -1 ? pair : pair.slice(0, eq);
+            let rawValue = eq === -1 ? '' : pair.slice(eq + 1);
+            try {
+                rawKey = decodeURIComponent(rawKey.replace(/\+/g, ' '));
+                rawValue = decodeURIComponent(rawValue.replace(/\+/g, ' '));
+            } catch (e) {
+                continue;
+            }
+            const normalizedKey = unwrapKey(rawKey);
+            if (
+                knownKeys[normalizedKey] ||
+                rawValue.indexOf('twt_cc_signup') !== -1 ||
+                normalizedKey.indexOf('twt_cc_signup') !== -1
+            ) {
+                parts.push(normalizedKey + '=' + rawValue);
+            }
+        }
+        return parts.join('&');
+    }
+
+    /**
      * Walk FormData/URLSearchParams via forEach, then entries() for polyfills that only have an iterator.
      * @param {FormData|URLSearchParams} bag
      * @param {Function} callback
@@ -1693,6 +1744,10 @@ class ApbctHandler {
         // woocommerce add to cart is based on URL
         if ( typeof ajaxObject.url === 'string' && ajaxObject.url.indexOf('wc-ajax=add_to_cart') !== -1 ) {
             sourceSign.found = 'wc-ajax=add_to_cart';
+            // GET/HEAD: PHP reads Get::get('ct_bot_detector_event_token'), not data[...].
+            if ( this.isJQAjaxNoContentMethod(ajaxObject) ) {
+                sourceSign.keepUnwrapped = true;
+            }
         }
 
         return sourceSign;
@@ -1849,7 +1904,8 @@ class ApbctHandler {
     }
 
     /**
-     * Read a FormData field without entries() (missing on some polyfills / IE11).
+     * Read a FormData field via get(), forEach(), or entries().
+     * Native IE11 FormData is write-only and cannot be read.
      * @param {FormData} formData
      * @param {Array.<string>} keys
      * @return {*}
