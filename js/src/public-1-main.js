@@ -1242,10 +1242,10 @@ class ApbctHandler {
             return this.getStructuredJQAjaxSignString(ajaxObject.data);
         }
         if ( this.isJQAjaxURLSearchParams(ajaxObject.data) ) {
-            return ajaxObject.data.toString();
+            return this.collectKnownSignStringFromKeyValueBag(ajaxObject.data);
         }
         if ( this.isJQAjaxFormData(ajaxObject.data) ) {
-            return this.getFormDataAsString(ajaxObject.data);
+            return this.collectKnownSignStringFromKeyValueBag(ajaxObject.data);
         }
         return '';
     }
@@ -1260,11 +1260,13 @@ class ApbctHandler {
             return this.getSerializeArraySignString(data);
         }
         const parts = [];
-        if ( typeof data.action === 'string' && data.action !== '' ) {
-            parts.push('action=' + data.action);
+        const action = this.getPlainObjectSignField(data, 'action');
+        if ( typeof action === 'string' && action !== '' ) {
+            parts.push('action=' + action);
         }
-        if ( Object.prototype.hasOwnProperty.call(data, 'ur_frontend_form_nonce') ) {
-            parts.push('ur_frontend_form_nonce=' + data.ur_frontend_form_nonce);
+        const nonce = this.getPlainObjectSignField(data, 'ur_frontend_form_nonce');
+        if ( nonce !== null ) {
+            parts.push('ur_frontend_form_nonce=' + nonce);
         }
         if ( this.plainObjectHasTwtCcSignup(data) ) {
             parts.push('twt_cc_signup=1');
@@ -1273,19 +1275,76 @@ class ApbctHandler {
     }
 
     /**
+     * Read action/nonce from top-level, data[key], or nested data.key.
      * @param {object} data
+     * @param {string} key
+     * @return {string|number|null}
+     */
+    getPlainObjectSignField(data, key) {
+        if ( !data || typeof data !== 'object' ) {
+            return null;
+        }
+        if ( this.isJQAjaxScalarSignValue(data[key]) ) {
+            return data[key];
+        }
+        const bracketKey = 'data[' + key + ']';
+        if ( this.isJQAjaxScalarSignValue(data[bracketKey]) ) {
+            return data[bracketKey];
+        }
+        if (
+            data.data &&
+            typeof data.data === 'object' &&
+            Object.prototype.toString.call(data.data) !== '[object Array]' &&
+            this.isJQAjaxScalarSignValue(data.data[key])
+        ) {
+            return data.data[key];
+        }
+        return null;
+    }
+
+    /**
+     * @param {*} value
      * @return {boolean}
      */
-    plainObjectHasTwtCcSignup(data) {
-        if ( Object.prototype.hasOwnProperty.call(data, 'twt_cc_signup') ) {
-            return true;
+    isJQAjaxScalarSignValue(value) {
+        return typeof value === 'string' || typeof value === 'number';
+    }
+
+    /**
+     * @param {object} data
+     * @param {number=} depth
+     * @return {boolean}
+     */
+    plainObjectHasTwtCcSignup(data, depth) {
+        if ( !data || typeof data !== 'object' ) {
+            return false;
+        }
+        if ( typeof depth === 'undefined' ) {
+            depth = 0;
+        }
+        if ( depth > 2 ) {
+            return false;
         }
         for ( const key in data ) {
             if ( !Object.prototype.hasOwnProperty.call(data, key) ) {
                 continue;
             }
-            if ( typeof data[key] === 'string' && data[key].indexOf('twt_cc_signup') !== -1 ) {
+            const normalizedKey = this.unwrapJQAjaxFormDataKey(key);
+            if ( normalizedKey === 'twt_cc_signup' || key.indexOf('twt_cc_signup') !== -1 ) {
                 return true;
+            }
+            const value = data[key];
+            if ( typeof value === 'string' && value.indexOf('twt_cc_signup') !== -1 ) {
+                return true;
+            }
+            if (
+                value &&
+                typeof value === 'object' &&
+                Object.prototype.toString.call(value) !== '[object Array]'
+            ) {
+                if ( this.plainObjectHasTwtCcSignup(value, depth + 1) ) {
+                    return true;
+                }
             }
         }
         return false;
@@ -1303,13 +1362,9 @@ class ApbctHandler {
                 continue;
             }
             const value = entry.value;
-            if (
-                entry.name === 'action' ||
-                entry.name === 'ur_frontend_form_nonce' ||
-                entry.name === 'twt_cc_signup' ||
-                (typeof value === 'string' && value.indexOf('twt_cc_signup') !== -1)
-            ) {
-                parts.push(entry.name + '=' + value);
+            const normalizedKey = this.unwrapJQAjaxFormDataKey(entry.name);
+            if ( this.isJQAjaxKnownSignField(normalizedKey, value) ) {
+                parts.push(normalizedKey + '=' + value);
             }
         }
         return parts.join('&');
@@ -1378,27 +1433,28 @@ class ApbctHandler {
     }
 
     /**
-     * Collect only known sign fields from FormData.
-     * Do not dump every value: a comment like "action=mailpoet" must not match.
-     * @param {FormData} formData
+     * Collect only known sign fields from FormData / URLSearchParams.
+     * Unwrap data[action] so later action=... checks match.
+     * @param {FormData|URLSearchParams} bag
      * @return {string}
      */
-    getFormDataAsString(formData) {
-        const knownKeys = Object.create(null);
-        knownKeys.action = true;
-        knownKeys.ur_frontend_form_nonce = true;
-        knownKeys.twt_cc_signup = true;
+    collectKnownSignStringFromKeyValueBag(bag) {
+        const knownKeys = this.getJQAjaxKnownSignKeys();
         const unwrapKey = this.unwrapJQAjaxFormDataKey;
-        if ( typeof formData.forEach === 'function' ) {
+        if ( typeof bag.forEach === 'function' ) {
             try {
                 const parts = [];
-                formData.forEach(function(value, key) {
+                bag.forEach(function(value, key) {
                     if ( typeof value !== 'string' && typeof value !== 'number' ) {
                         return;
                     }
                     const valueAsString = String(value);
                     const normalizedKey = unwrapKey(key);
-                    if ( knownKeys[normalizedKey] || valueAsString.indexOf('twt_cc_signup') !== -1 ) {
+                    if (
+                        knownKeys[normalizedKey] ||
+                        valueAsString.indexOf('twt_cc_signup') !== -1 ||
+                        normalizedKey.indexOf('twt_cc_signup') !== -1
+                    ) {
                         parts.push(normalizedKey + '=' + valueAsString);
                     }
                 });
@@ -1407,7 +1463,7 @@ class ApbctHandler {
                 // Fall through to get() if forEach exists but throws.
             }
         }
-        if ( typeof formData.get !== 'function' ) {
+        if ( typeof bag.get !== 'function' ) {
             return '';
         }
         const keysToProbe = [
@@ -1418,7 +1474,7 @@ class ApbctHandler {
         const parts = [];
         for ( let i = 0; i < keysToProbe.length; i++ ) {
             const key = keysToProbe[i];
-            const value = this.getFormDataScalarValue(formData, [key, 'data[' + key + ']']);
+            const value = this.getFormDataScalarValue(bag, [key, 'data[' + key + ']']);
             if ( value !== null ) {
                 parts.push(key + '=' + value);
             }
@@ -1427,7 +1483,35 @@ class ApbctHandler {
     }
 
     /**
-     * Treat data[action] as action for WP-style FormData payloads.
+     * @return {Object}
+     */
+    getJQAjaxKnownSignKeys() {
+        const knownKeys = Object.create(null);
+        knownKeys.action = true;
+        knownKeys.ur_frontend_form_nonce = true;
+        knownKeys.twt_cc_signup = true;
+        return knownKeys;
+    }
+
+    /**
+     * @param {string} normalizedKey
+     * @param {*} value
+     * @return {boolean}
+     */
+    isJQAjaxKnownSignField(normalizedKey, value) {
+        if (
+            normalizedKey === 'action' ||
+            normalizedKey === 'ur_frontend_form_nonce' ||
+            normalizedKey === 'twt_cc_signup' ||
+            normalizedKey.indexOf('twt_cc_signup') !== -1
+        ) {
+            return true;
+        }
+        return typeof value === 'string' && value.indexOf('twt_cc_signup') !== -1;
+    }
+
+    /**
+     * Treat data[action] as action for WP-style payloads.
      * @param {string} key
      * @return {string}
      */
