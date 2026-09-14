@@ -1592,6 +1592,7 @@ class ApbctHandler {
             return this.injectCleantalkDataToJQAjaxString(sourceSign, ajaxData.toString());
         }
         if ( this.isJQAjaxFormData(ajaxData) ) {
+            this.preserveJQAjaxFormDataOptions(ajaxOptions);
             return this.injectCleantalkDataToJQAjaxFormData(
                 sourceSign,
                 this.cloneFormData(ajaxData),
@@ -1635,6 +1636,52 @@ class ApbctHandler {
         }
 
         return pairs;
+    }
+
+    /**
+     * jQuery.param(FormData) after the prefilter yields "". Keep the body as FormData.
+     * @param {object=} ajaxOptions
+     * @return {void}
+     */
+    preserveJQAjaxFormDataOptions(ajaxOptions) {
+        if ( !ajaxOptions || typeof ajaxOptions !== 'object' ) {
+            return;
+        }
+        ajaxOptions.processData = false;
+        ajaxOptions.contentType = false;
+    }
+
+    /**
+     * Read a FormData field without entries() (missing on some polyfills / IE11).
+     * @param {FormData} formData
+     * @param {Array.<string>} keys
+     * @return {*}
+     */
+    getFormDataField(formData, keys) {
+        if ( typeof formData.get === 'function' ) {
+            for ( let i = 0; i < keys.length; i++ ) {
+                const value = formData.get(keys[i]);
+                if ( value !== null && typeof value !== 'undefined' ) {
+                    return value;
+                }
+            }
+        }
+        if ( typeof formData.forEach !== 'function' ) {
+            return null;
+        }
+        let found = null;
+        formData.forEach(function(value, key) {
+            if ( found !== null ) {
+                return;
+            }
+            for ( let i = 0; i < keys.length; i++ ) {
+                if ( key === keys[i] ) {
+                    found = value;
+                    return;
+                }
+            }
+        });
+        return found;
     }
 
     /**
@@ -1840,13 +1887,10 @@ class ApbctHandler {
                 if (extractor) {
                     // Try to find form_id in FormData to find form container and
                     // collect visible fields only inside it
-                    let formId = null;
-                    for (let pair of ajaxDataFormData.entries()) {
-                        if (pair[0] === 'form_id' || pair[0] === 'data[form_id]') {
-                            formId = pair[1];
-                            break;
-                        }
-                    }
+                    const formId = this.getFormDataField(
+                        ajaxDataFormData,
+                        ['form_id', 'data[form_id]'],
+                    );
                     let container = null;
                     if (formId && typeof formId === 'string') {
                         // Sanitize formId to prevent selector injection
