@@ -1198,14 +1198,14 @@ class ApbctHandler {
         if ( typeof ajaxObject.data === 'string' ) {
             return ajaxObject.data;
         }
+        if ( this.isJQAjaxPlainObjectOrArray(ajaxObject.data) ) {
+            return this.getStructuredJQAjaxSignString(ajaxObject.data);
+        }
         if ( this.isJQAjaxURLSearchParams(ajaxObject.data) ) {
             return ajaxObject.data.toString();
         }
         if ( this.isJQAjaxFormData(ajaxObject.data) ) {
             return this.getFormDataAsString(ajaxObject.data);
-        }
-        if ( this.isJQAjaxPlainObjectOrArray(ajaxObject.data) ) {
-            return this.getStructuredJQAjaxSignString(ajaxObject.data);
         }
         return '';
     }
@@ -1302,13 +1302,17 @@ class ApbctHandler {
         if ( !data || typeof data !== 'object' || typeof data.append !== 'function' ) {
             return false;
         }
-        if ( Object.prototype.toString.call(data) === '[object URLSearchParams]' ) {
+        if ( this.isJQAjaxPlainObjectOrArray(data) ) {
+            return false;
+        }
+        const tag = Object.prototype.toString.call(data);
+        if ( tag === '[object URLSearchParams]' ) {
             return true;
         }
-        if ( typeof data.sort === 'function' ) {
-            return true;
+        if ( tag === '[object FormData]' ) {
+            return false;
         }
-        return typeof data.toString === 'function' && data.toString().indexOf('[object ') === -1;
+        return typeof data.sort === 'function' && typeof data.get === 'function';
     }
 
     /**
@@ -1320,7 +1324,7 @@ class ApbctHandler {
         if ( !data || typeof data !== 'object' || typeof data.append !== 'function' ) {
             return false;
         }
-        if ( this.isJQAjaxURLSearchParams(data) ) {
+        if ( this.isJQAjaxPlainObjectOrArray(data) || this.isJQAjaxURLSearchParams(data) ) {
             return false;
         }
         return Object.prototype.toString.call(data) === '[object FormData]' ||
@@ -1329,18 +1333,28 @@ class ApbctHandler {
     }
 
     /**
-     * Serialize FormData for sign search.
-     * Prefer forEach when present so every action sign is visible.
-     * get() is only a fallback. IE11 has neither — caller must use originalOptions.
+     * Collect only known sign fields from FormData.
+     * Do not dump every value: a comment like "action=mailpoet" must not match.
      * @param {FormData} formData
      * @return {string}
      */
     getFormDataAsString(formData) {
+        const knownKeys = {
+            action: true,
+            ur_frontend_form_nonce: true,
+            twt_cc_signup: true,
+        };
         if ( typeof formData.forEach === 'function' ) {
             try {
                 const parts = [];
                 formData.forEach(function(value, key) {
-                    parts.push(key + '=' + value);
+                    if ( typeof value !== 'string' && typeof value !== 'number' ) {
+                        return;
+                    }
+                    const valueAsString = String(value);
+                    if ( knownKeys[key] || valueAsString.indexOf('twt_cc_signup') !== -1 ) {
+                        parts.push(key + '=' + valueAsString);
+                    }
                 });
                 return parts.join('&');
             } catch (e) {
@@ -1359,7 +1373,7 @@ class ApbctHandler {
         for ( let i = 0; i < keysToProbe.length; i++ ) {
             const key = keysToProbe[i];
             const value = formData.get(key);
-            if ( value !== null ) {
+            if ( value !== null && (typeof value === 'string' || typeof value === 'number') ) {
                 parts.push(key + '=' + value);
             }
         }
@@ -1506,21 +1520,6 @@ class ApbctHandler {
         if ( typeof ajaxData === 'string' ) {
             return this.injectCleantalkDataToJQAjaxString(sourceSign, ajaxData);
         }
-        if ( this.isJQAjaxURLSearchParams(ajaxData) ) {
-            if ( keepOriginalType ) {
-                return this.injectCleantalkDataToJQAjaxKeyValue(
-                    sourceSign,
-                    this.cloneURLSearchParams(ajaxData),
-                );
-            }
-            return this.injectCleantalkDataToJQAjaxString(sourceSign, ajaxData.toString());
-        }
-        if ( this.isJQAjaxFormData(ajaxData) ) {
-            return this.injectCleantalkDataToJQAjaxFormData(
-                sourceSign,
-                this.cloneFormData(ajaxData),
-            );
-        }
         if ( this.isJQAjaxPlainObjectOrArray(ajaxData) ) {
             if ( keepOriginalType ) {
                 if ( Object.prototype.toString.call(ajaxData) === '[object Array]' ) {
@@ -1541,6 +1540,22 @@ class ApbctHandler {
             } catch (e) {
                 return ajaxData;
             }
+            return ajaxData;
+        }
+        if ( this.isJQAjaxURLSearchParams(ajaxData) ) {
+            if ( keepOriginalType ) {
+                return this.injectCleantalkDataToJQAjaxKeyValue(
+                    sourceSign,
+                    this.cloneURLSearchParams(ajaxData),
+                );
+            }
+            return this.injectCleantalkDataToJQAjaxString(sourceSign, ajaxData.toString());
+        }
+        if ( this.isJQAjaxFormData(ajaxData) ) {
+            return this.injectCleantalkDataToJQAjaxFormData(
+                sourceSign,
+                this.cloneFormData(ajaxData),
+            );
         }
         return ajaxData;
     }
@@ -1588,7 +1603,22 @@ class ApbctHandler {
      * @return {URLSearchParams}
      */
     cloneURLSearchParams(params) {
-        return new URLSearchParams(params.toString());
+        const serialized = typeof params.toString === 'function' ? params.toString() : '';
+        if ( typeof params.constructor === 'function' && params.constructor !== Object ) {
+            try {
+                return new params.constructor(serialized);
+            } catch (e) {
+                // Fall through to the current-window constructor.
+            }
+        }
+        if ( typeof URLSearchParams === 'function' ) {
+            try {
+                return new URLSearchParams(serialized);
+            } catch (e) {
+                return params;
+            }
+        }
+        return params;
     }
 
     /**
