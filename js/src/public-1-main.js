@@ -1429,7 +1429,9 @@ class ApbctHandler {
         if ( tag === '[object Headers]' || typeof data.getSetCookie === 'function' ) {
             return false;
         }
-        return typeof data.forEach === 'function' || typeof data.get === 'function';
+        return typeof data.forEach === 'function' ||
+            typeof data.get === 'function' ||
+            typeof data.entries === 'function';
     }
 
     /**
@@ -1703,11 +1705,12 @@ class ApbctHandler {
      * @param {object=} ajaxOptions jQuery ajax options (traditional, processData, contentType).
      * Keep URLSearchParams/objects when processData or contentType is false.
      * URLSearchParams must also disable processData, or jQuery.param() later yields "".
+     * GET/HEAD never keep the original type: jQuery only puts string data on the URL.
      * @return {*}
      */
     injectCleantalkDataToJQAjax(sourceSign, ajaxData, ajaxOptions) {
         const traditional = ajaxOptions && ajaxOptions.traditional;
-        const keepOriginalType = !!(ajaxOptions && (
+        const keepOriginalType = !this.isJQAjaxNoContentMethod(ajaxOptions) && !!(ajaxOptions && (
             ajaxOptions.processData === false ||
             ajaxOptions.contentType === false
         ));
@@ -1751,6 +1754,12 @@ class ApbctHandler {
             return this.injectCleantalkDataToJQAjaxString(sourceSign, ajaxData.toString());
         }
         if ( this.isJQAjaxFormData(ajaxData) ) {
+            if ( this.isJQAjaxNoContentMethod(ajaxOptions) ) {
+                return this.injectCleantalkDataToJQAjaxString(
+                    sourceSign,
+                    this.serializeJQAjaxKeyValueBag(ajaxData),
+                );
+            }
             this.preserveJQAjaxFormDataOptions(ajaxOptions);
             return this.injectCleantalkDataToJQAjaxFormData(
                 sourceSign,
@@ -1758,6 +1767,23 @@ class ApbctHandler {
             );
         }
         return ajaxData;
+    }
+
+    /**
+     * GET/HEAD have no body. Missing type is GET (jQuery default).
+     * @param {object=} ajaxOptions
+     * @return {boolean}
+     */
+    isJQAjaxNoContentMethod(ajaxOptions) {
+        if ( !ajaxOptions || typeof ajaxOptions !== 'object' ) {
+            return false;
+        }
+        const type = ajaxOptions.type || ajaxOptions.method;
+        if ( typeof type !== 'string' || type === '' ) {
+            return true;
+        }
+        const method = type.toUpperCase();
+        return method === 'GET' || method === 'HEAD';
     }
 
     /**
@@ -1903,23 +1929,42 @@ class ApbctHandler {
     }
 
     /**
-     * Clone FormData when the browser can enumerate it; otherwise reuse the original.
+     * Clone FormData when it can be enumerated (forEach or entries); otherwise reuse.
      * @param {FormData} formData
      * @return {FormData}
      */
     cloneFormData(formData) {
-        if ( typeof formData.forEach !== 'function' ) {
-            return formData;
-        }
         try {
             const clone = new FormData();
-            formData.forEach(function(value, key) {
+            const copied = this.forEachJQAjaxKeyValueBag(formData, function(value, key) {
                 clone.append(key, value);
             });
-            return clone;
+            if ( copied ) {
+                return clone;
+            }
         } catch (e) {
             return formData;
         }
+        return formData;
+    }
+
+    /**
+     * Form-urlencoded string from FormData/URLSearchParams. Skip File/Blob values.
+     * @param {FormData|URLSearchParams} bag
+     * @return {string}
+     */
+    serializeJQAjaxKeyValueBag(bag) {
+        const parts = [];
+        const collected = this.forEachJQAjaxKeyValueBag(bag, function(value, key) {
+            if ( typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean' ) {
+                return;
+            }
+            parts.push(encodeURIComponent(String(key)) + '=' + encodeURIComponent(String(value)));
+        });
+        if ( collected ) {
+            return parts.join('&');
+        }
+        return '';
     }
 
     /**
