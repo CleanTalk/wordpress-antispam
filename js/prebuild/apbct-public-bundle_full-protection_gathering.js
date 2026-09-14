@@ -4331,11 +4331,15 @@ class ApbctHandler {
      * @param {object} sourceSign
      * @param {*} ajaxData
      * @param {object=} ajaxOptions jQuery ajax options (traditional, processData, contentType).
+     * Keep URLSearchParams/objects when processData or contentType is false: jQuery will not param() them.
      * @return {*}
      */
     injectCleantalkDataToJQAjax(sourceSign, ajaxData, ajaxOptions) {
         const traditional = ajaxOptions && ajaxOptions.traditional;
-        const keepOriginalType = ajaxOptions && ajaxOptions.processData === false;
+        const keepOriginalType = !!(ajaxOptions && (
+            ajaxOptions.processData === false ||
+            ajaxOptions.contentType === false
+        ));
 
         if ( ajaxData === null || typeof ajaxData === 'undefined' ) {
             return this.injectCleantalkDataToJQAjaxString(sourceSign, '');
