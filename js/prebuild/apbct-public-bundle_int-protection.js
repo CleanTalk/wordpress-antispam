@@ -3934,7 +3934,7 @@ class ApbctHandler {
 
     /**
      * Normalize jQuery ajax data to a query string for sign search.
-     * ajaxPrefilter may see a string, a plain object, FormData or URLSearchParams.
+     * Objects and serializeArray are read structurally so search never calls jQuery.param.
      * @param {object} ajaxObject Ajax options object.
      * @return {string}
      */
@@ -3945,64 +3945,53 @@ class ApbctHandler {
         if ( typeof ajaxObject.data === 'string' ) {
             return ajaxObject.data;
         }
-        if ( typeof URLSearchParams !== 'undefined' && ajaxObject.data instanceof URLSearchParams ) {
+        if ( this.isJQAjaxURLSearchParams(ajaxObject.data) ) {
             return ajaxObject.data.toString();
         }
-        if ( typeof FormData !== 'undefined' && ajaxObject.data instanceof FormData ) {
+        if ( this.isJQAjaxFormData(ajaxObject.data) ) {
             return this.getFormDataAsString(ajaxObject.data);
         }
         if ( this.isJQAjaxPlainObjectOrArray(ajaxObject.data) ) {
-            if ( !this.plainObjectLooksLikeJQAjaxCandidate(ajaxObject.data, ajaxObject.url) ) {
-                return '';
-            }
-            try {
-                if ( typeof jQuery !== 'undefined' && typeof jQuery.param === 'function' ) {
-                    return jQuery.param(ajaxObject.data, ajaxObject.traditional);
-                }
-            } catch (e) {
-                return '';
-            }
+            return this.getStructuredJQAjaxSignString(ajaxObject.data);
         }
         return '';
     }
 
     /**
-     * Cheap check before jQuery.param: only known signs use action, twt_cc_signup, or wc-ajax URL.
+     * Build a sign string from top-level fields without serializing the whole payload.
      * @param {object|Array} data
-     * @param {string=} url
-     * @return {boolean}
+     * @return {string}
      */
-    plainObjectLooksLikeJQAjaxCandidate(data, url) {
-        if ( typeof url === 'string' && url.indexOf('wc-ajax=add_to_cart') !== -1 ) {
-            return true;
-        }
-        if ( !data || typeof data !== 'object' ) {
-            return false;
-        }
+    getStructuredJQAjaxSignString(data) {
         if ( Object.prototype.toString.call(data) === '[object Array]' ) {
-            return this.serializeArrayLooksLikeJQAjaxCandidate(data);
+            return this.getSerializeArraySignString(data);
         }
+        const parts = [];
         if ( typeof data.action === 'string' && data.action !== '' ) {
-            return true;
+            parts.push('action=' + data.action);
         }
-        return Object.prototype.hasOwnProperty.call(data, 'twt_cc_signup');
+        if ( Object.prototype.hasOwnProperty.call(data, 'ur_frontend_form_nonce') ) {
+            parts.push('ur_frontend_form_nonce=' + data.ur_frontend_form_nonce);
+        }
+        if ( this.plainObjectHasTwtCcSignup(data) ) {
+            parts.push('twt_cc_signup=1');
+        }
+        return parts.join('&');
     }
 
     /**
-     * $(form).serializeArray() is [{name, value}, ...], not a map with .action.
-     * @param {Array} entries
+     * @param {object} data
      * @return {boolean}
      */
-    serializeArrayLooksLikeJQAjaxCandidate(entries) {
-        for ( let i = 0; i < entries.length; i++ ) {
-            const entry = entries[i];
-            if ( !entry || typeof entry !== 'object' ) {
+    plainObjectHasTwtCcSignup(data) {
+        if ( Object.prototype.hasOwnProperty.call(data, 'twt_cc_signup') ) {
+            return true;
+        }
+        for ( const key in data ) {
+            if ( !Object.prototype.hasOwnProperty.call(data, key) ) {
                 continue;
             }
-            if ( entry.name === 'action' && typeof entry.value === 'string' && entry.value !== '' ) {
-                return true;
-            }
-            if ( entry.name === 'twt_cc_signup' ) {
+            if ( typeof data[key] === 'string' && data[key].indexOf('twt_cc_signup') !== -1 ) {
                 return true;
             }
         }
@@ -4010,12 +3999,36 @@ class ApbctHandler {
     }
 
     /**
-     * True when every item looks like a jQuery serializeArray entry.
+     * @param {Array} entries
+     * @return {string}
+     */
+    getSerializeArraySignString(entries) {
+        const parts = [];
+        for ( let i = 0; i < entries.length; i++ ) {
+            const entry = entries[i];
+            if ( !entry || typeof entry !== 'object' || typeof entry.name !== 'string' ) {
+                continue;
+            }
+            const value = entry.value;
+            if (
+                entry.name === 'action' ||
+                entry.name === 'ur_frontend_form_nonce' ||
+                entry.name === 'twt_cc_signup' ||
+                (typeof value === 'string' && value.indexOf('twt_cc_signup') !== -1)
+            ) {
+                parts.push(entry.name + '=' + value);
+            }
+        }
+        return parts.join('&');
+    }
+
+    /**
+     * True for serializeArray payloads, including an empty array.
      * @param {Array} data
      * @return {boolean}
      */
     isJQAjaxSerializeArray(data) {
-        if ( Object.prototype.toString.call(data) !== '[object Array]' || data.length === 0 ) {
+        if ( Object.prototype.toString.call(data) !== '[object Array]' ) {
             return false;
         }
         for ( let i = 0; i < data.length; i++ ) {
@@ -4025,6 +4038,41 @@ class ApbctHandler {
             }
         }
         return true;
+    }
+
+    /**
+     * Cross-realm URLSearchParams (instanceof fails across windows).
+     * @param {*} data
+     * @return {boolean}
+     */
+    isJQAjaxURLSearchParams(data) {
+        if ( !data || typeof data !== 'object' || typeof data.append !== 'function' ) {
+            return false;
+        }
+        if ( Object.prototype.toString.call(data) === '[object URLSearchParams]' ) {
+            return true;
+        }
+        if ( typeof data.sort === 'function' ) {
+            return true;
+        }
+        return typeof data.toString === 'function' && data.toString().indexOf('[object ') === -1;
+    }
+
+    /**
+     * Cross-realm FormData, including common polyfills.
+     * @param {*} data
+     * @return {boolean}
+     */
+    isJQAjaxFormData(data) {
+        if ( !data || typeof data !== 'object' || typeof data.append !== 'function' ) {
+            return false;
+        }
+        if ( this.isJQAjaxURLSearchParams(data) ) {
+            return false;
+        }
+        return Object.prototype.toString.call(data) === '[object FormData]' ||
+            typeof data.forEach === 'function' ||
+            typeof data.get === 'function';
     }
 
     /**
@@ -4169,8 +4217,7 @@ class ApbctHandler {
             sourceSign.keepUnwrapped = true;
         }
         if (
-            typeof ajaxObject.data === 'object' &&
-            ajaxObject.data !== null &&
+            this.isJQAjaxFormData(ajaxObject.data) &&
             typeof ajaxObject.data.get === 'function' &&
             ajaxObject.data.get('action') === 'pafe_ajax_form_builder'
         ) {
@@ -4206,7 +4253,7 @@ class ApbctHandler {
         if ( typeof ajaxData === 'string' ) {
             return this.injectCleantalkDataToJQAjaxString(sourceSign, ajaxData);
         }
-        if ( typeof URLSearchParams !== 'undefined' && ajaxData instanceof URLSearchParams ) {
+        if ( this.isJQAjaxURLSearchParams(ajaxData) ) {
             if ( keepOriginalType ) {
                 return this.injectCleantalkDataToJQAjaxKeyValue(
                     sourceSign,
@@ -4215,7 +4262,7 @@ class ApbctHandler {
             }
             return this.injectCleantalkDataToJQAjaxString(sourceSign, ajaxData.toString());
         }
-        if ( typeof FormData !== 'undefined' && ajaxData instanceof FormData ) {
+        if ( this.isJQAjaxFormData(ajaxData) ) {
             return this.injectCleantalkDataToJQAjaxFormData(
                 sourceSign,
                 this.cloneFormData(ajaxData),
@@ -4422,8 +4469,7 @@ class ApbctHandler {
     injectCleantalkDataToJQAjaxFormData(sourceSign, ajaxDataFormData) {
         if (
             typeof sourceSign !== 'object' ||
-            typeof ajaxDataFormData !== 'object' ||
-            !(ajaxDataFormData instanceof FormData)
+            !this.isJQAjaxFormData(ajaxDataFormData)
         ) {
             return ajaxDataFormData;
         }
