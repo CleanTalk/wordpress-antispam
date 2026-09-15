@@ -2450,7 +2450,7 @@ function apbct_settings__validate($incoming_settings)
 
     $predefined_key = Constant::getValue(Constant::APBCT_SERVICE__SELF_OWNED_ACCESS_KEY, false);
 
-    $incoming_settings['apikey'] = ! empty($incoming_settings['apikey']) ? trim($incoming_settings['apikey']) : '';
+    $incoming_settings['apikey'] = ! empty($incoming_settings['apikey']) ? trim($incoming_settings['apikey'], " \n\r\t\v\x00") : '';
     $incoming_settings['apikey'] = $predefined_key !== false ? $predefined_key : $incoming_settings['apikey'];
     $incoming_settings['apikey'] = ! is_main_site() && $apbct->white_label && $apbct->settings['apikey'] ? $apbct->settings['apikey'] : $incoming_settings['apikey'];
     $incoming_settings['apikey'] = is_main_site() || $apbct->allow_custom_key || $apbct->white_label ? $incoming_settings['apikey'] : $apbct->network_settings['apikey'];
@@ -2470,7 +2470,7 @@ function apbct_settings__validate($incoming_settings)
     // Sanitize setting values
     foreach ( $incoming_settings as &$setting ) {
         if ( is_string($setting) ) {
-            $setting = preg_replace('/[<"\'>]/', '', trim($setting));
+            $setting = preg_replace('/[<"\'>]/', '', trim($setting, " \n\r\t\v\x00"));
         } // Make HTML code inactive
     }
 
@@ -2666,7 +2666,7 @@ function apbct_settings__validate($incoming_settings)
             // compare non-main site blog key with the validating key
             $blog_settings = get_option('cleantalk_settings');
             $key_from_blog_settings = !empty($blog_settings['apikey']) ? $blog_settings['apikey'] : '';
-            if ( isset($incoming_settings['apikey']) && (trim($incoming_settings['apikey']) !== trim($key_from_blog_settings)) ) {
+            if ( isset($incoming_settings['apikey']) && (trim($incoming_settings['apikey'], " \n\r\t\v\x00") !== trim($key_from_blog_settings, " \n\r\t\v\x00")) ) {
                 $blog_key_changed = true;
             }
             $apbct->data['key_changed'] = empty($blog_key_changed) ? false : $blog_key_changed;
@@ -2910,7 +2910,7 @@ function apbct_settings__save_key($apikey = '', $direct_call = false)
         }
     }
 
-    $apikey = trim($apikey);
+    $apikey = trim($apikey, " \n\r\t\v\x00");
     $apikey = preg_match('/^[a-z\d]*$/', $apikey) ? $apikey : $apbct->settings['apikey'];
 
     if ( APBCT_WPMS && ! is_main_site() && (int) $apbct->network_settings['multisite__work_mode'] === 2 ) {
@@ -3024,8 +3024,8 @@ function apbct_settings__get_key_auto($direct_call = false)
         }
 
         if ( ! empty($result['auth_key']) && apbct_api_key__is_correct($result['auth_key']) ) {
-            $apbct->data['key_changed'] = trim($result['auth_key']) !== $apbct->settings['apikey'];
-            $apbct->settings['apikey'] = trim($result['auth_key']);
+            $apbct->data['key_changed'] = trim($result['auth_key'], " \n\r\t\v\x00") !== $apbct->settings['apikey'];
+            $apbct->settings['apikey'] = trim($result['auth_key'], " \n\r\t\v\x00");
         }
 
         $templates = '';
@@ -3187,7 +3187,7 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false, $url
         foreach ($exclusions as $exclusion) {
             //Cut exclusion if more than 128 symbols gained
             $sanitized_exclusion = substr($exclusion, 0, 128);
-            $sanitized_exclusion = trim($sanitized_exclusion);
+            $sanitized_exclusion = trim($sanitized_exclusion, " \n\r\t\v\x00");
 
             if ( ! empty($sanitized_exclusion) ) {
                 if ( $regexp ) {

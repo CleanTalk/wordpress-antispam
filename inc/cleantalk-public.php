@@ -982,7 +982,7 @@ function apbct_js_test($check_js_value = '', $is_cookie = false)
     ) {
         $js_key = $is_cookie && $apbct->data['cookies_type'] === 'alternative'
             ? Cookie::get('ct_checkjs')
-            : trim($check_js_value);
+            : trim($check_js_value, " \n\r\t\v\x00");
 
         // Check static key
         if (

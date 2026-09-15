@@ -102,8 +102,8 @@ class testEmailEncoderShortCodeEncode extends TestCase
         $content = 'Some content with [apbct_encode_data]Test content[/apbct_encode_data]';
         $result  = $this->shortcode->changeContentBeforeEncoderModify($content);
 
-        $this->assertStringContainsString('%%APBCT_SHORT_CODE_INCLUDE_EE_0%%', $result);
-        $this->assertArrayHasKey('%%APBCT_SHORT_CODE_INCLUDE_EE_0%%', $this->shortcode->shortcode_replacements);
+        $this->assertRegExp('/%%APBCT_SHORT_CODE_INCLUDE_EE_0_[a-f0-9]+%%/', $result);
+        $this->assertCount(1, $this->shortcode->shortcode_replacements);
     }
 
     public function testChangeContentBeforeEncoderModifyUsesPlaceholdersWhenDecoderCookieSet()
@@ -113,8 +113,8 @@ class testEmailEncoderShortCodeEncode extends TestCase
         $content = 'Some content with [apbct_encode_data]Test content[/apbct_encode_data]';
         $result  = $this->shortcode->changeContentBeforeEncoderModify($content);
 
-        $this->assertStringContainsString('%%APBCT_SHORT_CODE_INCLUDE_EE_0%%', $result);
-        $this->assertArrayHasKey('%%APBCT_SHORT_CODE_INCLUDE_EE_0%%', $this->shortcode->shortcode_replacements);
+        $this->assertRegExp('/%%APBCT_SHORT_CODE_INCLUDE_EE_0_[a-f0-9]+%%/', $result);
+        $this->assertCount(1, $this->shortcode->shortcode_replacements);
     }
 
     public function testChangeContentBeforeEncoderModifyUsesPlaceholdersWhenGlobalEmailEncodingDisabled()
@@ -128,7 +128,7 @@ class testEmailEncoderShortCodeEncode extends TestCase
         $content = '<p>[apbct_encode_data]Test content[/apbct_encode_data]</p>';
         $result  = $shortcode->changeContentBeforeEncoderModify($content);
 
-        $this->assertStringContainsString('%%APBCT_SHORT_CODE_INCLUDE_EE_0%%', $result);
+        $this->assertRegExp('/%%APBCT_SHORT_CODE_INCLUDE_EE_0_[a-f0-9]+%%/', $result);
         $this->assertStringContainsString('<p>', $result);
     }
 
@@ -174,8 +174,8 @@ class testEmailEncoderShortCodeEncode extends TestCase
 
         $result = $this->shortcode->changeContentBeforeEncoderModify($content);
 
-        $this->assertStringContainsString(
-            '%%APBCT_SHORT_CODE_INCLUDE_EE_0%%',
+        $this->assertRegExp(
+            '/%%APBCT_SHORT_CODE_INCLUDE_EE_0_[a-f0-9]+%%/',
             $result
         );
 
@@ -191,8 +191,10 @@ class testEmailEncoderShortCodeEncode extends TestCase
 
         $result = $this->shortcode->changeContentBeforeEncoderModify($content);
 
-        $this->assertStringContainsString('%%APBCT_SHORT_CODE_INCLUDE_EE_0%%', $result);
-        $this->assertStringContainsString('%%APBCT_SHORT_CODE_INCLUDE_EE_1%%', $result);
+        // both placeholders in the same render pass must share the same nonce
+        preg_match('/%%APBCT_SHORT_CODE_INCLUDE_EE_0_([a-f0-9]+)%%/', $result, $matches);
+        $this->assertNotEmpty($matches);
+        $this->assertStringContainsString('%%APBCT_SHORT_CODE_INCLUDE_EE_1_' . $matches[1] . '%%', $result);
     }
 
     public function testHtmlAttributeBreakPayloadDoesNotExplode()
@@ -234,8 +236,8 @@ class testEmailEncoderShortCodeEncode extends TestCase
 
         $result = $this->shortcode->changeContentBeforeEncoderModify($content);
 
-        $this->assertStringContainsString(
-            '%%APBCT_SHORT_CODE_INCLUDE_EE_0%%',
+        $this->assertRegExp(
+            '/%%APBCT_SHORT_CODE_INCLUDE_EE_0_[a-f0-9]+%%/',
             $result
         );
 
@@ -271,7 +273,7 @@ class testEmailEncoderShortCodeEncode extends TestCase
 
         $result = $this->shortcode->changeContentBeforeEncoderModify($content);
 
-        $this->assertStringNotContainsString('%%APBCT_SHORT_CODE_INCLUDE_EE_0%%', $result);
+        $this->assertNotRegExp('/%%APBCT_SHORT_CODE_INCLUDE_EE_0(_[a-f0-9]+)?%%/', $result);
     }
 
     public function testCallbackEscapesReplacingText()

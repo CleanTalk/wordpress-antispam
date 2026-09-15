@@ -400,15 +400,6 @@ class RemoteCalls
     }
 
     /**
-     * Update settings.
-     * @deprecated Since 6.85, see https://app.doboard.com/1/task/36680
-     */
-    public static function action__update_settings() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    {
-        return apbct_rc__update_settings($_REQUEST);
-    }
-
-    /**
      * Deactivate plugin
      */
     public static function action__deactivate_plugin() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
@@ -524,7 +515,7 @@ class RemoteCalls
             header("Content-Type: application/json");
         }
 
-        $key = trim(Request::getString('api_key'));
+        $key = trim(Request::getString('api_key'), " \n\r\t\v\x00");
         if ( ! apbct_api_key__is_correct($key) ) {
             die(json_encode(['FAIL' => ['error' => 'Api key is incorrect']]));
         }

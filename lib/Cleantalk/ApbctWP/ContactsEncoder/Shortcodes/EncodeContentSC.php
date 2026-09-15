@@ -115,10 +115,7 @@ class EncodeContentSC extends EmailEncoderShortCode
         // Extract shortcode content to protect it from email encoding, supports sc attributes(!)
         $shortcode_exist_pattern = sprintf('/(\[%s(?:\s[^\]]*)?\])([\s\S]*?)(\[\/%s\])/s', $this->public_name, $this->public_name);
         $content = preg_replace_callback($shortcode_exist_pattern, function ($matches) {
-            $placeholder = preg_replace('/EE\_\d+/', 'EE_' . (string)$this->shortcode_counter++, $this->exclusion_wrapper);
-            if (is_null($placeholder)) {
-                $placeholder = $this->exclusion_wrapper;
-            }
+            $placeholder = $this->buildPlaceholder($this->shortcode_counter++);
             if (isset($matches[1], $matches[2], $matches[3])) {
                 $prefix = $matches[1];
                 $entity = $matches[2];
@@ -166,5 +163,6 @@ class EncodeContentSC extends EmailEncoderShortCode
     {
         $this->shortcode_replacements = array();
         $this->shortcode_counter = 0;
+        $this->rotatePlaceholderNonce();
     }
 }

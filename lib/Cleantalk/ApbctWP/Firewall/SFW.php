@@ -606,7 +606,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $ids_invalid   = array();
             $data          = array();
             foreach ($logs as $_key => &$value) {
-                $ip = isset($value['ip']) ? trim((string)$value['ip']) : '';
+                $ip = isset($value['ip']) ? trim((string)$value['ip'], " \n\r\t\v\x00") : '';
 
                 // Do not send empty/invalid IPs — they break cloud collectors.
                 if ( Helper::ipValidate($ip) === false ) {

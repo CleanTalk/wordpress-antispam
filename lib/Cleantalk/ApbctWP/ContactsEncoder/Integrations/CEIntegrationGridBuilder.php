@@ -421,7 +421,7 @@ class CEIntegrationGridBuilder
             return;
         }
 
-        $css = trim($css);
+        $css = trim($css, " \n\r\t\v\x00");
 
         if ( $css === '' ) {
             return;
@@ -454,7 +454,7 @@ class CEIntegrationGridBuilder
                 continue;
             }
 
-            $chunk = trim($chunk);
+            $chunk = trim($chunk, " \n\r\t\v\x00");
 
             if ( $chunk !== '' ) {
                 $merged[] = $chunk;
@@ -463,7 +463,7 @@ class CEIntegrationGridBuilder
 
         if ( $merged === array() ) {
             return $this->isCardCssChunk($this->card_inline_css)
-                ? trim($this->card_inline_css)
+                ? trim($this->card_inline_css, " \n\r\t\v\x00")
                 : '';
         }
 
@@ -471,7 +471,7 @@ class CEIntegrationGridBuilder
             $this->card_inline_css !== ''
             && $this->isCardCssChunk($this->card_inline_css)
         ) {
-            $merged[] = trim($this->card_inline_css);
+            $merged[] = trim($this->card_inline_css, " \n\r\t\v\x00");
         }
 
         return implode("\n", array_unique($merged));
@@ -626,7 +626,7 @@ class CEIntegrationGridBuilder
             return '';
         }
 
-        return trim($css);
+        return trim($css, " \n\r\t\v\x00");
     }
 
     /**
@@ -668,7 +668,7 @@ class CEIntegrationGridBuilder
                 continue;
             }
 
-            $css = trim($css);
+            $css = trim($css, " \n\r\t\v\x00");
 
             if ( $css !== '' ) {
                 $chunks[] = $css;
@@ -713,7 +713,7 @@ class CEIntegrationGridBuilder
 
                 foreach ( $data as $piece ) {
                     if ( is_string($piece) && $this->isCardCssChunk($piece) ) {
-                        $chunks[] = trim($piece);
+                        $chunks[] = trim($piece, " \n\r\t\v\x00");
                     }
                 }
             }

@@ -744,7 +744,7 @@ function apbct_get_pixel_url($direct_call = false)
  */
 function apbct_email_check_before_post()
 {
-    $email = trim(TT::toString(Post::get('email')));
+    $email = trim(TT::toString(Post::get('email')), " \n\r\t\v\x00");
 
     if ( $email ) {
         $result = \Cleantalk\ApbctWP\API::methodEmailCheck($email);
@@ -762,7 +762,7 @@ function apbct_email_check_before_post()
 function apbct_email_check_exist_post()
 {
     global $apbct;
-    $email = trim(TT::toString(Post::get('email')));
+    $email = trim(TT::toString(Post::get('email')), " \n\r\t\v\x00");
     $api_key = $apbct->api_key;
     $brandname = $apbct->data['wl_mode_enabled'] ? $apbct->data['wl_brandname'] : 'Anti-Spam by CleanTalk';
     if ( $email && $api_key ) {
@@ -1152,7 +1152,7 @@ function ct_get_fields_any($arr, $email = '', $nickname = '')
         foreach ( $nickname as $value ) {
             $nickname_str .= ($value ? $value . " " : "");
         }
-        $nickname = trim($nickname_str);
+        $nickname = trim($nickname_str, " \n\r\t\v\x00");
     }
 
     return ct_gfa($arr, TT::toString($email), TT::toString($nickname));
