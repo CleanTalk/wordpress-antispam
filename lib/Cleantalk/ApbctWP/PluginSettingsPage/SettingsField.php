@@ -253,7 +253,8 @@ class SettingsField
 
     public function anyCacheDetectedInEnvironment()
     {
-        return apbct_is_varnish_cache_exists() || apbct_is_advanced_cache_exists() || apbct_is_10web_booster_exists() || apbct_is_cache_plugins_exists();
+        global $apbct;
+        return $apbct->isAltSessionsRequired();
     }
 
     /**
@@ -480,7 +481,11 @@ class SettingsField
      */
     private function getInputTextarea()
     {
-        $title_layout = '<h4 class="apbct_settings-field_title apbct_settings-field_title--{{type}}">{{title}} {{popup_description}}</h4>';
+        $title_class = 'apbct_settings-field_title apbct_settings-field_title--{{type}}';
+        if ( $this->description_popup !== '' ) {
+            $title_class .= ' apbct_settings-field_title--with-help';
+        }
+        $title_layout = '<h4 class="' . $title_class . '">{{title}} {{popup_description}}</h4>';
 
         $raw_value = empty($this->value) ? TT::getArrayValueAsString($this->params, 'value') : $this->value;
         if (is_array($raw_value)) {

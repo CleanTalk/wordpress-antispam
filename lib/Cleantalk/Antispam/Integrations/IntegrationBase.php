@@ -2,8 +2,12 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\Antispam\IntegrationMetrics\IMetricDTOTrait;
+
 abstract class IntegrationBase
 {
+    use IMetricDTOTrait;
+
     public $base_call_result;
     public $visible_fields_data;
 

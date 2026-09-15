@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\ApbctEnqueue;
+use Cleantalk\ApbctWP\BotDetectorService;
 use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Localize\LocalizeHandler;
@@ -39,7 +40,6 @@ function apbct_init()
     ) {
         $apbct->pixel_url = apbct_get_pixel_url(true);
     }
-
     // Localize data
     if ( ! apbct_exclusions_check__url() ) {
         if (Constant::is(Constant::APBCT_SERVICE__PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER, true)) {
@@ -1302,13 +1302,13 @@ function apbct_enqueue_and_localize_public_scripts()
     ApbctEnqueue::getInstance()->css('cleantalk-public.css');
 }
 
+/**
+ * @deprecated since 6.88, use \Cleantalk\ApbctWP\BotDetectorService::isNoScripFlow() instead
+ * @return bool
+ */
 function apbct_bot_detector_scripts_exclusion()
 {
-    if (apbct_is_plugin_active('oxygen/functions.php') && Get::get('ct_builder') === 'true') {
-        return true;
-    }
-
-    return false;
+    return BotDetectorService::isNoScripFlow();
 }
 
 

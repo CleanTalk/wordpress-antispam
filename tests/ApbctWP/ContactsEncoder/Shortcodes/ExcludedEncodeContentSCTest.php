@@ -453,4 +453,14 @@ class ExcludedEncodeContentSCTest extends TestCase
         $result = $this->exclude_content_sc->filterTheTitle($title);
         $this->assertSame($title, $result);
     }
+
+    public function testChangeContentBeforeEncoderModifySkipsShortcodeWithHtmlTags(): void
+    {
+        $content = '[apbct_skip_encoding]<p>safe@example.com</p>[/apbct_skip_encoding]';
+
+        $result = $this->exclude_content_sc->changeContentBeforeEncoderModify($content);
+
+        $this->assertSame($content, $result);
+        $this->assertCount(0, $this->exclude_content_sc->shortcode_replacements);
+    }
 }

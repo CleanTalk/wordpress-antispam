@@ -590,19 +590,45 @@ class Helper
     }
 
     /**
-     * Resolve DNS to IP
+     * Resolve DNS to IP.
      *
-     * @param      $host
-     * @param bool $out
+     * $host must be a full URL that passes FILTER_VALIDATE_URL (scheme required).
+     * A bare hostname such as HTTP_HOST, or any non-string value, is rejected
+     * and $out is returned.
      *
-     * @return bool
+     * @param mixed $host Full URL (FILTER_VALIDATE_URL); other types are rejected
+     * @param bool|string $out Fallback when $host is invalid or lookup fails
+     *
+     * @return bool|string First A-record IPv4 on success, otherwise $out
      * @psalm-suppress PossiblyUnusedMethod
      */
     public static function dnsResolve($host, $out = false)
     {
         // Check if the $url is set and it is an url
-        if ( ! $host || ! filter_var($host, FILTER_VALIDATE_URL)) {
+        if ( ! is_string($host) || $host === '' || ! filter_var($host, FILTER_VALIDATE_URL)) {
             return $out;
+        }
+
+        if ( strpos($host, '://') !== false ) {
+            $parsed_host = parse_url($host, PHP_URL_HOST);
+            if ( is_string($parsed_host) && $parsed_host !== '' ) {
+                $host = $parsed_host;
+            }
+        }
+
+        if ( strpos($host, ':') !== false && ! filter_var($host, FILTER_VALIDATE_IP) ) {
+            $host = strstr($host, ':', true);
+        }
+
+        $is_ip = filter_var($host, FILTER_VALIDATE_IP);
+
+        if ( ! filter_var($host, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME)
+             && ! $is_ip ) {
+            return false;
+        }
+
+        if ( $is_ip ) {
+            return $host;
         }
 
         // Get DNS records about URL
@@ -903,7 +929,9 @@ class Helper
         } elseif (function_exists('finfo_open')) {
             $finfo = finfo_open(FILEINFO_MIME_TYPE);
             $type  = finfo_buffer($finfo, $data);
-            finfo_close($finfo);
+            if (PHP_VERSION_ID < 80000) {
+                finfo_close($finfo);
+            }
         }
 
         // @ToDo the method must return comparison result: return $type ===  mime_content_type($data)

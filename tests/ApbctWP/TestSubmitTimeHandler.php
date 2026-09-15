@@ -64,9 +64,4 @@ class TestSubmitTimeHandler extends TestCase
 
         $this->assertFalse($result);
     }
-
-    protected function tearDown(): void
-    {
-        \Mockery::close();
-    }
 }
