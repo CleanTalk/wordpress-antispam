@@ -4,7 +4,7 @@ Tags: antispam, honeypot, bot, captcha, spam
 Requires at least: 4.7
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 6.87
+Stable tag: 6.88
 License: GPLv2
 
 Top-rated antispam for contact forms, comments, WooCommerce, eCommerce, and login. No CAPTCHAs, no friction, just background anti spam protection.
@@ -425,6 +425,35 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.88 16.09.2026 =
+New. ContactEncoder. Add option to exclude selected contact data.
+New. Code. IMetric service. Integrations performance metrics.
+New. BotDetectorService. Frontend data log.
+New. Code. Integrations performance base metrics.
+Upd.Code. frontend_data logger.
+Upd. BotDetectorService. FD log updates.
+Upd. IMetricDTOTrait. Now integration metrics can be disabled via const APBCT_SERVICE__DISABLE_INTEGRATION_METRICS.
+Upd. Settings. On wpms improve warnings appears.
+Upd. Frontend Data log. AltSession transport implemented.
+Upd. Code. Make patterns for case-insensitivity and improve helper methods.
+Upd. Integrations. Improve ajax prefilter.
+Upd. ContactEncoder. Imrove area-label processing.
+Upd. ContactEncoder. Improve shortcode flow.
+Mod. Banners. Editing texts in trial and renew banners
+Fix. ContactEncoder. Unfreeze composer version.
+Fix. RemoteCalls. Edits by update_settings.
+Fix. SFW. Clearing SFW Outdated errors when updating by cron or in manual mode
+Fix. AltSession. Editing in rest alt session endpoint
+Fix. Moderate url fixed.
+Fix. RemoteCalls. Edits by update_settings
+Fix. ContactEncoder. Shortcode edits
+Fix. AltSession. Editing in rest alt session endpoint
+Fix. Alt cookies. Validation apbct_antiflood_passed fixed.
+Fix. Imetric. Cast to int float values.
+Fix. Cookie. Renaming the wordpress_apbct_antibot cookie
+Fix. Code. Fixed compatibility with php8.5.
+Fix. TRP. Editing styles.
 
 = 6.87 02.09.2026 =
 Fix. Integrations. Improve statement to attaching assets on login page.
