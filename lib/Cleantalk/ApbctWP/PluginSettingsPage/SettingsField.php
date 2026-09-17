@@ -253,7 +253,8 @@ class SettingsField
 
     public function anyCacheDetectedInEnvironment()
     {
-        return apbct_is_varnish_cache_exists() || apbct_is_advanced_cache_exists() || apbct_is_10web_booster_exists() || apbct_is_cache_plugins_exists();
+        global $apbct;
+        return $apbct->isAltSessionsRequired();
     }
 
     /**
@@ -412,7 +413,7 @@ class SettingsField
         $data = [
             'name' => isset($this->params['name']) ? $this->params['name'] : '',
             'type' => isset($this->params['type']) ? $this->params['type'] : '',
-            'value' => $this->value,
+            'value' => esc_attr(is_array($this->value) ? implode(', ', $this->value) : (string)$this->value),
             'placeholder' => isset($this->params['placeholder']) ? 'placeholder="' . $this->params['placeholder'] . '"' : '',
             'disabled' => $this->disabled_string,
             'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
@@ -480,7 +481,16 @@ class SettingsField
      */
     private function getInputTextarea()
     {
-        $title_layout = '<h4 class="apbct_settings-field_title apbct_settings-field_title--{{type}}">{{title}} {{popup_description}}</h4>';
+        $title_class = 'apbct_settings-field_title apbct_settings-field_title--{{type}}';
+        if ( $this->description_popup !== '' ) {
+            $title_class .= ' apbct_settings-field_title--with-help';
+        }
+        $title_layout = '<h4 class="' . $title_class . '">{{title}} {{popup_description}}</h4>';
+
+        $raw_value = empty($this->value) ? TT::getArrayValueAsString($this->params, 'value') : $this->value;
+        if (is_array($raw_value)) {
+            $raw_value = implode(', ', $raw_value);
+        }
 
         $data = [
             'title' => isset($this->params['title']) ? $this->params['title'] : '',
@@ -491,7 +501,7 @@ class SettingsField
             'disabled' => $this->disabled_string,
             'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
             'childrens' => isset($this->params['childrens']) ? 'onchange="apbctSettingsDependencies(\'' . $this->children_string . '\')" ' : '',
-            'value' => empty($this->value) ? TT::getArrayValueAsString($this->params, 'value') : $this->value,
+            'value' => esc_textarea((string)$raw_value),
         ];
 
         $layout = '';
@@ -519,7 +529,7 @@ class SettingsField
         $data = [
             'name' => isset($this->params['name']) ? $this->params['name'] : '',
             'type' => isset($this->params['type']) ? $this->params['type'] : '',
-            'value' => $this->value,
+            'value' => esc_attr(is_array($this->value) ? implode(', ', $this->value) : (string)$this->value),
             'disabled' => $this->disabled_string,
             'required' => isset($this->params['required']) && $this->params['required'] ? 'required="required"' : '',
             'childrens' => isset($this->params['childrens']) ? 'onchange="apbctSettingsDependencies(\'' . $this->children_string . '\')" ' : '',

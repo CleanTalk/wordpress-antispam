@@ -659,7 +659,8 @@ function apbct_settings__set_fields()
                         'data__email_decoder_obfuscation_mode',
                         'data__email_decoder_obfuscation_custom_text',
                         'data__email_decoder_encode_phone_numbers',
-                        'data__email_decoder_encode_email_addresses'
+                        'data__email_decoder_encode_email_addresses',
+                        'data__email_decoder_excluded_strings'
                     ),
                     'long_description' => true,
                 ),
@@ -674,6 +675,14 @@ function apbct_settings__set_fields()
                     'description' => ContactsEncoder::getPhonesEncodingDescription(),
                     'class'           => 'apbct_settings-field_wrapper--sub',
                     'parent'            => 'data__email_decoder',
+                    'long_description' => true,
+                ),
+                'data__email_decoder_excluded_strings'             => array(
+                    'type'        => 'textarea',
+                    'title'       => __('Do not encode these contacts', 'cleantalk-spam-protect'),
+                    'description' => ContactsEncoder::getExcludedStringsDescription(),
+                    'parent'      => 'data__email_decoder',
+                    'class'       => 'apbct_settings-field_wrapper--sub',
                     'long_description' => true,
                 ),
                 'data__email_decoder_obfuscation_mode'        => array(
@@ -2382,6 +2391,7 @@ function apbct_settings__validate($incoming_settings)
         'data__email_decoder_obfuscation_mode',
         'data__email_decoder_obfuscation_custom_text',
         'data__email_decoder_buffer',
+        'data__email_decoder_excluded_strings',
     );
     $incoming_settings = apbct_settings__keep_settings_state_values(
         $incoming_settings,
@@ -2397,11 +2407,23 @@ function apbct_settings__validate($incoming_settings)
 
     // Set missing network settings from default.
     $stored_network_options = get_site_option($apbct->option_prefix . '_network_settings', array());
+    $incoming_work_mode     = isset($incoming_settings['multisite__work_mode'])
+        ? $incoming_settings['multisite__work_mode']
+        : null;
     $incoming_settings = apbct_settings__set_missed_network_settings(
         $incoming_settings,
         is_array($stored_network_options) ? $stored_network_options : array(),
         $apbct->default_network_settings
     );
+
+    if ( APBCT_WPMS && is_main_site() && $incoming_work_mode !== null ) {
+        $previous_work_mode = isset($apbct->network_settings['multisite__work_mode'])
+            ? (int) $apbct->network_settings['multisite__work_mode']
+            : 0;
+        if ( $previous_work_mode !== (int) $incoming_work_mode ) {
+            apbct_settings__clear_errors(true);
+        }
+    }
 
     /**
      * -- SFW rules --
@@ -2450,7 +2472,7 @@ function apbct_settings__validate($incoming_settings)
 
     $predefined_key = Constant::getValue(Constant::APBCT_SERVICE__SELF_OWNED_ACCESS_KEY, false);
 
-    $incoming_settings['apikey'] = ! empty($incoming_settings['apikey']) ? trim($incoming_settings['apikey']) : '';
+    $incoming_settings['apikey'] = ! empty($incoming_settings['apikey']) ? trim($incoming_settings['apikey'], " \n\r\t\v\x00") : '';
     $incoming_settings['apikey'] = $predefined_key !== false ? $predefined_key : $incoming_settings['apikey'];
     $incoming_settings['apikey'] = ! is_main_site() && $apbct->white_label && $apbct->settings['apikey'] ? $apbct->settings['apikey'] : $incoming_settings['apikey'];
     $incoming_settings['apikey'] = is_main_site() || $apbct->allow_custom_key || $apbct->white_label ? $incoming_settings['apikey'] : $apbct->network_settings['apikey'];
@@ -2470,7 +2492,7 @@ function apbct_settings__validate($incoming_settings)
     // Sanitize setting values
     foreach ( $incoming_settings as &$setting ) {
         if ( is_string($setting) ) {
-            $setting = preg_replace('/[<"\'>]/', '', trim($setting));
+            $setting = preg_replace('/[<"\'>]/', '', trim($setting, " \n\r\t\v\x00"));
         } // Make HTML code inactive
     }
 
@@ -2666,7 +2688,7 @@ function apbct_settings__validate($incoming_settings)
             // compare non-main site blog key with the validating key
             $blog_settings = get_option('cleantalk_settings');
             $key_from_blog_settings = !empty($blog_settings['apikey']) ? $blog_settings['apikey'] : '';
-            if ( isset($incoming_settings['apikey']) && (trim($incoming_settings['apikey']) !== trim($key_from_blog_settings)) ) {
+            if ( isset($incoming_settings['apikey']) && (trim($incoming_settings['apikey'], " \n\r\t\v\x00") !== trim($key_from_blog_settings, " \n\r\t\v\x00")) ) {
                 $blog_key_changed = true;
             }
             $apbct->data['key_changed'] = empty($blog_key_changed) ? false : $blog_key_changed;
@@ -2704,6 +2726,12 @@ function apbct_settings__validate($incoming_settings)
         $incoming_settings['data__email_decoder_obfuscation_custom_text'] = ContactsEncoder::getDefaultReplacingText();
     }
 
+    $incoming_settings['data__email_decoder_excluded_strings'] = apbct_settings__sanitize__excluded_contact_strings(
+        isset($incoming_settings['data__email_decoder_excluded_strings'])
+            ? $incoming_settings['data__email_decoder_excluded_strings']
+            : ''
+    );
+
     //sync discussion and plugin settings
     if (isset($incoming_settings['cleantalk_allowed_moderation'])) {
         update_option('cleantalk_allowed_moderation', TT::toString($incoming_settings['cleantalk_allowed_moderation'], '0'));
@@ -2715,6 +2743,40 @@ function apbct_settings__validate($incoming_settings)
     do_action('apbct_before_returning_settings', $incoming_settings);
 
     return $incoming_settings;
+}
+
+/**
+ * Clear plugin errors on the current site.
+ * When $all_blogs is true on WPMS, also wipe errors on every blog.
+ *
+ * @param bool $all_blogs
+ *
+ * @return void
+ */
+function apbct_settings__clear_errors($all_blogs = false)
+{
+    global $apbct, $wpdb;
+
+    $apbct->errorDeleteAll(true);
+
+    if ( ! $all_blogs || ! APBCT_WPMS ) {
+        return;
+    }
+
+    $option_name     = $apbct->option_prefix . '_errors';
+    $current_blog_id = get_current_blog_id();
+    $wp_blogs        = $wpdb->get_results('SELECT blog_id FROM ' . $wpdb->blogs, OBJECT_K);
+
+    if ( ! is_array($wp_blogs) ) {
+        return;
+    }
+
+    foreach ( $wp_blogs as $blog ) {
+        if ( (int) $blog->blog_id === (int) $current_blog_id ) {
+            continue;
+        }
+        update_blog_option($blog->blog_id, $option_name, array());
+    }
 }
 
 function apbct_settings__sync($direct_call = false)
@@ -2734,8 +2796,12 @@ function apbct_settings__sync($direct_call = false)
         die(json_encode($out));
     }
 
-    //Clearing all errors
-    $apbct->errorDeleteAll(true);
+    // Clearing all errors. Mutual Access Key (mode 2): wipe leftover banners on every blog.
+    $clear_all_blogs = APBCT_WPMS
+        && is_main_site()
+        && isset($apbct->network_settings['multisite__work_mode'])
+        && (int) $apbct->network_settings['multisite__work_mode'] === 2;
+    apbct_settings__clear_errors($clear_all_blogs);
 
     // Feedback with app_agent
     ct_send_feedback('0:' . APBCT_AGENT); // 0 - request_id, agent version.
@@ -2910,7 +2976,7 @@ function apbct_settings__save_key($apikey = '', $direct_call = false)
         }
     }
 
-    $apikey = trim($apikey);
+    $apikey = trim($apikey, " \n\r\t\v\x00");
     $apikey = preg_match('/^[a-z\d]*$/', $apikey) ? $apikey : $apbct->settings['apikey'];
 
     if ( APBCT_WPMS && ! is_main_site() && (int) $apbct->network_settings['multisite__work_mode'] === 2 ) {
@@ -3024,8 +3090,8 @@ function apbct_settings__get_key_auto($direct_call = false)
         }
 
         if ( ! empty($result['auth_key']) && apbct_api_key__is_correct($result['auth_key']) ) {
-            $apbct->data['key_changed'] = trim($result['auth_key']) !== $apbct->settings['apikey'];
-            $apbct->settings['apikey'] = trim($result['auth_key']);
+            $apbct->data['key_changed'] = trim($result['auth_key'], " \n\r\t\v\x00") !== $apbct->settings['apikey'];
+            $apbct->settings['apikey'] = trim($result['auth_key'], " \n\r\t\v\x00");
         }
 
         $templates = '';
@@ -3187,7 +3253,7 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false, $url
         foreach ($exclusions as $exclusion) {
             //Cut exclusion if more than 128 symbols gained
             $sanitized_exclusion = substr($exclusion, 0, 128);
-            $sanitized_exclusion = trim($sanitized_exclusion);
+            $sanitized_exclusion = trim($sanitized_exclusion, " \n\r\t\v\x00");
 
             if ( ! empty($sanitized_exclusion) ) {
                 if ( $regexp ) {
@@ -3212,6 +3278,32 @@ function apbct_settings__sanitize__exclusions($exclusions, $regexp = false, $url
         case 2:
             return implode("\r\n", $result);
     }
+}
+
+/**
+ * Sanitize the Contacts Encoder skip-list: one value per line, max 20 items, 128 chars each.
+ *
+ * @param mixed $exclusions
+ *
+ * @return string
+ */
+function apbct_settings__sanitize__excluded_contact_strings($exclusions)
+{
+    if ( ! is_string($exclusions) ) {
+        return '';
+    }
+
+    $parts = \Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService::parseExcludedStrings($exclusions);
+    $parts = array_slice($parts, 0, 20);
+    $result = array();
+    foreach ( $parts as $part ) {
+        $part = trim(substr($part, 0, 128), " \n\r\t\v\x00");
+        if ( $part !== '' ) {
+            $result[] = $part;
+        }
+    }
+
+    return implode("\n", array_values(array_unique($result)));
 }
 
 function apbct_settings__get__long_description()
@@ -3383,6 +3475,10 @@ function apbct_settings__get_long_descriptions_data()
         'data__email_decoder_encode_phone_numbers' => array(
             'title' => __('Contact data encoding: phone numbers', 'cleantalk-spam-protect'),
             'desc'  => ContactsEncoder::getPhonesEncodingLongDescription(),
+        ),
+        'data__email_decoder_excluded_strings' => array(
+            'title' => __('Contact data encoding: do not encode these contacts', 'cleantalk-spam-protect'),
+            'desc'  => ContactsEncoder::getExcludedStringsLongDescription(),
         ),
         'data__email_decoder' => array(
             'title' => __('Contact data encoding', 'cleantalk-spam-protect'),

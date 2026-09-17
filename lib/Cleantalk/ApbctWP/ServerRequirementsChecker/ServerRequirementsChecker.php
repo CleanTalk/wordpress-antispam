@@ -197,7 +197,7 @@ class ServerRequirementsChecker
      */
     private function normalizeMemoryLimit($val)
     {
-        $val = trim($val);
+        $val = trim($val, " \n\r\t\v\x00");
         $last = strtolower($val[strlen($val) - 1]);
         $val = (int)$val;
         switch ($last) {

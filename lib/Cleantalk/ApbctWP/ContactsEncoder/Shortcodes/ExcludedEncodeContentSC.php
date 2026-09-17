@@ -89,7 +89,11 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         $pattern = '/\[apbct_skip_encoding\](.*?)\[\/apbct_skip_encoding\]/s';
 
         return preg_replace_callback($pattern, function ($matches) {
-            if (isset($matches[1])) {
+            if ( isset($matches[1]) ) {
+                if ( $this->shortcodeContentContainsHtmlTags($matches[1]) ) {
+                    return isset($matches[0]) ? $matches[0] : '';
+                }
+
                 return $this->createPlaceholder($matches[1]);
             }
 
@@ -174,6 +178,10 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
 
         return preg_replace_callback($pattern, function ($matches) {
             if ( isset($matches[1]) ) {
+                if ( $this->shortcodeContentContainsHtmlTags($matches[1]) ) {
+                    return isset($matches[0]) ? $matches[0] : '';
+                }
+
                 return $this->callback([], $matches[1], '');
             }
             /** @psalm-suppress PossiblyUndefinedIntArrayOffset */
@@ -275,10 +283,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      */
     protected function createPlaceholder($content)
     {
-        $placeholder = preg_replace('/EE\_\d+/', 'EE_' . (string)$this->shortcode_counter++, $this->exclusion_wrapper);
-        if (is_null($placeholder)) {
-            $placeholder = $this->exclusion_wrapper;
-        }
+        $placeholder = $this->buildPlaceholder($this->shortcode_counter++);
         $this->shortcode_replacements[$placeholder] = $content;
 
         return $placeholder;
@@ -291,6 +296,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     {
         $this->shortcode_replacements = array();
         $this->shortcode_counter = 0;
+        $this->rotatePlaceholderNonce();
     }
 
     /**
@@ -591,7 +597,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
 
         $protected_contacts = array();
         foreach ( $matches[1] as $inner_match ) {
-            $inner = trim($inner_match[0]);
+            $inner = trim($inner_match[0], " \n\r\t\v\x00");
             if ( $inner !== '' ) {
                 $protected_contacts[$inner] = true;
             }
@@ -615,7 +621,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
 
         $result .= $this->stripProtectedContactsFromPlainText(substr($title, $offset), array_keys($protected_contacts));
 
-        return trim(preg_replace('/\s+/', ' ', $result));
+        return trim(preg_replace('/\s+/', ' ', $result), " \n\r\t\v\x00");
     }
 
     /**
@@ -913,7 +919,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
 
         if ( $strip_html ) {
             $result = wp_strip_all_tags($result);
-            $result = trim(preg_replace('/\s+/', ' ', $result));
+            $result = trim(preg_replace('/\s+/', ' ', $result), " \n\r\t\v\x00");
         }
 
         return $result;
@@ -931,7 +937,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         $title = preg_replace('/\[apbct_skip_encoding\](.*?)\[\/apbct_skip_encoding\]/s', '$1', $title);
         $title = preg_replace('/\[\/?apbct_skip_encoding\]/', '', $title);
 
-        return trim(preg_replace('/\s+/', ' ', $title));
+        return trim(preg_replace('/\s+/', ' ', $title), " \n\r\t\v\x00");
     }
 
     /**

@@ -67,10 +67,10 @@ class Cron extends \Cleantalk\Common\Cron
         }
 
         $unserialize_options = array('allowed_classes' => false);
-        $unserialized        = @unserialize(trim($result), $unserialize_options);
+        $unserialized        = @unserialize(trim($result, " \n\r\t\v\x00"), $unserialize_options);
 
         if ( is_string($unserialized) && is_serialized($unserialized) ) {
-            $unserialized = @unserialize(trim($unserialized), $unserialize_options);
+            $unserialized = @unserialize(trim($unserialized, " \n\r\t\v\x00"), $unserialize_options);
         }
 
         return is_array($unserialized) ? $unserialized : array();

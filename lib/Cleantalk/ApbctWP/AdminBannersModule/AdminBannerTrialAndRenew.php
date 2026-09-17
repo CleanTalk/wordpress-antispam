@@ -53,14 +53,14 @@ class AdminBannerTrialAndRenew extends AdminBannerAbstract
             'renewal_link' => $renewal_link,
             'plugin_settings_link' => $settings_link,
             'title_main' => __(
-                'Please upgrade your license to keep your site secure and protected!',
+                'Please upgrade your license to keep your site protected!',
                 'cleantalk-spam-protect'
             ),
             'title_numbers' => sprintf(
-                __('Trusted by %s sites | %s attacks blocked | %s brute-force prevented', 'cleantalk-spam-protect'),
+                __('Trusted by %s sites | %s attacks blocked | %s spam detection accuracy', 'cleantalk-spam-protect'),
                 '1,079,000+',
-                '10.5M+',
-                '1.4M+'
+                '12,450,238,000+',
+                '99.9982%'
             ),
             'title_upd' => sprintf(
                 __(

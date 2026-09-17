@@ -149,4 +149,15 @@ class HelperTest extends TestCase
 			'ipResolve should return false or a non-empty string hostname'
 		);
 	}
+
+	/**
+	 * Detect MIME from a data buffer. Must not call deprecated finfo_close() on PHP 8.5+.
+	 */
+	public function test_getMimeType_from_buffer()
+	{
+		$type = Helper::getMimeType('<html><body>hello</body></html>', 'text/plain');
+
+		$this->assertIsString($type);
+		$this->assertNotSame('', $type);
+	}
 }
