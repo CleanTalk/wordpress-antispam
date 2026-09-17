@@ -89,7 +89,11 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         $pattern = '/\[apbct_skip_encoding\](.*?)\[\/apbct_skip_encoding\]/s';
 
         return preg_replace_callback($pattern, function ($matches) {
-            if (isset($matches[1])) {
+            if ( isset($matches[1]) ) {
+                if ( $this->shortcodeContentContainsHtmlTags($matches[1]) ) {
+                    return isset($matches[0]) ? $matches[0] : '';
+                }
+
                 return $this->createPlaceholder($matches[1]);
             }
 
@@ -174,6 +178,10 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
 
         return preg_replace_callback($pattern, function ($matches) {
             if ( isset($matches[1]) ) {
+                if ( $this->shortcodeContentContainsHtmlTags($matches[1]) ) {
+                    return isset($matches[0]) ? $matches[0] : '';
+                }
+
                 return $this->callback([], $matches[1], '');
             }
             /** @psalm-suppress PossiblyUndefinedIntArrayOffset */

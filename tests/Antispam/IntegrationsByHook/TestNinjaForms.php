@@ -7,7 +7,6 @@ use Cleantalk\ApbctWP\DTO\GetFieldsAnyDTO;
 use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Post;
 use PHPUnit\Framework\TestCase;
-use Mockery\MockInterface;
 
 class TestNinjaForms extends TestCase
 {
@@ -15,9 +14,6 @@ class TestNinjaForms extends TestCase
 
     /** @var NinjaForms */
     private $ninjaForms;
-
-    /** @var MockInterface */
-    private $mockGlobalApbct;
 
     protected function setUp(): void
     {

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.87.99-fix
+  Version: 6.88
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -15,6 +15,7 @@ use Cleantalk\Antispam\ScriptsIntegration\CleantalkScriptsIntegrator;
 use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
+use Cleantalk\ApbctWP\BotDetectorService;
 use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Antispam\ForceProtection;
@@ -152,7 +153,7 @@ if ( defined('CLEANTALK_SERVER') ) {
 }
 
 if ( ! defined('APBCT_BOT_DETECTOR_SCRIPT_URL') ) {
-    define('APBCT_BOT_DETECTOR_SCRIPT_URL', 'https://fd.cleantalk.org/ct-bot-detector-wrapper.js');
+    define('APBCT_BOT_DETECTOR_SCRIPT_URL', BotDetectorService::getWrapperUrl());
 }
 
 /**
@@ -1879,6 +1880,8 @@ function apbct_sfw_update__end_of_update($is_first_updating = false)
 
     // Delete update errors
     $apbct->errorDelete('sfw_update', true);
+    // Delete outdated errors
+    $apbct->errorDelete('sfw_outdated', true);
 
     // Running sfw update once again in 12 min if entries is < 4000
     if ( $is_first_updating &&
@@ -3168,6 +3171,11 @@ function apbctGetContactsEncoder()
     $contacts_encoder_params->obfuscation_text = $apbct->settings['data__email_decoder_obfuscation_custom_text'];
     $contacts_encoder_params->do_encode_emails = (int)$apbct->settings['data__email_decoder_encode_email_addresses'];
     $contacts_encoder_params->do_encode_phones = (int)$apbct->settings['data__email_decoder_encode_phone_numbers'];
+    $contacts_encoder_params->excluded_strings = \Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService::parseExcludedStrings(
+        isset($apbct->settings['data__email_decoder_excluded_strings'])
+            ? $apbct->settings['data__email_decoder_excluded_strings']
+            : ''
+    );
 
     return ContactsEncoder::getInstance($contacts_encoder_params);
 }
