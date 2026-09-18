@@ -449,8 +449,16 @@ function ctFillDecodedEmail(target, email) {
     target.innerHTML = target.innerHTML.replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1');
 }
 
+let ctEmailDecoderIsInitialized = false;
+
 // Listen clicks on encoded emails
 document.addEventListener('DOMContentLoaded', function() {
+    // Some plugins dispatch a synthetic DOMContentLoaded, listeners must not be attached twice
+    if (ctEmailDecoderIsInitialized) {
+        return;
+    }
+    ctEmailDecoderIsInitialized = true;
+
     let encodedEmailNodes = document.querySelectorAll('[data-original-string]');
     if (typeof ctPublic !== 'undefined') {
         ctPublic.encodedEmailNodes = encodedEmailNodes;
