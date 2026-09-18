@@ -5,6 +5,7 @@ namespace Cleantalk\Antispam;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\HTTP\Request;
 use Cleantalk\Common\DNS;
+use Cleantalk\Common\TT;
 
 /**
  * Cleantalk base class
@@ -104,6 +105,14 @@ class Cleantalk
      * @var array
      */
     private $downServers;
+
+    /**
+     * IPs already picked by the IP fallback during the current request cycle.
+     * The pool hostname is shared by every node, so only the IP identifies a server there.
+     *
+     * @var array
+     */
+    private $down_ips = array();
 
     /**
      * Function checks whether it is possible to publish the message
@@ -259,6 +268,7 @@ class Cleantalk
         while (($result === false || (is_object($result) && $result->errno != 0)) && $attempt <= $number_of_connection_attempts) {
             // Getting type of error
             $type_error = $this->getTypeError($result);
+            $ip_to_resolve = false;
 
             $failed_urls = $this->work_url;
             if ( ! empty($this->work_url) ) {
@@ -266,8 +276,8 @@ class Cleantalk
             }
 
             if ( ($type_error === 'getaddrinfo_error' || $type_error === 'connection_timeout') && $attempt === 1 ) {
-                $this->rotateModerateAndUseIP();
-                //exit if next sendRequest failed, because change dns->ip is only way to fix errors above
+                $ip_to_resolve = $this->rotateModerateAndUseIP();
+                // Exit if next sendRequest failed, because bypassing DNS is the last retry.
                 $attempt = $attempt + 2;
             } else {
                 $this->rotateModerate();
@@ -275,7 +285,7 @@ class Cleantalk
                 $attempt = $attempt + 1;
             }
 
-            $result = $this->sendRequest($msg, $this->work_url, $this->server_timeout);
+            $result = $this->sendRequest($msg, $this->work_url, $this->server_timeout, $ip_to_resolve);
             /** @psalm-suppress PossiblyInvalidPropertyFetch */
             if ( $result !== false && $result->errno === 0 ) {
                 $this->server_change = true;
@@ -341,7 +351,8 @@ class Cleantalk
     }
 
     /**
-     * * @todo Refactor / fix logic errors
+     * @todo Refactor / fix logic errors
+     * @return string|false Selected IP address, or false if none was selected.
      */
     public function rotateModerateAndUseIP()
     {
@@ -356,29 +367,58 @@ class Cleantalk
         $servers = $this->getServersIp($url_host);
 
         if ( ! $servers ) {
-            return;
+            return false;
         }
 
         $apbct->settings['wp__use_builtin_http_api'] = false;
 
         // Loop until find work server
         foreach ( $servers as $server ) {
-            $dns = Helper::ipResolve($server['ip']);
-            if ( ! $dns ) {
+            $ip = TT::getArrayValueAsString($server, 'ip');
+            if ( empty($ip) ) {
                 continue;
             }
 
-            $this->work_url = $url_protocol . $server['ip'] . $url_suffix;
-
-            // Do not checking previous down server
-            if ( ! empty($this->downServers) && in_array($this->work_url, $this->downServers) ) {
+            // The pool hostname does not distinguish nodes, so dedup the fallback by IP.
+            if ( in_array($ip, $this->down_ips, true) ) {
                 continue;
             }
 
+            // A forward-confirmed PTR points to the exact node and is preferred.
+            // Without a PTR the pool hostname is still correct for SNI and the certificate,
+            // because the node is pinned by IP via CURLOPT_RESOLVE anyway.
+            $dns  = $this->resolvePtr($ip);
+            $host = $dns ?: $url_host;
+
+            $work_url = $url_protocol . $host . $url_suffix;
+
+            // Do not check the previous down server. Only a node-specific hostname
+            // identifies a server, the pool hostname is shared by all of them.
+            if ( $dns && ! empty($this->downServers) && in_array($work_url, $this->downServers, true) ) {
+                continue;
+            }
+
+            $this->work_url      = $work_url;
+            $this->down_ips[]    = $ip;
             $this->server_ttl    = $server['ttl'];
             $this->server_change = true;
-            break;
+
+            return $ip;
         }
+
+        return false;
+    }
+
+    /**
+     * Seam over the forward-confirmed reverse DNS lookup, overridable in tests.
+     *
+     * @param string $ip
+     *
+     * @return string|false PTR hostname that resolves back to $ip, false otherwise.
+     */
+    protected function resolvePtr($ip)
+    {
+        return Helper::ipResolve($ip);
     }
 
     /**
@@ -510,11 +550,12 @@ class Cleantalk
      * @param string|array $data
      * @param string $url
      * @param int $server_timeout
+     * @param string|false $ip_to_resolve IP address to use for the URL hostname without changing the URL.
      *
      * @return boolean|CleantalkResponse
      * @throws \Exception
      */
-    private function sendRequest($data, $url, $server_timeout = 3)
+    private function sendRequest($data, $url, $server_timeout = 3, $ip_to_resolve = false)
     {
         //Cleaning from 'null' values
         $tmp_data = array();
@@ -552,10 +593,18 @@ class Cleantalk
             ? $url . '/' . $this->method_uri
             : $url;
 
+        $options = array('timeout' => $server_timeout);
+        if ($ip_to_resolve) {
+            $connection_resolve_string = $this->maybeResolveIPInsteadOfHost($url, $ip_to_resolve);
+            if ($connection_resolve_string && defined('CURLOPT_RESOLVE')) {
+                $options[CURLOPT_RESOLVE] = array($connection_resolve_string);
+            }
+        }
+
         $result = $http->setUrl($url)
                        ->setData($data)
                        ->setPresets($presets)
-                       ->setOptions(['timeout' => $server_timeout])
+                       ->setOptions($options)
                        ->request();
 
         $errstr   = null;
@@ -581,6 +630,29 @@ class Cleantalk
         }
 
         return $response;
+    }
+
+    /**
+     * @param string $url
+     * @param string $ip_to_resolve
+     * @return false|string
+     */
+    public function maybeResolveIPInsteadOfHost(string $url, string $ip_to_resolve)
+    {
+        if (
+            filter_var($ip_to_resolve, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
+        ) {
+            $url_parts = parse_url($url);
+            $host = TT::getArrayValueAsString($url_parts, 'host');
+            $port = TT::getArrayValueAsInt($url_parts, 'port');
+            $is_ssl = TT::getArrayValueAsString($url_parts, 'scheme') !== 'http';
+            if (!empty($host)) {
+                // URL may omit the port, then it is defined by the scheme
+                $port = !empty($port) ? $port : ($is_ssl ? 443 : 80);
+                return $host . ':' . $port . ':' . $ip_to_resolve;
+            }
+        }
+        return false;
     }
 
      /**
