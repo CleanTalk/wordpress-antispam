@@ -5,6 +5,7 @@ namespace Cleantalk\Antispam;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\HTTP\Request;
 use Cleantalk\Common\DNS;
+use Cleantalk\Common\TT;
 
 /**
  * Cleantalk base class
@@ -49,6 +50,16 @@ class Cleantalk
      * @var string
      */
     public $work_url;
+
+    /**
+     * IP of the node the work url is pinned to.
+     *
+     * The URL always carries the pool hostname, so it alone does not identify a node.
+     * This IP is what actually selects the server, via CURLOPT_RESOLVE.
+     *
+     * @var string|null
+     */
+    public $work_ip;
 
     /**
      * Work url ttl
@@ -104,6 +115,14 @@ class Cleantalk
      * @var array
      */
     private $downServers;
+
+    /**
+     * IPs already picked by the IP fallback during the current request cycle.
+     * The pool hostname is shared by every node, so only the IP identifies a server there.
+     *
+     * @var array
+     */
+    private $down_ips = array();
 
     /**
      * Function checks whether it is possible to publish the message
@@ -247,9 +266,10 @@ class Cleantalk
     public function httpRequest($msg)
     {
         $failed_urls = null;
-        // Using current server without changing it
+        // Using current server without changing it.
+        // work_ip pins the node the URL was resolved to last time, see selectModerateNode().
         $result = ! empty($this->work_url) && $this->server_changed + 86400 > time()
-            ? $this->sendRequest($msg, $this->work_url, $this->server_timeout)
+            ? $this->sendRequest($msg, $this->work_url, $this->server_timeout, $this->work_ip)
             : false;
 
         // Changing server if no work_url or request has an error
@@ -260,29 +280,35 @@ class Cleantalk
             // Getting type of error
             $type_error = $this->getTypeError($result);
 
-            $failed_urls = $this->work_url;
+            // The URL always carries the pool hostname, so the node that just failed
+            // is identified by its IP. Keep it out of the next rotation.
+            if ( ! empty($this->work_ip) && ! in_array($this->work_ip, $this->down_ips, true) ) {
+                $this->down_ips[] = $this->work_ip;
+            }
+
+            $failed_urls = $this->describeWorkServer();
             if ( ! empty($this->work_url) ) {
                 $this->downServers[] = $this->work_url;
             }
 
             if ( ($type_error === 'getaddrinfo_error' || $type_error === 'connection_timeout') && $attempt === 1 ) {
-                $this->rotateModerateAndUseIP();
-                //exit if next sendRequest failed, because change dns->ip is only way to fix errors above
+                $ip_to_resolve = $this->rotateModerateAndUseIP();
+                // Exit if next sendRequest failed, because bypassing DNS is the last retry.
                 $attempt = $attempt + 2;
             } else {
-                $this->rotateModerate();
+                $ip_to_resolve = $this->rotateModerate();
                 //try change server again if next sendRequest failed
                 $attempt = $attempt + 1;
             }
 
-            $result = $this->sendRequest($msg, $this->work_url, $this->server_timeout);
+            $result = $this->sendRequest($msg, $this->work_url, $this->server_timeout, $ip_to_resolve);
             /** @psalm-suppress PossiblyInvalidPropertyFetch */
             if ( $result !== false && $result->errno === 0 ) {
                 $this->server_change = true;
                 break;
             }
 
-            $failed_urls .= ', ' . $this->work_url;
+            $failed_urls .= ', ' . $this->describeWorkServer();
         }
         /** @psalm-suppress PossiblyInvalidArgument */
         $response = new CleantalkResponse($result, $failed_urls);
@@ -303,9 +329,19 @@ class Cleantalk
     }
 
     /**
-     * * @todo Refactor / fix logic errors
+     * Selects the next moderate node that has not failed yet in the current cycle.
+     *
+     * The URL always keeps the pool hostname from server_url. It is the only name
+     * known to match the API certificate, and deriving it from DNS (a PTR record)
+     * would let a poisoned resolver choose the very name TLS is validated against.
+     * The node is selected by IP instead and has to be pinned with CURLOPT_RESOLVE.
+     *
+     * getServersIp() returns the candidates sorted by ping, so the first usable
+     * entry is the closest responding node.
+     *
+     * @return string|false Selected node IP, false when no candidate is left.
      */
-    public function rotateModerate()
+    private function selectModerateNode()
     {
         // Split server url to parts
         preg_match("/^(https?:\/\/)([^\/:]+)(.*)/i", $this->server_url, $matches);
@@ -317,68 +353,71 @@ class Cleantalk
         $servers = $this->getServersIp($url_host);
 
         if ( ! $servers ) {
-            return;
+            return false;
         }
 
         // Loop until find work server
         foreach ( $servers as $server ) {
-            $dns = Helper::ipResolve($server['ip']);
-            if ( ! $dns ) {
+            $ip = TT::getArrayValueAsString($server, 'ip');
+
+            // The pool hostname is shared by every node, so only the IP identifies one.
+            // Skipping by URL here would discard all of the candidates at once.
+            if ( empty($ip) || in_array($ip, $this->down_ips, true) ) {
                 continue;
             }
 
-            $this->work_url = $url_protocol . $dns . $url_suffix;
-
-            // Do not checking previous down server
-            if ( ! empty($this->downServers) && in_array($this->work_url, $this->downServers) ) {
-                continue;
-            }
-
-            $this->server_ttl    = $server['ttl'];
+            $this->work_url      = $url_protocol . $url_host . $url_suffix;
+            $this->work_ip       = $ip;
+            $this->down_ips[]    = $ip;
+            $this->server_ttl    = TT::getArrayValueAsInt($server, 'ttl');
             $this->server_change = true;
-            break;
+
+            return $ip;
         }
+
+        return false;
     }
 
     /**
-     * * @todo Refactor / fix logic errors
+     * Renders the current server for connection reports.
+     *
+     * Every node now shares the pool hostname, so the URL alone no longer tells
+     * which server was contacted. The pinned IP is appended to keep the report
+     * able to answer that.
+     *
+     * @return string
+     */
+    private function describeWorkServer()
+    {
+        if ( empty($this->work_url) ) {
+            return '';
+        }
+
+        return empty($this->work_ip)
+            ? $this->work_url
+            : $this->work_url . ' (' . $this->work_ip . ')';
+    }
+
+    /**
+     * Rotates to the closest responding moderate node.
+     *
+     * @return string|false Selected node IP, false when no candidate is left.
+     */
+    public function rotateModerate()
+    {
+        return $this->selectModerateNode();
+    }
+
+    /**
+     * Rotates to the closest responding moderate node when DNS for the pool
+     * hostname is unusable. Identical to rotateModerate(), kept as a separate
+     * entry point because the caller treats this as the last retry.
+     *
+     * @return string|false Selected node IP, false when no candidate is left.
      */
     public function rotateModerateAndUseIP()
     {
-        // Split server url to parts
-        global $apbct;
-        preg_match("/^(https?:\/\/)([^\/:]+)(.*)/i", $this->server_url, $matches);
-
-        $url_protocol = isset($matches[1]) ? $matches[1] : '';
-        $url_host     = isset($matches[2]) ? $matches[2] : '';
-        $url_suffix   = isset($matches[3]) ? $matches[3] : '';
-
-        $servers = $this->getServersIp($url_host);
-
-        if ( ! $servers ) {
-            return;
-        }
-
-        $apbct->settings['wp__use_builtin_http_api'] = false;
-
-        // Loop until find work server
-        foreach ( $servers as $server ) {
-            $dns = Helper::ipResolve($server['ip']);
-            if ( ! $dns ) {
-                continue;
-            }
-
-            $this->work_url = $url_protocol . $server['ip'] . $url_suffix;
-
-            // Do not checking previous down server
-            if ( ! empty($this->downServers) && in_array($this->work_url, $this->downServers) ) {
-                continue;
-            }
-
-            $this->server_ttl    = $server['ttl'];
-            $this->server_change = true;
-            break;
-        }
+        return $this->selectModerateNode();
     }
 
     /**
@@ -510,11 +549,12 @@ class Cleantalk
      * @param string|array $data
      * @param string $url
      * @param int $server_timeout
+     * @param string|false $ip_to_resolve IP address to use for the URL hostname without changing the URL.
      *
      * @return boolean|CleantalkResponse
      * @throws \Exception
      */
-    private function sendRequest($data, $url, $server_timeout = 3)
+    private function sendRequest($data, $url, $server_timeout = 3, $ip_to_resolve = false)
     {
         //Cleaning from 'null' values
         $tmp_data = array();
@@ -552,11 +592,27 @@ class Cleantalk
             ? $url . '/' . $this->method_uri
             : $url;
 
+        $options = array('timeout' => $server_timeout);
+        $connection_resolve_string = $ip_to_resolve
+            ? $this->maybeResolveIPInsteadOfHost($url, $ip_to_resolve)
+            : false;
+
+        if ($connection_resolve_string && defined('CURLOPT_RESOLVE')) {
+            $options[CURLOPT_RESOLVE] = array($connection_resolve_string);
+        }
+
+        // CURLOPT_RESOLVE is a cURL option, the WordPress HTTP API silently drops it.
+        // Without it the hostname would be resolved by DNS again and the node
+        // selection would be lost, so force the cURL transport for pinned requests.
+        $http_api_state = $this->disableBuiltInHttpApi(isset($options[CURLOPT_RESOLVE]));
+
         $result = $http->setUrl($url)
                        ->setData($data)
                        ->setPresets($presets)
-                       ->setOptions(['timeout' => $server_timeout])
+                       ->setOptions($options)
                        ->request();
+
+        $this->restoreBuiltInHttpApi($http_api_state);
 
         $errstr   = null;
         $response = is_string($result) ? json_decode($result) : false;
@@ -581,6 +637,66 @@ class Cleantalk
         }
 
         return $response;
+    }
+
+    /**
+     * @param string $url
+     * @param string $ip_to_resolve
+     * @return false|string
+     */
+    public function maybeResolveIPInsteadOfHost(string $url, string $ip_to_resolve)
+    {
+        if (
+            filter_var($ip_to_resolve, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
+        ) {
+            $url_parts = parse_url($url);
+            $host = TT::getArrayValueAsString($url_parts, 'host');
+            $port = TT::getArrayValueAsInt($url_parts, 'port');
+            $is_ssl = TT::getArrayValueAsString($url_parts, 'scheme') !== 'http';
+            if (!empty($host)) {
+                // URL may omit the port, then it is defined by the scheme
+                $port = !empty($port) ? $port : ($is_ssl ? 443 : 80);
+                return $host . ':' . $port . ':' . $ip_to_resolve;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Forces the cURL transport when a request has to be pinned to an IP.
+     *
+     * @param bool $needed
+     *
+     * @return bool|null Previous setting value, null when nothing was changed.
+     */
+    private function disableBuiltInHttpApi($needed)
+    {
+        global $apbct;
+
+        if ( ! $needed || ! isset($apbct->settings['wp__use_builtin_http_api']) ) {
+            return null;
+        }
+
+        $previous = $apbct->settings['wp__use_builtin_http_api'];
+        $apbct->settings['wp__use_builtin_http_api'] = false;
+
+        return $previous;
+    }
+
+    /**
+     * @param bool|null $previous Value returned by disableBuiltInHttpApi().
+     *
+     * @return void
+     */
+    private function restoreBuiltInHttpApi($previous)
+    {
+        global $apbct;
+
+        if ( $previous === null || ! isset($apbct->settings) ) {
+            return;
+        }
+
+        $apbct->settings['wp__use_builtin_http_api'] = $previous;
     }
 
      /**
