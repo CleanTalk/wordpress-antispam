@@ -176,23 +176,37 @@ class TestCleantalkResolveIP extends ApbctTestCase
      * @param array $servers
      * @param array $ptr_map
      * @param array $down_servers
+     * @param array $down_ips
      *
      * @return ApbctRotateModerateStub
      */
-    private function makeRotateStub(array $servers, array $ptr_map = array(), array $down_servers = array())
-    {
+    private function makeRotateStub(
+        array $servers,
+        array $ptr_map = array(),
+        array $down_servers = array(),
+        array $down_ips = array()
+    ) {
         $ct                   = new ApbctRotateModerateStub();
         $ct->server_url       = self::POOL_URL;
         $ct->servers_fixture  = $servers;
         $ct->ptr_map          = $ptr_map;
 
         if ($down_servers) {
-            $property = new \ReflectionProperty(Cleantalk::class, 'downServers');
-            $property->setAccessible(true);
-            $property->setValue($ct, $down_servers);
+            $this->setPrivate($ct, 'downServers', $down_servers);
+        }
+
+        if ($down_ips) {
+            $this->setPrivate($ct, 'down_ips', $down_ips);
         }
 
         return $ct;
+    }
+
+    private function setPrivate($object, $name, $value)
+    {
+        $property = new \ReflectionProperty(Cleantalk::class, $name);
+        $property->setAccessible(true);
+        $property->setValue($object, $value);
     }
 
     private function server($ip, $ttl = 300)
@@ -201,9 +215,11 @@ class TestCleantalkResolveIP extends ApbctTestCase
     }
 
     /**
-     * A node with a forward-confirmed PTR keeps that node-specific hostname in the URL.
+     * The URL must never be derived from DNS: a poisoned resolver would then pick
+     * the very name TLS is validated against. The pool hostname is the only name
+     * known to match the API certificate.
      */
-    public function testPtrHostnameIsUsedWhenAvailable()
+    public function testUrlKeepsPoolHostnameEvenWhenPtrIsAvailable()
     {
         $ct = $this->makeRotateStub(
             array($this->server(self::IP)),
@@ -211,7 +227,8 @@ class TestCleantalkResolveIP extends ApbctTestCase
         );
 
         $this->assertSame(self::IP, $ct->rotateModerateAndUseIP());
-        $this->assertSame('https://' . self::HOST, $ct->work_url);
+        $this->assertSame(self::POOL_URL, $ct->work_url);
+        $this->assertSame(self::IP, $ct->work_ip);
     }
 
     /**
@@ -242,18 +259,20 @@ class TestCleantalkResolveIP extends ApbctTestCase
     }
 
     /**
-     * A node that already failed under its own hostname must not be picked again.
+     * A node that already failed must not be picked again. It is identified by IP,
+     * because every node now shares the pool hostname.
      */
-    public function testNodeSpecificHostnameThatAlreadyFailedIsSkipped()
+    public function testNodeThatAlreadyFailedIsSkipped()
     {
         $ct = $this->makeRotateStub(
             array($this->server(self::IP), $this->server(self::IP_SECOND)),
-            array(self::IP => self::HOST, self::IP_SECOND => self::HOST_SECOND),
-            array('https://' . self::HOST)
+            array(),
+            array(),
+            array(self::IP)
         );
 
         $this->assertSame(self::IP_SECOND, $ct->rotateModerateAndUseIP());
-        $this->assertSame('https://' . self::HOST_SECOND, $ct->work_url);
+        $this->assertSame(self::POOL_URL, $ct->work_url);
     }
 
     /**
@@ -261,7 +280,7 @@ class TestCleantalkResolveIP extends ApbctTestCase
      * the list of failed URLs must not discard the candidates. Deduplicating the
      * fallback by URL instead of by IP would return false here and kill the retry.
      */
-    public function testFailedPoolUrlDoesNotDiscardCandidatesWithoutPtr()
+    public function testFailedPoolUrlDoesNotDiscardCandidates()
     {
         $ct = $this->makeRotateStub(
             array($this->server(self::IP), $this->server(self::IP_SECOND)),
@@ -307,8 +326,8 @@ class TestCleantalkResolveIP extends ApbctTestCase
     }
 
     /**
-     * End to end of the two halves: whatever hostname the rotation settled on, the
-     * mapping must pin exactly that hostname to the returned IP.
+     * End to end of the two halves: the rotation always settles on the pool
+     * hostname, and the mapping must pin exactly that hostname to the returned IP.
      */
     public function testSelectedIpAndWorkUrlProduceConsistentMapping()
     {
@@ -316,11 +335,9 @@ class TestCleantalkResolveIP extends ApbctTestCase
             $ct = $this->makeRotateStub(array($this->server(self::IP)), $ptr_map);
             $ip = $ct->rotateModerateAndUseIP();
 
-            $expected_host = $ptr_map ? self::HOST : self::POOL_HOST;
-
             $this->assertSame(self::IP, $ip);
             $this->assertSame(
-                $expected_host . ':443:' . self::IP,
+                self::POOL_HOST . ':443:' . self::IP,
                 $ct->maybeResolveIPInsteadOfHost($ct->work_url, $ip)
             );
         }
