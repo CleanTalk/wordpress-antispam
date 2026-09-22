@@ -974,7 +974,14 @@ class Woocommerce extends IntegrationByClassBase
      */
     public function renderSpamOrdersPage()
     {
-        $list_table = new \Cleantalk\ApbctWP\WcSpamOrdersListTable($this->getOrdersListViews());
+        // This is also the callback for the legacy 'apbct_wc_spam_orders' fallback page (addLegacySpamOrdersMenuPage()).
+        // getOrdersListViews() builds HPOS-style links (page=wc-orders), so it's only valid to embed on the HPOS screen -
+        // on legacy installations pass null so the list table builds its own standalone views.
+        $embedded_views = function_exists('wc_get_page_screen_id') && wc_get_page_screen_id('shop_order') !== 'shop_order'
+            ? $this->getOrdersListViews()
+            : null;
+
+        $list_table = new \Cleantalk\ApbctWP\WcSpamOrdersListTable($embedded_views);
         ?>
         <div class="wrap">
             <h1 class="wp-heading-inline"><?php esc_html_e('Spam orders', 'cleantalk-spam-protect'); ?></h1>
