@@ -41,6 +41,7 @@ namespace Antispam\IntegrationsByClass {
 
     use Cleantalk\Antispam\IntegrationsByClass\Woocommerce;
     use Cleantalk\ApbctWP\State;
+    use Cleantalk\ApbctWP\UpdatePlugin\DbAnalyzer;
     use Cleantalk\ApbctWP\Variables\Get;
     use Cleantalk\ApbctWP\Variables\Post;
     use PHPUnit\Framework\TestCase;
@@ -69,13 +70,20 @@ namespace Antispam\IntegrationsByClass {
             $this->apbct_backup = $apbct;
             $apbct = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
 
-            $wpdb->query('TRUNCATE TABLE ' . APBCT_TBL_WC_SPAM_ORDERS);
-
             Get::getInstance()->variables = array();
             Post::getInstance()->variables = array();
             \WC_Order::$update_status_calls = array();
 
             $this->integration = new Woocommerce();
+        }
+
+        public static function setUpBeforeClass(): void
+        {
+            global $wpdb;
+
+            $creator = new \Cleantalk\ApbctWP\UpdatePlugin\DbTablesCreator();
+            $creator->createAllTables();
+            $wpdb->query('TRUNCATE TABLE ' . APBCT_TBL_WC_SPAM_ORDERS);
         }
 
         public function tearDown(): void
