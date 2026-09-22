@@ -562,6 +562,9 @@ function ct_ajax_hook($message_obj = null)
 
     $ct_result = $base_call_result['ct_result'];
 
+    // Remove service fields from POST
+    apbct_clear_post_service_data_after_base_call();
+
     if ( $ct_result->allow == 0 ) {
         if ( Post::get('action') === 'wpuf_submit_register' ) {
             $result = array('success' => false, 'error' => $ct_result->comment);
