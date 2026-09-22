@@ -142,7 +142,9 @@ class WcSpamOrdersListTable extends CleantalkListTable
             'ct_order'      => esc_html__('Order', 'cleantalk-spam-protect'),
             'ct_order_date' => esc_html__('Date', 'cleantalk-spam-protect'),
             'ct_status'     => esc_html__('Status', 'cleantalk-spam-protect'),
-            'ct_total'      => esc_html__('Total', 'cleantalk-spam-protect'),
+            // Sums up only the stored cart line items - shipping, fees and other checkout
+            // charges are not persisted for a blocked order, so this is an items subtotal.
+            'ct_total'      => esc_html__('Items total', 'cleantalk-spam-protect'),
         );
 
         return $columns;
