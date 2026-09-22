@@ -2196,8 +2196,14 @@ function apbct_settings__field__action_buttons()
 
     if ( apbct_is_plugin_active('woocommerce/woocommerce.php') ) {
         add_filter('apbct_settings_action_buttons', function ($buttons_array) {
+            // HPOS installations render the spam orders view inline on the wc-orders screen;
+            // legacy (posts table) installations get a separate fallback admin page instead.
+            $spam_orders_page = function_exists('wc_get_page_screen_id') && wc_get_page_screen_id('shop_order') !== 'shop_order'
+                ? 'wc-orders&amp;status=wc-spamorder'
+                : 'apbct_wc_spam_orders';
+
             $buttons_array[] =
-                '<a href="admin.php?page=wc-orders&amp;status=wc-spamorder" class="ct_support_link" title="Bulk spam orders removal tool.">'
+                '<a href="admin.php?page=' . $spam_orders_page . '" class="ct_support_link" title="Bulk spam orders removal tool.">'
                 . __('WooCommerce spam orders', 'cleantalk-spam-protect')
                 . '</a>';
             return $buttons_array;
