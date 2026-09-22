@@ -122,6 +122,35 @@ class Woocommerce extends IntegrationByClassBase
     public function doAdminWork()
     {
         add_action('current_screen', [$this, 'addOrdersListStatusViews']);
+        add_action('admin_menu', [$this, 'addLegacySpamOrdersMenuPage']);
+    }
+
+    /**
+     * Legacy fallback: register a dedicated admin page for the stored spam orders.
+     *
+     * addOrdersListStatusViews() integrates the 'Spam' view into the native orders screen,
+     * but that only works when wc_get_page_screen_id() reports the HPOS orders screen.
+     * Legacy (posts table) installations render orders on the shared post-type screen instead,
+     * so the blocked orders would become unreachable without a standalone page.
+     *
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function addLegacySpamOrdersMenuPage()
+    {
+        if ( function_exists('wc_get_page_screen_id') && wc_get_page_screen_id('shop_order') !== 'shop_order' ) {
+            // HPOS handles the integration inline, no separate page is needed.
+            return;
+        }
+
+        add_submenu_page(
+            'woocommerce',
+            __('WooCommerce spam orders', 'cleantalk-spam-protect'),
+            __('WooCommerce spam orders', 'cleantalk-spam-protect'),
+            'activate_plugins',
+            'apbct_wc_spam_orders',
+            [$this, 'renderSpamOrdersPage']
+        );
     }
 
     public function addActions()
