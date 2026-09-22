@@ -370,7 +370,8 @@ class WcSpamOrdersListTable extends CleantalkListTable
             $customer_name = trim(
                 TT::getArrayValueAsString($customer_details, 'billing_first_name')
                 . ' '
-                . TT::getArrayValueAsString($customer_details, 'billing_last_name')
+                . TT::getArrayValueAsString($customer_details, 'billing_last_name'),
+                " \n\r\t\v\x00"
             );
 
             if ( $customer_name === '' ) {

@@ -189,11 +189,6 @@ class Woocommerce extends IntegrationByClassBase
             __FUNCTION__
         );
 
-        if ( ! $apbct->settings['data__wc_store_blocked_orders'] ) {
-            // The checkout is left to WooCommerce as is: no check, no blocked order to store.
-            return;
-        }
-
         if ( count($errors->errors) ) {
             return;
         }
@@ -252,6 +247,17 @@ class Woocommerce extends IntegrationByClassBase
 
             if ( $ct_result->allow == 0 ) {
                 $this->handleBlockedOrder();
+
+                if ( $apbct->settings['forms__wc_show_rejection_message'] ) {
+                    // Legacy behavior: show the rejection reason directly to the customer.
+                    wp_send_json(array(
+                        'result'   => 'failure',
+                        'messages' => "<ul class=\"woocommerce-error\"><li>" . $ct_result->comment . "</li></ul>",
+                        'refresh'  => 'false',
+                        'reload'   => 'false'
+                    ));
+                }
+
                 wp_send_json(array(
                     'result'   => 'success',
                     'redirect' => $this->getBlockedOrderRedirectUrl(),
@@ -268,11 +274,6 @@ class Woocommerce extends IntegrationByClassBase
     public function checkoutCheckFromRest($order)
     {
         global $apbct, $cleantalk_executed;
-
-        if ( ! $apbct->settings['data__wc_store_blocked_orders'] ) {
-            // The checkout is left to WooCommerce as is: no check, no blocked order to store.
-            return;
-        }
 
         if ( is_null($order) || ! ($order instanceof \WC_Order) ) {
             return;
@@ -316,8 +317,6 @@ class Woocommerce extends IntegrationByClassBase
                 // The details must be stored before the response carrying their key is built
                 $this->handleBlockedOrder($order);
 
-                $response = $this->getStoreApiPassedResponse($order);
-
                 if ( $order->get_status() === 'pending' || $order->get_status() === 'checkout-draft' ) {
                     if ( function_exists('wc_release_stock_for_order') ) {
                         wc_release_stock_for_order($order);
@@ -329,6 +328,24 @@ class Woocommerce extends IntegrationByClassBase
                         error_log('Error deleting order: ' . $e->getMessage());
                     }
                 }
+
+                if ( $apbct->settings['forms__wc_show_rejection_message'] ) {
+                    // Legacy behavior: show the rejection reason directly to the customer.
+                    $response = array(
+                        'code'    => 'woocommerce_store_api_checkout_order_processed',
+                        'message' => $ct_result->comment,
+                        'data'    => array(
+                            'status' => 403
+                        )
+                    );
+
+                    if ( ! headers_sent() ) {
+                        http_response_code(403);
+                    }
+                    die(json_encode($response));
+                }
+
+                $response = $this->getStoreApiPassedResponse($order);
 
                 if ( ! headers_sent() ) {
                     header('Content-Type: application/json; charset=utf-8');
@@ -346,7 +363,12 @@ class Woocommerce extends IntegrationByClassBase
      */
     private function handleBlockedOrder($order = null)
     {
-        $this->storeBlockedOrder();
+        global $apbct;
+
+        // The option controls the storage only, the rest of the handling is always done
+        if ( $apbct->settings['data__wc_store_blocked_orders'] ) {
+            $this->storeBlockedOrder();
+        }
 
         $this->rememberBlockedOrderOverview($order);
 
@@ -431,7 +453,7 @@ class Woocommerce extends IntegrationByClassBase
      * @param array $args
      *
      * @return void
-     * @psalm-suppress PossiblyUnusedMethod, UndefinedFunction
+     * @psalm-suppress PossiblyUnusedMethod, UndefinedFunction, PossiblyUnusedParam
      */
     public function renderBlockedOrderOverview($template_name, $template_path, $located, $args)
     {
@@ -453,7 +475,7 @@ class Woocommerce extends IntegrationByClassBase
 
         $rows = array(
             'date'  => array(__('Date:', 'cleantalk-spam-protect'), $overview['date']),
-            'total' => array(__('Total:', 'cleantalk-spam-protect'), $overview['total']),
+            'total' => array(__('Total:', 'cleantalk-spam-protect'), isset($overview['total']) ? $overview['total'] : ''),
         );
 
         if ( ! empty($overview['payment_method']) ) {
@@ -858,7 +880,7 @@ class Woocommerce extends IntegrationByClassBase
      * @param bool|null $should_render_blank_state Null keeps the WooCommerce own decision
      *
      * @return bool|null
-     * @psalm-suppress PossiblyUnusedMethod
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
      */
     public function keepOrdersListWhenSpamOrdersExist($should_render_blank_state)
     {
