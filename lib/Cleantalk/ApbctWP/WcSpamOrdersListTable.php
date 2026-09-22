@@ -284,7 +284,10 @@ class WcSpamOrdersListTable extends CleantalkListTable
             wp_die(esc_html__('Security check failed. Please try again.', 'cleantalk-spam-protect'), 403);
         }
 
-        if ( ! current_user_can('activate_plugins') ) {
+        // Kept in sync with the capability required by the restore/details AJAX handlers
+        // (AJAXService::checkNonceRestrictingNonAdmins()) and the view registration
+        // (Woocommerce::addOrdersListStatusViews()).
+        if ( ! current_user_can('manage_options') ) {
             wp_die(esc_html__('You do not have sufficient permissions to perform this action.', 'cleantalk-spam-protect'), 403);
         }
 

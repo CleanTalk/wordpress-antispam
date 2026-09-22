@@ -147,7 +147,7 @@ class Woocommerce extends IntegrationByClassBase
             'woocommerce',
             __('WooCommerce spam orders', 'cleantalk-spam-protect'),
             __('WooCommerce spam orders', 'cleantalk-spam-protect'),
-            'activate_plugins',
+            'manage_options',
             'apbct_wc_spam_orders',
             [$this, 'renderSpamOrdersPage']
         );
@@ -875,7 +875,10 @@ class Woocommerce extends IntegrationByClassBase
      */
     public function addOrdersListStatusViews($current_screen)
     {
-        if ( ! isset($current_screen->id) || ! function_exists('wc_get_page_screen_id') ) {
+        // Keep in sync with the capability required by the row actions and AJAX handlers
+        // (WcSpamOrdersListTable::row_actions_handler(), AJAXService::checkNonceRestrictingNonAdmins()),
+        // otherwise a user could see the 'Spam' view but get a 403 trying to use it.
+        if ( ! current_user_can('manage_options') || ! isset($current_screen->id) || ! function_exists('wc_get_page_screen_id') ) {
             return;
         }
 

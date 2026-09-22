@@ -35,7 +35,7 @@ class TestWoocommerceLegacySpamOrdersMenuPage extends TestCase
         $submenu = array();
 
         // Grant the capability required by add_submenu_page() regardless of the current user.
-        add_filter('user_has_cap', array($this, 'grantActivatePluginsCap'));
+        add_filter('user_has_cap', array($this, 'grantManageOptionsCap'));
 
         $this->integration = new Woocommerce();
     }
@@ -45,7 +45,7 @@ class TestWoocommerceLegacySpamOrdersMenuPage extends TestCase
         global $submenu;
 
         $submenu = $this->submenu_backup;
-        remove_filter('user_has_cap', array($this, 'grantActivatePluginsCap'));
+        remove_filter('user_has_cap', array($this, 'grantManageOptionsCap'));
 
         parent::tearDown();
     }
@@ -55,9 +55,9 @@ class TestWoocommerceLegacySpamOrdersMenuPage extends TestCase
      *
      * @return array
      */
-    public function grantActivatePluginsCap($allcaps)
+    public function grantManageOptionsCap($allcaps)
     {
-        $allcaps['activate_plugins'] = true;
+        $allcaps['manage_options'] = true;
 
         return $allcaps;
     }
