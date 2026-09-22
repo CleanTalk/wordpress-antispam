@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Common\ContactsEncoder;
 
+use Cleantalk\Common\Antispam\Cleantalk;
+use Cleantalk\Common\Antispam\CleantalkRequest;
 use Cleantalk\Common\ContactsEncoder\Helper\ContactsEncoderHelper;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use Cleantalk\Common\ContactsEncoder\Encoder\Encoder;
@@ -12,8 +14,12 @@ use Cleantalk\Common\ContactsEncoder\Obfuscator\ObfuscatorEmailData;
 /**
  * Contacts Encoder common class.
  */
-abstract class ContactsEncoder
+class ContactsEncoder
 {
+    const VERSION = '2.1.1';
+
+    protected $api_key;
+
     /**
      * @var Encoder
      */
@@ -44,8 +50,13 @@ abstract class ContactsEncoder
     const EMAIL_PATTERN = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b';
     const EMAIL_PATTERN_DOMAIN_CATCHING = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b)';
     const PHONE_NUMBER = '\+\d{8,12}';
+    /**
+     * URI schemes are case-insensitive (RFC 3986). Clients often write Mailto:/Tel:.
+     */
+    const MAILTO_SCHEME_PATTERN = '(?i:mailto):';
+    const TEL_SCHEME_PATTERN = '(?i:tel):';
     const PHONE_NUMBERS_PATTERNS = [
-        '(tel:' . self::PHONE_NUMBER . ')',                        // tel:+XXXXXXXXXX
+        '(' . self::TEL_SCHEME_PATTERN . self::PHONE_NUMBER . ')', // tel:+XXXXXXXXXX
         '([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)',                       // +X XXX XXXXXXX, +X(XXX)XXXXX, etc.
         '(\(\d{3}\)\s?\d{3}-\d{4})',                               // (XXX) XXX-XXXX, (XXX) XXX XXXX
         '(\+\d{1,3}\.\d{1,3}\.((\d{3}\.\d{4})|\d{7})(?![\w.]))',   // +X?.XX?.XXX.XXXX
@@ -57,17 +68,17 @@ abstract class ContactsEncoder
     protected $aria_regex;
 
     /**
-     * @var string example: '/(mailto\:\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b))/'
+     * @var string example: '/((?i:mailto):\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b))/'
      */
     protected $global_email_pattern;
 
     /**
-     * @var string example: '/(tel:\+\d{8,12})|([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)|(\(\d{3}\)\s?\d{3}-\d{4})|(\+\d{1,3}\.\d{1,3}\.((\d{3}\.\d{4})|\d{7})(?![\w.]))'/'
+     * @var string example: '/((?i:tel):\+\d{8,12})|([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)|(\(\d{3}\)\s?\d{3}-\d{4})|(\+\d{1,3}\.\d{1,3}\.((\d{3}\.\d{4})|\d{7})(?![\w.]))/'
      */
     protected $global_phones_pattern;
 
     /**
-     * @var string example: '/mailto\:(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/'
+     * @var string example: '/(?i:mailto):(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/'
      */
     protected $global_mailto_pattern;
 
@@ -77,32 +88,15 @@ abstract class ContactsEncoder
     protected $plain_email_pattern;
 
     /**
-     * @var string example: '/\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}/'
-     * @ToDo Is this regular expression needed? A little different against `$plain_email_pattern`.
-     */
-    protected $plain_email_pattern_without_capturing;
-
-    /**
-     * @var string example: '/tel:(\+\d{8,12})/'
+     * @var string example: '/(?i:tel):(\+\d{8,12})/'
      * @ToDo Is this regexp is actual and right?
      */
     protected $global_tel_pattern;
 
     /**
-     * @var array
-     * @psalm-suppress PossiblyUnusedProperty
-     */
-    protected $aria_matches = array();
-
-    /**
      * @var array Placeholder => original aria-label for restore
      */
     protected $aria_placeholders = array();
-
-    /**
-     * @var int Counter for unique aria-label placeholders
-     */
-    protected $aria_index = 0;
 
     /**
      * Attributes with possible email-like content to drop from the content to avoid unnecessary encoding.
@@ -143,6 +137,10 @@ abstract class ContactsEncoder
      * @var bool
      */
     protected $is_logged_in = false;
+
+    protected $request_result_comment;
+
+    protected $decoded_contacts_array = [];
 
     protected static $instance;
 
@@ -189,6 +187,7 @@ abstract class ContactsEncoder
      */
     protected function init(Params $params)
     {
+        $this->api_key = $params->api_key;
         $this->exclusions = new ExclusionsService($params);
         $this->encoder = new Encoder(md5($params->api_key));
         $this->helper = new ContactsEncoderHelper();
@@ -208,12 +207,11 @@ abstract class ContactsEncoder
     {
         $this->aria_regex = self::ARIA_LABEL_PATTERN;
 
-        $this->global_email_pattern = '/(mailto\:\b' . self::EMAIL_PATTERN . ')|(\b' . self::EMAIL_PATTERN_DOMAIN_CATCHING . ')/';
+        $this->global_email_pattern = '/(' . self::MAILTO_SCHEME_PATTERN . '\b' . self::EMAIL_PATTERN . ')|(\b' . self::EMAIL_PATTERN_DOMAIN_CATCHING . ')/';
         $this->global_phones_pattern = '/' . implode('|', self::PHONE_NUMBERS_PATTERNS) . '/';
-        $this->global_mailto_pattern = '/mailto\:(' . self::EMAIL_PATTERN . ')/';
+        $this->global_mailto_pattern = '/' . self::MAILTO_SCHEME_PATTERN . '(' . self::EMAIL_PATTERN . ')/';
         $this->plain_email_pattern = '/(\b' . self::EMAIL_PATTERN . '\b)/';
-        $this->plain_email_pattern_without_capturing = '/\b' . self::EMAIL_PATTERN . '/';
-        $this->global_tel_pattern = '/tel:(' . self::PHONE_NUMBER . ')/';
+        $this->global_tel_pattern = '/' . self::TEL_SCHEME_PATTERN . '(' . self::PHONE_NUMBER . ')/';
     }
 
     /**
@@ -240,6 +238,7 @@ abstract class ContactsEncoder
     public function runDecoding($encoded_contacts_data)
     {
         $decoded_strings = $this->decodeContactData($encoded_contacts_data);
+        $this->decoded_contacts_array = $decoded_strings;
         // @ToDo Check connections errors during checkRequest and return success:false
         return json_encode([
             'success' => true,
@@ -264,7 +263,9 @@ abstract class ContactsEncoder
         }
 
         // modify content to prevent aria-label replaces by hiding it
-        $content = $this->handleAriaLabelContent($content);
+        if ( $this->do_encode_emails || $this->do_encode_phones ) {
+            $content = $this->handleAriaLabelContent($content);
+        }
 
         // will use this in regexp callback
         $this->temp_content = $content;
@@ -277,6 +278,10 @@ abstract class ContactsEncoder
 
         $this->do_encode_phones && $content = $this->modifyGlobalPhoneNumbers($content);
 
+        if ( $this->do_encode_emails || $this->do_encode_phones ) {
+            $content = $this->handleAriaLabelContent($content, true);
+        }
+
         return $content;
     }
 
@@ -288,77 +293,57 @@ abstract class ContactsEncoder
      */
     public function modifyGlobalEmails($content)
     {
-        $replacing_result = '';
-
-        if ( version_compare(phpversion(), '7.4.0', '>=') ) {
-            $replacing_result = preg_replace_callback($this->global_email_pattern, function ($matches) use ($content) {
-                if ( isset($matches[3][0], $matches[0][0]) && in_array(strtolower($matches[3][0]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
-                    return $matches[0][0];
-                }
-
-                //chek if email is placed in excluded attributes and return unchanged if so
-                if ( isset($matches[0][0]) && $this->helper->hasAttributeExclusions($matches[0][0], $this->temp_content) ) {
-                    return $matches[0][0];
-                }
-
-                // skip encoding if the content in script tag
-                if ( isset($matches[0][0]) && $this->helper->isInsideScriptTag($matches[0][0], $content) ) {
-                    return $matches[0][0];
-                }
-
-                if ( isset($matches[0][0]) && $this->helper->isMailto($matches[0][0]) ) {
-                    return $this->encodeMailtoLinkV2($matches[0], $content);
-                }
-
-                if (
-                    isset($matches[0]) &&
-                    is_array($matches[0]) &&
-                    $this->helper->isMailtoAdditionalCopy($matches[0], $content)
-                ) {
-                    return '';
-                }
-
-                if (
-                    isset($matches[0], $matches[0][0]) &&
-                    is_array($matches[0]) &&
-                    $this->helper->isEmailInLink($matches[0], $content)
-                ) {
-                    return $matches[0][0];
-                }
-
-                if ( isset($matches[0][0]) ) {
-                    return $this->encodePlainEmail($matches[0][0]);
-                }
-
-                return '';
-            }, $content, -1, $count, PREG_OFFSET_CAPTURE);
+        $owns_aria_protection = empty($this->aria_placeholders);
+        if ( $owns_aria_protection ) {
+            $content = $this->handleAriaLabelContent($content);
         }
 
-        if ( version_compare(phpversion(), '7.4.0', '<') ) {
-            $replacing_result = preg_replace_callback($this->global_email_pattern, function ($matches) {
-                if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) && isset($matches[0]) ) {
-                    return $matches[0];
-                }
+        $this->temp_content = $content;
 
-                //chek if email is placed in excluded attributes and return unchanged if so
-                if ( isset($matches[0]) && $this->helper->hasAttributeExclusions($matches[0], $this->temp_content) ) {
-                    return $matches[0];
-                }
-
-                if ( isset($matches[0]) &&  $this->helper->isMailto($matches[0]) ) {
-                    return $this->encodeMailtoLink($matches[0]);
-                }
-
-                if ( isset($matches[0]) ) {
-                    return $this->encodePlainEmail($matches[0]);
-                }
-
+        $match_cursor = 0;
+        $replacing_result = preg_replace_callback($this->global_email_pattern, function ($matches) use (&$match_cursor) {
+            if ( ! isset($matches[0]) ) {
                 return '';
-            }, $content);
-        }
+            }
 
-        // modify content to turn back aria-label
-        $replacing_result = $this->handleAriaLabelContent($replacing_result, true);
+            $position = $this->advanceMatchCursor($matches[0], $match_cursor);
+
+            if ( $this->exclusions->isContactExcluded($matches[0]) ) {
+                return $matches[0];
+            }
+
+            if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
+                return $matches[0];
+            }
+
+            //chek if email is placed in excluded attributes and return unchanged if so
+            if ( $this->helper->hasAttributeExclusions($matches[0], $this->temp_content, $position) ) {
+                return $matches[0];
+            }
+
+            // skip encoding if the content in script tag
+            if ( $this->helper->isInsideScriptTag($matches[0], $this->temp_content, $position) ) {
+                return $matches[0];
+            }
+
+            if ( $this->helper->isInsideOptionTag($matches[0], $this->temp_content, $position) ) {
+                return $matches[0];
+            }
+
+            if ( $this->helper->isMailtoAdditionalCopy($matches[0], $this->temp_content, $position) ) {
+                return '';
+            }
+
+            if ( $this->helper->isMailto($matches[0]) ) {
+                return $this->encodeMailtoLink($matches[0]);
+            }
+
+            return $this->encodePlainEmail($matches[0]);
+        }, $content);
+
+        if ( $owns_aria_protection ) {
+            $replacing_result = $this->handleAriaLabelContent($replacing_result, true);
+        }
 
         //please keep this var (do not simplify the code) for further debug
         return $replacing_result;
@@ -373,96 +358,83 @@ abstract class ContactsEncoder
      */
     public function modifyGlobalPhoneNumbers($content)
     {
+        $owns_aria_protection = empty($this->aria_placeholders);
+        if ( $owns_aria_protection ) {
+            $content = $this->handleAriaLabelContent($content);
+        }
+
+        $this->temp_content = $content;
+
         $phones_pattern = $this->global_phones_pattern;
-        $replacing_result = '';
-
-        if ( version_compare(phpversion(), '7.4.0', '>=') ) {
-            $replacing_result = preg_replace_callback(
-                $phones_pattern,
-                function ($matches) use ($content) {
-                    if ( isset($matches[0]) ) {
-                        $first_group = $matches[0];
-                    } else {
-                        return '';
-                    }
-
-                    if ( isset($first_group[0]) ) {
-                        $second_group = $first_group[0];
-                    } else {
-                        return '';
-                    }
-
-                    if (is_array($first_group) && $this->helper->isTelTag($second_group) ) {
-                        return $this->encodeTelLinkV2($first_group, $content);
-                    }
-                    //symbols clearance
-                    $item_length = strlen(str_replace([' ', '(', ')', '-', '+', '.'], '', $second_group));
-                    //check length
-                    if ( $item_length > 12 || $item_length < 8 ) {
-                        return $second_group;
-                    }
-                    //check attribute exclusions
-                    if ( $this->helper->hasAttributeExclusions($second_group, $this->temp_content) ) {
-                        return $second_group;
-                    }
-                    //check if in script
-                    if ( $this->helper->isInsideScriptTag($second_group, $content) ) {
-                        return $second_group;
-                    }
-                    //do encode
-                    return $this->encodeAny(
-                        $second_group,
-                        $this->global_obfuscation_mode,
-                        $this->global_replacing_text,
-                        true
-                    );
-                },
-                $content,
-                -1,
-                $count,
-                PREG_OFFSET_CAPTURE
-            );
-        }
-
-        if ( version_compare(phpversion(), '7.4.0', '<') ) {
-            $replacing_result = preg_replace_callback(
-                $phones_pattern,
-                function ($matches) {
-                    if ( isset($matches[0]) ) {
-                        if ( $this->helper->isTelTag($matches[0]) ) {
-                            return $this->encodeTelLink($matches[0]);
-                        }
-
-                        $item_length = strlen(str_replace([' ', '(', ')', '-', '+', '.'], '', $matches[0]));
-                        if ( $item_length > 12 || $item_length < 8 ) {
-                            return $matches[0];
-                        }
-
-                        if ( $this->helper->hasAttributeExclusions($matches[0][0], $this->temp_content) ) {
-                            return $matches[0];
-                        }
-                    }
-
-                    if ( isset($matches[0]) ) {
-                        return $this->encodeAny(
-                            $matches[0],
-                            $this->global_obfuscation_mode,
-                            $this->global_replacing_text,
-                            true
-                        );
-                    }
-
+        $match_cursor = 0;
+        $replacing_result = preg_replace_callback(
+            $phones_pattern,
+            function ($matches) use (&$match_cursor) {
+                if ( ! isset($matches[0]) ) {
                     return '';
-                },
-                $content
-            );
-        }
+                }
 
-        // modify content to turn back aria-label
-        $replacing_result = $this->handleAriaLabelContent($replacing_result, true);
+                $position = $this->advanceMatchCursor($matches[0], $match_cursor);
+
+                if ( $this->exclusions->isContactExcluded($matches[0]) ) {
+                    return $matches[0];
+                }
+
+                if ( $this->helper->isTelTag($matches[0]) ) {
+                    return $this->encodeTelLink($matches[0]);
+                }
+
+                // symbols clearance
+                $item_length = strlen(str_replace([' ', '(', ')', '-', '+', '.'], '', $matches[0]));
+
+                // check length
+                if ( $item_length > 12 || $item_length < 8 ) {
+                    return $matches[0];
+                }
+
+                // check attribute exclusions
+                if ( $this->helper->hasAttributeExclusions($matches[0], $this->temp_content, $position) ) {
+                    return $matches[0];
+                }
+
+                // check if in script
+                if ( $this->helper->isInsideScriptTag($matches[0], $this->temp_content, $position) ) {
+                    return $matches[0];
+                }
+
+                return $this->encodeAny(
+                    $matches[0],
+                    $this->global_obfuscation_mode,
+                    $this->global_replacing_text,
+                    true
+                );
+            },
+            $content
+        );
+
+        if ( $owns_aria_protection ) {
+            $replacing_result = $this->handleAriaLabelContent($replacing_result, true);
+        }
 
         //please keep this var (do not simplify the code) for further debug
         return $replacing_result;
+    }
+
+    /**
+     * Advance the left-to-right cursor so repeated contacts use their own offset.
+     *
+     * @param string $match
+     * @param int $cursor
+     * @return int|false
+     */
+    private function advanceMatchCursor($match, &$cursor)
+    {
+        $position = strpos($this->temp_content, $match, $cursor);
+        if ( $position !== false ) {
+            $cursor = $position + strlen($match);
+        }
+
+        return $position;
     }
 
     /*
@@ -529,7 +501,7 @@ abstract class ContactsEncoder
     }
 
     /**
-     * Method to process mailto: links. For PHP < 7.4
+     * Method to process mailto: links.
      *
      * @param string $mailto_link_str
      *
@@ -546,7 +518,7 @@ abstract class ContactsEncoder
                 }
             }, $matches[1]);
         }
-        $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
+        $mailto_link_str = preg_replace('/^mailto:/i', '', $mailto_link_str);
         $encoded = $this->encoder->encodeString($mailto_link_str);
 
         $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
@@ -555,40 +527,7 @@ abstract class ContactsEncoder
     }
 
     /**
-     * Method to process mailto: links. Use this only for PHP 7.4+
-     *
-     * @param $match array
-     * @param $content string
-     *
-     * @return string
-     */
-    private function encodeMailtoLinkV2($match, $content)
-    {
-        $position = $match[1];
-        $q_position = $position + strcspn($content, '\'"', $position);
-        $mailto_link_str = substr($content, $position, $q_position - $position);
-        // Get inner tag text and place it in $matches[1]
-        preg_match($this->global_mailto_pattern, $mailto_link_str, $matches);
-        if ( isset($matches[1]) ) {
-            $mailto_inner_text = preg_replace_callback($this->plain_email_pattern_without_capturing, function ($matches) {
-                if ( isset($matches[0]) ) {
-                    return $this->getObfuscatedEmailString($matches[0]);
-                }
-
-                return '';
-            }, $matches[1]);
-        }
-
-        $mailto_link_str = str_replace('mailto:', '', $mailto_link_str);
-        $encoded = $this->encoder->encodeString($mailto_link_str);
-
-        $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
-
-        return 'mailto:' . $text . '" data-original-string="' . $encoded . '" title="' . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8');
-    }
-
-    /**
-     * Method to process tel: links. For PHP < 7.4
+     * Method to process tel: links.
      *
      * @param string $tel_link_str
      *
@@ -599,53 +538,17 @@ abstract class ContactsEncoder
         // Get inner tag text and place it in $matches[1]
         preg_match($this->global_tel_pattern, $tel_link_str, $matches);
         if ( isset($matches[1]) ) {
-            $mailto_inner_text = preg_replace_callback('/' . self::PHONE_NUMBER . '/', function ($matches) {
+            $tel_inner_text = preg_replace_callback('/' . self::PHONE_NUMBER . '/', function ($matches) {
                 if (isset($matches[0])) {
                     $obfuscator = new Obfuscator();
                     return $obfuscator->processPhone($matches[0]);
                 }
             }, $matches[1]);
         }
-        $tel_link_str = str_replace('tel:', '', $tel_link_str);
+        $tel_link_str = preg_replace('/^tel:/i', '', $tel_link_str);
         $encoded      = $this->encoder->encodeString($tel_link_str);
 
-        $text = isset($mailto_inner_text) ? $mailto_inner_text : $tel_link_str;
-
-        return 'tel:' . $text . '" data-original-string="' . $encoded . '" title="' . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8');
-    }
-
-    /**
-     * Method to process tel: links. Use this only for PHP 7.4+
-     *
-     * @param array $match
-     * @param string $content
-     *
-     * @return string
-     */
-    private function encodeTelLinkV2($match, $content)
-    {
-        $position = !empty($match[1]) ? (int)$match[1] : null;
-        if (null === $position) {
-            return $content;
-        }
-        $q_position = $position + strcspn($content, '\'"', $position);
-        $tel_link_string = substr($content, $position, $q_position - $position);
-        // Get inner tag text and place it in $matches[1]
-        preg_match($this->global_tel_pattern, $tel_link_string, $matches);
-        if ( isset($matches[1]) ) {
-            $tel_inner_text = preg_replace_callback('/' . self::PHONE_NUMBER . '/', function ($matches) {
-                if ( isset($matches[0]) ) {
-                    $obfuscator = new Obfuscator();
-                    return $obfuscator->processPhone($matches[0]);
-                }
-                return '';
-            }, $matches[1]);
-        }
-
-        $tel_link_string = str_replace('tel:', '', $tel_link_string);
-        $encoded = $this->encoder->encodeString($tel_link_string);
-
-        $text = isset($tel_inner_text) ? $tel_inner_text : $tel_link_string;
+        $text = isset($tel_inner_text) ? $tel_inner_text : $tel_link_str;
 
         return 'tel:' . $text . '" data-original-string="' . $encoded . '" title="' . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8');
     }
@@ -811,9 +714,57 @@ abstract class ContactsEncoder
      *
      * @return bool returns json string to the JS
      */
-    abstract protected function checkRequest();
+    protected function checkRequest()
+    {
+        $event_javascript_data = '';
+        $event_token = '';
+        if ( isset($_POST['event_token']) && is_string($_POST['event_token']) ) {
+            $event_token = $_POST['event_token'];
+        } elseif ( isset($_POST['event_javascript_data']) && is_string($_POST['event_javascript_data']) ) {
+            $event_javascript_data = $_POST['event_javascript_data'];
+        }
 
-    abstract protected function getCheckRequestComment();
+        $params = array(
+            'auth_key'              => $this->api_key,        // Access key
+            'agent'                 => 'contacts_encoder_lib_' . self::VERSION,
+            'event_token'           => $event_token, // Unique event ID
+            'event_javascript_data' => $event_javascript_data, // JSON-string params to analysis
+            'sender_ip'             => isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '',
+            'event_type'            => 'CONTACT_DECODING',     // 'GENERAL_BOT_CHECK' || 'CONTACT_DECODING'
+            'message_to_log'        => json_encode(array_values($this->decoded_contacts_array), JSON_FORCE_OBJECT),   // Custom message
+            'page_url'              => isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '',
+            'sender_info'           => array(
+                'site_referrer'         => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '',
+            ),
+        );
+
+        $ct_request = new CleantalkRequest($params);
+
+        $ct = new Cleantalk();
+
+        $ct->server_url = 'https://moderate.cleantalk.org';
+        $ct->work_url = 'https://moderate.cleantalk.org';
+        $api_response = $ct->checkBot($ct_request);
+
+        // Allow to see the decoded contact if error occurred.
+        if ( ! empty($api_response->errstr)) {
+            $this->request_result_comment = $api_response->errstr;
+            return true;
+        }
+
+        $stub_comment = $api_response->allow
+            ? 'Allowed'
+            : 'Blocked';
+
+        $this->request_result_comment = ! empty($api_response->comment) ? $api_response->comment : $stub_comment;
+
+        return $api_response->allow === 1;
+    }
+
+    protected function getCheckRequestComment()
+    {
+        return $this->request_result_comment;
+    }
 
     /**
      * @param $decoded_emails_array
@@ -904,17 +855,17 @@ abstract class ContactsEncoder
     private function handleAriaLabelContent($content, $reverse = false)
     {
         if ( !$reverse ) {
-            $this->aria_matches = array();
             $this->aria_placeholders = array();
-            $this->aria_index = 0;
+            if ( !$this->isSecureAriaLabelPlaceholderAvailable() ) {
+                return $content;
+            }
             return preg_replace_callback($this->aria_regex, array($this, 'replaceAriaLabelWithPlaceholder'), $content);
         }
         if ( !empty($this->aria_placeholders) ) {
             foreach ($this->aria_placeholders as $placeholder => $original) {
-                $content = str_replace($placeholder, $original, $content);
+                $content = $this->restoreAriaLabelPlaceholder($content, $placeholder, $original);
             }
             $this->aria_placeholders = array();
-            $this->aria_index = 0;
         }
         return $content;
     }
@@ -930,8 +881,89 @@ abstract class ContactsEncoder
             return '';
         }
         $original = $matches[0];
-        $placeholder = 'ct_temp_aria_' . $this->aria_index++;
+        $placeholder = $this->generateAriaLabelPlaceholder();
+        if ( $placeholder === null ) {
+            return $original;
+        }
         $this->aria_placeholders[$placeholder] = $original;
         return $placeholder;
+    }
+
+    /**
+     * Whether a cryptographically secure placeholder can be generated.
+     *
+     * @return bool
+     */
+    private function isSecureAriaLabelPlaceholderAvailable()
+    {
+        return function_exists('random_bytes') || function_exists('openssl_random_pseudo_bytes');
+    }
+
+    /**
+     * Build an unguessable placeholder so attacker-controlled content cannot collide with it.
+     *
+     * @return string|null Null when no secure entropy source is available.
+     */
+    private function generateAriaLabelPlaceholder()
+    {
+        $bytes = $this->getSecureRandomBytes(16);
+        if ( !is_string($bytes) || strlen($bytes) !== 16 ) {
+            return null;
+        }
+
+        return '%%APBCT_ARIA_' . bin2hex($bytes) . '%%';
+    }
+
+    /**
+     * @param int $length
+     *
+     * @return string|null
+     */
+    private function getSecureRandomBytes($length)
+    {
+        if ( !is_int($length) || $length < 1 ) {
+            return null;
+        }
+
+        if ( function_exists('random_bytes') ) {
+            try {
+                // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.random_bytesFound
+                $bytes = random_bytes($length);
+                if ( strlen($bytes) === $length ) {
+                    return $bytes;
+                }
+            } catch ( \Exception $e ) {
+                // Fall through to OpenSSL.
+            }
+        }
+
+        if ( function_exists('openssl_random_pseudo_bytes') ) {
+            $crypto_strong = false;
+            $bytes = openssl_random_pseudo_bytes($length, $crypto_strong);
+            if ( $crypto_strong && is_string($bytes) && strlen($bytes) === $length ) {
+                return $bytes;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Restore a single aria-label placeholder at its first occurrence only.
+     *
+     * @param string $content
+     * @param string $placeholder
+     * @param string $original
+     *
+     * @return string
+     */
+    private function restoreAriaLabelPlaceholder($content, $placeholder, $original)
+    {
+        $pos = strpos($content, $placeholder);
+        if ( $pos === false ) {
+            return $content;
+        }
+
+        return substr($content, 0, $pos) . $original . substr($content, $pos + strlen($placeholder));
     }
 }

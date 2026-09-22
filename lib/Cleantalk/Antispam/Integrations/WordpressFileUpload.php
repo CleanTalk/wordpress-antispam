@@ -16,7 +16,7 @@ class WordpressFileUpload extends IntegrationBase
             $userdata = explode(";", TT::toString(Request::get('userdata')));
             $parsed_userdata = [];
             foreach ($userdata as $_user) {
-                $parsed_userdata[] = strip_tags(wfu_plugin_decode_string(trim(substr($_user, 1))));
+                $parsed_userdata[] = strip_tags(wfu_plugin_decode_string(trim(substr($_user, 1), " \n\r\t\v\x00")));
             }
 
             $input_array = apply_filters('apbct__filter_post', $parsed_userdata);

@@ -33,7 +33,7 @@ trait TextPlate
     {
         try {
             $search = [];
-            $_text = $trim ? trim($_text) : $_text;
+            $_text = $trim ? trim($_text, " \n\r\t\v\x00") : $_text;
             foreach ($_plate as $key => $value) {
                 $key = self::validatePlateKey($key, $_text);
                 $value = self::validatePlateValue($value, $key);

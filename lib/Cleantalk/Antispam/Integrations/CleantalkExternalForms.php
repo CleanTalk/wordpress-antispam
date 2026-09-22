@@ -163,11 +163,11 @@ class CleantalkExternalForms extends IntegrationBase
         </html>';
 
         // Cookiebot chunk
-        $bot_chunk = class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '';
+        $bot_attrs = class_exists('Cookiebot_WP') ? array('data-cookieconsent' => 'ignore') : array();
 
         // HTML form clearing script
-        $script = "<script " . $bot_chunk . ">
-                let form = document.forms[0];
+        $script = apbct_get_inline_script_tag(
+            "let form = document.forms[0];
                 let availabilitySubmit = false;
                 for (let i = 0; i < form.length; i++) {
                     let typeElem = form[i].getAttribute('type');
@@ -182,9 +182,9 @@ class CleantalkExternalForms extends IntegrationBase
                         form.removeChild(objects[0]);
                     }
                 }
-                form.submit();
-                </script>
-        ";
+                form.submit();",
+            $bot_attrs
+        );
 
         $form_template = str_replace('%METHOD', $method, $form_template);
         $form_template = str_replace('%ACTION', $action, $form_template);

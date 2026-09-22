@@ -1,6 +1,7 @@
 <?php
 
 use Cleantalk\ApbctWP\ApbctEnqueue;
+use Cleantalk\ApbctWP\BotDetectorService;
 use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Localize\LocalizeHandler;
@@ -39,7 +40,6 @@ function apbct_init()
     ) {
         $apbct->pixel_url = apbct_get_pixel_url(true);
     }
-
     // Localize data
     if ( ! apbct_exclusions_check__url() ) {
         if (Constant::is(Constant::APBCT_SERVICE__PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER, true)) {
@@ -594,28 +594,25 @@ function apbct_hook__wp_footer()
                                 }";
         }
 
-        $cookie_bot_asset = (class_exists('Cookiebot_WP')) ? 'data-cookieconsent="ignore"' : '';
+        $script_attrs = array();
+        if ( class_exists('Cookiebot_WP') ) {
+            $script_attrs['data-cookieconsent'] = 'ignore';
+        }
 
-        $script =
-            '<script ' . $cookie_bot_asset
-            . ">				
-                    document.addEventListener('DOMContentLoaded', function () {
+        $script = apbct_get_inline_script_tag(
+            "document.addEventListener('DOMContentLoaded', function () {
                         setTimeout(function(){
                             if( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
                                 " . $send_way_asset . "
                             }
-                        }," . $timeout . ")					    
-                    })				
-                </script>";
+                        }," . $timeout . ")
+                    })",
+            $script_attrs
+        );
 
         echo Escape::escKses(
             $script,
-            array(
-                'script' => array(
-                    'type' => true,
-                    'data-cookieconsent' => true
-                )
-            )
+            apbct_get_inline_script_kses()
         );
     }
 }
@@ -674,18 +671,24 @@ function ct_add_hidden_fields(
             return;
         }
 
+        $script_attrs = array();
+        if ( class_exists('Cookiebot_WP') ) {
+            $script_attrs['data-cookieconsent'] = 'ignore';
+        }
+
         $ct_input_challenge = sprintf("'%s'", is_null($ct_checkjs_key) ? $ct_checkjs_def : $ct_checkjs_key);
         $field_id           = $field_name . '_' . $field_id_hash;
-        $html               = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />
-		<script " . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . ">
-			setTimeout(function(){
+        $html               = "<input type=\"hidden\" id=\"{$field_id}\" name=\"{$field_name}\" value=\"{$ct_checkjs_def}\" />"
+            . apbct_get_inline_script_tag(
+                "setTimeout(function(){
 				var ct_input_name = \"{$field_id}\";
 				if (document.getElementById(ct_input_name) !== null) {
 					var ct_input_value = document.getElementById(ct_input_name).value;
 					document.getElementById(ct_input_name).value = document.getElementById(ct_input_name).value.replace(ct_input_value, {$ct_input_challenge});
 				}
-			}, 1000);
-		</script>";
+			}, 1000);",
+                $script_attrs
+            );
     }
 
     // Simplify JS code and Fixing issue with wpautop()
@@ -696,16 +699,15 @@ function ct_add_hidden_fields(
     } else {
         echo Escape::escKses(
             $html,
-            array(
-                'script' => array(
-                    'type' => true,
-                    'data-cookieconsent' => true
-                ),
+            array_merge(
+                apbct_get_inline_script_kses(),
+                array(
                 'input' => array(
                     'type' => true,
                     'id' => true,
                     'name' => true,
                     'value' => true
+                )
                 )
             )
         );
@@ -715,13 +717,22 @@ function ct_add_hidden_fields(
 /**
  * Changes whether notify admin/athor or not.
  *
+ * WordPress 7.1 checks comment approval before the notify_post_author filter.
+ * Returning true unconditionally would send mail for spam/trash/unapproved comments.
+ *
  * @param bool $maybe_notify notify flag
  * @param int $comment_ID Comment id
  *
  * @return bool flag
  */
-function apbct_comment__Wordpress__doNotify($_maybe_notify, $_comment_ID)
+function apbct_comment__Wordpress__doNotify($maybe_notify, $comment_ID)
 {
+    $comment = get_comment($comment_ID);
+
+    if ( ! ( $comment instanceof WP_Comment ) || '1' !== $comment->comment_approved ) {
+        return $maybe_notify;
+    }
+
     return true;
 }
 
@@ -971,7 +982,7 @@ function apbct_js_test($check_js_value = '', $is_cookie = false)
     ) {
         $js_key = $is_cookie && $apbct->data['cookies_type'] === 'alternative'
             ? Cookie::get('ct_checkjs')
-            : trim($check_js_value);
+            : trim($check_js_value, " \n\r\t\v\x00");
 
         // Check static key
         if (
@@ -1139,6 +1150,10 @@ function apbct_login__scripts()
 {
     global $apbct;
 
+    if ( apbct_is_wp_login_excluded_from_protection() ) {
+        return;
+    }
+
     apbct_enqueue_and_localize_public_scripts();
 
     $apbct->public_script_loaded = true;
@@ -1287,13 +1302,13 @@ function apbct_enqueue_and_localize_public_scripts()
     ApbctEnqueue::getInstance()->css('cleantalk-public.css');
 }
 
+/**
+ * @deprecated since 6.88, use \Cleantalk\ApbctWP\BotDetectorService::isNoScripFlow() instead
+ * @return bool
+ */
 function apbct_bot_detector_scripts_exclusion()
 {
-    if (apbct_is_plugin_active('oxygen/functions.php') && Get::get('ct_builder') === 'true') {
-        return true;
-    }
-
-    return false;
+    return BotDetectorService::isNoScripFlow();
 }
 
 
@@ -1333,26 +1348,25 @@ function apbct_generate_trusted_text_html($type = 'div')
         . '" target="_blank" rel="nofollow">'
         . 'CleanTalk Anti-Spam'
         . '</a>';
+    /* translators: %s: HTML link to CleanTalk Anti-Spam */
+    $protected_by_text = sprintf(__('Protected by %s', 'cleantalk-spam-protect'), $cleantalk_tag_with_ref_link);
 
     if ( $type === 'div' || $type === 'center' ) {
         $trusted_text = '<div class="' . $css_class . '">'
             . '<p>'
-            . 'Protected by '
-            . $cleantalk_tag_with_ref_link
+            . $protected_by_text
             . '</p>'
             . '</div>';
     }
     if ( strpos($type, 'label') !== false ) {
         $trusted_text = '<label for="hidden_trusted_text" type="hidden" class="' . $css_class . '">'
-            . 'Protected by '
-            . $cleantalk_tag_with_ref_link
+            . $protected_by_text
             . '</label>'
             . '<input type="hidden" name="hidden_trusted_text" id="hidden_trusted_text">';
     }
     if ( $type === 'span' ) {
         $trusted_text = '<span class="' . $css_class . '">'
-            . 'Protected by '
-            . $cleantalk_tag_with_ref_link
+            . $protected_by_text
             . '</span>';
     }
     return $trusted_text;

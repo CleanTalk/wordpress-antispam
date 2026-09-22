@@ -41,7 +41,9 @@ class RestController extends \WP_REST_Controller
                         'required' => true,
                     ),
                 ),
-                'permission_callback' => '__return_true',
+                'permission_callback' => function (WP_REST_Request $request) {
+                    return (bool) wp_verify_nonce(TT::toString($request->get_header('x_wp_nonce')), 'wp_rest');
+                },
             )
         ));
 

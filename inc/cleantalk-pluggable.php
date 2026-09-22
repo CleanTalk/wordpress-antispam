@@ -445,6 +445,21 @@ function apbct_is_in_uri($str)
 }
 
 /**
+ * Default wp-login.php login/lost-password flows are excluded from spam checks in PHP.
+ * Skip front-end protection (cookies/JS) there to avoid host WAF false positives on POST.
+ *
+ * @return bool
+ */
+function apbct_is_wp_login_excluded_from_protection()
+{
+    if ( ! apbct_is_in_uri('wp-login.php') ) {
+        return false;
+    }
+
+    return Get::getString('action') !== 'register';
+}
+
+/**
  * Checking if current request is a cron job
  * Support for WordPress < 4.8.0
  *
@@ -2221,6 +2236,58 @@ function apbct__is_wp_rocket_preloader_request()
 }
 
 /**
+ * True for WordPress HTTP API loopback requests (Site Health, updates, cron).
+ * Default WP user-agent: "WordPress/{version}; {siteurl}"
+ *
+ * Requires both the WordPress UA prefix and that the URL in the UA belongs
+ * to this site. UA-only matching would skip Anti-Crawler for any spoofed
+ * WordPress client, including requests from other sites.
+ *
+ * Do not require REMOTE_ADDR === SERVER_ADDR: php-fpm loopbacks often arrive
+ * from the public origin IP while SERVER_ADDR is 127.0.0.1.
+ *
+ * @return bool
+ */
+function apbct__is_wordpress_loopback_request()
+{
+    if ( ! isset($_SERVER['HTTP_USER_AGENT']) ) {
+        return false;
+    }
+
+    if ( preg_match('#^WordPress/\d[\d.]*;\s+(\S+)#', $_SERVER['HTTP_USER_AGENT'], $matches) !== 1 ) {
+        return false;
+    }
+
+    $ua_url = isset($matches[1]) ? $matches[1] : '';
+    if ( $ua_url === '' ) {
+        return false;
+    }
+
+    $ua_host = wp_parse_url($ua_url, PHP_URL_HOST);
+    if ( ! is_string($ua_host) || $ua_host === '' ) {
+        return false;
+    }
+    $ua_host = strtolower($ua_host);
+
+    $site_hosts = array();
+    foreach ( array(home_url(), site_url()) as $url ) {
+        $host = wp_parse_url($url, PHP_URL_HOST);
+        if ( is_string($host) && $host !== '' ) {
+            $site_hosts[] = strtolower($host);
+        }
+    }
+
+    if ( isset($_SERVER['HTTP_HOST']) ) {
+        $host_header = preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST']);
+        if ( is_string($host_header) && $host_header !== '' ) {
+            $site_hosts[] = strtolower($host_header);
+        }
+    }
+
+    return in_array($ua_host, $site_hosts, true);
+}
+
+/**
  * Generates MD5 hash for email encoder pass key
  *
  * @return string
@@ -2230,4 +2297,68 @@ function apbct_get_email_encoder_pass_key()
     global $apbct;
 
     return md5(Helper::ipGet() . $apbct->api_key . 'email_encoder');
+}
+
+/**
+ * Returns CSP nonce for CleanTalk inline scripts.
+ *
+ * @return string
+ */
+function apbct_get_csp_nonce()
+{
+    /**
+     * Filter CSP nonce for CleanTalk inline scripts.
+     *
+     * @param string $nonce CSP nonce value for script tags.
+     */
+    return (string) apply_filters('apbct_csp_nonce', '');
+}
+
+/**
+ * Returns inline script tag with optional CSP nonce.
+ *
+ * @param string $javascript JavaScript code.
+ * @param array<string, string|bool> $attributes Script tag attributes.
+ *
+ * @return string
+ */
+function apbct_get_inline_script_tag($javascript, $attributes = array())
+{
+    $nonce = apbct_get_csp_nonce();
+    if ( $nonce !== '' ) {
+        $attributes['nonce'] = $nonce;
+    }
+
+    if ( function_exists('wp_get_inline_script_tag') ) {
+        return wp_get_inline_script_tag($javascript, $attributes);
+    }
+
+    $attr_string = '';
+    foreach ( $attributes as $name => $value ) {
+        if ( $value === true ) {
+            $attr_string .= ' ' . esc_attr($name);
+        } elseif ( $value !== false && $value !== null && $value !== '' ) {
+            $attr_string .= ' ' . esc_attr($name) . '="' . esc_attr((string) $value) . '"';
+        }
+    }
+
+    $javascript = preg_replace('#</script#i', '<\/script', $javascript);
+
+    return '<script' . $attr_string . '>' . $javascript . '</script>';
+}
+
+/**
+ * Returns allowed HTML tags for inline CleanTalk scripts passed through kses.
+ *
+ * @return array<string, array<string, bool>>
+ */
+function apbct_get_inline_script_kses()
+{
+    return array(
+        'script' => array(
+            'type' => true,
+            'data-cookieconsent' => true,
+            'nonce' => true,
+        ),
+    );
 }

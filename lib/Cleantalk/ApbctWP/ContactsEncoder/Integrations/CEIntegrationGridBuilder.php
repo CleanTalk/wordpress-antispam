@@ -48,6 +48,24 @@ class CEIntegrationGridBuilder
     }
 
     /**
+     * Apply WPGB layout/CSS fix without running email encoding (#54940).
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    public function applyCompatibilityFix($content)
+    {
+        if ( ! is_string($content) || $content === '' || ! $this->contentHasWpGridBuilder($content) ) {
+            return $content;
+        }
+
+        $this->prepareAssets($content);
+
+        return $this->appendFix($content);
+    }
+
+    /**
      * @return void
      */
     public function registerStyleCaptureHooks()
@@ -403,7 +421,7 @@ class CEIntegrationGridBuilder
             return;
         }
 
-        $css = trim($css);
+        $css = trim($css, " \n\r\t\v\x00");
 
         if ( $css === '' ) {
             return;
@@ -436,7 +454,7 @@ class CEIntegrationGridBuilder
                 continue;
             }
 
-            $chunk = trim($chunk);
+            $chunk = trim($chunk, " \n\r\t\v\x00");
 
             if ( $chunk !== '' ) {
                 $merged[] = $chunk;
@@ -445,7 +463,7 @@ class CEIntegrationGridBuilder
 
         if ( $merged === array() ) {
             return $this->isCardCssChunk($this->card_inline_css)
-                ? trim($this->card_inline_css)
+                ? trim($this->card_inline_css, " \n\r\t\v\x00")
                 : '';
         }
 
@@ -453,7 +471,7 @@ class CEIntegrationGridBuilder
             $this->card_inline_css !== ''
             && $this->isCardCssChunk($this->card_inline_css)
         ) {
-            $merged[] = trim($this->card_inline_css);
+            $merged[] = trim($this->card_inline_css, " \n\r\t\v\x00");
         }
 
         return implode("\n", array_unique($merged));
@@ -586,6 +604,12 @@ class CEIntegrationGridBuilder
         $abspath = realpath(ABSPATH);
         $abspath_prefix = is_string($abspath) ? trailingslashit($abspath) : '';
 
+        // Normalize directory separators for cross-platform strpos comparison
+        if ( is_string($resolved) ) {
+            $resolved = str_replace('\\', '/', $resolved);
+        }
+        $abspath_prefix = str_replace('\\', '/', $abspath_prefix);
+
         if (
             $resolved === false
             || $abspath === false
@@ -602,7 +626,7 @@ class CEIntegrationGridBuilder
             return '';
         }
 
-        return trim($css);
+        return trim($css, " \n\r\t\v\x00");
     }
 
     /**
@@ -644,7 +668,7 @@ class CEIntegrationGridBuilder
                 continue;
             }
 
-            $css = trim($css);
+            $css = trim($css, " \n\r\t\v\x00");
 
             if ( $css !== '' ) {
                 $chunks[] = $css;
@@ -689,7 +713,7 @@ class CEIntegrationGridBuilder
 
                 foreach ( $data as $piece ) {
                     if ( is_string($piece) && $this->isCardCssChunk($piece) ) {
-                        $chunks[] = trim($piece);
+                        $chunks[] = trim($piece, " \n\r\t\v\x00");
                     }
                 }
             }

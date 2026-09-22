@@ -27,6 +27,9 @@ class TestExclusionsService extends TestCase
 
         // Reset any previously added filters
         remove_all_filters('apbct_skip_email_encoder_on_uri_chunk_list');
+        remove_all_filters('apbct_email_encoder_content_exclusions_signs');
+        remove_all_filters('apbct_email_encoder_attribute_exclusions_signs');
+        remove_all_filters('apbct_skip_email_encoder_on_attribute_list');
 
         // Reset Server variables cache using reflection
         $this->resetServerCache();
@@ -36,6 +39,9 @@ class TestExclusionsService extends TestCase
     {
         // Clean up filters after each test
         remove_all_filters('apbct_skip_email_encoder_on_uri_chunk_list');
+        remove_all_filters('apbct_email_encoder_content_exclusions_signs');
+        remove_all_filters('apbct_email_encoder_attribute_exclusions_signs');
+        remove_all_filters('apbct_skip_email_encoder_on_attribute_list');
 
         // Reset Server variables cache
         $this->resetServerCache();
@@ -594,6 +600,107 @@ class TestExclusionsService extends TestCase
         $result = $this->invokePrivateMethod($this->exclusions_service, 'byPluginSetting', [$apbct]);
 
         $this->assertFalse($result);
+    }
+
+    /**
+     * Test byContentSigns honors apbct_email_encoder_content_exclusions_signs
+     */
+    public function testByContentSignsHonorsContentExclusionsSignsFilter()
+    {
+        add_filter('apbct_email_encoder_content_exclusions_signs', function ($signs) {
+            $signs[] = array('gf-custom-skip-encode');
+            return $signs;
+        });
+
+        $content = '<div class="gf-custom-skip-encode">test@example.com</div>';
+        $result = $this->invokePrivateMethod($this->exclusions_service, 'byContentSigns', [$content]);
+
+        $this->assertTrue($result);
+    }
+
+    /**
+     * Test doReturnContentBeforeModify returns byContentSigns when custom signs match via filter
+     */
+    public function testDoReturnContentBeforeModifyReturnsByContentSignsForCustomFilterSigns()
+    {
+        $_SERVER['REQUEST_URI'] = '/contact/';
+
+        add_filter('apbct_email_encoder_content_exclusions_signs', function ($signs) {
+            $signs[] = array('data-mask');
+            return $signs;
+        });
+
+        $content = '<input type="tel" data-mask="(999) 999-9999" />';
+        $result = $this->exclusions_service->doReturnContentBeforeModify($content);
+
+        $this->assertEquals('byContentSigns', $result);
+    }
+
+    /**
+     * Test byContentSigns ignores non-array values from the filter
+     */
+    public function testByContentSignsIgnoresNonArrayFilterResult()
+    {
+        add_filter('apbct_email_encoder_content_exclusions_signs', function () {
+            return 'not-an-array';
+        });
+
+        $content = '<div class="gf-custom-skip-encode">test@example.com</div>';
+        $result = $this->invokePrivateMethod($this->exclusions_service, 'byContentSigns', [$content]);
+
+        $this->assertFalse($result);
+    }
+
+    public function testIsContactExcludedMatchesEmailAndPhoneVariants()
+    {
+        $params = new Params();
+        $params->api_key = 'testapikey';
+        $params->excluded_strings = array('keep@example.com', '+1 800 555-1234', 'company.org');
+        $service = new ExclusionsService($params);
+
+        $this->assertTrue($service->isContactExcluded('keep@example.com'));
+        $this->assertTrue($service->isContactExcluded('mailto:keep@example.com'));
+        $this->assertTrue($service->isContactExcluded('office@company.org'));
+        $this->assertTrue($service->isContactExcluded('(800) 555-1234'));
+        $this->assertFalse($service->isContactExcluded('public@other.net'));
+        $this->assertFalse($service->isContactExcluded('(800) 555-9999'));
+    }
+
+    public function testIsContactExcludedDoesNotCrossMatchEmailAndPhoneDigits()
+    {
+        $params = new Params();
+        $params->api_key = 'testapikey';
+        $params->excluded_strings = array('+1 800 555-1234', 'user12345678@example.com');
+        $service = new ExclusionsService($params);
+
+        $this->assertFalse($service->isContactExcluded('ticket18005551234@shop.com'));
+        $this->assertFalse($service->isContactExcluded('123-456-7890'));
+        $this->assertTrue($service->isContactExcluded('(800) 555-1234'));
+        $this->assertTrue($service->isContactExcluded('user12345678@example.com'));
+    }
+
+    public function testParseExcludedStringsSplitsLines()
+    {
+        $parsed = \Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService::parseExcludedStrings(
+            "keep@example.com\n+1 800 555-1234\nexample.com\n"
+        );
+
+        $this->assertSame(
+            array('keep@example.com', '+1 800 555-1234', 'example.com'),
+            $parsed
+        );
+    }
+
+    public function testParseExcludedStringsKeepsCommaInsideALine()
+    {
+        $parsed = \Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService::parseExcludedStrings(
+            "keep@example.com, office@example.com\n+1 800 555-1234"
+        );
+
+        $this->assertSame(
+            array('keep@example.com, office@example.com', '+1 800 555-1234'),
+            $parsed
+        );
     }
 
     /**

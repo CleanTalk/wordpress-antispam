@@ -2253,7 +2253,7 @@ function ctSetCookie( cookies, value, expires='') {
     let listOfCookieNamesToForceAlt = [
         'ct_sfw_pass_key',
         'ct_sfw_passed',
-        'wordpress_apbct_antibot',
+        'apbct_antibot',
         'apbct_anticrawler_passed',
         'apbct_bot_detector_exist',
         'apbct_antiflood_passed',
@@ -2642,6 +2642,15 @@ function getNoCookieData() { // eslint-disable-line no-unused-vars
     let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
     let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
     let noCookieData = {...noCookieDataLocal, ...noCookieDataSession};
+
+    // Bot detector browser state is transferred with the hidden field on the NoCookie mode
+    if (typeof apbctGetBrowserStatePair === 'function') {
+        const browserState = apbctGetBrowserStatePair();
+        if (browserState) {
+            noCookieData[browserState.key] = browserState.value;
+        }
+    }
+
     noCookieData = JSON.stringify(noCookieData);
 
     return '_ct_no_cookie_data_' + btoa(unescape(encodeURIComponent(noCookieData)));
@@ -2669,7 +2678,21 @@ function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
         noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
     }
 
-    return {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity};
+    let browserStateData = {};
+    if (typeof apbctGetBrowserStatePair === 'function') {
+        const browserState = apbctGetBrowserStatePair();
+        if (browserState) {
+            browserStateData[browserState.key] = browserState.value;
+        }
+    }
+
+    return {
+        ...noCookieDataLocal,
+        ...noCookieDataSession,
+        ...noCookieDataTypo,
+        ...noCookieDataFromUserActivity,
+        ...browserStateData,
+    };
 }
 
 /**
@@ -3151,6 +3174,15 @@ class ApbctHandler {
             result.no_cookie = 1;
         }
 
+        // WordPress login form (wp-login.php is excluded from spam check in PHP)
+        if (
+            (form.id && form.id === 'loginform') ||
+            form.action.toString().indexOf('wp-login.php') !== -1
+        ) {
+            result.visible_fields = 1;
+            result.no_cookie = 1;
+        }
+
         return result;
     }
 
@@ -3305,6 +3337,9 @@ class ApbctHandler {
                     const eventTokenKey = useUnwrappedCleantalkKeys ?
                         'ct_bot_detector_event_token' :
                         'data%5Bct_bot_detector_event_token%5D';
+                    const browserStateKey = useUnwrappedCleantalkKeys ?
+                        'apbct_browser_state' :
+                        'data%5Bapbct_browser_state%5D';
 
                     if (!(
                         +ctPublic.bot_detector_enabled &&
@@ -3329,6 +3364,12 @@ class ApbctHandler {
                         }
                     }
 
+                    const browserState = apbctGetBrowserStatePair();
+                    if (browserState && body.indexOf('apbct_browser_state') === -1) {
+                        addidionalCleantalkData += '&' + browserStateKey + '=' +
+                            encodeURIComponent(browserState.value);
+                    }
+
                     body += addidionalCleantalkData;
                 }
 
@@ -3344,6 +3385,11 @@ class ApbctHandler {
                         if (eventToken) {
                             body.append('ct_bot_detector_event_token', eventToken);
                         }
+                    }
+
+                    const browserState = apbctGetBrowserStatePair();
+                    if (browserState && !body.has(browserState.key)) {
+                        body.append(browserState.key, browserState.value);
                     }
                 }
 
@@ -3380,6 +3426,22 @@ class ApbctHandler {
                             } catch (e) {
                                 // body is not JSON — leave as is
                             }
+                        }
+                    }
+
+                    const browserState = apbctGetBrowserStatePair();
+                    if (browserState) {
+                        try {
+                            const bodyObj = JSON.parse(body);
+                            if (
+                                bodyObj && typeof bodyObj === 'object' &&
+                                !Object.prototype.hasOwnProperty.call(bodyObj, browserState.key)
+                            ) {
+                                bodyObj[browserState.key] = browserState.value;
+                                body = JSON.stringify(bodyObj);
+                            }
+                        } catch (e) {
+                            // body is not JSON — leave as is
                         }
                     }
                 }
@@ -3439,6 +3501,11 @@ class ApbctHandler {
                                 } else {
                                     args[1].body.append('ct_no_cookie_hidden_field', getNoCookieData());
                                 }
+
+                                const browserState = apbctGetBrowserStatePair();
+                                if (browserState) {
+                                    args[1].body.append(browserState.key, browserState.value);
+                                }
                             }
                         }
                     } catch (e) {
@@ -3495,6 +3562,22 @@ class ApbctHandler {
          * @return {string|FormData} Modified body.
          */
         const attachFieldsToBody = function(body, fieldPair = false) {
+            const fieldPairs = [fieldPair, apbctGetBrowserStatePair()];
+
+            for (const pair of fieldPairs) {
+                body = attachFieldPairToBody(body, pair);
+            }
+
+            return body;
+        };
+
+        /**
+         * Attach a single key/value pair to fetch request body
+         * @param {string|FormData} body Fetch request data body.
+         * @param {object|bool} fieldPair Key value to inject.
+         * @return {string|FormData} Modified body.
+         */
+        const attachFieldPairToBody = function(body, fieldPair = false) {
             if (fieldPair) {
                 if (body instanceof FormData || typeof body.append === 'function') {
                     body.append(fieldPair.key, fieldPair.value);
@@ -3791,10 +3874,14 @@ class ApbctHandler {
                         const batchPayload = JSON.parse(args[1].body);
                         if (batchPayload.requests && Array.isArray(batchPayload.requests)) {
                             const fieldPair = selectFieldsData(+ctPublic.bot_detector_enabled);
+                            const browserState = apbctGetBrowserStatePair();
                             for (const req of batchPayload.requests) {
                                 const isAddItem = req.path === '/wc/store/v1/cart/add-item';
                                 if (isAddItem && req.body && fieldPair && fieldPair.key) {
                                     req.body[fieldPair.key] = fieldPair.value;
+                                }
+                                if (isAddItem && req.body && browserState) {
+                                    req.body[browserState.key] = browserState.value;
                                 }
                             }
                             args[1].body = JSON.stringify(batchPayload);
@@ -3819,188 +3906,970 @@ class ApbctHandler {
     }
 
     /**
-     * Prepare jQuery.ajaxSetup to add nocookie data to the jQuery ajax request.
+     * Prepare jQuery.ajaxPrefilter to add CleanTalk data to jQuery ajax requests.
      * Notes:
-     * - Do it just once, the ajaxSetup.beforeSend will be overwritten for any calls.
-     * - Signs of forms need to be caught will be checked during ajaxSetup.settings.data process on send.
+     * - ajaxSetup.beforeSend is not used: a request can supply its own beforeSend and drop the default.
+     * - ajaxPrefilter runs for every jQuery ajax call after options are merged, so injection is guaranteed.
+     * - Form signs are checked on the request data/url at send time.
      * - Any sign of the form HTML of the caller is insignificant in this process.
      * - This is the only place where we can found hard dependency on jQuery, if the form use it - the script
      * will work independing if jQuery is loaded by CleanTalk or not
      * @return {void}
      */
     catchJqueryAjax() {
-        if ( typeof jQuery !== 'undefined') {
-            // this code run on base ajax rules - so do not work due scripts use it's own ajax object injections
-            if ( typeof jQuery.ajaxSetup === 'function' ) {
-                jQuery.ajaxSetup({
-                    beforeSend: function(xhr, settings) {
-                        const handler = new ApbctHandler();
-                        const sourceSign = handler.searchSignsForJQAjaxInjection(settings, 'ajaxSetup');
-                        if (sourceSign.found !== false) {
-                            settings.data = handler.injectCleantalkDataToJQAjaxString(sourceSign, settings.data);
-                        }
-                    },
-                });
+        if ( typeof jQuery !== 'undefined' && typeof jQuery.ajaxPrefilter === 'function' ) {
+            jQuery.ajaxPrefilter(function(options, originalOptions, jqXHR) {
+                const handler = new ApbctHandler();
+                const sourceSign = handler.searchSignsForJQAjaxInjection(options, originalOptions);
+                if (sourceSign.found !== false) {
+                    options.data = handler.injectCleantalkDataToJQAjax(
+                        sourceSign,
+                        handler.getJQAjaxPayloadForInject(options, originalOptions),
+                        options,
+                    );
+                }
+            });
+        }
+    }
+
+    /**
+     * jQuery.param() on URLSearchParams/FormData can collapse options.data to "".
+     * Sign search already falls back to originalOptions; inject must use that payload too.
+     * @param {object} options
+     * @param {object=} originalOptions
+     * @return {*}
+     */
+    getJQAjaxPayloadForInject(options, originalOptions) {
+        const current = options && options.data;
+        const original = originalOptions && originalOptions.data;
+        if ( this.jqAjaxPayloadWasCollapsed(current, original) ) {
+            return original;
+        }
+        return current;
+    }
+
+    /**
+     * @param {*} current
+     * @param {*} original
+     * @return {boolean}
+     */
+    jqAjaxPayloadWasCollapsed(current, original) {
+        if ( original === null || typeof original === 'undefined' ) {
+            return false;
+        }
+        if ( current === original ) {
+            return false;
+        }
+        const currentEmpty = current === '' || current === null || typeof current === 'undefined';
+        if ( !currentEmpty ) {
+            return false;
+        }
+        if ( typeof original === 'string' ) {
+            return original !== '';
+        }
+        return this.isJQAjaxFormData(original) ||
+            this.isJQAjaxURLSearchParams(original) ||
+            this.isJQAjaxPlainObjectOrArray(original);
+    }
+
+    /**
+     * Normalize jQuery ajax data to a query string for sign search.
+     * Objects and serializeArray are read structurally so search never calls jQuery.param.
+     * Also reads known sign fields from the URL (IE11 FormData cannot be enumerated).
+     * @param {object} ajaxObject Ajax options object.
+     * @return {string}
+     */
+    getJQAjaxDataAsString(ajaxObject) {
+        if ( !ajaxObject || typeof ajaxObject !== 'object' ) {
+            return '';
+        }
+        let fromData = '';
+        if ( typeof ajaxObject.data === 'string' ) {
+            fromData = ajaxObject.data;
+        } else if ( this.isJQAjaxPlainObjectOrArray(ajaxObject.data) ) {
+            fromData = this.getStructuredJQAjaxSignString(ajaxObject.data);
+        } else if ( this.isJQAjaxURLSearchParams(ajaxObject.data) ) {
+            fromData = this.collectKnownSignStringFromKeyValueBag(ajaxObject.data);
+        } else if ( this.isJQAjaxFormData(ajaxObject.data) ) {
+            fromData = this.collectKnownSignStringFromKeyValueBag(ajaxObject.data);
+        }
+        // Native IE11 FormData is write-only (no get/forEach/entries). Signs then come from the URL.
+        const fromUrl = this.collectKnownSignStringFromUrl(ajaxObject.url);
+        if ( fromData && fromUrl ) {
+            return fromData + '&' + fromUrl;
+        }
+        return fromData || fromUrl;
+    }
+
+    /**
+     * Build a sign string from top-level fields without serializing the whole payload.
+     * @param {object|Array} data
+     * @return {string}
+     */
+    getStructuredJQAjaxSignString(data) {
+        if ( Object.prototype.toString.call(data) === '[object Array]' ) {
+            return this.getSerializeArraySignString(data);
+        }
+        const parts = [];
+        const action = this.getPlainObjectSignField(data, 'action');
+        if ( typeof action === 'string' && action !== '' ) {
+            parts.push('action=' + action);
+        }
+        const nonce = this.getPlainObjectSignField(data, 'ur_frontend_form_nonce');
+        if ( nonce !== null ) {
+            parts.push('ur_frontend_form_nonce=' + nonce);
+        }
+        if ( this.plainObjectHasTwtCcSignup(data) ) {
+            parts.push('twt_cc_signup=1');
+        }
+        return parts.join('&');
+    }
+
+    /**
+     * Read action/nonce from top-level, data[key], or nested data.key.
+     * @param {object} data
+     * @param {string} key
+     * @return {string|number|null}
+     */
+    getPlainObjectSignField(data, key) {
+        if ( !data || typeof data !== 'object' ) {
+            return null;
+        }
+        if ( this.isJQAjaxScalarSignValue(data[key]) ) {
+            return data[key];
+        }
+        const bracketKey = 'data[' + key + ']';
+        if ( this.isJQAjaxScalarSignValue(data[bracketKey]) ) {
+            return data[bracketKey];
+        }
+        if (
+            data.data &&
+            typeof data.data === 'object' &&
+            Object.prototype.toString.call(data.data) !== '[object Array]' &&
+            this.isJQAjaxScalarSignValue(data.data[key])
+        ) {
+            return data.data[key];
+        }
+        return null;
+    }
+
+    /**
+     * @param {*} value
+     * @return {boolean}
+     */
+    isJQAjaxScalarSignValue(value) {
+        return typeof value === 'string' || typeof value === 'number';
+    }
+
+    /**
+     * @param {object} data
+     * @param {number=} depth
+     * @return {boolean}
+     */
+    plainObjectHasTwtCcSignup(data, depth) {
+        if ( !data || typeof data !== 'object' ) {
+            return false;
+        }
+        if ( typeof depth === 'undefined' ) {
+            depth = 0;
+        }
+        if ( depth > 2 ) {
+            return false;
+        }
+        for ( const key in data ) {
+            if ( !Object.prototype.hasOwnProperty.call(data, key) ) {
+                continue;
             }
-            // this code run on ANY ajax on ANY script queue status
-            // todo Probably move all ajaxSetup actions to ajaxPrefilter
-            if ( typeof jQuery.ajaxPrefilter === 'function' ) {
-                jQuery.ajaxPrefilter(function(options, originalOptions, jqXHR) {
-                    const handler = new ApbctHandler();
-                    const sourceSign = handler.searchSignsForJQAjaxInjection(options, 'ajaxPrefilter');
-                    if (sourceSign.found !== false) {
-                        if (typeof options.data === 'string') {
-                            options.data = handler.injectCleantalkDataToJQAjaxString(sourceSign, options.data);
-                        }
-                        if (
-                            typeof options.data === 'object' &&
-                            typeof options.data.append === 'function'
-                        ) {
-                            options.data = handler.injectCleantalkDataToJQAjaxFormData(sourceSign, options.data);
-                        }
-                    }
-                });
+            const normalizedKey = this.unwrapJQAjaxFormDataKey(key);
+            if ( normalizedKey === 'twt_cc_signup' || key.indexOf('twt_cc_signup') !== -1 ) {
+                return true;
+            }
+            const value = data[key];
+            if ( typeof value === 'string' && value.indexOf('twt_cc_signup') !== -1 ) {
+                return true;
+            }
+            if (
+                value &&
+                typeof value === 'object' &&
+                Object.prototype.toString.call(value) !== '[object Array]'
+            ) {
+                if ( this.plainObjectHasTwtCcSignup(value, depth + 1) ) {
+                    return true;
+                }
             }
         }
+        return false;
+    }
+
+    /**
+     * @param {Array} entries
+     * @return {string}
+     */
+    getSerializeArraySignString(entries) {
+        const parts = [];
+        for ( let i = 0; i < entries.length; i++ ) {
+            const entry = entries[i];
+            if ( !entry || typeof entry !== 'object' || typeof entry.name !== 'string' ) {
+                continue;
+            }
+            const value = entry.value;
+            const normalizedKey = this.unwrapJQAjaxFormDataKey(entry.name);
+            if ( this.isJQAjaxKnownSignField(normalizedKey, value) ) {
+                parts.push(normalizedKey + '=' + value);
+            }
+        }
+        return parts.join('&');
+    }
+
+    /**
+     * True for serializeArray payloads, including an empty array.
+     * @param {Array} data
+     * @return {boolean}
+     */
+    isJQAjaxSerializeArray(data) {
+        if ( Object.prototype.toString.call(data) !== '[object Array]' ) {
+            return false;
+        }
+        for ( let i = 0; i < data.length; i++ ) {
+            const entry = data[i];
+            if ( !entry || typeof entry !== 'object' || typeof entry.name !== 'string' ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Cross-realm URLSearchParams (instanceof fails across windows).
+     * @param {*} data
+     * @return {boolean}
+     */
+    isJQAjaxURLSearchParams(data) {
+        if ( !data || typeof data !== 'object' || typeof data.append !== 'function' ) {
+            return false;
+        }
+        if ( this.isJQAjaxPlainObjectOrArray(data) ) {
+            return false;
+        }
+        const tag = Object.prototype.toString.call(data);
+        if ( tag === '[object URLSearchParams]' ) {
+            return true;
+        }
+        if ( tag === '[object FormData]' ) {
+            return false;
+        }
+        return typeof data.sort === 'function' && typeof data.get === 'function';
+    }
+
+    /**
+     * Cross-realm FormData, including common polyfills.
+     * @param {*} data
+     * @return {boolean}
+     */
+    isJQAjaxFormData(data) {
+        if ( !data || typeof data !== 'object' || typeof data.append !== 'function' ) {
+            return false;
+        }
+        if ( this.isJQAjaxPlainObjectOrArray(data) || this.isJQAjaxURLSearchParams(data) ) {
+            return false;
+        }
+        const tag = Object.prototype.toString.call(data);
+        if ( tag === '[object FormData]' ) {
+            return true;
+        }
+        if ( tag === '[object Headers]' || typeof data.getSetCookie === 'function' ) {
+            return false;
+        }
+        return typeof data.forEach === 'function' ||
+            typeof data.get === 'function' ||
+            typeof data.entries === 'function';
+    }
+
+    /**
+     * Collect only known sign fields from FormData / URLSearchParams.
+     * Unwrap data[action] so later action=... checks match.
+     * @param {FormData|URLSearchParams} bag
+     * @return {string}
+     */
+    collectKnownSignStringFromKeyValueBag(bag) {
+        const knownKeys = this.getJQAjaxKnownSignKeys();
+        const unwrapKey = this.unwrapJQAjaxFormDataKey;
+        const parts = [];
+        const collected = this.forEachJQAjaxKeyValueBag(bag, function(value, key) {
+            if ( typeof value !== 'string' && typeof value !== 'number' ) {
+                return;
+            }
+            const valueAsString = String(value);
+            const normalizedKey = unwrapKey(key);
+            if (
+                knownKeys[normalizedKey] ||
+                valueAsString.indexOf('twt_cc_signup') !== -1 ||
+                normalizedKey.indexOf('twt_cc_signup') !== -1
+            ) {
+                parts.push(normalizedKey + '=' + valueAsString);
+            }
+        });
+        if ( collected ) {
+            return parts.join('&');
+        }
+        if ( typeof bag.get !== 'function' ) {
+            return '';
+        }
+        const keysToProbe = [
+            'action',
+            'ur_frontend_form_nonce',
+            'twt_cc_signup',
+        ];
+        const getParts = [];
+        for ( let i = 0; i < keysToProbe.length; i++ ) {
+            const key = keysToProbe[i];
+            const value = this.getFormDataScalarValue(bag, [key, 'data[' + key + ']']);
+            if ( value !== null ) {
+                getParts.push(key + '=' + value);
+            }
+        }
+        return getParts.join('&');
+    }
+
+    /**
+     * Known sign fields from a request URL query. IE11-safe (no URLSearchParams).
+     * @param {string} url
+     * @return {string}
+     */
+    collectKnownSignStringFromUrl(url) {
+        if ( typeof url !== 'string' || url === '' ) {
+            return '';
+        }
+        const queryIndex = url.indexOf('?');
+        if ( queryIndex === -1 || queryIndex === url.length - 1 ) {
+            return '';
+        }
+        const hashIndex = url.indexOf('#', queryIndex);
+        const query = hashIndex === -1 ?
+            url.slice(queryIndex + 1) :
+            url.slice(queryIndex + 1, hashIndex);
+        const knownKeys = this.getJQAjaxKnownSignKeys();
+        const unwrapKey = this.unwrapJQAjaxFormDataKey;
+        const parts = [];
+        const pairs = query.split('&');
+        for ( let i = 0; i < pairs.length; i++ ) {
+            const pair = pairs[i];
+            if ( !pair ) {
+                continue;
+            }
+            const eq = pair.indexOf('=');
+            let rawKey = eq === -1 ? pair : pair.slice(0, eq);
+            let rawValue = eq === -1 ? '' : pair.slice(eq + 1);
+            try {
+                rawKey = decodeURIComponent(rawKey.replace(/\+/g, ' '));
+                rawValue = decodeURIComponent(rawValue.replace(/\+/g, ' '));
+            } catch (e) {
+                continue;
+            }
+            const normalizedKey = unwrapKey(rawKey);
+            if (
+                knownKeys[normalizedKey] ||
+                rawValue.indexOf('twt_cc_signup') !== -1 ||
+                normalizedKey.indexOf('twt_cc_signup') !== -1
+            ) {
+                parts.push(normalizedKey + '=' + rawValue);
+            }
+        }
+        return parts.join('&');
+    }
+
+    /**
+     * Walk FormData/URLSearchParams via forEach, then entries() for polyfills that only have an iterator.
+     * @param {FormData|URLSearchParams} bag
+     * @param {Function} callback
+     * @return {boolean}
+     */
+    forEachJQAjaxKeyValueBag(bag, callback) {
+        if ( typeof bag.forEach === 'function' ) {
+            try {
+                bag.forEach(callback);
+                return true;
+            } catch (e) {
+                // Fall through to entries().
+            }
+        }
+        if ( typeof bag.entries !== 'function' ) {
+            return false;
+        }
+        try {
+            const iterator = bag.entries();
+            if ( !iterator || typeof iterator.next !== 'function' ) {
+                return false;
+            }
+            let step = iterator.next();
+            while ( !step.done ) {
+                const pair = step.value;
+                if ( pair ) {
+                    callback(pair[1], pair[0]);
+                }
+                step = iterator.next();
+            }
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    /**
+     * @return {Object}
+     */
+    getJQAjaxKnownSignKeys() {
+        const knownKeys = Object.create(null);
+        knownKeys.action = true;
+        knownKeys.ur_frontend_form_nonce = true;
+        knownKeys.twt_cc_signup = true;
+        return knownKeys;
+    }
+
+    /**
+     * @param {string} normalizedKey
+     * @param {*} value
+     * @return {boolean}
+     */
+    isJQAjaxKnownSignField(normalizedKey, value) {
+        if (
+            normalizedKey === 'action' ||
+            normalizedKey === 'ur_frontend_form_nonce' ||
+            normalizedKey === 'twt_cc_signup' ||
+            normalizedKey.indexOf('twt_cc_signup') !== -1
+        ) {
+            return true;
+        }
+        return typeof value === 'string' && value.indexOf('twt_cc_signup') !== -1;
+    }
+
+    /**
+     * Treat data[action] as action for WP-style payloads.
+     * @param {string} key
+     * @return {string}
+     */
+    unwrapJQAjaxFormDataKey(key) {
+        if ( typeof key !== 'string' ) {
+            return '';
+        }
+        if ( key.length > 6 && key.indexOf('data[') === 0 && key.charAt(key.length - 1) === ']' ) {
+            return key.slice(5, -1);
+        }
+        return key;
+    }
+
+    /**
+     * @param {FormData} formData
+     * @param {Array.<string>} keys
+     * @return {string|number|null}
+     */
+    getFormDataScalarValue(formData, keys) {
+        for ( let i = 0; i < keys.length; i++ ) {
+            const value = formData.get(keys[i]);
+            if ( value !== null && (typeof value === 'string' || typeof value === 'number') ) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * True for arrays and plain objects that jQuery.param can serialize safely.
+     * @param {*} data
+     * @return {boolean}
+     */
+    isJQAjaxPlainObjectOrArray(data) {
+        if ( data === null || typeof data !== 'object' ) {
+            return false;
+        }
+        if ( Object.prototype.toString.call(data) === '[object Array]' ) {
+            return true;
+        }
+        if ( typeof jQuery !== 'undefined' && typeof jQuery.isPlainObject === 'function' ) {
+            return jQuery.isPlainObject(data);
+        }
+        const proto = Object.getPrototypeOf(data);
+        return proto === Object.prototype || proto === null;
     }
 
     /**
      * Search for sign within AJAX data to do inject CleanTalk data.
      * @param {object} ajaxObject Ajax object.
-     * @param {string} catchOn Function should be catched on.
+     * @param {object=} originalOptions Original jQuery ajax options before merge.
      * @return {{found: boolean, keepUnwrapped: boolean, attachVisibleFieldsData: boolean}}
      */
-    searchSignsForJQAjaxInjection(ajaxObject, catchOn = 'ajaxSetup') {
+    searchSignsForJQAjaxInjection(ajaxObject, originalOptions) {
         let sourceSign = {
             'found': false,
             'keepUnwrapped': false,
             'attachVisibleFieldsData': false,
         };
-        // on ajaxSetup
-        if (catchOn === 'ajaxSetup') {
-            // settings data is string (important!)
-            if ( typeof ajaxObject.data === 'string' ) {
-                if (
-                    ajaxObject.data.indexOf('action=fl_builder_subscribe_form_submit') !== -1
-                ) {
-                    sourceSign.found = 'fl_builder_subscribe_form_submit';
-                }
-                if (
-                    ajaxObject.data.indexOf('twt_cc_signup') !== -1
-                ) {
-                    sourceSign.found = 'twt_cc_signup';
-                }
-                if (
-                    ajaxObject.data.indexOf('action=mailpoet') !== -1
-                ) {
-                    sourceSign.found = 'action=mailpoet';
-                    sourceSign.attachVisibleFieldsData = true;
-                }
-
-                if (
-                    ajaxObject.data.indexOf('action=user_registration') !== -1 &&
-                    ajaxObject.data.indexOf('ur_frontend_form_nonce') !== -1
-                ) {
-                    sourceSign.found = 'action=user_registration';
-                }
-
-                if (ajaxObject.data.indexOf('action=happyforms_message') !== -1) {
-                    sourceSign.found = 'action=happyforms_message';
-                }
-
-                if (
-                    ajaxObject.data.indexOf('action=new_activity_comment') !== -1
-                ) {
-                    sourceSign.found = 'action=new_activity_comment';
-                }
-                if (
-                    ajaxObject.data.indexOf('action=wwlc_create_user') !== -1
-                ) {
-                    sourceSign.found = 'action=wwlc_create_user';
-                }
-                if (
-                    ajaxObject.data.indexOf('action=WPBC_AJX_BOOKING__CREATE') !== -1
-                ) {
-                    sourceSign.found = 'action=WPBC_AJX_BOOKING__CREATE';
-                    sourceSign.keepUnwrapped = true;
-                    sourceSign.attachVisibleFieldsData = true;
-                }
-                if (
-                    ajaxObject.data.indexOf('action=drplus_signup') !== -1
-                ) {
-                    sourceSign.found = 'action=drplus_signup';
-                    sourceSign.keepUnwrapped = true;
-                }
-                if (
-                    ajaxObject.data.indexOf('action=bt_cc') !== -1
-                ) {
-                    sourceSign.found = 'action=bt_cc';
-                    sourceSign.keepUnwrapped = true;
-                }
-                if (
-                    ajaxObject.data.indexOf('action=wpr_form_builder_email') !== -1
-                ) {
-                    sourceSign.found = 'action=wpr_form_builder_email';
-                    sourceSign.keepUnwrapped = true;
-                }
-                if (
-                    ajaxObject.data.indexOf('action=nf_ajax_submit') !== -1
-                ) {
-                    sourceSign.found = 'action=nf_ajax_submit';
-                    sourceSign.keepUnwrapped = true;
-                    sourceSign.attachVisibleFieldsData = true;
-                }
-                if (
-                    ajaxObject.data.indexOf('action=uael_register_user') !== -1 &&
-                    ctPublic.data__cookies_type === 'none'
-                ) {
-                    sourceSign.found = 'action=uael_register_user';
-                    sourceSign.keepUnwrapped = true;
-                }
-                if (
-                    ajaxObject.data.indexOf('action=SQBSubmitQuizAjax') !== -1
-                ) {
-                    sourceSign.found = 'action=SQBSubmitQuizAjax';
-                    sourceSign.keepUnwrapped = true;
-                }
-                if (
-                    ajaxObject.data.indexOf('action=user_registration_user_form_submit') !== -1
-                ) {
-                    sourceSign.found = 'action=user_registration_user_form_submit';
-                    sourceSign.keepUnwrapped = true;
-                    sourceSign.attachVisibleFieldsData = true;
-                }
-            }
-            // wooocommerce add to cart is based on URL
-            if ( typeof ajaxObject.url === 'string' ) {
-                if (ajaxObject.url.indexOf('wc-ajax=add_to_cart') !== -1) {
-                    sourceSign.found = 'wc-ajax=add_to_cart';
-                }
-            }
+        let dataString = this.getJQAjaxDataAsString(ajaxObject);
+        if ( !dataString && originalOptions && originalOptions !== ajaxObject ) {
+            dataString = this.getJQAjaxDataAsString(originalOptions);
         }
 
-        // on ajaxPrefilter
-        if (catchOn === 'ajaxPrefilter') {
-            if (typeof ajaxObject.data === 'string') {
-                if (ajaxObject.data.indexOf('action=bloom_subscribe') !== -1) {
-                    sourceSign.found = 'action=bloom_subscribe';
-                    sourceSign.keepUnwrapped = true;
-                }
-            }
+        if ( dataString.indexOf('action=fl_builder_subscribe_form_submit') !== -1 ) {
+            sourceSign.found = 'fl_builder_subscribe_form_submit';
+        }
+        if ( dataString.indexOf('twt_cc_signup') !== -1 ) {
+            sourceSign.found = 'twt_cc_signup';
+        }
+        if ( dataString.indexOf('action=mailpoet') !== -1 ) {
+            sourceSign.found = 'action=mailpoet';
+            sourceSign.attachVisibleFieldsData = true;
+        }
+        if (
+            dataString.indexOf('action=user_registration') !== -1 &&
+            dataString.indexOf('ur_frontend_form_nonce') !== -1
+        ) {
+            sourceSign.found = 'action=user_registration';
+        }
+        if ( dataString.indexOf('action=happyforms_message') !== -1 ) {
+            sourceSign.found = 'action=happyforms_message';
+        }
+        if ( dataString.indexOf('action=new_activity_comment') !== -1 ) {
+            sourceSign.found = 'action=new_activity_comment';
+        }
+        if ( dataString.indexOf('action=wwlc_create_user') !== -1 ) {
+            sourceSign.found = 'action=wwlc_create_user';
+        }
+        if ( dataString.indexOf('action=WPBC_AJX_BOOKING__CREATE') !== -1 ) {
+            sourceSign.found = 'action=WPBC_AJX_BOOKING__CREATE';
+            sourceSign.keepUnwrapped = true;
+            sourceSign.attachVisibleFieldsData = true;
+        }
+        if ( dataString.indexOf('action=drplus_signup') !== -1 ) {
+            sourceSign.found = 'action=drplus_signup';
+            sourceSign.keepUnwrapped = true;
+        }
+        if ( dataString.indexOf('action=bt_cc') !== -1 ) {
+            sourceSign.found = 'action=bt_cc';
+            sourceSign.keepUnwrapped = true;
+        }
+        if ( dataString.indexOf('action=wpr_form_builder_email') !== -1 ) {
+            sourceSign.found = 'action=wpr_form_builder_email';
+            sourceSign.keepUnwrapped = true;
+        }
+        if ( dataString.indexOf('action=nf_ajax_submit') !== -1 ) {
+            sourceSign.found = 'action=nf_ajax_submit';
+            sourceSign.keepUnwrapped = true;
+            sourceSign.attachVisibleFieldsData = true;
+        }
+        if (
+            dataString.indexOf('action=uael_register_user') !== -1 &&
+            ctPublic.data__cookies_type === 'none'
+        ) {
+            sourceSign.found = 'action=uael_register_user';
+            sourceSign.keepUnwrapped = true;
+        }
+        if ( dataString.indexOf('action=SQBSubmitQuizAjax') !== -1 ) {
+            sourceSign.found = 'action=SQBSubmitQuizAjax';
+            sourceSign.keepUnwrapped = true;
+        }
+        if ( dataString.indexOf('action=user_registration_user_form_submit') !== -1 ) {
+            sourceSign.found = 'action=user_registration_user_form_submit';
+            sourceSign.keepUnwrapped = true;
+            sourceSign.attachVisibleFieldsData = true;
+        }
+        if ( dataString.indexOf('action=bloom_subscribe') !== -1 ) {
+            sourceSign.found = 'action=bloom_subscribe';
+            sourceSign.keepUnwrapped = true;
+        }
+        if (
+            this.isJQAjaxFormData(ajaxObject.data) &&
+            typeof ajaxObject.data.get === 'function' &&
+            ajaxObject.data.get('action') === 'pafe_ajax_form_builder'
+        ) {
+            sourceSign.found = 'action=pafe_ajax_form_builder';
+            sourceSign.keepUnwrapped = true;
+        } else if ( dataString.indexOf('action=pafe_ajax_form_builder') !== -1 ) {
+            sourceSign.found = 'action=pafe_ajax_form_builder';
+            sourceSign.keepUnwrapped = true;
+        }
 
-            if (
-                typeof ajaxObject.data === 'object' &&
-                ajaxObject.data !== null &&
-                typeof ajaxObject.data.get === 'function'
-            ) {
-                if (ajaxObject.data.get('action') === 'pafe_ajax_form_builder') {
-                    sourceSign.found = 'action=pafe_ajax_form_builder';
-                    sourceSign.keepUnwrapped = true;
-                }
+        // woocommerce add to cart is based on URL
+        if ( typeof ajaxObject.url === 'string' && ajaxObject.url.indexOf('wc-ajax=add_to_cart') !== -1 ) {
+            sourceSign.found = 'wc-ajax=add_to_cart';
+            // GET/HEAD: PHP reads Get::get('ct_bot_detector_event_token'), not data[...].
+            if ( this.isJQAjaxNoContentMethod(ajaxObject) ) {
+                sourceSign.keepUnwrapped = true;
             }
         }
 
         return sourceSign;
+    }
+
+    /**
+     * Inject CleanTalk data into jQuery ajax payload of any supported type.
+     * @param {object} sourceSign
+     * @param {*} ajaxData
+     * @param {object=} ajaxOptions jQuery ajax options (traditional, processData, contentType).
+     * Keep URLSearchParams/objects when processData or contentType is false.
+     * URLSearchParams must also disable processData, or jQuery.param() later yields "".
+     * GET/HEAD never keep the original type: jQuery only puts string data on the URL.
+     * @return {*}
+     */
+    injectCleantalkDataToJQAjax(sourceSign, ajaxData, ajaxOptions) {
+        const traditional = ajaxOptions && ajaxOptions.traditional;
+        const keepOriginalType = !this.isJQAjaxNoContentMethod(ajaxOptions) && !!(ajaxOptions && (
+            ajaxOptions.processData === false ||
+            ajaxOptions.contentType === false
+        ));
+
+        if ( ajaxData === null || typeof ajaxData === 'undefined' ) {
+            return this.injectCleantalkDataToJQAjaxString(sourceSign, '');
+        }
+        if ( typeof ajaxData === 'string' ) {
+            return this.injectCleantalkDataToJQAjaxString(sourceSign, ajaxData);
+        }
+        if ( this.isJQAjaxPlainObjectOrArray(ajaxData) ) {
+            if ( keepOriginalType ) {
+                if ( Object.prototype.toString.call(ajaxData) === '[object Array]' ) {
+                    if ( this.isJQAjaxSerializeArray(ajaxData) ) {
+                        return this.injectCleantalkDataToJQAjaxSerializeArray(sourceSign, ajaxData);
+                    }
+                    return ajaxData;
+                }
+                return this.injectCleantalkDataToJQAjaxPlainObject(sourceSign, ajaxData);
+            }
+            try {
+                if ( typeof jQuery !== 'undefined' && typeof jQuery.param === 'function' ) {
+                    return this.injectCleantalkDataToJQAjaxString(
+                        sourceSign,
+                        jQuery.param(ajaxData, traditional),
+                    );
+                }
+            } catch (e) {
+                return ajaxData;
+            }
+            return ajaxData;
+        }
+        if ( this.isJQAjaxURLSearchParams(ajaxData) ) {
+            if ( keepOriginalType ) {
+                this.preserveJQAjaxURLSearchParamsOptions(ajaxOptions);
+                return this.injectCleantalkDataToJQAjaxKeyValue(
+                    sourceSign,
+                    this.cloneURLSearchParams(ajaxData),
+                );
+            }
+            return this.injectCleantalkDataToJQAjaxString(sourceSign, ajaxData.toString());
+        }
+        if ( this.isJQAjaxFormData(ajaxData) ) {
+            if ( this.isJQAjaxNoContentMethod(ajaxOptions) ) {
+                return this.injectCleantalkDataToJQAjaxString(
+                    sourceSign,
+                    this.serializeJQAjaxKeyValueBag(ajaxData),
+                );
+            }
+            this.preserveJQAjaxFormDataOptions(ajaxOptions);
+            return this.injectCleantalkDataToJQAjaxFormData(
+                sourceSign,
+                this.cloneFormData(ajaxData),
+            );
+        }
+        return ajaxData;
+    }
+
+    /**
+     * GET/HEAD have no body. Missing type is GET (jQuery default).
+     * @param {object=} ajaxOptions
+     * @return {boolean}
+     */
+    isJQAjaxNoContentMethod(ajaxOptions) {
+        if ( !ajaxOptions || typeof ajaxOptions !== 'object' ) {
+            return false;
+        }
+        const type = ajaxOptions.type || ajaxOptions.method;
+        if ( typeof type !== 'string' || type === '' ) {
+            return true;
+        }
+        const method = type.toUpperCase();
+        return method === 'GET' || method === 'HEAD';
+    }
+
+    /**
+     * Collect CleanTalk fields to append to a key/value payload.
+     * @param {object} sourceSign
+     * @return {Array.<Array.<string>>}
+     */
+    getCleantalkJQAjaxFieldPairs(sourceSign) {
+        const pairs = [];
+        const wrapKey = function(key) {
+            return sourceSign.keepUnwrapped ? key : 'data[' + key + ']';
+        };
+
+        if (
+            +ctPublic.bot_detector_enabled &&
+            apbctLocalStorage.get('bot_detector_event_token')
+        ) {
+            const token = this.toolGetEventToken();
+            if ( token ) {
+                pairs.push([wrapKey('ct_bot_detector_event_token'), token]);
+            }
+        } else {
+            const noCookieData = getNoCookieData();
+            if ( noCookieData ) {
+                pairs.push([wrapKey('ct_no_cookie_hidden_field'), noCookieData]);
+            }
+        }
+
+        const browserState = apbctGetBrowserStatePair();
+        if ( browserState ) {
+            const browserStateKey = sourceSign.keepUnwrapped ?
+                browserState.key :
+                'data[' + browserState.key + ']';
+            pairs.push([browserStateKey, browserState.value]);
+        }
+
+        return pairs;
+    }
+
+    /**
+     * jQuery.param(FormData) after the prefilter yields "". Keep the body as FormData.
+     * @param {object=} ajaxOptions
+     * @return {void}
+     */
+    preserveJQAjaxFormDataOptions(ajaxOptions) {
+        if ( !ajaxOptions || typeof ajaxOptions !== 'object' ) {
+            return;
+        }
+        ajaxOptions.processData = false;
+        ajaxOptions.contentType = false;
+    }
+
+    /**
+     * jQuery.param(URLSearchParams) after the prefilter yields "". Keep the body as URLSearchParams.
+     * @param {object=} ajaxOptions
+     * @return {void}
+     */
+    preserveJQAjaxURLSearchParamsOptions(ajaxOptions) {
+        if ( !ajaxOptions || typeof ajaxOptions !== 'object' ) {
+            return;
+        }
+        ajaxOptions.processData = false;
+    }
+
+    /**
+     * Read a FormData field via get(), forEach(), or entries().
+     * Native IE11 FormData is write-only and cannot be read.
+     * @param {FormData} formData
+     * @param {Array.<string>} keys
+     * @return {*}
+     */
+    getFormDataField(formData, keys) {
+        if ( typeof formData.get === 'function' ) {
+            for ( let i = 0; i < keys.length; i++ ) {
+                const value = formData.get(keys[i]);
+                if ( value !== null && typeof value !== 'undefined' ) {
+                    return value;
+                }
+            }
+        }
+        if ( typeof formData.forEach === 'function' ) {
+            let found = null;
+            formData.forEach(function(value, key) {
+                if ( found !== null ) {
+                    return;
+                }
+                for ( let i = 0; i < keys.length; i++ ) {
+                    if ( key === keys[i] ) {
+                        found = value;
+                        return;
+                    }
+                }
+            });
+            if ( found !== null ) {
+                return found;
+            }
+        }
+        if ( typeof formData.entries === 'function' ) {
+            try {
+                const iterator = formData.entries();
+                if ( iterator && typeof iterator.next === 'function' ) {
+                    let step = iterator.next();
+                    while ( !step.done ) {
+                        const pair = step.value;
+                        if ( pair ) {
+                            for ( let i = 0; i < keys.length; i++ ) {
+                                if ( pair[0] === keys[i] ) {
+                                    return pair[1];
+                                }
+                            }
+                        }
+                        step = iterator.next();
+                    }
+                }
+            } catch (e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Clone URLSearchParams so the caller's instance is not mutated.
+     * @param {URLSearchParams} params
+     * @return {URLSearchParams}
+     */
+    cloneURLSearchParams(params) {
+        const serialized = typeof params.toString === 'function' ? params.toString() : '';
+        if ( typeof params.constructor === 'function' && params.constructor !== Object ) {
+            try {
+                return new params.constructor(serialized);
+            } catch (e) {
+                // Fall through to the current-window constructor.
+            }
+        }
+        if ( typeof URLSearchParams === 'function' ) {
+            try {
+                return new URLSearchParams(serialized);
+            } catch (e) {
+                return params;
+            }
+        }
+        return params;
+    }
+
+    /**
+     * Clone FormData when it can be enumerated (forEach or entries); otherwise reuse.
+     * @param {FormData} formData
+     * @return {FormData}
+     */
+    cloneFormData(formData) {
+        try {
+            const clone = new FormData();
+            const copied = this.forEachJQAjaxKeyValueBag(formData, function(value, key) {
+                clone.append(key, value);
+            });
+            if ( copied ) {
+                return clone;
+            }
+        } catch (e) {
+            return formData;
+        }
+        return formData;
+    }
+
+    /**
+     * Form-urlencoded string from FormData/URLSearchParams. Skip File/Blob values.
+     * @param {FormData|URLSearchParams} bag
+     * @return {string}
+     */
+    serializeJQAjaxKeyValueBag(bag) {
+        const parts = [];
+        const collected = this.forEachJQAjaxKeyValueBag(bag, function(value, key) {
+            if ( typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean' ) {
+                return;
+            }
+            parts.push(encodeURIComponent(String(key)) + '=' + encodeURIComponent(String(value)));
+        });
+        if ( collected ) {
+            return parts.join('&');
+        }
+        return '';
+    }
+
+    /**
+     * Inject CleanTalk fields into URLSearchParams without changing the payload type.
+     * @param {object} sourceSign
+     * @param {URLSearchParams} params
+     * @return {URLSearchParams}
+     */
+    injectCleantalkDataToJQAjaxKeyValue(sourceSign, params) {
+        const pairs = this.getCleantalkJQAjaxFieldPairs(sourceSign);
+        for ( let i = 0; i < pairs.length; i++ ) {
+            params.append(pairs[i][0], pairs[i][1]);
+        }
+        if ( sourceSign.attachVisibleFieldsData ) {
+            const extractor = ApbctVisibleFieldsExtractor.createExtractor(sourceSign.found);
+            if ( extractor ) {
+                const extracted = extractor.extract(params.toString());
+                if ( typeof extracted === 'string' ) {
+                    params.append('apbct_visible_fields', extracted);
+                }
+            }
+        }
+        return params;
+    }
+
+    /**
+     * Inject CleanTalk fields into a jQuery serializeArray payload.
+     * @param {object} sourceSign
+     * @param {Array} ajaxData
+     * @return {Array}
+     */
+    injectCleantalkDataToJQAjaxSerializeArray(sourceSign, ajaxData) {
+        const result = ajaxData.slice();
+        const pairs = this.getCleantalkJQAjaxFieldPairs(sourceSign);
+        for ( let i = 0; i < pairs.length; i++ ) {
+            result.push({
+                name: pairs[i][0],
+                value: pairs[i][1],
+            });
+        }
+        if ( sourceSign.attachVisibleFieldsData ) {
+            const extractor = ApbctVisibleFieldsExtractor.createExtractor(sourceSign.found);
+            if (
+                extractor &&
+                typeof jQuery !== 'undefined' &&
+                typeof jQuery.param === 'function'
+            ) {
+                const extracted = extractor.extract(jQuery.param(ajaxData));
+                if ( typeof extracted === 'string' ) {
+                    result.push({
+                        name: 'apbct_visible_fields',
+                        value: extracted,
+                    });
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Inject CleanTalk fields into a plain object without changing the payload type.
+     * @param {object} sourceSign
+     * @param {object} ajaxData
+     * @return {object}
+     */
+    injectCleantalkDataToJQAjaxPlainObject(sourceSign, ajaxData) {
+        const result = typeof jQuery !== 'undefined' && typeof jQuery.extend === 'function' ?
+            jQuery.extend({}, ajaxData) :
+            this.clonePlainObject(ajaxData);
+        const pairs = this.getCleantalkJQAjaxFieldPairs(sourceSign);
+        for ( let i = 0; i < pairs.length; i++ ) {
+            result[pairs[i][0]] = pairs[i][1];
+        }
+        if ( sourceSign.attachVisibleFieldsData ) {
+            const extractor = ApbctVisibleFieldsExtractor.createExtractor(sourceSign.found);
+            if (
+                extractor &&
+                typeof jQuery !== 'undefined' &&
+                typeof jQuery.param === 'function'
+            ) {
+                const extracted = extractor.extract(jQuery.param(ajaxData));
+                if ( typeof extracted === 'string' ) {
+                    result.apbct_visible_fields = extracted;
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * IE11-safe shallow copy of a plain object.
+     * @param {object} ajaxData
+     * @return {object}
+     */
+    clonePlainObject(ajaxData) {
+        const result = {};
+        for ( const key in ajaxData ) {
+            if ( Object.prototype.hasOwnProperty.call(ajaxData, key) ) {
+                result[key] = ajaxData[key];
+            }
+        }
+        return result;
     }
 
     /**
@@ -4012,8 +4881,7 @@ class ApbctHandler {
     injectCleantalkDataToJQAjaxFormData(sourceSign, ajaxDataFormData) {
         if (
             typeof sourceSign !== 'object' ||
-            typeof ajaxDataFormData !== 'object' ||
-            !(ajaxDataFormData instanceof FormData)
+            !this.isJQAjaxFormData(ajaxDataFormData)
         ) {
             return ajaxDataFormData;
         }
@@ -4044,6 +4912,16 @@ class ApbctHandler {
                 }
             }
 
+            // Bot detector browser state
+            const browserState = apbctGetBrowserStatePair();
+            if (browserState) {
+                if (sourceSign.keepUnwrapped) {
+                    ajaxDataFormData.append(browserState.key, browserState.value);
+                } else {
+                    ajaxDataFormData.append('data[' + browserState.key + ']', browserState.value);
+                }
+            }
+
             // Visible fields
             if (sourceSign.attachVisibleFieldsData) {
                 let visibleFieldsSearchResult = false;
@@ -4051,13 +4929,10 @@ class ApbctHandler {
                 if (extractor) {
                     // Try to find form_id in FormData to find form container and
                     // collect visible fields only inside it
-                    let formId = null;
-                    for (let pair of ajaxDataFormData.entries()) {
-                        if (pair[0] === 'form_id' || pair[0] === 'data[form_id]') {
-                            formId = pair[1];
-                            break;
-                        }
-                    }
+                    const formId = this.getFormDataField(
+                        ajaxDataFormData,
+                        ['form_id', 'data[form_id]'],
+                    );
                     let container = null;
                     if (formId && typeof formId === 'string') {
                         // Sanitize formId to prevent selector injection
@@ -4102,6 +4977,15 @@ class ApbctHandler {
         let eventToken = '';
         let noCookieData = '';
         let visibleFieldsString = '';
+        let browserStateString = '';
+
+        const browserState = apbctGetBrowserStatePair();
+        if (browserState) {
+            const browserStateKey = sourceSign.keepUnwrapped ?
+                'apbct_browser_state' :
+                'data%5Bapbct_browser_state%5D';
+            browserStateString = browserStateKey + '=' + encodeURIComponent(browserState.value) + '&';
+        }
 
         if (
             +ctPublic.bot_detector_enabled &&
@@ -4118,9 +5002,9 @@ class ApbctHandler {
         } else {
             noCookieData = getNoCookieData();
             if (sourceSign.keepUnwrapped) {
-                noCookieData = 'ct_no_cookie_hidden_field=' + noCookieData + '&';
+                noCookieData = 'ct_no_cookie_hidden_field=' + encodeURIComponent(noCookieData) + '&';
             } else {
-                noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + noCookieData + '&';
+                noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + encodeURIComponent(noCookieData) + '&';
             }
         }
 
@@ -4143,7 +5027,7 @@ class ApbctHandler {
             }
         }
 
-        return noCookieData + eventToken + visibleFieldsString + ajaxDataString;
+        return noCookieData + eventToken + browserStateString + visibleFieldsString + ajaxDataString;
     }
 
     /**
@@ -6464,67 +7348,126 @@ function ctCheckInternalIsExcludedForm(action) {
     });
 }
 
-let botDetectorLogLastUpdate = 0;
-let botDetectorLogEventTypesCollected = [];
-
-// bot_detector frontend_data log alt session saving cron
-if (
-    ctPublicFunctions.hasOwnProperty('bot_detector_enabled') &&
-    +ctPublicFunctions.bot_detector_enabled &&
-    ctPublicFunctions.hasOwnProperty('data__frontend_data_log_enabled') &&
-    ctPublicFunctions.data__frontend_data_log_enabled == 1
-) {
-    sendBotDetectorLogToAltSessions(1000);
-}
-
 /**
- * Send BotDetector logs data to alternative sessions.
- * If log_last_update has changed and log contains new event types, the log will be sent to the alternative sessions.
- * @param {int} cronStartTimeout delay before cron start
- * @param {int} interval check fires on interval
+ * Bot detector browser state.
+ *
+ * The state is passed to the site backend with the current JS->PHP transport and goes
+ * to the moderate request as sender_info.bot_detector_frontend_data_log.
  */
-function sendBotDetectorLogToAltSessions(cronStartTimeout = 3000, interval = 1000) {
-    setTimeout(function() {
-        setInterval(function() {
-            const currentLog = apbctLocalStorage.get('ct_bot_detector_frontend_data_log');
-            if (needsSaveLogToAltSessions(currentLog)) {
-                botDetectorLogLastUpdate = currentLog.log_last_update;
-                // the log will be taken from javascriptclientdata
-                ctSetAlternativeCookie([], {forceAltCookies: true});
-            }
-        }, interval);
-    }, cronStartTimeout);
-}
+class ApbctBrowserState {
+    static STATE_KEY = 'apbct_browser_state';
+    static LOG_KEY = 'ct_bot_detector_frontend_data_log';
+    static SCRIPT_SIGNS = {
+        botd_wrapper_loaded: 'ct-bot-detector-wrapper',
+        botd_logic_loaded: 'ct-bot-detector.min',
+    };
+    /**
+     * This LS key is set on bot-detector side
+     * @type {string}
+     */
+    static TRANSPORT_ENABLED_SIGN_KEY = 'bot_detector_log_transport_enabled';
+    static botdWrapperLoaded = 0;
+    static botdLogicLoaded = 0;
 
-/**
- * Check if the log needs to be saved to the alt sessions. If the log has new event types, it will be saved.
- * @param {object} currentLog
- * @return {boolean}
- */
-function needsSaveLogToAltSessions(currentLog) {
-    if (
-        currentLog && currentLog.hasOwnProperty('log_last_update') &&
-        botDetectorLogLastUpdate !== currentLog.log_last_update
-    ) {
-        try {
-            for (let i = 0; i < currentLog.records.length; i++) {
-                const currentType = currentLog.records[i].frontend_data.js_event;
-                // check if this event type was already collected
-                if (currentType !== undefined && botDetectorLogEventTypesCollected.includes(currentType)) {
-                    continue;
+    /**
+     * Get the current browser state as a JSON string ready to be transferred.
+     * @return {string} Empty string if the bot detector is disabled or on any collecting error.
+     */
+    static getFrontendDataLog() {
+        const prefix = (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.cookiePrefix) ?
+            ctPublicFunctions.cookiePrefix :
+            '';
+        const logKey = prefix + ApbctBrowserState.LOG_KEY;
+        const noPrefixLogKey = ApbctBrowserState.LOG_KEY;
+
+        if (typeof apbctLocalStorage !== 'undefined' && apbctLocalStorage.get) {
+            const logObject = apbctLocalStorage.get(logKey) || apbctLocalStorage.get(noPrefixLogKey) || null;
+            if (logObject && typeof logObject === 'string') {
+                try {
+                    return JSON.parse(logObject);
+                } catch (e) {
+                    return '';
                 }
-                // add new event type to collection, this type will be sent to the alt sessions further
-                botDetectorLogEventTypesCollected.push(currentType);
-                return true;
             }
+            return logObject;
+        }
+
+        let rawLog = localStorage.getItem(logKey);
+        if (!rawLog) {
+            rawLog = localStorage.getItem(noPrefixLogKey) || null;
+        }
+
+        try {
+            return typeof rawLog === 'string' ? JSON.parse(rawLog) : rawLog;
         } catch (e) {
-            console.log('APBCT: bot detector log collection error: ' . e.toString());
+            return '';
         }
     }
-    return false;
+
+    /**
+     *
+     * @return {object}
+     */
+    static asDTO() {
+        return {
+            botd_logic_loaded: ApbctBrowserState.botdLogicLoaded,
+            botd_wrapper_loaded: ApbctBrowserState.botdWrapperLoaded,
+            frontend_data_log: '',
+            transport_enabled: 1,
+        };
+    }
+
+    /**
+     * Look for the bot detector scripts in the page DOM.
+     * @return {boolean} True if both scripts are found.
+     */
+    static detectScripts() {
+        if (ApbctBrowserState.botdWrapperLoaded && ApbctBrowserState.botdLogicLoaded) {
+            return true;
+        }
+
+        const scripts = document.getElementsByTagName('script');
+
+        for (let i = 0; i < scripts.length; i++) {
+            const src = scripts[i].getAttribute('src');
+            if (!src) {
+                continue;
+            }
+            if (src.indexOf(ApbctBrowserState.SCRIPT_SIGNS.botd_wrapper_loaded) !== -1) {
+                ApbctBrowserState.botdWrapperLoaded = 1;
+            } else if (src.indexOf(ApbctBrowserState.SCRIPT_SIGNS.botd_logic_loaded) !== -1) {
+                ApbctBrowserState.botdLogicLoaded = 1;
+            }
+        }
+
+        // The bot detector logic sets this flag on its own start
+        return !!ApbctBrowserState.botdWrapperLoaded && !!ApbctBrowserState.botdLogicLoaded;
+    }
 }
 
-
+/**
+ * Get the browser state as a key/value pair to attach it to an intercepted request.
+ * @return {{key: string, value: string}|false} False if there is nothing to attach.
+ */
+function apbctGetBrowserStatePair() { // eslint-disable-line no-unused-vars
+    try {
+        ApbctBrowserState.detectScripts();
+        let state = ApbctBrowserState.asDTO();
+        if ( ApbctBrowserState.botdLogicLoaded ) {
+            const transportEnabled = localStorage.getItem(ApbctBrowserState.TRANSPORT_ENABLED_SIGN_KEY) === '1';
+            if (transportEnabled) {
+                state.frontend_data_log = ApbctBrowserState.getFrontendDataLog();
+            } else {
+                state.transport_enabled = 0;
+            }
+        } else {
+            state.frontend_data_log = ApbctBrowserState.getFrontendDataLog();
+        }
+        return {key: ApbctBrowserState.STATE_KEY, value: JSON.stringify(state)};
+    } catch (e) {
+        return false;
+    }
+}
 
 let ctCheckedEmails = {};
 let ctCheckedEmailsExist = {};

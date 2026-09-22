@@ -45,7 +45,7 @@ class TestAdminAntiBotCookie extends TestCase
         $antibot_hash = apbct_get_anti_bot_cookie_hash($apbct->api_key, $apbct->data['salt']);
         $rc_token     = hash('sha256', $apbct->api_key . $apbct->data['salt']);
 
-        $this->assertStringContainsString('wordpress_apbct_antibot=', $output);
+        $this->assertStringContainsString('apbct_antibot=', $output);
         $this->assertStringContainsString($antibot_hash, $output);
         $this->assertStringNotContainsString(
             $rc_token,

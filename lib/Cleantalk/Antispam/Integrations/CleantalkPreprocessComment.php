@@ -483,8 +483,7 @@ class CleantalkPreprocessComment extends IntegrationBase
             apbct_is_user_enable() === false ||
             $this->apbct->settings['forms__comments_test'] == 0 ||
             $ct_comment_done ||
-            (isset($_SERVER['HTTP_REFERER']) && stripos($_SERVER['HTTP_REFERER'], 'page=wysija_campaigns&action=editTemplate') !== false) ||
-            (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/wp-admin/') !== false)
+            is_admin()
         ) {
             return __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__;
         }

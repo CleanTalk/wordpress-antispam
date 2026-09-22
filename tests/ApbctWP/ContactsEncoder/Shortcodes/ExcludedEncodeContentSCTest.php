@@ -312,12 +312,11 @@ class ExcludedEncodeContentSCTest extends TestCase
 
     /**
      * get_header/get_footer fire as actions with a nullable template name.
-     * Filters hooked there must not pass null into preg_*.
+     * Filters hooked there must not pass null into preg_* and should preserve the value.
      */
     public function testChangeContentBeforeEncoderModifyAcceptsNullFromGetHeader(): void
     {
-        $this->assertSame(
-            '',
+        $this->assertNull(
             $this->exclude_content_sc->changeContentBeforeEncoderModify(null)
         );
     }
@@ -327,8 +326,7 @@ class ExcludedEncodeContentSCTest extends TestCase
      */
     public function testChangeContentAfterEncoderModifyAcceptsNullFromGetHeader(): void
     {
-        $this->assertSame(
-            '',
+        $this->assertNull(
             $this->exclude_content_sc->changeContentAfterEncoderModify(null)
         );
     }
@@ -454,5 +452,15 @@ class ExcludedEncodeContentSCTest extends TestCase
         $title = 'Plain title without shortcode';
         $result = $this->exclude_content_sc->filterTheTitle($title);
         $this->assertSame($title, $result);
+    }
+
+    public function testChangeContentBeforeEncoderModifySkipsShortcodeWithHtmlTags(): void
+    {
+        $content = '[apbct_skip_encoding]<p>safe@example.com</p>[/apbct_skip_encoding]';
+
+        $result = $this->exclude_content_sc->changeContentBeforeEncoderModify($content);
+
+        $this->assertSame($content, $result);
+        $this->assertCount(0, $this->exclude_content_sc->shortcode_replacements);
     }
 }

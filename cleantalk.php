@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.86.99-dev
+  Version: 6.88.99-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -15,6 +15,7 @@ use Cleantalk\Antispam\ScriptsIntegration\CleantalkScriptsIntegrator;
 use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
+use Cleantalk\ApbctWP\BotDetectorService;
 use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Antispam\ForceProtection;
@@ -152,7 +153,7 @@ if ( defined('CLEANTALK_SERVER') ) {
 }
 
 if ( ! defined('APBCT_BOT_DETECTOR_SCRIPT_URL') ) {
-    define('APBCT_BOT_DETECTOR_SCRIPT_URL', 'https://fd.cleantalk.org/ct-bot-detector-wrapper.js');
+    define('APBCT_BOT_DETECTOR_SCRIPT_URL', BotDetectorService::getWrapperUrl());
 }
 
 /**
@@ -347,6 +348,7 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
      && empty(Post::get('action')) //bbPress
      && ! \Cleantalk\Variables\Server::inUri('/favicon.ico') // /favicon request rewritten cookies fix
      && ! apbct__is_wp_rocket_preloader_request()
+     && ! apbct__is_wordpress_loopback_request()
 ) {
     if ( $apbct->data['cookies_type'] !== 'alternative' ) {
         if ( !$apbct->settings['forms__search_test'] && !Get::get('s') ) { //skip cookie set for search form redirect page
@@ -357,7 +359,8 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! defined('DOING_CRON')
     }
     if (
         empty($_POST) &&
-        $apbct->data['key_is_ok']
+        $apbct->data['key_is_ok'] &&
+        ! apbct_is_wp_login_excluded_from_protection()
     ) {
         if ( (isset($_GET['q']) && $_GET['q'] !== '') || empty($_GET) ) {
             apbct_cookie();
@@ -613,11 +616,11 @@ add_action('frm_entries_footer_scripts', 'apbct_form__formidable__footerScripts'
 
 
 add_action('mec_booking_end_form_step_2', function () {
-    echo "<script>
-        if (typeof ctPublic.force_alt_cookies == 'undefined' || (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)) {
+    echo apbct_get_inline_script_tag(
+        "if (typeof ctPublic.force_alt_cookies == 'undefined' || (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)) {
 			ctNoCookieAttachHiddenFieldsToForms();
-		}
-    </script>";
+		}"
+    );
 });
 
 // Public actions
@@ -1877,6 +1880,8 @@ function apbct_sfw_update__end_of_update($is_first_updating = false)
 
     // Delete update errors
     $apbct->errorDelete('sfw_update', true);
+    // Delete outdated errors
+    $apbct->errorDelete('sfw_outdated', true);
 
     // Running sfw update once again in 12 min if entries is < 4000
     if ( $is_first_updating &&
@@ -2348,35 +2353,6 @@ function apbct_rc__uninstall_plugin__check_deactivate()
 }
 
 /**
- * @param $source
- *
- * @return bool
- */
-function apbct_rc__update_settings($source)
-{
-    global $apbct;
-
-    foreach ( $apbct->default_settings as $setting => $def_value ) {
-        if ( array_key_exists($setting, $source) ) {
-            if ($setting === 'apikey') {
-                continue;
-            }
-            $var  = $source[$setting];
-            $type = gettype($def_value);
-            settype($var, $type);
-            if ( $type === 'string' ) {
-                $var = preg_replace(array('/=/', '/`/'), '', $var);
-            }
-            $apbct->settings[$setting] = $var;
-        }
-    }
-
-    $apbct->save('settings');
-
-    return true;
-}
-
-/**
  * @param string $key
  * @param string $plugin
  *
@@ -2388,7 +2364,7 @@ function apbct_rc__insert_auth_key($key, $plugin)
         require_once(ABSPATH . '/wp-admin/includes/plugin.php');
 
         if ( is_plugin_active($plugin) ) {
-            $key = trim($key);
+            $key = trim($key, " \n\r\t\v\x00");
 
             if ( $key && preg_match('/^[a-z\d]{3,30}$/', $key) ) {
                 $result = API::methodNoticePaidTill(
@@ -2654,7 +2630,7 @@ function apbct_cookie()
     // Cookie names to validate
     $cookie_test_value = array(
         'cookies_names' => array(),
-        'check_value'   => $apbct->api_key . $apbct->data['salt'],
+        'check_value'   => $apbct->api_key . $apbct->data['salt'] . '_apbct_cookies_test',
     );
 
     // We need to skip the domain attribute for prevent including the dot to the cookie's domain on the client.
@@ -2749,7 +2725,7 @@ function apbct_cookies_test()
             return 0;
         }
 
-        $check_string = $apbct->api_key . $apbct->data['salt'];
+        $check_string = $apbct->api_key . $apbct->data['salt'] . '_apbct_cookies_test';
         // generate value
         $cookie_names = TT::getArrayValueAsArray($cookie_test, 'cookies_names');
         foreach ( $cookie_names as $cookie_name ) {
@@ -3195,6 +3171,11 @@ function apbctGetContactsEncoder()
     $contacts_encoder_params->obfuscation_text = $apbct->settings['data__email_decoder_obfuscation_custom_text'];
     $contacts_encoder_params->do_encode_emails = (int)$apbct->settings['data__email_decoder_encode_email_addresses'];
     $contacts_encoder_params->do_encode_phones = (int)$apbct->settings['data__email_decoder_encode_phone_numbers'];
+    $contacts_encoder_params->excluded_strings = \Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService::parseExcludedStrings(
+        isset($apbct->settings['data__email_decoder_excluded_strings'])
+            ? $apbct->settings['data__email_decoder_excluded_strings']
+            : ''
+    );
 
     return ContactsEncoder::getInstance($contacts_encoder_params);
 }

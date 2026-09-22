@@ -42,7 +42,9 @@ class TestEmailEncoder extends TestCase
         while ($ref) {
             if ($ref->hasProperty('variables')) {
                 $prop = $ref->getProperty('variables');
-                $prop->setAccessible(true);
+                if ( PHP_VERSION_ID < 80100 ) {
+                    $prop->setAccessible(true);
+                }
                 $variables = $prop->getValue($cookie_instance);
                 unset($variables[$cookie_name]);
                 $prop->setValue($cookie_instance, $variables);
@@ -222,6 +224,143 @@ class TestEmailEncoder extends TestCase
         $this->assertStringContainsString('apbct-email-encoder', $result);
     }
 
+    /**
+     * Settings skip list keeps listed emails plain, including in title-like strings.
+     */
+    public function testModifyContentSkipsEmailsFromExcludedStringsSetting()
+    {
+        global $apbct;
+        $previous = isset($apbct->settings['data__email_decoder_excluded_strings'])
+            ? $apbct->settings['data__email_decoder_excluded_strings']
+            : '';
+
+        $keep = 'keep@example.com';
+        $encode = 'public@other.net';
+        $title = 'Contact ' . $keep . ' or ' . $encode;
+
+        $apbct->settings['data__email_decoder_excluded_strings'] = $keep;
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $result = $this->contacts_encoder->modifyContent($title);
+
+        $apbct->settings['data__email_decoder_excluded_strings'] = $previous;
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $this->assertStringContainsString($keep, $result);
+        $this->assertStringNotContainsString($encode, $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+    }
+
+    /**
+     * Domain fragment in the skip list excludes every matching email.
+     */
+    public function testModifyContentSkipsEmailsByDomainFragment()
+    {
+        global $apbct;
+        $previous = isset($apbct->settings['data__email_decoder_excluded_strings'])
+            ? $apbct->settings['data__email_decoder_excluded_strings']
+            : '';
+
+        $skip = 'office@company.org';
+        $encode = 'user@other.net';
+
+        $apbct->settings['data__email_decoder_excluded_strings'] = 'company.org';
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $result = $this->contacts_encoder->modifyContent($skip . ' ' . $encode);
+
+        $apbct->settings['data__email_decoder_excluded_strings'] = $previous;
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $this->assertStringContainsString($skip, $result);
+        $this->assertStringNotContainsString($encode, $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+    }
+
+    /**
+     * Phone skip list matches format variants by digits.
+     */
+    public function testModifyContentSkipsPhonesFromExcludedStringsSetting()
+    {
+        global $apbct;
+        $previous_strings = isset($apbct->settings['data__email_decoder_excluded_strings'])
+            ? $apbct->settings['data__email_decoder_excluded_strings']
+            : '';
+        $previous_phones = $apbct->settings['data__email_decoder_encode_phone_numbers'];
+
+        $keep = '(800) 555-1234';
+        $encode = '(800) 555-9999';
+
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 1;
+        $apbct->settings['data__email_decoder_excluded_strings'] = '+1 800 555-1234';
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $result = $this->contacts_encoder->modifyContent('Call ' . $keep . ' or ' . $encode);
+
+        $apbct->settings['data__email_decoder_excluded_strings'] = $previous_strings;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = $previous_phones;
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $this->assertStringContainsString($keep, $result);
+        $this->assertStringNotContainsString($encode, $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+    }
+
+    /**
+     * aria-label values must survive email encoding round-trip intact.
+     */
+    public function testModifyContentPreservesAriaLabelWithEmail()
+    {
+        $email = 'info@example.com';
+        $content = '<button aria-label="Contact us at ' . $email . '">Click</button>';
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        $this->assertStringContainsString('aria-label="Contact us at ' . $email . '"', $result);
+        $this->assertStringNotContainsString('%%APBCT_ARIA_', $result);
+        $this->assertStringNotContainsString('ct_temp_aria_', $result);
+    }
+
+    /**
+     * CVE-2026-77830: planted ct_temp_aria_0 must not be rewritten during aria-label restore.
+     */
+    public function testModifyContentDoesNotRestorePlantedCtTempAriaToken()
+    {
+        $payload = '<blockquote cite=" aria-label=" > <a title="test">test</a></blockquote>'
+            . '<a >ct_temp_aria_0</a>'
+            . '<a title="style=display:block;content-visibility:auto oncontentvisibilityautostatechange=alert(2026)//">test</a>';
+
+        $result = $this->contacts_encoder->modifyContent($payload);
+
+        $this->assertStringContainsString('ct_temp_aria_0', $result);
+        $this->assertNotRegExp('/>\s*aria-label\s*=/', $result);
+    }
+
+    /**
+     * CVE-2026-77830: Wordfence PoC must not produce aria-label markup breakout after encoding.
+     */
+    public function testModifyContentWordfenceAriaLabelXssPayloadDoesNotBreakOut()
+    {
+        $payload = '<blockquote cite=" aria-label=" > <a title="test">test</a></blockquote>' . "\n"
+            . '<a >ct_temp_aria_0</a>'
+            . '<a title="style=display:block;content-visibility:auto '
+            . 'oncontentvisibilityautostatechange=alert(2026)//">test</a>';
+
+        $result = $this->contacts_encoder->modifyContent($payload);
+
+        $planted_token_preserved = strpos($result, 'ct_temp_aria_0') !== false;
+        $breakout_injected = (bool) preg_match('/>\s*aria-label\s*=/', $result);
+
+        $this->assertTrue($planted_token_preserved, 'Planted ct_temp_aria_0 token must survive encoder round-trip.');
+        $this->assertFalse($breakout_injected, 'Encoder must not inject aria-label markup via token substitution.');
+    }
+
     public function testEncodingPhoneNumbers()
     {
         global $apbct;
@@ -314,6 +453,22 @@ class TestEmailEncoder extends TestCase
         $this->assertIsString($description);
         $this->assertStringStartsWith('<', $description);
         $this->assertStringEndsWith('>', $description);
+    }
+
+    public function testGetExcludedStringsDescription()
+    {
+        $description = ContactsEncoder::getExcludedStringsDescription();
+        $this->assertIsString($description);
+        $this->assertNotEmpty($description);
+
+        $long = ContactsEncoder::getExcludedStringsLongDescription();
+        $this->assertIsString($long);
+        $this->assertStringContainsString('128 characters', $long);
+        $this->assertStringContainsString('one value per line', $description);
+        $this->assertStringNotContainsString('comma', strtolower($description));
+        $this->assertStringNotContainsString('comma', strtolower($long));
+        $this->assertStringNotContainsString('apbct_skip_encoding', $description);
+        $this->assertStringNotContainsString('apbct_skip_encoding', $long);
     }
 
     public function testModifyBuffer()
@@ -551,6 +706,42 @@ class TestEmailEncoder extends TestCase
         $read_css = $this->invokeReadCssFromSrc('https://example.org' . $url_path);
 
         $this->assertStringContainsString('.wpgb-card-1 .wpgb-block-5{background:#fff', $read_css);
+    }
+
+    public function testModifyBufferAppliesWpGridBuilderFixWhenLoggedInWithoutEncoding()
+    {
+        global $apbct;
+
+        $params = new Params();
+        $params->api_key = $apbct->api_key;
+        $params->is_logged_in = true;
+        $params->obfuscation_mode = $apbct->settings['data__email_decoder_obfuscation_mode'];
+        $params->obfuscation_text = $apbct->settings['data__email_decoder_obfuscation_custom_text'];
+        $params->do_encode_emails = (int) $apbct->settings['data__email_decoder_encode_email_addresses'];
+        $params->do_encode_phones = (int) $apbct->settings['data__email_decoder_encode_phone_numbers'];
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = ContactsEncoder::getInstance($params);
+        $this->contacts_encoder->runEncoding();
+
+        $apbct->buffer =
+            '<head><title>test</title></head><body>' .
+            '<div class="wp-grid-builder wpgb-grid-20 wpgb-enabled">' .
+            '<div class="wpgb-card-media-thumbnail"><div></div></div></div>' .
+            '<p>contact@example.com</p></body>';
+
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertStringContainsString('apbct-wpgb-opacity-fix', $apbct->buffer);
+        $this->assertStringContainsString('wpgb-card-media-thumbnail', $apbct->buffer);
+        $this->assertStringContainsString('contact@example.com', $apbct->buffer);
+        $this->assertStringNotContainsString('apbct-email-encoder', $apbct->buffer);
+
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
     }
 
     public function testModifyBufferSkipsEncodingWhenDecoderCookieSet()
@@ -824,6 +1015,86 @@ class TestEmailEncoder extends TestCase
         $this->read_css_fixture_files[] = $absolute_path;
 
         return '/' . $relative_dir . '/' . $filename;
+    }
+
+    public function testGravityFormsPhoneMaskIsNotEncodedWhileOtherPhonesAre()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_BLUR;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $mask = '(999) 999-9999';
+        $visible_phone = '(800) 555-1234';
+        $content = 'Call ' . $visible_phone
+            . ' <input type="tel" class="large" data-mask="' . $mask . '" />';
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        $this->assertStringContainsString('data-mask="' . $mask . '"', $result);
+        $this->assertStringNotContainsString($visible_phone, $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+    }
+
+    public function testSkipEncoderOnAttributeListFilter()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_BLUR;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        add_filter('apbct_skip_email_encoder_on_attribute_list', function ($attribute_list) {
+            $attribute_list[] = 'data-phone-format';
+            return $attribute_list;
+        });
+
+        $mask = '(999) 321-1233';
+        $visible_phone = '(800) 555-1234';
+        $content = 'Call ' . $visible_phone
+            . ' <span data-phone-format="' . $mask . '"></span>';
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        remove_all_filters('apbct_skip_email_encoder_on_attribute_list');
+
+        $this->assertStringContainsString('data-phone-format="' . $mask . '"', $result);
+        $this->assertStringNotContainsString($visible_phone, $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+    }
+
+    public function testAttributeExclusionsSignsFilter()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_BLUR;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        add_filter('apbct_email_encoder_attribute_exclusions_signs', function ($signs) {
+            $signs['span'] = array('data-phone-mask');
+            return $signs;
+        });
+
+        $mask = '(999) 321-1233';
+        $visible_phone = '(800) 555-1234';
+        $content = 'Call ' . $visible_phone
+            . ' <span data-phone-mask="' . $mask . '"></span>';
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        remove_all_filters('apbct_email_encoder_attribute_exclusions_signs');
+
+        $this->assertStringContainsString('data-phone-mask="' . $mask . '"', $result);
+        $this->assertStringNotContainsString($visible_phone, $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
     }
 
     public function tearDown() : void

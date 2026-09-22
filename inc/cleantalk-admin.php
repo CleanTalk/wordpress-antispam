@@ -48,7 +48,7 @@ function apbct_admin_set_cookie_for_anti_bot()
         echo
             '<script ' . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . '>
                 var ctSecure = location.protocol === "https:" ? "; secure" : "";
-                document.cookie = "wordpress_apbct_antibot=' . apbct_get_anti_bot_cookie_hash() . '; path=/; expires=0; samesite=lax" + ctSecure;
+                document.cookie = "apbct_antibot=' . apbct_get_anti_bot_cookie_hash() . '; path=/; expires=0; samesite=lax" + ctSecure;
             </script>';
     }
 }

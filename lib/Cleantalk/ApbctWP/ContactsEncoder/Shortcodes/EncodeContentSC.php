@@ -103,6 +103,11 @@ class EncodeContentSC extends EmailEncoderShortCode
             return $content;
         }
 
+        // Cheap pre-check: bail out before any regex if the shortcode is not present at all.
+        if ( ! $this->contentMayContainShortcode($content) ) {
+            return $content;
+        }
+
         if ( $this->exclusions->doReturnShortcodeContentBeforeModify($content) ) {
             return $content;
         }
@@ -115,17 +120,19 @@ class EncodeContentSC extends EmailEncoderShortCode
         // Extract shortcode content to protect it from email encoding, supports sc attributes(!)
         $shortcode_exist_pattern = sprintf('/(\[%s(?:\s[^\]]*)?\])([\s\S]*?)(\[\/%s\])/s', $this->public_name, $this->public_name);
         $content = preg_replace_callback($shortcode_exist_pattern, function ($matches) {
-            $placeholder = preg_replace('/EE\_\d+/', 'EE_' . (string)$this->shortcode_counter++, $this->exclusion_wrapper);
-            if (is_null($placeholder)) {
-                $placeholder = $this->exclusion_wrapper;
+            if ( ! isset($matches[1], $matches[2], $matches[3]) ) {
+                return isset($matches[0]) ? $matches[0] : '';
             }
-            if (isset($matches[1], $matches[2], $matches[3])) {
-                $prefix = $matches[1];
-                $entity = $matches[2];
-                $suffix = $matches[3];
-                $entity = Escape::escKsesPost($entity);
-                $this->shortcode_replacements[$placeholder] = $prefix . $entity . $suffix;
+
+            if ( $this->shortcodeContentContainsHtmlTags($matches[2]) ) {
+                return isset($matches[0]) ? $matches[0] : '';
             }
+
+            $placeholder = $this->buildPlaceholder($this->shortcode_counter++);
+            $prefix = $matches[1];
+            $entity = Escape::escKsesPost($matches[2]);
+            $suffix = $matches[3];
+            $this->shortcode_replacements[$placeholder] = $prefix . $entity . $suffix;
 
             return $placeholder;
         }, $content);
@@ -148,6 +155,11 @@ class EncodeContentSC extends EmailEncoderShortCode
             return $content;
         }
 
+        // Nothing was replaced and no shortcode is present - skip restoring and the callback pass.
+        if ( empty($this->shortcode_replacements) && ! $this->contentMayContainShortcode($content) ) {
+            return $content;
+        }
+
         // Restore shortcodes
         foreach ($this->shortcode_replacements as $placeholder => $original) {
             $content = str_replace($placeholder, $original, $content);
@@ -166,5 +178,6 @@ class EncodeContentSC extends EmailEncoderShortCode
     {
         $this->shortcode_replacements = array();
         $this->shortcode_counter = 0;
+        $this->rotatePlaceholderNonce();
     }
 }

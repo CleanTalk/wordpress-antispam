@@ -2,7 +2,10 @@
 
 namespace Cleantalk\Antispam;
 
+use Cleantalk\Antispam\IntegrationMetrics\IMetricDTO;
+use Cleantalk\Antispam\Integrations\IntegrationBase;
 use Cleantalk\ApbctWP\Variables\Server;
+use Cleantalk\Antispam\IntegrationMetrics\IMetricService;
 
 class Integrations
 {
@@ -46,6 +49,8 @@ class Integrations
                 return $this->checkSpam($argument, $integration_name);
             };
 
+            $priority = isset($integration_info['priority']) ? (int)$integration_info['priority'] : 10;
+
             if ( $integration_info['ajax'] ) {
                 if ( is_array($integration_info['hook']) ) {
                     foreach ( $integration_info['hook'] as $hook ) {
@@ -61,10 +66,10 @@ class Integrations
             if ( !$integration_info['ajax'] || !empty($integration_info['ajax_and_post']) ) {
                 if ( is_array($integration_info['hook']) ) {
                     foreach ( $integration_info['hook'] as $hook ) {
-                        add_action($hook, $callback);
+                        add_action($hook, $callback, $priority);
                     }
                 } else {
-                    add_action($integration_info['hook'], $callback);
+                    add_action($integration_info['hook'], $callback, $priority);
                 }
             }
         }
@@ -91,7 +96,7 @@ class Integrations
             $class = '\\Cleantalk\\Antispam\\Integrations\\' . $current_integration;
             if ( class_exists($class) ) {
                 $integration = new $class();
-                if ( ! ($integration instanceof \Cleantalk\Antispam\Integrations\IntegrationBase) ) {
+                if ( ! ($integration instanceof IntegrationBase) ) {
                     // @ToDo have to handle an error
                     do_action(
                         'apbct_skipped_request',
@@ -102,10 +107,16 @@ class Integrations
                     return true;
                 }
 
+                $imetric_dto = IMetricService::getDTO($integration);
+                if ($imetric_dto) {
+                    $integration->setIMetricDTO($imetric_dto);
+                }
+
                 /**
                  * Run prepare actions.
                  */
                 $prepare_actions_result = $integration->doPrepareActions($argument);
+
                 if ( !is_bool($prepare_actions_result) ) {
                     //if integration returns not a bool value on this state - exit and return modified argument
                     return $prepare_actions_result;
@@ -120,10 +131,14 @@ class Integrations
                  * Data collection
                  */
                 // If integration provided it's own method - run this
+                IMetricService::seek($integration, 'collectBaseCallData');
                 $integration_base_call_data = $integration->collectBaseCallData();
+                IMetricService::lease($integration, 'collectBaseCallData');
 
                 // old way legacy
+                IMetricService::seek($integration, 'getDataForChecking');
                 $data = $integration->getDataForChecking($argument);
+                IMetricService::lease($integration, 'getDataForChecking');
 
                 if ( ! is_null($data) ) {
                     /**
@@ -148,6 +163,9 @@ class Integrations
                         $integration_fvd = $integration->getVisibleFieldsData();
                         if ( ! empty($integration_fvd['visible_fields']) ) {
                             $sender_info['apbct_visible_fields'] = $integration_fvd['visible_fields'];
+                        }
+                        if ( $integration->getIMetricDTO() ) {
+                            $sender_info[IMetricDTO::$SENDER_INFO_KEY] = IMetricService::finalizeDTO($integration);
                         }
                         // common case
                         $base_call_data = array(

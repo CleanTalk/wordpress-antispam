@@ -162,8 +162,8 @@ class CommentsChecker extends Checker
     private static function removeCommentsWithoutIPEmail(array $comments)
     {
         foreach ($comments as $index => $comment) {
-            $comment_ip = ! empty($comment->comment_author_IP) ? trim($comment->comment_author_IP) : false;
-            $comment_email = ! empty($comment->comment_author_email) ? trim($comment->comment_author_email) : false;
+            $comment_ip = ! empty($comment->comment_author_IP) ? trim($comment->comment_author_IP, " \n\r\t\v\x00") : false;
+            $comment_email = ! empty($comment->comment_author_email) ? trim($comment->comment_author_email, " \n\r\t\v\x00") : false;
 
             // Validate IP and Email
             $comment_ip = filter_var($comment_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);

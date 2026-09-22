@@ -119,7 +119,7 @@ class ConnectionReports
             return;
         }
 
-        $sql = "SELECT *, FROM_UNIXTIME(date) AS date, FROM_UNIXTIME(sent_on) AS sent_on FROM " . $this->cr_table_name . " ORDER BY date;";
+        $sql = "SELECT *, date AS date_timestamp, FROM_UNIXTIME(date) AS date, FROM_UNIXTIME(sent_on) AS sent_on FROM " . $this->cr_table_name . " ORDER BY date_timestamp;";
         $this->reports_data = TT::toArray($this->db->fetchAll($sql));
         $this->reports_data_dirty = false;
         $this->unsent_reports_cache = null; // Invalidate cache
@@ -192,22 +192,37 @@ class ConnectionReports
     }
 
     /**
-     * Rotates reports in DB, remove oldest one.
+     * Rotates reports in DB, remove the oldest ones by limit and age (6 months).
      */
     private function rotateReports()
     {
         $reports_data = $this->getReportsData();
+        $ids_to_delete = array();
 
+        // Remove reports older than 6 months
+        $six_months_ago = time() - (6 * 30 * 24 * 60 * 60);
+        foreach ($reports_data as $report) {
+            if ( isset($report['date_timestamp'], $report['id']) && $report['date_timestamp'] < $six_months_ago ) {
+                $ids_to_delete[] = $report['id'];
+            }
+        }
+
+        // Remove oldest reports if exceeding limit
         if (count($reports_data) >= $this->reports_limit) {
             $overlimit = count($reports_data) - $this->reports_limit + 1;
             $reports_to_del = array_slice($reports_data, 0, $overlimit);
 
-            $ids = array_column($reports_to_del, 'id');
-            $placeholders = implode(',', array_fill(0, count($ids), '%s'));
+            $overlimit_ids = array_column($reports_to_del, 'id');
+            $ids_to_delete = array_unique(array_merge($ids_to_delete, $overlimit_ids));
+        }
+
+        // Delete reports if any
+        if (!empty($ids_to_delete)) {
+            $placeholders = implode(',', array_fill(0, count($ids_to_delete), '%s'));
 
             $this->db->prepare(
                 "DELETE FROM " . $this->cr_table_name . " WHERE id IN ($placeholders)",
-                $ids
+                $ids_to_delete
             );
             $this->db->execute($this->db->getQuery());
 

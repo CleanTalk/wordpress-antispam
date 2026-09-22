@@ -255,7 +255,7 @@ class GetFieldsAny
             foreach ($name_chunks as $value) {
                 $this->dto->nickname .= ($value ? $value . " " : "");
             }
-            $this->dto->nickname = trim($this->dto->nickname);
+            $this->dto->nickname = trim($this->dto->nickname, " \n\r\t\v\x00");
         }
     }
 
@@ -358,9 +358,9 @@ class GetFieldsAny
                 }
 
                 // Removes shortcodes to do better spam filtration on server side.
-                $value_for_email = trim($this->stripShortcodes($value));
+                $value_for_email = trim($this->stripShortcodes($value), " \n\r\t\v\x00");
                 // Removes whitespaces
-                $value = urldecode(trim($this->stripShortcodes($value))); // Fully cleaned message
+                $value = urldecode(trim($this->stripShortcodes($value), " \n\r\t\v\x00")); // Fully cleaned message
 
                 // Email
                 $value_for_email = Validate::isUrlencoded($value_for_email) ? urldecode($value_for_email) : $value_for_email;

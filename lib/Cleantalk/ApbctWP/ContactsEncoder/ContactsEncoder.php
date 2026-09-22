@@ -42,11 +42,6 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     private $grid_builder_integration;
 
     /**
-     * @var string[]
-     */
-    public $decoded_contacts_array = array();
-
-    /**
      * @var null|string Comment from API response
      */
     private $comment;
@@ -63,6 +58,26 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $this->registerHookHandler();
     }
 
+    /**
+     * Push WP filter results into the common helper.
+     * Applied on each encode so theme functions.php (and tests) can register after init.
+     *
+     * @return void
+     */
+    private function applyAttributeExclusionHooks()
+    {
+        $signs = apply_filters(
+            'apbct_email_encoder_attribute_exclusions_signs',
+            $this->helper->getDefaultAttributeExclusionsSigns()
+        );
+        $this->helper->setAttributeExclusionsMap(
+            is_array($signs) ? $signs : $this->helper->getDefaultAttributeExclusionsSigns()
+        );
+
+        $attribute_list = apply_filters('apbct_skip_email_encoder_on_attribute_list', array());
+        $this->helper->setAttributeNames(is_array($attribute_list) ? $attribute_list : array());
+    }
+
     public function runEncoding($content = '')
     {
         global $apbct;
@@ -74,11 +89,6 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             'get_footer',
             'get_header',
             'get_the_excerpt',
-            'comment_text',
-            'comment_excerpt',
-            'comment_url',
-            'get_comment_author_url',
-            'get_comment_author_url_link',
             'widget_title',
             'widget_text',
             'widget_content',
@@ -139,7 +149,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     public function modifyFormFieldDisplay($html, $field, $display_context, $post_id)
     {
-        if (mb_strpos($html, 'mailto:') !== false) {
+        if (mb_stripos($html, 'mailto:') !== false) {
             $html = html_entity_decode($html);
             return $this->modifyContent($html);
         }
@@ -158,6 +168,8 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     public function modifyGlobalEmails($content)
     {
+        $this->applyAttributeExclusionHooks();
+
         if ( ! is_string($content) || $content === '' || stripos($content, '<option') === false ) {
             return parent::modifyGlobalEmails($content);
         }
@@ -202,12 +214,14 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     public function modifyContent($content, $skip_exclusions = false)
     {
+        $this->applyAttributeExclusionHooks();
+
         if ( ! is_string($content) || $content === '' ) {
             return parent::modifyContent($content, $skip_exclusions);
         }
 
         if ( ! $skip_exclusions && $this->exclusions->doReturnContentBeforeModify($content) ) {
-            return $content;
+            return $this->grid_builder_integration->applyCompatibilityFix($content);
         }
 
         return $this->grid_builder_integration->modifyContent(
@@ -456,6 +470,36 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         return __('Encode email addresses', 'cleantalk-spam-protect');
     }
 
+    public static function getExcludedStringsDescription()
+    {
+        return __(
+            'List emails, phone numbers or text fragments that must never be encoded. Put one value per line. Each value is limited to 128 characters, up to 20 values.',
+            'cleantalk-spam-protect'
+        );
+    }
+
+    public static function getExcludedStringsLongDescription()
+    {
+        $tmp = '
+        <p>%s</p>
+        <p>%s</p>
+            <p class="apbct-icon-right-dir" style="padding-left: 10px">%s</p>
+            <p class="apbct-icon-right-dir" style="padding-left: 10px">%s</p>
+            <p class="apbct-icon-right-dir" style="padding-left: 10px">%s</p>
+        <p>%s</p>
+        ';
+        $tmp = sprintf(
+            $tmp,
+            __('Use this list when you need a contact to stay readable everywhere, including titles, menus and widgets — WordPress does not run shortcodes in those places.', 'cleantalk-spam-protect'),
+            __('Put one value per line:', 'cleantalk-spam-protect'),
+            __('an email, e.g. support@example.com', 'cleantalk-spam-protect'),
+            __('a phone number, e.g. +1 (234) 567-8901 — format differences are ignored', 'cleantalk-spam-protect'),
+            __('a text fragment, e.g. example.com to skip all emails on that domain', 'cleantalk-spam-protect'),
+            __('Each value is sliced to 128 characters. The list is limited to 20 values.', 'cleantalk-spam-protect')
+        );
+        return $tmp;
+    }
+
     public static function getPhonesEncodingLongDescription()
     {
         $tmp = '
@@ -477,7 +521,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             <p>%s</p>
         ';
         $tmp = sprintf(
-            trim($tmp),
+            trim($tmp, " \n\r\t\v\x00"),
             __('Enable this option to encode contact phone numbers', 'cleantalk-spam-protect'),
             __('There are a few requirements to the number format:', 'cleantalk-spam-protect'),
             __('Should starting with "+" symbol or opening brace', 'cleantalk-spam-protect'),
