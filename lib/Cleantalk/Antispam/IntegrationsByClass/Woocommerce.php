@@ -943,7 +943,7 @@ class Woocommerce extends IntegrationByClassBase
 
         foreach ( $wp_filter[$page_hook]->callbacks as $priority => $callbacks ) {
             foreach ( $callbacks as $callback ) {
-                if ( ! isset($callback['function'][0]) || ! is_object($callback['function'][0]) ) {
+                if ( ! is_array($callback['function']) || ! isset($callback['function'][0]) || ! is_object($callback['function'][0]) ) {
                     continue;
                 }
 
