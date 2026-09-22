@@ -457,7 +457,7 @@ class Woocommerce extends IntegrationByClassBase
      */
     public function renderBlockedOrderOverview($template_name, $template_path, $located, $args)
     {
-        if ( $template_name !== 'checkout/order-received.php' || ! empty($args['order']) ) {
+        if ( $template_name !== 'checkout/thankyou.php' || ! empty($args['order']) ) {
             return;
         }
 
