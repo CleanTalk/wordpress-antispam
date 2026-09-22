@@ -346,6 +346,10 @@ class Woocommerce extends IntegrationByClassBase
                 // The details must be stored before the response carrying their key is built
                 $this->handleBlockedOrder($order);
 
+                // The response must be captured before the order gets deleted below - deletion
+                // clears the in-memory order ID and data, which would break the imitated response.
+                $store_api_response = $this->getStoreApiPassedResponse($order);
+
                 if ( $order->get_status() === 'pending' || $order->get_status() === 'checkout-draft' ) {
                     if ( function_exists('wc_release_stock_for_order') ) {
                         wc_release_stock_for_order($order);
@@ -374,12 +378,10 @@ class Woocommerce extends IntegrationByClassBase
                     die(json_encode($response));
                 }
 
-                $response = $this->getStoreApiPassedResponse($order);
-
                 if ( ! headers_sent() ) {
                     header('Content-Type: application/json; charset=utf-8');
                 }
-                die(json_encode($response));
+                die(json_encode($store_api_response));
             }
         }
     }
