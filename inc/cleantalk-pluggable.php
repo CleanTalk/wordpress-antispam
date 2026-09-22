@@ -2168,7 +2168,7 @@ function apbct_settings__get_ajax_type()
     $localize = null;
 
     if ( is_string($frontend_body) ) {
-        preg_match_all('@const ctPublicFunctions.*{(.*)}@', $frontend_body, $matches);
+        preg_match_all('@var ctPublicFunctions.*{(.*)}@', $frontend_body, $matches);
         if ( isset($matches[1][0]) ) {
             $localize = json_decode('{' . $matches[1][0] . '}', true);
         }
