@@ -71,7 +71,10 @@ class Woocommerce extends IntegrationByClassBase
         // The blocked visitor gets a thank you page with no order behind it - fill in the details.
         // Only the redirect of a blocked order carries the key, so the rest of the pages are left alone.
         if ( Get::getString('key') !== '' ) {
+            // Classic themes render the confirmation with the checkout/thankyou.php template
             add_action('woocommerce_after_template_part', [$this, 'renderBlockedOrderOverview'], 10, 4);
+            // Block themes render it with the woocommerce/order-confirmation-* blocks instead
+            add_filter('render_block', [$this, 'appendBlockedOrderOverviewToBlock'], 10, 2);
         }
 
         // add to cart hooks if cart works with non-ajax requests
@@ -492,16 +495,49 @@ class Woocommerce extends IntegrationByClassBase
             return;
         }
 
+        echo $this->getBlockedOrderOverviewHtml(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    }
+
+    /**
+     * Print the order details on the block based order confirmation page.
+     *
+     * Block themes route the 'order-received' endpoint to the 'order-confirmation' template
+     * built of the woocommerce/order-confirmation-* blocks, so checkout/thankyou.php is never
+     * loaded and renderBlockedOrderOverview() never fires. The details are appended to the
+     * status block instead, which is the one WooCommerce keeps rendering without an order.
+     *
+     * @param string $block_content
+     * @param array $block
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function appendBlockedOrderOverviewToBlock($block_content, $block)
+    {
+        if ( ! isset($block['blockName']) || $block['blockName'] !== 'woocommerce/order-confirmation-status' ) {
+            return $block_content;
+        }
+
+        return $block_content . $this->getBlockedOrderOverviewHtml();
+    }
+
+    /**
+     * Markup of the stored order details, empty when there is nothing to show.
+     *
+     * @return string
+     */
+    private function getBlockedOrderOverviewHtml()
+    {
         $blocked_order_key = Get::getString('key');
 
         if ( $blocked_order_key === '' ) {
-            return;
+            return '';
         }
 
         $overview = get_transient(self::BLOCKED_ORDER_TRANSIENT . $blocked_order_key);
 
         if ( ! is_array($overview) || empty($overview['date']) ) {
-            return;
+            return '';
         }
 
         $rows = array(
@@ -516,10 +552,10 @@ class Woocommerce extends IntegrationByClassBase
             );
         }
 
-        echo '<ul class="woocommerce-order-overview woocommerce-thankyou-order-details order_details">';
+        $html = '<ul class="woocommerce-order-overview woocommerce-thankyou-order-details order_details">';
 
         foreach ( $rows as $key => $row ) {
-            printf(
+            $html .= sprintf(
                 '<li class="woocommerce-order-overview__%1$s %1$s">%2$s <strong>%3$s</strong></li>',
                 esc_attr($key),
                 esc_html($row[0]),
@@ -527,7 +563,7 @@ class Woocommerce extends IntegrationByClassBase
             );
         }
 
-        echo '</ul>';
+        return $html . '</ul>';
     }
 
     /**
