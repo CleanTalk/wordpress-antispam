@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\ApbctWP\Firewall\FirewallBypass;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\RateLimit\ApbctRateLimiter;
 use Cleantalk\ApbctWP\Variables\Post;
@@ -714,6 +715,23 @@ class RemoteCalls
                 )
             )
         );
+    }
+
+    /**
+     * Remote call: generates a one-time firewall bypass link and emails it to the site admin.
+     *
+     * @return void Dies with 'OK' or with 'FAIL {"error":"..."}'.
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public static function action__send_fw_bypass_email() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        $result = FirewallBypass::processGenerationRemoteCall();
+        if ( ! $result ) {
+            $error_message = FirewallBypass::$last_error ?? 'Unknown error';
+            die('FAIL ' . json_encode(['error' => $error_message]));
+        }
+
+        die('OK');
     }
 
     private static function isRcAllowed()

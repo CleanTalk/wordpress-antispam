@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Tests for Comments list table column_ct_author method.
  */
-class TestComments extends TestCase
+class TestComments extends \ApbctTestCase
 {
     /**
      * @var Comments
@@ -23,18 +23,15 @@ class TestComments extends TestCase
     protected function setUp(): void
     {
         global $apbct;
-        
+
         $reflection = new \ReflectionClass(Comments::class);
         $this->instance = $reflection->newInstanceWithoutConstructor();
 
         $this->columnCtAuthor = $reflection->getMethod('column_ct_author');
         $this->columnCtAuthor->setAccessible(true);
 
-        // Set both instance property and global variable
-        $apbct = (object)[
-            'white_label' => true,
-        ];
-        
+        $apbct->white_label = true;
+
         // Use reflection to set the protected property
         $apbctProperty = $reflection->getProperty('apbct');
         $apbctProperty->setAccessible(true);
@@ -105,7 +102,7 @@ class TestComments extends TestCase
     public function testColumnCtAuthorShowsEmailWithoutCleantalkLinkWhenWhiteLabel(): void
     {
         global $apbct;
-        
+
         $comment = (object)[
             'comment_author'       => 'Test Author',
             'comment_author_email' => 'test@example.com',
@@ -125,10 +122,10 @@ class TestComments extends TestCase
     public function testColumnCtAuthorShowsEmailWithCleantalkLinkWhenNotWhiteLabel(): void
     {
         global $apbct;
-        
+
         // Update global apbct
         $apbct->white_label = false;
-        
+
         // Update instance apbct using reflection
         $reflection = new \ReflectionClass(Comments::class);
         $apbctProperty = $reflection->getProperty('apbct');
