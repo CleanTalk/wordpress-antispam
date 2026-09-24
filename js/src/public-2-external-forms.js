@@ -425,8 +425,10 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
                         formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1 ||
                         formSource.outerHTML.indexOf('action="https://api.kit.com') !== -1 ||
                         formSource.outerHTML.indexOf('activehosted.com') !== -1 ||
+                        formSource.outerHTML.indexOf('aweber.com') !== -1 ||
                         formSource.outerHTML.indexOf('action="https://crm.zoho.com') !== -1
                     ) &&
+                    elemSource.name !== '' &&
                     elemSource.name === elemTarget.name // sequence by name
                 ) ||
                 (

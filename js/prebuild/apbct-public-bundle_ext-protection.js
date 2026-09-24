@@ -6212,8 +6212,10 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
                         formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1 ||
                         formSource.outerHTML.indexOf('action="https://api.kit.com') !== -1 ||
                         formSource.outerHTML.indexOf('activehosted.com') !== -1 ||
+                        formSource.outerHTML.indexOf('aweber.com') !== -1 ||
                         formSource.outerHTML.indexOf('action="https://crm.zoho.com') !== -1
                     ) &&
+                    elemSource.name !== '' &&
                     elemSource.name === elemTarget.name // sequence by name
                 ) ||
                 (
@@ -7658,6 +7660,10 @@ function apbctIntegrateDynamicEmailCheck({ // eslint-disable-line no-unused-vars
                     // If there are email inputs inside the added node
                     node.querySelectorAll &&
                     node.querySelectorAll(emailSelector).forEach(function(input) {
+                        // do not touch inputs outside of the integrated form
+                        if (!input.closest(formSelector)) {
+                            return;
+                        }
                         if (!input.hasAttribute(attribute)) {
                             input.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
                             input.setAttribute(attribute, '1');

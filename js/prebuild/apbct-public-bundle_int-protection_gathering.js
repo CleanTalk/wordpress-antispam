@@ -7273,6 +7273,10 @@ function apbctIntegrateDynamicEmailCheck({ // eslint-disable-line no-unused-vars
                     // If there are email inputs inside the added node
                     node.querySelectorAll &&
                     node.querySelectorAll(emailSelector).forEach(function(input) {
+                        // do not touch inputs outside of the integrated form
+                        if (!input.closest(formSelector)) {
+                            return;
+                        }
                         if (!input.hasAttribute(attribute)) {
                             input.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
                             input.setAttribute(attribute, '1');
