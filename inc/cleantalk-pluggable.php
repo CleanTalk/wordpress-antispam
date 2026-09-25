@@ -2132,10 +2132,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
     // The action arrives via GET, cfa-pagelayer-id marks the form in any submission mode.
     if (
         apbct_is_plugin_active('pagelayer/pagelayer.php') &&
-        (
-            Request::getString('action') === 'pagelayer_contact_submit' ||
-            Post::get('cfa-pagelayer-id') !== ''
-        )
+        Request::getString('action') === 'pagelayer_contact_submit'
     ) {
         return 'Pagelayer contact form - has the direct integration';
     }

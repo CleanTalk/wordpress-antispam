@@ -118,9 +118,6 @@ $_cleantalk_hooked_actions[] = 'fue_wc_set_cart_email';  // Don't check email vi
 /* The Fluent Form have the direct integration */
 $_cleantalk_hooked_actions[] = 'fluentform_submit';
 
-/* Pagelayer contact form has the direct integration */
-$_cleantalk_hooked_actions[] = 'pagelayer_contact_submit';
-
 /* Estimation Forms have the direct integration */
 if ( class_exists('LFB_Core') ) {
     $_cleantalk_hooked_actions[] = 'send_email';
