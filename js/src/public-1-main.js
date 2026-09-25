@@ -474,6 +474,12 @@ class ApbctHandler {
      * @return {void}
      */
     catchMain(form, index) {
+        // Third-party plugins may re-fire DOMContentLoaded. Double wrapping makes onsubmit_prev recursive.
+        if (form.apbctCatchMainAttached) {
+            return;
+        }
+        form.apbctCatchMainAttached = true;
+
         form.onsubmit_prev = form.onsubmit;
         form.ctFormIndex = index;
 
@@ -2898,11 +2904,19 @@ async function apbctImportScript(scriptAbsolutePath) {
     });
 }
 
+let apbctReadyIsDone = false;
+
 /**
  * Ready function
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 async function apbct_ready() {
+    // Some plugins dispatch a synthetic DOMContentLoaded, so the whole init must not run twice
+    if (apbctReadyIsDone) {
+        return;
+    }
+    apbctReadyIsDone = true;
+
     // Only set ct_checkjs if the key is actually provided (not on block pages)
     if (typeof ctPublic.ct_checkjs_key !== 'undefined' && ctPublic.ct_checkjs_key !== null) {
         apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);

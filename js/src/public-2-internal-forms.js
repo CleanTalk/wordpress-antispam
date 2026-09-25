@@ -34,7 +34,15 @@ function ctCheckInternal(currForm) {
     );
 }
 
+let ctInternalFormsIsInitialized = false;
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Some plugins dispatch a synthetic DOMContentLoaded, forms must not be re-wrapped
+    if (ctInternalFormsIsInitialized) {
+        return;
+    }
+    ctInternalFormsIsInitialized = true;
+
     if ( ! +ctPublic.settings__forms__check_internal ) {
         return;
     }

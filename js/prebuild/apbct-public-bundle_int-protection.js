@@ -449,8 +449,16 @@ function ctFillDecodedEmail(target, email) {
     target.innerHTML = target.innerHTML.replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1');
 }
 
+let ctEmailDecoderIsInitialized = false;
+
 // Listen clicks on encoded emails
 document.addEventListener('DOMContentLoaded', function() {
+    // Some plugins dispatch a synthetic DOMContentLoaded, listeners must not be attached twice
+    if (ctEmailDecoderIsInitialized) {
+        return;
+    }
+    ctEmailDecoderIsInitialized = true;
+
     let encodedEmailNodes = document.querySelectorAll('[data-original-string]');
     if (typeof ctPublic !== 'undefined') {
         ctPublic.encodedEmailNodes = encodedEmailNodes;
@@ -3221,6 +3229,12 @@ class ApbctHandler {
      * @return {void}
      */
     catchMain(form, index) {
+        // Third-party plugins may re-fire DOMContentLoaded. Double wrapping makes onsubmit_prev recursive.
+        if (form.apbctCatchMainAttached) {
+            return;
+        }
+        form.apbctCatchMainAttached = true;
+
         form.onsubmit_prev = form.onsubmit;
         form.ctFormIndex = index;
 
@@ -5645,11 +5659,19 @@ async function apbctImportScript(scriptAbsolutePath) {
     });
 }
 
+let apbctReadyIsDone = false;
+
 /**
  * Ready function
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 async function apbct_ready() {
+    // Some plugins dispatch a synthetic DOMContentLoaded, so the whole init must not run twice
+    if (apbctReadyIsDone) {
+        return;
+    }
+    apbctReadyIsDone = true;
+
     // Only set ct_checkjs if the key is actually provided (not on block pages)
     if (typeof ctPublic.ct_checkjs_key !== 'undefined' && ctPublic.ct_checkjs_key !== null) {
         apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
@@ -5817,7 +5839,15 @@ function ctCheckInternal(currForm) {
     );
 }
 
+let ctInternalFormsIsInitialized = false;
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Some plugins dispatch a synthetic DOMContentLoaded, forms must not be re-wrapped
+    if (ctInternalFormsIsInitialized) {
+        return;
+    }
+    ctInternalFormsIsInitialized = true;
+
     if ( ! +ctPublic.settings__forms__check_internal ) {
         return;
     }
@@ -6486,7 +6516,15 @@ if (Math.floor(Math.random() * 100) === 1) {
     };
 }
 
+let ctTrpIsInitialized = false;
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Some plugins dispatch a synthetic DOMContentLoaded, badges must not be built twice
+    if (ctTrpIsInitialized) {
+        return;
+    }
+    ctTrpIsInitialized = true;
+
     let ctTrpLocalize = undefined;
     let ctTrpIsAdminCommentsList = false;
 
