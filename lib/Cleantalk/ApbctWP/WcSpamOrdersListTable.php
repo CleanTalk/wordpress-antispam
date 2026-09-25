@@ -8,6 +8,26 @@ use Cleantalk\Common\TT;
 
 class WcSpamOrdersListTable extends CleantalkListTable
 {
+    /**
+     * Names of the request parameters carrying the actions of the table.
+     *
+     * The table is embedded into the WooCommerce orders screen on HPOS installations, where the
+     * HPOS page controller inspects $_REQUEST['action'] on the 'load-{page}' hook and runs its own
+     * 'bulk-orders' nonce check, aborting the whole request with "The link you followed has expired"
+     * long before the table is built. Dedicated parameter names keep our actions invisible to it.
+     */
+    const BULK_ACTION_PARAM = 'apbct_bulk_action';
+    const ROW_ACTION_PARAM  = 'apbct_row_action';
+
+    /**
+     * Name of the nonce of the row actions.
+     *
+     * The HPOS page controller redirects to an URL stripped of '_wpnonce' and '_wp_http_referer'
+     * (see PageController::strip_http_referer()), which would drop the nonce of our delete link
+     * before it is ever verified. A name of our own survives that redirect.
+     */
+    const ROW_NONCE_PARAM = 'apbct_row_nonce';
+
     protected $apbct;
 
     protected $wc_active = false;
@@ -102,13 +122,13 @@ class WcSpamOrdersListTable extends CleantalkListTable
             $delete_url = admin_url('admin.php?page=' . Get::getString('page'));
             $delete_url = add_query_arg(
                 array_filter(array(
-                    'status' => $current_status,
-                    'action' => 'delete',
-                    'spam'   => $wc_spam_order->id,
+                    'status'               => $current_status,
+                    self::ROW_ACTION_PARAM => 'delete',
+                    'spam'                 => $wc_spam_order->id,
                 )),
                 $delete_url
             );
-            $delete_url = wp_nonce_url($delete_url, 'apbct_wc_spam_orders_row', '_wpnonce');
+            $delete_url = wp_nonce_url($delete_url, 'apbct_wc_spam_orders_row', self::ROW_NONCE_PARAM);
             $actions = array(
                 'restore' => '<a class="apbct-restore-spam-order-button" data-spam-order-id="' . $wc_spam_order->id . '">' . esc_html__('Restore', 'cleantalk-spam-protect') . '</a>',
                 'delete'  => '<a onclick="return confirm(\'' . esc_attr(esc_html__('Are you sure?', 'cleantalk-spam-protect')) . '\')" href="' . esc_url($delete_url) . '">Delete</a>',
@@ -235,6 +255,58 @@ class WcSpamOrdersListTable extends CleantalkListTable
         );
     }
 
+    /**
+     * The bulk actions select rendered under a name of our own, see BULK_ACTION_PARAM.
+     *
+     * Mirrors the markup of the parent, the flat list of actions of this table needs no optgroups.
+     *
+     * @param string $which 'top' or 'bottom'
+     *
+     * @return void
+     */
+    protected function bulk_actions($which = '') // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        $actions = $this->get_bulk_actions();
+
+        if ( empty($actions) ) {
+            return;
+        }
+
+        $two  = $which === 'bottom' ? '2' : '';
+        $name = self::BULK_ACTION_PARAM . $two;
+
+        echo '<label for="bulk-action-selector-' . esc_attr($which) . '" class="screen-reader-text">'
+            . esc_html__('Select bulk action') . '</label>';
+        echo '<select name="' . esc_attr($name) . '" id="bulk-action-selector-' . esc_attr($which) . '">';
+        echo '<option value="-1">' . esc_html__('Bulk actions') . '</option>';
+
+        foreach ( $actions as $key => $title ) {
+            echo '<option value="' . esc_attr($key) . '">' . esc_html($title) . '</option>';
+        }
+
+        echo '</select>';
+
+        submit_button(__('Apply'), 'action', '', false, array('id' => 'doaction' . $two));
+    }
+
+    /**
+     * Action chosen in the bulk actions select, read from our own parameter, see BULK_ACTION_PARAM.
+     *
+     * @return string|false
+     */
+    public function current_action() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        foreach ( array(self::BULK_ACTION_PARAM, self::BULK_ACTION_PARAM . '2') as $param ) {
+            $action = Post::getString($param);
+
+            if ( $action !== '' && $action !== '-1' ) {
+                return $action;
+            }
+        }
+
+        return false;
+    }
+
     public function bulk_actions_handler() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ( empty(Post::get('spamorderids')) || empty(Post::get('_wpnonce')) ) {
@@ -276,11 +348,11 @@ class WcSpamOrdersListTable extends CleantalkListTable
 
     public function row_actions_handler() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if ( empty(Get::get('action')) ) {
+        if ( empty(Get::get(self::ROW_ACTION_PARAM)) ) {
             return;
         }
 
-        if ( ! wp_verify_nonce(Get::getString('_wpnonce'), 'apbct_wc_spam_orders_row') ) {
+        if ( ! wp_verify_nonce(Get::getString(self::ROW_NONCE_PARAM), 'apbct_wc_spam_orders_row') ) {
             wp_die(esc_html__('Security check failed. Please try again.', 'cleantalk-spam-protect'), 403);
         }
 
@@ -291,7 +363,7 @@ class WcSpamOrdersListTable extends CleantalkListTable
             wp_die(esc_html__('You do not have sufficient permissions to perform this action.', 'cleantalk-spam-protect'), 403);
         }
 
-        if ( Get::get('action') === 'delete' ) {
+        if ( Get::get(self::ROW_ACTION_PARAM) === 'delete' ) {
             $id = filter_input(INPUT_GET, 'spam', FILTER_SANITIZE_ENCODED, FILTER_FLAG_STRIP_HIGH);
             $this->removeSpam(array($id));
         }
