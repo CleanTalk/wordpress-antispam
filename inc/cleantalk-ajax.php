@@ -556,6 +556,9 @@ function ct_ajax_hook($message_obj = null)
 
     $base_call_result = apbct_base_call($base_call_params, $reg_flag);
 
+    // Remove service fields from POST before any early return.
+    apbct_clear_post_service_data_after_base_call();
+
     if (!isset($base_call_result['ct_result'])) {
         return null;
     }

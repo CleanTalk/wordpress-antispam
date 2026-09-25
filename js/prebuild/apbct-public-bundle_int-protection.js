@@ -3208,6 +3208,21 @@ class ApbctHandler {
     }
 
     /**
+     * Forms with an inline onsubmit whose returned value controls the submit.
+     * A deferred call loses that value and lets the form submit natively.
+     * @param {object} form
+     * @return {boolean}
+     */
+    prevCallSyncRequired(form) {
+        if (form.classList === undefined) {
+            return false;
+        }
+
+        // Pagelayer contact form: onsubmit="return pagelayer_contact_submit(this, event)"
+        return form.classList.contains('pagelayer-contact-form');
+    }
+
+    /**
      * Catch main
      * @param {object} form
      * @param {number} index
@@ -3231,6 +3246,9 @@ class ApbctHandler {
             if (event.target.onsubmit_prev instanceof Function && !handler.prevCallExclude(event.target)) {
                 if (event.target.classList !== undefined && event.target.classList.contains('brave_form_form')) {
                     event.preventDefault();
+                }
+                if (handler.prevCallSyncRequired(event.target)) {
+                    return event.target.onsubmit_prev.call(event.target, event);
                 }
                 setTimeout(function() {
                     event.target.onsubmit_prev.call(event.target, event);
