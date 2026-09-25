@@ -17,6 +17,8 @@ class Pagelayer extends IntegrationBase
 
         $service_fields = array(
             'apbct_visible_fields',
+            'ct_bot_detector_event_token',
+            'ct_no_cookie_hidden_field',
             'action',
             'pagelayer_nonce',
             'pagelayer-contact-submit',
