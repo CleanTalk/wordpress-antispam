@@ -69,7 +69,7 @@ class Escape extends \Cleantalk\Common\Escape
      *
      * @param $text
      *
-     * @return string|null
+     * @return string
      */
     public static function escUrlRaw($text)
     {

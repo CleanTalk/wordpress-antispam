@@ -316,6 +316,7 @@ class State extends \Cleantalk\Common\State
         'rest_check'         => array('last_call' => 0,),
         // WP nonce gathering
         'get_fresh_wpnonce'         => array('last_call' => 0,),
+        'send_fw_bypass_email'         => array('last_call' => 0, 'cooldown' => 60),
     );
 
     /**

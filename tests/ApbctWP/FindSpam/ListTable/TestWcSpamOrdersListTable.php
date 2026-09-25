@@ -28,7 +28,7 @@ class TestWcSpamOrdersListTable extends TestCase
     protected function setUp(): void
     {
         global $apbct;
-        
+
         $reflection = new \ReflectionClass(WcSpamOrdersListTable::class);
         $this->instance = $reflection->newInstanceWithoutConstructor();
 
@@ -38,11 +38,8 @@ class TestWcSpamOrdersListTable extends TestCase
         $this->renderCustomerDetailsColumn = $reflection->getMethod('renderCustomerDetailsColumn');
         $this->renderCustomerDetailsColumn->setAccessible(true);
 
-        // Set both instance property and global variable
-        $apbct = (object)[
-            'white_label' => true,
-        ];
-        
+        $apbct->white_label = true;
+
         // Use reflection to set the protected property
         $apbctProperty = $reflection->getProperty('apbct');
         $apbctProperty->setAccessible(true);
