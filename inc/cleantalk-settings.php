@@ -366,7 +366,16 @@ function apbct_settings__set_fields()
                 ),
                 'data__wc_store_blocked_orders' => array(
                     'title' => __('Store blocked orders', 'cleantalk-spam-protect'),
-                    'description' => __('The orders which was blocked by the Anti-Spam will be stored and could be restored manually later if its needed.', 'cleantalk-spam-protect'),
+                    'description' => __('Orders blocked by Anti-Spam will be stored and can be restored manually later if needed.', 'cleantalk-spam-protect'),
+                    'class' => 'apbct_settings-field_wrapper--sub',
+                    'options' => array(
+                        array('val' => 1, 'label' => __('On')),
+                        array('val' => 0, 'label' => __('Off')),
+                    ),
+                ),
+                'forms__wc_show_rejection_message' => array(
+                    'title' => __('Show rejection message to customers', 'cleantalk-spam-protect'),
+                    'description' => __('This message tells the customer why their order was filtered, allowing them to fix the issue that caused it. However, this may result in multiple orders from the same customer because all rejected orders are saved in the Spam folder. By default, this option is OFF.', 'cleantalk-spam-protect'),
                     'class' => 'apbct_settings-field_wrapper--sub',
                     'options' => array(
                         array('val' => 1, 'label' => __('On')),
@@ -2187,8 +2196,14 @@ function apbct_settings__field__action_buttons()
 
     if ( apbct_is_plugin_active('woocommerce/woocommerce.php') ) {
         add_filter('apbct_settings_action_buttons', function ($buttons_array) {
+            // HPOS installations render the spam orders view inline on the wc-orders screen;
+            // legacy (posts table) installations get a separate fallback admin page instead.
+            $spam_orders_page = function_exists('wc_get_page_screen_id') && wc_get_page_screen_id('shop_order') !== 'shop_order'
+                ? 'wc-orders&amp;status=wc-spamorder'
+                : 'apbct_wc_spam_orders';
+
             $buttons_array[] =
-                '<a href="admin.php?page=apbct_wc_spam_orders" class="ct_support_link" title="Bulk spam orders removal tool.">'
+                '<a href="admin.php?page=' . $spam_orders_page . '" class="ct_support_link" title="Bulk spam orders removal tool.">'
                 . __('WooCommerce spam orders', 'cleantalk-spam-protect')
                 . '</a>';
             return $buttons_array;

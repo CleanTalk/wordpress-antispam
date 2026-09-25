@@ -1194,11 +1194,17 @@ function apbct_admin__admin_bar__add_child_nodes($wp_admin_bar)
 
     // Add a child item to our parent item. Bulk checks.
     if ( ! is_network_admin() && apbct_is_plugin_active('woocommerce/woocommerce.php') ) {
+        // HPOS installations render the spam orders view inline on the wc-orders screen;
+        // legacy (posts table) installations get a separate fallback admin page instead.
+        $spam_orders_page = function_exists('wc_get_page_screen_id') && wc_get_page_screen_id('shop_order') !== 'shop_order'
+            ? 'wc-orders&amp;status=wc-spamorder'
+            : 'apbct_wc_spam_orders';
+
         $wp_admin_bar->add_node(
             array(
                 'parent' => 'apbct__parent_node',
                 'id'     => 'ct_settings_bulk_orders',
-                'title'  => '<a href="admin.php?page=apbct_wc_spam_orders" title="Bulk spam orders removal tool.">'
+                'title'  => '<a href="admin.php?page=' . $spam_orders_page . '" title="Bulk spam orders removal tool.">'
                             . __('WooCommerce spam orders', 'cleantalk-spam-protect') . '</a>',
             )
         );
