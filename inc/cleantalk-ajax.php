@@ -118,6 +118,9 @@ $_cleantalk_hooked_actions[] = 'fue_wc_set_cart_email';  // Don't check email vi
 /* The Fluent Form have the direct integration */
 $_cleantalk_hooked_actions[] = 'fluentform_submit';
 
+/* Pagelayer contact form has the direct integration */
+$_cleantalk_hooked_actions[] = 'pagelayer_contact_submit';
+
 /* Estimation Forms have the direct integration */
 if ( class_exists('LFB_Core') ) {
     $_cleantalk_hooked_actions[] = 'send_email';
@@ -556,14 +559,14 @@ function ct_ajax_hook($message_obj = null)
 
     $base_call_result = apbct_base_call($base_call_params, $reg_flag);
 
+    // Remove service fields from POST before any early return.
+    apbct_clear_post_service_data_after_base_call();
+
     if (!isset($base_call_result['ct_result'])) {
         return null;
     }
 
     $ct_result = $base_call_result['ct_result'];
-
-    // Remove service fields from POST
-    apbct_clear_post_service_data_after_base_call();
 
     if ( $ct_result->allow == 0 ) {
         if ( Post::get('action') === 'wpuf_submit_register' ) {

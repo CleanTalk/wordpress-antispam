@@ -47,6 +47,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    'Pagelayer'           => array(
+        'hook'    => 'pagelayer_contact_submit_start',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
     'EstimationForm'      => array('hook' => 'send_email', 'setting' => 'forms__contact_forms_test', 'ajax' => true),
     'LandingPageBuilder'  => array(
         'hook'    => 'ulpb_formBuilderEmail_ajax',
