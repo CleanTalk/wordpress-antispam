@@ -691,19 +691,28 @@ class RemoteCalls
      */
     public static function action__get_fresh_wpnonce() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        global $apbct;
+
         if ( ! isset($_POST['nonce_prev']) ) {
             return json_encode(array('error' => 'No nonce provided'));
         }
 
         $nonce_prev = Post::getString('nonce_prev');
-        $nonce_name = apbct_settings__get_ajax_type() === 'rest'
-            ? 'wp_rest'
-            : AJAXService::$public_nonce_id;
 
         // Check $nonce_prev by regexp '^[a-f0-9]{10}$'
         if ( ! preg_match('/^[a-f0-9]{10}$/', $nonce_prev) ) {
             return json_encode(array('error' => 'Wrong nonce provided'));
         }
+
+        // Detected once on activation/update/settings save, apbct_settings__get_ajax_type()
+        // probes the site over blocking loopback HTTP requests.
+        $ajax_type = ! empty($apbct->data['ajax_type'])
+            ? $apbct->data['ajax_type']
+            : apbct_settings__get_ajax_type();
+
+        $nonce_name = $ajax_type === 'rest'
+            ? 'wp_rest'
+            : AJAXService::$public_nonce_id;
 
         // set response type 'json'
         header('Content-Type: application/json');

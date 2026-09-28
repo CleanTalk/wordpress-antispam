@@ -891,7 +891,7 @@ class ApbctXhr {
             'initial_request_params': initialRequestParams,
         };
         params.notJson = true;
-        params.url = ctPublicFunctions.host_url;
+        params.url = ctPublicFunctions._ajax_url;
         // this callback will rerun the XHR with initial params
         params.callback = function(...args) {
             // the refresh result itself
