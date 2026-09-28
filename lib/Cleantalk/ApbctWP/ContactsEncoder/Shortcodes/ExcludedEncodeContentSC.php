@@ -664,7 +664,9 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      */
     public function primeRawTitleCache()
     {
-        if ( is_admin() ) {
+        global $apbct;
+
+        if ( is_admin() || empty($apbct->settings['data__email_decoder']) ) {
             return;
         }
 
