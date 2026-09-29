@@ -657,42 +657,6 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     }
 
     /**
-     * Cache titles with skip-encoding shortcodes before frontend encoding mutates post objects.
-     *
-     * @return void
-     * @psalm-suppress PossiblyUnusedMethod
-     */
-    public function primeRawTitleCache()
-    {
-        global $apbct;
-
-        if ( is_admin() || empty($apbct->settings['data__email_decoder']) ) {
-            return;
-        }
-
-        global $wpdb;
-
-        $rows = $wpdb->get_results(
-            "SELECT ID, post_title FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_title LIKE '%[apbct_skip_encoding]%'",
-            OBJECT_K
-        );
-
-        if ( ! is_array($rows) ) {
-            return;
-        }
-
-        foreach ( $rows as $post_id => $row ) {
-            if (
-                isset($row->post_title)
-                && is_string($row->post_title)
-                && strpos($row->post_title, 'apbct-email-encoder') === false
-            ) {
-                self::$raw_titles_cache[(int)$post_id] = $row->post_title;
-            }
-        }
-    }
-
-    /**
      * Return raw title from init-time prime cache when this post is known to use skip-encoding.
      *
      * @param int $post_id
@@ -729,6 +693,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return '';
         }
 
+        // Search in cached
         $primed_title = $this->getPrimedRawPostTitle($post_id);
         if ( $primed_title !== '' ) {
             return $primed_title;
@@ -748,6 +713,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         }
 
         if ( strpos($title, 'apbct-email-encoder') === false ) {
+            // Set cache
             self::$raw_titles_cache[$post_id] = $title;
         }
 

@@ -56,9 +56,6 @@ class ShortCodesService
         add_filter('document_title_parts', array($this->shortcode_to_exclude, 'filterDocumentTitleParts'), 20);
         add_filter('nav_menu_item_title', array($this->shortcode_to_exclude, 'filterNavMenuItemTitle'), 20, 2);
         add_filter('wp_insert_post_data', array($this->shortcode_to_exclude, 'filterPostDataForSlug'), 10, 2);
-        if ( ! empty($apbct->settings['data__email_decoder']) ) {
-            add_action('init', array($this->shortcode_to_exclude, 'primeRawTitleCache'), 1);
-        }
         add_filter('render_block', array($this->shortcode_to_exclude, 'restoreEncodedBlockTitlesFilter'), 1000, 3);
         add_filter('render_block_core/page-list', array($this->shortcode_to_exclude, 'restoreEncodedBlockTitlesFilter'), 1000, 3);
         add_filter('render_block_core/navigation', array($this->shortcode_to_exclude, 'restoreEncodedBlockTitlesFilter'), 1000, 3);
