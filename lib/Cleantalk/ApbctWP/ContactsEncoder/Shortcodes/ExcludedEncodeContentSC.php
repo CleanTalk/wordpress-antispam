@@ -687,7 +687,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return '';
         }
 
-        // Search in cached
+        // Search the cache.
         $primed_title = $this->getPrimedRawPostTitle($post_id);
         if ( $primed_title !== '' ) {
             return $primed_title;
@@ -707,7 +707,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         }
 
         if ( strpos($title, 'apbct-email-encoder') === false ) {
-            // Set cache
+            // Set the cache.
             self::$raw_titles_cache[$post_id] = $title;
         }
 
