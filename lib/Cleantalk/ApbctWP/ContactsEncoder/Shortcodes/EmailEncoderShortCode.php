@@ -128,7 +128,7 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      * @return string The modified content.
      * @psalm-suppress PossiblyUnusedMethod
      */
-    protected function changeContentBeforeEncoderModify($content)
+    protected function changeContentBeforeEncoderModify($content = '')
     {
         return $content;
     }
@@ -140,7 +140,7 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      * @return string The modified content.
      * @psalm-suppress PossiblyUnusedMethod
      */
-    protected function changeContentAfterEncoderModify($content)
+    protected function changeContentAfterEncoderModify($content = '')
     {
         return $content;
     }
