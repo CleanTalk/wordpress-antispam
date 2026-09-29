@@ -2128,6 +2128,15 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         return 'Nex Forms';
     }
 
+    // Pagelayer contact form has the direct integration.
+    // The form posts to admin-ajax.php?action=..., so the action arrives via GET.
+    if (
+        apbct_is_plugin_active('pagelayer/pagelayer.php') &&
+        Request::getString('action') === 'pagelayer_contact_submit'
+    ) {
+        return 'Pagelayer contact form - has the direct integration';
+    }
+
     return false;
 }
 
