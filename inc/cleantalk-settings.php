@@ -471,7 +471,7 @@ function apbct_settings__set_fields()
                 'data__protect_logged_in'              => array(
                     'title'       => __("Protect logged in Users", 'cleantalk-spam-protect'),
                     'description' => __(
-                        'Turn this option on to check for spam any submissions (comments, contact forms and etc.) from registered Users.',
+                        'Turn this option on to check for spam any submissions (comments, contact forms and etc.) from registered Users. WooCommerce Add payment method is checked as an order.',
                         'cleantalk-spam-protect'
                     ),
                 ),

@@ -69,6 +69,17 @@ function ct_contact_form_validate()
             Get::getString('wc-ajax') === 'wc_stripe_normalize_address' &&
             apbct_is_plugin_active('woocommerce-gateway-stripe/woocommerce-gateway-stripe.php') &&
             1 == check_ajax_referer('wc-stripe-express-checkout-normalize-address', 'security', false)
+        ) ||
+        // Add payment method is checked on its own, with the account email and type "order".
+        (
+            apbct_is_plugin_active('woocommerce/woocommerce.php') &&
+            ! empty($_POST) &&
+            apbct_is_plugin_active('woocommerce-gateway-stripe/woocommerce-gateway-stripe.php') &&
+            apbct_is_in_referer('add-payment-method') &&
+            (
+                Get::getString('wc-ajax') === 'wc_stripe_create_setup_intent' ||
+                Get::getString('wc-ajax') === 'wc_stripe_init_setup_intent'
+            )
         )
     ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . 'WOOCOMMERCE_SERVICES', $_POST);
