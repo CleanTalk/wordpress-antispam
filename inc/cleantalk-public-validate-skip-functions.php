@@ -54,6 +54,7 @@ function skip_for_ct_contact_form_validate_postdata()
          apbct_is_in_uri('/wc-api') ||
          apbct_is_in_uri('wc-api=WC_Gateway_Tpay_Basic') || // Tpay payment Gateway plugin
          (isset($_POST['wc_reset_password'], $_POST['_wpnonce'], $_POST['_wp_http_referer'])) || //WooCommerce recovery password form
+         apbct_is_woocommerce_add_payment_method_form() || // WooCommerce Add payment method, checked as an order
          (isset($_POST['woocommerce-login-nonce'], $_POST['login'], $_POST['password'], $_POST['_wp_http_referer'])) || //WooCommerce login form
          (isset($_POST['provider'], $_POST['authcode']) && $_POST['provider'] === 'Two_Factor_Totp') || //TwoFactor authorization
          (isset($_GET['wc-ajax']) && $_GET['wc-ajax'] === 'sa_wc_buy_now_get_ajax_buy_now_button') || //BuyNow add to cart
@@ -72,6 +73,38 @@ function skip_for_ct_contact_form_validate_postdata()
     }
 
     return false;
+}
+
+/**
+ * Real WooCommerce "Add payment method" submit.
+ *
+ * The dedicated check sends the account email as an order. Skipping it here keeps the
+ * general checker from marking the request done. A single POST field is not enough:
+ * the request must hit this endpoint and carry the form nonce.
+ *
+ * @return bool
+ */
+function apbct_is_woocommerce_add_payment_method_form()
+{
+    if (
+        ! apbct_is_plugin_active('woocommerce/woocommerce.php') ||
+        ! apbct_is_in_uri('add-payment-method') ||
+        ! isset($_POST['woocommerce_add_payment_method'], $_POST['payment_method'])
+    ) {
+        return false;
+    }
+
+    $nonce = '';
+    if (
+        isset($_REQUEST['woocommerce-add-payment-method-nonce']) &&
+        is_string($_REQUEST['woocommerce-add-payment-method-nonce'])
+    ) {
+        $nonce = $_REQUEST['woocommerce-add-payment-method-nonce'];
+    } elseif ( isset($_REQUEST['_wpnonce']) && is_string($_REQUEST['_wpnonce']) ) {
+        $nonce = $_REQUEST['_wpnonce'];
+    }
+
+    return wp_verify_nonce($nonce, 'woocommerce-add-payment-method') !== false;
 }
 
 /**
@@ -304,6 +337,8 @@ function skip_for_ct_contact_form_validate()
                 (isset($_POST['pass']) && isset($_POST['_pass']))
             )
         ),
+        // WooCommerce Add payment method. Direct check uses the account email and type "order".
+        '103' => apbct_is_woocommerce_add_payment_method_form(),
     );
 
     foreach ( $exclusions as $exclusion_key => $state ) {
