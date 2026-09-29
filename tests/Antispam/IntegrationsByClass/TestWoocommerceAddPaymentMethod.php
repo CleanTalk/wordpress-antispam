@@ -90,4 +90,20 @@ class TestWoocommerceAddPaymentMethod extends TestCase
 
         $this->assertNull($this->integration->blockStripeAddPaymentMethodAjax());
     }
+
+    /**
+     * The UPE confirm action belongs to Add payment method even without that slug in the URL.
+     * Logged-out requests must not call the cloud.
+     */
+    public function testUpeConfirmSetupIntentIsSkippedWhenNobodyIsLoggedIn()
+    {
+        global $apbct;
+        $apbct->settings['data__protect_logged_in'] = 1;
+        $_SERVER['HTTP_REFERER'] = 'http://blog.loc/';
+        $_SERVER['REQUEST_URI'] = '/wp-admin/admin-ajax.php';
+        $_POST['action'] = 'wc_stripe_create_and_confirm_setup_intent';
+
+        $this->assertFalse(is_user_logged_in());
+        $this->assertNull($this->integration->blockStripeCreateAndConfirmSetupIntentAjax());
+    }
 }

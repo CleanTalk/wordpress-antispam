@@ -188,9 +188,11 @@ class Woocommerce extends IntegrationByClassBase
      * is sent with comment_type "order". It runs only when protection of
      * logged-in users is enabled.
      *
-     * Stripe creates a setup intent over wc-ajax before the account form is
-     * posted. Those calls are checked too when they come from the same page,
-     * otherwise the card can be confirmed at Stripe before WordPress sees the form.
+     * Stripe confirms the card before the account form is posted. Legacy
+     * setup intents use wc-ajax. The UPE form uses admin-ajax action
+     * wc_stripe_create_and_confirm_setup_intent, and that call attaches the
+     * card at Stripe. Those calls are checked too, otherwise the card is saved
+     * even when the later account form is blocked.
      *
      * @return void
      */
@@ -199,6 +201,12 @@ class Woocommerce extends IntegrationByClassBase
         add_filter('woocommerce_add_payment_method_form_is_valid', [$this, 'filterAddPaymentMethodFormIsValid']);
         add_action('wc_ajax_wc_stripe_create_setup_intent', [$this, 'blockStripeAddPaymentMethodAjax'], 1);
         add_action('wc_ajax_wc_stripe_init_setup_intent', [$this, 'blockStripeAddPaymentMethodAjax'], 1);
+        // UPE confirms the card here, before the account form is posted.
+        add_action(
+            'wp_ajax_wc_stripe_create_and_confirm_setup_intent',
+            [$this, 'blockStripeCreateAndConfirmSetupIntentAjax'],
+            1
+        );
     }
 
     /**
@@ -240,6 +248,34 @@ class Woocommerce extends IntegrationByClassBase
             return;
         }
 
+        $this->sendStripeAddPaymentMethodJsonError();
+    }
+
+    /**
+     * Stop the UPE call that creates and confirms a setup intent.
+     *
+     * That action is used only by the Add payment method form. Checkout does
+     * not post it. The card is attached at Stripe inside this request, so the
+     * later account-form block is too late.
+     *
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function blockStripeCreateAndConfirmSetupIntentAjax()
+    {
+        if ( $this->isAddPaymentMethodAllowed() ) {
+            return;
+        }
+
+        $this->sendStripeAddPaymentMethodJsonError();
+    }
+
+    /**
+     * @return void
+     * @psalm-suppress UndefinedFunction
+     */
+    private function sendStripeAddPaymentMethodJsonError()
+    {
         if ( function_exists('wp_send_json_error') ) {
             \wp_send_json_error(
                 array(

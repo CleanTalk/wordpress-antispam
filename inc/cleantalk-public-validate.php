@@ -78,7 +78,8 @@ function ct_contact_form_validate()
             apbct_is_in_referer('add-payment-method') &&
             (
                 Get::getString('wc-ajax') === 'wc_stripe_create_setup_intent' ||
-                Get::getString('wc-ajax') === 'wc_stripe_init_setup_intent'
+                Get::getString('wc-ajax') === 'wc_stripe_init_setup_intent' ||
+                Post::getString('action') === 'wc_stripe_create_and_confirm_setup_intent'
             )
         )
     ) {
