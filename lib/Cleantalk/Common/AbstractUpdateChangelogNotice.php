@@ -259,38 +259,30 @@ abstract class AbstractUpdateChangelogNotice
 
         $repo_path = implode('/', array_map('rawurlencode', explode('/', $repo)));
 
-        $urls = array(
-            'https://api.github.com/repos/' . $repo_path . '/releases/tags/' . rawurlencode($version),
-            'https://api.github.com/repos/' . $repo_path . '/releases?per_page=1',
+        // Only the exact tag is requested: any "latest release" fallback could show
+        // the notes of an unrelated (or pre-) release under the offered version.
+        $body = $this->doRequest(
+            'https://api.github.com/repos/' . $repo_path . '/releases/tags/' . rawurlencode($version)
         );
 
-        foreach ( $urls as $url ) {
-            $body = $this->doRequest($url);
-
-            if ( $body === '' ) {
-                continue;
-            }
-
-            $data = json_decode($body, true);
-
-            if ( ! is_array($data) ) {
-                continue;
-            }
-
-            if ( isset($data['body']) ) {
-                $release_notes = $data['body'];
-            } elseif ( isset($data[0]['body']) ) {
-                $release_notes = $data[0]['body'];
-            } else {
-                continue;
-            }
-
-            if ( is_string($release_notes) && $release_notes !== '' ) {
-                return $this->readmeToHtml($release_notes);
-            }
+        if ( $body === '' ) {
+            return '';
         }
 
-        return '';
+        $data = json_decode($body, true);
+
+        if ( ! is_array($data) || ! isset($data['body']) || ! is_string($data['body']) || $data['body'] === '' ) {
+            return '';
+        }
+
+        // Double check that the release really belongs to the offered version.
+        $tag_name = isset($data['tag_name']) && is_string($data['tag_name']) ? $data['tag_name'] : '';
+
+        if ( ltrim($tag_name, 'vV') !== ltrim($version, 'vV') ) {
+            return '';
+        }
+
+        return $this->readmeToHtml($data['body']);
     }
 
     /**
@@ -533,6 +525,10 @@ abstract class AbstractUpdateChangelogNotice
      * markdown conversion). Admin themes commonly reset "ul { list-style: none }",
      * so the marker is set inline to guarantee it survives everywhere.
      *
+     * The longhand "list-style-type" is used on purpose: the "list-style" shorthand
+     * is not in the default WordPress "safe_style_css" allowlist and would be
+     * stripped by kses.
+     *
      * @param string $html
      *
      * @return string
@@ -552,7 +548,8 @@ abstract class AbstractUpdateChangelogNotice
                     preg_match('/\bstyle\s*=\s*(["\'])(.*?)\1/i', $attrs, $style_match)
                     && isset($style_match[2])
                 ) {
-                    $style     = rtrim(trim($style_match[2], " \f\n\r\t\v\x00"), ';') . '; list-style: disc; padding-left: 20px;';
+                    $style     = rtrim(trim($style_match[2], " \f\n\r\t\v\x00"), ';')
+                        . '; list-style-type: disc; padding-left: 20px;';
                     $new_attrs = preg_replace(
                         '/\bstyle\s*=\s*(["\']).*?\1/i',
                         'style="' . $style . '"',
@@ -560,7 +557,7 @@ abstract class AbstractUpdateChangelogNotice
                         1
                     );
                 } else {
-                    $new_attrs = $attrs . ' style="list-style: disc; padding-left: 20px;"';
+                    $new_attrs = $attrs . ' style="list-style-type: disc; padding-left: 20px;"';
                 }
 
                 return '<ul' . $new_attrs . '>';

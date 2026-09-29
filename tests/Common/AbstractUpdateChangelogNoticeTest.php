@@ -80,7 +80,7 @@ class AbstractUpdateChangelogNoticeTest extends TestCase
     {
         $result = $this->getMethod('forceDiscListStyle')->invoke($this->makeInstance(), '<ul><li>a</li></ul>');
 
-        $this->assertSame('<ul style="list-style: disc; padding-left: 20px;"><li>a</li></ul>', $result);
+        $this->assertSame('<ul style="list-style-type: disc; padding-left: 20px;"><li>a</li></ul>', $result);
     }
 
     public function testForceDiscListStyleMergesWithExistingStyle()
@@ -91,7 +91,7 @@ class AbstractUpdateChangelogNoticeTest extends TestCase
         );
 
         $this->assertSame(
-            '<ul style="color:red; list-style: disc; padding-left: 20px;"><li>a</li></ul>',
+            '<ul style="color:red; list-style-type: disc; padding-left: 20px;"><li>a</li></ul>',
             $result
         );
     }
