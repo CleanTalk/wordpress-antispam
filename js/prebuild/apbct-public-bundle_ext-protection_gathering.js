@@ -449,8 +449,16 @@ function ctFillDecodedEmail(target, email) {
     target.innerHTML = target.innerHTML.replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1');
 }
 
+let ctEmailDecoderIsInitialized = false;
+
 // Listen clicks on encoded emails
 document.addEventListener('DOMContentLoaded', function() {
+    // Some plugins dispatch a synthetic DOMContentLoaded, listeners must not be attached twice
+    if (ctEmailDecoderIsInitialized) {
+        return;
+    }
+    ctEmailDecoderIsInitialized = true;
+
     let encodedEmailNodes = document.querySelectorAll('[data-original-string]');
     if (typeof ctPublic !== 'undefined') {
         ctPublic.encodedEmailNodes = encodedEmailNodes;
@@ -1753,7 +1761,7 @@ class ApbctXhr {
             'initial_request_params': initialRequestParams,
         };
         params.notJson = true;
-        params.url = ctPublicFunctions.host_url;
+        params.url = ctPublicFunctions._ajax_url;
         // this callback will rerun the XHR with initial params
         params.callback = function(...args) {
             // the refresh result itself
@@ -3200,12 +3208,33 @@ class ApbctHandler {
     }
 
     /**
+     * Forms with an inline onsubmit whose returned value controls the submit.
+     * A deferred call loses that value and lets the form submit natively.
+     * @param {object} form
+     * @return {boolean}
+     */
+    prevCallSyncRequired(form) {
+        if (form.classList === undefined) {
+            return false;
+        }
+
+        // Pagelayer contact form: onsubmit="return pagelayer_contact_submit(this, event)"
+        return form.classList.contains('pagelayer-contact-form');
+    }
+
+    /**
      * Catch main
      * @param {object} form
      * @param {number} index
      * @return {void}
      */
     catchMain(form, index) {
+        // Third-party plugins may re-fire DOMContentLoaded. Double wrapping makes onsubmit_prev recursive.
+        if (form.apbctCatchMainAttached) {
+            return;
+        }
+        form.apbctCatchMainAttached = true;
+
         form.onsubmit_prev = form.onsubmit;
         form.ctFormIndex = index;
 
@@ -3217,6 +3246,9 @@ class ApbctHandler {
             if (event.target.onsubmit_prev instanceof Function && !handler.prevCallExclude(event.target)) {
                 if (event.target.classList !== undefined && event.target.classList.contains('brave_form_form')) {
                     event.preventDefault();
+                }
+                if (handler.prevCallSyncRequired(event.target)) {
+                    return event.target.onsubmit_prev.call(event.target, event);
                 }
                 setTimeout(function() {
                     event.target.onsubmit_prev.call(event.target, event);
@@ -5627,11 +5659,19 @@ async function apbctImportScript(scriptAbsolutePath) {
     });
 }
 
+let apbctReadyIsDone = false;
+
 /**
  * Ready function
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 async function apbct_ready() {
+    // Some plugins dispatch a synthetic DOMContentLoaded, so the whole init must not run twice
+    if (apbctReadyIsDone) {
+        return;
+    }
+    apbctReadyIsDone = true;
+
     // Only set ct_checkjs if the key is actually provided (not on block pages)
     if (typeof ctPublic.ct_checkjs_key !== 'undefined' && ctPublic.ct_checkjs_key !== null) {
         apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
@@ -6190,8 +6230,10 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
                         formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1 ||
                         formSource.outerHTML.indexOf('action="https://api.kit.com') !== -1 ||
                         formSource.outerHTML.indexOf('activehosted.com') !== -1 ||
+                        formSource.outerHTML.indexOf('aweber.com') !== -1 ||
                         formSource.outerHTML.indexOf('action="https://crm.zoho.com') !== -1
                     ) &&
+                    elemSource.name !== '' &&
                     elemSource.name === elemTarget.name // sequence by name
                 ) ||
                 (
@@ -8480,6 +8522,10 @@ function apbctIntegrateDynamicEmailCheck({ // eslint-disable-line no-unused-vars
                     // If there are email inputs inside the added node
                     node.querySelectorAll &&
                     node.querySelectorAll(emailSelector).forEach(function(input) {
+                        // do not touch inputs outside of the integrated form
+                        if (!input.closest(formSelector)) {
+                            return;
+                        }
                         if (!input.hasAttribute(attribute)) {
                             input.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
                             input.setAttribute(attribute, '1');
@@ -8549,7 +8595,15 @@ if (Math.floor(Math.random() * 100) === 1) {
     };
 }
 
+let ctTrpIsInitialized = false;
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Some plugins dispatch a synthetic DOMContentLoaded, badges must not be built twice
+    if (ctTrpIsInitialized) {
+        return;
+    }
+    ctTrpIsInitialized = true;
+
     let ctTrpLocalize = undefined;
     let ctTrpIsAdminCommentsList = false;
 

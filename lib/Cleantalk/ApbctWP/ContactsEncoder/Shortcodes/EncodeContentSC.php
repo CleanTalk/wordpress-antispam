@@ -97,7 +97,7 @@ class EncodeContentSC extends EmailEncoderShortCode
      * @psalm-suppress PossiblyUnusedReturnValue
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function changeContentBeforeEncoderModify($content)
+    public function changeContentBeforeEncoderModify($content = '')
     {
         if ( ! is_string($content) ) {
             return $content;
@@ -149,7 +149,7 @@ class EncodeContentSC extends EmailEncoderShortCode
      * @psalm-suppress PossiblyUnusedReturnValue
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function changeContentAfterEncoderModify($content)
+    public function changeContentAfterEncoderModify($content = '')
     {
         if ( ! is_string($content) ) {
             return $content;

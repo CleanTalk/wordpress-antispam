@@ -75,9 +75,9 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      * @return string
      * @psalm-suppress NullableReturnStatement
      */
-    public function changeContentBeforeEncoderModify($content)
+    public function changeContentBeforeEncoderModify($content = '')
     {
-        // get_header / get_footer pass null as the template name via do_action().
+        // get_header / get_footer pass null (or nothing at all, e.g. Timber) as the template name via do_action().
         if ( ! is_string($content) ) {
             return $content;
         }
@@ -115,9 +115,9 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      * @return string Replaces $apbct->buffer by probably modified content or just return probably modified $content
      * @psalm-suppress NullableReturnStatement
      */
-    public function changeContentAfterEncoderModify($content)
+    public function changeContentAfterEncoderModify($content = '')
     {
-        // get_header / get_footer pass null as the template name via do_action().
+        // get_header / get_footer pass null (or nothing at all, e.g. Timber) as the template name via do_action().
         if ( ! is_string($content) ) {
             return $content;
         }
