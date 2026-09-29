@@ -29,6 +29,7 @@ use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\Deactivator;
 use Cleantalk\ApbctWP\Firewall\AntiCrawler;
 use Cleantalk\ApbctWP\Firewall\AntiFlood;
+use Cleantalk\ApbctWP\Firewall\FirewallBypass;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\Helper;
@@ -898,7 +899,7 @@ function apbct_sfw__check()
         }
     }
 
-    // Skip the check
+    // Skip the check (legacy way, remove in future)
     if ( ! empty(Get::get('access')) ) {
         $spbc_settings = get_option('spbc_settings');
         $spbc_key      = ! empty($spbc_settings['spbc_key']) ? $spbc_settings['spbc_key'] : false;
@@ -935,6 +936,12 @@ function apbct_sfw__check()
 
     // sfw is outdated - skip checking
     if ( SFWUpdateHelper::SFWDataOutdated($apbct) ) {
+        return;
+    }
+
+    // Emergency bypass: consume the one-time link from the admin email, then check the granted bypass.
+    FirewallBypass::maybeSetUserToken();
+    if (FirewallBypass::bypassByUserToken()) {
         return;
     }
 
