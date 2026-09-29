@@ -1761,7 +1761,7 @@ class ApbctXhr {
             'initial_request_params': initialRequestParams,
         };
         params.notJson = true;
-        params.url = ctPublicFunctions.host_url;
+        params.url = ctPublicFunctions._ajax_url;
         // this callback will rerun the XHR with initial params
         params.callback = function(...args) {
             // the refresh result itself
@@ -6230,8 +6230,10 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
                         formSource.outerHTML.indexOf('class="et_pb_contact_form') !== -1 ||
                         formSource.outerHTML.indexOf('action="https://api.kit.com') !== -1 ||
                         formSource.outerHTML.indexOf('activehosted.com') !== -1 ||
+                        formSource.outerHTML.indexOf('aweber.com') !== -1 ||
                         formSource.outerHTML.indexOf('action="https://crm.zoho.com') !== -1
                     ) &&
+                    elemSource.name !== '' &&
                     elemSource.name === elemTarget.name // sequence by name
                 ) ||
                 (
@@ -7936,6 +7938,10 @@ function apbctIntegrateDynamicEmailCheck({ // eslint-disable-line no-unused-vars
                     // If there are email inputs inside the added node
                     node.querySelectorAll &&
                     node.querySelectorAll(emailSelector).forEach(function(input) {
+                        // do not touch inputs outside of the integrated form
+                        if (!input.closest(formSelector)) {
+                            return;
+                        }
                         if (!input.hasAttribute(attribute)) {
                             input.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
                             input.setAttribute(attribute, '1');
