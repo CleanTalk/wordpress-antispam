@@ -6,6 +6,7 @@ use Cleantalk\ApbctWP\ApbctEnqueue;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Escape;
+use Cleantalk\ApbctWP\UpdateChangelogNotice;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
@@ -35,6 +36,7 @@ add_action('comment_approved_to_unapproved', 'apbct_comment__remove_meta_approve
 add_action('comment_spam_to_unapproved', 'apbct_comment__remove_meta_approved', 10, 1);
 add_action('comment_trash_to_unapproved', 'apbct_comment__remove_meta_approved', 10, 1);
 
+UpdateChangelogNotice::register();
 /**
  * Crunch for Anti-Bot
  * Hooked by 'admin_head'
