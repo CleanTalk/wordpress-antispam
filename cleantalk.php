@@ -2560,7 +2560,7 @@ function apbct_store__urls()
         $current_url = $current_url ? substr($current_url, 0, 128) : 'UNKNOWN';
 
         // Get already stored URLs
-        $urls_json = TT::toString(RequestParameters::getCommonStorage('apbct_urls'));
+        $urls_json = TT::toString(RequestParameters::get('apbct_urls', true));
         $urls = !empty($urls_json) ? json_decode($urls_json, true) : array();
         $urls = ! is_array($urls) ? [] : $urls;
 
@@ -2583,7 +2583,7 @@ function apbct_store__urls()
             : $urls;
 
         // Saving
-        RequestParameters::setCommonStorage('apbct_urls', json_encode($urls, JSON_UNESCAPED_SLASHES));
+        RequestParameters::set('apbct_urls', json_encode($urls, JSON_UNESCAPED_SLASHES), true);
 
         // SITE-REFERER
         // Get current site-referer
