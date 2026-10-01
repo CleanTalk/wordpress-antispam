@@ -426,7 +426,7 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 
 == Changelog ==
 
-= 6.89 01.10.2026 =
+= 6.89 05.10.2026 =
 New. Integration. Integration with Pagelayer.
 New. WooCommerce. Spam orders admin list table redesigned: statuses, bulk actions, sortable totals.
 Upd. ContactsEncoder. Lot of search logic updates.
