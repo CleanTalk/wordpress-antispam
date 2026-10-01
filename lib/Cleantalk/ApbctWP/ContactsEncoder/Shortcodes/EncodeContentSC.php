@@ -103,6 +103,11 @@ class EncodeContentSC extends EmailEncoderShortCode
             return $content;
         }
 
+        // Cheap pre-check: bail out before any regex if the shortcode is not present at all.
+        if ( ! $this->contentMayContainShortcode($content) ) {
+            return $content;
+        }
+
         if ( $this->exclusions->doReturnShortcodeContentBeforeModify($content) ) {
             return $content;
         }
@@ -147,6 +152,11 @@ class EncodeContentSC extends EmailEncoderShortCode
     public function changeContentAfterEncoderModify($content)
     {
         if ( ! is_string($content) ) {
+            return $content;
+        }
+
+        // Nothing was replaced and no shortcode is present - skip restoring and the callback pass.
+        if ( empty($this->shortcode_replacements) && ! $this->contentMayContainShortcode($content) ) {
             return $content;
         }
 

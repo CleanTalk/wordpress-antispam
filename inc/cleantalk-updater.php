@@ -1388,3 +1388,19 @@ function apbct_update_to_6_76_0()
         $apbct->saveData();
     }
 }
+
+/**
+ * Preserve the legacy WooCommerce checkout behavior (rejection message shown to the customer)
+ * for users who already had "Store blocked orders" enabled before the new option was introduced.
+ *
+ * @return void
+ */
+function apbct_update_to_6_89_0()
+{
+    global $apbct;
+
+    if ( ! empty($apbct->settings['data__wc_store_blocked_orders']) ) {
+        $apbct->settings['forms__wc_show_rejection_message'] = 1;
+        $apbct->saveSettings();
+    }
+}

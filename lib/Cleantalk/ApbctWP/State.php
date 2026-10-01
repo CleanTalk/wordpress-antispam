@@ -95,7 +95,8 @@ class State extends \Cleantalk\Common\State
         'data__email_decoder_encode_phone_numbers' => 0,
         'data__email_decoder_encode_email_addresses' => 1,
         'data__email_decoder_excluded_strings' => '',
-        'data__wc_store_blocked_orders'            => 0,
+        'data__wc_store_blocked_orders'            => 1,
+        'forms__wc_show_rejection_message'         => 0,
 
         // Exclusions
         // Send to the cloud some excepted requests
@@ -316,6 +317,7 @@ class State extends \Cleantalk\Common\State
         'rest_check'         => array('last_call' => 0,),
         // WP nonce gathering
         'get_fresh_wpnonce'         => array('last_call' => 0,),
+        'send_fw_bypass_email'         => array('last_call' => 0, 'cooldown' => 60),
     );
 
     /**
