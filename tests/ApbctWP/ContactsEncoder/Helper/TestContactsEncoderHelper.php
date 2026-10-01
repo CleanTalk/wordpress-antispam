@@ -75,4 +75,50 @@ class TestContactsEncoderHelper extends TestCase
     {
         $this->assertFalse($this->helper->hasAttributeExclusions('', '<input data-mask="(999) 999-9999" />'));
     }
+
+    public function testIsInsideRawTextTagDetectsStyleAndJsonLd()
+    {
+        $email = 'user@example.com';
+
+        $style = '<style>/* ' . $email . ' */</style>';
+        $this->assertTrue($this->helper->isInsideRawTextTag($email, $style, strpos($style, $email)));
+
+        $json_ld = '<script type="application/ld+json">{"email":"' . $email . '"}</script>';
+        $this->assertTrue($this->helper->isInsideRawTextTag($email, $json_ld, strpos($json_ld, $email)));
+
+        $noscript = '<noscript><p>' . $email . '</p></noscript>';
+        $this->assertTrue($this->helper->isInsideRawTextTag($email, $noscript, strpos($noscript, $email)));
+    }
+
+    public function testIsInsideRawTextTagCanBeRestrictedToGivenTags()
+    {
+        $email = 'user@example.com';
+        $content = '<style>/* ' . $email . ' */</style>';
+
+        $this->assertFalse(
+            $this->helper->isInsideRawTextTag($email, $content, strpos($content, $email), array('script'))
+        );
+    }
+
+    public function testIsInsideScriptTagStillMatchesOnlyScripts()
+    {
+        $email = 'user@example.com';
+
+        $script = '<script>var e="' . $email . '";</script>';
+        $this->assertTrue($this->helper->isInsideScriptTag($email, $script, strpos($script, $email)));
+
+        $style = '<style>/* ' . $email . ' */</style>';
+        $this->assertFalse($this->helper->isInsideScriptTag($email, $style, strpos($style, $email)));
+    }
+
+    public function testRawTextIndexIsRebuiltWhenContentChanges()
+    {
+        $email = 'user@example.com';
+
+        $first = '<script>var e="' . $email . '";</script>';
+        $this->assertTrue($this->helper->isInsideRawTextTag($email, $first, strpos($first, $email)));
+
+        $second = '<p>Write to ' . $email . ' today</p>';
+        $this->assertFalse($this->helper->isInsideRawTextTag($email, $second, strpos($second, $email)));
+    }
 }

@@ -33,6 +33,7 @@ use Cleantalk\ApbctWP\Variables\Server;
  * 4.1) guest checkout (ajax)
  * 4.2) auth checkout (rest)
  * 5) send feedback
+ * 6) add payment method (logged-in customers only, checked as an order)
  */
 class Woocommerce extends IntegrationByClassBase
 {
@@ -56,6 +57,12 @@ class Woocommerce extends IntegrationByClassBase
      * @var string
      */
     private $blocked_order_key = '';
+
+    /**
+     * Text shown when Add payment method is blocked.
+     * @var string
+     */
+    private $add_payment_method_block_message = '';
 
     /**
      * @return void
@@ -84,6 +91,9 @@ class Woocommerce extends IntegrationByClassBase
         if ( $apbct->settings['forms__wc_checkout_test'] == 1 ) {
             $this->addActions();
         }
+
+        // Add payment method follows "Protect logged in Users", not the checkout option.
+        $this->addPaymentMethodActions();
 
         // registration
         if ( !$apbct->settings['forms__wc_register_from_order'] && (Request::get('wc-ajax') === 'checkout' || Request::get('wc-ajax') === 'complete_order') ) {
@@ -168,6 +178,212 @@ class Woocommerce extends IntegrationByClassBase
         add_action('woocommerce_store_api_checkout_order_processed', [$this, 'checkoutCheckFromRest'], 1, 1);
         add_action('woocommerce_checkout_update_order_meta', [$this, 'addRequestIdToOrderMeta']);
         add_action('woocommerce_store_api_checkout_update_customer_from_request', [$this, 'storeApiCheckoutUpdateCustomerFromRequest'], 10, 2);
+    }
+
+    /**
+     * Intercept WooCommerce Add payment method.
+     *
+     * The account form has no email field, so the general form checker skips it.
+     * The customer is already logged in; the check uses that account email and
+     * is sent with comment_type "order". It runs only when protection of
+     * logged-in users is enabled.
+     *
+     * Stripe confirms the card before the account form is posted. Legacy
+     * setup intents use wc-ajax. The UPE form uses admin-ajax action
+     * wc_stripe_create_and_confirm_setup_intent, and that call attaches the
+     * card at Stripe. Those calls are checked too, otherwise the card is saved
+     * even when the later account form is blocked.
+     *
+     * @return void
+     */
+    public function addPaymentMethodActions()
+    {
+        add_filter('woocommerce_add_payment_method_form_is_valid', [$this, 'filterAddPaymentMethodFormIsValid']);
+        add_action('wc_ajax_wc_stripe_create_setup_intent', [$this, 'blockStripeAddPaymentMethodAjax'], 1);
+        add_action('wc_ajax_wc_stripe_init_setup_intent', [$this, 'blockStripeAddPaymentMethodAjax'], 1);
+        // UPE confirms the card here, before the account form is posted.
+        add_action(
+            'wp_ajax_wc_stripe_create_and_confirm_setup_intent',
+            [$this, 'blockStripeCreateAndConfirmSetupIntentAjax'],
+            1
+        );
+    }
+
+    /**
+     * @param bool $is_valid
+     *
+     * @return bool
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue, UndefinedFunction
+     */
+    public function filterAddPaymentMethodFormIsValid($is_valid)
+    {
+        if ( ! $is_valid ) {
+            return false;
+        }
+
+        if ( $this->isAddPaymentMethodAllowed() ) {
+            return true;
+        }
+
+        if ( function_exists('wc_add_notice') && $this->add_payment_method_block_message !== '' ) {
+            \wc_add_notice($this->add_payment_method_block_message, 'error');
+        }
+
+        return false;
+    }
+
+    /**
+     * Stop Stripe setup-intent calls that belong to the Add payment method page.
+     *
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod, UndefinedFunction
+     */
+    public function blockStripeAddPaymentMethodAjax()
+    {
+        if ( ! $this->isAddPaymentMethodPageRequest() ) {
+            return;
+        }
+
+        if ( $this->isAddPaymentMethodAllowed() ) {
+            return;
+        }
+
+        $this->sendStripeAddPaymentMethodJsonError();
+    }
+
+    /**
+     * Stop the UPE call that creates and confirms a setup intent.
+     *
+     * That action is used only by the Add payment method form. Checkout does
+     * not post it. The card is attached at Stripe inside this request, so the
+     * later account-form block is too late.
+     *
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function blockStripeCreateAndConfirmSetupIntentAjax()
+    {
+        if ( $this->isAddPaymentMethodAllowed() ) {
+            return;
+        }
+
+        $this->sendStripeAddPaymentMethodJsonError();
+    }
+
+    /**
+     * @return void
+     * @psalm-suppress UndefinedFunction
+     */
+    private function sendStripeAddPaymentMethodJsonError()
+    {
+        if ( function_exists('wp_send_json_error') ) {
+            \wp_send_json_error(
+                array(
+                    'error' => array(
+                        'message' => $this->add_payment_method_block_message,
+                    ),
+                )
+            );
+        }
+    }
+
+    /**
+     * Whether this request may add a payment method.
+     *
+     * @return bool
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function isAddPaymentMethodAllowed()
+    {
+        global $apbct;
+
+        if ( empty($apbct->settings['data__protect_logged_in']) ) {
+            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+
+            return true;
+        }
+
+        if ( ! is_user_logged_in() ) {
+            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+
+            return true;
+        }
+
+        $user = wp_get_current_user();
+        $sender_email = isset($user->user_email) ? $user->user_email : '';
+        $sender_nickname = isset($user->display_name) ? $user->display_name : '';
+
+        $message = array();
+        $payment_method = Post::getString('payment_method');
+        if ( $payment_method === '' ) {
+            $payment_method = Post::getString('payment_method_type');
+        }
+        if ( $payment_method !== '' ) {
+            $message['payment_method'] = $payment_method;
+        }
+
+        IMetricService::seek(
+            $this,
+            __FUNCTION__
+        );
+
+        $base_call_result = apbct_base_call(
+            array(
+                'message'         => $message,
+                'sender_email'    => $sender_email,
+                'sender_nickname' => $sender_nickname,
+                'post_info'       => array(
+                    'comment_type' => 'order',
+                    'post_url'     => Server::get('HTTP_REFERER'),
+                ),
+                'sender_info'     => array(
+                    'sender_url' => null,
+                    IMetricDTO::$SENDER_INFO_KEY => IMetricService::finalizeDTO($this),
+                ),
+            )
+        );
+
+        if ( ! isset($base_call_result['ct_result']) ) {
+            return true;
+        }
+
+        $ct_result = $base_call_result['ct_result'];
+        ct_hash($ct_result->id);
+
+        // An empty response means the call was skipped. Only an explicit denial blocks.
+        if ( ! isset($ct_result->allow) || (int) $ct_result->allow !== 0 ) {
+            return true;
+        }
+
+        $this->add_payment_method_block_message = $this->getAddPaymentMethodBlockMessage($ct_result);
+
+        return false;
+    }
+
+    /**
+     * The Stripe wc-ajax call is not the account form itself. The page that opened it is.
+     *
+     * @return bool
+     */
+    private function isAddPaymentMethodPageRequest()
+    {
+        return apbct_is_in_referer('add-payment-method') || apbct_is_in_uri('add-payment-method');
+    }
+
+    /**
+     * @param object $ct_result
+     *
+     * @return string
+     */
+    private function getAddPaymentMethodBlockMessage($ct_result)
+    {
+        global $apbct;
+
+        if ( ! empty($apbct->settings['forms__wc_show_rejection_message']) && ! empty($ct_result->comment) ) {
+            return (string) $ct_result->comment;
+        }
+
+        return __('Unable to add payment method to your account.', 'cleantalk-spam-protect');
     }
 
     public function addHoneypotField($fields)

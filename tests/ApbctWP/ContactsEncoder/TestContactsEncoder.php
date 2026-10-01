@@ -23,12 +23,19 @@ class TestEmailEncoder extends TestCase
      */
     private $read_css_fixture_files = array();
 
+    /**
+     * @var string|null
+     */
+    private $original_cookies_type = null;
+
     public function setUp(): void
     {
         global $apbct;
         $apbct->api_key         = 'testapikey';
         $this->contacts_encoder = apbctGetContactsEncoder();
         $this->read_css_fixture_files = array();
+        $this->original_cookies_type = isset($apbct->data['cookies_type']) ? $apbct->data['cookies_type'] : null;
+        $apbct->data['cookies_type'] = 'native';
         $this->clearDecoderPassedCookie();
     }
 
@@ -1097,11 +1104,242 @@ class TestEmailEncoder extends TestCase
         $this->assertStringContainsString('apbct-email-encoder', $result);
     }
 
+    /**
+     * Regression fixture for the markup guards. Exclusions are an allowlist: preset attributes,
+     * attributes added through the filter, raw text blocks and aria-label. Everything else stays
+     * encodable by design.
+     */
+    public function testPresetAndHookExclusionsSurviveRepeatedContacts()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_BLUR;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        add_filter('apbct_email_encoder_attribute_exclusions_signs', function ($signs) {
+            $signs['div'][] = 'data-contact';
+            return $signs;
+        });
+
+        $email = 'user@example.com';
+        $phone = '(800) 555-1234';
+
+        $untouchable = array(
+            'aria-label' => '<button aria-label="Call ' . $phone . ' or mail ' . $email . '">X</button>',
+            'preset input placeholder' => '<input placeholder="' . $email . '">',
+            'preset img alt' => '<img alt="' . $email . '">',
+            'hook added attribute' => '<div data-contact="' . $email . '">ok</div>',
+            'json-ld' => '<script type="application/ld+json">{"email":"' . $email . '","telephone":"' . $phone . '"}</script>',
+            'inline script' => '<script>var e="' . $email . '";var p="' . $phone . '";</script>',
+            'style block' => '<style>/* ' . $email . ' ' . $phone . ' */</style>',
+        );
+
+        $content = '<p>Contact us: ' . $email . ' or ' . $phone . '</p>' . implode('', $untouchable);
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        remove_all_filters('apbct_email_encoder_attribute_exclusions_signs');
+
+        foreach ( $untouchable as $case => $markup ) {
+            $this->assertStringContainsString(
+                $markup,
+                $result,
+                'Markup must stay untouched for case: ' . $case
+            );
+        }
+
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+        $this->assertStringNotContainsString('<p>Contact us: ' . $email, $result);
+        $this->assertStringNotContainsString($phone . '</p>', $result);
+    }
+
+    /**
+     * The preset a => title drop must fire wherever the address sits inside the value, and it must
+     * never eat the surrounding markup while doing so.
+     */
+    public function testAnchorTitleWithEmailIsDroppedRegardlessOfPosition()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_BLUR;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 0;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $email = 'user@example.com';
+
+        $leading = $this->contacts_encoder->modifyContent(
+            '<a title="' . $email . '" href="/page">text</a>'
+        );
+        $this->assertSame('<a href="/page">text</a>', $leading);
+
+        $trailing = $this->contacts_encoder->modifyContent(
+            '<a title="Mail ' . $email . ' today" href="/page">text</a>'
+        );
+        $this->assertSame('<a href="/page">text</a>', $trailing);
+
+        $neighbours = $this->contacts_encoder->modifyContent(
+            '<a title="Mail ' . $email . '" href="/page" data-x="keep-me">text</a><span class="after">tail</span>'
+        );
+        $this->assertSame(
+            '<a href="/page" data-x="keep-me">text</a><span class="after">tail</span>',
+            $neighbours
+        );
+
+        $without_email = '<a title="Just a link" href="/page">text</a>';
+        $this->assertSame($without_email, $this->contacts_encoder->modifyContent($without_email));
+    }
+
+    /**
+     * A contact repeated on the page must be judged per occurrence, not by the position of the
+     * first one found in the document.
+     */
+    public function testGuardsAreEvaluatedPerOccurrenceNotPerPage()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_BLUR;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 0;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $email = 'repeated@example.com';
+        $content = '<script>var e="' . $email . '";</script>'
+            . '<p>' . $email . '</p>'
+            . '<input placeholder="' . $email . '">'
+            . '<span>' . $email . '</span>';
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        $this->assertStringContainsString('var e="' . $email . '";', $result);
+        $this->assertStringContainsString('placeholder="' . $email . '"', $result);
+        $this->assertSame(2, substr_count($result, 'apbct-email-encoder'));
+    }
+
+    /**
+     * mailto: and tel: links are rewritten in place inside the href attribute, so the markup
+     * guards must not swallow them.
+     */
+    public function testSchemeLinksAreStillEncodedInsideHref()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_BLUR;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $email = 'mail-link@example.com';
+        $content = '<a href="mailto:' . $email . '">write</a><a href="tel:+15551234567">call</a>';
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        $this->assertStringNotContainsString('mailto:' . $email, $result);
+        $this->assertStringNotContainsString('tel:+15551234567', $result);
+        $this->assertSame(2, substr_count($result, 'data-original-string='));
+    }
+
+    /**
+     * A literal occurrence the pattern did not match must not shadow the real match further down
+     * the document, e.g. `user@example.com1` inside a script before a genuine address in the body.
+     */
+    public function testUnmatchedLiteralDoesNotShadowRealMatchOffset()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_BLUR;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $email = 'shadowed@example.com';
+        $content = '<script>var t="' . $email . '1";</script><p>' . $email . '</p>';
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        $this->assertStringContainsString('var t="' . $email . '1";', $result);
+        $this->assertStringContainsString('apbct-email-encoder', $result);
+        $this->assertStringNotContainsString('<p>' . $email . '</p>', $result);
+    }
+
+    /**
+     * Scheme links are rewritten from the inside of the href value, so the encoder appends its own
+     * attributes to the opening tag. It must not emit a second title when the author already set one.
+     */
+    public function testSchemeLinkDoesNotDuplicateExistingTitleAttribute()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_BLUR;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $cases = array(
+            'title before href' => '<a title="Write to us" href="mailto:u@example.com">mail</a>',
+            'title after href' => '<a href="mailto:u@example.com" title="Write to us">mail</a>',
+            'single quoted title' => "<a title='Write to us' href=\"mailto:u@example.com\">mail</a>",
+            'tel link' => '<a title="Call us" href="tel:+15551234567">call</a>',
+        );
+
+        foreach ( $cases as $case => $markup ) {
+            $result = $this->contacts_encoder->modifyContent($markup);
+
+            $this->assertSame(1, substr_count($result, 'title='), 'Duplicated title for case: ' . $case);
+            $this->assertRegExp('/title=["\']' . ($case === 'tel link' ? 'Call us' : 'Write to us') . '["\']/', $result);
+            $this->assertStringContainsString('data-original-string="', $result);
+        }
+
+        $without_title = $this->contacts_encoder->modifyContent(
+            '<a href="mailto:u@example.com">mail</a>'
+        );
+        $this->assertSame(1, substr_count($without_title, 'title='));
+        $this->assertStringContainsString('This contact has been encoded', $without_title);
+        $this->assertStringContainsString('data-original-string="', $without_title);
+    }
+
+    /**
+     * When the preset a => title drop removes the author's title, the encoder tooltip must be added
+     * back, because there is no attribute left to collide with.
+     */
+    public function testSchemeLinkKeepsTooltipWhenTitleWasDropped()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_obfuscation_mode'] = Params::OBFUSCATION_MODE_BLUR;
+        $apbct->settings['data__email_decoder_encode_phone_numbers'] = 0;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+
+        $result = $this->contacts_encoder->modifyContent(
+            '<a title="Write to u@example.com" href="mailto:u@example.com">mail</a>'
+        );
+
+        $this->assertStringNotContainsString('Write to u@example.com', $result);
+        $this->assertSame(1, substr_count($result, 'title='));
+        $this->assertStringContainsString('This contact has been encoded', $result);
+    }
+
     public function tearDown() : void
     {
         global $apbct;
         $apbct->buffer = '';
         $this->clearDecoderPassedCookie();
+
+        if ( $this->original_cookies_type === null ) {
+            unset($apbct->data['cookies_type']);
+        } else {
+            $apbct->data['cookies_type'] = $this->original_cookies_type;
+        }
 
         foreach ( $this->read_css_fixture_files as $fixture_file ) {
             if ( is_string($fixture_file) && is_file($fixture_file) ) {

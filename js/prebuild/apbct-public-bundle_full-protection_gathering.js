@@ -4520,6 +4520,13 @@ class ApbctHandler {
             sourceSign.keepUnwrapped = true;
         }
 
+        // WooCommerce Stripe UPE confirms the card on Add payment method before the form is posted.
+        // Keep the token unwrapped: PHP reads the top-level POST field.
+        if ( dataString.indexOf('action=wc_stripe_create_and_confirm_setup_intent') !== -1 ) {
+            sourceSign.found = 'action=wc_stripe_create_and_confirm_setup_intent';
+            sourceSign.keepUnwrapped = true;
+        }
+
         // woocommerce add to cart is based on URL
         if ( typeof ajaxObject.url === 'string' && ajaxObject.url.indexOf('wc-ajax=add_to_cart') !== -1 ) {
             sourceSign.found = 'wc-ajax=add_to_cart';
