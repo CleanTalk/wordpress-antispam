@@ -88,6 +88,7 @@ class ForceProtection
         $config             = ct_get_server();
         $ct->server_url     = APBCT_MODERATE_URL;
         $ct->work_url       = isset($config['ct_work_url']) && preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+        $ct->work_ip        = isset($config['ct_work_ip']) ? $config['ct_work_ip'] : null;
         $ct->server_ttl     = isset($config['ct_server_ttl']) ? $config['ct_server_ttl'] : null;
         $ct->server_changed = isset($config['ct_server_changed']) ? $config['ct_server_changed'] : null;
         $api_response = $ct->checkBot($ct_request);
