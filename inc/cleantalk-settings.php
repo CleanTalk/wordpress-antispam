@@ -348,6 +348,27 @@ function apbct_settings__set_fields()
                     'class'           => 'apbct_settings-field_wrapper--sub',
                     'reverse_trigger' => true,
                 ),
+                'data__wc_store_blocked_orders' => array(
+                    'title' => __('Store blocked orders', 'cleantalk-spam-protect'),
+                    'description' => __('Orders blocked by Anti-Spam will be stored and can be restored manually later if needed. To test the spam protection, place an order using s@cleantalk.org as the customer’s email address. Then check WooCommerce → Orders → Spam.', 'cleantalk-spam-protect'),
+                    'class' => 'apbct_settings-field_wrapper--sub',
+                    'childrens'       => array('forms__wc_hide_rejection_message'),
+                    'options' => array(
+                        array('val' => 1, 'label' => __('On'), 'childrens_enable' => 1),
+                        array('val' => 0, 'label' => __('Off'), 'childrens_enable' => 0),
+                    ),
+                ),
+                'forms__wc_hide_rejection_message' => array(
+                    'title' => __('Hide rejection message from customers', 'cleantalk-spam-protect'),
+                    'description' => __('This message tells the customer why their order was filtered, allowing them to fix the issue that caused it. However, this may result in multiple orders from the same customer because all rejected orders are saved in the Spam folder. By default, this option is ON.', 'cleantalk-spam-protect'),
+                    'class' => 'apbct_settings-field_wrapper--sub-sub',
+                    'parent'          => 'data__wc_store_blocked_orders',
+                    'options' => array(
+                        array('val' => 1, 'label' => __('On')),
+                        array('val' => 0, 'label' => __('Off')),
+                    ),
+                    'reverse_trigger' => false,
+                ),
                 'forms__wc_add_to_cart'         => array(
                     'title'           => __(
                         'Check anonymous users when they add new items to the cart',
@@ -358,28 +379,10 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                     'reverse_trigger' => false,
-                    'class'           => 'apbct_settings-field_wrapper--sub',
+                    'class'           => 'apbct_settings-field_wrapper',
                     'options'         => array(
-                        array('val' => 1, 'label' => __('On')),
-                        array('val' => 0, 'label' => __('Off')),
-                    ),
-                ),
-                'data__wc_store_blocked_orders' => array(
-                    'title' => __('Store blocked orders', 'cleantalk-spam-protect'),
-                    'description' => __('Orders blocked by Anti-Spam will be stored and can be restored manually later if needed.', 'cleantalk-spam-protect'),
-                    'class' => 'apbct_settings-field_wrapper--sub',
-                    'options' => array(
-                        array('val' => 1, 'label' => __('On')),
-                        array('val' => 0, 'label' => __('Off')),
-                    ),
-                ),
-                'forms__wc_show_rejection_message' => array(
-                    'title' => __('Show rejection message to customers', 'cleantalk-spam-protect'),
-                    'description' => __('This message tells the customer why their order was filtered, allowing them to fix the issue that caused it. However, this may result in multiple orders from the same customer because all rejected orders are saved in the Spam folder. By default, this option is OFF.', 'cleantalk-spam-protect'),
-                    'class' => 'apbct_settings-field_wrapper--sub',
-                    'options' => array(
-                        array('val' => 1, 'label' => __('On')),
-                        array('val' => 0, 'label' => __('Off')),
+                            array('val' => 1, 'label' => __('On')),
+                            array('val' => 0, 'label' => __('Off')),
                     ),
                 ),
             ),

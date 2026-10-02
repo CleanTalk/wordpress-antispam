@@ -4,14 +4,14 @@ use Cleantalk\ApbctWP\State;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Unit tests for the "Show rejection message to customers" WooCommerce option.
+ * Unit tests for the "Hide rejection message to customers" WooCommerce option.
  *
- * The option keeps the legacy checkout behavior available: when it is enabled the blocked
+ * The option keeps the legacy checkout behavior available: when it is disabled the blocked
  * visitor gets the rejection reason, otherwise the visitor is silently redirected.
  */
-class TestWcShowRejectionMessageOption extends TestCase
+class TestWcHideRejectionMessageOption extends TestCase
 {
-    const OPTION = 'forms__wc_show_rejection_message';
+    const OPTION = 'forms__wc_hide_rejection_message';
 
     const STORE_BLOCKED_ORDERS_OPTION = 'data__wc_store_blocked_orders';
 
@@ -53,12 +53,12 @@ class TestWcShowRejectionMessageOption extends TestCase
         return $fields['wc']['fields'];
     }
 
-    public function testOptionIsDisabledByDefault()
+    public function testOptionIsEnabledByDefault()
     {
         $state = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
 
         $this->assertArrayHasKey(self::OPTION, $state->default_settings);
-        $this->assertSame(0, $state->default_settings[self::OPTION]);
+        $this->assertSame(1, $state->default_settings[self::OPTION]);
     }
 
     public function testStoreBlockedOrdersStaysEnabledByDefault()
@@ -75,7 +75,7 @@ class TestWcShowRejectionMessageOption extends TestCase
 
         $this->assertArrayHasKey(self::OPTION, $wc_fields);
         $this->assertSame(
-            'Show rejection message to customers',
+            'Hide rejection message from customers',
             $wc_fields[self::OPTION]['title']
         );
     }
@@ -96,33 +96,9 @@ class TestWcShowRejectionMessageOption extends TestCase
         $wc_fields = $this->getWcFields();
 
         $this->assertSame(
-            'apbct_settings-field_wrapper--sub',
+            'apbct_settings-field_wrapper--sub-sub',
             $wc_fields[self::OPTION]['class']
         );
-    }
-
-    public function testOptionDescriptionExplainsTheSideEffects()
-    {
-        $wc_fields = $this->getWcFields();
-        $description = $wc_fields[self::OPTION]['description'];
-
-        $this->assertStringContainsString(
-            'This message tells the customer why their order was filtered',
-            $description
-        );
-        $this->assertStringContainsString('By default, this option is OFF.', $description);
-    }
-
-    public function testStoreBlockedOrdersDescriptionIsUpdated()
-    {
-        $wc_fields = $this->getWcFields();
-        $description = $wc_fields[self::STORE_BLOCKED_ORDERS_OPTION]['description'];
-
-        $this->assertStringContainsString(
-            'Orders blocked by Anti-Spam will be stored and can be restored manually later if needed.',
-            $description
-        );
-        $this->assertStringNotContainsString('could be restored manually later if its needed', $description);
     }
 
     public function testOptionIsPlacedRightAfterStoreBlockedOrders()

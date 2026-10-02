@@ -26,7 +26,7 @@ class TestCleantalkUpdater extends ApbctTestCase
         // Arrange
         global $apbct;
         $apbct->settings['data__wc_store_blocked_orders'] = 1;
-        $apbct->settings['forms__wc_show_rejection_message'] = 0;
+        $apbct->settings['forms__wc_hide_rejection_message'] = 1;
         $apbct->saveSettings();
 
         // Act
@@ -34,7 +34,7 @@ class TestCleantalkUpdater extends ApbctTestCase
         $apbct_rebuilt = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
 
         // Assert
-        $this->assertEquals(1, $apbct_rebuilt->settings['forms__wc_show_rejection_message']);
+        $this->assertEquals(0, $apbct_rebuilt->settings['forms__wc_hide_rejection_message']);
     }
 
     /**
@@ -45,7 +45,7 @@ class TestCleantalkUpdater extends ApbctTestCase
         // Arrange
         global $apbct;
         $apbct->settings['data__wc_store_blocked_orders'] = 0;
-        $apbct->settings['forms__wc_show_rejection_message'] = 0;
+        $apbct->settings['forms__wc_hide_rejection_message'] = 0;
         $apbct->saveSettings();
 
         // Act
@@ -53,7 +53,7 @@ class TestCleantalkUpdater extends ApbctTestCase
         $apbct_rebuilt = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
 
         // Assert
-        $this->assertEquals(0, $apbct_rebuilt->settings['forms__wc_show_rejection_message']);
+        $this->assertEquals(0, $apbct_rebuilt->settings['forms__wc_hide_rejection_message']);
     }
 
     /**
@@ -64,7 +64,7 @@ class TestCleantalkUpdater extends ApbctTestCase
         // Arrange
         global $apbct;
         unset($apbct->settings['data__wc_store_blocked_orders']);
-        $apbct->settings['forms__wc_show_rejection_message'] = 0;
+        $apbct->settings['forms__wc_hide_rejection_message'] = 1;
         $apbct->saveSettings();
 
         // Act
@@ -72,7 +72,7 @@ class TestCleantalkUpdater extends ApbctTestCase
         $apbct_rebuilt = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
 
         // Assert
-        $this->assertEquals(0, $apbct_rebuilt->settings['forms__wc_show_rejection_message']);
+        $this->assertEquals(1, $apbct_rebuilt->settings['forms__wc_hide_rejection_message']);
     }
 
     /**

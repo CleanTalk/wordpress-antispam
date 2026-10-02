@@ -45,6 +45,11 @@ class Woocommerce extends IntegrationByClassBase
     private $event_token = null;
 
     /**
+     * @var bool
+     */
+    private $hide_rejection_message;
+
+    /**
      * @psalm-suppress PossiblyUnusedMethod
      */
     public function __construct()
@@ -168,7 +173,9 @@ class Woocommerce extends IntegrationByClassBase
 
     public function addActions()
     {
-        global $_cleantalk_hooked_actions;
+        global $_cleantalk_hooked_actions, $apbct;
+
+        $this->hide_rejection_message = $apbct->settings['forms__wc_hide_rejection_message'] && $apbct->settings['data__wc_store_blocked_orders'];
 
         add_action('wp_ajax_nopriv_woocommerce_checkout', 'ct_ajax_hook', 1);
         add_action('wp_ajax_woocommerce_checkout', 'ct_ajax_hook', 1);
@@ -377,9 +384,8 @@ class Woocommerce extends IntegrationByClassBase
      */
     private function getAddPaymentMethodBlockMessage($ct_result)
     {
-        global $apbct;
 
-        if ( ! empty($apbct->settings['forms__wc_show_rejection_message']) && ! empty($ct_result->comment) ) {
+        if (! empty($ct_result->comment) ) {
             return (string) $ct_result->comment;
         }
 
@@ -496,7 +502,7 @@ class Woocommerce extends IntegrationByClassBase
             if ( $ct_result->allow == 0 ) {
                 $this->handleBlockedOrder();
 
-                if ( $apbct->settings['forms__wc_show_rejection_message'] ) {
+                if ( !$this->hide_rejection_message ) {
                     // Legacy behavior: show the rejection reason directly to the customer.
                     wp_send_json(array(
                         'result'   => 'failure',
@@ -581,7 +587,7 @@ class Woocommerce extends IntegrationByClassBase
                     }
                 }
 
-                if ( $apbct->settings['forms__wc_show_rejection_message'] ) {
+                if ( !$this->hide_rejection_message ) {
                     // Legacy behavior: show the rejection reason directly to the customer.
                     $response = array(
                         'code'    => 'woocommerce_store_api_checkout_order_processed',
