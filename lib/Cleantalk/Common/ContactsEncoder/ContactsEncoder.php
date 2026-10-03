@@ -341,6 +341,11 @@ class ContactsEncoder
                 return $matches[0];
             }
 
+            // Encoding injects a <span>, which is only valid in a text node.
+            if ( $this->helper->isInsideAttributeValue($matches[0], $this->temp_content, $position) ) {
+                return $matches[0];
+            }
+
             if ( $this->helper->isInsideOptionTag($matches[0], $this->temp_content, $position) ) {
                 return $matches[0];
             }
@@ -412,6 +417,11 @@ class ContactsEncoder
 
                 // check attribute exclusions
                 if ( $this->helper->hasAttributeExclusions($matches[0], $this->temp_content, $position) ) {
+                    return $matches[0];
+                }
+
+                // Encoding injects a <span>, which is only valid in a text node.
+                if ( $this->helper->isInsideAttributeValue($matches[0], $this->temp_content, $position) ) {
                     return $matches[0];
                 }
 

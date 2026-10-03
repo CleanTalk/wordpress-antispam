@@ -50,6 +50,12 @@ class ContactsEncoderHelper
     private $raw_text_ranges = array();
 
     /**
+     * Sorted list of [start, end) offsets of every attribute value in the indexed content.
+     * @var array[]
+     */
+    private $attribute_value_ranges = array();
+
+    /**
      * Checks whether the tag enclosing the given offset already declares the attribute.
      *
      * Scheme links are rewritten from the inside of the href value, so the encoder appends its own
@@ -271,6 +277,97 @@ class ContactsEncoderHelper
 
         $this->indexed_content = $content;
         $this->raw_text_ranges = $this->buildRawTextRanges($content);
+        $this->attribute_value_ranges = $this->buildAttributeValueRanges($content);
+    }
+
+    /**
+     * Check whether the match sits inside an HTML attribute value.
+     *
+     * Encoding wraps the match into a <span>, which is only valid in a text node. Inside an
+     * attribute value the markup would be consumed by the attribute itself and the quotes of the
+     * injected span would terminate the value early, swallowing the rest of the tag and whatever
+     * follows it until the next quote in the document.
+     *
+     * @param string $needle The matched contact
+     * @param string $content The full content
+     * @param int|false|null $position Known match offset; null looks up the first occurrence
+     * @return bool
+     */
+    public function isInsideAttributeValue($needle, $content, $position = null)
+    {
+        $pos = $this->resolveMatchPosition($needle, $content, $position);
+        if ( $pos === false ) {
+            return false;
+        }
+
+        $this->indexMarkup($content);
+
+        return $this->findRangeIndex($this->attribute_value_ranges, $pos) !== false;
+    }
+
+    /**
+     * Offsets of every attribute value of every tag in the content.
+     *
+     * Tags are matched as a whole first, so a `>` inside a quoted value cannot terminate the tag
+     * early. Attribute values are then located within the tag and their offsets translated back
+     * into offsets of the whole content.
+     *
+     * @param string $content
+     * @return array[] list of [start, end]
+     */
+    private function buildAttributeValueRanges($content)
+    {
+        $ranges = array();
+
+        $tag_pattern = '/<[a-zA-Z][\w:-]*(?:[^>"\']|"[^"]*"|\'[^\']*\')*>/';
+        if ( ! preg_match_all($tag_pattern, $content, $tag_matches, PREG_OFFSET_CAPTURE) ) {
+            return $ranges;
+        }
+
+        // Quoted values keep their own quotes out of the range, unquoted values stop at whitespace.
+        $attribute_pattern = '/[\s\/][^\s=\/>]+\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'>]+))/';
+
+        if (!isset($tag_matches[0])) {
+            return $ranges;
+        }
+
+        foreach ( $tag_matches[0] as $tag_match ) {
+            if ( ! isset($tag_match[0], $tag_match[1]) ) {
+                continue;
+            }
+
+            $tag = $tag_match[0];
+            $tag_offset = $tag_match[1];
+
+            if ( ! preg_match_all($attribute_pattern, $tag, $attribute_matches, PREG_OFFSET_CAPTURE) ) {
+                continue;
+            }
+
+            foreach ( array(1, 2, 3) as $group ) {
+                if ( ! isset($attribute_matches[$group]) ) {
+                    continue;
+                }
+
+                foreach ( $attribute_matches[$group] as $value_match ) {
+                    if ( ! isset($value_match[0], $value_match[1]) || $value_match[1] < 0 ) {
+                        continue;
+                    }
+
+                    $start = $tag_offset + $value_match[1];
+                    $ranges[] = array($start, $start + strlen($value_match[0]));
+                }
+            }
+        }
+
+        usort($ranges, static function ($left, $right) {
+            if ( $left[0] === $right[0] ) {
+                return 0;
+            }
+
+            return $left[0] < $right[0] ? -1 : 1;
+        });
+
+        return $ranges;
     }
 
     /**
@@ -548,12 +645,12 @@ class ContactsEncoderHelper
             : '<' . preg_quote($tag, '/') . '\s+[^>]*';
 
         $pattern = '/'
-                   . $tag_prefix
-                   . '\b'
-                   . $quoted_attribute
-                   . '\s*=\s*(["\'])[^"\']*'
-                   . $quoted_match
-                   . '[^"\']*\1/';
+            . $tag_prefix
+            . '\b'
+            . $quoted_attribute
+            . '\s*=\s*(["\'])[^"\']*'
+            . $quoted_match
+            . '[^"\']*\1/';
 
         if ( $position === null ) {
             return (bool) preg_match($pattern, $content);
