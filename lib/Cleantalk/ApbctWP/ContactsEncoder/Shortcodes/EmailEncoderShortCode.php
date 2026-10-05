@@ -24,6 +24,25 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
     protected $placeholder_nonce = '';
 
     /**
+     * Lightweight pre-check to avoid running heavy regexes on every hit.
+     *
+     * Any valid shortcode pair must contain an opening tag `[public_name` — a cheap
+     * strpos() lookup rejects the vast majority of content before preg_* is involved.
+     *
+     * @param string|null $content
+     *
+     * @return bool True if the content may contain this shortcode.
+     */
+    protected function contentMayContainShortcode($content)
+    {
+        if ( ! is_string($content) || $content === '' || (string)$this->public_name === '' ) {
+            return false;
+        }
+
+        return strpos($content, '[' . $this->public_name) !== false;
+    }
+
+    /**
      * Build a placeholder for the given counter using the child's $exclusion_wrapper as a template.
      * Lazy-initialises the per-render nonce so replacements survive isolated render passes.
      *
@@ -90,6 +109,10 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
             return $content;
         }
 
+        if ( ! $this->contentMayContainShortcode($content) ) {
+            return $content;
+        }
+
         if ( ! has_shortcode($content, $this->public_name) ) {
             return $content;
         }
@@ -128,7 +151,7 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      * @return string The modified content.
      * @psalm-suppress PossiblyUnusedMethod
      */
-    protected function changeContentBeforeEncoderModify($content)
+    protected function changeContentBeforeEncoderModify($content = '')
     {
         return $content;
     }
@@ -140,7 +163,7 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      * @return string The modified content.
      * @psalm-suppress PossiblyUnusedMethod
      */
-    protected function changeContentAfterEncoderModify($content)
+    protected function changeContentAfterEncoderModify($content = '')
     {
         return $content;
     }
@@ -168,7 +191,9 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      */
     protected function isShortcodeInsideHtmlTag($content)
     {
-        if ( ! is_string($content) ) {
+        // is_string() is repeated here for Psalm: it cannot infer the type narrowing
+        // that happens inside contentMayContainShortcode().
+        if ( ! is_string($content) || ! $this->contentMayContainShortcode($content) ) {
             return false;
         }
 

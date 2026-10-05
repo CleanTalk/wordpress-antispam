@@ -69,7 +69,7 @@ class Escape extends \Cleantalk\Common\Escape
      *
      * @param $text
      *
-     * @return string|null
+     * @return string
      */
     public static function escUrlRaw($text)
     {
@@ -89,6 +89,8 @@ class Escape extends \Cleantalk\Common\Escape
     {
         add_filter('safe_style_css', function ($styles) {
             $styles[] = 'display';
+            $styles[] = 'list-style';
+            $styles[] = 'list-style-type';
             return $styles;
         });
 
@@ -236,7 +238,27 @@ class Escape extends \Cleantalk\Common\Escape
                 'b' => array(
                     'style' => true,
                 ),
-            )
+            ),
+            'apbct_update_changelog_notice' => array(
+                'details' => array(
+                    'open' => true,
+                ),
+                'summary' => array(),
+                'ul' => array(
+                    'style' => true,
+                ),
+                'ol' => array(
+                    'style' => true,
+                ),
+                'li' => array(),
+                //'p' => array(),
+                'br' => array(),
+                'strong' => array(),
+                'b' => array(),
+                'em' => array(),
+                'i' => array(),
+                'code' => array(),
+            ),
         );
 
         if ( !empty($kses_presets[$preset]) ) {

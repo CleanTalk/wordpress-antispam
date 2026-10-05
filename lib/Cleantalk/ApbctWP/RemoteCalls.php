@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\ApbctWP\Firewall\FirewallBypass;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\RateLimit\ApbctRateLimiter;
 use Cleantalk\ApbctWP\Variables\Post;
@@ -691,19 +692,28 @@ class RemoteCalls
      */
     public static function action__get_fresh_wpnonce() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        global $apbct;
+
         if ( ! isset($_POST['nonce_prev']) ) {
             return json_encode(array('error' => 'No nonce provided'));
         }
 
         $nonce_prev = Post::getString('nonce_prev');
-        $nonce_name = apbct_settings__get_ajax_type() === 'rest'
-            ? 'wp_rest'
-            : AJAXService::$public_nonce_id;
 
         // Check $nonce_prev by regexp '^[a-f0-9]{10}$'
         if ( ! preg_match('/^[a-f0-9]{10}$/', $nonce_prev) ) {
             return json_encode(array('error' => 'Wrong nonce provided'));
         }
+
+        // Detected once on activation/update/settings save, apbct_settings__get_ajax_type()
+        // probes the site over blocking loopback HTTP requests.
+        $ajax_type = ! empty($apbct->data['ajax_type'])
+            ? $apbct->data['ajax_type']
+            : apbct_settings__get_ajax_type();
+
+        $nonce_name = $ajax_type === 'rest'
+            ? 'wp_rest'
+            : AJAXService::$public_nonce_id;
 
         // set response type 'json'
         header('Content-Type: application/json');
@@ -714,6 +724,23 @@ class RemoteCalls
                 )
             )
         );
+    }
+
+    /**
+     * Remote call: generates a one-time firewall bypass link and emails it to the site admin.
+     *
+     * @return void Dies with 'OK' or with 'FAIL {"error":"..."}'.
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public static function action__send_fw_bypass_email() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        $result = FirewallBypass::processGenerationRemoteCall();
+        if ( ! $result ) {
+            $error_message = FirewallBypass::$last_error ?? 'Unknown error';
+            die('FAIL ' . json_encode(['error' => $error_message]));
+        }
+
+        die('OK');
     }
 
     private static function isRcAllowed()

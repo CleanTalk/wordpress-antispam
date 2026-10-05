@@ -97,9 +97,14 @@ class EncodeContentSC extends EmailEncoderShortCode
      * @psalm-suppress PossiblyUnusedReturnValue
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function changeContentBeforeEncoderModify($content)
+    public function changeContentBeforeEncoderModify($content = '')
     {
         if ( ! is_string($content) ) {
+            return $content;
+        }
+
+        // Cheap pre-check: bail out before any regex if the shortcode is not present at all.
+        if ( ! $this->contentMayContainShortcode($content) ) {
             return $content;
         }
 
@@ -144,9 +149,14 @@ class EncodeContentSC extends EmailEncoderShortCode
      * @psalm-suppress PossiblyUnusedReturnValue
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function changeContentAfterEncoderModify($content)
+    public function changeContentAfterEncoderModify($content = '')
     {
         if ( ! is_string($content) ) {
+            return $content;
+        }
+
+        // Nothing was replaced and no shortcode is present - skip restoring and the callback pass.
+        if ( empty($this->shortcode_replacements) && ! $this->contentMayContainShortcode($content) ) {
             return $content;
         }
 

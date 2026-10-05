@@ -75,10 +75,15 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      * @return string
      * @psalm-suppress NullableReturnStatement
      */
-    public function changeContentBeforeEncoderModify($content)
+    public function changeContentBeforeEncoderModify($content = '')
     {
-        // get_header / get_footer pass null as the template name via do_action().
+        // get_header / get_footer pass null (or nothing at all, e.g. Timber) as the template name via do_action().
         if ( ! is_string($content) ) {
+            return $content;
+        }
+
+        // Cheap pre-check: bail out before any regex if the shortcode is not present at all.
+        if ( ! $this->contentMayContainShortcode($content) ) {
             return $content;
         }
 
@@ -110,9 +115,9 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      * @return string Replaces $apbct->buffer by probably modified content or just return probably modified $content
      * @psalm-suppress NullableReturnStatement
      */
-    public function changeContentAfterEncoderModify($content)
+    public function changeContentAfterEncoderModify($content = '')
     {
-        // get_header / get_footer pass null as the template name via do_action().
+        // get_header / get_footer pass null (or nothing at all, e.g. Timber) as the template name via do_action().
         if ( ! is_string($content) ) {
             return $content;
         }
@@ -168,6 +173,11 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     {
         if ( ! is_string($content) ) {
             return '';
+        }
+
+        // Cheap pre-check: bail out before any regex if the shortcode is not present at all.
+        if ( ! $this->contentMayContainShortcode($content) ) {
+            return $content;
         }
 
         if ($this->isShortcodeInsideHtmlAttribute($content)) {
@@ -540,7 +550,9 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      */
     protected function isShortcodeInsideHtmlAttribute($content)
     {
-        if ( ! is_string($content) ) {
+        // is_string() is repeated here for Psalm: it cannot infer the type narrowing
+        // that happens inside contentMayContainShortcode().
+        if ( ! is_string($content) || ! $this->contentMayContainShortcode($content) ) {
             return false;
         }
 

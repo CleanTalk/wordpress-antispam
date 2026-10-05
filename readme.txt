@@ -3,8 +3,8 @@ Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: anti-spam, spam protection, contact form spam, spam, captcha
 Requires at least: 4.7
 Tested up to: 7.1
-Requires PHP: 5.6
-Stable tag: 6.88
+Requires PHP: 7.2
+Stable tag: 6.89
 License: GPLv2
 
 Stop spam in contact forms, comments, registrations, and WooCommerce automatically. CAPTCHA free antispam plugin that works in the background.
@@ -262,7 +262,7 @@ Go to <a href="https://cleantalk.org/my" target="_blank">Dashboard</a> at the cl
 = Does CleanTalk work without CAPTCHA or reCAPTCHA? =
 Yes, CleanTalk works completely without CAPTCHA, puzzles, or manual user challenges.
 
-= Does CleanTalk stop contact form spam? = 
+= Does CleanTalk stop contact form spam? =
 Yes, CleanTalk stops spam in contact forms, registration forms, comments, and other forms on your website. It uses a combination of algorithms and a cloud-based database to identify and block spam submissions in real-time.
 
 = Does CleanTalk protect WooCommerce from fake orders and spam registrations? =
@@ -451,6 +451,20 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.89 05.10.2026 =
+New. Integration. Integration with Pagelayer.
+New. WooCommerce. Spam orders admin list table redesigned: statuses, bulk actions, sortable totals.
+Upd. ContactsEncoder. Lot of search logic updates.
+New. Plugins page. Show changelog in the update notice.
+Upd. WooCommerce. New option to manage if rejection message have to be shown for blocked visitor.
+Upd. Firewall. Emergency bypass logic updated to token-via-email model.
+Fix. SimpleMembership. Editing the integration for working with a multi-site.
+Fix. ExternalForms. Editing changes to form fields, checking whether they belong to the formSelector.
+Fix. Contacts Encoder. Simple precheck content before high-cost logic run.
+Fix. Code. Checking ajax_type and editing ctPublicFunctions search.
+Fix. Code. Deleting service fields after checking for spam.
+Fix. JS. Flag for logic initiation in case of a one-time DOMContentLoaded event.
 
 = 6.88 16.09.2026 =
 New. ContactEncoder. Add option to exclude selected contact data.
