@@ -125,7 +125,7 @@ class TestRequirementsChecker extends TestCase
         $warnings = $checker->checkRequirements();
 
         $this->assertNotEmpty($warnings, 'Warnings should be returned for old PHP version.');
-        $this->assertStringContainsString('PHP version must be at least 5.6', $warnings[0]);
+        $this->assertStringContainsString('PHP version must be at least 7.2', $warnings[0]);
     }
 
     public function testCheckRequirementsWithoutCurlSupport()

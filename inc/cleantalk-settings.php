@@ -348,6 +348,27 @@ function apbct_settings__set_fields()
                     'class'           => 'apbct_settings-field_wrapper--sub',
                     'reverse_trigger' => true,
                 ),
+                'data__wc_store_blocked_orders' => array(
+                    'title' => __('Store blocked orders', 'cleantalk-spam-protect'),
+                    'description' => __('Orders blocked by Anti-Spam will be stored and can be restored manually later if needed. To test the spam protection, place an order using s@cleantalk.org as the customer’s email address. Then check WooCommerce → Orders → Spam.', 'cleantalk-spam-protect'),
+                    'class' => 'apbct_settings-field_wrapper--sub',
+                    'childrens'       => array('forms__wc_hide_rejection_message'),
+                    'options' => array(
+                        array('val' => 1, 'label' => __('On'), 'childrens_enable' => 1),
+                        array('val' => 0, 'label' => __('Off'), 'childrens_enable' => 0),
+                    ),
+                ),
+                'forms__wc_hide_rejection_message' => array(
+                    'title' => __('Hide rejection message from customers', 'cleantalk-spam-protect'),
+                    'description' => __('This message tells the customer why their order was filtered, allowing them to fix the issue that caused it. However, this may result in multiple orders from the same customer because all rejected orders are saved in the Spam folder. By default, this option is ON.', 'cleantalk-spam-protect'),
+                    'class' => 'apbct_settings-field_wrapper--sub-sub',
+                    'parent'          => 'data__wc_store_blocked_orders',
+                    'options' => array(
+                        array('val' => 1, 'label' => __('On')),
+                        array('val' => 0, 'label' => __('Off')),
+                    ),
+                    'reverse_trigger' => false,
+                ),
                 'forms__wc_add_to_cart'         => array(
                     'title'           => __(
                         'Check anonymous users when they add new items to the cart',
@@ -358,19 +379,10 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                     'reverse_trigger' => false,
-                    'class'           => 'apbct_settings-field_wrapper--sub',
+                    'class'           => 'apbct_settings-field_wrapper',
                     'options'         => array(
-                        array('val' => 1, 'label' => __('On')),
-                        array('val' => 0, 'label' => __('Off')),
-                    ),
-                ),
-                'data__wc_store_blocked_orders' => array(
-                    'title' => __('Store blocked orders', 'cleantalk-spam-protect'),
-                    'description' => __('The orders which was blocked by the Anti-Spam will be stored and could be restored manually later if its needed.', 'cleantalk-spam-protect'),
-                    'class' => 'apbct_settings-field_wrapper--sub',
-                    'options' => array(
-                        array('val' => 1, 'label' => __('On')),
-                        array('val' => 0, 'label' => __('Off')),
+                            array('val' => 1, 'label' => __('On')),
+                            array('val' => 0, 'label' => __('Off')),
                     ),
                 ),
             ),
@@ -462,7 +474,7 @@ function apbct_settings__set_fields()
                 'data__protect_logged_in'              => array(
                     'title'       => __("Protect logged in Users", 'cleantalk-spam-protect'),
                     'description' => __(
-                        'Turn this option on to check for spam any submissions (comments, contact forms and etc.) from registered Users.',
+                        'Turn this option on to check for spam any submissions (comments, contact forms and etc.) from registered Users. WooCommerce Add payment method is checked as an order.',
                         'cleantalk-spam-protect'
                     ),
                 ),
@@ -2187,8 +2199,14 @@ function apbct_settings__field__action_buttons()
 
     if ( apbct_is_plugin_active('woocommerce/woocommerce.php') ) {
         add_filter('apbct_settings_action_buttons', function ($buttons_array) {
+            // HPOS installations render the spam orders view inline on the wc-orders screen;
+            // legacy (posts table) installations get a separate fallback admin page instead.
+            $spam_orders_page = function_exists('wc_get_page_screen_id') && wc_get_page_screen_id('shop_order') !== 'shop_order'
+                ? 'wc-orders&amp;status=wc-spamorder'
+                : 'apbct_wc_spam_orders';
+
             $buttons_array[] =
-                '<a href="admin.php?page=apbct_wc_spam_orders" class="ct_support_link" title="Bulk spam orders removal tool.">'
+                '<a href="admin.php?page=' . $spam_orders_page . '" class="ct_support_link" title="Bulk spam orders removal tool.">'
                 . __('WooCommerce spam orders', 'cleantalk-spam-protect')
                 . '</a>';
             return $buttons_array;

@@ -182,4 +182,91 @@ class TestWcSpamOrdersListTable extends TestCase
         $expectedCount = substr_count($result, '<b></b>');
         $this->assertEquals(3, $expectedCount);
     }
+
+    /**
+     * Resets the memory of the request variables handler so that $_POST is read again.
+     *
+     * @return void
+     */
+    private function resetPostMemory()
+    {
+        \Cleantalk\ApbctWP\Variables\Post::getInstance()->variables = array();
+    }
+
+    /**
+     * Test the action parameters are named so that the HPOS page controller ignores them.
+     */
+    public function testActionParamsAreNamespaced()
+    {
+        $this->assertEquals('apbct_bulk_action', WcSpamOrdersListTable::BULK_ACTION_PARAM);
+        $this->assertEquals('apbct_row_action', WcSpamOrdersListTable::ROW_ACTION_PARAM);
+        $this->assertEquals('apbct_row_nonce', WcSpamOrdersListTable::ROW_NONCE_PARAM);
+
+        foreach ( array('action', '_wpnonce', '_wp_http_referer') as $reserved ) {
+            $this->assertNotEquals($reserved, WcSpamOrdersListTable::BULK_ACTION_PARAM);
+            $this->assertNotEquals($reserved, WcSpamOrdersListTable::ROW_ACTION_PARAM);
+            $this->assertNotEquals($reserved, WcSpamOrdersListTable::ROW_NONCE_PARAM);
+        }
+    }
+
+    /**
+     * Test current_action reads the select of the top tablenav.
+     */
+    public function testCurrentActionReadsTopSelect()
+    {
+        $_POST = array(WcSpamOrdersListTable::BULK_ACTION_PARAM => 'delete');
+        $this->resetPostMemory();
+
+        $this->assertEquals('delete', $this->instance->current_action());
+    }
+
+    /**
+     * Test current_action falls back to the select of the bottom tablenav.
+     */
+    public function testCurrentActionReadsBottomSelect()
+    {
+        $_POST = array(
+            WcSpamOrdersListTable::BULK_ACTION_PARAM        => '-1',
+            WcSpamOrdersListTable::BULK_ACTION_PARAM . '2'  => 'delete',
+        );
+        $this->resetPostMemory();
+
+        $this->assertEquals('delete', $this->instance->current_action());
+    }
+
+    /**
+     * Test current_action ignores the placeholder option of the selects.
+     */
+    public function testCurrentActionIgnoresPlaceholder()
+    {
+        $_POST = array(
+            WcSpamOrdersListTable::BULK_ACTION_PARAM       => '-1',
+            WcSpamOrdersListTable::BULK_ACTION_PARAM . '2' => '-1',
+        );
+        $this->resetPostMemory();
+
+        $this->assertFalse($this->instance->current_action());
+    }
+
+    /**
+     * Test current_action reports no action when the selects were not submitted.
+     */
+    public function testCurrentActionWithoutSubmission()
+    {
+        $_POST = array();
+        $this->resetPostMemory();
+
+        $this->assertFalse($this->instance->current_action());
+    }
+
+    /**
+     * Test current_action stays blind to the 'action' parameter of the WooCommerce orders screen.
+     */
+    public function testCurrentActionIgnoresWooCommerceActionParam()
+    {
+        $_POST = array('action' => 'delete', 'action2' => 'delete');
+        $this->resetPostMemory();
+
+        $this->assertFalse($this->instance->current_action());
+    }
 }
