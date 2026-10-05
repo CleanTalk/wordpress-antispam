@@ -395,10 +395,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
                     return $matches[0];
                 }
 
-                $title = $this->getPrimedRawPostTitle($post_id);
-                if ( $title === '' ) {
-                    $title = $this->getRawPostTitle($post_id);
-                }
+                $title = $this->getRawPostTitle($post_id);
 
                 if ( ! is_string($title) || $title === '' || strpos($title, '[apbct_skip_encoding]') === false ) {
                     return $matches[0];
@@ -485,15 +482,12 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         if (
             strpos($content, '[apbct_skip_encoding]') === false
             && strpos($content, 'apbct-email-encoder') === false
-            && $this->getPrimedRawPostTitle($post_id) === ''
+            && $this->getRawPostTitle($post_id) === ''
         ) {
             return $content;
         }
 
-        $title = $this->getPrimedRawPostTitle($post_id);
-        if ( $title === '' ) {
-            $title = $this->getRawPostTitle($post_id);
-        }
+        $title = $this->getRawPostTitle($post_id);
 
         if ( $title === '' || strpos($title, '[apbct_skip_encoding]') === false ) {
             return $content;
@@ -657,40 +651,6 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     }
 
     /**
-     * Cache titles with skip-encoding shortcodes before frontend encoding mutates post objects.
-     *
-     * @return void
-     * @psalm-suppress PossiblyUnusedMethod
-     */
-    public function primeRawTitleCache()
-    {
-        if ( is_admin() ) {
-            return;
-        }
-
-        global $wpdb;
-
-        $rows = $wpdb->get_results(
-            "SELECT ID, post_title FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_title LIKE '%[apbct_skip_encoding]%'",
-            OBJECT_K
-        );
-
-        if ( ! is_array($rows) ) {
-            return;
-        }
-
-        foreach ( $rows as $post_id => $row ) {
-            if (
-                isset($row->post_title)
-                && is_string($row->post_title)
-                && strpos($row->post_title, 'apbct-email-encoder') === false
-            ) {
-                self::$raw_titles_cache[(int)$post_id] = $row->post_title;
-            }
-        }
-    }
-
-    /**
      * Return raw title from init-time prime cache when this post is known to use skip-encoding.
      *
      * @param int $post_id
@@ -727,6 +687,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return '';
         }
 
+        // Search the cache.
         $primed_title = $this->getPrimedRawPostTitle($post_id);
         if ( $primed_title !== '' ) {
             return $primed_title;
@@ -746,6 +707,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         }
 
         if ( strpos($title, 'apbct-email-encoder') === false ) {
+            // Set the cache.
             self::$raw_titles_cache[$post_id] = $title;
         }
 
@@ -841,15 +803,12 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             strpos($content, '[apbct_skip_encoding]') === false
             && strpos($content, 'apbct-email-encoder') === false
             && strpos($content, '%%APBCT_SHORT_CODE_SKIP') === false
-            && $this->getPrimedRawPostTitle($post_id) === ''
+            && $this->getRawPostTitle($post_id) === ''
         ) {
             return $content;
         }
 
-        $raw_title = $this->getPrimedRawPostTitle($post_id);
-        if ( $raw_title === '' ) {
-            $raw_title = $this->getRawPostTitle($post_id);
-        }
+        $raw_title = $this->getRawPostTitle($post_id);
 
         if ( $raw_title === '' || strpos($raw_title, '[apbct_skip_encoding]') === false ) {
             return $content;
@@ -965,7 +924,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return $title;
         }
 
-        $raw_title = $this->getPrimedRawPostTitle($post_id);
+        $raw_title = $post_id ? $this->getRawPostTitle($post_id) : $title;
         if ( $raw_title === '' || strpos($raw_title, '[apbct_skip_encoding]') === false ) {
             return $title;
         }
@@ -987,7 +946,11 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     public function filterSinglePostTitle($title, $_post)
     {
         $post_id = is_object($_post) && isset($_post->ID) ? (int)$_post->ID : 0;
-        $raw_title = $post_id ? $this->getPrimedRawPostTitle($post_id) : $title;
+        if ( ! $post_id && is_singular() ) {
+            $post_id = (int)get_queried_object_id();
+        }
+
+        $raw_title = $post_id ? $this->getRawPostTitle($post_id) : $title;
 
         if ( $raw_title === '' || strpos($raw_title, '[apbct_skip_encoding]') === false ) {
             return $title;
@@ -1016,7 +979,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         $title = $parts['title'];
 
         if ( $post_id ) {
-            $raw_title = $this->getPrimedRawPostTitle($post_id);
+            $raw_title = $this->getRawPostTitle($post_id);
             if ( $raw_title !== '' && strpos($raw_title, '[apbct_skip_encoding]') !== false ) {
                 $title = $raw_title;
             }
@@ -1052,7 +1015,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         }
 
         if ( $post_id ) {
-            $raw_title = $this->getPrimedRawPostTitle($post_id);
+            $raw_title = $this->getRawPostTitle($post_id);
             if ( $raw_title !== '' && strpos($raw_title, '[apbct_skip_encoding]') !== false ) {
                 if ( $this->isBufferMode() ) {
                     return $this->prepareTitleForBufferMode($raw_title);
