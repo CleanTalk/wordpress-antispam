@@ -8,6 +8,7 @@ use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\ContactsEncoder\Shortcodes\ShortCodesService;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\ModerateServerConfig;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use Cleantalk\ApbctWP\ContactsEncoder\Exclusions\ExclusionsService;
 use Cleantalk\ApbctWP\ContactsEncoder\Integrations\CEIntegrationGridBuilder;
@@ -378,14 +379,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $this->has_connection_error = false;
 
         // Options store url without scheme because of DB error with ''://'
-        $config             = ct_get_server();
-        $ct->server_url     = APBCT_MODERATE_URL;
-        $config_work_url    = TT::getArrayValueAsString($config, 'ct_work_url');
-        $ct->work_url       = preg_match('/https:\/\/.+/', $config_work_url)
-            ? $config_work_url
-            : '';
-        $ct->server_ttl     = TT::getArrayValueAsInt($config, 'ct_server_ttl');
-        $ct->server_changed = TT::getArrayValueAsInt($config, 'ct_server_changed');
+        ModerateServerConfig::set($ct);
         $api_response = $ct->checkBot($ct_request);
 
         // Allow to see to the decoded contact if error occurred

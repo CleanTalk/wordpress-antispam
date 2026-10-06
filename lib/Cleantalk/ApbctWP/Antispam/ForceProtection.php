@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\Antispam;
 
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\ModerateServerConfig;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 use Cleantalk\Variables\Post;
 use Cleantalk\Antispam\CleantalkRequest;
@@ -85,11 +86,7 @@ class ForceProtection
         $ct_request = new CleantalkRequest($params);
         $ct = new Cleantalk();
 
-        $config             = ct_get_server();
-        $ct->server_url     = APBCT_MODERATE_URL;
-        $ct->work_url       = isset($config['ct_work_url']) && preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
-        $ct->server_ttl     = isset($config['ct_server_ttl']) ? $config['ct_server_ttl'] : null;
-        $ct->server_changed = isset($config['ct_server_changed']) ? $config['ct_server_changed'] : null;
+        ModerateServerConfig::set($ct);
         $api_response = $ct->checkBot($ct_request);
 
         // Allow to see forms if error occurred
