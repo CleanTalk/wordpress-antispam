@@ -4,7 +4,7 @@ Tags: anti-spam, spam protection, contact form spam, spam, captcha
 Requires at least: 4.7
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 6.89
+Stable tag: 6.89.1
 License: GPLv2
 
 Stop spam in contact forms, comments, registrations, and WooCommerce automatically. CAPTCHA free antispam plugin that works in the background.
@@ -451,6 +451,9 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.89.1 08.10.2026 =
+Fix. Settings. WooCommerce protection options changed.
 
 = 6.89 05.10.2026 =
 New. Integration. Integration with Pagelayer.
