@@ -212,7 +212,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      *
      * @return string
      */
-    public function modifyContent($content, $skip_exclusions = false)
+    public function modifyContent($content = '', $skip_exclusions = false)
     {
         $this->applyAttributeExclusionHooks();
 
