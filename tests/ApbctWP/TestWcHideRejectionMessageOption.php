@@ -58,7 +58,7 @@ class TestWcHideRejectionMessageOption extends TestCase
         $state = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
 
         $this->assertArrayHasKey(self::OPTION, $state->default_settings);
-        $this->assertSame(1, $state->default_settings[self::OPTION]);
+        $this->assertSame(0, $state->default_settings[self::OPTION]);
     }
 
     public function testStoreBlockedOrdersStaysEnabledByDefault()
@@ -66,7 +66,7 @@ class TestWcHideRejectionMessageOption extends TestCase
         $state = new State('cleantalk', array('settings', 'data', 'errors', 'remote_calls', 'stats', 'fw_stats'));
 
         $this->assertArrayHasKey(self::STORE_BLOCKED_ORDERS_OPTION, $state->default_settings);
-        $this->assertSame(1, $state->default_settings[self::STORE_BLOCKED_ORDERS_OPTION]);
+        $this->assertSame(0, $state->default_settings[self::STORE_BLOCKED_ORDERS_OPTION]);
     }
 
     public function testOptionIsRegisteredInWooCommerceSettingsSection()
