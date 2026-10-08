@@ -1113,6 +1113,22 @@ class ApbctHandler {
                     }
                 }
 
+                // === BuddyNext register===
+                if (
+                    document.querySelectorAll('form.bn-auth-form').length > 0 &&
+                    typeof args[0].includes === 'function' &&
+                    args[0].includes('/wp-json/buddynext/v1/auth/register')
+                ) {
+                    try {
+                        args[1].body = attachFieldsToBody(
+                            args[1].body,
+                            selectFieldsData(+ctPublic.bot_detector_enabled),
+                        );
+                    } catch (e) {
+                        // Continue even if error
+                    }
+                }
+
                 // === WooCommerce add to cart (direct add-item URL) ===
                 if (
                     (
