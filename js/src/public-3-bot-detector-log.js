@@ -95,26 +95,4 @@ class ApbctBrowserState {
     }
 }
 
-/**
- * Get the browser state as a key/value pair to attach it to an intercepted request.
- * @return {{key: string, value: string}|false} False if there is nothing to attach.
- */
-function apbctGetBrowserStatePair() { // eslint-disable-line no-unused-vars
-    try {
-        ApbctBrowserState.detectScripts();
-        let state = ApbctBrowserState.asDTO();
-        if ( ApbctBrowserState.botdLogicLoaded ) {
-            const transportEnabled = localStorage.getItem(ApbctBrowserState.TRANSPORT_ENABLED_SIGN_KEY) === '1';
-            if (transportEnabled) {
-                state.frontend_data_log = ApbctBrowserState.getFrontendDataLog();
-            } else {
-                state.transport_enabled = 0;
-            }
-        } else {
-            state.frontend_data_log = ApbctBrowserState.getFrontendDataLog();
-        }
-        return {key: ApbctBrowserState.STATE_KEY, value: JSON.stringify(state)};
-    } catch (e) {
-        return false;
-    }
-}
+

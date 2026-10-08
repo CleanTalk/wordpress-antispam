@@ -11,10 +11,7 @@ function initParams(gatheringLoaded) {
     ) ? new ApbctGatheringData().getScreenInfo() : '';
     const initCookies = [
         ['ct_ps_timestamp', Math.floor(new Date().getTime() / 1000)],
-        ['ct_fkp_timestamp', '0'],
-        ['ct_pointer_data', '0'],
         ['ct_timezone', ctDate.getTimezoneOffset()/60*(-1)],
-        ['ct_screen_info', screenInfo],
         ['apbct_headless', headless],
     ];
 
@@ -75,14 +72,11 @@ function initParams(gatheringLoaded) {
         }
     }
 
-    if (apbctLocalStorage.isSet('ct_checkjs')) {
-        initCookies.push(['ct_checkjs', apbctLocalStorage.get('ct_checkjs')]);
-    } else {
-        initCookies.push(['ct_checkjs', 0]);
-    }
-
     if (gatheringLoaded) {
         initCookies.push(['ct_gathering_loaded', gatheringLoaded]);
+        initCookies.push(['ct_fkp_timestamp', '0']);
+        initCookies.push(['ct_pointer_data', '0']);
+        initCookies.push(['ct_screen_info', screenInfo]);
     }
 
     ctSetCookie(initCookies);
@@ -355,130 +349,6 @@ function removeDoubleJsonEncoding(object) { // eslint-disable-line no-unused-var
     return object;
 }
 
-/**
- * @return {boolean|*}
- */
-function ctGetPageForms() { // eslint-disable-line no-unused-vars
-    let forms = document.forms;
-    if (forms) {
-        return forms;
-    }
-    return false;
-}
-
-// eslint-disable-next-line camelcase,require-jsdoc,no-unused-vars
-function apbct_js_keys__set_input_value(result, data, params, obj) {
-    if ( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
-        let elements = document.querySelectorAll('[name^=ct_checkjs]');
-        for ( let i = 0; i < elements.length; i++ ) {
-            elements[i].value = result.js_key;
-        }
-    }
-}
-
-let apbctLocalStorage = {
-    get: function(key, property) {
-        if ( typeof property === 'undefined' ) {
-            property = 'value';
-        }
-        const storageValue = localStorage.getItem(key);
-        if ( storageValue !== null ) {
-            try {
-                const json = JSON.parse(storageValue);
-                if ( json.hasOwnProperty(property) ) {
-                    try {
-                        const parsed = JSON.parse( json[property] );
-                        if ( parsed !== null && typeof parsed === 'object' ) {
-                            return json[property].toString();
-                        }
-                        return parsed;
-                    } catch (e) {
-                        return json[property].toString();
-                    }
-                } else {
-                    return json;
-                }
-            } catch (e) {
-                return storageValue;
-            }
-        }
-        return false;
-    },
-    set: function(key, value, isJson = true) {
-        if (isJson) {
-            let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
-            localStorage.setItem(key, JSON.stringify(objToSave));
-        } else {
-            localStorage.setItem(key, value);
-        }
-    },
-    isAlive: function(key, maxLifetime) {
-        if ( typeof maxLifetime === 'undefined' ) {
-            maxLifetime = 86400;
-        }
-        const keyTimestamp = this.get(key, 'timestamp');
-        return keyTimestamp + maxLifetime > Math.floor(new Date().getTime() / 1000);
-    },
-    isSet: function(key) {
-        return localStorage.getItem(key) !== null;
-    },
-    delete: function(key) {
-        localStorage.removeItem(key);
-    },
-    getCleanTalkData: function() {
-        let data = {};
-        for (let i=0; i<localStorage.length; i++) {
-            let key = localStorage.key(i);
-            if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1) {
-                data[key.toString()] = apbctLocalStorage.get(key);
-            }
-        }
-        return data;
-    },
-
-};
-
-let apbctSessionStorage = {
-    get: function(key, property) {
-        if ( typeof property === 'undefined' ) {
-            property = 'value';
-        }
-        const storageValue = sessionStorage.getItem(key);
-        if ( storageValue !== null ) {
-            try {
-                const json = JSON.parse(storageValue);
-                return json.hasOwnProperty(property) ? JSON.parse(json[property]) : json;
-            } catch (e) {
-                return storageValue;
-            }
-        }
-        return false;
-    },
-    set: function(key, value, isJson = true) {
-        if (isJson) {
-            let objToSave = {'value': JSON.stringify(value), 'timestamp': Math.floor(new Date().getTime() / 1000)};
-            sessionStorage.setItem(key, JSON.stringify(objToSave));
-        } else {
-            sessionStorage.setItem(key, value);
-        }
-    },
-    isSet: function(key) {
-        return sessionStorage.getItem(key) !== null;
-    },
-    delete: function(key) {
-        sessionStorage.removeItem(key);
-    },
-    getCleanTalkData: function() {
-        let data = {};
-        for (let i=0; i<sessionStorage.length; i++) {
-            let key = sessionStorage.key(i);
-            if (key.indexOf('ct_') !==-1 || key.indexOf('apbct_') !==-1) {
-                data[key.toString()] = apbctSessionStorage.get(key);
-            }
-        }
-        return data;
-    },
-};
 
 /**
  * @return {string}
@@ -502,43 +372,7 @@ function getNoCookieData() { // eslint-disable-line no-unused-vars
 }
 
 
-/**
- * Retrieves the clentalk "cookie" data from starages.
- * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity}.
- * @return {string}
- */
-function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
-    let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
-    let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
 
-    let noCookieDataTypo = {typo: []};
-    if (document.ctTypoData && document.ctTypoData.data) {
-        noCookieDataTypo = {typo: document.ctTypoData.data};
-    }
-
-    let noCookieDataFromUserActivity = {collecting_user_activity_data: []};
-
-    if (document.ctCollectingUserActivityData) {
-        let collectingUserActivityData = JSON.parse(JSON.stringify(document.ctCollectingUserActivityData));
-        noCookieDataFromUserActivity = {collecting_user_activity_data: collectingUserActivityData};
-    }
-
-    let browserStateData = {};
-    if (typeof apbctGetBrowserStatePair === 'function') {
-        const browserState = apbctGetBrowserStatePair();
-        if (browserState) {
-            browserStateData[browserState.key] = browserState.value;
-        }
-    }
-
-    return {
-        ...noCookieDataLocal,
-        ...noCookieDataSession,
-        ...noCookieDataTypo,
-        ...noCookieDataFromUserActivity,
-        ...browserStateData,
-    };
-}
 
 /**
  * Execute function with timeout, listening incoming args from context.
@@ -556,36 +390,5 @@ function ctDebounceFuncExec(func, wait) {
             func.apply(context, args);
         }, wait);
     };
-}
-
-/**
- * ctNoCookieAttachHiddenFieldsToForms
- */
-function ctNoCookieAttachHiddenFieldsToForms() {
-    if (ctPublic.data__cookies_type !== 'none') {
-        return;
-    }
-
-    let forms = ctGetPageForms();
-
-    if (forms) {
-        for ( let i = 0; i < forms.length; i++ ) {
-            if ( new ApbctHandler().checkHiddenFieldsExclusions(document.forms[i], 'no_cookie') ) {
-                continue;
-            }
-
-            // ignore forms with get method @todo We need to think about this
-            if (document.forms[i].getAttribute('method') === null ||
-                document.forms[i].getAttribute('method').toLowerCase() === 'post') {
-                // remove old sets
-                let fields = forms[i].querySelectorAll('.ct_no_cookie_hidden_field');
-                for ( let j = 0; j < fields.length; j++ ) {
-                    fields[j].outerHTML = '';
-                }
-                // add new set
-                document.forms[i].append(new ApbctAttachData().constructNoCookieHiddenField());
-            }
-        }
-    }
 }
 

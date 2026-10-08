@@ -1,0 +1,17 @@
+export const PARAM_NAME = 'ct_checkjs';
+
+export function initCheckJs() {
+    if (typeof ctPublic.ct_checkjs_key !== 'undefined' && ctPublic.ct_checkjs_key !== null) {
+        return ctPublic.ct_checkjs_key;
+    }
+    return 0;
+}
+
+export function setInputValue(result) {
+    if ( document.querySelectorAll('[name^=ct_checkjs]').length > 0 ) {
+        let elements = document.querySelectorAll('[name^=ct_checkjs]');
+        for ( let i = 0; i < elements.length; i++ ) {
+            elements[i].value = result.js_key;
+        }
+    }
+}
