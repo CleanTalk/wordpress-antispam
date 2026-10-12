@@ -394,11 +394,7 @@ function fillDecodedNodes(encodedNodes, decodingResult) {
                     continue;
                 }
                 let encodedEmail = encodedNodes[i].href.replace(linkTypePrefix, '');
-                let baseElementContent = encodedNodes[i].innerHTML;
-                encodedNodes[i].innerHTML = baseElementContent.replace(
-                    encodedEmail,
-                    currentResultData.decoded_email,
-                );
+                ctReplaceInTextNodes(encodedNodes[i], encodedEmail, currentResultData.decoded_email);
                 encodedNodes[i].href = linkTypePrefix + currentResultData.decoded_email;
 
                 encodedNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((el) => {
@@ -408,7 +404,7 @@ function fillDecodedNodes(encodedNodes, decodingResult) {
                             encodedEmailTextInsideMailto = row.decoded_email;
                         }
                     });
-                    el.innerHTML = encodedEmailTextInsideMailto;
+                    el.textContent = encodedEmailTextInsideMailto;
                 });
             } else {
                 encodedNodes[i].classList.add('no-blur');
@@ -428,6 +424,26 @@ function fillDecodedNodes(encodedNodes, decodingResult) {
             ctProcessDecodedDataResult(currentResultData, encodedNodes);
         }, 2000);
         encodedNodes.removeEventListener('click', ctFillDecodedEmailHandler);
+    }
+}
+
+/**
+ * Replace the first occurrence of search in element text only, never in markup or attributes.
+ * @param {HTMLElement} element
+ * @param {string} search
+ * @param {string} replacement
+ */
+function ctReplaceInTextNodes(element, search, replacement) {
+    if (!search) {
+        return;
+    }
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+        if (node.nodeValue.indexOf(search) !== -1) {
+            node.nodeValue = node.nodeValue.replace(search, () => replacement);
+            return;
+        }
     }
 }
 
