@@ -103,4 +103,59 @@ class TestCleantalkExternalForms extends TestCase
 
         $this->assertTrue($this->integration->doPrepareActions(null));
     }
+
+    public function testDoPrepareActionsAllowsPercentEncodedQuery()
+    {
+        $_POST = array(
+            'cleantalk_hidden_method' => 'POST',
+            'cleantalk_hidden_action' => 'https://example.com/form?q=%20',
+        );
+        $this->resetVariableCaches();
+
+        $this->assertTrue($this->integration->doPrepareActions(null));
+    }
+
+    public function testDoPrepareActionsRejectsFormElementsPlaceholderInAction()
+    {
+        $_POST = array(
+            'cleantalk_hidden_method' => 'POST',
+            'cleantalk_hidden_action' => 'http://example.com/%FORM_ELEMENTS',
+        );
+        $this->resetVariableCaches();
+
+        $this->assertFalse($this->integration->doPrepareActions(null));
+    }
+
+    public function testExternalFormDoesNotInjectPlaceholderAction()
+    {
+        $payload_name = "tabindex=0\tautofocus\tonfocus=eval(atob('YWxlcnQoZG9jdW1lbnQuZG9tYWluKS8v'))";
+        $_POST = array(
+            $payload_name => '1',
+        );
+
+        $html = $this->integration->getExternalForm('http://example.com/%FORM_ELEMENTS', 'post');
+
+        $this->assertSame('', $html);
+    }
+
+    public function testExternalFormKeepsControlCharactersOutOfTheFormTag()
+    {
+        $payload_name = "tabindex=0\tautofocus\tonfocus=alert(1)";
+        $_POST = array(
+            $payload_name => '1',
+            'email' => 'user@example.com',
+        );
+
+        $html = $this->integration->getExternalForm('https://example.com/form', 'post');
+
+        $this->assertIsString($html);
+        $this->assertSame(1, preg_match('/<form\b[^>]*>/', $html, $form_tag));
+        $this->assertStringNotContainsString('onfocus', $form_tag[0]);
+        $this->assertStringNotContainsString('autofocus', $form_tag[0]);
+        $this->assertStringContainsString('action="https://example.com/form"', $form_tag[0]);
+        $this->assertStringContainsString('name="tabindex=0autofocusonfocus=alert(1)"', $html);
+        $this->assertStringContainsString('name="email"', $html);
+        $this->assertStringContainsString('user@example.com', $html);
+        $this->assertStringNotContainsString("name=\"tabindex=0\t", $html);
+    }
 }

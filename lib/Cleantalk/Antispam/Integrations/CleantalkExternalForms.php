@@ -120,13 +120,21 @@ class CleantalkExternalForms extends IntegrationBase
             if ($key === 'submit') {
                 continue;
             }
+
+            $key = $this->sanitizeExternalFormFieldName((string) $key);
+            if ( $key === '' ) {
+                continue;
+            }
+
+            $field_name = $recursive_key === '' ? $key : $recursive_key . '[' . $key . ']';
+
             if ( ! is_array($value) ) {
                 $return_form .= '<textarea
-				name="' . esc_attr($recursive_key === '' ? $key : $recursive_key . '[' . $key . ']') . '"
+				name="' . esc_attr($field_name) . '"
 				style="display:none;">' . esc_textarea(htmlspecialchars($value))
                     . '</textarea>';
             } else {
-                $return_form .= $this->constructFormInnerElements($value, $recursive_key === '' ? $key : $recursive_key . '[' . $key . ']');
+                $return_form .= $this->constructFormInnerElements($value, $field_name);
             }
         }
 
@@ -150,17 +158,6 @@ class CleantalkExternalForms extends IntegrationBase
         if ( empty($action) ) {
             return '';
         }
-
-        // HTML form template
-        $form_template = '
-        <html lang="">
-            <body>
-                <form method="%METHOD" action="%ACTION">
-                    %FORM_ELEMENTS
-                </form>
-                    %SCRIPT
-            </body>
-        </html>';
 
         // Cookiebot chunk
         $bot_attrs = class_exists('Cookiebot_WP') ? array('data-cookieconsent' => 'ignore') : array();
@@ -186,12 +183,27 @@ class CleantalkExternalForms extends IntegrationBase
             $bot_attrs
         );
 
-        $form_template = str_replace('%METHOD', $method, $form_template);
-        $form_template = str_replace('%ACTION', $action, $form_template);
-        $form_template = str_replace('%SCRIPT', $script, $form_template);
-        $form_template = str_replace('%FORM_ELEMENTS', $this->constructFormInnerElements($_POST, ''), $form_template);
+        return '
+        <html lang="">
+            <body>
+                <form method="' . $method . '" action="' . $action . '">
+                    ' . $this->constructFormInnerElements($_POST, '') . '
+                </form>
+                    ' . $script . '
+            </body>
+        </html>';
+    }
 
-        return $form_template;
+    /**
+     * @param string $name
+     *
+     * @return string
+     */
+    private function sanitizeExternalFormFieldName($name)
+    {
+        $sanitized = preg_replace('/[\x00-\x1F\x7F]/', '', $name);
+
+        return is_string($sanitized) ? $sanitized : '';
     }
 
     /**
@@ -204,7 +216,11 @@ class CleantalkExternalForms extends IntegrationBase
      */
     private function isAllowedExternalFormAction($action)
     {
-        return is_string($action) && Validate::isUrl($action);
+        if ( ! is_string($action) || ! Validate::isUrl($action) ) {
+            return false;
+        }
+
+        return ! preg_match('/%(?:FORM_ELEMENTS|ACTION|METHOD|SCRIPT)/', $action);
     }
 
     /**
