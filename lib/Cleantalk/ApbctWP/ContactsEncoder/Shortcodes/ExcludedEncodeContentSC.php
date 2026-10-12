@@ -903,10 +903,36 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             $result = wp_strip_all_tags($result);
             $result = trim(preg_replace('/\s+/', ' ', $result), " \n\r\t\v\x00");
         } else {
-            $result = wp_kses_post($result);
+            $result = $this->ksesEncodedMarkup($result);
         }
 
         return $result;
+    }
+
+    /**
+     * wp_kses_post() keeping encoder attributes: WP < 5.0 strips data-* attributes.
+     *
+     * @param string $html
+     *
+     * @return string
+     */
+    protected function ksesEncodedMarkup($html)
+    {
+        $allowed_html = wp_kses_allowed_html('post');
+        $encoder_attributes = array(
+            'data-original-string' => true,
+            'class' => true,
+            'title' => true,
+        );
+
+        foreach ( array('span', 'a') as $tag ) {
+            $allowed_html[$tag] = array_merge(
+                isset($allowed_html[$tag]) ? $allowed_html[$tag] : array(),
+                $encoder_attributes
+            );
+        }
+
+        return wp_kses($html, $allowed_html);
     }
 
     /**
