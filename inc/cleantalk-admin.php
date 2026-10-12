@@ -644,14 +644,6 @@ function apbct_admin__enqueue_scripts($hook)
             \Cleantalk\ApbctWP\CleantalkRealPerson::getLocalizingData()
         );
         ApbctEnqueue::getInstance()->js('cleantalk-comments-editscreen.js', array('cleantalk-admin-js'));
-        $link = LinkConstructor::buildCleanTalkLink(
-            'public_comments_page_go_to_cp',
-            'my',
-            array(
-                'user_token' => $apbct->user_token,
-                'cp_mode' => 'antispam'
-            )
-        );
         wp_localize_script('cleantalk-comments-editscreen-js', 'ctCommentsScreen', array(
             'ct_ajax_nonce'               => $apbct->ajax_service->getAdminNonce(),
             'spambutton_text'             => __("Find spam comments", 'cleantalk-spam-protect'),
