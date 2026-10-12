@@ -170,28 +170,57 @@ abstract class ServerVariables
     }
 
     /**
-     * @param $value
-     * @param $nesting
+     * @param mixed $value
+     * @param int   $nesting
      *
      * @return string|array
      */
     public function getAndSanitize($value, $nesting = 0)
     {
-        if ( is_array($value) ) {
-            foreach ( $value as $_key => & $val ) {
-                if ( is_array($val) ) {
-                    if ( $nesting > 20 ) {
-                        return $value;
-                    }
-                    $this->getAndSanitize($val, ++$nesting);
-                } else {
-                    $val = $this->sanitizeDefault($val);
-                }
-            }
-        } else {
-            $value = $this->sanitizeDefault($value);
+        if ( ! is_array($value) ) {
+            return $this->sanitizeDefault($value);
         }
-        return $value;
+
+        if ( $nesting > 20 ) {
+            return $value;
+        }
+
+        $sanitized = array();
+        foreach ( $value as $_key => $val ) {
+            $safe_key = $this->sanitizeArrayKey($_key);
+            if ( $safe_key === '' ) {
+                continue;
+            }
+
+            if ( is_array($val) ) {
+                $sanitized[$safe_key] = $this->getAndSanitize($val, $nesting + 1);
+            } else {
+                $sanitized[$safe_key] = $this->sanitizeDefault($val);
+            }
+        }
+
+        return $sanitized;
+    }
+
+    /**
+     * @param int|string $key
+     *
+     * @return int|string
+     */
+    protected function sanitizeArrayKey($key)
+    {
+        if ( is_int($key) ) {
+            return $key;
+        }
+
+        $key = str_replace("\0", '', (string) $key);
+        if ( strpos($key, '<') === false && strpos($key, '>') === false ) {
+            return $key;
+        }
+
+        $key = wp_strip_all_tags($key);
+
+        return str_replace(array('<', '>'), '', $key);
     }
 
     /**
