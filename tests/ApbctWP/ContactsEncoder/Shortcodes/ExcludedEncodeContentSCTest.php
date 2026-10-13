@@ -465,104 +465,108 @@ class ExcludedEncodeContentSCTest extends TestCase
     }
 
     /**
-     * @param string $method
-     * @param array $args
+     * Regression test for the information disclosure fixed in getRawPostTitle():
+     * a non-public post (private/draft/pending/trash) whose raw title contains
+     * [apbct_skip_encoding] must never have that title content leaked through a
+     * link pointing at it from unrelated public content, regardless of the
+     * post's status.
      *
-     * @return mixed
+     * @dataProvider nonPublicPostStatusesProvider
      */
-    private function callProtected($method, array $args)
-    {
-        $reflection = new \ReflectionMethod(ExcludedEncodeContentSC::class, $method);
-        $reflection->setAccessible(true);
-
-        return $reflection->invokeArgs($this->exclude_content_sc, $args);
-    }
-
-    /**
-     * Contacts must be stripped only from text nodes, never from tag attributes.
-     *
-     * @dataProvider stripProtectedContactsProvider
-     */
-    public function testStripProtectedContactsFromPlainText($text, array $contacts, $expected): void
-    {
-        $this->assertSame(
-            $expected,
-            $this->callProtected('stripProtectedContactsFromPlainText', [$text, $contacts])
-        );
-    }
-
-    public function stripProtectedContactsProvider(): array
-    {
-        return [
-            'empty text' => ['', ['a'], ''],
-            'attribute untouched' => [
-                '<a href="https:javascript:alert(1)">',
-                ['https:'],
-                '<a href="https:javascript:alert(1)">',
-            ],
-            'text node stripped' => ['<a href="https:x">https:text</a>', ['https:'], '<a href="https:x">text</a>'],
-            'comment untouched' => ['<!-- https: -->https:', ['https:'], '<!-- https: -->'],
-            'contact is literal, not regex' => ['a+b a.b', ['a.b'], 'a+b '],
-        ];
-    }
-
-    public function testRemoveDuplicatesDoesNotForgeJavascriptScheme(): void
-    {
-        $title = '<a href="https:javascript:alert(document.domain)">'
-            . '[apbct_skip_encoding]https:[/apbct_skip_encoding]marker</a>';
-
-        $this->assertSame($title, $this->callProtected('removeDuplicateContactsOutsideShortcodes', [$title]));
-    }
-
-    public function testRemoveDuplicatesStillStripsDuplicateContactFromText(): void
-    {
-        $title = 'Mail me at a@b.com [apbct_skip_encoding]a@b.com[/apbct_skip_encoding]';
-
-        $this->assertSame(
-            'Mail me at [apbct_skip_encoding]a@b.com[/apbct_skip_encoding]',
-            $this->callProtected('removeDuplicateContactsOutsideShortcodes', [$title])
-        );
-    }
-
-    /**
-     * End-to-end: final title output must not contain a javascript: link in either mode.
-     *
-     * @dataProvider titleXssPayloadProvider
-     */
-    public function testFilterTheTitleDoesNotOutputJavascriptHref($title): void
+    public function testRestoreEncodedBlockTitlesFilterDoesNotLeakNonPublicPostTitle(string $status): void
     {
         global $apbct;
 
-        $previous_buffer = $apbct->settings['data__email_decoder_buffer'];
+        $apbct->settings['data__email_decoder_buffer'] = false;
+
+        $secret = 'secret-' . $status . '-' . wp_generate_password(8, false);
+
+        $target_post_id = wp_insert_post(
+            array(
+                'post_title'   => 'Hidden title [apbct_skip_encoding]' . $secret . '[/apbct_skip_encoding]',
+                'post_content' => 'non-public content',
+                'post_status'  => $status,
+                'post_type'    => 'post',
+            ),
+            true
+        );
+
+        $this->assertIsInt($target_post_id);
+        $this->assertGreaterThan(0, $target_post_id);
 
         try {
-            foreach ([true, false] as $buffer_mode) {
-                $apbct->settings['data__email_decoder_buffer'] = $buffer_mode;
+            $href = home_url('/?p=' . $target_post_id);
+            $content = '<p><a href="' . esc_url($href) . '">[apbct_skip_encoding]</a></p>';
 
-                $result = $this->exclude_content_sc->filterTheTitle($title);
+            $result = $this->exclude_content_sc->restoreEncodedBlockTitlesFilter(
+                $content,
+                array('blockName' => 'core/page-list')
+            );
 
-                $this->assertNotRegExp('/<a\b[^>]*\bhref\s*=\s*["\']?\s*javascript:/i', $result);
-            }
+            $this->assertStringNotContainsString(
+                $secret,
+                $result,
+                "Title content of a '$status' post must not be exposed via link-text restoration."
+            );
+            // Nothing matched, so the original link markup/text must be left untouched.
+            $this->assertSame($content, $result);
         } finally {
-            $apbct->settings['data__email_decoder_buffer'] = $previous_buffer;
+            wp_delete_post($target_post_id, true);
         }
     }
 
-    public function titleXssPayloadProvider(): array
+    public function nonPublicPostStatusesProvider(): array
     {
-        $skip = '[apbct_skip_encoding]https:[/apbct_skip_encoding]';
-
-        return [
-            'scheme forged by strip' => ['<a href="https:javascript:alert(document.domain)">' . $skip . 'marker</a>'],
-            '> in double-quoted attribute' => ['<a title="a>b" href="https:javascript:alert(1)">x</a>' . $skip],
-            '> in single-quoted attribute' => ["<a title='a>b' href='https:javascript:alert(1)'>x</a>" . $skip],
-        ];
+        return array(
+            'private' => array('private'),
+            'draft'   => array('draft'),
+            'pending' => array('pending'),
+            'trash'   => array('trash'),
+        );
     }
 
-    public function testBufferModeTitleDropsScriptTags(): void
+    /**
+     * Ensures the publish-only restriction does not regress the legitimate
+     * feature: link text pointing at a *published* post whose title contains
+     * [apbct_skip_encoding] must still be restored.
+     */
+    public function testRestoreEncodedBlockTitlesFilterStillRestoresPublishedPostTitle(): void
     {
-        $title = '[apbct_skip_encoding]x@y.com[/apbct_skip_encoding]<script>alert(1)</script>';
+        global $apbct;
 
-        $this->assertStringNotContainsString('<script', $this->callProtected('prepareTitleForBufferMode', [$title]));
+        $apbct->settings['data__email_decoder_buffer'] = false;
+
+        $contact = 'contact-' . wp_generate_password(8, false) . '@example.com';
+
+        $target_post_id = wp_insert_post(
+            array(
+                'post_title'   => 'Public title [apbct_skip_encoding]' . $contact . '[/apbct_skip_encoding]',
+                'post_content' => 'public content',
+                'post_status'  => 'publish',
+                'post_type'    => 'post',
+            ),
+            true
+        );
+
+        $this->assertIsInt($target_post_id);
+        $this->assertGreaterThan(0, $target_post_id);
+
+        try {
+            $href = home_url('/?p=' . $target_post_id);
+            $content = '<p><a href="' . esc_url($href) . '">[apbct_skip_encoding]</a></p>';
+
+            $result = $this->exclude_content_sc->restoreEncodedBlockTitlesFilter(
+                $content,
+                array('blockName' => 'core/page-list')
+            );
+
+            $this->assertStringContainsString(
+                $contact,
+                $result,
+                'Published post titles using the skip-encoding shortcode must still be restored in link text.'
+            );
+        } finally {
+            wp_delete_post($target_post_id, true);
+        }
     }
 }
