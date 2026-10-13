@@ -91,4 +91,18 @@ class PostTest extends TestCase
             $sanitized
         );
     }
+
+    public function test_getAndSanitize_htmlKeyDoesNotOverwriteFieldId()
+    {
+        $input = array(
+            '6' => 'checked-value',
+            '<b>6</b>' => 'spoofed-value',
+            "6\0" => 'null-spoofed-value',
+        );
+
+        $sanitized = Post::getInstance()->getAndSanitize($input);
+
+        $this->assertSame('checked-value', $sanitized[6]);
+        $this->assertCount(1, $sanitized);
+    }
 }

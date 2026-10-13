@@ -456,13 +456,9 @@ function apbct_form__formidable__testSpam($errors, $_form)
                         ),
                     'content' => '',
                     'pass' => false,
-                    'error_message' => '<div class="frm_error_style" role="status"><p>' . Escape::escHtml(TT::toString($ct_result->comment)) . '</p></div>',
+                    'error_message' => '<div class="frm_error_style" role="status"><p>' . $ct_result->comment . '</p></div>',
                 );
 
-                if ( ! headers_sent() ) {
-                    header('Content-Type: application/json; charset=utf-8');
-                    header('X-Content-Type-Options: nosniff');
-                }
                 $encoded = wp_json_encode(
                     $result,
                     JSON_FORCE_OBJECT | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT

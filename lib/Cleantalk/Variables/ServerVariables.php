@@ -213,14 +213,16 @@ abstract class ServerVariables
             return $key;
         }
 
-        $key = str_replace("\0", '', (string) $key);
-        if ( strpos($key, '<') === false && strpos($key, '>') === false ) {
-            return $key;
+        $key = (string) $key;
+        if (
+            strpos($key, "\0") !== false ||
+            strpos($key, '<') !== false ||
+            strpos($key, '>') !== false
+        ) {
+            return '';
         }
 
-        $key = wp_strip_all_tags($key);
-
-        return str_replace(array('<', '>'), '', $key);
+        return $key;
     }
 
     /**
