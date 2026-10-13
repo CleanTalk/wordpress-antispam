@@ -715,6 +715,10 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     /**
      * Read post title from DB bypassing in-memory mutations during encoding.
      *
+     * Only publicly visible ('publish') posts are considered: this method backs
+     * frontend link-text restoration and must never leak titles of private,
+     * draft, pending, or trashed posts to visitors who cannot otherwise view them.
+     *
      * @param int $post_id
      *
      * @return string
@@ -736,7 +740,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
 
         $title = $wpdb->get_var(
             $wpdb->prepare(
-                "SELECT post_title FROM {$wpdb->posts} WHERE ID = %d LIMIT 1",
+                "SELECT post_title FROM {$wpdb->posts} WHERE ID = %d AND post_status = 'publish' LIMIT 1",
                 $post_id
             )
         );
