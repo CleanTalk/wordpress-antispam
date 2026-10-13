@@ -644,25 +644,15 @@ function apbct_admin__enqueue_scripts($hook)
             \Cleantalk\ApbctWP\CleantalkRealPerson::getLocalizingData()
         );
         ApbctEnqueue::getInstance()->js('cleantalk-comments-editscreen.js', array('cleantalk-admin-js'));
-        $link = LinkConstructor::buildCleanTalkLink(
-            'public_comments_page_go_to_cp',
-            'my',
-            array(
-                'user_token' => $apbct->user_token,
-                'cp_mode' => 'antispam'
-            )
-        );
         wp_localize_script('cleantalk-comments-editscreen-js', 'ctCommentsScreen', array(
             'ct_ajax_nonce'               => $apbct->ajax_service->getAdminNonce(),
             'spambutton_text'             => __("Find spam comments", 'cleantalk-spam-protect'),
             'ct_feedback_msg_whitelisted' => __("The sender has been whitelisted.", 'cleantalk-spam-protect'),
             'ct_feedback_msg_blacklisted' => __("The sender has been blacklisted.", 'cleantalk-spam-protect'),
-            'ct_feedback_msg'             => sprintf(
-                __("Feedback has been sent to %sCleanTalk Dashboard%s.", 'cleantalk-spam-protect'),
-                $apbct->user_token ? "<a target='_blank' href='$link'>" : '',
-                $apbct->user_token ? "</a>" : ''
-            ) . ' ' . esc_html__('The service accepts feedback only for requests made no more than 7 or 45 days
-            (if the Extra package is activated) ago.', 'cleantalk-spam-protect'),
+            'ct_feedback_msg'             =>
+                __("Feedback has been sent to CleanTalk Dashboard.", 'cleantalk-spam-protect')
+                . ' '
+                . esc_html__('The service accepts feedback only for requests made no more than 7 or 45 days (if the Extra package is activated) ago.', 'cleantalk-spam-protect'),
             'ct_show_check_links'         => (bool)$apbct->settings['comments__show_check_links'],
             'ct_img_src_new_tab'          => plugin_dir_url(__FILE__) . "images/new_window.gif",
         ));
