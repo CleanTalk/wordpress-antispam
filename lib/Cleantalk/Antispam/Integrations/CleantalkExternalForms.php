@@ -117,12 +117,8 @@ class CleantalkExternalForms extends IntegrationBase
         }
 
         foreach ( $arr as $key => $value ) {
-            if ($key === 'submit') {
-                continue;
-            }
-
             $key = $this->sanitizeExternalFormFieldName((string) $key);
-            if ( $key === '' ) {
+            if ( $key === '' || $key === 'submit' ) {
                 continue;
             }
 

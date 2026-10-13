@@ -158,4 +158,17 @@ class TestCleantalkExternalForms extends TestCase
         $this->assertStringContainsString('user@example.com', $html);
         $this->assertStringNotContainsString("name=\"tabindex=0\t", $html);
     }
+
+    public function testExternalFormSkipsSubmitNameAfterControlCharactersAreRemoved()
+    {
+        $_POST = array(
+            "sub\tmit" => '1',
+            'email' => 'user@example.com',
+        );
+
+        $html = $this->integration->getExternalForm('https://example.com/form', 'post');
+
+        $this->assertStringNotContainsString('name="submit"', $html);
+        $this->assertStringContainsString('name="email"', $html);
+    }
 }
