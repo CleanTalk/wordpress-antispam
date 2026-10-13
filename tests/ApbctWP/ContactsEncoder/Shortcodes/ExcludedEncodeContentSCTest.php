@@ -463,4 +463,106 @@ class ExcludedEncodeContentSCTest extends TestCase
         $this->assertSame($content, $result);
         $this->assertCount(0, $this->exclude_content_sc->shortcode_replacements);
     }
+
+    /**
+     * @param string $method
+     * @param array $args
+     *
+     * @return mixed
+     */
+    private function callProtected($method, array $args)
+    {
+        $reflection = new \ReflectionMethod(ExcludedEncodeContentSC::class, $method);
+        $reflection->setAccessible(true);
+
+        return $reflection->invokeArgs($this->exclude_content_sc, $args);
+    }
+
+    /**
+     * Contacts must be stripped only from text nodes, never from tag attributes.
+     *
+     * @dataProvider stripProtectedContactsProvider
+     */
+    public function testStripProtectedContactsFromPlainText($text, array $contacts, $expected): void
+    {
+        $this->assertSame(
+            $expected,
+            $this->callProtected('stripProtectedContactsFromPlainText', [$text, $contacts])
+        );
+    }
+
+    public function stripProtectedContactsProvider(): array
+    {
+        return [
+            'empty text' => ['', ['a'], ''],
+            'attribute untouched' => [
+                '<a href="https:javascript:alert(1)">',
+                ['https:'],
+                '<a href="https:javascript:alert(1)">',
+            ],
+            'text node stripped' => ['<a href="https:x">https:text</a>', ['https:'], '<a href="https:x">text</a>'],
+            'comment untouched' => ['<!-- https: -->https:', ['https:'], '<!-- https: -->'],
+            'contact is literal, not regex' => ['a+b a.b', ['a.b'], 'a+b '],
+        ];
+    }
+
+    public function testRemoveDuplicatesDoesNotForgeJavascriptScheme(): void
+    {
+        $title = '<a href="https:javascript:alert(document.domain)">'
+            . '[apbct_skip_encoding]https:[/apbct_skip_encoding]marker</a>';
+
+        $this->assertSame($title, $this->callProtected('removeDuplicateContactsOutsideShortcodes', [$title]));
+    }
+
+    public function testRemoveDuplicatesStillStripsDuplicateContactFromText(): void
+    {
+        $title = 'Mail me at a@b.com [apbct_skip_encoding]a@b.com[/apbct_skip_encoding]';
+
+        $this->assertSame(
+            'Mail me at [apbct_skip_encoding]a@b.com[/apbct_skip_encoding]',
+            $this->callProtected('removeDuplicateContactsOutsideShortcodes', [$title])
+        );
+    }
+
+    /**
+     * End-to-end: final title output must not contain a javascript: link in either mode.
+     *
+     * @dataProvider titleXssPayloadProvider
+     */
+    public function testFilterTheTitleDoesNotOutputJavascriptHref($title): void
+    {
+        global $apbct;
+
+        $previous_buffer = $apbct->settings['data__email_decoder_buffer'];
+
+        try {
+            foreach ([true, false] as $buffer_mode) {
+                $apbct->settings['data__email_decoder_buffer'] = $buffer_mode;
+
+                $result = $this->exclude_content_sc->filterTheTitle($title);
+
+                $this->assertNotRegExp('/<a\b[^>]*\bhref\s*=\s*["\']?\s*javascript:/i', $result);
+            }
+        } finally {
+            $apbct->settings['data__email_decoder_buffer'] = $previous_buffer;
+        }
+    }
+
+    public function titleXssPayloadProvider(): array
+    {
+        $skip = '[apbct_skip_encoding]https:[/apbct_skip_encoding]';
+
+        return [
+            'scheme forged by strip' => ['<a href="https:javascript:alert(document.domain)">' . $skip . 'marker</a>'],
+            '> in double-quoted attribute' => ['<a title="a>b" href="https:javascript:alert(1)">x</a>' . $skip],
+            '> in single-quoted attribute' => ["<a title='a>b' href='https:javascript:alert(1)'>x</a>" . $skip],
+        ];
+    }
+
+    public function testBufferModeTitleDropsScriptTags(): void
+    {
+        $title = '[apbct_skip_encoding]x@y.com[/apbct_skip_encoding]<script>alert(1)</script>';
+
+        $this->assertStringNotContainsString('<script', $this->callProtected('prepareTitleForBufferMode', [$title]));
+    }
 }

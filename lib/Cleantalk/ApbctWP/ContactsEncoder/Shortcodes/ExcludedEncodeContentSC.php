@@ -642,12 +642,23 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return '';
         }
 
-        foreach ( $contacts as $contact ) {
-            $quoted = preg_quote($contact, '/');
-            $text = preg_replace('/' . $quoted . '/', '', $text);
+        $parts = wp_html_split($text);
+        if ( ! is_array($parts) ) {
+            return $text;
         }
 
-        return $text;
+        $result = '';
+        foreach ( $parts as $part ) {
+            if ( $part !== '' && $part[0] !== '<' ) {
+                foreach ( $contacts as $contact ) {
+                    $quoted = preg_quote($contact, '/');
+                    $part = preg_replace('/' . $quoted . '/', '', $part);
+                }
+            }
+            $result .= $part;
+        }
+
+        return $result;
     }
 
     /**
@@ -737,7 +748,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return $title;
         }
 
-        return $this->removeDuplicateContactsOutsideShortcodes($title);
+        return wp_kses_post($this->removeDuplicateContactsOutsideShortcodes($title));
     }
 
     /**
@@ -891,9 +902,37 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         if ( $strip_html ) {
             $result = wp_strip_all_tags($result);
             $result = trim(preg_replace('/\s+/', ' ', $result), " \n\r\t\v\x00");
+        } else {
+            $result = $this->ksesEncodedMarkup($result);
         }
 
         return $result;
+    }
+
+    /**
+     * wp_kses_post() keeping encoder attributes: WP < 5.0 strips data-* attributes.
+     *
+     * @param string $html
+     *
+     * @return string
+     */
+    protected function ksesEncodedMarkup($html)
+    {
+        $allowed_html = wp_kses_allowed_html('post');
+        $encoder_attributes = array(
+            'data-original-string' => true,
+            'class' => true,
+            'title' => true,
+        );
+
+        foreach ( array('span', 'a') as $tag ) {
+            $allowed_html[$tag] = array_merge(
+                isset($allowed_html[$tag]) ? $allowed_html[$tag] : array(),
+                $encoder_attributes
+            );
+        }
+
+        return wp_kses($html, $allowed_html);
     }
 
     /**
