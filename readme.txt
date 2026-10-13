@@ -4,7 +4,7 @@ Tags: anti-spam, spam protection, contact form spam, spam, captcha
 Requires at least: 4.7
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 6.89.1
+Stable tag: 6.90
 License: GPLv2
 
 Stop spam in contact forms, comments, registrations, and WooCommerce automatically. CAPTCHA free antispam plugin that works in the background.
