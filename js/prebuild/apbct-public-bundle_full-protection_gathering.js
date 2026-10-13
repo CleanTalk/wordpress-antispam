@@ -394,7 +394,11 @@ function fillDecodedNodes(encodedNodes, decodingResult) {
                     continue;
                 }
                 let encodedEmail = encodedNodes[i].href.replace(linkTypePrefix, '');
-                ctReplaceInTextNodes(encodedNodes[i], encodedEmail, currentResultData.decoded_email);
+                ctReplaceInTextNodes(
+                    encodedNodes[i],
+                    encodedEmail,
+                    ctHtmlToText(currentResultData.decoded_email),
+                );
                 encodedNodes[i].href = linkTypePrefix + currentResultData.decoded_email;
 
                 encodedNodes[i].querySelectorAll('span.apbct-email-encoder').forEach((el) => {
@@ -404,7 +408,7 @@ function fillDecodedNodes(encodedNodes, decodingResult) {
                             encodedEmailTextInsideMailto = row.decoded_email;
                         }
                     });
-                    el.textContent = encodedEmailTextInsideMailto;
+                    el.textContent = ctHtmlToText(encodedEmailTextInsideMailto);
                 });
             } else {
                 encodedNodes[i].classList.add('no-blur');
@@ -437,6 +441,8 @@ function ctReplaceInTextNodes(element, search, replacement) {
     if (!search) {
         return;
     }
+    // Merge adjacent text nodes so a token split between them is still found.
+    element.normalize();
     const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
     let node;
     while ((node = walker.nextNode())) {
@@ -445,6 +451,19 @@ function ctReplaceInTextNodes(element, search, replacement) {
             return;
         }
     }
+}
+
+/**
+ * Convert server HTML to plain text without rendering it.
+ * @param {string} html
+ * @return {string}
+ */
+function ctHtmlToText(html) {
+    if (!html) {
+        return '';
+    }
+    // DOMParser documents are inert: no scripts run and no event handlers fire.
+    return new DOMParser().parseFromString(String(html), 'text/html').documentElement.textContent;
 }
 
 /**
