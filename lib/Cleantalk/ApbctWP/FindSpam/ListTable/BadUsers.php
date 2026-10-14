@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
+use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\Common\TT;
 
@@ -84,9 +85,9 @@ class BadUsers extends Users
         // Email
         if ( ! empty($email) ) {
             //HANDLE LINK
-            $column_content .= "<a href='mailto:$email'>$email</a>"
+            $column_content .= "<a href='mailto:" . Escape::escAttr($email) . "'>" . Escape::escHtml($email) . "</a>"
                                . (! $this->apbct->white_label
-                    ? "<a href='https://cleantalk.org/blacklists/$email' target='_blank'>"
+                    ? "<a href='https://cleantalk.org/blacklists/" . Escape::escAttr($email) . "' target='_blank'>"
                       . "&nbsp;<img src='" . APBCT_URL_PATH . "/inc/images/new_window.gif' alt='Ico: open in new window' border='0' style='float:none' />"
                       . "</a>"
                     : '');
@@ -101,9 +102,9 @@ class BadUsers extends Users
             ? $ip_from_keeper
             : null;
         if ( !empty($ip_from_keeper) ) {
-            $column_content .= "<a href='user-edit.php?user_id=$user_obj->ID'>$ip_from_keeper</a>"
+            $column_content .= "<a href='user-edit.php?user_id=" . Escape::escAttr($user_obj->ID) . "'>" . Escape::escHtml($ip_from_keeper) . "</a>"
                                . (! $this->apbct->white_label
-                    ? "<a href='https://cleantalk.org/blacklists/$ip_from_keeper ' target='_blank'>"
+                    ? "<a href='https://cleantalk.org/blacklists/" . Escape::escAttr($ip_from_keeper) . "' target='_blank'>"
                       . "&nbsp;<img src='" . APBCT_URL_PATH . "/inc/images/new_window.gif' alt='Ico: open in new window' border='0' style='float:none' />"
                       . "</a>"
                     : '');
