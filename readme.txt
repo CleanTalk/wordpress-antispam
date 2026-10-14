@@ -7,17 +7,15 @@ Requires PHP: 7.2
 Stable tag: 6.89.1
 License: GPLv2
 
-Stop spam in forms, comments, reviews, and WooCommerce. Works with Elementor, WPForms, Contact Form 7, and Ninja Forms. CAPTCHA free antispam plugin.
+Top-rated antispam for forms, comments & reviews. No CAPTCHAs, just background spam protection. Free trial, then $12/year with unlimited checks.
 
 == Description ==
 
-= 🛡️ Stop WordPress spam — No CAPTCHA Required =
+Top-rated antispam for forms, comments & reviews. No CAPTCHAs, just background spam protection. Free trial, then $12/year with **unlimited checks**.
 
-CleanTalk protects your WordPress site from **spam comments, contact form spam, fake registrations, fake WooCommerce orders, spam subscriptions, and other unwanted submissions** — automatically and without CAPTCHA.
+**Trusted by over 200,000 websites** and rated among the top anti-spam solutions for WordPress in 2026. Powered by a **global spam detection network that includes over 1,078,000 websites** and helps stop spam before it reaches your website. 
 
-Simply install and activate the plugin. CleanTalk works in the background to identify and block spam while allowing legitimate visitors to use your forms without puzzles or additional verification.
-
-= 🌐 Anti-Spam Protection for your entire WordPress site =
+= 🛡️ Anti-Spam Protection for your entire WordPress site =
 
 * **Contact forms** — block spam submitted through Contact Form 7, WPForms, Elementor Forms, Gravity Forms, Fluent Forms, Formidable Forms, and many others.
 * **WordPress comments** — automatically detect and block spam comments.
@@ -46,10 +44,7 @@ Install the plugin, connect it to the CleanTalk Anti-Spam service, and your Word
 > <a href="https://thehackernews.com/2023/07/improve-your-security-wordpress-spam.html" target="_blank">The Hacker News</a>.
 
 = 🗂️ Managing Multiple Websites? =
-CleanTalk also works well for agencies, developers, and website managers. Protect and manage multiple client websites from one CleanTalk account.
-
-= Free trial then $12 per year =
-CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
+CleanTalk also works well for agencies, developers, and website managers. Protect and manage multiple client websites from one CleanTalk account with **unlimited checks for spam**.
 
 = 💬 AntiSpam protection for comments =
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
@@ -332,15 +327,9 @@ The plugin has several options to detect spam bots and humans. If you just post 
 the comments will be passed, because the plugin detects sender as a human. So, use special email *stop_email@example.com* to test the anti-spam functionality or wait a few days to see how the plugin works.
 
 = Is it free or paid? =
-The plugin is free and distributed under the GPLv2 license.
+The plugin includes a free trial and requires a paid subscription after the trial ends. It uses the CleanTalk cloud to filter spam on your website, providing highly effective spam protection. Cloud-based filtering is more sophisticated than standalone solutions, **reducing the risk of blocking legitimate visitors** while allowing **fewer spammers** through.
 
-CleanTalk anti-spam plugin works with a cloud base anti-spam service and this plugin is a Software as a service (SaaS).
-CleanTalk it’s a free plugin that works with premium Cloud Anti-Spam service.
-https://en.wikipedia.org/wiki/Software_as_a_service
-
-The fact that the plugin works with a premium type service is mentioned in the plugin annotation and in its WordPress catalog description.
-
-We are ready to help you with any issue regarding CleanTalk. There are hundreds of environment compositions and we do our best to cover as many as possible.
+Pricing **starts at $12/year/site** and includes **unlimited spam checks**.
 
 = Can I use CleanTalk with cache plugins? =
 Anti-spam by CleanTalk doesn't use static HTML code in its templates, so all anti-spam functions work correctly with any WordPress cache plugins.
