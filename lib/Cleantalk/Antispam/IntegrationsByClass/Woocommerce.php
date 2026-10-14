@@ -6,6 +6,7 @@ use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\IntegrationMetrics\IMetricDTO;
 use Cleantalk\Antispam\IntegrationMetrics\IMetricService;
+use Cleantalk\ApbctWP\ModerateServerConfig;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -1453,11 +1454,7 @@ class Woocommerce extends IntegrationByClassBase
                 $ct = new Cleantalk();
 
                 // Server URL handling
-                $config             = ct_get_server();
-                $ct->server_url     = APBCT_MODERATE_URL;
-                $ct->work_url       = isset($config['ct_work_url']) && preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
-                $ct->server_ttl     = isset($config['ct_server_ttl']) ? $config['ct_server_ttl'] : null;
-                $ct->server_changed = isset($config['ct_server_changed']) ? $config['ct_server_changed'] : null;
+                ModerateServerConfig::set($ct);
 
                 $ct->sendFeedback($ct_request);
             } catch (\Exception $e) {

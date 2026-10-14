@@ -8,16 +8,15 @@ use Cleantalk\ApbctWP\BaseCall\DefaultParams;
 use Cleantalk\ApbctWP\BotDetectorService;
 use Cleantalk\ApbctWP\CleantalkSettingsTemplates;
 use Cleantalk\ApbctWP\Constant;
-use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\DB;
 use Cleantalk\ApbctWP\DTO\GetFieldsAnyDTO;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Honeypot;
+use Cleantalk\ApbctWP\ModerateServerConfig;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 use Cleantalk\ApbctWP\RequestParameters\SubmitTimeHandler;
-use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
@@ -260,11 +259,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
     );
 
     // Options store url without scheme because of DB error with ''://'
-    $config             = ct_get_server();
-    $ct->server_url     = APBCT_MODERATE_URL;
-    $ct->work_url       = isset($config['ct_work_url']) && preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
-    $ct->server_ttl     = isset($config['ct_server_ttl']) ? $config['ct_server_ttl'] : null;
-    $ct->server_changed = isset($config['ct_server_changed']) ? $config['ct_server_changed'] : null;
+    ModerateServerConfig::set($ct);
 
     $start     = microtime(true);
     $ct_result = $reg_flag
@@ -280,18 +275,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
     $apbct->stats['last_request']['server'] = $ct->work_url;
     $apbct->save('stats');
 
-    if ( $ct->server_change ) {
-        update_option(
-            'cleantalk_server',
-            array(
-                'ct_work_url'       => $ct->work_url,
-                'ct_server_ttl'     => $ct->server_ttl,
-                'ct_server_changed' => time(),
-            )
-        );
-        $cron = new Cron();
-        $cron->updateTask('rotate_moderate', 'apbct_rotate_moderate', 86400); // Rotate moderate server
-    }
+    ModerateServerConfig::save($ct);
 
     //alternative checks and connection report handler
     if ($ct_result instanceof \Cleantalk\Antispam\CleantalkResponse) {
@@ -320,21 +304,21 @@ function apbct_base_call($params = array(), $reg_flag = false)
     return array('ct' => $ct, 'ct_result' => $ct_result);
 }
 
+/**
+ * Daily moderate rotation.
+ *
+ * Always uses the plain hostname strategy, so it doubles as the recovery point:
+ * rotateModerate() clears any pinned IP and the fresh record is stored with
+ * 'ct_resolve_ip' => null. From the next request on, traffic goes out with normal
+ * name resolution and no CURLOPT_RESOLVE at all.
+ */
 function apbct_rotate_moderate()
 {
     $ct = new Cleantalk();
     $ct->server_url = APBCT_MODERATE_URL;
     $ct->rotateModerate();
-    if ( $ct->server_change ) {
-        update_option(
-            'cleantalk_server',
-            array(
-                'ct_work_url'       => $ct->work_url,
-                'ct_server_ttl'     => $ct->server_ttl,
-                'ct_server_changed' => time(),
-            )
-        );
-    }
+    // No cron re-arming: this IS the cron callback.
+    ModerateServerConfig::save($ct, false);
 }
 
 function apbct_exclusions_check($func = null)
@@ -963,40 +947,6 @@ function ct_get_admin_email()
 }
 
 /**
- * Inner function - Current CleanTalk working server info
- * @return    array Array of server data
- */
-function ct_get_server()
-{
-    $ct_server = get_option('cleantalk_server');
-    if ( ! is_array($ct_server) ) {
-        $ct_server = array(
-            'ct_work_url'       => null,
-            'ct_server_ttl'     => null,
-            'ct_server_changed' => null
-        );
-    }
-
-    $ct_server['ct_work_url'] = Sanitize::sanitizeCleantalkServerUrl(TT::getArrayValueAsString($ct_server, 'ct_work_url'));
-
-    return $ct_server;
-}
-
-/**
- * @param $url
- *
- * @return string|null
- */
-function sanitize_cleantalk_server_url($url)
-{
-    if (!is_string($url)) {
-        return null;
-    }
-    return preg_match('/^.*(moderate|api).*\.cleantalk.org(?!\.)[\/\\\\]{0,1}/m', $url)
-        ? $url
-        : null;
-}
-/**
  * Inner function - Stores ang returns cleantalk hash of current comment
  *
  * @param string New hash or NULL
@@ -1075,11 +1025,7 @@ function ct_send_feedback($feedback_request = null)
         $ct = new Cleantalk();
 
         // Server URL handling
-        $config             = ct_get_server();
-        $ct->server_url     = APBCT_MODERATE_URL;
-        $ct->work_url       = isset($config['ct_work_url']) && preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
-        $ct->server_ttl     = isset($config['ct_server_ttl']) ? $config['ct_server_ttl'] : null;
-        $ct->server_changed = isset($config['ct_server_changed']) ? $config['ct_server_changed'] : null;
+        ModerateServerConfig::set($ct);
 
         //method use api3.0 since 6.35(6.36?)
         $ct->api_version = '/api3.0';
@@ -1087,18 +1033,8 @@ function ct_send_feedback($feedback_request = null)
 
         $ct_result = $ct->sendFeedback($ct_request);
 
-        if ( $ct->server_change ) {
-            update_option(
-                'cleantalk_server',
-                array(
-                    'ct_work_url'       => $ct->work_url,
-                    'ct_server_ttl'     => $ct->server_ttl,
-                    'ct_server_changed' => time(),
-                )
-            );
-            $cron = new Cron();
-            $cron->updateTask('rotate_moderate', 'apbct_rotate_moderate', 86400); // Rotate moderate server
-        }
+        ModerateServerConfig::save($ct);
+
         if ( $ct_result ) {
             return true;
         }

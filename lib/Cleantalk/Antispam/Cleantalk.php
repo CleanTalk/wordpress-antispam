@@ -5,6 +5,7 @@ namespace Cleantalk\Antispam;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\HTTP\Request;
 use Cleantalk\Common\DNS;
+use Cleantalk\Common\TT;
 
 /**
  * Cleantalk base class
@@ -45,28 +46,66 @@ class Cleantalk
     public $server_url;
 
     /**
-     * Last work url
-     * @var string
+     * Last work url.
+     *
+     * NULL means "no usable cached server", which makes httpRequest() start with
+     * a rotation instead of reusing the previous target.
+     *
+     * @var string|null
      */
     public $work_url;
 
     /**
      * Work url ttl
-     * @var int
+     * @var int|null
      */
     public $server_ttl;
 
     /**
      * Time work_url changed
-     * @var int
+     * @var int|null
      */
     public $server_changed;
 
     /**
-     * Flag is change server url
+     * A server was CONFIRMED working: a rotation happened and the retry on the new
+     * target came back with errno 0.
+     *
+     * This is the only state worth caching. Set exclusively by httpRequest() after a
+     * successful response -- never by the rotation methods, which cannot know yet
+     * whether the server they picked actually answers.
+     *
      * @var bool
      */
     public $server_change = false;
+
+    /**
+     * The in-memory server state no longer matches the stored record, but nothing
+     * has been confirmed working.
+     *
+     * Set by the rotation methods whenever they touch $work_url or $dns_resolve_ip.
+     * Keeping the two flags apart is what stops a dead server from being cached for
+     * a day, and what stops a stale pinned IP from outliving the rotation that
+     * cleared it. See ModerateServerConfig::save() for how each flag is handled.
+     *
+     * @var bool
+     */
+    public $server_state_dirty = false;
+
+    /**
+     * IP address the moderate hostname must be pinned to via CURLOPT_RESOLVE.
+     *
+     * Set ONLY by rotateModerateWithDnsOverride(), i.e. only when cURL's own
+     * resolver is broken ('getaddrinfo() thread failed to start'). The hostname
+     * stays in $work_url, so the '*.cleantalk.org' certificate still validates --
+     * never put this IP into the URL itself.
+     *
+     * NULL means "resolve normally", which is the default and the state we fall
+     * back to on every rotation.
+     *
+     * @var string|null
+     */
+    public $dns_resolve_ip;
 
     /**
      * Codepage of the data
@@ -260,19 +299,33 @@ class Cleantalk
             // Getting type of error
             $type_error = $this->getTypeError($result);
 
-            $failed_urls = $this->work_url;
+            $failed_urls = $this->describeCurrentTarget();
             if ( ! empty($this->work_url) ) {
-                $this->downServers[] = $this->work_url;
+                $this->downServers[] = $this->getCurrentTargetKey();
             }
 
-            if ( ($type_error === 'getaddrinfo_error' || $type_error === 'connection_timeout') && $attempt === 1 ) {
-                $this->rotateModerateAndUseIP();
-                //exit if next sendRequest failed, because change dns->ip is only way to fix errors above
-                $attempt = $attempt + 2;
+            // Pick a recovery strategy that actually matches the failure.
+            //
+            // 'getaddrinfo_error' means cURL itself cannot resolve ANY hostname, so
+            // moving to another moderate host would hit the very same wall. The only
+            // cure is to feed cURL a ready IP while keeping the hostname in the URL.
+            //
+            // Everything else ('connection_timeout', 'unknown') is a per-server
+            // problem: plain rotation to another moderate host fixes it and needs no
+            // IP pinning at all.
+            if ( $type_error === 'getaddrinfo_error' ) {
+                $this->rotateModerateWithDnsOverride();
             } else {
                 $this->rotateModerate();
-                //try change server again if next sendRequest failed
-                $attempt = $attempt + 1;
+            }
+            $attempt++;
+
+            // Rotation can legitimately come back empty (no DNS records, every
+            // candidate already marked as down). There is no URL left to try, so
+            // stop instead of calling sendRequest() with a null URL.
+            if ( empty($this->work_url) ) {
+                $result = false;
+                break;
             }
 
             $result = $this->sendRequest($msg, $this->work_url, $this->server_timeout);
@@ -282,7 +335,7 @@ class Cleantalk
                 break;
             }
 
-            $failed_urls .= ', ' . $this->work_url;
+            $failed_urls .= ', ' . $this->describeCurrentTarget();
         }
         /** @psalm-suppress PossiblyInvalidArgument */
         $response = new CleantalkResponse($result, $failed_urls);
@@ -303,7 +356,34 @@ class Cleantalk
     }
 
     /**
-     * * @todo Refactor / fix logic errors
+     * Plain moderate rotation: move to another moderate host by its hostname.
+     *
+     * FIRES ON: 'connection_timeout' (cURL error 28) and 'unknown' errors, i.e.
+     * when DNS works fine but the current moderate server is slow or down.
+     *
+     * HOW: resolves 'moderate.cleantalk.org' to its A records, then maps each IP
+     * back to a verified PTR hostname ('moderate3.cleantalk.org') and uses THAT
+     * hostname in $work_url. The hostname is covered by the '*.cleantalk.org'
+     * certificate, so TLS verification keeps working.
+     *
+     * DOES NOT set $dns_resolve_ip -- it explicitly clears it and raises
+     * $server_state_dirty, so a previously pinned IP never outlives a rotation even
+     * if no replacement server is found. The one exception is an early return on a
+     * dead resolver (getServersIp() empty): there is nothing to rotate to, and the
+     * pin is then the only remaining way to reach a server, so it is left alone and
+     * expires through the TTL instead.
+     *
+     * DOES NOT set $server_change: picking a candidate is not proof it answers.
+     * Only httpRequest() raises that flag, after a successful retry.
+     *
+     * REQUIRES: a working PHP-level resolver (dns_get_record / gethostbyaddr).
+     * It cannot repair 'getaddrinfo_error', because cURL would still have to
+     * resolve the new hostname through the very same broken resolver --
+     * see rotateModerateWithDnsOverride() for that case.
+     *
+     * @return void
+     *
+     * @todo Refactor / fix logic errors
      */
     public function rotateModerate()
     {
@@ -320,6 +400,12 @@ class Cleantalk
             return;
         }
 
+        // Back to normal name resolution: this strategy never pins an IP.
+        // Dropping the pin is itself a state change that must reach the option,
+        // otherwise a stale IP would be restored on the next request.
+        $this->dns_resolve_ip     = null;
+        $this->server_state_dirty = true;
+
         // Loop until find work server
         foreach ( $servers as $server ) {
             $dns = Helper::ipResolve($server['ip']);
@@ -334,19 +420,56 @@ class Cleantalk
                 continue;
             }
 
-            $this->server_ttl    = $server['ttl'];
-            $this->server_change = true;
+            $this->server_ttl = $server['ttl'];
             break;
         }
     }
 
     /**
-     * * @todo Refactor / fix logic errors
+     * Moderate rotation with a DNS override: keep the hostname, pin the IP.
+     *
+     * FIRES ON: 'getaddrinfo_error' ONLY ('getaddrinfo() thread failed to start'),
+     * i.e. when cURL's own resolver is broken while PHP's resolver still answers.
+     * Plain rotation cannot help there, because any new hostname would be resolved
+     * through the same broken path.
+     *
+     * HOW: $work_url keeps the ORIGINAL hostname ('https://moderate.cleantalk.org')
+     * and the chosen IP goes into $dns_resolve_ip, which sendRequest() turns into a
+     * CURLOPT_RESOLVE entry. cURL then skips getaddrinfo() but still presents the
+     * hostname for SNI and certificate verification.
+     *
+     * WHY NOT AN IP IN THE URL: the CleanTalk certificate only carries
+     * 'CN=*.cleantalk.org' / 'SAN: *.cleantalk.org, cleantalk.org' and no IP SANs,
+     * so 'https://88.198.153.60/' fails with cURL error 60. $work_url is also reused
+     * for the browser-facing pixel URL, which would expose that error to visitors.
+     *
+     * SIDE EFFECT: none here. The cURL transport is forced by sendRequest(), which
+     * is the only place that knows a resolve override is actually being applied --
+     * including on later requests that restore the pinned IP from the option.
+     *
+     * FALLBACK: if cURL or CURLOPT_RESOLVE is unavailable (cURL < 7.21.3), delegates
+     * to rotateModerate().
+     *
+     * RECOVERY: the pinned IP lives in the 'cleantalk_server' option next to
+     * $work_url and dies with it -- on TTL expiry, on the daily rotate_moderate cron,
+     * or on any later rotateModerate(), which clears the pin and marks the state
+     * dirty so the clearing actually reaches the option even when the rotation
+     * itself finds nothing usable.
+     *
+     * @return void
+     *
+     * @todo Refactor / fix logic errors
      */
-    public function rotateModerateAndUseIP()
+    public function rotateModerateWithDnsOverride()
     {
+        // No cURL, no CURLOPT_RESOLVE - nothing to override with.
+        if ( ! function_exists('curl_init') || ! defined('CURLOPT_RESOLVE') ) {
+            $this->rotateModerate();
+
+            return;
+        }
+
         // Split server url to parts
-        global $apbct;
         preg_match("/^(https?:\/\/)([^\/:]+)(.*)/i", $this->server_url, $matches);
 
         $url_protocol = isset($matches[1]) ? $matches[1] : '';
@@ -359,26 +482,83 @@ class Cleantalk
             return;
         }
 
-        $apbct->settings['wp__use_builtin_http_api'] = false;
-
         // Loop until find work server
         foreach ( $servers as $server ) {
-            $dns = Helper::ipResolve($server['ip']);
-            if ( ! $dns ) {
+            if ( empty($server['ip']) ) {
                 continue;
             }
 
-            $this->work_url = $url_protocol . $server['ip'] . $url_suffix;
+            // Hostname stays intact - only the resolution step is overridden.
+            $this->work_url           = $url_protocol . $url_host . $url_suffix;
+            $this->dns_resolve_ip     = $server['ip'];
+            $this->server_state_dirty = true;
 
             // Do not checking previous down server
-            if ( ! empty($this->downServers) && in_array($this->work_url, $this->downServers) ) {
+            if ( ! empty($this->downServers) && in_array($this->getCurrentTargetKey(), $this->downServers) ) {
                 continue;
             }
 
-            $this->server_ttl    = $server['ttl'];
-            $this->server_change = true;
+            $this->server_ttl = $server['ttl'];
             break;
         }
+    }
+
+    /**
+     * Identifier of the current target used to mark it as down.
+     *
+     * With a DNS override $work_url is identical for every candidate, so the pinned
+     * IP has to be part of the key -- otherwise the first failed IP would blacklist
+     * all the others.
+     *
+     * @return string
+     */
+    private function getCurrentTargetKey()
+    {
+        return empty($this->dns_resolve_ip)
+            ? (string)$this->work_url
+            : $this->work_url . '#' . $this->dns_resolve_ip;
+    }
+
+    /**
+     * Human readable description of the current target for connection reports.
+     *
+     * @return string
+     */
+    private function describeCurrentTarget()
+    {
+        return empty($this->dns_resolve_ip)
+            ? (string)$this->work_url
+            : $this->work_url . ' (resolved to ' . $this->dns_resolve_ip . ')';
+    }
+
+    /**
+     * Build the 'resolve' option (CURLOPT_RESOLVE format) for the given URL.
+     *
+     * Returns NULL when no override is active, which is the normal case -- the
+     * request then goes out with ordinary name resolution and no cURL-specific
+     * options at all.
+     *
+     * @param string $url
+     *
+     * @return array|null array('host:port:ip') or null
+     */
+    private function buildResolveOption($url)
+    {
+        if ( empty($this->dns_resolve_ip) || ! is_string($url) ) {
+            return null;
+        }
+
+        $parsed = parse_url($url);
+
+        if ( empty($parsed['host']) ) {
+            return null;
+        }
+
+        $port = isset($parsed['port'])
+            ? TT::getArrayValueAsString($parsed, 'port')
+            : (isset($parsed['scheme']) && $parsed['scheme'] === 'http' ? '80' : '443');
+
+        return array($parsed['host'] . ':' . $port . ':' . $this->dns_resolve_ip);
     }
 
     /**
@@ -516,6 +696,8 @@ class Cleantalk
      */
     private function sendRequest($data, $url, $server_timeout = 3)
     {
+        global $apbct;
+
         //Cleaning from 'null' values
         $tmp_data = array();
         /** @psalm-suppress PossiblyInvalidIterator */
@@ -552,10 +734,27 @@ class Cleantalk
             ? $url . '/' . $this->method_uri
             : $url;
 
+        $options = ['timeout' => $server_timeout];
+
+        // Only present while a DNS override is active (getaddrinfo_error recovery).
+        // Without it the request goes out with plain name resolution.
+        $resolve = $this->buildResolveOption($url);
+        if ( $resolve !== null ) {
+            $options['resolve'] = $resolve;
+
+            // CURLOPT_RESOLVE exists only in the cURL transport. The WP HTTP API may
+            // pick fsockopen/streams instead and would silently drop the override,
+            // sending the request through the very resolver we are working around.
+            // Forced here rather than at rotation time because $dns_resolve_ip is
+            // persisted: every later request restores it from the option and must
+            // force cURL again.
+            $apbct->settings['wp__use_builtin_http_api'] = false;
+        }
+
         $result = $http->setUrl($url)
                        ->setData($data)
                        ->setPresets($presets)
-                       ->setOptions(['timeout' => $server_timeout])
+                       ->setOptions($options)
                        ->request();
 
         $errstr   = null;
@@ -601,6 +800,21 @@ class Cleantalk
         return $this->httpRequest($msg);
     }
 
+    /**
+     * Classify a failed request so httpRequest() can pick a recovery strategy.
+     *
+     * 'connection_timeout' - cURL error 28. DNS is fine, this particular moderate
+     *                        server is slow/down => rotateModerate().
+     * 'getaddrinfo_error'  - cURL cannot resolve anything at all. Rotating to
+     *                        another hostname changes nothing =>
+     *                        rotateModerateWithDnsOverride().
+     * 'unknown'            - anything else, treated as a per-server problem =>
+     *                        rotateModerate().
+     *
+     * @param mixed $result
+     *
+     * @return string
+     */
     private function getTypeError($result)
     {
         if (isset($result->errstr)) {

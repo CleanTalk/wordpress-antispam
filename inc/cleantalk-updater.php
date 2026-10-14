@@ -2,6 +2,7 @@
 
 use Cleantalk\ApbctWP\Cron;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\ModerateServerConfig;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\Common\TT;
@@ -1403,4 +1404,14 @@ function apbct_update_to_6_89_0()
         $apbct->settings['forms__wc_hide_rejection_message'] = 0;
         $apbct->saveSettings();
     }
+}
+
+/**
+ * Drop the Moderate Server Config cache to ensure that the plugin fetches the latest configuration from the server after the update.
+ *
+ * @return void
+ */
+function apbct_update_to_6_90_0()
+{
+    ModerateServerConfig::reset();
 }

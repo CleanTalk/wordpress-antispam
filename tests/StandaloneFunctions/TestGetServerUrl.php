@@ -1,7 +1,7 @@
 <?php
 
 namespace StandaloneFunctions;
-use Cleantalk\ApbctWP\State;
+use Cleantalk\ApbctWP\ModerateServerConfig;
 use PHPUnit;
 
 class TestGetServerUrl extends PHPUnit\Framework\TestCase
@@ -39,7 +39,7 @@ class TestGetServerUrl extends PHPUnit\Framework\TestCase
                     'ct_server_changed' => time(),
                 )
             );
-            $server_details = ct_get_server();
+            $server_details = ModerateServerConfig::getCurrentConfig();
             $this->assertIsArray($server_details);
             $this->assertArrayHasKey('ct_work_url', $server_details);
             $this->assertNotNull($server_details['ct_work_url']);
@@ -60,7 +60,7 @@ class TestGetServerUrl extends PHPUnit\Framework\TestCase
                     'ct_server_changed' => time(),
                 )
             );
-            $server_details = ct_get_server();
+            $server_details = ModerateServerConfig::getCurrentConfig();
             $this->assertIsArray($server_details);
             $this->assertArrayHasKey('ct_work_url', $server_details);
             $this->assertIsNotString($server_details['ct_work_url']);

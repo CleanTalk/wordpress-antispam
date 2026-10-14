@@ -56,6 +56,15 @@ class Request
      *                   CURLOPT_LOW_SPEED_TIME => 10,
      *                   CURLOPT_RETURNTRANSFER => true,
      *            )
+     *
+     * Besides raw CURLOPT_* constants the following readable aliases are supported
+     * and translated by Request::convertOptionsTocURLFormat():
+     *      timeout         - int, seconds
+     *      sslverify       - bool, toggles peer and host verification at once
+     *      sslcertificates - string, path to the CA bundle
+     *      resolve         - string[], 'host:port:ip' entries for CURLOPT_RESOLVE.
+     *                        Use it to bypass a broken system resolver WITHOUT putting
+     *                        a bare IP into the URL, which would break TLS verification.
      */
     protected $options = [];
 
@@ -444,6 +453,16 @@ class Request
                     break;
                 case 'sslcertificates':
                     $temp_options[CURLOPT_CAINFO] = $option_name; // String
+                    unset($this->options[$option_name]);
+                    break;
+                // Pre-seed cURL's DNS cache: the URL keeps its hostname (so SNI and
+                // certificate verification still succeed), but cURL skips getaddrinfo()
+                // and connects straight to the supplied IP.
+                // Expected value: array('host:port:ip', ...)
+                case 'resolve':
+                    if ( defined('CURLOPT_RESOLVE') && is_array($option_value) && ! empty($option_value) ) {
+                        $temp_options[CURLOPT_RESOLVE] = $option_value; // String[]
+                    }
                     unset($this->options[$option_name]);
                     break;
                 case 'headers':
