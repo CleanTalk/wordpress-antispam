@@ -184,8 +184,8 @@ if [[ "$DRY_RUN" == "true" ]]; then
 fi
 
 svn commit -m "Release ${VERSION}: update trunk from master" \
-  --username "$SVN_USERNAME" \
-  --password "$SVN_PASSWORD" \
+  --username $SVN_USERNAME \
+  --password $SVN_PASSWORD \
   --non-interactive \
   --trust-server-cert
 log_stage "Commit trunk" "SVN trunk committed for version ${VERSION} from the filtered master tree."
@@ -194,8 +194,8 @@ svn copy \
   "$SVN_URL/trunk" \
   "$SVN_URL/tags/${VERSION}" \
   -m "Release ${VERSION}: create tag from trunk" \
-  --username "$SVN_USERNAME" \
-  --password "$SVN_PASSWORD" \
+  --username $SVN_USERNAME \
+  --password $SVN_PASSWORD \
   --non-interactive \
   --trust-server-cert
 log_stage "Tag" "SVN tag tags/${VERSION} created from trunk."
