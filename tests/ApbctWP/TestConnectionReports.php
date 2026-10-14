@@ -91,6 +91,37 @@ class TestConnectionReports extends TestCase
         $this->assertNotEmpty($this->connection_reports->remoteCallOutput());
     }
 
+    public function testReportDoesNotStoreAccessKey()
+    {
+        $this->connection_reports->wipeReportsData();
+
+        $auth_key = 'testaccesskey12345';
+        $this->ct_request = new \Cleantalk\Antispam\CleantalkRequest(array_merge(
+            $this->default_params,
+            array(
+                'auth_key' => $auth_key,
+                'sender_info' => array(
+                    'ct_options' => json_encode(array('apikey' => $auth_key, 'sfw__enabled' => 1)),
+                    'hook' => 'woocommerce_after_checkout_validation'
+                )
+            )
+        ));
+        $original_sender_info = $this->ct_request->sender_info;
+        $this->ct_response->errno = 404;
+        $this->ct_response->errstr = 'TEST ERROR';
+        $this->connection_reports->handleRequest($this->ct_request, $this->ct_response, 0);
+
+        $data = $this->connection_reports->remoteCallOutput();
+        $this->assertCount(1, $data);
+        $this->assertStringNotContainsString($auth_key, $data[0]['request_content']);
+        $content = json_decode($data[0]['request_content'], true);
+        $this->assertArrayNotHasKey('auth_key', $content);
+        $this->assertStringContainsString('*', $content['sender_info']);
+        $this->assertStringContainsString('woocommerce_after_checkout_validation', $content['sender_info']);
+        $this->assertSame($auth_key, $this->ct_request->auth_key);
+        $this->assertSame($original_sender_info, $this->ct_request->sender_info);
+    }
+
     public function testReportsRotation()
     {
         $this->connection_reports->wipeReportsData();

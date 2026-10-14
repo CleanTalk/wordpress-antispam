@@ -481,6 +481,8 @@ class RemoteCalls
             $out = [$show_only => $out[$show_only]];
         }
 
+        $out = static::hideSensitiveData($out);
+
         if ( Request::equal('out', 'json') ) {
             die(json_encode($out));
         }
@@ -493,8 +495,6 @@ class RemoteCalls
                 $val = date('Y-m-d H:i:s', $val);
             }
         });
-
-        $out = static::hideSensitiveData($out);
 
         $out = print_r($out, true);
         $out = str_replace("\n", "<br>", $out);
