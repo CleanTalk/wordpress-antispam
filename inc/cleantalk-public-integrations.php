@@ -915,10 +915,6 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
     if ( Post::get('wpmem_reg_page') && apbct_is_plugin_active('wp-members/wp-members.php') ) {
         return $errors;
     }
-    // BuddyBoss login form
-    if ( Post::getString('wp-submit') && Post::getString('log') && Post::getString('pwd') ) {
-        return $errors;
-    }
 
     $facebook = false;
     // Facebook registration
