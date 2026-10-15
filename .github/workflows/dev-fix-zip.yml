@@ -2,7 +2,7 @@ name: Auto Release Zip on dev/fix push (Linux)
 
 on:
   push:
-    branches: [dev, fix, beta]
+    branches: [dev, fix]
 
 permissions:
   contents: write

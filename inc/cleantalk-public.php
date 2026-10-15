@@ -409,9 +409,28 @@ function apbct_sgo_bypass_query_params($bypass_query_params)
     return $bypass_query_params;
 }
 
+/**
+ * Nesting level of the buffer opened by apbct_buffer__start().
+ *
+ * @param int|null $set
+ *
+ * @return int
+ */
+function apbct_buffer__own_level($set = null)
+{
+    static $level = 0;
+
+    if ( $set !== null ) {
+        $level = (int)$set;
+    }
+
+    return $level;
+}
+
 function apbct_buffer__start()
 {
     ob_start();
+    apbct_buffer__own_level(ob_get_level());
 }
 
 function apbct_buffer__end()
@@ -421,6 +440,19 @@ function apbct_buffer__end()
     }
 
     global $apbct;
+
+    // Buffers opened after ours (WP late-printed styles hoisting, other plugins) must be flushed,
+    // not discarded — otherwise their replacements never reach the output.
+    $own_level = apbct_buffer__own_level();
+    if ( $own_level > 0 ) {
+        while ( ob_get_level() > $own_level ) {
+            $previous_level = ob_get_level();
+            if ( ! @ob_end_flush() || ob_get_level() >= $previous_level ) {
+                break;
+            }
+        }
+    }
+
     $apbct->buffer = ob_get_contents();
     ob_end_clean();
 }
@@ -775,10 +807,6 @@ function apbct_comment__Wordpress__changeMailNotification($notify_message, $_com
                __('Activate protection in your Anti-Spam Dashboard: %s.', 'clentalk'),
                //HANDLE LINK
                'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=wp_spam_comment_passed'
-               . ($apbct->data['user_token']
-                   ? '&iser_token=' . $apbct->data['user_token']
-                   : ''
-               )
            )
            . PHP_EOL . '---'
            . PHP_EOL

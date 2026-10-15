@@ -4,7 +4,7 @@ Tags: anti-spam, spam protection, contact form spam, spam, captcha
 Requires at least: 4.7
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 6.89.1
+Stable tag: 6.90
 License: GPLv2
 
 Top-rated antispam for forms, comments & reviews. No CAPTCHAs, just background spam protection. Free trial, then $12/year with unlimited checks.
@@ -441,6 +441,16 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 
 == Changelog ==
 
+= 6.90 13.10.2026 =
+* Fix. Comments checker. Feedback success message fixed. (#907)
+* Fix. Force protection. Checking bot detector fixed.
+* Fix. Code. Parsing the response and text output
+* Fix. Code. Replacing the first occurrence of the search only in the element text
+* Fix. ContactEncoder. Edit to the tag attribute definition
+* New. Integrations. BuddyNext plugin registration.
+* Upd. Contacts encoder. Short codes functionality optimized. (#900)
+* Fix. ContactEncoder. Default value for method
+
 = 6.89.1 08.10.2026 =
 Fix. Settings. WooCommerce protection options changed.
 
@@ -623,3 +633,4 @@ Fix. Integration. WooCommerce register requests protection fixed.
 * Mod. AntiCrawler. Editing the option description
 
 = Look for early changelogs in <a href="https://github.com/CleanTalk/wordpress-antispam/blob/master/changelog.txt" target="_blank">changelog.txt</a>=
+

@@ -394,10 +394,10 @@ function fillDecodedNodes(encodedNodes, decodingResult) {
                     continue;
                 }
                 let encodedEmail = encodedNodes[i].href.replace(linkTypePrefix, '');
-                let baseElementContent = encodedNodes[i].innerHTML;
-                encodedNodes[i].innerHTML = baseElementContent.replace(
+                ctReplaceInTextNodes(
+                    encodedNodes[i],
                     encodedEmail,
-                    currentResultData.decoded_email,
+                    ctHtmlToText(currentResultData.decoded_email),
                 );
                 encodedNodes[i].href = linkTypePrefix + currentResultData.decoded_email;
 
@@ -408,7 +408,7 @@ function fillDecodedNodes(encodedNodes, decodingResult) {
                             encodedEmailTextInsideMailto = row.decoded_email;
                         }
                     });
-                    el.innerHTML = encodedEmailTextInsideMailto;
+                    el.textContent = ctHtmlToText(encodedEmailTextInsideMailto);
                 });
             } else {
                 encodedNodes[i].classList.add('no-blur');
@@ -429,6 +429,41 @@ function fillDecodedNodes(encodedNodes, decodingResult) {
         }, 2000);
         encodedNodes.removeEventListener('click', ctFillDecodedEmailHandler);
     }
+}
+
+/**
+ * Replace the first occurrence of search in element text only, never in markup or attributes.
+ * @param {HTMLElement} element
+ * @param {string} search
+ * @param {string} replacement
+ */
+function ctReplaceInTextNodes(element, search, replacement) {
+    if (!search) {
+        return;
+    }
+    // Merge adjacent text nodes so a token split between them is still found.
+    element.normalize();
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+        if (node.nodeValue.indexOf(search) !== -1) {
+            node.nodeValue = node.nodeValue.replace(search, () => replacement);
+            return;
+        }
+    }
+}
+
+/**
+ * Convert server HTML to plain text without rendering it.
+ * @param {string} html
+ * @return {string}
+ */
+function ctHtmlToText(html) {
+    if (!html) {
+        return '';
+    }
+    // DOMParser documents are inert: no scripts run and no event handlers fire.
+    return new DOMParser().parseFromString(String(html), 'text/html').documentElement.textContent;
 }
 
 /**
@@ -3857,6 +3892,22 @@ class ApbctHandler {
                     document.querySelectorAll('form.wprm-user-ratings-modal-stars-container').length > 0 &&
                     typeof args[0].includes === 'function' &&
                     args[0].includes('/wp-json/wp-recipe-maker/')
+                ) {
+                    try {
+                        args[1].body = attachFieldsToBody(
+                            args[1].body,
+                            selectFieldsData(+ctPublic.bot_detector_enabled),
+                        );
+                    } catch (e) {
+                        // Continue even if error
+                    }
+                }
+
+                // === BuddyNext register===
+                if (
+                    document.querySelectorAll('form.bn-auth-form').length > 0 &&
+                    typeof args[0].includes === 'function' &&
+                    args[0].includes('/wp-json/buddynext/v1/auth/register')
                 ) {
                     try {
                         args[1].body = attachFieldsToBody(

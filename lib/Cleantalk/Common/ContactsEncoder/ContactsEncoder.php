@@ -55,6 +55,17 @@ class ContactsEncoder
      */
     const MAILTO_SCHEME_PATTERN = '(?i:mailto):';
     const TEL_SCHEME_PATTERN = '(?i:tel):';
+    /**
+     * Optional query string following a mailto email (e.g. "?Subject=...&cc=...").
+     * It is captured together with the email instead of leaking out of the match.
+     *
+     * Two alternatives are used on purpose:
+     *  - inside an attribute the query may contain spaces ("?subject=Hello World"),
+     *    so it is only terminated by the closing quote;
+     *  - in plain text there is no closing quote, so the query must stop at the
+     *    first whitespace instead of swallowing the rest of the sentence.
+     */
+    const MAILTO_QUERY_PATTERN = '(?:\?(?:[^"\'<>]*?(?=["\'])|[^"\'<>\s]*))?';
     const PHONE_NUMBERS_PATTERNS = [
         '(' . self::TEL_SCHEME_PATTERN . self::PHONE_NUMBER . ')', // tel:+XXXXXXXXXX
         '([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)',                       // +X XXX XXXXXXX, +X(XXX)XXXXX, etc.
@@ -68,7 +79,7 @@ class ContactsEncoder
     protected $aria_regex;
 
     /**
-     * @var string example: '/((?i:mailto):\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b))/'
+     * @var string example: '/((?i:mailto):\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b(?:\?(?:[^"\'<>]*?(?=["\'])|[^"\'<>\s]*))?)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b))/'
      */
     protected $global_email_pattern;
 
@@ -78,7 +89,7 @@ class ContactsEncoder
     protected $global_phones_pattern;
 
     /**
-     * @var string example: '/(?i:mailto):(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})/'
+     * @var string example: '/(?i:mailto):(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,})(?:\?(?:[^"\'<>]*?(?=["\'])|[^"\'<>\s]*))?/'
      */
     protected $global_mailto_pattern;
 
@@ -207,9 +218,9 @@ class ContactsEncoder
     {
         $this->aria_regex = self::ARIA_LABEL_PATTERN;
 
-        $this->global_email_pattern = '/(' . self::MAILTO_SCHEME_PATTERN . '\b' . self::EMAIL_PATTERN . ')|(\b' . self::EMAIL_PATTERN_DOMAIN_CATCHING . ')/';
+        $this->global_email_pattern = '/(' . self::MAILTO_SCHEME_PATTERN . '\b' . self::EMAIL_PATTERN . self::MAILTO_QUERY_PATTERN . ')|(\b' . self::EMAIL_PATTERN_DOMAIN_CATCHING . ')/';
         $this->global_phones_pattern = '/' . implode('|', self::PHONE_NUMBERS_PATTERNS) . '/';
-        $this->global_mailto_pattern = '/' . self::MAILTO_SCHEME_PATTERN . '(' . self::EMAIL_PATTERN . ')/';
+        $this->global_mailto_pattern = '/' . self::MAILTO_SCHEME_PATTERN . '(' . self::EMAIL_PATTERN . ')' . self::MAILTO_QUERY_PATTERN . '/';
         $this->plain_email_pattern = '/(\b' . self::EMAIL_PATTERN . '\b)/';
         $this->global_tel_pattern = '/' . self::TEL_SCHEME_PATTERN . '(' . self::PHONE_NUMBER . ')/';
     }
@@ -581,15 +592,28 @@ class ContactsEncoder
         preg_match($this->global_mailto_pattern, $mailto_link_str, $matches);
         if ( isset($matches[1]) ) {
             $mailto_inner_text = preg_replace_callback($this->plain_email_pattern, function ($matches) {
-                if (isset($matches[0])) {
-                    return $this->getObfuscatedEmailString($matches[0]);
-                }
+                return isset($matches[0]) ? $this->getObfuscatedEmailString($matches[0]) : '';
             }, $matches[1]);
         }
         $mailto_link_str = preg_replace('/^mailto:/i', '', $mailto_link_str);
+
+        // Keep the query string (e.g. "?Subject=...") separate from the email itself,
+        // so it can be re-appended after obfuscation/encryption instead of leaking
+        // out of the match and corrupting the data-original-string attribute.
+        $email_part = $matches[1] ?? $mailto_link_str;
+        $query_part = '';
+        if ( strpos($mailto_link_str, $email_part) === 0 ) {
+            $query_part = substr($mailto_link_str, strlen($email_part));
+        }
+
+        // Encrypt the whole target (email + query) so decoding restores it in full,
+        // including any cc=/bcc= copies.
         $encoded = $this->encoder->encodeString($mailto_link_str);
 
-        $text = isset($mailto_inner_text) ? $mailto_inner_text : $mailto_link_str;
+        // The publicly visible copy must not leak cc=/bcc= addresses in plain text.
+        $visible_query_part = preg_replace('/\b(b?cc=)' . self::EMAIL_PATTERN . '/i', '$1', $query_part);
+
+        $text = ($mailto_inner_text ?? $email_part) . $visible_query_part;
 
         return 'mailto:' . $text . $this->buildSchemeLinkAttributes($encoded, $position);
     }
@@ -612,6 +636,7 @@ class ContactsEncoder
                     $obfuscator = new Obfuscator();
                     return $obfuscator->processPhone($matches[0]);
                 }
+                return '';
             }, $matches[1]);
         }
         $tel_link_str = preg_replace('/^tel:/i', '', $tel_link_str);

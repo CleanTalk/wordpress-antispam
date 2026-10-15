@@ -21,6 +21,11 @@ $apbct_active_rest_integrations = array(
         'setting' => 'forms__registrations_test',
         'rest'       => true,
     ),
+    'BuddyNextRegistration'         => array(
+        'rest_route'    => '/buddynext/v1/auth/register',
+        'setting' => 'forms__registrations_test',
+        'rest'       => true,
+    ),
 );
 
 add_filter('rest_pre_dispatch', function ($result, $_, $request) use ($apbct_active_rest_integrations) {

@@ -463,4 +463,110 @@ class ExcludedEncodeContentSCTest extends TestCase
         $this->assertSame($content, $result);
         $this->assertCount(0, $this->exclude_content_sc->shortcode_replacements);
     }
+
+    /**
+     * Regression test for the information disclosure fixed in getRawPostTitle():
+     * a non-public post (private/draft/pending/trash) whose raw title contains
+     * [apbct_skip_encoding] must never have that title content leaked through a
+     * link pointing at it from unrelated public content, regardless of the
+     * post's status.
+     *
+     * @dataProvider nonPublicPostStatusesProvider
+     */
+    public function testRestoreEncodedBlockTitlesFilterDoesNotLeakNonPublicPostTitle(string $status): void
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = false;
+
+        $secret = 'secret-' . $status . '-' . wp_generate_password(8, false);
+
+        $target_post_id = wp_insert_post(
+            array(
+                'post_title'   => 'Hidden title [apbct_skip_encoding]' . $secret . '[/apbct_skip_encoding]',
+                'post_content' => 'non-public content',
+                'post_status'  => $status,
+                'post_type'    => 'post',
+            ),
+            true
+        );
+
+        $this->assertIsInt($target_post_id);
+        $this->assertGreaterThan(0, $target_post_id);
+
+        try {
+            $href = home_url('/?p=' . $target_post_id);
+            $content = '<p><a href="' . esc_url($href) . '">[apbct_skip_encoding]</a></p>';
+
+            $result = $this->exclude_content_sc->restoreEncodedBlockTitlesFilter(
+                $content,
+                array('blockName' => 'core/page-list')
+            );
+
+            $this->assertStringNotContainsString(
+                $secret,
+                $result,
+                "Title content of a '$status' post must not be exposed via link-text restoration."
+            );
+            // Nothing matched, so the original link markup/text must be left untouched.
+            $this->assertSame($content, $result);
+        } finally {
+            wp_delete_post($target_post_id, true);
+        }
+    }
+
+    public function nonPublicPostStatusesProvider(): array
+    {
+        return array(
+            'private' => array('private'),
+            'draft'   => array('draft'),
+            'pending' => array('pending'),
+            'trash'   => array('trash'),
+        );
+    }
+
+    /**
+     * Ensures the publish-only restriction does not regress the legitimate
+     * feature: link text pointing at a *published* post whose title contains
+     * [apbct_skip_encoding] must still be restored.
+     */
+    public function testRestoreEncodedBlockTitlesFilterStillRestoresPublishedPostTitle(): void
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = false;
+
+        $contact = 'contact-' . wp_generate_password(8, false) . '@example.com';
+
+        $target_post_id = wp_insert_post(
+            array(
+                'post_title'   => 'Public title [apbct_skip_encoding]' . $contact . '[/apbct_skip_encoding]',
+                'post_content' => 'public content',
+                'post_status'  => 'publish',
+                'post_type'    => 'post',
+            ),
+            true
+        );
+
+        $this->assertIsInt($target_post_id);
+        $this->assertGreaterThan(0, $target_post_id);
+
+        try {
+            $href = home_url('/?p=' . $target_post_id);
+            $content = '<p><a href="' . esc_url($href) . '">[apbct_skip_encoding]</a></p>';
+
+            $result = $this->exclude_content_sc->restoreEncodedBlockTitlesFilter(
+                $content,
+                array('blockName' => 'core/page-list')
+            );
+
+            $this->assertStringContainsString(
+                $contact,
+                $result,
+                'Published post titles using the skip-encoding shortcode must still be restored in link text.'
+            );
+        } finally {
+            wp_delete_post($target_post_id, true);
+        }
+    }
 }
