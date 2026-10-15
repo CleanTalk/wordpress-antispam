@@ -1,0 +1,51 @@
+name: Deploy WordPress SVN
+description: Publish WordPress plugin to SVN from the master checkout
+inputs:
+  version:
+    required: true
+  plugin_slug:
+    description: WordPress.org plugin slug
+    required: true
+  main_file:
+    description: Main plugin file with the Version header, relative to the repository root
+    required: true
+  ignore_file:
+    description: rsync exclude list used to build the release tree
+    required: false
+    default: .7zignore
+  dry_run:
+    required: true
+  svn_username:
+    required: true
+  svn_password:
+    required: true
+  svn_url:
+    required: true
+  matrix_server:
+    required: false
+  matrix_room:
+    required: false
+  matrix_token:
+    required: false
+runs:
+  using: composite
+  steps:
+    - name: Install dependencies
+      shell: bash
+      run: sudo apt-get update && sudo apt-get install -y subversion unzip rsync python3 curl
+
+    - name: Run deploy script
+      shell: bash
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_PLUGIN_SLUG: ${{ inputs.plugin_slug }}
+        INPUT_MAIN_FILE: ${{ inputs.main_file }}
+        INPUT_IGNORE_FILE: ${{ inputs.ignore_file }}
+        INPUT_DRY_RUN: ${{ inputs.dry_run }}
+        INPUT_SVN_USERNAME: ${{ inputs.svn_username }}
+        INPUT_SVN_PASSWORD: ${{ inputs.svn_password }}
+        INPUT_SVN_URL: ${{ inputs.svn_url }}
+        INPUT_MATRIX_SERVER: ${{ inputs.matrix_server }}
+        INPUT_MATRIX_ROOM: ${{ inputs.matrix_room }}
+        INPUT_MATRIX_TOKEN: ${{ inputs.matrix_token }}
+      run: bash ${{ github.action_path }}/entrypoint.sh

@@ -395,10 +395,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
                     return $matches[0];
                 }
 
-                $title = $this->getPrimedRawPostTitle($post_id);
-                if ( $title === '' ) {
-                    $title = $this->getRawPostTitle($post_id);
-                }
+                $title = $this->getRawPostTitle($post_id);
 
                 if ( ! is_string($title) || $title === '' || strpos($title, '[apbct_skip_encoding]') === false ) {
                     return $matches[0];
@@ -485,15 +482,12 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         if (
             strpos($content, '[apbct_skip_encoding]') === false
             && strpos($content, 'apbct-email-encoder') === false
-            && $this->getPrimedRawPostTitle($post_id) === ''
+            && $this->getRawPostTitle($post_id) === ''
         ) {
             return $content;
         }
 
-        $title = $this->getPrimedRawPostTitle($post_id);
-        if ( $title === '' ) {
-            $title = $this->getRawPostTitle($post_id);
-        }
+        $title = $this->getRawPostTitle($post_id);
 
         if ( $title === '' || strpos($title, '[apbct_skip_encoding]') === false ) {
             return $content;
@@ -648,46 +642,23 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return '';
         }
 
-        foreach ( $contacts as $contact ) {
-            $quoted = preg_quote($contact, '/');
-            $text = preg_replace('/' . $quoted . '/', '', $text);
+        $parts = wp_html_split($text);
+        if ( ! is_array($parts) ) {
+            return $text;
         }
 
-        return $text;
-    }
-
-    /**
-     * Cache titles with skip-encoding shortcodes before frontend encoding mutates post objects.
-     *
-     * @return void
-     * @psalm-suppress PossiblyUnusedMethod
-     */
-    public function primeRawTitleCache()
-    {
-        if ( is_admin() ) {
-            return;
-        }
-
-        global $wpdb;
-
-        $rows = $wpdb->get_results(
-            "SELECT ID, post_title FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_title LIKE '%[apbct_skip_encoding]%'",
-            OBJECT_K
-        );
-
-        if ( ! is_array($rows) ) {
-            return;
-        }
-
-        foreach ( $rows as $post_id => $row ) {
-            if (
-                isset($row->post_title)
-                && is_string($row->post_title)
-                && strpos($row->post_title, 'apbct-email-encoder') === false
-            ) {
-                self::$raw_titles_cache[(int)$post_id] = $row->post_title;
+        $result = '';
+        foreach ( $parts as $part ) {
+            if ( $part !== '' && $part[0] !== '<' ) {
+                foreach ( $contacts as $contact ) {
+                    $quoted = preg_quote($contact, '/');
+                    $part = preg_replace('/' . $quoted . '/', '', $part);
+                }
             }
+            $result .= $part;
         }
+
+        return $result;
     }
 
     /**
@@ -731,6 +702,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return '';
         }
 
+        // Search the cache.
         $primed_title = $this->getPrimedRawPostTitle($post_id);
         if ( $primed_title !== '' ) {
             return $primed_title;
@@ -750,6 +722,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         }
 
         if ( strpos($title, 'apbct-email-encoder') === false ) {
+            // Set the cache.
             self::$raw_titles_cache[$post_id] = $title;
         }
 
@@ -779,7 +752,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return $title;
         }
 
-        return $this->removeDuplicateContactsOutsideShortcodes($title);
+        return wp_kses_post($this->removeDuplicateContactsOutsideShortcodes($title));
     }
 
     /**
@@ -845,15 +818,12 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             strpos($content, '[apbct_skip_encoding]') === false
             && strpos($content, 'apbct-email-encoder') === false
             && strpos($content, '%%APBCT_SHORT_CODE_SKIP') === false
-            && $this->getPrimedRawPostTitle($post_id) === ''
+            && $this->getRawPostTitle($post_id) === ''
         ) {
             return $content;
         }
 
-        $raw_title = $this->getPrimedRawPostTitle($post_id);
-        if ( $raw_title === '' ) {
-            $raw_title = $this->getRawPostTitle($post_id);
-        }
+        $raw_title = $this->getRawPostTitle($post_id);
 
         if ( $raw_title === '' || strpos($raw_title, '[apbct_skip_encoding]') === false ) {
             return $content;
@@ -936,9 +906,37 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         if ( $strip_html ) {
             $result = wp_strip_all_tags($result);
             $result = trim(preg_replace('/\s+/', ' ', $result), " \n\r\t\v\x00");
+        } else {
+            $result = $this->ksesEncodedMarkup($result);
         }
 
         return $result;
+    }
+
+    /**
+     * wp_kses_post() keeping encoder attributes: WP < 5.0 strips data-* attributes.
+     *
+     * @param string $html
+     *
+     * @return string
+     */
+    protected function ksesEncodedMarkup($html)
+    {
+        $allowed_html = wp_kses_allowed_html('post');
+        $encoder_attributes = array(
+            'data-original-string' => true,
+            'class' => true,
+            'title' => true,
+        );
+
+        foreach ( array('span', 'a') as $tag ) {
+            $allowed_html[$tag] = array_merge(
+                isset($allowed_html[$tag]) ? $allowed_html[$tag] : array(),
+                $encoder_attributes
+            );
+        }
+
+        return wp_kses($html, $allowed_html);
     }
 
     /**
@@ -969,7 +967,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return $title;
         }
 
-        $raw_title = $this->getPrimedRawPostTitle($post_id);
+        $raw_title = $post_id ? $this->getRawPostTitle($post_id) : $title;
         if ( $raw_title === '' || strpos($raw_title, '[apbct_skip_encoding]') === false ) {
             return $title;
         }
@@ -991,7 +989,11 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     public function filterSinglePostTitle($title, $_post)
     {
         $post_id = is_object($_post) && isset($_post->ID) ? (int)$_post->ID : 0;
-        $raw_title = $post_id ? $this->getPrimedRawPostTitle($post_id) : $title;
+        if ( ! $post_id && is_singular() ) {
+            $post_id = (int)get_queried_object_id();
+        }
+
+        $raw_title = $post_id ? $this->getRawPostTitle($post_id) : $title;
 
         if ( $raw_title === '' || strpos($raw_title, '[apbct_skip_encoding]') === false ) {
             return $title;
@@ -1020,7 +1022,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         $title = $parts['title'];
 
         if ( $post_id ) {
-            $raw_title = $this->getPrimedRawPostTitle($post_id);
+            $raw_title = $this->getRawPostTitle($post_id);
             if ( $raw_title !== '' && strpos($raw_title, '[apbct_skip_encoding]') !== false ) {
                 $title = $raw_title;
             }
@@ -1056,7 +1058,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         }
 
         if ( $post_id ) {
-            $raw_title = $this->getPrimedRawPostTitle($post_id);
+            $raw_title = $this->getRawPostTitle($post_id);
             if ( $raw_title !== '' && strpos($raw_title, '[apbct_skip_encoding]') !== false ) {
                 if ( $this->isBufferMode() ) {
                     return $this->prepareTitleForBufferMode($raw_title);

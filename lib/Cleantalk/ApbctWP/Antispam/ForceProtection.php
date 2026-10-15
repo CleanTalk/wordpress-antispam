@@ -2,13 +2,13 @@
 
 namespace Cleantalk\ApbctWP\Antispam;
 
+use Cleantalk\ApbctWP\BotDetectorService;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 use Cleantalk\Variables\Post;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\Cleantalk;
 use Cleantalk\Templates\Singleton;
-use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\TT;
 
 class ForceProtection
@@ -61,7 +61,7 @@ class ForceProtection
 
         $event_javascript_data = '';
         $event_token = '';
-        if ($apbct->settings['data__bot_detector_enabled'] == 1) {
+        if ( BotDetectorService::isEnabled() ) {
             $event_token = Post::getString('event_token');
         } else {
             $event_javascript_data = Helper::isJson(TT::toString(Post::get('event_javascript_data')))

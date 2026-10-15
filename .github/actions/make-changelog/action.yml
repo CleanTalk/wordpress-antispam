@@ -1,0 +1,66 @@
+name: Make changelog
+description: Rebuild readme and changelog entries for the current plugin version
+
+inputs:
+  plugin_file:
+    description: Path to the main plugin file with Version header
+    required: true
+  readme_file:
+    description: Path to readme.txt with Stable tag and Changelog section
+    required: true
+  changelog_file:
+    description: Path to standalone changelog file
+    required: false
+    default: changelog.txt
+  matrix_server:
+    description: Matrix homeserver URL
+    required: false
+  matrix_room:
+    description: Matrix room id
+    required: false
+  matrix_token:
+    description: Matrix access token
+    required: false
+  target_branch:
+    description: Branch to push the rebuilt changelog commit to
+    required: false
+    default: beta
+  auto_commit_message:
+    description: Optional custom commit message
+    required: false
+  base_ref:
+    description: Released branch; commits in head_ref but not here go to the changelog
+    required: false
+    default: origin/master
+  date_format:
+    description: "`date` format for the version header, e.g. '%b %d %Y' or '%d.%m.%Y'"
+    required: false
+    default: "%b %d %Y"
+  commit_prefixes:
+    description: Regex alternation of accepted commit subject prefixes (without the trailing dot)
+    required: false
+    default: "Fix|Upd|New|Code"
+  task_url_prefix:
+    description: Task link prefix; subjects with such a link are accepted regardless of prefix
+    required: false
+    default: "https://app.doboard.com/1/task/"
+
+runs:
+  using: composite
+  steps:
+    - name: Run changelog rebuild
+      shell: bash
+      run: bash "${{ github.action_path }}/entrypoint.sh"
+      env:
+        INPUT_PLUGIN_FILE: ${{ inputs.plugin_file }}
+        INPUT_README_FILE: ${{ inputs.readme_file }}
+        INPUT_CHANGELOG_FILE: ${{ inputs.changelog_file }}
+        INPUT_MATRIX_SERVER: ${{ inputs.matrix_server }}
+        INPUT_MATRIX_ROOM: ${{ inputs.matrix_room }}
+        INPUT_MATRIX_TOKEN: ${{ inputs.matrix_token }}
+        INPUT_TARGET_BRANCH: ${{ inputs.target_branch }}
+        INPUT_AUTO_COMMIT_MESSAGE: ${{ inputs.auto_commit_message }}
+        INPUT_BASE_REF: ${{ inputs.base_ref }}
+        INPUT_DATE_FORMAT: ${{ inputs.date_format }}
+        COMMIT_PREFIXES: ${{ inputs.commit_prefixes }}
+        TASK_URL_PREFIX: ${{ inputs.task_url_prefix }}

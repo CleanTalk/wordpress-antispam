@@ -807,10 +807,6 @@ function apbct_comment__Wordpress__changeMailNotification($notify_message, $_com
                __('Activate protection in your Anti-Spam Dashboard: %s.', 'clentalk'),
                //HANDLE LINK
                'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=wp_spam_comment_passed'
-               . ($apbct->data['user_token']
-                   ? '&iser_token=' . $apbct->data['user_token']
-                   : ''
-               )
            )
            . PHP_EOL . '---'
            . PHP_EOL
