@@ -269,7 +269,7 @@ class Cleantalk
         // Using current server without changing it.
         // work_ip pins the node the URL was resolved to last time, see selectModerateNode().
         $result = ! empty($this->work_url) && $this->server_changed + 86400 > time()
-            ? $this->sendRequest($msg, $this->work_url, $this->server_timeout, $this->work_ip)
+            ? $this->sendRequest($msg, $this->work_url, $this->server_timeout, $this->work_ip ?: false)
             : false;
 
         // Changing server if no work_url or request has an error
@@ -604,7 +604,7 @@ class Cleantalk
         // CURLOPT_RESOLVE is a cURL option, the WordPress HTTP API silently drops it.
         // Without it the hostname would be resolved by DNS again and the node
         // selection would be lost, so force the cURL transport for pinned requests.
-        $http_api_state = $this->disableBuiltInHttpApi(isset($options[CURLOPT_RESOLVE]));
+        $http_api_state = $this->disableBuiltInHttpApi(defined('CURLOPT_RESOLVE') && isset($options[CURLOPT_RESOLVE]));
 
         $result = $http->setUrl($url)
                        ->setData($data)
