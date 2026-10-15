@@ -1129,6 +1129,25 @@ class ApbctHandler {
                     }
                 }
 
+                // === LeakyPaywall register===
+                if (
+                    (
+                        document.querySelectorAll('form.lp-list-builder__form').length > 0 ||
+                        document.querySelectorAll('form.lp-list-builder-auth__form').length > 0
+                    ) &&
+                    typeof args[0].includes === 'function' &&
+                    args[0].includes('/wp-json/lp-list-builder/v1')
+                ) {
+                    try {
+                        args[1].body = attachFieldsToBody(
+                            args[1].body,
+                            selectFieldsData(+ctPublic.bot_detector_enabled),
+                        );
+                    } catch (e) {
+                        // Continue even if error
+                    }
+                }
+
                 // === WooCommerce add to cart (direct add-item URL) ===
                 if (
                     (
