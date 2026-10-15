@@ -230,7 +230,7 @@
 
 		setTimeout( function(){
 			var date = new Date;
-			date.setDate(date.getDate() + 30);
+			date.setTime(date.getTime() + 60000);
 			ctSetCookie(
 				[
 					['apbct_antiflood_passed', escape('{COOKIE_ANTIFLOOD_PASSED}'), date.toUTCString()]

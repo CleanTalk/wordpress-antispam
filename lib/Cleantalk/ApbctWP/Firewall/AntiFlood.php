@@ -16,6 +16,8 @@ use Cleantalk\ApbctWP\ApbctJsBundleResolver;
  */
 class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
 {
+    const PASS_TOKEN_TTL = 60;
+
     public $module_name = 'ANTIFLOOD';
 
     private $db__table__ac_logs;
@@ -112,13 +114,14 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
             }
 
             // Passed
-            if (Cookie::get('apbct_antiflood_passed') === md5($current_ip . $this->api_key)) {
+            if ($this->consumePassToken(Cookie::get('apbct_antiflood_passed'), $current_ip)) {
                 if ( ! headers_sent()) {
                     Cookie::set('apbct_antiflood_passed', '0', time() - 86400, '/', '', null, true);
                 }
 
                 // Do logging an one passed request
                 $this->updateLog($current_ip, 'PASS_ANTIFLOOD');
+                $this->updateAcLog();
 
                 $results[] = array('ip' => $current_ip, 'is_personal' => false, 'status' => 'PASS_ANTIFLOOD',);
 
@@ -229,6 +232,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
 
         // File exists?
         if (file_exists(CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page_antiflood.html')) {
+            $pass_token = $this->createPassToken($result['ip']);
             $this->sfw_die_page = file_get_contents(
                 CLEANTALK_PLUGIN_DIR . 'lib/Cleantalk/ApbctWP/Firewall/die_page_antiflood.html'
             );
@@ -269,7 +273,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
                 '{SERVICE_ID}'                     => esc_html($this->apbct->data['service_id']) . ', ' . esc_html($net_count),
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . "</p>",
-                '{COOKIE_ANTIFLOOD_PASSED}'        => md5($result['ip'] . $this->api_key),
+                '{COOKIE_ANTIFLOOD_PASSED}'        => $pass_token,
                 '{SCRIPT_URL}'                     => esc_url($js_url),
 
                 // Custom Logo
@@ -330,6 +334,65 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
         }
 
         die("IP BLACKLISTED. Blocked by AntiFlood " . $this->apbct->stats['last_sfw_block']['ip']);
+    }
+
+    /**
+     * Issue a short-lived pass token and persist it for a single atomic use.
+     *
+     * @param string $ip
+     * @return string
+     */
+    private function createPassToken($ip)
+    {
+        if (function_exists('random_bytes')) {
+            $token = bin2hex(random_bytes(32));
+        } else {
+            $token = strtolower(wp_generate_password(64, false, false));
+        }
+
+        $token_id = md5('antiflood_pass:' . $token);
+        $expires  = time() + self::PASS_TOKEN_TTL;
+        $query    = "INSERT INTO " . $this->db__table__ac_logs . "
+            SET id = %s, ip = %s, entries = 0, interval_start = %d, ua = ''";
+
+        $this->db->prepare($query, array($token_id, $ip, $expires));
+        $result = $this->db->execute($this->db->getQuery());
+
+        if ( ! is_int($result) || $result < 1) {
+            error_log('CleanTalk AntiFlood: failed to store a one-time pass token.');
+            return '';
+        }
+
+        return $token;
+    }
+
+    /**
+     * Atomically consume a pass token bound to the issuing IP.
+     *
+     * @param mixed $token
+     * @param string $ip
+     * @return bool
+     */
+    private function consumePassToken($token, $ip)
+    {
+        if ( ! is_string($token) || ! preg_match('/^[a-f0-9]{64}$/i', $token)) {
+            return false;
+        }
+
+        $token_id = md5('antiflood_pass:' . strtolower($token));
+        $query    = "DELETE FROM " . $this->db__table__ac_logs . "
+            WHERE id = %s AND ip = %s AND interval_start > %d AND entries = 0
+            LIMIT 1";
+
+        $this->db->prepare($query, array($token_id, $ip, time()));
+        $result = $this->db->execute($this->db->getQuery());
+
+        if ($result === false) {
+            error_log('CleanTalk AntiFlood: failed to consume a one-time pass token.');
+            return false;
+        }
+
+        return $result === 1;
     }
 
     private function checkExclusions()
