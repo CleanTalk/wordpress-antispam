@@ -1,5 +1,14 @@
 == Changelog ==
 
+= 6.90 13.10.2026 =
+* Fix. Comments checker. Feedback success message fixed. (#907)
+* Fix. Force protection. Checking bot detector fixed.
+* Fix. Code. Parsing the response and text output
+* Fix. Code. Replacing the first occurrence of the search only in the element text
+* Fix. ContactEncoder. Edit to the tag attribute definition
+* New. Integrations. BuddyNext plugin registration.
+* Upd. Contacts encoder. Short codes functionality optimized. (#900)
+* Fix. ContactEncoder. Default value for method
 
 = 6.78 29.04.2026 =
 * Removing the link to install "Gravity Forms to doBoard" (#784)
@@ -237,7 +246,6 @@ Fix. SFW. SFW updating (process exclusions) fixed.
 Fix. Exclusion. Newsletter Automation. Skip test newsletter check.
 Fix. Integration. btQuoteBooking form params gathering fixed.
 Fix. Integration. WP Mailer Lite. Fixed exclusion.
-
 
 = 6.66 16.10.2025 =
 Fix. Remote calls. Debug RC now hide sensitive data.
@@ -4305,6 +4313,7 @@ Fix. Bot detector. Including bot detector wrapper script fixed.
   * New API key URL.
   * Trimmed API key in admin panel.
   * Added current options to array sended to CleanTalk servers.
+
 = 4.13 2014-12-29 =
   * Fixed bug with autimatically aprovement not spam comments. Now this option disabled and do not override local WordPress policy.
 
@@ -4610,6 +4619,7 @@ Fix. Bot detector. Including bot detector wrapper script fixed.
 
 
 == Upgrade Notice ==
+
 = 5.130 November 14 2019 =
   * Fix: JetPack contact form JS check.
   * FIx: Iphorm AJAX form.
@@ -4754,7 +4764,6 @@ Fix. Bot detector. Including bot detector wrapper script fixed.
   * Fix: Catch admin action (AJAX).
   * Mod: Using minified version of JS and CSS.
   * Mod: Date format in statistics.
-
 
 = 5.119.1 May 30 2019 =
   * Fix: Helper class error.

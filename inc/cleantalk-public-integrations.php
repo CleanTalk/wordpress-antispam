@@ -459,7 +459,11 @@ function apbct_form__formidable__testSpam($errors, $_form)
                     'error_message' => '<div class="frm_error_style" role="status"><p>' . $ct_result->comment . '</p></div>',
                 );
 
-                echo json_encode($result, JSON_FORCE_OBJECT);
+                $encoded = wp_json_encode(
+                    $result,
+                    JSON_FORCE_OBJECT | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+                );
+                echo is_string($encoded) ? $encoded : '{"errors":{"113":"Forbidden"},"content":"","pass":false,"error_message":""}';
                 die();
             }
 
@@ -475,22 +479,55 @@ function apbct_form__formidable__testSpam($errors, $_form)
  */
 function apbct__formidable_get_key_field_for_ajax_response($_form = array())
 {
-    $key_field = '113';
+    $key_field = '';
 
     $item_meta = Post::get('item_meta');
-    if (is_array($item_meta) && count($item_meta) > 1) {
-        $keys = array_keys($item_meta);
-        $key_field = isset($keys[1]) ? $keys[1] : '113';
-    } elseif (is_array($_form) && isset($_form['item_meta'])) {
-        foreach ($_form['item_meta'] as $key => $value) {
-            if ($value) {
-                $key_field = $key;
-                break;
-            }
+    if ( is_array($item_meta) && count($item_meta) > 1 ) {
+        $key_field = apbct__formidable_pick_field_id($item_meta);
+    } elseif ( is_array($_form) && isset($_form['item_meta']) ) {
+        $key_field = apbct__formidable_pick_field_id($_form['item_meta'], true);
+    }
+
+    return $key_field !== '' ? $key_field : '113';
+}
+
+/**
+ * @param mixed $item_meta
+ * @param bool  $require_value
+ *
+ * @return string
+ */
+function apbct__formidable_pick_field_id($item_meta, $require_value = false)
+{
+    if ( ! is_array($item_meta) || ! count($item_meta) ) {
+        return '';
+    }
+
+    $keys = array_keys($item_meta);
+    if ( ! $require_value && isset($keys[1]) && apbct__formidable_is_field_id($keys[1]) ) {
+        return (string) $keys[1];
+    }
+
+    foreach ( $item_meta as $key => $value ) {
+        if ( $require_value && ! $value ) {
+            continue;
+        }
+        if ( apbct__formidable_is_field_id($key) ) {
+            return (string) $key;
         }
     }
 
-    return $key_field;
+    return '';
+}
+
+/**
+ * @param mixed $key
+ *
+ * @return bool
+ */
+function apbct__formidable_is_field_id($key)
+{
+    return is_scalar($key) && preg_match('/^[0-9]+$/', (string) $key) === 1;
 }
 
 /**
@@ -876,10 +913,6 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
      * Exclusions
      */
     if ( Post::get('wpmem_reg_page') && apbct_is_plugin_active('wp-members/wp-members.php') ) {
-        return $errors;
-    }
-    // BuddyBoss login form
-    if ( Post::getString('wp-submit') && Post::getString('log') && Post::getString('pwd') ) {
         return $errors;
     }
 

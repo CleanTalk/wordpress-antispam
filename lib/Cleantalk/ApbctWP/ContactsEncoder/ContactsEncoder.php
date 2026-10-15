@@ -212,7 +212,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      *
      * @return string
      */
-    public function modifyContent($content, $skip_exclusions = false)
+    public function modifyContent($content = '', $skip_exclusions = false)
     {
         $this->applyAttributeExclusionHooks();
 
@@ -384,6 +384,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $ct->work_url       = preg_match('/https:\/\/.+/', $config_work_url)
             ? $config_work_url
             : '';
+        $ct->work_ip        = TT::getArrayValueAsString($config, 'ct_work_ip');
         $ct->server_ttl     = TT::getArrayValueAsInt($config, 'ct_server_ttl');
         $ct->server_changed = TT::getArrayValueAsInt($config, 'ct_server_changed');
         $api_response = $ct->checkBot($ct_request);

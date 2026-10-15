@@ -32,6 +32,103 @@ class ContactsEncoderHelper
     private $attribute_exclusions_list = array();
 
     /**
+     * Tag names whose inner text is not markup and must never be rewritten.
+     * @var string[]
+     */
+    private $raw_text_tags = array('script', 'style', 'template', 'noscript');
+
+    /**
+     * Content the offset indexes below were built for.
+     * @var string|null
+     */
+    private $indexed_content;
+
+    /**
+     * Sorted list of [start, end) offsets of every raw text block in the indexed content.
+     * @var array[]
+     */
+    private $raw_text_ranges = array();
+
+    /**
+     * Sorted list of [start, end) offsets of every attribute value in the indexed content.
+     * @var array[]
+     */
+    private $attribute_value_ranges = array();
+
+    /**
+     * Checks whether the tag enclosing the given offset already declares the attribute.
+     *
+     * Scheme links are rewritten from the inside of the href value, so the encoder appends its own
+     * attributes to the opening tag. This lookup prevents emitting a duplicate of an attribute the
+     * author has already set, e.g. `title` on `<a title="Write to us" href="mailto:...">`.
+     *
+     * @param string $content Whole content being processed.
+     * @param int $position Offset of the match inside $content.
+     * @param string $attribute Attribute name to look for.
+     *
+     * @return bool
+     */
+    public function enclosingTagHasAttribute($content, $position, $attribute)
+    {
+        if ( ! is_string($content) || ! is_int($position) || $position < 0 ) {
+            return false;
+        }
+
+        $tag_start = strrpos(substr($content, 0, $position), '<');
+        if ( $tag_start === false ) {
+            return false;
+        }
+
+        $opening_tag = $this->readOpeningTag($content, $tag_start);
+        if ( $opening_tag === '' ) {
+            return false;
+        }
+
+        return (bool)preg_match('/[\s\'"]' . preg_quote($attribute, '/') . '\s*=/i', $opening_tag);
+    }
+
+    /**
+     * Reads an opening tag starting at the given offset, honouring quoted attribute values so that
+     * a `>` inside a value does not terminate the tag prematurely.
+     *
+     * @param string $content
+     * @param int $tag_start Offset of the `<` character.
+     *
+     * @return string Empty string when the tag is not closed.
+     */
+    private function readOpeningTag($content, $tag_start)
+    {
+        $length = strlen($content);
+        $quote  = null;
+
+        for ( $i = $tag_start + 1; $i < $length; $i++ ) {
+            $char = $content[$i];
+
+            if ( $quote !== null ) {
+                if ( $char === $quote ) {
+                    $quote = null;
+                }
+                continue;
+            }
+
+            if ( $char === '"' || $char === "'" ) {
+                $quote = $char;
+                continue;
+            }
+
+            if ( $char === '>' ) {
+                return substr($content, $tag_start, $i - $tag_start + 1);
+            }
+
+            if ( $char === '<' ) {
+                return '';
+            }
+        }
+
+        return '';
+    }
+
+    /**
      * Checking if the string contains mailto: link
      *
      * @param string $string
@@ -125,28 +222,225 @@ class ContactsEncoderHelper
      * @param string $content The full content
      * @param int|false|null $position Known match offset; null looks up the first occurrence
      * @return bool
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function isInsideScriptTag($email, $content, $position = null)
     {
-        $pos = $this->resolveMatchPosition($email, $content, $position);
-        if ($pos === false) {
+        return $this->isInsideRawTextTag($email, $content, $position, array('script'));
+    }
+
+    /**
+     * Check whether the match sits inside the raw text of a tag whose content is not markup
+     * (script, style, template, noscript). Covers inline scripts, JSON-LD and CSS at once.
+     *
+     * @param string $needle The matched contact
+     * @param string $content The full content
+     * @param int|false|null $position Known match offset; null looks up the first occurrence
+     * @param string[]|null $tags Restrict the check to these tags; null uses the full raw text list
+     * @return bool
+     */
+    public function isInsideRawTextTag($needle, $content, $position = null, $tags = null)
+    {
+        $pos = $this->resolveMatchPosition($needle, $content, $position);
+        if ( $pos === false ) {
             return false;
         }
 
-        // Find the last script opening tag before the email
-        $last_script_start = strrpos(substr($content, 0, $pos), '<script');
-        if ($last_script_start === false) {
+        $this->indexMarkup($content);
+
+        $index = $this->findRangeIndex($this->raw_text_ranges, $pos);
+        if ( $index === false || ! isset($this->raw_text_ranges[$index][2]) ) {
             return false;
         }
 
-        // Find the first script closing tag after the last opening tag
-        $script_end = strpos($content, '</script>', $last_script_start);
-        if ($script_end === false) {
+        $range_tag = $this->raw_text_ranges[$index][2];
+
+        return $tags === null || in_array($range_tag, $tags, true);
+    }
+
+    /**
+     * Build the raw text offset index for the given content once.
+     * Repeated calls with the same content reuse the cached index.
+     *
+     * @param string $content
+     * @return void
+     */
+    public function indexMarkup($content)
+    {
+        if ( ! is_string($content) ) {
+            return;
+        }
+
+        if ( $this->indexed_content !== null && $this->indexed_content === $content ) {
+            return;
+        }
+
+        $this->indexed_content = $content;
+        $this->raw_text_ranges = $this->buildRawTextRanges($content);
+        $this->attribute_value_ranges = $this->buildAttributeValueRanges($content);
+    }
+
+    /**
+     * Check whether the match sits inside an HTML attribute value.
+     *
+     * Encoding wraps the match into a <span>, which is only valid in a text node. Inside an
+     * attribute value the markup would be consumed by the attribute itself and the quotes of the
+     * injected span would terminate the value early, swallowing the rest of the tag and whatever
+     * follows it until the next quote in the document.
+     *
+     * @param string $needle The matched contact
+     * @param string $content The full content
+     * @param int|false|null $position Known match offset; null looks up the first occurrence
+     * @return bool
+     */
+    public function isInsideAttributeValue($needle, $content, $position = null)
+    {
+        $pos = $this->resolveMatchPosition($needle, $content, $position);
+        if ( $pos === false ) {
             return false;
         }
 
-        // The email is inside a script tag if its position is between the opening and closing tags
-        return ($pos > $last_script_start && $pos < $script_end);
+        $this->indexMarkup($content);
+
+        return $this->findRangeIndex($this->attribute_value_ranges, $pos) !== false;
+    }
+
+    /**
+     * Offsets of every attribute value of every tag in the content.
+     *
+     * Tags are matched as a whole first, so a `>` inside a quoted value cannot terminate the tag
+     * early. Attribute values are then located within the tag and their offsets translated back
+     * into offsets of the whole content.
+     *
+     * @param string $content
+     * @return array[] list of [start, end]
+     */
+    private function buildAttributeValueRanges($content)
+    {
+        $ranges = array();
+
+        $tag_pattern = '/<[a-zA-Z][\w:-]*(?:[^>"\']|"[^"]*"|\'[^\']*\')*>/';
+        if ( ! preg_match_all($tag_pattern, $content, $tag_matches, PREG_OFFSET_CAPTURE) ) {
+            return $ranges;
+        }
+
+        // Quoted values keep their own quotes out of the range, unquoted values stop at whitespace.
+        $attribute_pattern = '/[\s\/][^\s=\/>]+\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'>]+))/';
+
+        if (!isset($tag_matches[0])) {
+            return $ranges;
+        }
+
+        foreach ( $tag_matches[0] as $tag_match ) {
+            if ( ! isset($tag_match[0], $tag_match[1]) ) {
+                continue;
+            }
+
+            $tag = $tag_match[0];
+            $tag_offset = $tag_match[1];
+
+            if ( ! preg_match_all($attribute_pattern, $tag, $attribute_matches, PREG_OFFSET_CAPTURE) ) {
+                continue;
+            }
+
+            foreach ( array(1, 2, 3) as $group ) {
+                if ( ! isset($attribute_matches[$group]) ) {
+                    continue;
+                }
+
+                foreach ( $attribute_matches[$group] as $value_match ) {
+                    if ( ! isset($value_match[0], $value_match[1]) || $value_match[1] < 0 ) {
+                        continue;
+                    }
+
+                    $start = $tag_offset + $value_match[1];
+                    $ranges[] = array($start, $start + strlen($value_match[0]));
+                }
+            }
+        }
+
+        usort($ranges, static function ($left, $right) {
+            if ( $left[0] === $right[0] ) {
+                return 0;
+            }
+
+            return $left[0] < $right[0] ? -1 : 1;
+        });
+
+        return $ranges;
+    }
+
+    /**
+     * Offsets of the inner text of every raw text tag.
+     *
+     * @param string $content
+     * @return array[] list of [start, end, tag]
+     */
+    private function buildRawTextRanges($content)
+    {
+        $ranges = array();
+        if ( empty($this->raw_text_tags) ) {
+            return $ranges;
+        }
+
+        $tags = array();
+        foreach ( $this->raw_text_tags as $tag ) {
+            if ( is_string($tag) && $tag !== '' ) {
+                $tags[] = preg_quote($tag, '/');
+            }
+        }
+
+        if ( empty($tags) ) {
+            return $ranges;
+        }
+
+        $pattern = '/<(' . implode('|', $tags) . ')\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>(.*?)<\/\1\s*>/is';
+
+        if ( preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE) && isset($matches[2]) ) {
+            foreach ( $matches[2] as $index => $match ) {
+                if ( ! isset($match[0], $match[1]) || $match[1] < 0 ) {
+                    continue;
+                }
+                $tag = isset($matches[1][$index][0]) ? strtolower($matches[1][$index][0]) : '';
+                $ranges[] = array($match[1], $match[1] + strlen($match[0]), $tag);
+            }
+        }
+
+        return $ranges;
+    }
+
+    /**
+     * Index of the range containing the offset, or false when the offset is outside all of them.
+     *
+     * @param array[] $ranges
+     * @param int $position
+     * @return int|false
+     */
+    private function findRangeIndex($ranges, $position)
+    {
+        if ( ! is_array($ranges) || empty($ranges) ) {
+            return false;
+        }
+
+        $low = 0;
+        $high = count($ranges) - 1;
+
+        while ( $low <= $high ) {
+            $middle = intdiv($low + $high, 2);
+            if ( ! isset($ranges[$middle][0], $ranges[$middle][1]) ) {
+                return false;
+            }
+
+            if ( $position < $ranges[$middle][0] ) {
+                $high = $middle - 1;
+            } elseif ( $position >= $ranges[$middle][1] ) {
+                $low = $middle + 1;
+            } else {
+                return $middle;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -351,12 +645,12 @@ class ContactsEncoderHelper
             : '<' . preg_quote($tag, '/') . '\s+[^>]*';
 
         $pattern = '/'
-                   . $tag_prefix
-                   . '\b'
-                   . $quoted_attribute
-                   . '\s*=\s*(["\'])[^"\']*'
-                   . $quoted_match
-                   . '[^"\']*\1/';
+            . $tag_prefix
+            . '\b'
+            . $quoted_attribute
+            . '\s*=\s*(["\'])[^"\']*'
+            . $quoted_match
+            . '[^"\']*\1/';
 
         if ( $position === null ) {
             return (bool) preg_match($pattern, $content);

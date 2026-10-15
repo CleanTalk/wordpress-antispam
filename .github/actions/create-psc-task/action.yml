@@ -1,0 +1,42 @@
+name: Create PSC task
+description: Open a doBoard PSC task for the pentest duty shift, or only log that task
+inputs:
+  version:
+    required: true
+  plugin_slug:
+    required: true
+  create_task:
+    required: true
+    default: "false"
+  role_name:
+    required: false
+    default: "Pentesting on Duty"
+  doboard_username:
+    required: true
+  doboard_password:
+    required: true
+  doboard_company_id:
+    required: true
+    default: "1"
+  doboard_project_id:
+    required: true
+    default: "78"
+  doboard_track_id:
+    required: true
+    default: "1537"
+runs:
+  using: composite
+  steps:
+    - name: Resolve PSC task
+      shell: bash
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_PLUGIN_SLUG: ${{ inputs.plugin_slug }}
+        INPUT_CREATE_TASK: ${{ inputs.create_task }}
+        INPUT_ROLE_NAME: ${{ inputs.role_name }}
+        DOBOARD_USERNAME: ${{ inputs.doboard_username }}
+        DOBOARD_PASSWORD: ${{ inputs.doboard_password }}
+        DOBOARD_COMPANY_ID: ${{ inputs.doboard_company_id }}
+        DOBOARD_PROJECT_ID: ${{ inputs.doboard_project_id }}
+        DOBOARD_TRACK_ID: ${{ inputs.doboard_track_id }}
+      run: python3 ${{ github.action_path }}/psc_task.py

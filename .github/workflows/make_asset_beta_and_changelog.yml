@@ -1,0 +1,118 @@
+name: Beta changelog and release zip
+
+on:
+  push:
+    branches:
+      - beta
+
+permissions:
+  contents: write
+
+env:
+  PLUGIN_NAME: cleantalk-spam-protect
+
+jobs:
+  make-changelog:
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: beta
+          fetch-depth: 0
+
+      - name: Build changelog files
+        uses: ./.github/actions/make-changelog
+        with:
+          plugin_file: cleantalk.php
+          readme_file: readme.txt
+          changelog_file: changelog.txt
+          target_branch: beta
+          base_ref: origin/master
+          date_format: "%d.%m.%Y"
+          commit_prefixes: "Fix|Upd|New|Code"
+          task_url_prefix: "https://app.doboard.com/1/task/"
+          matrix_server: ${{ secrets.MATRIX_SERVER }}
+          matrix_room: ${{ secrets.MATRIX_GITHUB_WORKFLOW_FEED }}
+          matrix_token: ${{ secrets.MATRIX_USER_TOKEN }}
+
+  build-release-zip:
+    needs: make-changelog
+    if: ${{ !cancelled() && !contains(github.event.head_commit.message, '[skip ci]') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: beta
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y p7zip-full rsync
+
+      - name: Check if .7zignore exists
+        id: check_ignore
+        run: |
+          if [ -f ".7zignore" ]; then
+            echo "Using existing .7zignore file"
+            echo "ignore_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::.7zignore file not found, creating default one"
+            echo "ignore_exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create default .7zignore if missing
+        if: steps.check_ignore.outputs.ignore_exists == 'false'
+        run: |
+          cat > .7zignore << 'EOF'
+          node_modules/
+          vendor/
+          js/prebuild/
+          js/src/
+          css/src/
+          tests/
+          package.json
+          package-lock.json
+          gulpfile.js
+          README.md
+          LICENSE
+          psalm.xml
+          composer.json
+          composer.lock
+          .*
+          EOF
+
+      - name: Prepare plugin directory
+        run: |
+          mkdir "${PLUGIN_NAME}"
+          rsync -a ./ "${PLUGIN_NAME}/" \
+            --exclude-from=.7zignore \
+            --exclude="${PLUGIN_NAME}"
+
+      - name: Create ZIP archive
+        run: 7z a -tzip "${PLUGIN_NAME}.zip" "${PLUGIN_NAME}"
+
+      - name: Create or update GitHub Release and upload asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}-version
+          name: ${{ github.ref_name }} version
+          body: "Prebuilt version from ${{ github.ref_name }} branch"
+          draft: false
+          prerelease: true
+          files: |
+            ${{ env.PLUGIN_NAME }}.zip
+          overwrite_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up
+        run: |
+          rm -rf "${PLUGIN_NAME}"
+          rm -f "${PLUGIN_NAME}.zip"
+          if [ "${{ steps.check_ignore.outputs.ignore_exists }}" = "false" ]; then
+            rm -f .7zignore
+          fi

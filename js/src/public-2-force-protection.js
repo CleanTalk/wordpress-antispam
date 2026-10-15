@@ -121,10 +121,18 @@ class ApbctForceProtection {
     }
 }
 
+let apbctForceProtectionIsInitialized = false;
+
 /**
  * Force protection
  */
 function apbctForceProtect() {
+    // Some plugins dispatch a synthetic DOMContentLoaded, the check must be sent only once
+    if (apbctForceProtectionIsInitialized) {
+        return;
+    }
+    apbctForceProtectionIsInitialized = true;
+
     if (+ctPublic.settings__forms__force_protection && typeof ApbctForceProtection !== 'undefined') {
         new ApbctForceProtection();
     }

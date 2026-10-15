@@ -12,4 +12,6 @@ LICENSE
 psalm.xml
 composer.json
 composer.lock
+webpack.config.js
+codecov.yml
 .*

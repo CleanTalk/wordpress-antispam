@@ -1400,7 +1400,7 @@ function apbct_update_to_6_89_0()
     global $apbct;
 
     if ( ! empty($apbct->settings['data__wc_store_blocked_orders']) ) {
-        $apbct->settings['forms__wc_show_rejection_message'] = 1;
+        $apbct->settings['forms__wc_hide_rejection_message'] = 0;
         $apbct->saveSettings();
     }
 }

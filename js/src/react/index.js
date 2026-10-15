@@ -16,7 +16,15 @@ function toggleSignupWizardLayout(showWizard) {
     }
 }
 
+let apbctReactIsInitialized = false;
+
 addEventListener('DOMContentLoaded', () => {
+    // Some plugins dispatch a synthetic DOMContentLoaded, the root must be created only once
+    if (apbctReactIsInitialized) {
+        return;
+    }
+    apbctReactIsInitialized = true;
+
     const rootElement = document.getElementById('apbct-page--react');
 
     if (!rootElement || !rootElement.dataset.pageData || !rootElement.dataset.tabsData) {

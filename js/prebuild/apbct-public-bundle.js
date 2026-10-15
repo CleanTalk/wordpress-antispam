@@ -394,10 +394,10 @@ function fillDecodedNodes(encodedNodes, decodingResult) {
                     continue;
                 }
                 let encodedEmail = encodedNodes[i].href.replace(linkTypePrefix, '');
-                let baseElementContent = encodedNodes[i].innerHTML;
-                encodedNodes[i].innerHTML = baseElementContent.replace(
+                ctReplaceInTextNodes(
+                    encodedNodes[i],
                     encodedEmail,
-                    currentResultData.decoded_email,
+                    ctHtmlToText(currentResultData.decoded_email),
                 );
                 encodedNodes[i].href = linkTypePrefix + currentResultData.decoded_email;
 
@@ -408,7 +408,7 @@ function fillDecodedNodes(encodedNodes, decodingResult) {
                             encodedEmailTextInsideMailto = row.decoded_email;
                         }
                     });
-                    el.innerHTML = encodedEmailTextInsideMailto;
+                    el.textContent = ctHtmlToText(encodedEmailTextInsideMailto);
                 });
             } else {
                 encodedNodes[i].classList.add('no-blur');
@@ -432,6 +432,41 @@ function fillDecodedNodes(encodedNodes, decodingResult) {
 }
 
 /**
+ * Replace the first occurrence of search in element text only, never in markup or attributes.
+ * @param {HTMLElement} element
+ * @param {string} search
+ * @param {string} replacement
+ */
+function ctReplaceInTextNodes(element, search, replacement) {
+    if (!search) {
+        return;
+    }
+    // Merge adjacent text nodes so a token split between them is still found.
+    element.normalize();
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+        if (node.nodeValue.indexOf(search) !== -1) {
+            node.nodeValue = node.nodeValue.replace(search, () => replacement);
+            return;
+        }
+    }
+}
+
+/**
+ * Convert server HTML to plain text without rendering it.
+ * @param {string} html
+ * @return {string}
+ */
+function ctHtmlToText(html) {
+    if (!html) {
+        return '';
+    }
+    // DOMParser documents are inert: no scripts run and no event handlers fire.
+    return new DOMParser().parseFromString(String(html), 'text/html').documentElement.textContent;
+}
+
+/**
  * @param {mixed} response
  * @param {mixed} targetElement
  */
@@ -449,8 +484,16 @@ function ctFillDecodedEmail(target, email) {
     target.innerHTML = target.innerHTML.replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1');
 }
 
+let ctEmailDecoderIsInitialized = false;
+
 // Listen clicks on encoded emails
 document.addEventListener('DOMContentLoaded', function() {
+    // Some plugins dispatch a synthetic DOMContentLoaded, listeners must not be attached twice
+    if (ctEmailDecoderIsInitialized) {
+        return;
+    }
+    ctEmailDecoderIsInitialized = true;
+
     let encodedEmailNodes = document.querySelectorAll('[data-original-string]');
     if (typeof ctPublic !== 'undefined') {
         ctPublic.encodedEmailNodes = encodedEmailNodes;
@@ -1753,7 +1796,7 @@ class ApbctXhr {
             'initial_request_params': initialRequestParams,
         };
         params.notJson = true;
-        params.url = ctPublicFunctions.host_url;
+        params.url = ctPublicFunctions._ajax_url;
         // this callback will rerun the XHR with initial params
         params.callback = function(...args) {
             // the refresh result itself
@@ -3200,12 +3243,33 @@ class ApbctHandler {
     }
 
     /**
+     * Forms with an inline onsubmit whose returned value controls the submit.
+     * A deferred call loses that value and lets the form submit natively.
+     * @param {object} form
+     * @return {boolean}
+     */
+    prevCallSyncRequired(form) {
+        if (form.classList === undefined) {
+            return false;
+        }
+
+        // Pagelayer contact form: onsubmit="return pagelayer_contact_submit(this, event)"
+        return form.classList.contains('pagelayer-contact-form');
+    }
+
+    /**
      * Catch main
      * @param {object} form
      * @param {number} index
      * @return {void}
      */
     catchMain(form, index) {
+        // Third-party plugins may re-fire DOMContentLoaded. Double wrapping makes onsubmit_prev recursive.
+        if (form.apbctCatchMainAttached) {
+            return;
+        }
+        form.apbctCatchMainAttached = true;
+
         form.onsubmit_prev = form.onsubmit;
         form.ctFormIndex = index;
 
@@ -3217,6 +3281,9 @@ class ApbctHandler {
             if (event.target.onsubmit_prev instanceof Function && !handler.prevCallExclude(event.target)) {
                 if (event.target.classList !== undefined && event.target.classList.contains('brave_form_form')) {
                     event.preventDefault();
+                }
+                if (handler.prevCallSyncRequired(event.target)) {
+                    return event.target.onsubmit_prev.call(event.target, event);
                 }
                 setTimeout(function() {
                     event.target.onsubmit_prev.call(event.target, event);
@@ -3825,6 +3892,22 @@ class ApbctHandler {
                     document.querySelectorAll('form.wprm-user-ratings-modal-stars-container').length > 0 &&
                     typeof args[0].includes === 'function' &&
                     args[0].includes('/wp-json/wp-recipe-maker/')
+                ) {
+                    try {
+                        args[1].body = attachFieldsToBody(
+                            args[1].body,
+                            selectFieldsData(+ctPublic.bot_detector_enabled),
+                        );
+                    } catch (e) {
+                        // Continue even if error
+                    }
+                }
+
+                // === BuddyNext register===
+                if (
+                    document.querySelectorAll('form.bn-auth-form').length > 0 &&
+                    typeof args[0].includes === 'function' &&
+                    args[0].includes('/wp-json/buddynext/v1/auth/register')
                 ) {
                     try {
                         args[1].body = attachFieldsToBody(
@@ -5634,11 +5717,19 @@ async function apbctImportScript(scriptAbsolutePath) {
     });
 }
 
+let apbctReadyIsDone = false;
+
 /**
  * Ready function
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 async function apbct_ready() {
+    // Some plugins dispatch a synthetic DOMContentLoaded, so the whole init must not run twice
+    if (apbctReadyIsDone) {
+        return;
+    }
+    apbctReadyIsDone = true;
+
     // Only set ct_checkjs if the key is actually provided (not on block pages)
     if (typeof ctPublic.ct_checkjs_key !== 'undefined' && ctPublic.ct_checkjs_key !== null) {
         apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
@@ -6280,6 +6371,10 @@ function apbctIntegrateDynamicEmailCheck({ // eslint-disable-line no-unused-vars
                     // If there are email inputs inside the added node
                     node.querySelectorAll &&
                     node.querySelectorAll(emailSelector).forEach(function(input) {
+                        // do not touch inputs outside of the integrated form
+                        if (!input.closest(formSelector)) {
+                            return;
+                        }
                         if (!input.hasAttribute(attribute)) {
                             input.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
                             input.setAttribute(attribute, '1');
@@ -6349,7 +6444,15 @@ if (Math.floor(Math.random() * 100) === 1) {
     };
 }
 
+let ctTrpIsInitialized = false;
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Some plugins dispatch a synthetic DOMContentLoaded, badges must not be built twice
+    if (ctTrpIsInitialized) {
+        return;
+    }
+    ctTrpIsInitialized = true;
+
     let ctTrpLocalize = undefined;
     let ctTrpIsAdminCommentsList = false;
 

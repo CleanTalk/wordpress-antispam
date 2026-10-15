@@ -1,52 +1,55 @@
-=== Spam protection, Honeypot, Anti-Spam by CleanTalk ===
+=== Spam Protection for Forms & Comments. Anti-Spam by CleanTalk === 
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
-Tags: antispam, honeypot, bot, captcha, spam
+Tags: anti-spam, spam protection, contact form spam, spam, captcha
 Requires at least: 4.7
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 6.88
+Stable tag: 6.90
 License: GPLv2
 
-Top-rated antispam for contact forms, comments, WooCommerce, eCommerce, and login. No CAPTCHAs, no friction, just background anti spam protection.
+Top-rated antispam for forms, comments & reviews. No CAPTCHAs, just background spam protection. Free trial, then $12/year with unlimited checks.
 
 == Description ==
 
-**Trusted by over 200,000 websites and rated among the top anti-spam solutions for WordPress in 2026**. No CAPTCHAs, no puzzles, and no visitor friction — just automatic spam blocking for forms, comments, registrations, subscriptions, and fake orders. Powered by a **global spam detection network that includes over 1,078,000 websites** and helps stop spam before it reaches your website. **Install it in less than 30 seconds** and start protecting your site immediately.
+Top-rated antispam for forms, comments & reviews. No CAPTCHAs, just background spam protection. Free trial, then $12/year with **unlimited checks**.
 
-= Superpowers =
-1. Stops spam comments.
-2. Stops spam registrations and logins.
-3. Stops spam contact emails.
-4. Stops fake orders eCommerce sites and online stores.
-5. Antispam for bookings.
-6. Antispam subscriptions.
-7. Stops spam surveys, polls.
-9. Stops spam in WooCommerce.
-17. Antispam for Search Form.
-10. Real-time email validation. Check if an email is real or fake.
-11. Checks and removes the existing spam comments and spam users.
-14. Blocking  disposable & temporary emails.
-22. Block messages by languages, countries, networks and stop words.
+**Trusted by over 200,000 websites** and rated among the top anti-spam solutions for WordPress in 2026. Powered by a **global spam detection network that includes over 1,078,000 websites** and helps stop spam before it reaches your website. 
 
-= Public reviews =
+= 🛡️ Anti-Spam Protection for your entire WordPress site =
+
+* **Contact forms** — block spam submitted through Contact Form 7, WPForms, Elementor Forms, Gravity Forms, Fluent Forms, Formidable Forms, and many others.
+* **WordPress comments** — automatically detect and block spam comments.
+* **WooCommerce** — stop fake orders, spam registrations, and spam reviews.
+* **User registrations** — prevent spam accounts and automated registrations.
+* **Subscriptions and bookings** — filter unwanted and automated submissions.
+* **Email validation** — detect fake, disposable, and suspicious email addresses.
+* **Spam FireWall** — block known spam bots before they reach your forms.
+
+= 🧩 No CAPTCHA. No Puzzles. Less Friction. =
+
+CleanTalk analyzes submissions automatically in the background. Visitors don't need to solve CAPTCHA challenges, select images, or complete additional verification steps.
+
+= ⚡Quick Setup =
+
+Install the plugin, connect it to the CleanTalk Anti-Spam service, and your WordPress site is protected.
+
+= ⭐ Public reviews =
+
+> [Anti-Spam, and the Catch](https://wpneon.com/cleantalk-review/)
+
 > It’s more than just a tool to combat spam; it’s an integral component that enhances the overall quality and performance of your website.
 > <a href="https://www.techbusinessnews.com.au/embracing-a-spam-free-digital-experience-with-cleantalk-anti-spam-plugin/" target="_blank">techbusinessnews.com.au</a>
 
 > Improve Your Security WordPress Spam Protection With CleanTalk Anti-Spam
 > <a href="https://thehackernews.com/2023/07/improve-your-security-wordpress-spam.html" target="_blank">The Hacker News</a>.
 
-> Compare reCAPTCHA & Akismet VS CleanTalk
-> [CleanTalk vs Google reRECAPTCHA](https://cleantalk.org/recaptcha-alternative)
-> [CleanTalk vs Akismet](https://cleantalk.org/help/cleantalk-vs-akismet)
+= 🗂️ Managing Multiple Websites? =
+CleanTalk also works well for agencies, developers, and website managers. Protect and manage multiple client websites from one CleanTalk account with **unlimited checks for spam**.
 
-= Free trial then $12 per year =
-CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
-
-= AntiSpam protection for comments =
+= 💬 AntiSpam protection for comments =
 Native spam protection for WordPress, JetPack comments and any other comment plugins. The plugin moves spam comments to SPAM folder or you can set the option to ban spam comments silently. You can also enable the option in the plugin settings to auto-delete comments from SPAM folder.
 
-
-= Contact Form 7 Antispam =
+= 📩 Contact Form 7 Antispam =
 Plugin extends spam protection for Contact Form 7 (CF7). It can be used with any other third-party spam filters.
 <a href="https://blog.cleantalk.org/how-to-protect-your-contactform7-contact-form-using-cleantalk-anti-spam-plugin/">How to protect your Contact Form 7 using CleanTalk Anti-Spam plugin</a>
 
@@ -251,6 +254,24 @@ Go to <a href="https://cleantalk.org/my" target="_blank">Dashboard</a> at the cl
 
 == Frequently Asked Questions ==
 
+= Does CleanTalk work without CAPTCHA or reCAPTCHA? =
+Yes, CleanTalk works completely without CAPTCHA, puzzles, or manual user challenges.
+
+= Does CleanTalk stop contact form spam? =
+Yes, CleanTalk stops spam in contact forms, registration forms, comments, and other forms on your website. It uses a combination of algorithms and a cloud-based database to identify and block spam submissions in real-time.
+
+= Does CleanTalk protect WooCommerce from fake orders and spam registrations? =
+Yes, CleanTalk protects WooCommerce from fake orders and spam registrations. It checks all incoming orders and registrations against its anti-spam database and algorithms to ensure that only legitimate users can place orders or register on your site.
+
+= Which WordPress forms does CleanTalk protect? =
+CleanTalk protects all WordPress forms, including but not limited to:
+* Comments
+* Registration forms
+* Contact forms
+* Sign-up forms
+* Search forms
+* Subscription forms
+
 = Why are they spamming me? =
 Spammers want to get backlinks from your site to improve their site's PageRank or redirect your visitors to malicious sites.This level of spam can damage your reputation with readers and commentators if you fail to tackle it. It is not uncommon for some WordPress websites to receive hundreds or even thousands of comments every week. However, by using a CleanTalk plugin, spam can be easily handled by your WordPress website.
 
@@ -306,15 +327,9 @@ The plugin has several options to detect spam bots and humans. If you just post 
 the comments will be passed, because the plugin detects sender as a human. So, use special email *stop_email@example.com* to test the anti-spam functionality or wait a few days to see how the plugin works.
 
 = Is it free or paid? =
-The plugin is free and distributed under the GPLv2 license.
+The plugin includes a free trial and requires a paid subscription after the trial ends. It uses the CleanTalk cloud to filter spam on your website, providing highly effective spam protection. Cloud-based filtering is more sophisticated than standalone solutions, **reducing the risk of blocking legitimate visitors** while allowing **fewer spammers** through.
 
-CleanTalk anti-spam plugin works with a cloud base anti-spam service and this plugin is a Software as a service (SaaS).
-CleanTalk it’s a free plugin that works with premium Cloud Anti-Spam service.
-https://en.wikipedia.org/wiki/Software_as_a_service
-
-The fact that the plugin works with a premium type service is mentioned in the plugin annotation and in its WordPress catalog description.
-
-We are ready to help you with any issue regarding CleanTalk. There are hundreds of environment compositions and we do our best to cover as many as possible.
+Pricing **starts at $12/year/site** and includes **unlimited spam checks**.
 
 = Can I use CleanTalk with cache plugins? =
 Anti-spam by CleanTalk doesn't use static HTML code in its templates, so all anti-spam functions work correctly with any WordPress cache plugins.
@@ -415,7 +430,7 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 
 
 == Screenshots ==
-1. AntiSpam settings are easy to use to protect any contact forms. For example - Ninja forms, Fluent forms and etc.
+1. CleanTalk automatically blocks spam from contact forms, comments, registrations, and WooCommerce without CAPTCHA.
 2. AntiSpam plugin rejected a spam bot at the CAPTCHA less registration form. The plugin provides explanation to visitor and websites about each rejected comment/registration or contact message.
 3. Use AntiSpam analytics tool for each website in service Dashboard to have information about spam/legitimate stats.
 4. Special interface to find spam comments.
@@ -425,6 +440,33 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 8. Prevent any other spamers, from any other forms, for example from WPForms.
 
 == Changelog ==
+
+= 6.90 13.10.2026 =
+* Fix. Comments checker. Feedback success message fixed. (#907)
+* Fix. Force protection. Checking bot detector fixed.
+* Fix. Code. Parsing the response and text output
+* Fix. Code. Replacing the first occurrence of the search only in the element text
+* Fix. ContactEncoder. Edit to the tag attribute definition
+* New. Integrations. BuddyNext plugin registration.
+* Upd. Contacts encoder. Short codes functionality optimized. (#900)
+* Fix. ContactEncoder. Default value for method
+
+= 6.89.1 08.10.2026 =
+Fix. Settings. WooCommerce protection options changed.
+
+= 6.89 05.10.2026 =
+New. Integration. Integration with Pagelayer.
+New. WooCommerce. Spam orders admin list table redesigned: statuses, bulk actions, sortable totals.
+Upd. ContactsEncoder. Lot of search logic updates.
+New. Plugins page. Show changelog in the update notice.
+Upd. WooCommerce. New option to manage if rejection message have to be shown for blocked visitor.
+Upd. Firewall. Emergency bypass logic updated to token-via-email model.
+Fix. SimpleMembership. Editing the integration for working with a multi-site.
+Fix. ExternalForms. Editing changes to form fields, checking whether they belong to the formSelector.
+Fix. Contacts Encoder. Simple precheck content before high-cost logic run.
+Fix. Code. Checking ajax_type and editing ctPublicFunctions search.
+Fix. Code. Deleting service fields after checking for spam.
+Fix. JS. Flag for logic initiation in case of a one-time DOMContentLoaded event.
 
 = 6.88 16.09.2026 =
 New. ContactEncoder. Add option to exclude selected contact data.
@@ -591,3 +633,4 @@ Fix. Integration. WooCommerce register requests protection fixed.
 * Mod. AntiCrawler. Editing the option description
 
 = Look for early changelogs in <a href="https://github.com/CleanTalk/wordpress-antispam/blob/master/changelog.txt" target="_blank">changelog.txt</a>=
+

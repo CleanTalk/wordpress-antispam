@@ -129,6 +129,30 @@ class ApbctAttachData {
     }
 
     /**
+     * Construct hidden field for no cookie
+     * @param {string} type
+     * @return {HTMLInputElement}
+     */
+    constructNoCookieHiddenField(type) {
+        let inputType = 'hidden';
+        if (type === 'submit') {
+            inputType = 'submit';
+        }
+        let field = '';
+
+        let noCookieData = getCleanTalkStorageDataArray();
+        noCookieData = JSON.stringify(noCookieData);
+        noCookieData = '_ct_no_cookie_data_' + btoa(unescape(encodeURIComponent(noCookieData)));
+        field = document.createElement('input');
+        field.setAttribute('name', 'ct_no_cookie_hidden_field');
+        field.setAttribute('value', noCookieData);
+        field.setAttribute('type', inputType);
+        field.classList.add('apbct_special_field');
+        field.classList.add('ct_no_cookie_hidden_field');
+        return field;
+    }
+
+    /**
      * Attach no cookie during submit
      * @param {Event} event
      * @return {void}
@@ -429,12 +453,33 @@ class ApbctHandler {
     }
 
     /**
+     * Forms with an inline onsubmit whose returned value controls the submit.
+     * A deferred call loses that value and lets the form submit natively.
+     * @param {object} form
+     * @return {boolean}
+     */
+    prevCallSyncRequired(form) {
+        if (form.classList === undefined) {
+            return false;
+        }
+
+        // Pagelayer contact form: onsubmit="return pagelayer_contact_submit(this, event)"
+        return form.classList.contains('pagelayer-contact-form');
+    }
+
+    /**
      * Catch main
      * @param {object} form
      * @param {number} index
      * @return {void}
      */
     catchMain(form, index) {
+        // Third-party plugins may re-fire DOMContentLoaded. Double wrapping makes onsubmit_prev recursive.
+        if (form.apbctCatchMainAttached) {
+            return;
+        }
+        form.apbctCatchMainAttached = true;
+
         form.onsubmit_prev = form.onsubmit;
         form.ctFormIndex = index;
 
@@ -446,6 +491,9 @@ class ApbctHandler {
             if (event.target.onsubmit_prev instanceof Function && !handler.prevCallExclude(event.target)) {
                 if (event.target.classList !== undefined && event.target.classList.contains('brave_form_form')) {
                     event.preventDefault();
+                }
+                if (handler.prevCallSyncRequired(event.target)) {
+                    return event.target.onsubmit_prev.call(event.target, event);
                 }
                 setTimeout(function() {
                     event.target.onsubmit_prev.call(event.target, event);
@@ -1054,6 +1102,22 @@ class ApbctHandler {
                     document.querySelectorAll('form.wprm-user-ratings-modal-stars-container').length > 0 &&
                     typeof args[0].includes === 'function' &&
                     args[0].includes('/wp-json/wp-recipe-maker/')
+                ) {
+                    try {
+                        args[1].body = attachFieldsToBody(
+                            args[1].body,
+                            selectFieldsData(+ctPublic.bot_detector_enabled),
+                        );
+                    } catch (e) {
+                        // Continue even if error
+                    }
+                }
+
+                // === BuddyNext register===
+                if (
+                    document.querySelectorAll('form.bn-auth-form').length > 0 &&
+                    typeof args[0].includes === 'function' &&
+                    args[0].includes('/wp-json/buddynext/v1/auth/register')
                 ) {
                     try {
                         args[1].body = attachFieldsToBody(
@@ -2863,11 +2927,24 @@ async function apbctImportScript(scriptAbsolutePath) {
     });
 }
 
+let apbctReadyIsDone = false;
+
 /**
  * Ready function
  */
 // eslint-disable-next-line camelcase,require-jsdoc
 async function apbct_ready() {
+    // Some plugins dispatch a synthetic DOMContentLoaded, so the whole init must not run twice
+    if (apbctReadyIsDone) {
+        return;
+    }
+    apbctReadyIsDone = true;
+
+    // Only set ct_checkjs if the key is actually provided (not on block pages)
+    if (typeof ctPublic.ct_checkjs_key !== 'undefined' && ctPublic.ct_checkjs_key !== null) {
+        apbctLocalStorage.set('ct_checkjs', ctPublic.ct_checkjs_key, true);
+        ctSetCookie('ct_checkjs', ctPublic.ct_checkjs_key);
+    }
 
     new ApbctShowForbidden().prepareBlockForAjaxForms();
 

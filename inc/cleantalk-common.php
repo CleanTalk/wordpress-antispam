@@ -263,6 +263,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
     $config             = ct_get_server();
     $ct->server_url     = APBCT_MODERATE_URL;
     $ct->work_url       = isset($config['ct_work_url']) && preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+    $ct->work_ip        = isset($config['ct_work_ip']) ? $config['ct_work_ip'] : null;
     $ct->server_ttl     = isset($config['ct_server_ttl']) ? $config['ct_server_ttl'] : null;
     $ct->server_changed = isset($config['ct_server_changed']) ? $config['ct_server_changed'] : null;
 
@@ -285,6 +286,7 @@ function apbct_base_call($params = array(), $reg_flag = false)
             'cleantalk_server',
             array(
                 'ct_work_url'       => $ct->work_url,
+                'ct_work_ip'        => $ct->work_ip,
                 'ct_server_ttl'     => $ct->server_ttl,
                 'ct_server_changed' => time(),
             )
@@ -330,6 +332,7 @@ function apbct_rotate_moderate()
             'cleantalk_server',
             array(
                 'ct_work_url'       => $ct->work_url,
+                'ct_work_ip'        => $ct->work_ip,
                 'ct_server_ttl'     => $ct->server_ttl,
                 'ct_server_changed' => time(),
             )
@@ -972,12 +975,19 @@ function ct_get_server()
     if ( ! is_array($ct_server) ) {
         $ct_server = array(
             'ct_work_url'       => null,
+            'ct_work_ip'        => null,
             'ct_server_ttl'     => null,
             'ct_server_changed' => null
         );
     }
 
     $ct_server['ct_work_url'] = Sanitize::sanitizeCleantalkServerUrl(TT::getArrayValueAsString($ct_server, 'ct_work_url'));
+
+    // The node is selected by IP, so a stored value must be a usable IPv4 literal.
+    $stored_ip = TT::getArrayValueAsString($ct_server, 'ct_work_ip');
+    $ct_server['ct_work_ip'] = filter_var($stored_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)
+        ? $stored_ip
+        : null;
 
     return $ct_server;
 }
@@ -1078,6 +1088,7 @@ function ct_send_feedback($feedback_request = null)
         $config             = ct_get_server();
         $ct->server_url     = APBCT_MODERATE_URL;
         $ct->work_url       = isset($config['ct_work_url']) && preg_match('/http:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+        $ct->work_ip        = isset($config['ct_work_ip']) ? $config['ct_work_ip'] : null;
         $ct->server_ttl     = isset($config['ct_server_ttl']) ? $config['ct_server_ttl'] : null;
         $ct->server_changed = isset($config['ct_server_changed']) ? $config['ct_server_changed'] : null;
 
@@ -1092,6 +1103,7 @@ function ct_send_feedback($feedback_request = null)
                 'cleantalk_server',
                 array(
                     'ct_work_url'       => $ct->work_url,
+                    'ct_work_ip'        => $ct->work_ip,
                     'ct_server_ttl'     => $ct->server_ttl,
                     'ct_server_changed' => time(),
                 )

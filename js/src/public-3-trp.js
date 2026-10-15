@@ -1,4 +1,12 @@
+let ctTrpIsInitialized = false;
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Some plugins dispatch a synthetic DOMContentLoaded, badges must not be built twice
+    if (ctTrpIsInitialized) {
+        return;
+    }
+    ctTrpIsInitialized = true;
+
     let ctTrpLocalize = undefined;
     let ctTrpIsAdminCommentsList = false;
 

@@ -5,7 +5,6 @@ namespace Cleantalk\ApbctWP\Localize;
 use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Escape;
-use Cleantalk\ApbctWP\Variables\Server;
 
 class CtPublicFunctionsLocalize
 {
@@ -28,7 +27,6 @@ class CtPublicFunctionsLocalize
             'data__bot_detector_enabled'           => apbct__is_bot_detector_enabled() ? 1 : 0,
             'cookiePrefix'                         => apbct__get_cookie_prefix(),
             'wprocket_detected'                    => apbct_is_plugin_active('wp-rocket/wp-rocket.php'),
-            'host_url'                             => Server::get('HTTP_HOST'),
         );
         $data = array_merge($data, ContactsEncoder::getLocalizationText());
 
