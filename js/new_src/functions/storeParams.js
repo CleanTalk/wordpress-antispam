@@ -87,10 +87,10 @@ export function ctSetAltCookies(params) {
     // Using REST API handler
     if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
         // fix for url encoded cookie apbct_pixel_url on REST route
-        if (typeof cookies.apbct_pixel_url === 'string' &&
-            cookies.apbct_pixel_url.indexOf('%3A') !== -1
+        if (typeof filteredParams.apbct_pixel_url === 'string' &&
+            filteredParams.apbct_pixel_url.indexOf('%3A') !== -1
         ) {
-            cookies.apbct_pixel_url = decodeURIComponent(cookies.apbct_pixel_url);
+            filteredParams.apbct_pixel_url = decodeURIComponent(filteredParams.apbct_pixel_url);
         }
         sendREST(
             'alt_sessions',
