@@ -150,10 +150,10 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
             return;
         }
 
-        let forms = ctGetPageForms();
+        let forms = document.forms;
         ctPublic.handled_fields = [];
 
-        if (forms.length > 0) {
+        if (forms && forms.length > 0) {
             for (let i = 0; i < forms.length; i++) {
                 // handle only inputs and textareas
                 const handledFormFields = forms[i].querySelectorAll('input,textarea');
