@@ -26,7 +26,7 @@ class ApbctJsBundleResolver
         } elseif ($internal) {
             $script = 'apbct-public-bundle_int-protection.min.js';
         } else {
-            $script = 'apbct_public_new.min.js';
+            $script = 'apbct-public-bundle.min.js';
         }
 
         if ( ! apbct__is_bot_detector_enabled() ) {
