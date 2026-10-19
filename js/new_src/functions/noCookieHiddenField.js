@@ -33,7 +33,7 @@ export function ctNoCookieAttachHiddenFieldsToForms() {
 /**
  * @return {boolean|*}
  */
-function ctGetPageForms() { // eslint-disable-line no-unused-vars
+function ctGetPageForms() {
     let forms = document.forms;
     if (forms) {
         return forms;
