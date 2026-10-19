@@ -2430,7 +2430,7 @@ function ctSetCookie( cookies, value, expires='') {
 
         // Using alternative cookies
     } else if ( ctPublicFunctions.data__cookies_type === 'alternative' && !skipAlt ) {
-        ctSetAlternativeCookie(cookies);
+        ctSetAlternativeCookie(cookies, {forceAltCookies: ctPublic.force_alt_cookies});
     }
 }
 
@@ -2445,10 +2445,13 @@ function ctSetAlternativeCookie(cookies, params) {
         console.log('APBCT ERROR: getJavascriptClientData() is not loaded');
     }
 
-    // if cookies is array, convert it to object
-    if (Array.isArray(cookies) && cookies[0] && cookies[0][0] === 'apbct_bot_detector_exist') {
+    if (
+        !(params && params.forceAltCookies) &&
+        Array.isArray(cookies) && cookies[0] && cookies[0][0] === 'apbct_bot_detector_exist'
+    ) {
         cookies = {apbct_bot_detector_exist: cookies[0][1]};
     }
+
     // Only try to parse if cookies is a string (JSON)
     if (typeof cookies === 'string') {
         try {
@@ -2463,6 +2466,13 @@ function ctSetAlternativeCookie(cookies, params) {
     const onErrorCallback = params && params.onErrorCallback || null;
 
     if ( params && params.forceAltCookies ) {
+        // Named array properties are omitted by JSON.stringify().
+        if (Array.isArray(cookies)) {
+            cookies = cookies.reduce((result, cookie) => {
+                result[cookie[0]] = cookie[1];
+                return result;
+            }, {});
+        }
         cookies.apbct_force_alt_cookies = true;
     }
 
@@ -2858,7 +2868,6 @@ function ctNoCookieAttachHiddenFieldsToForms() {
         }
     }
 }
-
 
 /**
  * Class for event token transport
@@ -5920,13 +5929,6 @@ async function apbct_ready() {
                     ['ct_bot_detector_event_token', botDetectorEventToken],
                 ]);
                 botDetectorEventTokenStored = true;
-                // @ToDo remove this block afret force_alt_cookies removed
-                if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-                    ctSetAlternativeCookie(
-                        JSON.stringify({'ct_bot_detector_event_token': botDetectorEventToken}),
-                        {forceAltCookies: true},
-                    );
-                }
             }
         });
     }

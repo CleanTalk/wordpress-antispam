@@ -3058,13 +3058,6 @@ async function apbct_ready() {
                     ['ct_bot_detector_event_token', botDetectorEventToken],
                 ]);
                 botDetectorEventTokenStored = true;
-                // @ToDo remove this block afret force_alt_cookies removed
-                if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-                    ctSetAlternativeCookie(
-                        JSON.stringify({'ct_bot_detector_event_token': botDetectorEventToken}),
-                        {forceAltCookies: true},
-                    );
-                }
             }
         });
     }
