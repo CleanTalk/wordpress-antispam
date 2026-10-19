@@ -5921,14 +5921,14 @@ async function apbct_ready() {
     handler.catchWCRestRequestAsMiddleware();
 
     if (+ctPublic.bot_detector_enabled) {
-        let botDetectorEventTokenStored = false;
+        let lastStoredBotDetectorEventToken = null;
         window.addEventListener('botDetectorEventTokenUpdated', (event) => {
             const botDetectorEventToken = event.detail?.eventToken;
-            if (botDetectorEventToken && !botDetectorEventTokenStored) {
+            if (botDetectorEventToken && botDetectorEventToken !== lastStoredBotDetectorEventToken) {
                 ctSetCookie([
                     ['ct_bot_detector_event_token', botDetectorEventToken],
                 ]);
-                botDetectorEventTokenStored = true;
+                lastStoredBotDetectorEventToken = botDetectorEventToken;
             }
         });
     }
