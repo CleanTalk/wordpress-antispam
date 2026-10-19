@@ -346,7 +346,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
         if (function_exists('random_bytes')) {
             $token = bin2hex(random_bytes(32));
         } else {
-            $token = strtolower(wp_generate_password(64, false, false));
+            $token = hash('sha256', wp_generate_password(64, false, false));
         }
 
         $token_id = md5('antiflood_pass:' . $token);
