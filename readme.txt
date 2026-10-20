@@ -1,19 +1,18 @@
-=== Spam Protection for Forms & Comments. Anti-Spam by CleanTalk === 
+=== Spam protection, AntiSpam, FireWall by CleanTalk === 
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
-Tags: anti-spam, spam protection, contact form spam, spam, captcha
+Tags: anti-spam, spam protection, antispam, spam, captcha
 Requires at least: 4.7
 Tested up to: 7.1
 Requires PHP: 7.2
 Stable tag: 6.90
 License: GPLv2
 
-Top-rated antispam for forms, comments & reviews. No CAPTCHAs, just background spam protection. Free trial, then $12/year with unlimited checks.
+Advanced anti-spam protection for comments, users & contact forms, with Spam FireWall and cloud filtering. We catch spam others miss! 
 
 == Description ==
 
-Top-rated antispam for forms, comments & reviews. No CAPTCHAs, just background spam protection. Free trial, then $12/year with **unlimited checks**.
+Advanced anti-spam protection for comments, users & contact forms, with Spam FireWall and cloud filtering. **We catch spam others miss!** 
 
-**Trusted by over 200,000 websites** and rated among the top anti-spam solutions for WordPress in 2026. Powered by a **global spam detection network that includes over 1,078,000 websites** and helps stop spam before it reaches your website. 
 
 = 🛡️ Anti-Spam Protection for your entire WordPress site =
 
@@ -42,6 +41,9 @@ Install the plugin, connect it to the CleanTalk Anti-Spam service, and your Word
 
 > Improve Your Security WordPress Spam Protection With CleanTalk Anti-Spam
 > <a href="https://thehackernews.com/2023/07/improve-your-security-wordpress-spam.html" target="_blank">The Hacker News</a>.
+
+= Free trial then $12 per year =
+CleanTalk is an anti-spam plugin which works with the premium Cloud Anti-Spam service cleantalk.org. This plugin as a service <a href="https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted">https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-software-as-a-service-is-permitted</a>
 
 = 🗂️ Managing Multiple Websites? =
 CleanTalk also works well for agencies, developers, and website managers. Protect and manage multiple client websites from one CleanTalk account with **unlimited checks for spam**.
@@ -428,16 +430,13 @@ Yes, it will. The Anti-spam by CleanTalk is compatible with any WordPress theme.
 CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam plugins (especially CAPTCHA-type anti-spam plugins). In some cases several anti-spam plugins could conflict with each other.
 
 
-
 == Screenshots ==
 1. CleanTalk automatically blocks spam from contact forms, comments, registrations, and WooCommerce without CAPTCHA.
-2. AntiSpam plugin rejected a spam bot at the CAPTCHA less registration form. The plugin provides explanation to visitor and websites about each rejected comment/registration or contact message.
-3. Use AntiSpam analytics tool for each website in service Dashboard to have information about spam/legitimate stats.
-4. Special interface to find spam comments.
-5. Special interface to find spammers in users.
-6. Prevent WooCommerce checkout from spammers.
-7. Prevent spam contact occurs in your life.
-8. Prevent any other spamers, from any other forms, for example from WPForms.
+2. The AntiSpam plugin rejected a spam bot on a CAPTCHA-free registration form. The plugin provides an explanation to visitors and website owners for each rejected comment, registration, or contact message.
+3. Use the AntiSpam analytics tool for each website in the service dashboard to view spam and legitimate request statistics.
+4. Prevent spammers from placing WooCommerce orders.
+5. Prevent spam from other forms as well, including WPForms.
+6. One step set-up wizard. 
 
 == Changelog ==
 
