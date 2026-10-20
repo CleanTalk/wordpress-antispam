@@ -249,10 +249,6 @@ In WordPress multisite version you can switch the plugin to use Global Access ke
 **Make it before you activated the plugin. If the plugin already activated, deactivate it and add the code and active it again.**
 Now, all subsites will have this access key.
 
-= Manage and control spam protection =
-
-Go to <a href="https://cleantalk.org/my" target="_blank">Dashboard</a> at the cleantalk.org or use <a href="https://play.google.com/store/apps/details?id=org.cleantalk.app">Android</a>, <a href="https://itunes.apple.com/us/app/cleantalk/id825479913?mt=8">iPhone</a> anti-spam app to manage and control spam protection.
-
 
 == Frequently Asked Questions ==
 
