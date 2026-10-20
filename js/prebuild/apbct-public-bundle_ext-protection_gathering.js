@@ -2344,7 +2344,7 @@ function ctSetCookie( cookies, value, expires='') {
             ctSetAlternativeCookie(cookies, {forceAltCookies: true});
         }
         cookies.forEach( function(item) {
-            const _expires = typeof item[2] !== 'undefined' ? 'expires=' + expires + '; ' : '';
+            const _expires = typeof item[2] !== 'undefined' ? 'expires=' + item[2] + '; ' : '';
             let ctSecure = location.protocol === 'https:' ? '; secure' : '';
             document.cookie = ctPublicFunctions.cookiePrefix +
                 item[0] +
