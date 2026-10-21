@@ -6,13 +6,6 @@
 
 Spam protection, antispam, all-in-one, premium plugin. No spam comments & users, no spam contact form & WooCommerce anti-spam.
 
-Configuration constants (including supported values and deprecated names): [constants reference](docs/CONSTANT.MD).
-
-The reference is rebuilt on pushes to `beta` from the descriptions and `@var` tags in
-[Constant.php](lib/Cleantalk/ApbctWP/Constant.php). Deprecated names are extracted from
-`@deprecated Use self::...` tags. Update those docblocks rather than the generated reference.
-The generator reads PHP source without executing it; only the shell entrypoint requires Git.
-
 ##Description
 
 **Supports: Contact Form 7, Ninja Forms, Gravity Forms, MailChimp, Formidable forms, WooCommerce, JetPack comments and contact form, BuddyPress, bbPress, Fast Secure Contact form, S2Member, MailPoet, ConvertKit, ActiveCampaign, any WordPress registrations & contact forms and themes. Just setup and forget the spam!** 
@@ -530,6 +523,9 @@ https://cleantalk.org/faq#feedback_spam
 
 = Is the plugin fast? =
 We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade response time in backend or frontend. The plugin proccess only POST requests to WordPress core, it tackes less than 1 second to return results.
+
+= Configuration constants =
+For supported values and deprecated names, see the [constants reference](docs/CONSTANT.MD).
 
 = Related open-source projects by CleanTalk =
 Not on WordPress, or need bot filtering in your own PHP code? See our libraries on GitHub:
