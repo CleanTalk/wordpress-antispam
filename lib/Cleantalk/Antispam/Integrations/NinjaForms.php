@@ -171,9 +171,8 @@ class NinjaForms extends IntegrationBase
             return true;
         }
 
-        $ct_result = is_array($this->base_call_result) && isset($this->base_call_result['ct_result'])
-            ? $this->base_call_result['ct_result']
-            : null;
+        $base_call_result = TT::toArray($this->base_call_result);
+        $ct_result = isset($base_call_result['ct_result']) ? $base_call_result['ct_result'] : null;
         if (is_object($ct_result)) {
             // Change mail notification if license is out of date
             if ( $apbct->data['moderate'] == 0 &&

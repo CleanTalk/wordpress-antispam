@@ -169,10 +169,10 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         return (string)preg_replace_callback(
             '/&#(\d{1,3});/',
             function ($matches) {
-                $code = (int)$matches[1];
+                $code = TT::getArrayValueAsInt($matches, 1);
                 return $code < 128 && preg_match('/^[a-z0-9._%+-]$/i', chr($code))
                     ? chr($code)
-                    : $matches[0];
+                    : TT::getArrayValueAsString($matches, 0);
             },
             $html
         );
