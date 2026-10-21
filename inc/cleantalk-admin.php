@@ -1531,13 +1531,10 @@ add_action('manage_sites_custom_column', 'apbct__manage_sites_custom_column_acti
 
 function apbct_brief_refresh()
 {
-    check_ajax_referer('ct_brief_refresh', 'security');
-
-    if ( ! current_user_can('activate_plugins') ) {
-        wp_send_json_error('Permission denied', 403);
-    }
-
     global $apbct;
+
+    AJAXService::checkNonceRestrictingNonAdmins();
+
     cleantalk_get_brief_data($apbct->api_key);
 
     wp_send_json_success();
