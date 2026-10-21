@@ -1,4 +1,4 @@
-=== Spam protection, AntiSpam, FireWall by CleanTalk === 
+=== CleanTalk Anti-Spam – Complete Spam Protection === 
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
 Tags: anti-spam, spam protection, antispam, spam, captcha
 Requires at least: 4.7
@@ -7,12 +7,11 @@ Requires PHP: 7.2
 Stable tag: 6.90
 License: GPLv2
 
-Advanced anti-spam protection for comments, users & contact forms, with Spam FireWall and cloud filtering. We catch spam others miss! 
+Advanced antispam for comments, registrations, contact forms, WooCommerce, plus email validation and protection. We catch spam others miss!
 
 == Description ==
 
-Advanced anti-spam protection for comments, users & contact forms, with Spam FireWall and cloud filtering. **We catch spam others miss!** 
-
+The Anti-Spam plugin **is trusted by over 200,000 websites** and powered by a **global spam detection network**. CleanTalk is a cloud-based anti-spam service that uses real-time analysis and shared spam intelligence to provide more advanced protection than standalone solutions. It helps stop spam before it reaches your website and **catches spam that** local filters may miss.
 
 = 🛡️ Anti-Spam Protection for your entire WordPress site =
 
@@ -21,7 +20,11 @@ Advanced anti-spam protection for comments, users & contact forms, with Spam Fir
 * **WooCommerce** — stop fake orders, spam registrations, and spam reviews.
 * **User registrations** — prevent spam accounts and automated registrations.
 * **Subscriptions and bookings** — filter unwanted and automated submissions.
-* **Email validation** — detect fake, disposable, and suspicious email addresses.
+
+= ✨ More Than Just Anti-Spam = 
+* **Real-Time Email validation** — detects fake, disposable, and suspicious email addresses.
+* **Contact Data Protection** — protects published email addresses and phone numbers from being harvested by bots.
+* **Anti-Spam Log** — shows every checked request, so you can see what was accepted or blocked and review possible false positives.
 * **Spam FireWall** — block known spam bots before they reach your forms.
 
 = 🧩 No CAPTCHA. No Puzzles. Less Friction. =
@@ -427,12 +430,17 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 
 
 == Screenshots ==
-1. CleanTalk automatically blocks spam from contact forms, comments, registrations, and WooCommerce without CAPTCHA.
-2. The AntiSpam plugin rejected a spam bot on a CAPTCHA-free registration form. The plugin provides an explanation to visitors and website owners for each rejected comment, registration, or contact message.
-3. Use the AntiSpam analytics tool for each website in the service dashboard to view spam and legitimate request statistics.
-4. Prevent spammers from placing WooCommerce orders.
-5. Prevent spam from other forms as well, including WPForms.
-6. One step set-up wizard. 
+1. Plugin’s basic settings.
+2. Advanced settings to fine-tune protection for various types of forms, cache compatibility, comment moderation policies, data encoding, URL exclusions, SpamFireWall, and UX/UI settings.
+6. One-step setup wizard.
+12. The Anti-Spam plugin rejected a spam bot on a CAPTCHA-free registration form. The plugin provides an explanation to visitors and website owners for each rejected comment, registration, or contact message.
+13. Prevents spam on Contact Form 7 forms.
+14. Prevents spammers from placing WooCommerce orders.
+15. Prevents spam from other forms as well, including WPForms.
+16. Prevents spam in the FluentBooking plugin.
+17. Prevents spam donations through the GiveWP donation plugin.
+30. CleanTalk automatically blocks spam from contact forms, comments, registrations, and WooCommerce without CAPTCHA.
+35. Use the Anti-Spam analytics tool for each website in the service dashboard to view spam and legitimate request statistics.
 
 == Changelog ==
 
