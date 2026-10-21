@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\Antispam;
 
 use Cleantalk\ApbctWP\BotDetectorService;
+use Cleantalk\ApbctWP\ContactsEncoder\PlaceholderNonce;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 use Cleantalk\Variables\Post;
@@ -14,6 +15,11 @@ use Cleantalk\Common\TT;
 class ForceProtection
 {
     use Singleton;
+
+    /**
+     * @var string Token of wrappers generated in the current response
+     */
+    private $wrapper_token = '';
 
     /**
      * @return void
@@ -294,11 +300,26 @@ class ForceProtection
     private function generateWrapper($form)
     {
         $encoded_form = urlencode(base64_encode($form));
-        $wrapper = '<div class="ct-encoded-form-wrapper">'
+        $wrapper = '<div class="ct-encoded-form-wrapper" data-ct-wrapper-token="' . esc_attr($this->getWrapperToken()) . '">'
             . '<div class="ct-encoded-form-loader"></div>'
             . '<div class="ct-encoded-form" data-encoded-form="' . $encoded_form . '"></div>'
             . '</div>';
 
         return $wrapper;
+    }
+
+    /**
+     * Random token of the current response. JS decodes only wrappers with this token,
+     * so a wrapper planted in post content is never decoded.
+     *
+     * @return string
+     */
+    public function getWrapperToken()
+    {
+        if ($this->wrapper_token === '') {
+            $this->wrapper_token = PlaceholderNonce::generate();
+        }
+
+        return $this->wrapper_token;
     }
 }
