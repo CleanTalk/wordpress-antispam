@@ -1,0 +1,34 @@
+name: Beta constants documentation
+
+on:
+  push:
+    branches:
+      - beta
+
+permissions:
+  contents: write
+
+jobs:
+  make-constants-doc:
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: beta-generated-files
+      cancel-in-progress: false
+    steps:
+      - name: Checkout latest beta
+        uses: actions/checkout@v4
+        with:
+          ref: beta
+          fetch-depth: 0
+
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Test constants generator
+        run: python3 -B -m unittest discover -s .github/actions/make-constants-doc -p test_generate.py -v
+
+      - name: Build constants reference
+        uses: ./.github/actions/make-constants-doc
