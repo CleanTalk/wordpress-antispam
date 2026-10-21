@@ -152,9 +152,6 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
             "</a>"
         ); ?>
     </div>
-    <form id='ct_refresh_form' method='POST' action='#ct_widget'>
-        <input type='hidden' name='ct_brief_refresh' value='1'>
-    </form>
     <h4 class='ct_widget_block_header' style='margin-left: 12px;'><?php
         _e('7 days Anti-Spam and SpamFireWall stats', 'cleantalk-spam-protect'); ?></h4>
     <div class='ct_widget_block ct_widget_chart_wrapper'>
@@ -364,10 +361,8 @@ function apbct_admin__init()
         }
     }
 
-    // Getting dashboard widget statistics
-    if ( Post::getInt('ct_brief_refresh') === 1 ) {
-        cleantalk_get_brief_data($apbct->api_key);
-    }
+    // Dashboard widget statistics refresh (authenticated AJAX only)
+    add_action('wp_ajax_apbct_brief_refresh', 'apbct_brief_refresh');
 
     // Getting Access key like a hoster. Only once!
     if (
@@ -605,6 +600,8 @@ function apbct_admin__enqueue_scripts($hook)
         $widget_handler = ApbctEnqueue::getInstance()->js('cleantalk-dashboard-widget.js', array($widget_chart_handler));
         wp_localize_script($widget_handler, 'apbctDashboardWidget', array(
             'data' => $to_chart,
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('ct_brief_refresh'),
         ));
     }
 
@@ -1531,6 +1528,20 @@ function apbct__manage_sites_custom_column_action($column_name, $site_id)
 }
 
 add_action('manage_sites_custom_column', 'apbct__manage_sites_custom_column_action', 10, 2);
+
+function apbct_brief_refresh()
+{
+    check_ajax_referer('ct_brief_refresh', 'security');
+
+    if ( ! current_user_can('activate_plugins') ) {
+        wp_send_json_error('Permission denied', 403);
+    }
+
+    global $apbct;
+    cleantalk_get_brief_data($apbct->api_key);
+
+    wp_send_json_success();
+}
 
 add_action('wp_ajax_apbct_action_adjust_change', 'apbct_action_adjust_change');
 function apbct_action_adjust_change()
