@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP\ContactsEncoder\Shortcodes;
 
+use Cleantalk\ApbctWP\ContactsEncoder\PlaceholderNonce;
+
 /**
  * Email encoder shortcode base class.
  *
@@ -81,17 +83,7 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      */
     protected function generatePlaceholderNonce()
     {
-        if (function_exists('random_bytes')) {
-            try {
-                return bin2hex(random_bytes(16));
-            } catch (\Exception $e) {
-                // fall through to WP fallback
-            }
-        }
-        if (function_exists('wp_generate_password')) {
-            return strtolower(wp_generate_password(32, false));
-        }
-        return substr(hash('sha256', uniqid((string)mt_rand(), true)), 0, 32);
+        return PlaceholderNonce::generate();
     }
 
     /**

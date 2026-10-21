@@ -203,7 +203,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
                     return '';
                 }
 
-                $key = '%%APBCT_OPTION_SKIP_' . count($placeholders) . '%%';
+                $key = '%%APBCT_OPTION_SKIP_' . count($placeholders) . '_' . PlaceholderNonce::get() . '%%';
                 $placeholders[$key] = $matches[0];
 
                 return $key;

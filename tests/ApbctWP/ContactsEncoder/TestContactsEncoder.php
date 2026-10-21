@@ -232,6 +232,51 @@ class TestEmailEncoder extends TestCase
     }
 
     /**
+     * Placeholder planted in content must not be replaced with a protected <option>.
+     */
+    public function testModifyContentDoesNotReplacePlantedOptionPlaceholder()
+    {
+        $option = '<option value="1"> [caption " autofocus onfocus=alert(1) y] </option>';
+        $content = '<p><a href="#" title="%%APBCT_OPTION_SKIP_0%%">link</a> public@example.com</p>'
+            . '<select>' . $option . '</select>';
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        $this->assertStringContainsString('title="%%APBCT_OPTION_SKIP_0%%"', $result);
+        $this->assertStringNotContainsString('title="<option', $result);
+        $this->assertSame(1, substr_count($result, $option));
+    }
+
+    /**
+     * Placeholder planted in content must not be replaced with a protected WP Grid Builder region.
+     */
+    public function testModifyBufferDoesNotReplacePlantedWpGridBuilderPlaceholder()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->contacts_encoder->runEncoding();
+
+        $wpgb_script =
+            '<script>(function(){var wpgb=WP_Grid_Builder.instance(1);if(!wpgb.init){return}wpgb.init()})();</script>';
+        $apbct->buffer =
+            '<head><title>test</title></head><body>' .
+            '<p><a href="#" title="%%APBCT_WPGB_REGION_0%%">link</a> contact@example.com</p>' .
+            $wpgb_script .
+            '</body>';
+
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertStringContainsString('title="%%APBCT_WPGB_REGION_0%%"', $apbct->buffer);
+        $this->assertStringNotContainsString('title="<script', $apbct->buffer);
+        $this->assertSame(1, substr_count($apbct->buffer, $wpgb_script));
+    }
+
+    /**
      * Settings skip list keeps listed emails plain, including in title-like strings.
      */
     public function testModifyContentSkipsEmailsFromExcludedStringsSetting()
