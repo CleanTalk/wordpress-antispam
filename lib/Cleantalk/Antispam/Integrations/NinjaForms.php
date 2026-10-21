@@ -171,10 +171,13 @@ class NinjaForms extends IntegrationBase
             return true;
         }
 
-        if (!empty($this->base_call_result)) {
+        $ct_result = is_array($this->base_call_result) && isset($this->base_call_result['ct_result'])
+            ? $this->base_call_result['ct_result']
+            : null;
+        if (is_object($ct_result)) {
             // Change mail notification if license is out of date
             if ( $apbct->data['moderate'] == 0 &&
-                ($this->base_call_result->fast_submit == 1 || $this->base_call_result->blacklisted == 1 || $this->base_call_result->js_disabled == 1)
+                ($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
             ) {
                 $apbct->sender_email = $this->sender_email;
                 $apbct->sender_ip    = Helper::ipGet();
@@ -440,7 +443,9 @@ class NinjaForms extends IntegrationBase
     {
         global $apbct;
 
-        if ( $action_settings['to'] !== $apbct->sender_email ) {
+        // Do not change the mail sent to the visitor
+        $to = isset($action_settings['to']) ? (string)$action_settings['to'] : '';
+        if ( empty($apbct->sender_email) || stripos($to, (string)$apbct->sender_email) === false ) {
             $message .= wpautop(
                 PHP_EOL . '---'
                 . PHP_EOL
@@ -451,7 +456,7 @@ class NinjaForms extends IntegrationBase
                 . PHP_EOL .
                 __('If you want to be sure activate protection in your Anti-Spam Dashboard: ', 'clentalk') .
                 //HANDLE LINK
-                'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=ninjaform_activate_antispam' . $apbct->user_token
+                'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=ninjaform_activate_antispam'
             );
         }
 
