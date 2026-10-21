@@ -1349,4 +1349,33 @@ class TestEmailEncoder extends TestCase
 
         $this->read_css_fixture_files = array();
     }
+
+    /**
+     * decodeEmailEntities() decodes numeric entities of email characters only.
+     */
+    public function testDecodeEmailEntitiesDecodesOnlyEmailChars()
+    {
+        // Business Directory obfuscation of "info@test.com"
+        $obfuscated = '&#105;&#110;&#102;&#111;@&#116;&#101;&#115;&#116;.&#99;&#111;&#109;';
+        $this->assertSame('info@test.com', ContactsEncoder::decodeEmailEntities($obfuscated));
+
+        $escaped = '&lt;img src=x onerror=alert(1)&gt; &#60;script&#62; &#34;&#39; &amp;#60;';
+        $this->assertSame($escaped, ContactsEncoder::decodeEmailEntities($escaped));
+    }
+
+    /**
+     * modifyFormFieldDisplay() must not unescape Business Directory field HTML.
+     */
+    public function testModifyFormFieldDisplayKeepsEscapedHtml()
+    {
+        $html = '<p>Contact us via mailto: link. &lt;img src=x onerror=alert(1)&gt;</p>'
+            . '<a href="mailto:&#105;&#110;&#102;&#111;@&#116;&#101;&#115;&#116;.&#99;&#111;&#109;">'
+            . '&#105;&#110;&#102;&#111;@&#116;&#101;&#115;&#116;.&#99;&#111;&#109;</a>';
+
+        $result = $this->contacts_encoder->modifyFormFieldDisplay($html, null, 'listing', 1);
+
+        $this->assertStringNotContainsString('<img', $result);
+        $this->assertStringContainsString('&lt;img src=x onerror=alert(1)&gt;', $result);
+        $this->assertStringNotContainsString('info@test.com', $result);
+    }
 }

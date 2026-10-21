@@ -150,11 +150,32 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     public function modifyFormFieldDisplay($html, $field, $display_context, $post_id)
     {
         if (mb_stripos($html, 'mailto:') !== false) {
-            $html = html_entity_decode($html);
+            $html = self::decodeEmailEntities($html);
             return $this->modifyContent($html);
         }
 
         return $html;
+    }
+
+    /**
+     * Business Directory obfuscates emails with numeric HTML entities.
+     * Decode only entities of characters allowed in email, other entities stay escaped.
+     *
+     * @param string $html
+     * @return string
+     */
+    public static function decodeEmailEntities($html)
+    {
+        return (string)preg_replace_callback(
+            '/&#(\d{1,3});/',
+            function ($matches) {
+                $code = (int)$matches[1];
+                return $code < 128 && preg_match('/^[a-z0-9._%+-]$/i', chr($code))
+                    ? chr($code)
+                    : $matches[0];
+            },
+            $html
+        );
     }
 
     /**
