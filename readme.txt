@@ -431,16 +431,16 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 
 == Screenshots ==
 1. Plugin’s basic settings.
-2. Advanced settings to fine-tune protection for various types of forms, cache compatibility, comment moderation policies, data encoding, URL exclusions, SpamFireWall, and UX/UI settings.
-6. One-step setup wizard.
-12. The Anti-Spam plugin rejected a spam bot on a CAPTCHA-free registration form. The plugin provides an explanation to visitors and website owners for each rejected comment, registration, or contact message.
-13. Prevents spam on Contact Form 7 forms.
-14. Prevents spammers from placing WooCommerce orders.
-15. Prevents spam from other forms as well, including WPForms.
-16. Prevents spam in the FluentBooking plugin.
-17. Prevents spam donations through the GiveWP donation plugin.
-30. CleanTalk automatically blocks spam from contact forms, comments, registrations, and WooCommerce without CAPTCHA.
-35. Use the Anti-Spam analytics tool for each website in the service dashboard to view spam and legitimate request statistics.
+1. Advanced settings to fine-tune protection for various types of forms, cache compatibility, comment moderation policies, data encoding, URL exclusions, SpamFireWall, and UX/UI settings.
+1. One-step setup wizard.
+1. The Anti-Spam plugin rejected a spam bot on a CAPTCHA-free registration form. The plugin provides an explanation to visitors and website owners for each rejected comment, registration, or contact message.
+1. Prevents spam on Contact Form 7 forms.
+1. Prevents spammers from placing WooCommerce orders.
+1. Prevents spam from other forms as well, including WPForms.
+1. Prevents spam in the FluentBooking plugin.
+1. Prevents spam donations through the GiveWP donation plugin.
+1. CleanTalk automatically blocks spam from contact forms, comments, registrations, and WooCommerce without CAPTCHA.
+1. Use the Anti-Spam analytics tool for each website in the service dashboard to view spam and legitimate request statistics.
 
 == Changelog ==
 
