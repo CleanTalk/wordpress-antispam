@@ -447,7 +447,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 '{SERVICE_ID}'                     => esc_html($apbct->data['service_id']) . ', ' . esc_html($net_count),
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . '</p>',
-                '{REQUEST_URI}'                    => esc_url($request_uri),
+                '{REQUEST_URI}'                    => self::getLocalUrl($request_uri),
 
                 // Cookie
                 '{COOKIE_PREFIX}'                  => '',
@@ -592,6 +592,19 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
      *
      * @return array|bool array('error' => STRING)
      */
+    /**
+     * Escaped URL of the current site for the request URI.
+     * Leading slashes and backslashes are collapsed to one, so "//host/path" can not lead to an external host.
+     *
+     * @param string $request_uri
+     *
+     * @return string
+     */
+    public static function getLocalUrl($request_uri)
+    {
+        return '/' . ltrim(esc_url($request_uri), '/\\');
+    }
+
     public static function sendLog($db, $log_table, $ct_key)
     {
         //Getting logs

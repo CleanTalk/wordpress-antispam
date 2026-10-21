@@ -567,6 +567,45 @@ class TestSFW extends TestCase
     }
 
     // =========================================================================
+    // Die page link to the requested page
+    // =========================================================================
+
+    /**
+     * @test
+     * @dataProvider externalRequestUriProvider
+     * getLocalUrl() must not return a URL that leads to another host.
+     */
+    public function testGetLocalUrlStaysOnSite($request_uri, $expected)
+    {
+        $url = SFW::getLocalUrl($request_uri);
+
+        $this->assertSame($expected, $url);
+        $this->assertNull(wp_parse_url($url, PHP_URL_HOST));
+    }
+
+    public function externalRequestUriProvider()
+    {
+        return array(
+            'protocol relative'     => array('//evil.example/land?sfw_test_ip=1.2.3.4&debug=1', '/evil.example/land?sfw_test_ip=1.2.3.4&#038;debug=1'),
+            'many slashes'          => array('////evil.example/land', '/evil.example/land'),
+            'backslash'             => array('/\\evil.example/land', '/evil.example/land'),
+            'slash and backslash'   => array('/\\/evil.example/land', '/evil.example/land'),
+            'absolute url'          => array('http://evil.example/land', '/http://evil.example/land'),
+            'empty'                 => array('', '/'),
+        );
+    }
+
+    /**
+     * @test
+     * getLocalUrl() keeps a regular request URI.
+     */
+    public function testGetLocalUrlKeepsRegularUri()
+    {
+        $this->assertSame('/test-page/?a=1&#038;b=2', SFW::getLocalUrl('/test-page/?a=1&b=2'));
+        $this->assertSame('/', SFW::getLocalUrl('/'));
+    }
+
+    // =========================================================================
     // Helpers
     // =========================================================================
 
