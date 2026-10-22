@@ -412,16 +412,18 @@ function apbct_is_cli()
 }
 
 /**
- * Checks if the user is logged in
+ * Checks WordPress authentication. Before pluggable functions load, no user is trusted.
  *
  * @return bool
  */
 function apbct_is_user_logged_in()
 {
-    $siteurl    = get_site_option('siteurl');
-    $cookiehash = $siteurl ? md5($siteurl) : '';
+    if ( did_action('set_current_user') && function_exists('is_user_logged_in') ) {
+        return is_user_logged_in();
+    }
 
-    return count($_COOKIE) && isset($_COOKIE['wordpress_logged_in_' . $cookiehash]);
+    // Resolving the current user here would freeze it before themes/plugins add determine_current_user filters.
+    return function_exists('wp_validate_auth_cookie') && (bool)wp_validate_auth_cookie('', 'logged_in');
 }
 
 function apbct_is_post()

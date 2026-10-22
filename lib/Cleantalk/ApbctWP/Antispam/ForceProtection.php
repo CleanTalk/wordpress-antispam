@@ -5,6 +5,7 @@ namespace Cleantalk\ApbctWP\Antispam;
 use Cleantalk\ApbctWP\BotDetectorService;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
+use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\Variables\Post;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\Cleantalk;
@@ -103,7 +104,12 @@ class ForceProtection
                 ),
             ));
         }
-        RequestParameters::set('apbct_force_protection_check', TT::toString($api_response->allow));
+        $pass_token = '0';
+        if ( (int)$api_response->allow === 1 ) {
+            $expires = time() + DAY_IN_SECONDS;
+            $pass_token = $expires . '.' . $this->getPassSignature($expires);
+        }
+        RequestParameters::set('apbct_force_protection_check', $pass_token);
 
         return json_encode(array(
             'allow' => $api_response->allow,
@@ -120,11 +126,15 @@ class ForceProtection
      */
     private function checkIframeForms($content)
     {
-        $content = preg_replace_callback('#<iframe\b[^>]*>.*?<\/iframe>#is', function ($matches) {
+        $is_passed = null;
+        $content = preg_replace_callback('#<iframe\b[^>]*>.*?<\/iframe>#is', function ($matches) use (&$is_passed) {
 
             $iframe = isset($matches[0]) ? $matches[0] : '';
 
-            if ( RequestParameters::get('apbct_force_protection_check') ) {
+            if ( $is_passed === null ) {
+                $is_passed = $this->hasValidPassToken();
+            }
+            if ( $is_passed ) {
                 return $iframe;
             }
 
@@ -147,6 +157,42 @@ class ForceProtection
         }, $content);
 
         return $content;
+    }
+
+    /**
+     * @return bool
+     */
+    private function hasValidPassToken()
+    {
+        $token = RequestParameters::get('apbct_force_protection_check');
+        if (
+            ! is_string($token) ||
+            ! preg_match('/^([0-9]{1,10})\.([a-f0-9]{64})$/D', $token, $parts) ||
+            ! isset($parts[1], $parts[2])
+        ) {
+            return false;
+        }
+
+        $expires = (int)$parts[1];
+        if ( $expires <= time() || $expires > time() + DAY_IN_SECONDS ) {
+            return false;
+        }
+
+        return hash_equals($this->getPassSignature($expires), $parts[2]);
+    }
+
+    /**
+     * Bind a successful challenge to this site, visitor and expiration time.
+     *
+     * @param int $expires
+     * @return string
+     */
+    private function getPassSignature($expires)
+    {
+        $data = 'apbct_force_protection_check|'
+            . get_home_url() . '|' . AltSessions::getID() . '|' . $expires;
+
+        return hash_hmac('sha256', $data, wp_salt('auth'));
     }
 
     /**

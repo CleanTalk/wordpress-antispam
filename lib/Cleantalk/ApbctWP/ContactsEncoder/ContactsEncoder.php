@@ -46,9 +46,15 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     private $comment;
 
+    /**
+     * @var Params
+     */
+    private $params;
+
     public function init($params)
     {
         parent::init($params);
+        $this->params = $params;
         $this->exclusions = new ExclusionsService($params);
         $this->shortcodes = new ShortCodesService($params);
         $this->grid_builder_integration = new CEIntegrationGridBuilder();
@@ -56,6 +62,25 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $this->shortcodes->registerAll();
 
         $this->registerHookHandler();
+
+        // The instance is created on plugin load, before WordPress authenticates the visitor.
+        add_action('set_current_user', array($this, 'syncLoggedInState'));
+    }
+
+    /**
+     * @return void
+     */
+    public function syncLoggedInState()
+    {
+        $is_logged_in = apbct_is_user_logged_in();
+        if ( $is_logged_in === $this->is_logged_in ) {
+            return;
+        }
+
+        // Params are shared with the exclusion services.
+        $this->params->is_logged_in = $is_logged_in;
+        $this->is_logged_in = $is_logged_in;
+        $this->encoder->useSSL(! $is_logged_in);
     }
 
     /**
