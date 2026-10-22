@@ -601,7 +601,7 @@ function apbct_admin__enqueue_scripts($hook)
         wp_localize_script($widget_handler, 'apbctDashboardWidget', array(
             'data' => $to_chart,
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('ct_brief_refresh'),
+            'nonce' => wp_create_nonce(AJAXService::$admin_nonce_id),
         ));
     }
 
@@ -1533,7 +1533,7 @@ function apbct_brief_refresh()
 {
     global $apbct;
 
-    AJAXService::checkNonceRestrictingNonAdmins();
+    AJAXService::checkNonceRestrictingNonAdmins('security');
 
     cleantalk_get_brief_data($apbct->api_key);
 
