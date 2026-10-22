@@ -3,6 +3,7 @@
 namespace ApbctWP\Antispam;
 
 use Cleantalk\ApbctWP\Antispam\ForceProtection;
+use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\NoCookie;
@@ -43,6 +44,7 @@ class ForceProtectionTest extends \ApbctTestCase
         remove_filter('the_content', array($this->protection, 'modifyContent'));
         $_COOKIE = $this->original_cookies;
         $_SERVER = $this->original_server;
+        $this->resetIpCache();
         NoCookie::$no_cookies_data = $this->original_no_cookies;
         $apbct->data['cookies_type'] = $this->original_cookies_type;
         wp_set_current_user($this->original_user_id);
@@ -53,6 +55,14 @@ class ForceProtectionTest extends \ApbctTestCase
     private function resetRequestCache()
     {
         Cookie::getInstance()->variables = array();
+        Server::getInstance()->variables = array();
+    }
+
+    private function resetIpCache()
+    {
+        $property = new \ReflectionProperty(\Cleantalk\Common\Helper::class, 'ips_stored');
+        $property->setAccessible(true);
+        $property->setValue(Helper::getInstance(), array());
         Server::getInstance()->variables = array();
     }
 
@@ -153,6 +163,31 @@ class ForceProtectionTest extends \ApbctTestCase
         } finally {
             remove_filter('home_url', $other_site);
         }
+    }
+
+    /**
+     * @dataProvider storageModes
+     */
+    public function testPassTokenSurvivesIpLookupOrderForIpv6Visitor($mode)
+    {
+        $_SERVER['REMOTE_ADDR'] = '2001:db8::10';
+        $this->resetIpCache();
+
+        // The challenge request resolves the IPv6 address before the token is issued.
+        Helper::ipGet('real', false);
+        $token = $this->signToken(time() + HOUR_IN_SECONDS);
+        if ( $mode === 'alternative' ) {
+            $this->setPassToken($mode, $token);
+        }
+
+        // A page request may only run the default IPv4-only lookup.
+        $this->resetIpCache();
+        Helper::ipGet('real');
+        if ( $mode !== 'alternative' ) {
+            $this->setPassToken($mode, $token);
+        }
+
+        $this->assertSame(self::IFRAME, $this->protection->modifyContent(self::IFRAME));
     }
 
     public function testForgedLoginCookieDoesNotBypassProtection()
