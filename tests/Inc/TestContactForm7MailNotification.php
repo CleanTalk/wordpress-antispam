@@ -58,6 +58,15 @@ class TestContactForm7MailNotification extends \ApbctTestCase
         $this->assertStringContainsString('CleanTalk Anti-Spam: This message could be spam.', $result['body']);
     }
 
+    public function testMainMailGetsNoticeWhenDisplayNameIsSenderEmail()
+    {
+        $component = array('body' => 'Original body', 'recipient' => '"visitor@example.com" <admin@example.com>');
+
+        $result = apbct_form__contactForm7__changeMailNotification($component);
+
+        $this->assertStringContainsString('CleanTalk Anti-Spam: This message could be spam.', $result['body']);
+    }
+
     public function testAutoresponderMailIsNotChanged()
     {
         $component = array('body' => 'Thank you', 'recipient' => 'someone@example.com');

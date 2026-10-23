@@ -18,7 +18,8 @@ class Validate extends \Cleantalk\Common\Validate
 
     /**
      * Whether the email is one of the recipients.
-     * Compares complete addresses, so "min@example.com" is not found in "admin@example.com".
+     * Compares complete mailboxes: "min@example.com" is not found in "admin@example.com",
+     * and an email-like display name is not a recipient.
      *
      * @param string|array $recipients "Name <a@example.com>, b@example.com" or a list of such strings
      * @param string $email
@@ -27,7 +28,8 @@ class Validate extends \Cleantalk\Common\Validate
      */
     public static function isEmailInRecipients($recipients, $email)
     {
-        $email = strtolower(trim((string)$email, " \t\n\r\0\x0B"));
+        $whitespace = " \t\n\r\0\x0B";
+        $email = strtolower(trim((string)$email, $whitespace));
         if ( $email === '' ) {
             return false;
         }
@@ -36,9 +38,15 @@ class Validate extends \Cleantalk\Common\Validate
             $recipients = implode(',', array_filter($recipients, 'is_scalar'));
         }
 
-        preg_match_all('/[^\s<>,;"\']+@[^\s<>,;"\']+/', (string)$recipients, $matches);
-        foreach ( TT::getArrayValueAsArray($matches, 0) as $address ) {
-            if ( strtolower(TT::toString($address)) === $email ) {
+        // Split by "," or ";" outside of quoted display names
+        $entries = TT::toArray(preg_split('/[,;](?=(?:[^"]*"[^"]*")*[^"]*$)/', (string)$recipients));
+        foreach ( $entries as $entry ) {
+            $entry = trim(TT::toString($entry), $whitespace);
+            // "Display name <mailbox>" - only the part in angle brackets is the address
+            $address = preg_match('/<([^<>]*)>$/', $entry, $matches)
+                ? TT::getArrayValueAsString($matches, 1)
+                : $entry;
+            if ( strtolower(trim($address, $whitespace)) === $email ) {
                 return true;
             }
         }

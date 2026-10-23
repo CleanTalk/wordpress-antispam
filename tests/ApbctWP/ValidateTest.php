@@ -36,6 +36,16 @@ class ValidateTest extends TestCase
         $this->assertTrue(\Cleantalk\ApbctWP\Validate::isEmailInRecipients(array('admin@example.com', 'visitor@example.com'), 'visitor@example.com'));
         $this->assertFalse(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('admin@example.com', 'min@example.com'));
         $this->assertFalse(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('Admin <admin@example.com>; boss@example.com', 'min@example.com'));
+        // Apostrophe in the local part, its unrelated suffix
+        $this->assertTrue(\Cleantalk\ApbctWP\Validate::isEmailInRecipients("o'connor@example.com", "o'connor@example.com"));
+        $this->assertTrue(\Cleantalk\ApbctWP\Validate::isEmailInRecipients("O'Connor <o'connor@example.com>", "o'connor@example.com"));
+        $this->assertFalse(\Cleantalk\ApbctWP\Validate::isEmailInRecipients("o'connor@example.com", 'connor@example.com'));
+        // Email-like display name is not a recipient
+        $this->assertFalse(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('"visitor@example.com" <admin@example.com>', 'visitor@example.com'));
+        $this->assertTrue(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('"visitor@example.com" <admin@example.com>', 'admin@example.com'));
+        // Separator inside a quoted display name
+        $this->assertFalse(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('"Doe, visitor@example.com" <admin@example.com>', 'visitor@example.com'));
+        $this->assertTrue(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('"Doe, John" <john@example.com>, admin@example.com', 'john@example.com'));
         $this->assertFalse(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('admin@example.com', ''));
         $this->assertFalse(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('', 'visitor@example.com'));
     }

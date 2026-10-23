@@ -35,6 +35,18 @@ class TestNinjaFormsMailNotification extends \ApbctTestCase
         $this->assertStringContainsString('CleanTalk Anti-Spam: This message could be spam.', $result);
     }
 
+    public function testVisitorMailWithEmailLikeDisplayNameIsDetected()
+    {
+        global $apbct;
+        $apbct->sender_email = "o'connor@example.com";
+
+        $to_visitor = NinjaForms::hookChangeMailNotification('Thank you', array(), array('to' => "O'Connor <o'connor@example.com>"));
+        $to_admin = NinjaForms::hookChangeMailNotification('Original body', array(), array('to' => "\"o'connor@example.com\" <admin@example.com>"));
+
+        $this->assertSame('Thank you', $to_visitor);
+        $this->assertStringContainsString('CleanTalk Anti-Spam: This message could be spam.', $to_admin);
+    }
+
     public function testMailToSenderIsNotChanged()
     {
         $result = NinjaForms::hookChangeMailNotification('Thank you', array(), array('to' => 'admin@example.com,visitor@example.com'));
