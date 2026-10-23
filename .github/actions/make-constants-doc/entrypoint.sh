@@ -11,17 +11,24 @@ generate_document() {
   python3 "$SCRIPT_DIR/generate.py" --source "$SOURCE_FILE" --output "$OUTPUT_FILE"
 }
 
-generate_document
-git add -- "$OUTPUT_FILE"
-if git diff --cached --quiet -- "$OUTPUT_FILE"; then
-  echo "Constants reference is up to date."
-  exit 0
-fi
+# Returns 1 when the generated reference has no changes.
+# Errors must exit explicitly: errexit is suspended when called from an `if` condition.
+commit_document() {
+  generate_document || exit 1
+  git add -- "$OUTPUT_FILE" || exit 1
+  if git diff --cached --quiet -- "$OUTPUT_FILE"; then
+    return 1
+  fi
+  git commit --only -m 'docs: update constants reference [skip ci]' -- "$OUTPUT_FILE" || exit 1
+}
 
 git config user.name 'github-actions[bot]'
 git config user.email 'github-actions[bot]@users.noreply.github.com'
-git commit --only -m 'docs: update constants reference [skip ci]' \
-  -m 'Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>' -- "$OUTPUT_FILE"
+
+if ! commit_document; then
+  echo "Constants reference is up to date."
+  exit 0
+fi
 
 for attempt in 1 2 3; do
   if git push origin "HEAD:${TARGET_BRANCH}"; then
@@ -32,11 +39,10 @@ for attempt in 1 2 3; do
     exit 1
   fi
   git fetch origin "$TARGET_BRANCH"
-  git rebase "origin/${TARGET_BRANCH}"
-  generate_document
-  git add -- "$OUTPUT_FILE"
-  if ! git diff --cached --quiet -- "$OUTPUT_FILE"; then
-    git commit --only -m 'docs: refresh constants reference [skip ci]' \
-      -m 'Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>' -- "$OUTPUT_FILE"
+  # Rebuild on top of the fresh branch instead of rebasing a stale generated commit.
+  git reset --hard "origin/${TARGET_BRANCH}"
+  if ! commit_document; then
+    echo "Constants reference is up to date."
+    exit 0
   fi
 done

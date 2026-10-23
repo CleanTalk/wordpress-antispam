@@ -12,7 +12,8 @@ env:
   PLUGIN_NAME: cleantalk-spam-protect
 
 jobs:
-  make-changelog:
+  # Both generators share one job so a replaced pending run cannot skip either of them.
+  make-generated-files:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     runs-on: ubuntu-latest
     concurrency:
@@ -25,6 +26,11 @@ jobs:
         with:
           ref: beta
           fetch-depth: 0
+
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
 
       - name: Build changelog files
         uses: ./.github/actions/make-changelog
@@ -41,9 +47,15 @@ jobs:
           matrix_room: ${{ secrets.MATRIX_GITHUB_WORKFLOW_FEED }}
           matrix_token: ${{ secrets.MATRIX_USER_TOKEN }}
 
+      - name: Test constants generator
+        run: python3 -B -m unittest discover -s .github/actions/make-constants-doc -p test_generate.py -v
+
+      - name: Build constants reference
+        uses: ./.github/actions/make-constants-doc
+
   build-release-zip:
-    needs: make-changelog
-    if: ${{ !cancelled() && !contains(github.event.head_commit.message, '[skip ci]') }}
+    needs: make-generated-files
+    if: ${{ success() && !contains(github.event.head_commit.message, '[skip ci]') }}
     runs-on: ubuntu-latest
 
     steps:
