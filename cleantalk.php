@@ -777,14 +777,17 @@ if ( is_admin() || is_network_admin() ) {
         // if User is not logged in
         // if Unknown action or Known action with mandatory check
         if (
-            ( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1) &&
             Post::get('action') !== '' &&
             (
                 ! in_array(Post::get('action'), $_cleantalk_hooked_actions) ||
                 in_array(Post::get('action'), $_cleantalk_ajax_actions_to_check)
             )
         ) {
-            add_action('plugins_loaded', 'ct_ajax_hook');
+            add_action('plugins_loaded', function () use ($apbct) {
+                if ( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1 ) {
+                    ct_ajax_hook();
+                }
+            });
         }
 
         //QAEngine Theme answers

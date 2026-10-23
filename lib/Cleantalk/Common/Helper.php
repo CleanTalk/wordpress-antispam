@@ -325,6 +325,28 @@ class Helper
     }
 
     /**
+     * Detects the IP from the current request only.
+     * ipGet() caches by type regardless of $v4_only, so its result depends on the earlier lookups.
+     *
+     * @param string $ip_type_to_get
+     * @param bool $v4_only
+     *
+     * @return string|null
+     */
+    public static function ipGetUncached($ip_type_to_get = 'real', $v4_only = true)
+    {
+        $instance   = self::getInstance();
+        $ips_stored = $instance->ips_stored;
+        $instance->ips_stored = array();
+
+        try {
+            return self::ipGet($ip_type_to_get, $v4_only);
+        } finally {
+            $instance->ips_stored = $ips_stored;
+        }
+    }
+
+    /**
      * Checks if the IP is in private range
      *
      * @param string $ip

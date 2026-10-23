@@ -54,7 +54,7 @@ class AltSessions
 
     public static function getID()
     {
-        $id = Helper::ipGet()
+        $id = Helper::ipGetUncached('real', false)
               . Server::getString('HTTP_USER_AGENT')
               . Server::getString('HTTP_ACCEPT_LANGUAGE');
 
