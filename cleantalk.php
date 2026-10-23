@@ -1001,7 +1001,6 @@ function apbct_sfw__check()
                 APBCT_TBL_FIREWALL_LOG,
                 APBCT_TBL_AC_LOG,
                 array(
-                    'api_key'    => $apbct->api_key,
                     'view_limit' => $apbct->settings['sfw__anti_flood__view_limit'],
                     'apbct'      => $apbct,
                 )
