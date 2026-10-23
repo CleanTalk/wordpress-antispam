@@ -1,6 +1,7 @@
 const path = require('path');
 
-module.exports = {
+// Существующий конфиг, без изменений
+const reactConfig = {
     entry: './js/src/react/index.js',
     module: {
         rules: [
@@ -40,6 +41,32 @@ module.exports = {
         path: path.resolve(__dirname, 'js/public'),
         filename: 'apbct-react-bundle.js',
     },
-    mode: 'production',
-    devtool: false,
+    mode: 'production',
+    devtool: false,
 };
+
+const publicNewConfig = {
+    entry: './js/new_src/index.js',
+    module: {
+        rules: [
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['@babel/preset-env'],
+                    },
+                },
+            },
+        ],
+    },
+    output: {
+        path: path.resolve(__dirname, 'js'),
+        filename: 'apbct_public_new.min.js',
+    },
+    mode: 'production',
+    devtool: false,
+};
+
+module.exports = [reactConfig, publicNewConfig];

@@ -1307,9 +1307,24 @@ function apbct_enqueue_and_localize_public_scripts()
     global $apbct;
 
     $in_footer = Constant::is(Constant::APBCT_SERVICE__PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER, true);
-    // Different JS params
+
+    $enqueue = ApbctEnqueue::getInstance();
+
+    // New bundle for the params
+    $core_handle = $enqueue->js(
+        'apbct_public_new.min.js',
+        array(),
+        $in_footer
+    );
+
+    // Ald bundle for the rest functionality
     $bundle_name = ApbctJsBundleResolver::getBundleName($apbct->settings);
-    ApbctEnqueue::getInstance()->js($bundle_name, array(), $in_footer);
+
+    $enqueue->js(
+        $bundle_name,
+        array($core_handle),
+        $in_footer
+    );
 
     // Bot detector
     if ( apbct__is_bot_detector_enabled() && ! apbct_bot_detector_scripts_exclusion()) {
