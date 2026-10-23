@@ -167,10 +167,13 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     public static function decodeEmailEntities($html)
     {
         return (string)preg_replace_callback(
-            '/&#(\d{1,3});/',
+            '/&#(?:0*([0-9]{1,3})|[xX]0*([0-9a-fA-F]{1,2}));/',
             function ($matches) {
-                $code = TT::getArrayValueAsInt($matches, 1);
-                return $code < 128 && preg_match('/^[a-z0-9._%+-]$/i', chr($code))
+                $decimal = TT::getArrayValueAsString($matches, 1);
+                $code = $decimal !== ''
+                    ? (int)$decimal
+                    : (int)hexdec(TT::getArrayValueAsString($matches, 2));
+                return $code < 128 && preg_match('/^[a-z0-9._%+@-]$/i', chr($code))
                     ? chr($code)
                     : TT::getArrayValueAsString($matches, 0);
             },

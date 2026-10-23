@@ -25,6 +25,16 @@ class TestNinjaFormsMailNotification extends \ApbctTestCase
         $this->assertStringNotContainsString('secretusertoken0123456789abcdef0', $result);
     }
 
+    public function testAdminMailGetsNoticeWhenSenderIsSubstringOfRecipient()
+    {
+        global $apbct;
+        $apbct->sender_email = 'min@example.com';
+
+        $result = NinjaForms::hookChangeMailNotification('Original body', array(), array('to' => 'admin@example.com'));
+
+        $this->assertStringContainsString('CleanTalk Anti-Spam: This message could be spam.', $result);
+    }
+
     public function testMailToSenderIsNotChanged()
     {
         $result = NinjaForms::hookChangeMailNotification('Thank you', array(), array('to' => 'admin@example.com,visitor@example.com'));

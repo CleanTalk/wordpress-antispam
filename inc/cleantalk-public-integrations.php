@@ -1619,9 +1619,8 @@ function apbct_form__contactForm7__changeMailNotification($component, $_contact_
         return $component;
     }
     if (
-        ! empty($apbct->sender_email) &&
         isset($component['recipient']) &&
-        stripos((string)$component['recipient'], (string)$apbct->sender_email) !== false
+        \Cleantalk\ApbctWP\Validate::isEmailInRecipients($component['recipient'], (string)$apbct->sender_email)
     ) {
         return $component;
     }

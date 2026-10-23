@@ -1404,7 +1404,12 @@ class TestEmailEncoder extends TestCase
         $obfuscated = '&#105;&#110;&#102;&#111;@&#116;&#101;&#115;&#116;.&#99;&#111;&#109;';
         $this->assertSame('info@test.com', ContactsEncoder::decodeEmailEntities($obfuscated));
 
-        $escaped = '&lt;img src=x onerror=alert(1)&gt; &#60;script&#62; &#34;&#39; &amp;#60;';
+        // Fully obfuscated, hexadecimal and zero-padded entities
+        $this->assertSame('info@test.com', ContactsEncoder::decodeEmailEntities('info&#64;test.com'));
+        $this->assertSame('info@test.com', ContactsEncoder::decodeEmailEntities('&#x69;&#X6E;fo&#x40;test.com'));
+        $this->assertSame('info@test.com', ContactsEncoder::decodeEmailEntities('&#0105;nfo&#00064;test.com'));
+
+        $escaped = '&lt;img src=x onerror=alert(1)&gt; &#60;script&#62; &#34;&#39; &amp;#60; &#x3C;img&#x3e; &#060;';
         $this->assertSame($escaped, ContactsEncoder::decodeEmailEntities($escaped));
     }
 

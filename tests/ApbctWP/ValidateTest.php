@@ -27,4 +27,16 @@ class ValidateTest extends TestCase
         $this->assertFalse(\Cleantalk\ApbctWP\Validate::isUrl('vbscript:msgbox(1)'));
         $this->assertTrue(\Cleantalk\ApbctWP\Validate::isUrl('http://45.137.81.184/'));
     }
+
+    public function testIsEmailInRecipients()
+    {
+        $this->assertTrue(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('visitor@example.com', 'visitor@example.com'));
+        $this->assertTrue(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('Visitor <Visitor@Example.com>', 'visitor@example.com'));
+        $this->assertTrue(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('admin@example.com, "Visitor" <visitor@example.com>', 'visitor@example.com'));
+        $this->assertTrue(\Cleantalk\ApbctWP\Validate::isEmailInRecipients(array('admin@example.com', 'visitor@example.com'), 'visitor@example.com'));
+        $this->assertFalse(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('admin@example.com', 'min@example.com'));
+        $this->assertFalse(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('Admin <admin@example.com>; boss@example.com', 'min@example.com'));
+        $this->assertFalse(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('admin@example.com', ''));
+        $this->assertFalse(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('', 'visitor@example.com'));
+    }
 }

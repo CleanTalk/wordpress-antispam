@@ -7,6 +7,7 @@ use Cleantalk\ApbctWP\DTO\GetFieldsAnyDTO;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\Validate;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\Common\TT;
@@ -443,8 +444,8 @@ class NinjaForms extends IntegrationBase
         global $apbct;
 
         // Do not change the mail sent to the visitor
-        $to = isset($action_settings['to']) ? (string)$action_settings['to'] : '';
-        if ( empty($apbct->sender_email) || stripos($to, (string)$apbct->sender_email) === false ) {
+        $to = isset($action_settings['to']) ? $action_settings['to'] : '';
+        if ( ! Validate::isEmailInRecipients($to, (string)$apbct->sender_email) ) {
             $message .= wpautop(
                 PHP_EOL . '---'
                 . PHP_EOL
