@@ -602,7 +602,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
      */
     public static function getLocalUrl($request_uri)
     {
-        return '/' . ltrim(esc_url($request_uri), '/\\');
+        // Double-encode entities, otherwise "/&#047;host" is decoded by the browser to "//host"
+        return htmlspecialchars('/' . ltrim(esc_url_raw($request_uri), '/\\'), ENT_QUOTES, 'UTF-8', true);
     }
 
     public static function sendLog($db, $log_table, $ct_key)

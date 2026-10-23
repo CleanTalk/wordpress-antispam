@@ -46,6 +46,10 @@ class ValidateTest extends TestCase
         // Separator inside a quoted display name
         $this->assertFalse(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('"Doe, visitor@example.com" <admin@example.com>', 'visitor@example.com'));
         $this->assertTrue(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('"Doe, John" <john@example.com>, admin@example.com', 'john@example.com'));
+        // Escaped quote inside a later display name
+        $this->assertTrue(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('visitor@example.com, "The 6\" Shop" <admin@example.com>', 'visitor@example.com'));
+        $this->assertTrue(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('visitor@example.com, "The 6\" Shop" <admin@example.com>', 'admin@example.com'));
+        $this->assertFalse(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('"The 6\", visitor@example.com" <admin@example.com>', 'visitor@example.com'));
         $this->assertFalse(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('admin@example.com', ''));
         $this->assertFalse(\Cleantalk\ApbctWP\Validate::isEmailInRecipients('', 'visitor@example.com'));
     }

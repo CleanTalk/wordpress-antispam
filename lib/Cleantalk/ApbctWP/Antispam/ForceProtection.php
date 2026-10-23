@@ -309,6 +309,16 @@ class ForceProtection
     }
 
     /**
+     * Whether force protection was started for the current request (valid key, frontend).
+     *
+     * @return bool
+     */
+    public static function isInitialized()
+    {
+        return isset(static::$instance[static::class]);
+    }
+
+    /**
      * Random token of the current response. JS decodes only wrappers with this token,
      * so a wrapper planted in post content is never decoded.
      *

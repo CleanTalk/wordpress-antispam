@@ -38,8 +38,10 @@ class Validate extends \Cleantalk\Common\Validate
             $recipients = implode(',', array_filter($recipients, 'is_scalar'));
         }
 
-        // Split by "," or ";" outside of quoted display names
-        $entries = TT::toArray(preg_split('/[,;](?=(?:[^"]*"[^"]*")*[^"]*$)/', (string)$recipients));
+        // Split by "," or ";" outside of quoted display names, \" inside quotes is not a delimiter
+        $entries = TT::toArray(
+            preg_split('/[,;](?=(?:[^"\\\\]|\\\\.|"(?:[^"\\\\]|\\\\.)*")*$)/', (string)$recipients)
+        );
         foreach ( $entries as $entry ) {
             $entry = trim(TT::toString($entry), $whitespace);
             // "Display name <mailbox>" - only the part in angle brackets is the address

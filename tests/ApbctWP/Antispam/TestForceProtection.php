@@ -41,8 +41,23 @@ class TestForceProtection extends \ApbctTestCase
         $this->assertSame($planted, $result);
     }
 
+    /**
+     * Invalid key: cleantalk.php does not start force protection, localization must not start it either.
+     */
+    public function testNotInitializedForceProtectionIsNotStartedByLocalize()
+    {
+        $this->resetInstance();
+
+        $localize_data = CtPublicLocalize::getData();
+
+        $this->assertArrayNotHasKey('force_protection_wrapper_token', $localize_data);
+        $this->assertFalse(ForceProtection::isInitialized());
+    }
+
     public function testTokenIsLocalizedForJs()
     {
+        ForceProtection::getInstance();
+
         $localize_data = CtPublicLocalize::getData();
 
         $this->assertArrayHasKey('force_protection_wrapper_token', $localize_data);
@@ -50,5 +65,14 @@ class TestForceProtection extends \ApbctTestCase
             ForceProtection::getInstance()->getWrapperToken(),
             $localize_data['force_protection_wrapper_token']
         );
+    }
+
+    private function resetInstance()
+    {
+        $property = new \ReflectionProperty(ForceProtection::class, 'instance');
+        $property->setAccessible(true);
+        $instances = (array)$property->getValue();
+        unset($instances[ForceProtection::class]);
+        $property->setValue(null, $instances);
     }
 }
