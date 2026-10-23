@@ -815,6 +815,9 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             $response = $this->compileResponse($this->decoded_contacts_array, false);
             wp_send_json_error($response);
         }
+        if ( ! $this->is_logged_in && ! empty($this->decoded_contacts_array) && $this->is_encode_allowed ) {
+            apbct_email_encoder_set_passed();
+        }
         $response = $this->compileResponse($this->decoded_contacts_array, $this->is_encode_allowed);
         wp_send_json_success($response);
     }

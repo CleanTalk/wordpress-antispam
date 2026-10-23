@@ -4,6 +4,8 @@ use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RemoteCalls;
+use Cleantalk\ApbctWP\Variables\AltSessions;
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
@@ -82,6 +84,10 @@ function apbct_wp_set_current_user($user = null)
  */
 function apbct_wp_validate_auth_cookie($cookie = '', $scheme = '')
 {
+    if ( function_exists('wp_validate_auth_cookie') ) {
+        return wp_validate_auth_cookie($cookie, $scheme);
+    }
+
     $cookie_elements = apbct_wp_parse_auth_cookie($cookie, $scheme);
 
     if (!is_array($cookie_elements) || empty($cookie_elements)) {
@@ -109,17 +115,8 @@ function apbct_wp_validate_auth_cookie($cookie = '', $scheme = '')
             $algo = function_exists('hash') ? 'sha256' : 'sha1';
             $hash = hash_hmac($algo, $username . '|' . $expiration . '|' . $token, $key);
             if ( hash_equals($hash, $hmac) && is_object($user) ) {
-                $sessions = get_user_meta($user->ID, 'session_tokens', true);
-                $sessions = is_array($sessions) ? current($sessions) : $sessions;
-                if ( is_array($sessions) ) {
-                    if ( isset($sessions['expiration']) && is_int($sessions['expiration']) && $sessions['expiration'] > time() ) {
-                        return $user->ID;
-                    } else {
-                        return false;
-                    }
-                } else {
-                    return false;
-                }
+                // The session of this very token must be active, not just any session of the user.
+                return WP_Session_Tokens::get_instance($user->ID)->verify($token) ? $user->ID : false;
             } else {
                 return false;
             }
@@ -2299,7 +2296,8 @@ function apbct__is_wordpress_loopback_request()
 }
 
 /**
- * Generates MD5 hash for email encoder pass key
+ * Generates MD5 hash for email encoder pass key.
+ * The key is public, so it only hints that the visitor may have passed the decoding check.
  *
  * @return string
  */
@@ -2307,7 +2305,33 @@ function apbct_get_email_encoder_pass_key()
 {
     global $apbct;
 
-    return md5(Helper::ipGet() . $apbct->api_key . 'email_encoder');
+    return md5(Helper::ipGetUncached('real', false) . $apbct->api_key . 'email_encoder');
+}
+
+/**
+ * Remembers on the server side that the visitor passed the contact decoding check.
+ *
+ * @return void
+ */
+function apbct_email_encoder_set_passed()
+{
+    AltSessions::set('apbct_email_encoder_verified', '1');
+}
+
+/**
+ * Checks whether contacts may be shown without encoding to the visitor who passed the decoding check.
+ *
+ * @return bool
+ */
+function apbct_is_email_encoder_passed()
+{
+    // Cheap check first, so the sessions storage is queried only for visitors who decoded contacts.
+    if ( Cookie::get('apbct_email_encoder_passed') !== apbct_get_email_encoder_pass_key() ) {
+        return false;
+    }
+
+    // The verified mark is not in the list of values a visitor can set remotely.
+    return AltSessions::get('apbct_email_encoder_verified') === '1';
 }
 
 /**

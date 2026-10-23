@@ -48,6 +48,7 @@ class testEmailEncoderShortCodeEncode extends TestCase
     {
         $cookie_name = apbct__get_cookie_prefix() . 'apbct_email_encoder_passed';
         unset($_COOKIE[$cookie_name]);
+        \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
 
         $cookie_instance = Cookie::getInstance();
         $ref = new \ReflectionClass($cookie_instance);
@@ -75,6 +76,7 @@ class testEmailEncoderShortCodeEncode extends TestCase
         $this->clearDecoderPassedCookie();
         $_COOKIE[$cookie_name] = $pass_key;
         Cookie::set('apbct_email_encoder_passed', $pass_key);
+        apbct_email_encoder_set_passed();
     }
 
     public function testCallbackEncodesContent()

@@ -62,6 +62,104 @@ class AuthenticationTest extends WP_UnitTestCase
         $this->assertFalse(apbct_is_user_logged_in());
     }
 
+    public function testFallbackValidatorRejectsRevokedTokenWhileOtherSessionIsActive()
+    {
+        $user_id = self::factory()->user->create();
+        $expiration = time() + HOUR_IN_SECONDS;
+        $manager = WP_Session_Tokens::get_instance($user_id);
+        $revoked_token = $manager->create($expiration);
+        $active_token = $manager->create($expiration);
+        $revoked_cookie = wp_generate_auth_cookie($user_id, $expiration, 'logged_in', $revoked_token);
+        $active_cookie = wp_generate_auth_cookie($user_id, $expiration, 'logged_in', $active_token);
+
+        $manager->destroy($revoked_token);
+
+        $this->assertFalse(apbct_wp_validate_auth_cookie($revoked_cookie, 'logged_in'));
+        $this->assertSame($user_id, apbct_wp_validate_auth_cookie($active_cookie, 'logged_in'));
+    }
+
+    public function contactFormVisitors()
+    {
+        return array(
+            'forged cookie' => array(false),
+            'authenticated' => array(true),
+        );
+    }
+
+    /**
+     * @dataProvider contactFormVisitors
+     */
+    public function testContactFormValidationSkipsOnlyAuthenticatedUsers($authenticated)
+    {
+        global $apbct;
+
+        $settings = $apbct->settings;
+        $post = $_POST;
+        $skipped = array();
+        $record_skip = function ($reason) use (&$skipped) {
+            $skipped[] = $reason;
+        };
+        add_action('apbct_skipped_request', $record_skip);
+
+        try {
+            $apbct->settings['data__protect_logged_in'] = 0;
+            $_POST = array('email' => 'visitor@example.com', 'message' => 'Hello');
+            \Cleantalk\ApbctWP\Variables\Post::getInstance()->variables = array();
+            \Cleantalk\ApbctWP\Variables\Get::getInstance()->variables = array();
+            if ( $authenticated ) {
+                wp_set_current_user(self::factory()->user->create());
+            } else {
+                $_COOKIE[LOGGED_IN_COOKIE] = 'x';
+                $this->reloadCurrentUser();
+            }
+            // The admin side skip goes right after the logged-in skip, so the cloud check is not reached.
+            set_current_screen('dashboard');
+
+            ct_contact_form_validate();
+
+            $this->assertNotEmpty($skipped);
+            if ( $authenticated ) {
+                $this->assertStringNotContainsString('Admin side request.', $skipped[0]);
+            } else {
+                $this->assertStringContainsString('Admin side request.', $skipped[0]);
+            }
+        } finally {
+            remove_action('apbct_skipped_request', $record_skip);
+            $GLOBALS['current_screen'] = null;
+            $apbct->settings = $settings;
+            $_POST = $post;
+            \Cleantalk\ApbctWP\Variables\Post::getInstance()->variables = array();
+        }
+    }
+
+    public function testPublicEmailEncoderPassKeyAloneDoesNotSkipEncoding()
+    {
+        global $apbct;
+
+        $cookies_type = $apbct->data['cookies_type'];
+        $cookie_name = apbct__get_cookie_prefix() . 'apbct_email_encoder_passed';
+
+        try {
+            $apbct->data['cookies_type'] = 'native';
+            \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
+            $_COOKIE[$cookie_name] = apbct_get_email_encoder_pass_key();
+            \Cleantalk\ApbctWP\Variables\Cookie::getInstance()->variables = array();
+
+            $this->assertFalse(apbct_is_email_encoder_passed());
+
+            apbct_email_encoder_set_passed();
+            $this->assertTrue(apbct_is_email_encoder_passed());
+
+            unset($_COOKIE[$cookie_name]);
+            \Cleantalk\ApbctWP\Variables\Cookie::getInstance()->variables = array();
+            $this->assertFalse(apbct_is_email_encoder_passed());
+        } finally {
+            \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
+            \Cleantalk\ApbctWP\Variables\Cookie::getInstance()->variables = array();
+            $apbct->data['cookies_type'] = $cookies_type;
+        }
+    }
+
     public function testCurrentUserDoesNotRequireDefaultCookieName()
     {
         wp_set_current_user(self::factory()->user->create());
