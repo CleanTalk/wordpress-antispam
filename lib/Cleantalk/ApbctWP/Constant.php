@@ -18,12 +18,20 @@ namespace Cleantalk\ApbctWP;
 class Constant
 {
     /**
-     * If set, do not skip POST data from check if no email address found.
+     * Disable the exception that skips POST data checks when no email address is found.
+     * Defining either true or false activates this behavior. The "Check all POST data"
+     * setting takes precedence. Without this constant, normal exception handling applies.
+     *
+     * @var bool
      */
     const APBCT_SERVICE__DISABLE_EMPTY_EMAIL_EXCEPTION = 'APBCT_SERVICE__DISABLE_EMPTY_EMAIL_EXCEPTION';
 
     /**
-     * Pass anti-crawler check on RSS feed service.
+     * Skip Anti-Crawler checks for requests whose URI contains "feed".
+     * Defining either true or false enables this additional RSS exception.
+     * Without this constant, the normal Anti-Crawler exclusions apply.
+     *
+     * @var bool
      */
     const APBCT_SERVICE__SKIP_ANTICRAWLER_ON_RSS_FEED = 'APBCT_SERVICE__SKIP_ANTICRAWLER_ON_RSS_FEED';
 
@@ -34,7 +42,10 @@ class Constant
     const APBCT_ANTICRAWLER_EXLC_FEED = 'APBCT_SERVICE__SKIP_ANTICRAWLER_ON_RSS_FEED';
 
     /**
-     * Provides AJAX route type. Expected values: 'rest', 'admin_ajax'.
+     * Force the AJAX route to 'rest' or 'admin_ajax'.
+     * Other strings leave automatic route selection unchanged.
+     *
+     * @var string
      */
     const APBCT_SERVICE__SET_AJAX_ROUTE_TYPE = 'APBCT_SERVICE__SET_AJAX_ROUTE_TYPE';
 
@@ -45,7 +56,12 @@ class Constant
     const APBCT_SET_AJAX_ROUTE_TYPE = 'APBCT_SERVICE__SET_AJAX_ROUTE_TYPE';
 
     /**
-     * Provides user own access key.
+     * Supply a site-owned access key and override the key field in the settings.
+     * Any string is accepted by the registry, including an empty string; use a valid key.
+     * Its presence also affects database-prefix selection. The network updater still
+     * reads only the deprecated CLEANTALK_ACCESS_KEY name directly.
+     *
+     * @var string
      */
     const APBCT_SERVICE__SELF_OWNED_ACCESS_KEY = 'APBCT_SERVICE__SELF_OWNED_ACCESS_KEY';
 
@@ -56,12 +72,18 @@ class Constant
     const CLEANTALK_ACCESS_KEY = 'APBCT_SERVICE__SELF_OWNED_ACCESS_KEY';
 
     /**
-     * Allows to set Bot-Detector enabled/disabled.
+     * Force Bot Detector on with true or off with false.
+     * Without this constant, the saved Bot Detector settings apply.
+     *
+     * @var bool
      */
     const APBCT_SERVICE__BOT_DETECTOR_ENABLED = 'APBCT_SERVICE__BOT_DETECTOR_ENABLED';
 
     /**
-     * If isset, any public scripts will be placed in a page footer.
+     * Place public JavaScript files in the page footer when the value is true.
+     * False or an absent constant leaves normal script placement unchanged.
+     *
+     * @var bool
      */
     const APBCT_SERVICE__PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER = 'APBCT_SERVICE__PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER';
 
@@ -72,7 +94,10 @@ class Constant
     const CLEANTALK_PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER = 'APBCT_SERVICE__PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER';
 
     /**
-     * Provides whitelabel-mode FAQ link.
+     * Override the white-label FAQ link with a string, sanitized using esc_url.
+     * Without this constant, the existing FAQ link is retained.
+     *
+     * @var string
      */
     const APBCT_SERVICE__WHITELABEL_FAQ_LINK = 'APBCT_SERVICE__WHITELABEL_FAQ_LINK';
 
@@ -83,7 +108,10 @@ class Constant
     const APBCT_WHITELABEL_FAQ_LINK = 'APBCT_SERVICE__WHITELABEL_FAQ_LINK';
 
     /**
-     * Provides whitelabel-mode plugin description.
+     * Override the white-label plugin description with a string, escaped using esc_html.
+     * Without this constant, the existing description is retained.
+     *
+     * @var string
      */
     const APBCT_SERVICE__WHITELABEL_PLUGIN_DESCRIPTION = 'APBCT_SERVICE__WHITELABEL_PLUGIN_DESCRIPTION';
 
@@ -94,7 +122,12 @@ class Constant
     const APBCT_WHITELABEL_PLUGIN_DESCRIPTION = 'APBCT_SERVICE__WHITELABEL_PLUGIN_DESCRIPTION';
 
     /**
-     * If defined, plugin will be in whitelabel mode.
+     * Register the white-label mode switch.
+     * The network updater currently reads only APBCT_WHITELABEL directly:
+     * true enables the mode and false disables it. Defining the current name alone
+     * does not activate that legacy code path.
+     *
+     * @var bool
      */
     const APBCT_SERVICE__WHITELABEL_ENABLED = 'APBCT_SERVICE__WHITELABEL_ENABLED';
 
@@ -105,7 +138,12 @@ class Constant
     const APBCT_WHITELABEL = 'APBCT_SERVICE__WHITELABEL_ENABLED';
 
     /**
-     * Provides product name for whitelabel mode.
+     * Register a custom white-label product name.
+     * The network updater currently reads only APBCT_WHITELABEL_NAME directly,
+     * when APBCT_WHITELABEL is defined. The current name alone does not change
+     * the product name in that legacy code path.
+     *
+     * @var string
      */
     const APBCT_SERVICE__WHITELABEL_PRODUCT_NAME = 'APBCT_SERVICE__WHITELABEL_PRODUCT_NAME';
 
@@ -116,7 +154,11 @@ class Constant
     const APBCT_WHITELABEL_NAME = 'APBCT_SERVICE__WHITELABEL_PRODUCT_NAME';
 
     /**
-     * If defined, SFW update mode is always DIRECT. Helpful if update queue fails due remote calls.
+     * Force direct SFW updates instead of the update queue.
+     * Defining either true or false activates this behavior.
+     * Useful when remote calls fail; remove the definition to restore automatic selection.
+     *
+     * @var bool
      */
     const APBCT_SERVICE__SFW_FORCE_DIRECT_UPDATE = 'APBCT_SERVICE__SFW_FORCE_DIRECT_UPDATE';
 
@@ -127,7 +169,10 @@ class Constant
     const APBCT_SFW_FORCE_DIRECT_UPDATE = 'APBCT_SERVICE__SFW_FORCE_DIRECT_UPDATE';
 
     /**
-     * If defined, no title will be provided for blocking page.
+     * Hide the CleanTalk title on blocking pages and rejected-comment messages with true.
+     * False or an absent constant preserves the title.
+     *
+     * @var bool
      */
     const APBCT_SERVICE__DISABLE_BLOCKING_TITLE = 'APBCT_SERVICE__DISABLE_BLOCKING_TITLE';
 
@@ -138,7 +183,11 @@ class Constant
     const CLEANTALK_DISABLE_BLOCKING_TITLE = 'APBCT_SERVICE__DISABLE_BLOCKING_TITLE';
 
     /**
-     * Redefine how many comments should be approved before skip checking.
+     * Set the approved-comment count required to skip checking an author's comments,
+     * when the corresponding comment-checking setting is enabled.
+     * The default is 3. The registry checks the integer type but not its range.
+     *
+     * @var int
      */
     const APBCT_SERVICE__SKIP_ON_APPROVED_COMMENTS_NUMBER = 'APBCT_SERVICE__SKIP_ON_APPROVED_COMMENTS_NUMBER';
 
@@ -149,7 +198,11 @@ class Constant
     const CLEANTALK_CHECK_COMMENTS_NUMBER = 'APBCT_SERVICE__SKIP_ON_APPROVED_COMMENTS_NUMBER';
 
     /**
-     * If defined, no frontend-data logs will be collected. Debugging case usage.
+     * Disable frontend-data log collection for debugging.
+     * Defining either true or false disables collection and sets the frontend log flag to 0.
+     * Without this constant, normal log collection applies.
+     *
+     * @var bool
      */
     const APBCT_SERVICE__DO_NOT_COLLECT_FRONTEND_DATA_LOGS = 'APBCT_SERVICE__DO_NOT_COLLECT_FRONTEND_DATA_LOGS';
 
@@ -160,7 +213,13 @@ class Constant
     const APBCT_DO_NOT_COLLECT_FRONTEND_DATA_LOGS = 'APBCT_SERVICE__DO_NOT_COLLECT_FRONTEND_DATA_LOGS';
 
     /**
-     * Provides own URL of API server.
+     * Register a custom CleanTalk server domain.
+     * Bootstrap currently reads only CLEANTALK_SERVER directly, building
+     * https://moderate.<domain> and, unless CLEANTALK_API_URL is already defined,
+     * https://api.<domain>. Use a domain, not a complete URL.
+     * Defining the current name alone does not change those endpoints.
+     *
+     * @var string
      */
     const APBCT_SERVICE__PREDEFINED_CLEANTALK_SERVER_URL = 'APBCT_SERVICE__PREDEFINED_CLEANTALK_SERVER_URL';
 
@@ -171,7 +230,10 @@ class Constant
     const CLEANTALK_SERVER = 'APBCT_SERVICE__PREDEFINED_CLEANTALK_SERVER_URL';
 
     /**
-     * If defined, integration metrics will be disabled.
+     * Disable integration metrics when defined as either true or false.
+     * Remove the definition to allow normal metric collection.
+     *
+     * @var bool
      */
     const APBCT_SERVICE__DISABLE_INTEGRATION_METRICS = 'APBCT_SERVICE__DISABLE_INTEGRATION_METRICS';
     /**
