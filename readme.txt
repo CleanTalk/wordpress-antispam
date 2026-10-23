@@ -23,9 +23,9 @@ Advanced antispam for comments, registrations & contact forms. No CAPTCHA, plus 
 
 = ✨ More Than Just Anti-Spam = 
 * ✉️  **Real-Time Email validation**   — detects fake, disposable, and suspicious email addresses.
-* 👤 **Real Person Badge!**  — identifies and highlights real people in WordPress comments and can automatically approve legitimate, non-spam comments.
-* 🔒 **Contact Data Protection** — protects published email addresses and phone numbers from being harvested by bots.
 * 📋 **Anti-Spam Log** — shows every checked request, so you can see what was accepted or blocked and review possible false positives.
+* 🔒 **Contact Data Protection** — protects published email addresses and phone numbers from being harvested by bots.
+* 👤 **Real Person Badge!**  — identifies and highlights real people in WordPress comments and can automatically approve legitimate, non-spam comments.
 * 🛡️ **Spam FireWall** — block known spam bots before they reach your forms.
 
 = 🧩 No CAPTCHA. No Puzzles. Less Friction. =
@@ -168,7 +168,7 @@ Spam FireWall allows blocking the most active spam bots before they get access t
  * HTTP request data are being checked in the nearly 5.8 million of the identified spam bot IPs.
  * If it is an active spam bot, the bot gets a blank page, if it is a visitor then he receives a normal page. This process is completely transparent for the visitors.
 
-All the CleanTalk Spam FireWall activity is being logged in the process of filtering.
+CleanTalk SpamFireWall is similar to Cloudflare’s DDoS protection and Bot Management solutions. However, it runs locally on your server, uses your existing hosting and DNS settings, and does not route all your HTTP/HTTPS traffic through Cloudflare’s cloud.
 
 = Spam FireWall: Anti-Flood & Anti-Crawler =
 Spam FireWall: Anti-Flood and Anti-Crawler options are intended for blocking unwanted bots, content parsing, shop goods prices parsing or aggressive website scanning bots. Learn more https://cleantalk.org/help/anti-flood-and-anti-crawler
@@ -420,6 +420,7 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 9. Plugin’s basic settings.
 10. Advanced settings to fine-tune protection for various types of forms, cache compatibility, comment moderation policies, data encoding, URL exclusions, SpamFireWall, and UX/UI settings.
 11. Real Person Badge — highlights legitimate commenters and adds a badge showing they’ve been verified as real users, not spammers. It also automatically approves legitimate, non-spam comments. 
+12. SpamFireWall in action. It blocks the most active and well-known spam bots before they reach your website’s content.
 
 == Changelog ==
 
