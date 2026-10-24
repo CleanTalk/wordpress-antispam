@@ -481,7 +481,25 @@ function ctProcessDecodedDataResult(response, targetElement) {
  * @param {string} email
  */
 function ctFillDecodedEmail(target, email) {
-    target.innerHTML = target.innerHTML.replace(/.+?(<div class=["']apbct-tooltip["'].+?<\/div>)/, email + '$1');
+    let tooltip = null;
+    for (let i = 0; i < target.children.length; i++) {
+        if (target.children[i].classList.contains('apbct-tooltip')) {
+            tooltip = target.children[i];
+            break;
+        }
+    }
+    if (!tooltip) {
+        return;
+    }
+    // Replace everything before the tooltip. The decoded email is parsed separately,
+    // so it can not be merged into the markup around it.
+    while (tooltip.previousSibling) {
+        target.removeChild(tooltip.previousSibling);
+    }
+    const nodes = new DOMParser().parseFromString(String(email), 'text/html').body.childNodes;
+    for (let i = 0; i < nodes.length; i++) {
+        target.insertBefore(document.importNode(nodes[i], true), tooltip);
+    }
 }
 
 let ctEmailDecoderIsInitialized = false;

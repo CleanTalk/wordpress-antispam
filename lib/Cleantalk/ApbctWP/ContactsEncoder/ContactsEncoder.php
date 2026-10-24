@@ -150,11 +150,35 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     public function modifyFormFieldDisplay($html, $field, $display_context, $post_id)
     {
         if (mb_stripos($html, 'mailto:') !== false) {
-            $html = html_entity_decode($html);
+            $html = self::decodeEmailEntities($html);
             return $this->modifyContent($html);
         }
 
         return $html;
+    }
+
+    /**
+     * Business Directory obfuscates emails with numeric HTML entities.
+     * Decode only entities of characters allowed in email, other entities stay escaped.
+     *
+     * @param string $html
+     * @return string
+     */
+    public static function decodeEmailEntities($html)
+    {
+        return (string)preg_replace_callback(
+            '/&#(?:0*([0-9]{1,3})|[xX]0*([0-9a-fA-F]{1,2}));/',
+            function ($matches) {
+                $decimal = TT::getArrayValueAsString($matches, 1);
+                $code = $decimal !== ''
+                    ? (int)$decimal
+                    : (int)hexdec(TT::getArrayValueAsString($matches, 2));
+                return $code < 128 && preg_match('/^[a-z0-9._%+@-]$/i', chr($code))
+                    ? chr($code)
+                    : TT::getArrayValueAsString($matches, 0);
+            },
+            $html
+        );
     }
 
     /**
@@ -182,7 +206,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
                     return '';
                 }
 
-                $key = '%%APBCT_OPTION_SKIP_' . count($placeholders) . '%%';
+                $key = '%%APBCT_OPTION_SKIP_' . count($placeholders) . '_' . PlaceholderNonce::get() . '%%';
                 $placeholders[$key] = $matches[0];
 
                 return $key;
