@@ -162,8 +162,8 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
                         // collect handled fields to remove handler in the future
                         ctPublic.handled_fields.push(handledFormFields[i]);
                         // do attach handlers
-                        apbct_attach_event_handler(handledFormFields[i], 'focus', ctFunctionHasInputFocused);
-                        apbct_attach_event_handler(handledFormFields[i], 'keyup', ctFunctionHasKeyUp);
+                        handledFormFields[i].addEventListener('focus', ctFunctionHasInputFocused);
+                        handledFormFields[i].addEventListener('keyup', ctFunctionHasKeyUp);
                     }
                 }
             }
@@ -393,7 +393,7 @@ const ctFunctionFirstKey = function output(event) {
  * Stop mouse observing function
  */
 function ctMouseStopData() {
-    apbct_remove_event_handler(document, 'mousemove', ctFunctionMouseMove);
+    document.removeEventListener('mousemove', ctFunctionMouseMove);
     clearInterval(ctMouseReadInterval);
     clearInterval(ctMouseWriteDataInterval);
 }
@@ -434,8 +434,8 @@ const ctFunctionMouseMove = function output(event) {
  * Stop key listening function
  */
 function ctKeyStopStopListening() {
-    apbct_remove_event_handler(document, 'mousedown', ctFunctionFirstKey);
-    apbct_remove_event_handler(document, 'keydown', ctFunctionFirstKey);
+    document.removeEventListener('mousedown', ctFunctionFirstKey);
+    document.removeEventListener('keydown', ctFunctionFirstKey);
 }
 
 /**
@@ -478,7 +478,7 @@ function ctSetMouseMoved() {
 function ctStopFieldsListening(eventName, functionName) {
     if (typeof ctPublic.handled_fields !== 'undefined' && ctPublic.handled_fields.length > 0) {
         for (let i = 0; i < ctPublic.handled_fields.length; i++) {
-            apbct_remove_event_handler(ctPublic.handled_fields[i], eventName, functionName);
+            ctPublic.handled_fields[i].removeEventListener(eventName, functionName);
         }
     }
 }
@@ -548,10 +548,10 @@ function ctSetHasKeyUp() {
 }
 
 if (ctPublic.data__key_is_ok) {
-    apbct_attach_event_handler(document, 'mousemove', ctFunctionMouseMove);
-    apbct_attach_event_handler(document, 'mousedown', ctFunctionFirstKey);
-    apbct_attach_event_handler(document, 'keydown', ctFunctionFirstKey);
-    apbct_attach_event_handler(document, 'scroll', ctSetHasScrolled);
+    document.addEventListener('mousemove', ctFunctionMouseMove);
+    document.addEventListener('mousedown', ctFunctionFirstKey);
+    document.addEventListener('keydown', ctFunctionFirstKey);
+    document.addEventListener('scroll', ctSetHasScrolled);
 }
 
 /**

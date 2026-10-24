@@ -142,6 +142,6 @@ if (ctPublic.data__key_is_ok) {
     if (document.readyState !== 'loading') {
         apbctForceProtect();
     } else {
-        apbct_attach_event_handler(document, 'DOMContentLoaded', apbctForceProtect);
+        document.addEventListener('DOMContentLoaded', apbctForceProtect);
     }
 }

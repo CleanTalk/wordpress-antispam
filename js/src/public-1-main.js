@@ -3057,7 +3057,7 @@ let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 if (document.readyState !== 'loading') {
     apbct_ready();
 } else {
-    apbct_attach_event_handler(document, 'DOMContentLoaded', apbct_ready);
+    document.addEventListener('DOMContentLoaded', apbct_ready);
 }
 
 /**

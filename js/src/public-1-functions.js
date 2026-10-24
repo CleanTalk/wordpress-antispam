@@ -119,18 +119,6 @@ function ctDeleteCookie(cookieName) {
     }
 }
 
-// eslint-disable-next-line require-jsdoc,camelcase,no-unused-vars
-function apbct_attach_event_handler(elem, event, callback) {
-    if (typeof window.addEventListener === 'function') elem.addEventListener(event, callback);
-    else elem.attachEvent(event, callback);
-}
-
-// eslint-disable-next-line require-jsdoc,camelcase,no-unused-vars
-function apbct_remove_event_handler(elem, event, callback) {
-    if (typeof window.removeEventListener === 'function') elem.removeEventListener(event, callback);
-    else elem.detachEvent(event, callback);
-}
-
 /**
  * Recursively decode JSON-encoded properties
  *
