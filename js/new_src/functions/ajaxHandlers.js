@@ -326,9 +326,9 @@ class ApbctXhr {
             if (newRequestParams && freshNonceResult.hasOwnProperty('wpnonce')) {
                 ctPublicFunctions._fresh_nonce = freshNonceResult.wpnonce;
                 if (ctPublicFunctions.data__ajax_type === 'rest') {
-                    new ApbctCore().rest(newRequestParams);
+                    new ApbctRest(newRequestParams);
                 } else {
-                    new ApbctCore().ajax(newRequestParams);
+                    new ApbctAjax(newRequestParams);
                 }
             }
         };

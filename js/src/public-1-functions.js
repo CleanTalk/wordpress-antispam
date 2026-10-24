@@ -40,28 +40,43 @@ function initLegacyParams(gatheringLoaded) {
 
     if ( +ctPublic.data__email_check_before_post) {
         initCookies.push(['ct_checked_emails', '0']);
-        if (typeof apbct === 'function') apbct('input[type = "email"], #email').on('blur', checkEmail);
+        document.querySelectorAll('input[type = "email"], #email').forEach((elem) => {
+            elem.addEventListener('blur', checkEmail);
+        });
     }
 
     if ( +ctPublic.data__email_check_exist_post) {
         initCookies.push(['ct_checked_emails_exist', '0']);
-        if (typeof apbct === 'function') {
-            apbct('.comment-form input[name = "email"], input#email').on('blur', checkEmailExist);
-            apbct('.frm-fluent-form input[name = "email"], input#email').on('blur', checkEmailExist);
-            apbct('#registerform input[name = "user_email"]').on('blur', checkEmailExist);
-            apbct('form.wc-block-checkout__form input[type = "email"]').on('blur', checkEmailExist);
-            apbct('form.checkout input[type = "email"]').on('blur', checkEmailExist);
-            apbct('form.wpcf7-form input[type = "email"]')
-                .on('blur', ctDebounceFuncExec(checkEmailExist, 300) );
-            apbct('form.wpforms-form input[type = "email"]').on('blur', checkEmailExist);
-            apbct('form[id^="gform_"] input[type = "email"]').on('blur', checkEmailExist);
-            apbctIntegrateDynamicEmailCheck({
-                formSelector: '.nf-form-content',
-                emailSelector: 'input[type="email"], input[type="email"].ninja-forms-field',
-                handler: checkEmailExist,
-                debounce: 300,
-            });
-        }
+        document.querySelectorAll('.comment-form input[name = "email"], input#email').forEach((elem) => {
+            elem.addEventListener('blur', checkEmailExist);
+        });
+        document.querySelectorAll('.frm-fluent-form input[name = "email"], input#email').forEach((elem) => {
+            elem.addEventListener('blur', checkEmailExist);
+        });
+        document.querySelectorAll('#registerform input[name = "user_email"]').forEach((elem) => {
+            elem.addEventListener('blur', checkEmailExist);
+        });
+        document.querySelectorAll('form.wc-block-checkout__form input[type = "email"]').forEach((elem) => {
+            elem.addEventListener('blur', checkEmailExist);
+        });
+        document.querySelectorAll('form.checkout input[type = "email"]').forEach((elem) => {
+            elem.addEventListener('blur', checkEmailExist);
+        });
+        document.querySelectorAll('form.wpcf7-form input[type = "email"]').forEach((elem) => {
+            elem.addEventListener('blur', ctDebounceFuncExec(checkEmailExist, 300));
+        });
+        document.querySelectorAll('form.wpforms-form input[type = "email"]').forEach((elem) => {
+            elem.addEventListener('blur', checkEmailExist);
+        });
+        document.querySelectorAll('form[id^="gform_"] input[type = "email"]').forEach((elem) => {
+            elem.addEventListener('blur', checkEmailExist);
+        });
+        apbctIntegrateDynamicEmailCheck({
+            formSelector: '.nf-form-content',
+            emailSelector: 'input[type="email"], input[type="email"].ninja-forms-field',
+            handler: checkEmailExist,
+            debounce: 300,
+        });
     }
 
     if (gatheringLoaded) {

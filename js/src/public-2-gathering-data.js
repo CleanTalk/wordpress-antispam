@@ -669,7 +669,7 @@ function ctSetPixelImg(pixelUrl) {
             insertedImg.setAttribute('id', 'apbct_pixel');
             insertedImg.setAttribute('style', 'display: none; left: 99999px;');
             insertedImg.setAttribute('src', pixelUrl);
-            apbct('body').append(insertedImg);
+            document.body.append(insertedImg);
         }
     }
 }
@@ -690,7 +690,7 @@ function ctSetPixelImgFromLocalstorage(pixelUrl) {
             insertedImg.setAttribute('id', 'apbct_pixel');
             insertedImg.setAttribute('style', 'display: none; left: 99999px;');
             insertedImg.setAttribute('src', decodeURIComponent(pixelUrl));
-            apbct('body').append(insertedImg);
+            document.body.append(insertedImg);
         }
     }
 }
