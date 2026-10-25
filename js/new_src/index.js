@@ -8,6 +8,7 @@ import {initEmailExist} from './initEmailExist';
 import {initBlockMessage, showBlockMessage} from './initBlockMessage';
 import {initBotDetectorEventToken} from './params/botDetectorEventToken';
 import {initBotDetectorExist} from './params/botDetectorExist';
+import {initExistingVisitor} from './params/existingVisitor';
 import {initForceAltCookies} from './params/forceAltCookies';
 import {setInputValue} from "./params/checkJs";
 import {apbctLocalStorage} from './utils/apbctLocalStorage';
@@ -45,6 +46,7 @@ async function apbctReady() {
     initEmailCheckBeforePost();
     initEmailExist();
     initBlockMessage();
+    initExistingVisitor();
 }
 
 // Hack - it have to be defined for the ability to use from inline JS code in the page

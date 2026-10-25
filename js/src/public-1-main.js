@@ -150,8 +150,6 @@ async function apbct_ready() {
             eventTokenTransport.attachEventTokenToWoocommerceGetRequestAddToCart();
         }
     }, 1000);
-
-    apbctLocalStorage.set('apbct_existing_visitor', 1);
 }
 
 if (document.readyState !== 'loading') {
