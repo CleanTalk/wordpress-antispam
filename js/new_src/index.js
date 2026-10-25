@@ -21,6 +21,10 @@ import {apbctSessionStorage} from './utils/apbctSessionStorage';
 import {ctNoCookieAttachHiddenFieldsToForms, initNoCookieHiddenFields} from './functions/noCookieHiddenField';
 import {ctSetCookie, ctSetAltCookies} from './functions/storeParams';
 import {sendAJAX, sendREST} from "./functions/ajaxHandlers";
+import {initJsErrors} from './functions/jsErrors';
+
+// Errors must be caught from the very start, not only after DOMContentLoaded
+initJsErrors();
 
 if (document.readyState !== 'loading') {
     apbctReady();

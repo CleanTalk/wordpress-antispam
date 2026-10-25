@@ -41,7 +41,13 @@ function ctProcessError(msg, url) {
     localStorage.setItem(ctJsErrors, JSON.stringify(errArray));
 }
 
-if (Math.floor(Math.random() * 100) === 1) {
+/**
+ * Collects JS errors related to the plugin for ~1% of the visitors.
+ */
+export function initJsErrors() {
+    if (Math.floor(Math.random() * 100) !== 1) {
+        return;
+    }
     window.onerror = function(exception, url) {
         let filterWords = ['apbct', 'ctPublic'];
         let length = filterWords.length;

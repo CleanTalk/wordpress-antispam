@@ -1,4 +1,5 @@
 import {ctSetCookie, storeParams} from './storeParams';
+import {ctDeleteCookie} from '../utils/cookies';
 import {checkHiddenFieldsExclusions} from './formExclusions';
 
 const PARAM_NAME = 'apbct_visible_fields';
