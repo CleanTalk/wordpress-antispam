@@ -5,6 +5,7 @@ import {initEmailCheckBeforePost} from './initEmailCheckBeforePost';
 import {initEmailExist} from './initEmailExist';
 import {initBlockMessage, showBlockMessage} from './initBlockMessage';
 import {initBotDetectorEventToken} from './params/botDetectorEventToken';
+import {initForceAltCookies} from './params/forceAltCookies';
 import {setInputValue} from "./params/checkJs";
 import {apbctLocalStorage} from './utils/apbctLocalStorage';
 import {apbctSessionStorage} from './utils/apbctSessionStorage';
@@ -29,6 +30,7 @@ async function apbctReady() {
     }
     apbctReadyIsDone = true;
 
+    initForceAltCookies();
     initParams();
     initBotDetectorEventToken();
     initGathering();

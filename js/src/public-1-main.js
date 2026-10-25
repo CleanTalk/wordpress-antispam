@@ -170,30 +170,6 @@ class ApbctHandler {
     }
 
     /**
-     * Detect forms that need to be handled via alternative cookies
-     * @return {void}
-     */
-    detectForcedAltCookiesForms() {
-        let jetpackCommentsForm = document.querySelectorAll('iframe[name="jetpack_remote_comment"]').length > 0;
-        ctPublic.force_alt_cookies = jetpackCommentsForm;
-
-        /**
-         * DO NOT ADD ANY NEW INTEGRATION IN THIS FLOW
-         */
-
-        setTimeout(function() {
-            if (!ctPublic.force_alt_cookies) {
-                const bookingPress =
-                    (
-                        document.querySelectorAll('main[id^="bookingpress_booking_form"]').length > 0 ||
-                        document.querySelectorAll('.bpa-frontend-main-container').length > 0
-                    );
-                ctPublic.force_alt_cookies = bookingPress;
-            }
-        }, 1000);
-    }
-
-    /**
      * Insert event_token and no_cookies_data to some ajax request
      * @return {void}
      */
@@ -2379,7 +2355,6 @@ async function apbct_ready() {
     apbctReadyIsDone = true;
 
     const handler = new ApbctHandler();
-    handler.detectForcedAltCookiesForms();
 
     setTimeout(function() {
         // Attach data when bot detector is enabled
