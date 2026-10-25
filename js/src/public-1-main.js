@@ -2407,26 +2407,6 @@ async function apbct_ready() {
     handler.catchJqueryAjax();
     handler.catchWCRestRequestAsMiddleware();
 
-    if (+ctPublic.bot_detector_enabled) {
-        let botDetectorEventTokenStored = false;
-        window.addEventListener('botDetectorEventTokenUpdated', (event) => {
-            const botDetectorEventToken = event.detail?.eventToken;
-            if (botDetectorEventToken && !botDetectorEventTokenStored) {
-                ctSetCookie([
-                    ['ct_bot_detector_event_token', botDetectorEventToken],
-                ]);
-                botDetectorEventTokenStored = true;
-                // @ToDo remove this block afret force_alt_cookies removed
-                if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-                    ctSetAlternativeCookie(
-                        JSON.stringify({'ct_bot_detector_event_token': botDetectorEventToken}),
-                        {forceAltCookies: true},
-                    );
-                }
-            }
-        });
-    }
-
     if (ctPublic.settings__sfw__anti_crawler && +ctPublic.bot_detector_enabled) {
         handler.toolForAntiCrawlerCheckDuringBotDetector();
     }
