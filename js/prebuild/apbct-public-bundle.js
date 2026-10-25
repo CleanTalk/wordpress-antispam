@@ -1118,19 +1118,6 @@ class ApbctHandler {
             }, 2000);
         }, cronStartTimeout);
     }
-
-    /**
-     * Checking that the bot detector has loaded and received the event token for Anti-Crawler
-     * @return {void}
-     */
-    toolForAntiCrawlerCheckDuringBotDetector() {
-        const botDetectorIntervalSearch = setInterval(() => {
-            if (localStorage.bot_detector_event_token) {
-                ctSetCookie('apbct_bot_detector_exist', '1', '3600');
-                clearInterval(botDetectorIntervalSearch);
-            }
-        }, 500);
-    }
 }
 
 let apbctReadyIsDone = false;
@@ -1146,8 +1133,6 @@ async function apbct_ready() {
     }
     apbctReadyIsDone = true;
 
-    const handler = new ApbctHandler();
-
     setTimeout(function() {
         // Attach data when bot detector is enabled
         if (+ctPublic.bot_detector_enabled) {
@@ -1156,10 +1141,6 @@ async function apbct_ready() {
             eventTokenTransport.attachEventTokenToWoocommerceGetRequestAddToCart();
         }
     }, 1000);
-
-    if (ctPublic.settings__sfw__anti_crawler && +ctPublic.bot_detector_enabled) {
-        handler.toolForAntiCrawlerCheckDuringBotDetector();
-    }
 
     apbctLocalStorage.set('apbct_existing_visitor', 1);
 }
