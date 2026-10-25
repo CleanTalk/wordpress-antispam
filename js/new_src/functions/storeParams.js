@@ -14,7 +14,7 @@ const PARAMS_TO_FORCE_ALT = [
 
 const PARAMS_SKIP_ALT = [
     'ct_pointer_data'
-]
+];
 
 /**
  * @param {array} params
