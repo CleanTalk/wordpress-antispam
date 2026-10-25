@@ -5,9 +5,6 @@
 function initLegacyParams() {
     const initCookies = [];
 
-    apbctLocalStorage.set('ct_fkp_timestamp', '0');
-    apbctLocalStorage.set('ct_pointer_data', '0');
-
     if ( ctPublic.data__cookies_type !== 'native' ) {
         initCookies.push(['apbct_visible_fields', '0']);
     } else {

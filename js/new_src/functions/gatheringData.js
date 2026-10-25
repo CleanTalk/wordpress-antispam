@@ -15,7 +15,6 @@ export function getGatheringParams(gatheringLoaded) {
     apbctLocalStorage.set(SCREEN_INFO_PARAM_NAME, screenInfo);
     return gatheringLoaded ? [
         ['ct_gathering_loaded', gatheringLoaded],
-        ['ct_fkp_timestamp', '0'],
         ['ct_pointer_data', '0'],
         [SCREEN_INFO_PARAM_NAME, screenInfo],
     ] : [];
@@ -383,13 +382,6 @@ let ctMouseReadInterval;
 let ctMouseWriteDataInterval;
 
 
-// Writing first key press timestamp
-const ctFunctionFirstKey = function output(event) {
-    let KeyTimestamp = Math.floor(new Date().getTime() / 1000);
-    ctSetCookie('ct_fkp_timestamp', KeyTimestamp);
-    ctKeyStopStopListening();
-};
-
 /**
  * Stop mouse observing function
  */
@@ -430,14 +422,6 @@ const ctFunctionMouseMove = function output(event) {
         }
     }
 };
-
-/**
- * Stop key listening function
- */
-function ctKeyStopStopListening() {
-    document.removeEventListener('mousedown', ctFunctionFirstKey);
-    document.removeEventListener('keydown', ctFunctionFirstKey);
-}
 
 /**
  * ctSetHasScrolled
@@ -550,8 +534,6 @@ function ctSetHasKeyUp() {
 
 if (ctPublic.data__key_is_ok) {
     document.addEventListener('mousemove', ctFunctionMouseMove);
-    document.addEventListener('mousedown', ctFunctionFirstKey);
-    document.addEventListener('keydown', ctFunctionFirstKey);
     document.addEventListener('scroll', ctSetHasScrolled);
 }
 
