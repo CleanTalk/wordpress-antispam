@@ -89,7 +89,7 @@ class ApbctFetchProxyProtection { // eslint-disable-line no-unused-vars
                         (result.apbct !== undefined && +result.apbct.blocked) ||
                         (result.data !== undefined && result.data.message !== undefined)
                     ) {
-                        new ApbctShowForbidden().parseBlockMessage(result);
+                        window.apbctShowBlockMessage(result);
                         if (typeof config.callbackBlock === 'function') {
                             config.callbackBlock(result);
                         }

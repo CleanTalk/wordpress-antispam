@@ -3,6 +3,7 @@ import {initGathering} from './initGathering';
 import {initVisibleFields} from './initVisibleFields';
 import {initEmailCheckBeforePost} from './initEmailCheckBeforePost';
 import {initEmailExist} from './initEmailExist';
+import {initBlockMessage, showBlockMessage} from './initBlockMessage';
 import {setInputValue} from "./params/checkJs";
 import {apbctLocalStorage} from './utils/apbctLocalStorage';
 import {apbctSessionStorage} from './utils/apbctSessionStorage';
@@ -32,6 +33,7 @@ async function apbctReady() {
     initVisibleFields();
     initEmailCheckBeforePost();
     initEmailExist();
+    initBlockMessage();
 }
 
 // Hack - it have to be defined for the ability to use from inline JS code in the page
@@ -53,4 +55,6 @@ window.apbctLocalStorage = apbctLocalStorage;
 window.apbctSessionStorage  = apbctSessionStorage;
 // ctNoCookieAttachHiddenFieldsToForms is calling in the old JS files
 window.ctNoCookieAttachHiddenFieldsToForms = ctNoCookieAttachHiddenFieldsToForms;
+// apbctShowBlockMessage is calling in the old JS files
+window.apbctShowBlockMessage = showBlockMessage;
 
