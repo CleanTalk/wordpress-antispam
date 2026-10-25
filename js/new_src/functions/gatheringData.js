@@ -13,21 +13,30 @@ import {PARAM_NAME as SCREEN_INFO_PARAM_NAME, initScreenInfo} from '../params/sc
 export function getGatheringParams(gatheringLoaded) {
     const screenInfo = initScreenInfo();
     apbctLocalStorage.set(SCREEN_INFO_PARAM_NAME, screenInfo);
-    return gatheringLoaded ? [
+    const params = gatheringLoaded ? [
         ['ct_gathering_loaded', gatheringLoaded],
         ['ct_pointer_data', '0'],
         [SCREEN_INFO_PARAM_NAME, screenInfo],
     ] : [];
+    if (isPixelActive() && !ctIsDrawPixel()) {
+        params.push(['apbct_pixel_url', ctPublic.pixel__url]);
+    }
+    return params;
 }
 
+/**
+ * @return {boolean}
+ */
+function isPixelActive() {
+    return !!(+ctPublic.pixel__setting && +ctPublic.pixel__setting !== 3);
+}
+
+/**
+ * Draws the pixel (the url is stored by getGatheringParams when there is nothing to draw)
+ */
 export function initPixel() {
-    if (!(+ctPublic.pixel__setting && +ctPublic.pixel__setting !== 3)) {
-        return;
-    }
-    if (ctIsDrawPixel()) {
+    if (isPixelActive() && ctIsDrawPixel()) {
         ctGetPixelUrl();
-    } else {
-        storeParams([['apbct_pixel_url', ctPublic.pixel__url]]);
     }
 }
 

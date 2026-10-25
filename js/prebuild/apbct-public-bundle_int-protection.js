@@ -1120,13 +1120,6 @@ class ApbctFetchProxyProtection { // eslint-disable-line no-unused-vars
 function initLegacyParams() {
     const initCookies = [];
 
-    if (+ctPublic.pixel__setting && +ctPublic.pixel__setting !== 3) {
-        // If gathering is imported, it draws the pixel itself (see initPixel in the gathering chunk)
-        if (!window.apbctGatheringReady) {
-            initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
-        }
-    }
-
     if ( +ctPublic.data__email_check_before_post) {
         initCookies.push(['ct_checked_emails', '0']);
         document.querySelectorAll('input[type = "email"], #email').forEach((elem) => {
