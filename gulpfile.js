@@ -34,7 +34,6 @@ function minify_all_js_files_except_already_bundled() {
             '!js/src/public*.js',
             '!js/src/cleantalk-admin.js',
             '!js/src/common-decoder.js',
-            'js/src/public-3-trp.js',
         ])
         .pipe(sourcemaps.init())
         .pipe(uglify())

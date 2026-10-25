@@ -70,4 +70,13 @@ const publicNewConfig = {
     devtool: false,
 };
 
-module.exports = [reactConfig, publicNewConfig];
+const trpAdminConfig = {
+    ...publicNewConfig,
+    entry: './js/new_src/trpAdmin.js',
+    output: {
+        path: path.resolve(__dirname, 'js'),
+        filename: 'public-3-trp.min.js',
+    },
+};
+
+module.exports = [reactConfig, publicNewConfig, trpAdminConfig];

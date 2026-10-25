@@ -13,6 +13,7 @@ import {initCronFormsHandler} from './initCronFormsHandler';
 import {initExternalForms} from './initExternalForms';
 import {initInternalForms} from './initInternalForms';
 import {initForceProtection} from './initForceProtection';
+import {initTrp} from './initTrp';
 import {initForceAltCookies} from './params/forceAltCookies';
 import {setInputValue} from "./params/checkJs";
 import {apbctLocalStorage} from './utils/apbctLocalStorage';
@@ -53,6 +54,7 @@ async function apbctReady() {
     initExternalForms();
     initInternalForms();
     initForceProtection();
+    initTrp();
     initExistingVisitor();
     initCronFormsHandler();
 }

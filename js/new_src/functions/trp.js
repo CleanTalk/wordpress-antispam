@@ -1,32 +1,16 @@
 let ctTrpIsInitialized = false;
 
-document.addEventListener('DOMContentLoaded', function() {
+/**
+ * Builds the "real user" badges for comments.
+ * @param {object} ctTrpLocalize localized data (theRealPerson)
+ * @param {boolean} ctTrpIsAdminCommentsList true on the admin comments list
+ */
+export function startTrp(ctTrpLocalize, ctTrpIsAdminCommentsList = false) {
     // Some plugins dispatch a synthetic DOMContentLoaded, badges must not be built twice
-    if (ctTrpIsInitialized) {
+    if (ctTrpIsInitialized || !ctTrpLocalize) {
         return;
     }
     ctTrpIsInitialized = true;
-
-    let ctTrpLocalize = undefined;
-    let ctTrpIsAdminCommentsList = false;
-
-    if ( typeof ctPublic !== 'undefined' || typeof ctTrpAdminLocalize !== 'undefined' ) {
-        if ( typeof ctPublic !== 'undefined' && ctPublic.theRealPerson ) {
-            ctTrpLocalize = ctPublic.theRealPerson;
-        }
-        if (
-            typeof ctTrpLocalize === 'undefined' &&
-            typeof ctTrpAdminLocalize !== 'undefined' &&
-            ctTrpAdminLocalize.theRealPerson
-        ) {
-            ctTrpLocalize = ctTrpAdminLocalize.theRealPerson;
-            ctTrpIsAdminCommentsList = true;
-        }
-    }
-
-    if ( ! ctTrpLocalize ) {
-        return;
-    }
 
     // Selectors. Try to handle the WIDE range of themes.
     let themesCommentsSelector = '.apbct-trp > .comment-body *[class*="comment-author"]';
@@ -117,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
     badges.forEach((badge) => {
         let hideTimeout = undefined;
 
-        this.body.addEventListener('click', function(e) {
+        document.body.addEventListener('click', function(e) {
             if (
                 e.target.className.indexOf('apbct-real-user') == -1 &&
                 e.target.parentElement.className.indexOf('apbct-real-user') == -1
@@ -193,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 3000);
         });
     });
-});
+}
 
 /**
  * Closing all TRP popup
