@@ -974,10 +974,9 @@ function isFormHasDiviRedirect(formObj) {
  */
 function sendAjaxCheckingFormData(form) {
     // Get visible fields and set cookie
-    const visibleFields = {};
-    const attachData = new ApbctAttachData();
-    visibleFields[0] = attachData.collectVisibleFields(form);
-    attachData.setVisibleFieldsCookie(visibleFields);
+    if (window.apbctVisibleFields) {
+        window.apbctVisibleFields.setCookie({0: window.apbctVisibleFields.collect(form)});
+    }
 
     const data = {
         'ct_bot_detector_event_token': apbctLocalStorage.get('bot_detector_event_token'),
@@ -1247,10 +1246,10 @@ function sendAjaxCheckingDynamicFormData(form) {
     form.appendChild(forceAction);
 
     // Get visible fields and set cookie
-    const visibleFields = {};
+    if (window.apbctVisibleFields) {
+        window.apbctVisibleFields.setCookie({0: window.apbctVisibleFields.collect(form)});
+    }
     const attachData = new ApbctAttachData();
-    visibleFields[0] = attachData.collectVisibleFields(form);
-    attachData.setVisibleFieldsCookie(visibleFields);
     form.append(attachData.constructNoCookieHiddenField('hidden'));
 
     const data = {};

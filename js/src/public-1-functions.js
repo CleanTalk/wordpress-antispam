@@ -5,22 +5,6 @@
 function initLegacyParams() {
     const initCookies = [];
 
-    if ( ctPublic.data__cookies_type !== 'native' ) {
-        initCookies.push(['apbct_visible_fields', '0']);
-    } else {
-        // Delete all visible fields cookies on load the page
-        let cookiesArray = document.cookie.split(';');
-        if ( cookiesArray.length !== 0 ) {
-            for ( let i = 0; i < cookiesArray.length; i++ ) {
-                let currentCookie = cookiesArray[i].trim();
-                let cookieName = currentCookie.split('=')[0];
-                if ( cookieName.indexOf('apbct_visible_fields_') === 0 ) {
-                    ctDeleteCookie(cookieName);
-                }
-            }
-        }
-    }
-
     if (+ctPublic.pixel__setting && +ctPublic.pixel__setting !== 3) {
         // If gathering is imported, it draws the pixel itself (see initPixel in the gathering chunk)
         if (!window.apbctGatheringReady) {

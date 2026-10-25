@@ -1,5 +1,6 @@
 import {initParams} from "./initParams";
 import {initGathering} from './initGathering';
+import {initVisibleFields} from './initVisibleFields';
 import {setInputValue} from "./params/checkJs";
 import {apbctLocalStorage} from './utils/apbctLocalStorage';
 import {apbctSessionStorage} from './utils/apbctSessionStorage';
@@ -26,6 +27,7 @@ async function apbctReady() {
 
     initParams();
     initGathering();
+    initVisibleFields();
 }
 
 // Hack - it have to be defined for the ability to use from inline JS code in the page
