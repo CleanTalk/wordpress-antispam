@@ -3,7 +3,7 @@ import {apbctLocalStorage} from '../utils/apbctLocalStorage';
 import {apbctSessionStorage} from '../utils/apbctSessionStorage';
 
 export function ctNoCookieAttachHiddenFieldsToForms() {
-    if (ctPublic.data__cookies_type !== 'none') {
+    if (ctPublicFunctions.data__cookies_type !== 'none') {
         return;
     }
 
