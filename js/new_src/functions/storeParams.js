@@ -42,6 +42,27 @@ export function storeParams(params) {
     });
 }
 
+/**
+ * Old call format for the inline scripts (firewall die pages, anti-crawler):
+ * ctSetCookie([[name, value, expires], ...]) or ctSetCookie(name, value, expires).
+ * @param {array|string} cookies
+ * @param {string|number} value
+ * @param {string|number} expires
+ */
+export function ctSetCookieLegacy(cookies, value, expires = '') {
+    if (typeof cookies === 'string') {
+        cookies = [[cookies, value, expires]];
+    }
+    if (!Array.isArray(cookies)) {
+        return;
+    }
+    if (ctPublicFunctions.data__cookies_type === 'native') {
+        cookies.forEach((item) => ctSetCookie(item[0], item[1], item[2]));
+        return;
+    }
+    storeParams(cookies);
+}
+
 export function ctSetCookie(name, value, expires = '') {
     const _expires = typeof expires !== 'undefined' ? 'expires=' + expires + '; ' : '';
     const _secure = location.protocol === 'https:' ? '; secure' : '';

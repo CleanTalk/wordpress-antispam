@@ -18,7 +18,7 @@ import {initForceAltCookies} from './params/forceAltCookies';
 import {setInputValue} from "./params/checkJs";
 import {apbctLocalStorage} from './utils/apbctLocalStorage';
 import {ctNoCookieAttachHiddenFieldsToForms, initNoCookieHiddenFields} from './functions/noCookieHiddenField';
-import {ctSetCookie} from './functions/storeParams';
+import {ctSetCookieLegacy} from './functions/storeParams';
 import {sendAJAX, sendREST} from "./functions/ajaxHandlers";
 import {initJsErrors} from './functions/jsErrors';
 
@@ -66,7 +66,7 @@ async function apbctReady() {
 window.apbct_js_keys__set_input_value = setInputValue;
 
 // Used from inline JS (PHP-generated scripts, firewall die pages) and from the old common-decoder.js / common-cleantalk-modal.js
-window.ctSetCookie = ctSetCookie;
+window.ctSetCookie = ctSetCookieLegacy;
 window.apbct_public_sendAJAX = sendAJAX;
 window.apbct_public_sendREST = sendREST;
 window.apbctLocalStorage = apbctLocalStorage;

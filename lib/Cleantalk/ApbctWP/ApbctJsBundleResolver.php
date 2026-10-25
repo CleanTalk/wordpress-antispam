@@ -4,46 +4,38 @@ namespace Cleantalk\ApbctWP;
 
 class ApbctJsBundleResolver
 {
+    const PUBLIC_BUNDLE = 'apbct_public_new.min.js';
+    const FIREWALL_DIE_PAGE_BUNDLE = 'apbct_firewall_die_page.min.js';
+
     /**
-     * Get bundle name based on settings
+     * Get public bundle name. The only bundle is built by webpack, the rest functionality is loaded as chunks.
      *
-     * @param array|\ArrayObject $settings
+     * @param array|\ArrayObject|null $_settings Not used, left for the backward compatibility
      * @return string
      */
-    public static function getBundleName($settings)
+    public static function getBundleName($_settings = null)
     {
-        if ($settings instanceof \ArrayObject) {
-            $settings = $settings->getArrayCopy();
-        }
-
-        $external = !empty($settings['forms__check_external']) && $settings['forms__check_external'] === '1';
-        $internal = !empty($settings['forms__check_internal']) && $settings['forms__check_internal'] === '1';
-
-        if ($external && $internal) {
-            $script = 'apbct-public-bundle_full-protection.min.js';
-        } elseif ($external) {
-            $script = 'apbct-public-bundle_ext-protection.min.js';
-        } elseif ($internal) {
-            $script = 'apbct-public-bundle_int-protection.min.js';
-        } else {
-            $script = 'apbct-public-bundle.min.js';
-        }
-
-        if ( ! apbct__is_bot_detector_enabled() ) {
-            $script = str_replace('.min.js', '_gathering.min.js', $script);
-        }
-
-        return $script;
+        return self::PUBLIC_BUNDLE;
     }
 
     /**
      * Return full URI for JS script
-     * @param array|\ArrayObject $settings
+     * @param array|\ArrayObject|null $_settings Not used, left for the backward compatibility
      *
      * @return string
      */
-    public static function getFullScriptURI($settings)
+    public static function getFullScriptURI($_settings = null)
     {
-        return APBCT_URL_PATH . '/js/' . self::getBundleName($settings) . '?' . APBCT_VERSION;
+        return APBCT_URL_PATH . '/js/' . self::PUBLIC_BUNDLE . '?' . APBCT_VERSION;
+    }
+
+    /**
+     * Return full URI for the script of the firewall die pages (SFW, AntiFlood, AntiCrawler)
+     *
+     * @return string
+     */
+    public static function getFirewallDiePageScriptURI()
+    {
+        return APBCT_URL_PATH . '/js/' . self::FIREWALL_DIE_PAGE_BUNDLE . '?' . APBCT_VERSION;
     }
 }

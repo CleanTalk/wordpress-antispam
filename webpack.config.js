@@ -70,13 +70,18 @@ const publicNewConfig = {
     devtool: false,
 };
 
-const trpAdminConfig = {
+const standaloneConfig = (entry, filename) => ({
     ...publicNewConfig,
-    entry: './js/new_src/trpAdmin.js',
+    entry,
     output: {
         path: path.resolve(__dirname, 'js'),
-        filename: 'public-3-trp.min.js',
+        filename,
     },
-};
+});
 
-module.exports = [reactConfig, publicNewConfig, trpAdminConfig];
+module.exports = [
+    reactConfig,
+    publicNewConfig,
+    standaloneConfig('./js/new_src/trpAdmin.js', 'public-3-trp.min.js'),
+    standaloneConfig('./js/new_src/firewallDiePage.js', 'apbct_firewall_die_page.min.js'),
+];
