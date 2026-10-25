@@ -1120,13 +1120,6 @@ class ApbctFetchProxyProtection { // eslint-disable-line no-unused-vars
 function initLegacyParams() {
     const initCookies = [];
 
-    if ( +ctPublic.data__email_check_before_post) {
-        initCookies.push(['ct_checked_emails', '0']);
-        document.querySelectorAll('input[type = "email"], #email').forEach((elem) => {
-            elem.addEventListener('blur', checkEmail);
-        });
-    }
-
     if ( +ctPublic.data__email_check_exist_post) {
         initCookies.push(['ct_checked_emails_exist', '0']);
         document.querySelectorAll('.comment-form input[name = "email"], input#email').forEach((elem) => {
@@ -5225,60 +5218,7 @@ function apbctIsFormInDiv(formObj, divClassName) {
     return false;
 }
 
-let ctCheckedEmails = {};
 let ctCheckedEmailsExist = {};
-
-/**
- * @param {mixed} e
- */
-function checkEmail(e) { // eslint-disable-line no-unused-vars
-    let currentEmail = e.target.value;
-
-    if (! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail)) {
-        return;
-    }
-
-    if (currentEmail && !(currentEmail in ctCheckedEmails)) {
-        // Using REST API handler
-        if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
-            apbct_public_sendREST(
-                'check_email_before_post',
-                {
-                    method: 'POST',
-                    data: {'email': currentEmail},
-                    callback: function(result) {
-                        if (result.result) {
-                            ctCheckedEmails[currentEmail] = {
-                                'result': result.result,
-                                'timestamp': Date.now() / 1000 |0,
-                            };
-                            ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
-                        }
-                    },
-                },
-            );
-            // Using AJAX request and handler
-        } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
-            apbct_public_sendAJAX(
-                {
-                    action: 'apbct_email_check_before_post',
-                    email: currentEmail,
-                },
-                {
-                    callback: function(result) {
-                        if (result.result) {
-                            ctCheckedEmails[currentEmail] = {
-                                'result': result.result,
-                                'timestamp': Date.now() / 1000 |0,
-                            };
-                            ctSetCookie('ct_checked_emails', JSON.stringify(ctCheckedEmails));
-                        }
-                    },
-                },
-            );
-        }
-    }
-}
 
 /**
  * @param {mixed} e

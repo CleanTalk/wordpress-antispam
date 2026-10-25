@@ -5,13 +5,6 @@
 function initLegacyParams() {
     const initCookies = [];
 
-    if ( +ctPublic.data__email_check_before_post) {
-        initCookies.push(['ct_checked_emails', '0']);
-        document.querySelectorAll('input[type = "email"], #email').forEach((elem) => {
-            elem.addEventListener('blur', checkEmail);
-        });
-    }
-
     if ( +ctPublic.data__email_check_exist_post) {
         initCookies.push(['ct_checked_emails_exist', '0']);
         document.querySelectorAll('.comment-form input[name = "email"], input#email').forEach((elem) => {
