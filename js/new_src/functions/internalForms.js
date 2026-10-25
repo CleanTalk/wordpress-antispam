@@ -1,3 +1,5 @@
+import {sendAJAX} from './ajaxHandlers';
+
 /**
  * Check form as internal.
  * @param {int} currForm Current form.
@@ -18,7 +20,7 @@ function ctCheckInternal(currForm) {
     ctData.action = 'ct_check_internal';
 
     //  AJAX Request
-    apbct_public_sendAJAX(
+    sendAJAX(
         ctData,
         {
             url: ctPublicFunctions._ajax_url,
@@ -34,33 +36,11 @@ function ctCheckInternal(currForm) {
     );
 }
 
-let ctInternalFormsIsInitialized = false;
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Some plugins dispatch a synthetic DOMContentLoaded, forms must not be re-wrapped
-    if (ctInternalFormsIsInitialized) {
-        return;
-    }
-    ctInternalFormsIsInitialized = true;
-
-    if ( ! +ctPublic.settings__forms__check_internal ) {
-        return;
-    }
-
-    setTimeout(() => {
-        ctProtectInternalForms();
-    }, 500);
-
-    document.addEventListener('apbctForceProtectionAllowed', function() {
-        ctProtectInternalForms();
-    });
-});
-
 /**
  * Protect internal forms
  * @return {void}
  */
-function ctProtectInternalForms() {
+export function ctProtectInternalForms() {
     let ctCurrAction = '';
     let ctCurrForm = '';
 

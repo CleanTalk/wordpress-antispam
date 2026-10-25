@@ -11,6 +11,7 @@ import {initBotDetectorExist} from './params/botDetectorExist';
 import {initExistingVisitor} from './params/existingVisitor';
 import {initCronFormsHandler} from './initCronFormsHandler';
 import {initExternalForms} from './initExternalForms';
+import {initInternalForms} from './initInternalForms';
 import {initForceAltCookies} from './params/forceAltCookies';
 import {setInputValue} from "./params/checkJs";
 import {apbctLocalStorage} from './utils/apbctLocalStorage';
@@ -49,6 +50,7 @@ async function apbctReady() {
     initEmailExist();
     initBlockMessage();
     initExternalForms();
+    initInternalForms();
     initExistingVisitor();
     initCronFormsHandler();
 }

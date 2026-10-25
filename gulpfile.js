@@ -123,7 +123,6 @@ function bundle_public_internal_protection() {
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
         'js/src/public-1*.js',
-        'js/src/public-2-internal-forms.js',
         'js/src/public-3*.js',
     ])
     .pipe(concat('apbct-public-bundle_int-protection.js'))
@@ -138,7 +137,6 @@ function bundle_public_internal_protection_with_gathering() {
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
         'js/src/public-1*.js',
-        'js/src/public-2-internal-forms.js',
         'js/src/public-3*.js',
     ])
     .pipe(concat('apbct-public-bundle_int-protection_gathering.js'))
