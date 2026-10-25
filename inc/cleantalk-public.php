@@ -1304,25 +1304,14 @@ function ct_enqueue_styles_public()
  */
 function apbct_enqueue_and_localize_public_scripts()
 {
-    global $apbct;
-
     $in_footer = Constant::is(Constant::APBCT_SERVICE__PLACE_PUBLIC_JS_SCRIPTS_IN_FOOTER, true);
 
     $enqueue = ApbctEnqueue::getInstance();
 
     // New bundle for the params
-    $core_handle = $enqueue->js(
+    $enqueue->js(
         'apbct_public_new.min.js',
         array(),
-        $in_footer
-    );
-
-    // Ald bundle for the rest functionality
-    $bundle_name = ApbctJsBundleResolver::getBundleName($apbct->settings);
-
-    $enqueue->js(
-        $bundle_name,
-        array($core_handle),
         $in_footer
     );
 

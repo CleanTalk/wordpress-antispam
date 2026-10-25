@@ -547,7 +547,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                 CLEANTALK_PLUGIN_DIR . "lib/Cleantalk/ApbctWP/Firewall/die_page_anticrawler.html"
             );
 
-            $js_url = ApbctJsBundleResolver::getFullScriptURI($apbct->settings);
+            $js_url = ApbctJsBundleResolver::getFirewallDiePageScriptURI();
 
             $net_count = $apbct->stats['sfw']['entries'];
 

@@ -131,7 +131,7 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
             // Adding a tooltip
             let apbctTooltip = document.createElement('div');
             apbctTooltip.setAttribute('class', 'apbct-tooltip');
-            apbct(encodedEmailNodes[i]).append(apbctTooltip);
+            encodedEmailNodes[i].append(apbctTooltip);
 
             // collect encoded email strings
             encodedEmailsCollection[i] = encodedEmailNodes[i].dataset.originalString;

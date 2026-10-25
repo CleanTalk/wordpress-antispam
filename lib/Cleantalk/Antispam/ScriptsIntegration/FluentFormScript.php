@@ -12,7 +12,7 @@ class FluentFormScript extends ScriptIntegrationPlugin
     {
         echo '<script data-pagespeed-no-defer="" src="'
             . APBCT_URL_PATH
-            . '/js/apbct-public-bundle.min.js'
+            . '/js/apbct_public_new.min.js'
             . '?ver=' . APBCT_VERSION . '" id="ct_public_functions-js"></script>';
         echo '<script src="' . APBCT_BOT_DETECTOR_SCRIPT_URL . '?ver='
             . APBCT_VERSION . '" async id="ct_bot_detector-js" data-wp-strategy="async"></script>';

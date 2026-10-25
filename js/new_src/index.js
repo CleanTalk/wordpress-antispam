@@ -1,34 +1,74 @@
 import {initParams} from "./initParams";
+import {initInterceptors} from './initInterceptors';
+import {initSearchForm} from './initSearchForm';
+import {initGathering} from './initGathering';
+import {initVisibleFields} from './initVisibleFields';
+import {initEmailCheckBeforePost} from './initEmailCheckBeforePost';
+import {initEmailExist} from './initEmailExist';
+import {initBlockMessage} from './initBlockMessage';
+import {initBotDetectorEventToken} from './params/botDetectorEventToken';
+import {initBotDetectorExist} from './params/botDetectorExist';
+import {initExistingVisitor} from './params/existingVisitor';
+import {initCronFormsHandler} from './initCronFormsHandler';
+import {initExternalForms} from './initExternalForms';
+import {initInternalForms} from './initInternalForms';
+import {initForceProtection} from './initForceProtection';
+import {initTrp} from './initTrp';
+import {initForceAltCookies} from './params/forceAltCookies';
 import {setInputValue} from "./params/checkJs";
 import {apbctLocalStorage} from './utils/apbctLocalStorage';
-import {apbctSessionStorage} from './utils/apbctSessionStorage';
-import {ctNoCookieAttachHiddenFieldsToForms} from './functions/noCookieHiddenField';
-import {ctSetCookie, ctSetAltCookies} from './functions/storeParams';
+import {ctNoCookieAttachHiddenFieldsToForms, initNoCookieHiddenFields} from './functions/noCookieHiddenField';
+import {ctSetCookieLegacy} from './functions/storeParams';
 import {sendAJAX, sendREST} from "./functions/ajaxHandlers";
+import {initJsErrors} from './functions/jsErrors';
+
+// Errors must be caught from the very start, not only after DOMContentLoaded
+initJsErrors();
 
 if (document.readyState !== 'loading') {
-    initParams();
+    apbctReady();
 } else {
-    document.addEventListener('DOMContentLoaded', initParams);
+    document.addEventListener('DOMContentLoaded', apbctReady);
+}
+
+let apbctReadyIsDone = false;
+
+/**
+ * Runs once even if DOMContentLoaded is dispatched again by third-party code.
+ */
+async function apbctReady() {
+    if (apbctReadyIsDone) {
+        return;
+    }
+    apbctReadyIsDone = true;
+
+    initInterceptors();
+    initSearchForm();
+    initForceAltCookies();
+    initParams();
+    initNoCookieHiddenFields();
+    initBotDetectorEventToken();
+    initBotDetectorExist();
+    initGathering();
+    initVisibleFields();
+    initEmailCheckBeforePost();
+    initEmailExist();
+    initBlockMessage();
+    initExternalForms();
+    initInternalForms();
+    initForceProtection();
+    initTrp();
+    initExistingVisitor();
+    initCronFormsHandler();
 }
 
 // Hack - it have to be defined for the ability to use from inline JS code in the page
 window.apbct_js_keys__set_input_value = setInputValue;
 
-// Temporary solutions for the backward compatibility with the old version of the plugin. It will be removed in the future.
-
-// ctSetCookies and ctSetAlternativeCookie are calling in the old JS files
-window.ctSetCookie = ctSetCookie;
-window.ctSetAlternativeCookie = ctSetAltCookies;
-
-// apbct_js_keys__sendAJAX and apbct_js_keys__sendREST are calling in the old JS files
+// Used from inline JS (PHP-generated scripts, firewall die pages) and from the old common-decoder.js / common-cleantalk-modal.js
+window.ctSetCookie = ctSetCookieLegacy;
 window.apbct_public_sendAJAX = sendAJAX;
 window.apbct_public_sendREST = sendREST;
-
-// apbctLocalStorage is calling in the old JS files
 window.apbctLocalStorage = apbctLocalStorage;
-// apbctSessionStorage is calling in the old JS files
-window.apbctSessionStorage  = apbctSessionStorage;
-// ctNoCookieAttachHiddenFieldsToForms is calling in the old JS files
 window.ctNoCookieAttachHiddenFieldsToForms = ctNoCookieAttachHiddenFieldsToForms;
 

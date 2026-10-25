@@ -64,9 +64,24 @@ const publicNewConfig = {
     output: {
         path: path.resolve(__dirname, 'js'),
         filename: 'apbct_public_new.min.js',
+        chunkFilename: '[name].min.js',
     },
     mode: 'production',
     devtool: false,
 };
 
-module.exports = [reactConfig, publicNewConfig];
+const standaloneConfig = (entry, filename) => ({
+    ...publicNewConfig,
+    entry,
+    output: {
+        path: path.resolve(__dirname, 'js'),
+        filename,
+    },
+});
+
+module.exports = [
+    reactConfig,
+    publicNewConfig,
+    standaloneConfig('./js/new_src/trpAdmin.js', 'public-3-trp.min.js'),
+    standaloneConfig('./js/new_src/firewallDiePage.js', 'apbct_firewall_die_page.min.js'),
+];
