@@ -106,34 +106,6 @@ class ApbctAttachData {
         field.classList.add('ct_no_cookie_hidden_field');
         return field;
     }
-
-    /**
-     * Attach no cookie during submit
-     * @param {Event} event
-     * @return {void}
-     */
-    attachNoCookieDuringSubmit(event) {
-        if (ctPublic.data__cookies_type === 'none' && event.target &&
-            event.target.action && event.target.action.toString().indexOf('mailpoet_subscription_form') !== -1
-        ) {
-            window.XMLHttpRequest.prototype.send = function(data) {
-                if (!+ctPublic.bot_detector_enabled) {
-                    const noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + getNoCookieData() + '&';
-                    defaultSend.call(this, noCookieData + data);
-                } else {
-                    const eventToken = window.apbctGetEventToken();
-                    if (eventToken) {
-                        const noCookieData = 'data%5Bct_no_cookie_hidden_field%5D=' + getNoCookieData() + '&';
-                        const eventTokenData = 'data%5Bct_bot_detector_event_token%5D=' + eventToken + '&';
-                        defaultSend.call(this, noCookieData + eventTokenData + data);
-                    }
-                }
-                setTimeout(() => {
-                    window.XMLHttpRequest.prototype.send = defaultSend;
-                }, 0);
-            };
-        }
-    }
 }
 
 /**
@@ -200,9 +172,6 @@ async function apbct_ready() {
 
     apbctLocalStorage.set('apbct_existing_visitor', 1);
 }
-
-const defaultSend = XMLHttpRequest.prototype.send;
-let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 
 if (document.readyState !== 'loading') {
     apbct_ready();
