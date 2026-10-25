@@ -66,9 +66,6 @@ function bundle_public_default() {
     return gulp.src([
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyCallbacks.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-3*.js',
     ])
@@ -83,9 +80,6 @@ function bundle_public_default_with_gathering() {
     return gulp.src([
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyCallbacks.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-3*.js',
     ])
@@ -100,9 +94,6 @@ function bundle_public_external_protection() {
     return gulp.src([
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyCallbacks.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2-external-forms.js',
         'js/src/public-3*.js',
@@ -118,9 +109,6 @@ function bundle_public_external_protection_with_gathering() {
     return gulp.src([
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyCallbacks.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2-external-forms.js',
         'js/src/public-3*.js',
@@ -136,9 +124,6 @@ function bundle_public_internal_protection() {
     return gulp.src([
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyCallbacks.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2-internal-forms.js',
         'js/src/public-3*.js',
@@ -154,9 +139,6 @@ function bundle_public_internal_protection_with_gathering() {
     return gulp.src([
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyCallbacks.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2-internal-forms.js',
         'js/src/public-3*.js',
@@ -172,9 +154,6 @@ function bundle_public_full_protection() {
     return gulp.src([
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyCallbacks.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2*.js',
         'js/src/public-3*.js',
@@ -190,9 +169,6 @@ function bundle_public_full_protection_with_gathering() {
     return gulp.src([
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyCallbacks.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
-        'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2*.js',
         'js/src/public-3*.js',

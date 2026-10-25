@@ -1,7 +1,11 @@
+import {ApbctFetchProxyConfig} from './ApbctFetchProxyConfig';
+import {getEventToken} from '../../utils/eventToken';
+import {getNoCookieData} from '../requestData';
+
 /**
  * Class for handling FetchProxy forms
  */
-class ApbctFetchProxyProtection { // eslint-disable-line no-unused-vars
+export class ApbctFetchProxyProtection {
     /**
      * Constructor
      */
@@ -61,7 +65,7 @@ class ApbctFetchProxyProtection { // eslint-disable-line no-unused-vars
             }
 
             if (+ctPublic.bot_detector_enabled) {
-                const eventToken = new ApbctHandler().toolGetEventToken();
+                const eventToken = getEventToken();
                 if (eventToken) {
                     data.ct_bot_detector_event_token = eventToken;
                 }

@@ -1,4 +1,6 @@
 import {initParams} from "./initParams";
+import {initInterceptors} from './initInterceptors';
+import {initSearchForm} from './initSearchForm';
 import {initGathering} from './initGathering';
 import {initVisibleFields} from './initVisibleFields';
 import {initEmailCheckBeforePost} from './initEmailCheckBeforePost';
@@ -12,6 +14,7 @@ import {apbctSessionStorage} from './utils/apbctSessionStorage';
 import {ctNoCookieAttachHiddenFieldsToForms, initNoCookieHiddenFields} from './functions/noCookieHiddenField';
 import {ctSetCookie, ctSetAltCookies} from './functions/storeParams';
 import {sendAJAX, sendREST} from "./functions/ajaxHandlers";
+import {getEventToken} from './utils/eventToken';
 
 if (document.readyState !== 'loading') {
     apbctReady();
@@ -30,6 +33,8 @@ async function apbctReady() {
     }
     apbctReadyIsDone = true;
 
+    initInterceptors();
+    initSearchForm();
     initForceAltCookies();
     initParams();
     initNoCookieHiddenFields();
@@ -62,4 +67,6 @@ window.apbctSessionStorage  = apbctSessionStorage;
 window.ctNoCookieAttachHiddenFieldsToForms = ctNoCookieAttachHiddenFieldsToForms;
 // apbctShowBlockMessage is calling in the old JS files
 window.apbctShowBlockMessage = showBlockMessage;
+// apbctGetEventToken is calling in the old JS files
+window.apbctGetEventToken = getEventToken;
 

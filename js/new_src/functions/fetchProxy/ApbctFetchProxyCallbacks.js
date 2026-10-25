@@ -1,7 +1,7 @@
 /**
  * Callbacks for FetchProxy integrations
  */
-const ApbctFetchProxyCallbacks = { // eslint-disable-line no-unused-vars
+export const ApbctFetchProxyCallbacks = {
     /**
      * Mailchimp block callback - clears localStorage by mcforms mask
      * @param {object} result

@@ -90,7 +90,7 @@ function constructNoCookieHiddenField(type) {
  * Contains {...noCookieDataLocal, ...noCookieDataSession, ...noCookieDataTypo, ...noCookieDataFromUserActivity}.
  * @return {string}
  */
-function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
+export function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
     let noCookieDataLocal = apbctLocalStorage.getCleanTalkData();
     let noCookieDataSession = apbctSessionStorage.getCleanTalkData();
 
@@ -127,7 +127,7 @@ function getCleanTalkStorageDataArray() { // eslint-disable-line no-unused-vars
  * Get the browser state as a key/value pair to attach it to an intercepted request.
  * @return {{key: string, value: string}|false} False if there is nothing to attach.
  */
-function apbctGetBrowserStatePair() { // eslint-disable-line no-unused-vars
+export function apbctGetBrowserStatePair() { // eslint-disable-line no-unused-vars
     try {
         ApbctBrowserState.detectScripts();
         let state = ApbctBrowserState.asDTO();

@@ -1,7 +1,9 @@
+import {ApbctFetchProxyCallbacks} from './ApbctFetchProxyCallbacks';
+
 /**
  * Config for FetchProxy integrations
  */
-const ApbctFetchProxyConfig = { // eslint-disable-line no-unused-vars
+export const ApbctFetchProxyConfig = {
     'mailchimp': {
         selector: '.mcforms-wrapper',
         urlPattern: 'mcf-integrations-mcmktg.mlchmpcompprduse2.iks2.a.intuit.com/gateway/receive',
