@@ -3,6 +3,25 @@ import {apbctLocalStorage} from '../utils/apbctLocalStorage';
 import {apbctSessionStorage} from '../utils/apbctSessionStorage';
 import {checkHiddenFieldsExclusions} from './formExclusions';
 
+/**
+ * Attaches the hidden field with the params to forms in the NoCookie mode.
+ * Params stored by storeParams refresh the field themselves, this one covers the forms
+ * that appear later and the multipage Gravity Forms.
+ */
+export function initNoCookieHiddenFields() {
+    if (ctPublicFunctions.data__cookies_type !== 'none') {
+        return;
+    }
+
+    setTimeout(function() {
+        if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
+            return;
+        }
+        ctNoCookieAttachHiddenFieldsToForms();
+        document.addEventListener('gform_page_loaded', ctNoCookieAttachHiddenFieldsToForms);
+    }, 1000);
+}
+
 export function ctNoCookieAttachHiddenFieldsToForms() {
     if (ctPublicFunctions.data__cookies_type !== 'none') {
         return;

@@ -14,8 +14,7 @@ export function initGathering() {
 
     // Bot-Detector is disabled: gathering is the only source of data
     if (gatheringLoaded || !+ctPublic.bot_detector_enabled) {
-        window.apbctGatheringLoaded = gatheringLoaded;
-        window.apbctGatheringReady = importGatheringData().then((gathering) => startGathering(gathering, gatheringLoaded));
+        importGatheringData().then((gathering) => startGathering(gathering, gatheringLoaded));
     }
 }
 

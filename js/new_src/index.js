@@ -9,7 +9,7 @@ import {initForceAltCookies} from './params/forceAltCookies';
 import {setInputValue} from "./params/checkJs";
 import {apbctLocalStorage} from './utils/apbctLocalStorage';
 import {apbctSessionStorage} from './utils/apbctSessionStorage';
-import {ctNoCookieAttachHiddenFieldsToForms} from './functions/noCookieHiddenField';
+import {ctNoCookieAttachHiddenFieldsToForms, initNoCookieHiddenFields} from './functions/noCookieHiddenField';
 import {ctSetCookie, ctSetAltCookies} from './functions/storeParams';
 import {sendAJAX, sendREST} from "./functions/ajaxHandlers";
 
@@ -32,6 +32,7 @@ async function apbctReady() {
 
     initForceAltCookies();
     initParams();
+    initNoCookieHiddenFields();
     initBotDetectorEventToken();
     initGathering();
     initVisibleFields();

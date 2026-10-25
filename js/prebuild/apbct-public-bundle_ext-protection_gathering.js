@@ -1285,19 +1285,6 @@ class ApbctEventTokenTransport {
  */
 class ApbctAttachData {
     /**
-     * Attach hidden fields to forms
-     * @return {void}
-     */
-    attachHiddenFieldsToForms() {
-        if (typeof ctPublic.force_alt_cookies == 'undefined' ||
-            (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
-        ) {
-            ctNoCookieAttachHiddenFieldsToForms();
-            document.addEventListener('gform_page_loaded', ctNoCookieAttachHiddenFieldsToForms);
-        }
-    }
-
-    /**
      * Construct hidden field for no cookie
      * @param {string} type
      * @return {HTMLInputElement}
@@ -3563,13 +3550,6 @@ async function apbct_ready() {
             const eventTokenTransport = new ApbctEventTokenTransport();
             eventTokenTransport.attachEventTokenToMultipageGravityForms();
             eventTokenTransport.attachEventTokenToWoocommerceGetRequestAddToCart();
-        }
-
-        const attachData = new ApbctAttachData();
-
-        // Attach data when bot detector is disabled or blocked
-        if (!+ctPublic.bot_detector_enabled || window.apbctGatheringLoaded) {
-            attachData.attachHiddenFieldsToForms();
         }
     }, 1000);
 
