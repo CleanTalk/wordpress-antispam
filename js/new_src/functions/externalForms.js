@@ -1,3 +1,9 @@
+import {apbctLocalStorage} from '../utils/apbctLocalStorage';
+import {sendAJAX} from './ajaxHandlers';
+import {getNoCookieData} from './requestData';
+import {constructNoCookieHiddenField} from './noCookieHiddenField';
+import {showBlockMessage} from '../initBlockMessage';
+
 /**
  * Handle external forms
  */
@@ -66,8 +72,8 @@ function ctProtectExternal() {
     // Trying to process external form into an iframe
     apbctProcessIframes();
     // if form is still not processed by fields listening, do it here
-    if (ctPublic.bot_detector_enabled != 1 && typeof ApbctGatheringData !== 'undefined') {
-        new ApbctGatheringData().startFieldsListening();
+    if (ctPublic.bot_detector_enabled != 1 && typeof window.ApbctGatheringData !== 'undefined') {
+        new window.ApbctGatheringData().startFieldsListening();
     }
 }
 
@@ -445,14 +451,24 @@ function apbctReplaceInputsValuesFromOtherForm(formSource, formTarget) {
     });
 }
 
-// clear protected iframes list
-ctProtectOutsideFunctionalClearLocalStorage();
+/**
+ * Starts the external forms protection. Runs after the page is fully loaded, like the former `load` listener.
+ */
+export function startExternalForms() {
+    // clear protected iframes list
+    ctProtectOutsideFunctionalClearLocalStorage();
 
-window.addEventListener('load', function() {
-    if ( ! +ctPublic.settings__forms__check_external ) {
-        return;
+    if (document.readyState === 'complete') {
+        onWindowLoad();
+    } else {
+        window.addEventListener('load', onWindowLoad);
     }
+}
 
+/**
+ * Window load handler
+ */
+function onWindowLoad() {
     if (typeof window.ctDymnamicRenderedFormHandlerInterval === 'number') {
         clearInterval(window.ctDymnamicRenderedFormHandlerInterval );
     }
@@ -472,7 +488,7 @@ window.addEventListener('load', function() {
     }, 2000);
 
     ctProtectKlaviyoForm();
-});
+}
 
 let ctProtectOutsideFunctionalCheckPerformed;
 
@@ -696,7 +712,7 @@ function ctProtectOutsideFunctionalGenerateCover() {
                 'ct_bot_detector_event_token': botDetectorToken,
             };
 
-            apbct_public_sendAJAX(
+            sendAJAX(
                 data,
                 {
                     async: false,
@@ -868,7 +884,7 @@ function ctCheckAjax(elem) {
         'ct_no_cookie_hidden_field': document.getElementsByName('ct_no_cookie_hidden_field')[0].value,
     };
 
-    apbct_public_sendAJAX(
+    sendAJAX(
         data,
         {
             async: false,
@@ -992,7 +1008,7 @@ function sendAjaxCheckingFormData(form) {
         }
     });
 
-    apbct_public_sendAJAX(
+    sendAJAX(
         data,
         {
             async: false,
@@ -1143,7 +1159,7 @@ function sendAjaxCheckingFormData(form) {
                 if ((result.apbct !== undefined && +result.apbct.blocked) ||
                     (result.data !== undefined && result.data.message !== undefined)
                 ) {
-                    window.apbctShowBlockMessage(result);
+                    showBlockMessage(result);
                     // hubspot embed form needs to reload page to prevent forms mishandling
                     if (isHubSpotEmbedForm) {
                         setTimeout(function() {
@@ -1249,8 +1265,7 @@ function sendAjaxCheckingDynamicFormData(form) {
     if (window.apbctVisibleFields) {
         window.apbctVisibleFields.setCookie({0: window.apbctVisibleFields.collect(form)});
     }
-    const attachData = new ApbctAttachData();
-    form.append(attachData.constructNoCookieHiddenField('hidden'));
+    form.append(constructNoCookieHiddenField('hidden'));
 
     const data = {};
     let elems = form.elements;
@@ -1264,7 +1279,7 @@ function sendAjaxCheckingDynamicFormData(form) {
         }
     });
 
-    apbct_public_sendAJAX(
+    sendAJAX(
         data,
         {
             async: false,
@@ -1299,7 +1314,7 @@ function sendAjaxCheckingDynamicFormData(form) {
                 }
 
                 if (result.apbct !== undefined && +result.apbct.blocked) {
-                    window.apbctShowBlockMessage(result);
+                    showBlockMessage(result);
                 }
             },
         });

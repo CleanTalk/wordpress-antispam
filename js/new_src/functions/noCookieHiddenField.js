@@ -66,7 +66,7 @@ function ctGetPageForms() {
  * @param {string} type
  * @return {HTMLInputElement}
  */
-function constructNoCookieHiddenField(type) {
+export function constructNoCookieHiddenField(type) {
     let inputType = 'hidden';
     if (type === 'submit') {
         inputType = 'submit';

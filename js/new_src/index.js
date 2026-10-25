@@ -5,11 +5,12 @@ import {initGathering} from './initGathering';
 import {initVisibleFields} from './initVisibleFields';
 import {initEmailCheckBeforePost} from './initEmailCheckBeforePost';
 import {initEmailExist} from './initEmailExist';
-import {initBlockMessage, showBlockMessage} from './initBlockMessage';
+import {initBlockMessage} from './initBlockMessage';
 import {initBotDetectorEventToken} from './params/botDetectorEventToken';
 import {initBotDetectorExist} from './params/botDetectorExist';
 import {initExistingVisitor} from './params/existingVisitor';
 import {initCronFormsHandler} from './initCronFormsHandler';
+import {initExternalForms} from './initExternalForms';
 import {initForceAltCookies} from './params/forceAltCookies';
 import {setInputValue} from "./params/checkJs";
 import {apbctLocalStorage} from './utils/apbctLocalStorage';
@@ -47,6 +48,7 @@ async function apbctReady() {
     initEmailCheckBeforePost();
     initEmailExist();
     initBlockMessage();
+    initExternalForms();
     initExistingVisitor();
     initCronFormsHandler();
 }
@@ -70,6 +72,4 @@ window.apbctLocalStorage = apbctLocalStorage;
 window.apbctSessionStorage  = apbctSessionStorage;
 // ctNoCookieAttachHiddenFieldsToForms is calling in the old JS files
 window.ctNoCookieAttachHiddenFieldsToForms = ctNoCookieAttachHiddenFieldsToForms;
-// apbctShowBlockMessage is calling in the old JS files
-window.apbctShowBlockMessage = showBlockMessage;
 

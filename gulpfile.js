@@ -95,7 +95,6 @@ function bundle_public_external_protection() {
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
         'js/src/public-1*.js',
-        'js/src/public-2-external-forms.js',
         'js/src/public-3*.js',
     ])
     .pipe(concat('apbct-public-bundle_ext-protection.js'))
@@ -110,7 +109,6 @@ function bundle_public_external_protection_with_gathering() {
         'js/src/common-decoder.js',
         'js/src/common-cleantalk-modal.js',
         'js/src/public-1*.js',
-        'js/src/public-2-external-forms.js',
         'js/src/public-3*.js',
     ])
     .pipe(concat('apbct-public-bundle_ext-protection_gathering.js'))
