@@ -9,6 +9,7 @@ import {initBlockMessage, showBlockMessage} from './initBlockMessage';
 import {initBotDetectorEventToken} from './params/botDetectorEventToken';
 import {initBotDetectorExist} from './params/botDetectorExist';
 import {initExistingVisitor} from './params/existingVisitor';
+import {initCronFormsHandler} from './initCronFormsHandler';
 import {initForceAltCookies} from './params/forceAltCookies';
 import {setInputValue} from "./params/checkJs";
 import {apbctLocalStorage} from './utils/apbctLocalStorage';
@@ -47,6 +48,7 @@ async function apbctReady() {
     initEmailExist();
     initBlockMessage();
     initExistingVisitor();
+    initCronFormsHandler();
 }
 
 // Hack - it have to be defined for the ability to use from inline JS code in the page

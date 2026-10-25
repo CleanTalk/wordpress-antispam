@@ -1099,27 +1099,6 @@ class ApbctAttachData {
     }
 }
 
-/**
- * Class for handling
- */
-class ApbctHandler {
-    /**
-     * Cron forms handler
-     * @param {number} cronStartTimeout
-     * @return {void}
-     */
-    cronFormsHandler(cronStartTimeout = 2000) {
-        setTimeout(function() {
-            setInterval(function() {
-                if (!+ctPublic.bot_detector_enabled && typeof ApbctGatheringData !== 'undefined') {
-                    new ApbctGatheringData().restartFieldsListening();
-                }
-                new ApbctEventTokenTransport().restartBotDetectorEventTokenAttach();
-            }, 2000);
-        }, cronStartTimeout);
-    }
-}
-
 let apbctReadyIsDone = false;
 
 /**
@@ -1148,11 +1127,6 @@ if (document.readyState !== 'loading') {
 } else {
     document.addEventListener('DOMContentLoaded', apbct_ready);
 }
-
-/**
- * Run cron jobs
- */
-new ApbctHandler().cronFormsHandler(2000);
 
 /**
  * Handle external forms
