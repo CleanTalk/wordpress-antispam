@@ -1,3 +1,13 @@
+import {apbctLocalStorage} from '../utils/apbctLocalStorage';
+import {sendAJAX, sendREST} from './ajaxHandlers';
+
+/**
+ * Starts the force protection: forms are decoded only after the bot check is passed.
+ */
+export function startForceProtection() {
+    new ApbctForceProtection();
+}
+
 /**
  * ApbctForceProtection
  */
@@ -29,7 +39,7 @@ class ApbctForceProtection {
      * Check bot
      * @return {void}
      */
-    checkBot() {
+    async checkBot() {
         let data = {
             post_url: document.location.href,
             referrer: document.referrer,
@@ -37,18 +47,25 @@ class ApbctForceProtection {
         if (+ctPublic.bot_detector_enabled) {
             data.event_token = apbctLocalStorage.get('bot_detector_event_token');
         } else {
-            data.event_javascript_data = getJavascriptClientData();
+            try {
+                const gathering = await import(
+                    /* webpackChunkName: "apbct_gathering_data" */ './gatheringData'
+                );
+                data.event_javascript_data = gathering.getJavascriptClientData();
+            } catch (e) {
+                console.log('ApbctForceProtection gathering data error', e);
+            }
         }
 
         if (ctPublicFunctions.data__ajax_type === 'rest') {
-            apbct_public_sendREST('force_protection_check_bot', {
+            sendREST('force_protection_check_bot', {
                 data,
                 method: 'POST',
                 callback: (result) => this.checkBotCallback(result),
             });
         } else if (ctPublicFunctions.data__ajax_type === 'admin_ajax') {
             data.action = 'apbct_force_protection_check_bot';
-            apbct_public_sendAJAX(data, {callback: (result) => this.checkBotCallback(result)});
+            sendAJAX(data, {callback: (result) => this.checkBotCallback(result)});
         }
     }
 
@@ -118,30 +135,5 @@ class ApbctForceProtection {
                 wrapper.outerHTML = '<div class="ct-encoded-form-forbidden">' + message + '</div>';
             }
         });
-    }
-}
-
-let apbctForceProtectionIsInitialized = false;
-
-/**
- * Force protection
- */
-function apbctForceProtect() {
-    // Some plugins dispatch a synthetic DOMContentLoaded, the check must be sent only once
-    if (apbctForceProtectionIsInitialized) {
-        return;
-    }
-    apbctForceProtectionIsInitialized = true;
-
-    if (+ctPublic.settings__forms__force_protection && typeof ApbctForceProtection !== 'undefined') {
-        new ApbctForceProtection();
-    }
-}
-
-if (ctPublic.data__key_is_ok) {
-    if (document.readyState !== 'loading') {
-        apbctForceProtect();
-    } else {
-        document.addEventListener('DOMContentLoaded', apbctForceProtect);
     }
 }

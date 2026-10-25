@@ -550,7 +550,7 @@ if (ctPublic.data__key_is_ok) {
  * @param {mixed} commonCookies
  * @return {string}
  */
-function getJavascriptClientData(commonCookies = []) { // eslint-disable-line no-unused-vars
+export function getJavascriptClientData(commonCookies = []) { // eslint-disable-line no-unused-vars
     let resultDataJson = {};
 
     resultDataJson.ct_checked_emails = ctGetCookie(ctPublicFunctions.cookiePrefix + 'ct_checked_emails');
