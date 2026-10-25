@@ -13,7 +13,7 @@ const PARAMS_TO_FORCE_ALT = [
 ];
 
 const PARAMS_SKIP_ALT = [
-    'ct_pointer_data'
+    'ct_pointer_data',
 ];
 
 /**
@@ -58,29 +58,38 @@ export function ctSetCookie(name, value, expires = '') {
 }
 
 /**
- * @param {array} params
+ * @param {array|object|string} cookies Array of [name, value] pairs, object, or JSON string.
+ * @param {object} [options] {callback, onErrorCallback, forceAltCookies}
  */
-export function ctSetAltCookies(params) {
-    let filteredParams = params.filter(([name]) => !PARAMS_SKIP_ALT.includes(name));
-
-    // if cookies is array, convert it to object
-    if (Array.isArray(filteredParams) && filteredParams[0] && filteredParams[0][0] === 'apbct_bot_detector_exist') {
-        filteredParams = {apbct_bot_detector_exist: filteredParams[0][1]};
-    }
-    // Only try to parse if cookies is a string (JSON)
-    if (typeof filteredParams === 'string') {
+export function ctSetAltCookies(cookies, options) {
+    if (typeof cookies === 'string') {
         try {
-            filteredParams = JSON.parse(filteredParams);
+            cookies = JSON.parse(cookies);
         } catch (e) {
             console.log('APBCT ERROR: JSON parse error:' + e);
             return;
         }
     }
 
-    const callback = params && params.callback || null;
-    const onErrorCallback = params && params.onErrorCallback || null;
+    if (Array.isArray(cookies)) {
+        cookies = Object.fromEntries(cookies);
+    }
 
-    if ( params && params.forceAltCookies ) {
+    if (!cookies || typeof cookies !== 'object') {
+        return;
+    }
+
+    const filteredParams = {};
+    Object.keys(cookies).forEach((name) => {
+        if (!PARAMS_SKIP_ALT.includes(name)) {
+            filteredParams[name] = cookies[name];
+        }
+    });
+
+    const callback = options && options.callback || null;
+    const onErrorCallback = options && options.onErrorCallback || null;
+
+    if ( options && options.forceAltCookies ) {
         filteredParams.apbct_force_alt_cookies = true;
     }
 
