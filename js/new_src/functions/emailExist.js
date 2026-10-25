@@ -1,48 +1,100 @@
-let ctCheckedEmailsExist = {};
+import {ctSetCookie, storeParams} from './storeParams';
+import {sendAJAX, sendREST} from './ajaxHandlers';
+
+const checkedEmailsExist = {};
+
+export function startEmailExist() {
+    storeParams([['ct_checked_emails_exist', '0']]);
+    document.querySelectorAll('.comment-form input[name = "email"], input#email').forEach((elem) => {
+        elem.addEventListener('blur', checkEmailExist);
+    });
+    document.querySelectorAll('.frm-fluent-form input[name = "email"], input#email').forEach((elem) => {
+        elem.addEventListener('blur', checkEmailExist);
+    });
+    document.querySelectorAll('#registerform input[name = "user_email"]').forEach((elem) => {
+        elem.addEventListener('blur', checkEmailExist);
+    });
+    document.querySelectorAll('form.wc-block-checkout__form input[type = "email"]').forEach((elem) => {
+        elem.addEventListener('blur', checkEmailExist);
+    });
+    document.querySelectorAll('form.checkout input[type = "email"]').forEach((elem) => {
+        elem.addEventListener('blur', checkEmailExist);
+    });
+    document.querySelectorAll('form.wpcf7-form input[type = "email"]').forEach((elem) => {
+        elem.addEventListener('blur', debounceFuncExec(checkEmailExist, 300));
+    });
+    document.querySelectorAll('form.wpforms-form input[type = "email"]').forEach((elem) => {
+        elem.addEventListener('blur', checkEmailExist);
+    });
+    document.querySelectorAll('form[id^="gform_"] input[type = "email"]').forEach((elem) => {
+        elem.addEventListener('blur', checkEmailExist);
+    });
+    integrateDynamicEmailCheck({
+        formSelector: '.nf-form-content',
+        emailSelector: 'input[type="email"], input[type="email"].ninja-forms-field',
+        handler: checkEmailExist,
+        debounce: 300,
+    });
+}
 
 /**
- * @param {mixed} e
+ * Execute function with timeout, listening incoming args from context.
+ * @param {function} func Function to call
+ * @param {number} wait Milliseconds to delay
+ * @return {function}
  */
-function checkEmailExist(e) { // eslint-disable-line no-unused-vars
-    let currentEmail = e.target.value;
-    let result;
+function debounceFuncExec(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            func.apply(context, args);
+        }, wait);
+    };
+}
+
+/**
+ * @param {Event} e
+ */
+function checkEmailExist(e) {
+    const currentEmail = e.target.value;
 
     if (!currentEmail || !currentEmail.length) {
-        let envelope = document.getElementById('apbct-check_email_exist-block');
+        const envelope = document.getElementById('apbct-check_email_exist-block');
         if (envelope) {
             envelope.remove();
         }
-        let hint = document.getElementById('apbct-check_email_exist-popup_description');
+        const hint = document.getElementById('apbct-check_email_exist-popup_description');
         if (hint) {
             hint.remove();
         }
         return;
     }
 
-    if (! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentEmail)) {
         return;
     }
 
-    if (currentEmail in ctCheckedEmailsExist) {
-        result = ctCheckedEmailsExist[currentEmail];
-        getResultCheckEmailExist(e, result, currentEmail);
+    if (currentEmail in checkedEmailsExist) {
+        getResultCheckEmailExist(e, checkedEmailsExist[currentEmail], currentEmail);
 
         return;
     }
 
     viewCheckEmailExist(e, 'load');
 
-    // Using REST API handler
-    ctPublicFunctions.data__ajax_type = 'rest';
+    const callback = function(result) {
+        getResultCheckEmailExist(e, result, currentEmail);
+    };
+
     if (ctPublicFunctions.data__ajax_type === 'rest') {
-        apbct_public_sendREST(
+        sendREST(
             'check_email_exist_post',
             {
                 method: 'POST',
                 data: {'email': currentEmail},
-                callback: function(result) {
-                    getResultCheckEmailExist(e, result, currentEmail);
-                },
+                callback: callback,
             },
         );
 
@@ -50,22 +102,20 @@ function checkEmailExist(e) { // eslint-disable-line no-unused-vars
     }
 
     if (ctPublicFunctions.data__ajax_type === 'admin_ajax') {
-        apbct_public_sendAJAX(
+        sendAJAX(
             {
                 action: 'apbct_email_check_exist_post',
                 email: currentEmail,
             },
             {
-                callback: function(result) {
-                    getResultCheckEmailExist(e, result, currentEmail);
-                },
+                callback: callback,
             },
         );
     }
 }
 
 /**
- * @param {mixed} e
+ * @param {Event} e
  * @param {mixed} result
  * @param {string} currentEmail
  */
@@ -76,9 +126,9 @@ function getResultCheckEmailExist(e, result, currentEmail) {
 
     result = result.result;
 
-    ctCheckedEmailsExist[currentEmail] = {
+    checkedEmailsExist[currentEmail] = {
         'result': result,
-        'timestamp': Date.now() / 1000 |0,
+        'timestamp': Date.now() / 1000 | 0,
     };
 
     if (result.result == 'EXISTS') {
@@ -87,16 +137,16 @@ function getResultCheckEmailExist(e, result, currentEmail) {
         viewCheckEmailExist(e, 'bad_email', result.text_result);
     }
 
-    ctSetCookie('ct_checked_emails_exist', JSON.stringify(ctCheckedEmailsExist));
+    ctSetCookie('ct_checked_emails_exist', JSON.stringify(checkedEmailsExist));
 }
 
 /**
- * @param {mixed} e
+ * @param {Event} e
  * @param {string} state
  * @param {string} textResult
  */
 function viewCheckEmailExist(e, state, textResult) {
-    let parentElement = e.target.parentElement;
+    const parentElement = e.target.parentElement;
     let inputEmail = parentElement.querySelector('[name*="email"]');
 
     if (!inputEmail) {
@@ -138,10 +188,10 @@ function viewCheckEmailExist(e, state, textResult) {
     }
 
     // draw on init
-    ctEmailExistSetElementsPositions(inputEmail);
+    setElementsPositions(inputEmail);
 
     // redraw on events
-    ctListenRequiredRedrawing(inputEmail);
+    listenRequiredRedrawing(inputEmail);
 
     switch (state) {
     case 'load':
@@ -192,7 +242,7 @@ function viewCheckEmailExist(e, state, textResult) {
  * Shift the envelope to the input field on resizing the window
  * @param {HTMLInputElement} inputEmail
  */
-function ctEmailExistSetElementsPositions(inputEmail) {
+function setElementsPositions(inputEmail) {
     if (!inputEmail instanceof HTMLInputElement) {
         return;
     }
@@ -205,7 +255,7 @@ function ctEmailExistSetElementsPositions(inputEmail) {
     let fontSizeOrWidthAfterStyle = 0;
     let useAfterSize = false;
     try {
-        let inputComputedStyle = window.getComputedStyle(inputEmail);
+        const inputComputedStyle = window.getComputedStyle(inputEmail);
 
         const targetForAfter = inputEmail.parentElement ? inputEmail.parentElement : inputEmail;
         const afterStyle = window.getComputedStyle(targetForAfter, '::after');
@@ -218,7 +268,7 @@ function ctEmailExistSetElementsPositions(inputEmail) {
             useAfterSize = true;
         }
 
-        let inputTextSize = (
+        const inputTextSize = (
             typeof inputComputedStyle.fontSize === 'string' ?
                 inputComputedStyle.fontSize :
                 false
@@ -255,9 +305,9 @@ function ctEmailExistSetElementsPositions(inputEmail) {
  * Define when the email badge positions should be redrawn.
  * @param {HTMLInputElement} inputEmail - Dom element to change
  */
-function ctListenRequiredRedrawing(inputEmail) {
-    window.addEventListener('resize', function(event) {
-        ctEmailExistSetElementsPositions(inputEmail);
+function listenRequiredRedrawing(inputEmail) {
+    window.addEventListener('resize', function() {
+        setElementsPositions(inputEmail);
     });
 
     const formChangesToListen = [
@@ -280,11 +330,11 @@ function ctListenRequiredRedrawing(inputEmail) {
     ];
 
     formChangesToListen.forEach((aForm) => {
-        ctWatchFormChanges(
+        watchFormChanges(
             aForm.selector,
             aForm.observerConfig,
             () => {
-                ctEmailExistSetElementsPositions(aForm.emailElement);
+                setElementsPositions(aForm.emailElement);
             });
     });
 }
@@ -297,7 +347,7 @@ function ctListenRequiredRedrawing(inputEmail) {
  * @param {function} callback
  * @return {MutationObserver|false}
  */
-function ctWatchFormChanges(formSelector = '', observerConfig = null, callback) {
+function watchFormChanges(formSelector = '', observerConfig = null, callback) {
     const form = document.querySelector(formSelector);
 
     if (!form || !observerConfig) {
@@ -313,19 +363,19 @@ function ctWatchFormChanges(formSelector = '', observerConfig = null, callback) 
     });
 
     observer.observe(form, observerConfig);
-    // you can listen what is changed reading this
     return observer;
 }
 
 /**
  * Integrate dynamic email check to forms with dynamically added email inputs
- * @param {*} formSelector
- * @param {*} emailSelector
- * @param {*} handler
- * @param {number} debounce
- * @param {string} attribute
+ * @param {object} params
+ * @param {string} params.formSelector
+ * @param {string} params.emailSelector
+ * @param {function} params.handler
+ * @param {number} params.debounce
+ * @param {string} params.attribute
  */
-function apbctIntegrateDynamicEmailCheck({ // eslint-disable-line no-unused-vars
+function integrateDynamicEmailCheck({
     formSelector,
     emailSelector,
     handler,
@@ -336,7 +386,7 @@ function apbctIntegrateDynamicEmailCheck({ // eslint-disable-line no-unused-vars
     document.querySelectorAll(formSelector + ' ' + emailSelector)
         .forEach(function(input) {
             if (!input.hasAttribute(attribute)) {
-                input.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
+                input.addEventListener('blur', debounceFuncExec(handler, debounce));
                 input.setAttribute(attribute, '1');
             }
         });
@@ -349,7 +399,7 @@ function apbctIntegrateDynamicEmailCheck({ // eslint-disable-line no-unused-vars
                     // If it is an email input
                     if (node.matches && node.matches(formSelector + ' ' + emailSelector)) {
                         if (!node.hasAttribute(attribute)) {
-                            node.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
+                            node.addEventListener('blur', debounceFuncExec(handler, debounce));
                             node.setAttribute(attribute, '1');
                         }
                     }
@@ -361,7 +411,7 @@ function apbctIntegrateDynamicEmailCheck({ // eslint-disable-line no-unused-vars
                             return;
                         }
                         if (!input.hasAttribute(attribute)) {
-                            input.addEventListener('blur', ctDebounceFuncExec(handler, debounce));
+                            input.addEventListener('blur', debounceFuncExec(handler, debounce));
                             input.setAttribute(attribute, '1');
                         }
                     });

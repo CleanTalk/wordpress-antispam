@@ -1,48 +1,4 @@
 /**
- * Set init params
- */
-// eslint-disable-next-line no-unused-vars,require-jsdoc
-function initLegacyParams() {
-    const initCookies = [];
-
-    if ( +ctPublic.data__email_check_exist_post) {
-        initCookies.push(['ct_checked_emails_exist', '0']);
-        document.querySelectorAll('.comment-form input[name = "email"], input#email').forEach((elem) => {
-            elem.addEventListener('blur', checkEmailExist);
-        });
-        document.querySelectorAll('.frm-fluent-form input[name = "email"], input#email').forEach((elem) => {
-            elem.addEventListener('blur', checkEmailExist);
-        });
-        document.querySelectorAll('#registerform input[name = "user_email"]').forEach((elem) => {
-            elem.addEventListener('blur', checkEmailExist);
-        });
-        document.querySelectorAll('form.wc-block-checkout__form input[type = "email"]').forEach((elem) => {
-            elem.addEventListener('blur', checkEmailExist);
-        });
-        document.querySelectorAll('form.checkout input[type = "email"]').forEach((elem) => {
-            elem.addEventListener('blur', checkEmailExist);
-        });
-        document.querySelectorAll('form.wpcf7-form input[type = "email"]').forEach((elem) => {
-            elem.addEventListener('blur', ctDebounceFuncExec(checkEmailExist, 300));
-        });
-        document.querySelectorAll('form.wpforms-form input[type = "email"]').forEach((elem) => {
-            elem.addEventListener('blur', checkEmailExist);
-        });
-        document.querySelectorAll('form[id^="gform_"] input[type = "email"]').forEach((elem) => {
-            elem.addEventListener('blur', checkEmailExist);
-        });
-        apbctIntegrateDynamicEmailCheck({
-            formSelector: '.nf-form-content',
-            emailSelector: 'input[type="email"], input[type="email"].ninja-forms-field',
-            handler: checkEmailExist,
-            debounce: 300,
-        });
-    }
-
-    ctSetCookie(initCookies);
-}
-
-/**
  * Get cookie by name
  * @param name
  * @return {string|undefined}
@@ -126,23 +82,4 @@ function getNoCookieData() { // eslint-disable-line no-unused-vars
 }
 
 
-
-
-/**
- * Execute function with timeout, listening incoming args from context.
- * Could be useful if something needs to wait other actions and no there is no known event to bind for.
- * @param {function} func Function to call
- * @param {number} wait Seconds to delay
- * @return {(function(...[*]): void)|*}
- */
-function ctDebounceFuncExec(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const context = this;
-        clearTimeout(timeout);
-        timeout = setTimeout(() => {
-            func.apply(context, args);
-        }, wait);
-    };
-}
 

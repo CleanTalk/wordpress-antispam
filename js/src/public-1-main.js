@@ -2536,15 +2536,6 @@ async function apbct_ready() {
     const handler = new ApbctHandler();
     handler.detectForcedAltCookiesForms();
 
-    // Always call initLegacyParams to set cookies and parameters
-    if (typeof initLegacyParams === 'function') {
-        try {
-            initLegacyParams();
-        } catch (e) {
-            console.log('initLegacyParams error:', e);
-        }
-    }
-
     setTimeout(function() {
         // Attach data when bot detector is enabled
         if (+ctPublic.bot_detector_enabled) {
