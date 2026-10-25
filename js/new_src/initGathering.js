@@ -31,6 +31,7 @@ function startGathering(gathering, gatheringLoaded) {
     if (params.length) {
         storeParams(params);
     }
+    gathering.initPixel();
     const gatheringData = new window.ApbctGatheringData();
     gatheringData.setSessionId();
     gatheringData.writeReferrersToSessionStorage();

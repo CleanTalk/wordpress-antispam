@@ -1140,9 +1140,8 @@ function initLegacyParams() {
     }
 
     if (+ctPublic.pixel__setting && +ctPublic.pixel__setting !== 3) {
-        if (typeof ctIsDrawPixel === 'function' && ctIsDrawPixel()) {
-            if (typeof ctGetPixelUrl === 'function') ctGetPixelUrl();
-        } else {
+        // If gathering is imported, it draws the pixel itself (see initPixel in the gathering chunk)
+        if (!window.apbctGatheringReady) {
             initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
         }
     }
@@ -1383,17 +1382,14 @@ class ApbctEventTokenTransport {
 class ApbctAttachData {
     /**
      * Attach hidden fields to forms
-     * @param {bool} gatheringLoaded
      * @return {void}
      */
-    attachHiddenFieldsToForms(gatheringLoaded) {
+    attachHiddenFieldsToForms() {
         if (typeof ctPublic.force_alt_cookies == 'undefined' ||
             (ctPublic.force_alt_cookies !== 'undefined' && !ctPublic.force_alt_cookies)
         ) {
-            if (!+ctPublic.bot_detector_enabled || gatheringLoaded) {
-                ctNoCookieAttachHiddenFieldsToForms();
-                document.addEventListener('gform_page_loaded', ctNoCookieAttachHiddenFieldsToForms);
-            }
+            ctNoCookieAttachHiddenFieldsToForms();
+            document.addEventListener('gform_page_loaded', ctNoCookieAttachHiddenFieldsToForms);
         }
     }
 
@@ -4180,10 +4176,6 @@ async function apbct_ready() {
 
     new ApbctShowForbidden().prepareBlockForAjaxForms();
 
-    // Gathering is imported by the new bundle (apbctReady in new_src/index.js); wait for it
-    await window.apbctGatheringReady;
-    const gatheringLoaded = !!window.apbctGatheringLoaded;
-
     const handler = new ApbctHandler();
     handler.detectForcedAltCookiesForms();
 
@@ -4207,8 +4199,8 @@ async function apbct_ready() {
         const attachData = new ApbctAttachData();
 
         // Attach data when bot detector is disabled or blocked
-        if (!+ctPublic.bot_detector_enabled || gatheringLoaded) {
-            attachData.attachHiddenFieldsToForms(gatheringLoaded);
+        if (!+ctPublic.bot_detector_enabled || window.apbctGatheringLoaded) {
+            attachData.attachHiddenFieldsToForms();
         }
 
         for (let i = 0; i < document.forms.length; i++) {

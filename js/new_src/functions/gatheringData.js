@@ -1,6 +1,6 @@
 import {apbctLocalStorage} from '../utils/apbctLocalStorage';
 import {apbctSessionStorage} from '../utils/apbctSessionStorage';
-import {ctSetCookie} from './storeParams';
+import {ctSetCookie, storeParams} from './storeParams';
 import {sendAJAX, sendREST} from './ajaxHandlers';
 import {ctNoCookieAttachHiddenFieldsToForms} from './noCookieHiddenField';
 import {PARAM_NAME as SCREEN_INFO_PARAM_NAME, initScreenInfo} from '../params/screenInfo';
@@ -19,6 +19,17 @@ export function getGatheringParams(gatheringLoaded) {
         ['ct_pointer_data', '0'],
         [SCREEN_INFO_PARAM_NAME, screenInfo],
     ] : [];
+}
+
+export function initPixel() {
+    if (!(+ctPublic.pixel__setting && +ctPublic.pixel__setting !== 3)) {
+        return;
+    }
+    if (ctIsDrawPixel()) {
+        ctGetPixelUrl();
+    } else {
+        storeParams([['apbct_pixel_url', ctPublic.pixel__url]]);
+    }
 }
 
 /**

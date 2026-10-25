@@ -25,9 +25,8 @@ function initLegacyParams() {
     }
 
     if (+ctPublic.pixel__setting && +ctPublic.pixel__setting !== 3) {
-        if (typeof ctIsDrawPixel === 'function' && ctIsDrawPixel()) {
-            if (typeof ctGetPixelUrl === 'function') ctGetPixelUrl();
-        } else {
+        // If gathering is imported, it draws the pixel itself (see initPixel in the gathering chunk)
+        if (!window.apbctGatheringReady) {
             initCookies.push(['apbct_pixel_url', ctPublic.pixel__url]);
         }
     }
