@@ -2867,66 +2867,6 @@ class ApbctMailpoetVisibleFields extends ApbctVisibleFieldsExtractor {
     }
 }
 
-/**
- * Additional function to calculate realpath of cleantalk's scripts
- * @return {*|null}
- */
-function getApbctBasePath() {
-    // Find apbct-public-bundle in scripts names
-    const scripts = document.getElementsByTagName('script');
-
-    for (let script of scripts) {
-        if (script.src && script.src.includes('apbct-public-bundle')) {
-            // Get path from `src` js
-            const match = script.src.match(/^(.*\/js\/)/);
-            if (match && match[1]) {
-                return match[1]; // Path exists, return this
-            }
-        }
-    }
-
-    return null; // cleantalk's scripts not found :(
-}
-
-/**
- * Load any script into the DOM (i.e. `import()`)
- * @param {string} scriptAbsolutePath
- * @return {Promise<*|boolean>}
- */
-async function apbctImportScript(scriptAbsolutePath) {
-    // Check it this scripti already is in DOM
-    const normalizedPath = scriptAbsolutePath.replace(/\/$/, ''); // Replace ending slashes
-    const scripts = document.querySelectorAll('script[src]');
-    for (const script of scripts) {
-        const scriptSrc = script.src.replace(/\/$/, '');
-        if (scriptSrc === normalizedPath) {
-            // Script already loaded, skipping
-            return true;
-        }
-    }
-    return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-
-        script.src = scriptAbsolutePath;
-        script.async = true;
-
-        script.onload = function() {
-            // Gathering data script loaded successfully
-            resolve(true);
-        };
-
-        script.onerror = function() {
-            // Failed to load Gathering data script from `scriptAbsolutePath`
-            reject(new Error('Script loading failed: ' + scriptAbsolutePath));
-        };
-
-        document.head.appendChild(script);
-    }).catch((error) => {
-        // Gathering data script loading failed, continuing without it
-        return false;
-    });
-}
-
 let apbctReadyIsDone = false;
 
 /**
@@ -2942,45 +2882,17 @@ async function apbct_ready() {
 
     new ApbctShowForbidden().prepareBlockForAjaxForms();
 
-    // Try to get gathering if no worked bot-detector
-    let gatheringLoaded = false;
-
-    if (
-        apbctLocalStorage.get('apbct_existing_visitor') && // Not for the first hit
-        +ctPublic.bot_detector_enabled && // If Bot-Detector is active
-        !apbctLocalStorage.get('bot_detector_event_token') && // and no `event_token` generated
-        typeof ApbctGatheringData === 'undefined' // and no `gathering` loaded yet
-    ) {
-        const basePath = getApbctBasePath();
-        if ( ! basePath ) {
-            // We are here because NO any cleantalk bundle script are in frontend: Todo nothing
-        } else {
-            const gatheringScriptName = 'public-2-gathering-data.min.js';
-            const gatheringFullPath = basePath + gatheringScriptName;
-            gatheringLoaded = await apbctImportScript(gatheringFullPath);
-        }
-    }
+    // Gathering is imported by the new bundle (apbctReady in new_src/index.js); wait for it
+    await window.apbctGatheringReady;
+    const gatheringLoaded = !!window.apbctGatheringLoaded;
 
     const handler = new ApbctHandler();
     handler.detectForcedAltCookiesForms();
 
-    // Gathering data when bot detector is disabled
-    if (
-        ( ! +ctPublic.bot_detector_enabled || gatheringLoaded ) &&
-        typeof ApbctGatheringData !== 'undefined'
-    ) {
-        const gatheringData = new ApbctGatheringData();
-        gatheringData.setSessionId();
-        gatheringData.writeReferrersToSessionStorage();
-        gatheringData.setCookiesType();
-        gatheringData.startFieldsListening();
-        gatheringData.listenAutocomplete();
-        gatheringData.gatheringTypoData();
-    }
     // Always call initLegacyParams to set cookies and parameters
     if (typeof initLegacyParams === 'function') {
         try {
-            initLegacyParams(gatheringLoaded);
+            initLegacyParams();
         } catch (e) {
             console.log('initLegacyParams error:', e);
         }

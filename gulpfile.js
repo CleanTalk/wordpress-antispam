@@ -35,7 +35,6 @@ function minify_all_js_files_except_already_bundled() {
             '!js/src/cleantalk-admin.js',
             '!js/src/common-decoder.js',
             'js/src/public-3-trp.js',
-            'js/src/public-2-gathering-data.js',
         ])
         .pipe(sourcemaps.init())
         .pipe(uglify())
@@ -88,7 +87,6 @@ function bundle_public_default_with_gathering() {
         'js/src/FetchProxyProtection/ApbctFetchProxyConfig.js',
         'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
-        'js/src/public-2-gathering-data.js',
         'js/src/public-3*.js',
     ])
     .pipe(concat('apbct-public-bundle_gathering.js'))
@@ -107,7 +105,6 @@ function bundle_public_external_protection() {
         'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2-external-forms.js',
-        '!js/src/public-2-gathering-data.js',
         'js/src/public-3*.js',
     ])
     .pipe(concat('apbct-public-bundle_ext-protection.js'))
@@ -126,7 +123,6 @@ function bundle_public_external_protection_with_gathering() {
         'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2-external-forms.js',
-        'js/src/public-2-gathering-data.js',
         'js/src/public-3*.js',
     ])
     .pipe(concat('apbct-public-bundle_ext-protection_gathering.js'))
@@ -163,7 +159,6 @@ function bundle_public_internal_protection_with_gathering() {
         'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2-internal-forms.js',
-        'js/src/public-2-gathering-data.js',
         'js/src/public-3*.js',
     ])
     .pipe(concat('apbct-public-bundle_int-protection_gathering.js'))
@@ -182,7 +177,6 @@ function bundle_public_full_protection() {
         'js/src/FetchProxyProtection/ApbctFetchProxyProtection.js',
         'js/src/public-1*.js',
         'js/src/public-2*.js',
-        '!js/src/public-2-gathering-data.js',
         'js/src/public-3*.js',
     ])
     .pipe(concat('apbct-public-bundle_full-protection.js'))

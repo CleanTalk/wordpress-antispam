@@ -1,4 +1,5 @@
 import {initParams} from "./initParams";
+import {initGathering} from './initGathering';
 import {setInputValue} from "./params/checkJs";
 import {apbctLocalStorage} from './utils/apbctLocalStorage';
 import {apbctSessionStorage} from './utils/apbctSessionStorage';
@@ -7,9 +8,24 @@ import {ctSetCookie, ctSetAltCookies} from './functions/storeParams';
 import {sendAJAX, sendREST} from "./functions/ajaxHandlers";
 
 if (document.readyState !== 'loading') {
-    initParams();
+    apbctReady();
 } else {
-    document.addEventListener('DOMContentLoaded', initParams);
+    document.addEventListener('DOMContentLoaded', apbctReady);
+}
+
+let apbctReadyIsDone = false;
+
+/**
+ * Runs once even if DOMContentLoaded is dispatched again by third-party code.
+ */
+async function apbctReady() {
+    if (apbctReadyIsDone) {
+        return;
+    }
+    apbctReadyIsDone = true;
+
+    initParams();
+    initGathering();
 }
 
 // Hack - it have to be defined for the ability to use from inline JS code in the page

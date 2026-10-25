@@ -1,3 +1,26 @@
+import {apbctLocalStorage} from '../utils/apbctLocalStorage';
+import {apbctSessionStorage} from '../utils/apbctSessionStorage';
+import {ctSetCookie} from './storeParams';
+import {sendAJAX, sendREST} from './ajaxHandlers';
+import {ctNoCookieAttachHiddenFieldsToForms} from './noCookieHiddenField';
+import {PARAM_NAME as SCREEN_INFO_PARAM_NAME, initScreenInfo} from '../params/screenInfo';
+
+/**
+ * Params that Bot-Detector provides itself, so they are collected here only as a fallback.
+ * @param {boolean} gatheringLoaded
+ * @return {Array}
+ */
+export function getGatheringParams(gatheringLoaded) {
+    const screenInfo = initScreenInfo();
+    apbctLocalStorage.set(SCREEN_INFO_PARAM_NAME, screenInfo);
+    return gatheringLoaded ? [
+        ['ct_gathering_loaded', gatheringLoaded],
+        ['ct_fkp_timestamp', '0'],
+        ['ct_pointer_data', '0'],
+        [SCREEN_INFO_PARAM_NAME, screenInfo],
+    ] : [];
+}
+
 /**
  * Class for gathering data
  */
@@ -87,39 +110,6 @@ class ApbctGatheringData { // eslint-disable-line no-unused-vars
      */
     gatheringMouseData() {
         new ApbctCollectingUserMouseActivity();
-    }
-
-    /**
-     * Get screen info
-     * @return {string}
-     */
-    getScreenInfo() {
-        // Batch all layout-triggering property reads to avoid forced synchronous layouts
-        const docEl = document.documentElement;
-        const body = document.body;
-
-        // Read all layout properties in one batch
-        const layoutData = {
-            scrollWidth: docEl.scrollWidth,
-            bodyScrollHeight: body.scrollHeight,
-            docScrollHeight: docEl.scrollHeight,
-            bodyOffsetHeight: body.offsetHeight,
-            docOffsetHeight: docEl.offsetHeight,
-            bodyClientHeight: body.clientHeight,
-            docClientHeight: docEl.clientHeight,
-            docClientWidth: docEl.clientWidth,
-        };
-
-        return JSON.stringify({
-            fullWidth: layoutData.scrollWidth,
-            fullHeight: Math.max(
-                layoutData.bodyScrollHeight, layoutData.docScrollHeight,
-                layoutData.bodyOffsetHeight, layoutData.docOffsetHeight,
-                layoutData.bodyClientHeight, layoutData.docClientHeight,
-            ),
-            visibleWidth: layoutData.docClientWidth,
-            visibleHeight: layoutData.docClientHeight,
-        });
     }
 
     /**
@@ -718,7 +708,7 @@ function ctGetPixelUrl() {
     }
     // Using REST API handler
     if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
-        apbct_public_sendREST(
+        sendREST(
             'apbct_get_pixel_url',
             {
                 method: 'POST',
@@ -740,7 +730,7 @@ function ctGetPixelUrl() {
         );
         // Using AJAX request and handler
     } else {
-        apbct_public_sendAJAX(
+        sendAJAX(
             {
                 action: 'apbct_get_pixel_url',
             },
@@ -841,3 +831,13 @@ function apbctCancelAutocomplete(element) {
         bubbles: true, cancelable: false, detail: null,
     }));
 }
+
+// Backward compatibility: the old bundle uses these from the global scope
+window.ApbctGatheringData = ApbctGatheringData;
+window.ApbctCollectingUserMouseActivity = ApbctCollectingUserMouseActivity;
+window.CTTypoData = CTTypoData;
+window.getJavascriptClientData = getJavascriptClientData;
+window.ctIsDrawPixel = ctIsDrawPixel;
+window.ctSetPixelImg = ctSetPixelImg;
+window.ctGetPixelUrl = ctGetPixelUrl;
+window.ctSetPixelUrlLocalstorage = ctSetPixelUrlLocalstorage;

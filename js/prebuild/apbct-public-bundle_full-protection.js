@@ -1117,17 +1117,11 @@ class ApbctFetchProxyProtection { // eslint-disable-line no-unused-vars
  * Set init params
  */
 // eslint-disable-next-line no-unused-vars,require-jsdoc
-function initLegacyParams(gatheringLoaded) {
-    const screenInfo = (
-        typeof ApbctGatheringData !== 'undefined' &&
-        typeof ApbctGatheringData.prototype.getScreenInfo === 'function'
-    ) ? new ApbctGatheringData().getScreenInfo() : '';
-
+function initLegacyParams() {
     const initCookies = [];
 
     apbctLocalStorage.set('ct_fkp_timestamp', '0');
     apbctLocalStorage.set('ct_pointer_data', '0');
-    apbctLocalStorage.set('ct_screen_info', screenInfo);
 
     if ( ctPublic.data__cookies_type !== 'native' ) {
         initCookies.push(['apbct_visible_fields', '0']);
@@ -1194,13 +1188,6 @@ function initLegacyParams(gatheringLoaded) {
         });
     }
 
-    if (gatheringLoaded) {
-        initCookies.push(['ct_gathering_loaded', gatheringLoaded]);
-        initCookies.push(['ct_fkp_timestamp', '0']);
-        initCookies.push(['ct_pointer_data', '0']);
-        initCookies.push(['ct_screen_info', screenInfo]);
-    }
-
     ctSetCookie(initCookies);
 }
 
@@ -1232,18 +1219,6 @@ function ctDeleteCookie(cookieName) {
     } else if ( ctPublicFunctions.data__cookies_type === 'alternative' ) {
         // @ToDo implement this logic
     }
-}
-
-// eslint-disable-next-line require-jsdoc,camelcase,no-unused-vars
-function apbct_attach_event_handler(elem, event, callback) {
-    if (typeof window.addEventListener === 'function') elem.addEventListener(event, callback);
-    else elem.attachEvent(event, callback);
-}
-
-// eslint-disable-next-line require-jsdoc,camelcase,no-unused-vars
-function apbct_remove_event_handler(elem, event, callback) {
-    if (typeof window.removeEventListener === 'function') elem.removeEventListener(event, callback);
-    else elem.detachEvent(event, callback);
 }
 
 /**
@@ -4190,66 +4165,6 @@ class ApbctMailpoetVisibleFields extends ApbctVisibleFieldsExtractor {
     }
 }
 
-/**
- * Additional function to calculate realpath of cleantalk's scripts
- * @return {*|null}
- */
-function getApbctBasePath() {
-    // Find apbct-public-bundle in scripts names
-    const scripts = document.getElementsByTagName('script');
-
-    for (let script of scripts) {
-        if (script.src && script.src.includes('apbct-public-bundle')) {
-            // Get path from `src` js
-            const match = script.src.match(/^(.*\/js\/)/);
-            if (match && match[1]) {
-                return match[1]; // Path exists, return this
-            }
-        }
-    }
-
-    return null; // cleantalk's scripts not found :(
-}
-
-/**
- * Load any script into the DOM (i.e. `import()`)
- * @param {string} scriptAbsolutePath
- * @return {Promise<*|boolean>}
- */
-async function apbctImportScript(scriptAbsolutePath) {
-    // Check it this scripti already is in DOM
-    const normalizedPath = scriptAbsolutePath.replace(/\/$/, ''); // Replace ending slashes
-    const scripts = document.querySelectorAll('script[src]');
-    for (const script of scripts) {
-        const scriptSrc = script.src.replace(/\/$/, '');
-        if (scriptSrc === normalizedPath) {
-            // Script already loaded, skipping
-            return true;
-        }
-    }
-    return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-
-        script.src = scriptAbsolutePath;
-        script.async = true;
-
-        script.onload = function() {
-            // Gathering data script loaded successfully
-            resolve(true);
-        };
-
-        script.onerror = function() {
-            // Failed to load Gathering data script from `scriptAbsolutePath`
-            reject(new Error('Script loading failed: ' + scriptAbsolutePath));
-        };
-
-        document.head.appendChild(script);
-    }).catch((error) => {
-        // Gathering data script loading failed, continuing without it
-        return false;
-    });
-}
-
 let apbctReadyIsDone = false;
 
 /**
@@ -4265,45 +4180,17 @@ async function apbct_ready() {
 
     new ApbctShowForbidden().prepareBlockForAjaxForms();
 
-    // Try to get gathering if no worked bot-detector
-    let gatheringLoaded = false;
-
-    if (
-        apbctLocalStorage.get('apbct_existing_visitor') && // Not for the first hit
-        +ctPublic.bot_detector_enabled && // If Bot-Detector is active
-        !apbctLocalStorage.get('bot_detector_event_token') && // and no `event_token` generated
-        typeof ApbctGatheringData === 'undefined' // and no `gathering` loaded yet
-    ) {
-        const basePath = getApbctBasePath();
-        if ( ! basePath ) {
-            // We are here because NO any cleantalk bundle script are in frontend: Todo nothing
-        } else {
-            const gatheringScriptName = 'public-2-gathering-data.min.js';
-            const gatheringFullPath = basePath + gatheringScriptName;
-            gatheringLoaded = await apbctImportScript(gatheringFullPath);
-        }
-    }
+    // Gathering is imported by the new bundle (apbctReady in new_src/index.js); wait for it
+    await window.apbctGatheringReady;
+    const gatheringLoaded = !!window.apbctGatheringLoaded;
 
     const handler = new ApbctHandler();
     handler.detectForcedAltCookiesForms();
 
-    // Gathering data when bot detector is disabled
-    if (
-        ( ! +ctPublic.bot_detector_enabled || gatheringLoaded ) &&
-        typeof ApbctGatheringData !== 'undefined'
-    ) {
-        const gatheringData = new ApbctGatheringData();
-        gatheringData.setSessionId();
-        gatheringData.writeReferrersToSessionStorage();
-        gatheringData.setCookiesType();
-        gatheringData.startFieldsListening();
-        gatheringData.listenAutocomplete();
-        gatheringData.gatheringTypoData();
-    }
     // Always call initLegacyParams to set cookies and parameters
     if (typeof initLegacyParams === 'function') {
         try {
-            initLegacyParams(gatheringLoaded);
+            initLegacyParams();
         } catch (e) {
             console.log('initLegacyParams error:', e);
         }
@@ -4380,7 +4267,7 @@ let tokenCheckerIntervalId; // eslint-disable-line no-unused-vars
 if (document.readyState !== 'loading') {
     apbct_ready();
 } else {
-    apbct_attach_event_handler(document, 'DOMContentLoaded', apbct_ready);
+    document.addEventListener('DOMContentLoaded', apbct_ready);
 }
 
 /**
@@ -5875,7 +5762,7 @@ if (ctPublic.data__key_is_ok) {
     if (document.readyState !== 'loading') {
         apbctForceProtect();
     } else {
-        apbct_attach_event_handler(document, 'DOMContentLoaded', apbctForceProtect);
+        document.addEventListener('DOMContentLoaded', apbctForceProtect);
     }
 }
 
@@ -5990,105 +5877,6 @@ function ctCheckInternalIsExcludedForm(action) {
         return action.match(new RegExp(ctPublic.blog_home + '.*' + item)) !== null;
     });
 }
-
-/**
- * Bot detector browser state.
- *
- * The state is passed to the site backend with the current JS->PHP transport and goes
- * to the moderate request as sender_info.bot_detector_frontend_data_log.
- */
-class ApbctBrowserState {
-    static STATE_KEY = 'apbct_browser_state';
-    static LOG_KEY = 'ct_bot_detector_frontend_data_log';
-    static SCRIPT_SIGNS = {
-        botd_wrapper_loaded: 'ct-bot-detector-wrapper',
-        botd_logic_loaded: 'ct-bot-detector.min',
-    };
-    /**
-     * This LS key is set on bot-detector side
-     * @type {string}
-     */
-    static TRANSPORT_ENABLED_SIGN_KEY = 'bot_detector_log_transport_enabled';
-    static botdWrapperLoaded = 0;
-    static botdLogicLoaded = 0;
-
-    /**
-     * Get the current browser state as a JSON string ready to be transferred.
-     * @return {string} Empty string if the bot detector is disabled or on any collecting error.
-     */
-    static getFrontendDataLog() {
-        const prefix = (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.cookiePrefix) ?
-            ctPublicFunctions.cookiePrefix :
-            '';
-        const logKey = prefix + ApbctBrowserState.LOG_KEY;
-        const noPrefixLogKey = ApbctBrowserState.LOG_KEY;
-
-        if (typeof apbctLocalStorage !== 'undefined' && apbctLocalStorage.get) {
-            const logObject = apbctLocalStorage.get(logKey) || apbctLocalStorage.get(noPrefixLogKey) || null;
-            if (logObject && typeof logObject === 'string') {
-                try {
-                    return JSON.parse(logObject);
-                } catch (e) {
-                    return '';
-                }
-            }
-            return logObject;
-        }
-
-        let rawLog = localStorage.getItem(logKey);
-        if (!rawLog) {
-            rawLog = localStorage.getItem(noPrefixLogKey) || null;
-        }
-
-        try {
-            return typeof rawLog === 'string' ? JSON.parse(rawLog) : rawLog;
-        } catch (e) {
-            return '';
-        }
-    }
-
-    /**
-     *
-     * @return {object}
-     */
-    static asDTO() {
-        return {
-            botd_logic_loaded: ApbctBrowserState.botdLogicLoaded,
-            botd_wrapper_loaded: ApbctBrowserState.botdWrapperLoaded,
-            frontend_data_log: '',
-            transport_enabled: 1,
-        };
-    }
-
-    /**
-     * Look for the bot detector scripts in the page DOM.
-     * @return {boolean} True if both scripts are found.
-     */
-    static detectScripts() {
-        if (ApbctBrowserState.botdWrapperLoaded && ApbctBrowserState.botdLogicLoaded) {
-            return true;
-        }
-
-        const scripts = document.getElementsByTagName('script');
-
-        for (let i = 0; i < scripts.length; i++) {
-            const src = scripts[i].getAttribute('src');
-            if (!src) {
-                continue;
-            }
-            if (src.indexOf(ApbctBrowserState.SCRIPT_SIGNS.botd_wrapper_loaded) !== -1) {
-                ApbctBrowserState.botdWrapperLoaded = 1;
-            } else if (src.indexOf(ApbctBrowserState.SCRIPT_SIGNS.botd_logic_loaded) !== -1) {
-                ApbctBrowserState.botdLogicLoaded = 1;
-            }
-        }
-
-        // The bot detector logic sets this flag on its own start
-        return !!ApbctBrowserState.botdWrapperLoaded && !!ApbctBrowserState.botdLogicLoaded;
-    }
-}
-
-
 
 let ctCheckedEmails = {};
 let ctCheckedEmailsExist = {};

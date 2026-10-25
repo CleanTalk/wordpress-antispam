@@ -2,17 +2,11 @@
  * Set init params
  */
 // eslint-disable-next-line no-unused-vars,require-jsdoc
-function initLegacyParams(gatheringLoaded) {
-    const screenInfo = (
-        typeof ApbctGatheringData !== 'undefined' &&
-        typeof ApbctGatheringData.prototype.getScreenInfo === 'function'
-    ) ? new ApbctGatheringData().getScreenInfo() : '';
-
+function initLegacyParams() {
     const initCookies = [];
 
     apbctLocalStorage.set('ct_fkp_timestamp', '0');
     apbctLocalStorage.set('ct_pointer_data', '0');
-    apbctLocalStorage.set('ct_screen_info', screenInfo);
 
     if ( ctPublic.data__cookies_type !== 'native' ) {
         initCookies.push(['apbct_visible_fields', '0']);
@@ -77,13 +71,6 @@ function initLegacyParams(gatheringLoaded) {
             handler: checkEmailExist,
             debounce: 300,
         });
-    }
-
-    if (gatheringLoaded) {
-        initCookies.push(['ct_gathering_loaded', gatheringLoaded]);
-        initCookies.push(['ct_fkp_timestamp', '0']);
-        initCookies.push(['ct_pointer_data', '0']);
-        initCookies.push(['ct_screen_info', screenInfo]);
     }
 
     ctSetCookie(initCookies);

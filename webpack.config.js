@@ -64,6 +64,7 @@ const publicNewConfig = {
     output: {
         path: path.resolve(__dirname, 'js'),
         filename: 'apbct_public_new.min.js',
+        chunkFilename: '[name].min.js',
     },
     mode: 'production',
     devtool: false,
