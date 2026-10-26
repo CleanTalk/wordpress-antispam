@@ -567,6 +567,52 @@ class TestSFW extends TestCase
     }
 
     // =========================================================================
+    // Die page link to the requested page
+    // =========================================================================
+
+    /**
+     * @test
+     * @dataProvider externalRequestUriProvider
+     * getLocalUrl() must not return a URL that leads to another host.
+     */
+    public function testGetLocalUrlStaysOnSite($request_uri, $expected)
+    {
+        $url = SFW::getLocalUrl($request_uri);
+
+        $this->assertSame($expected, $url);
+        // The browser decodes entities of the href attribute before following it
+        $href = html_entity_decode($url, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $this->assertNull(wp_parse_url($href, PHP_URL_HOST));
+        $this->assertSame(0, strpos($href, '/'));
+        $this->assertNotSame(0, strpos($href, '//'));
+    }
+
+    public function externalRequestUriProvider()
+    {
+        return array(
+            'protocol relative'     => array('//evil.example/land?sfw_test_ip=1.2.3.4&debug=1', '/evil.example/land?sfw_test_ip=1.2.3.4&amp;debug=1'),
+            'decimal entity slash'  => array('/&#047;evil.example/land', '/&amp;#047;evil.example/land'),
+            'hex entity slash'      => array('/&#x2f;evil.example/land', '/&amp;#x2f;evil.example/land'),
+            'quote breakout'        => array("/x'onmouseover='alert(1)", '/x&#039;onmouseover=&#039;alert(1)'),
+            'many slashes'          => array('////evil.example/land', '/evil.example/land'),
+            'backslash'             => array('/\\evil.example/land', '/evil.example/land'),
+            'slash and backslash'   => array('/\\/evil.example/land', '/evil.example/land'),
+            'absolute url'          => array('http://evil.example/land', '/http://evil.example/land'),
+            'empty'                 => array('', '/'),
+        );
+    }
+
+    /**
+     * @test
+     * getLocalUrl() keeps a regular request URI.
+     */
+    public function testGetLocalUrlKeepsRegularUri()
+    {
+        $this->assertSame('/test-page/?a=1&amp;b=2', SFW::getLocalUrl('/test-page/?a=1&b=2'));
+        $this->assertSame('/', SFW::getLocalUrl('/'));
+    }
+
+    // =========================================================================
     // Helpers
     // =========================================================================
 

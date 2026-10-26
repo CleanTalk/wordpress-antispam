@@ -232,6 +232,51 @@ class TestEmailEncoder extends TestCase
     }
 
     /**
+     * Placeholder planted in content must not be replaced with a protected <option>.
+     */
+    public function testModifyContentDoesNotReplacePlantedOptionPlaceholder()
+    {
+        $option = '<option value="1"> [caption " autofocus onfocus=alert(1) y] </option>';
+        $content = '<p><a href="#" title="%%APBCT_OPTION_SKIP_0%%">link</a> public@example.com</p>'
+            . '<select>' . $option . '</select>';
+
+        $result = $this->contacts_encoder->modifyContent($content);
+
+        $this->assertStringContainsString('title="%%APBCT_OPTION_SKIP_0%%"', $result);
+        $this->assertStringNotContainsString('title="<option', $result);
+        $this->assertSame(1, substr_count($result, $option));
+    }
+
+    /**
+     * Placeholder planted in content must not be replaced with a protected WP Grid Builder region.
+     */
+    public function testModifyBufferDoesNotReplacePlantedWpGridBuilderPlaceholder()
+    {
+        global $apbct;
+
+        $apbct->settings['data__email_decoder_buffer'] = true;
+        $apbct->settings['data__email_decoder_encode_email_addresses'] = 1;
+        $apbct->saveSettings();
+        $this->contacts_encoder->dropInstance();
+        $this->contacts_encoder = apbctGetContactsEncoder();
+        $this->contacts_encoder->runEncoding();
+
+        $wpgb_script =
+            '<script>(function(){var wpgb=WP_Grid_Builder.instance(1);if(!wpgb.init){return}wpgb.init()})();</script>';
+        $apbct->buffer =
+            '<head><title>test</title></head><body>' .
+            '<p><a href="#" title="%%APBCT_WPGB_REGION_0%%">link</a> contact@example.com</p>' .
+            $wpgb_script .
+            '</body>';
+
+        $this->contacts_encoder->modifyBuffer();
+
+        $this->assertStringContainsString('title="%%APBCT_WPGB_REGION_0%%"', $apbct->buffer);
+        $this->assertStringNotContainsString('title="<script', $apbct->buffer);
+        $this->assertSame(1, substr_count($apbct->buffer, $wpgb_script));
+    }
+
+    /**
      * Settings skip list keeps listed emails plain, including in title-like strings.
      */
     public function testModifyContentSkipsEmailsFromExcludedStringsSetting()
@@ -1348,5 +1393,39 @@ class TestEmailEncoder extends TestCase
         }
 
         $this->read_css_fixture_files = array();
+    }
+
+    /**
+     * decodeEmailEntities() decodes numeric entities of email characters only.
+     */
+    public function testDecodeEmailEntitiesDecodesOnlyEmailChars()
+    {
+        // Business Directory obfuscation of "info@test.com"
+        $obfuscated = '&#105;&#110;&#102;&#111;@&#116;&#101;&#115;&#116;.&#99;&#111;&#109;';
+        $this->assertSame('info@test.com', ContactsEncoder::decodeEmailEntities($obfuscated));
+
+        // Fully obfuscated, hexadecimal and zero-padded entities
+        $this->assertSame('info@test.com', ContactsEncoder::decodeEmailEntities('info&#64;test.com'));
+        $this->assertSame('info@test.com', ContactsEncoder::decodeEmailEntities('&#x69;&#X6E;fo&#x40;test.com'));
+        $this->assertSame('info@test.com', ContactsEncoder::decodeEmailEntities('&#0105;nfo&#00064;test.com'));
+
+        $escaped = '&lt;img src=x onerror=alert(1)&gt; &#60;script&#62; &#34;&#39; &amp;#60; &#x3C;img&#x3e; &#060;';
+        $this->assertSame($escaped, ContactsEncoder::decodeEmailEntities($escaped));
+    }
+
+    /**
+     * modifyFormFieldDisplay() must not unescape Business Directory field HTML.
+     */
+    public function testModifyFormFieldDisplayKeepsEscapedHtml()
+    {
+        $html = '<p>Contact us via mailto: link. &lt;img src=x onerror=alert(1)&gt;</p>'
+            . '<a href="mailto:&#105;&#110;&#102;&#111;@&#116;&#101;&#115;&#116;.&#99;&#111;&#109;">'
+            . '&#105;&#110;&#102;&#111;@&#116;&#101;&#115;&#116;.&#99;&#111;&#109;</a>';
+
+        $result = $this->contacts_encoder->modifyFormFieldDisplay($html, null, 'listing', 1);
+
+        $this->assertStringNotContainsString('<img', $result);
+        $this->assertStringContainsString('&lt;img src=x onerror=alert(1)&gt;', $result);
+        $this->assertStringNotContainsString('info@test.com', $result);
     }
 }
