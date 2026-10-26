@@ -913,7 +913,12 @@ function apbct_sfw__check()
             );
             Cookie::set(
                 'ct_sfw_pass_key',
-                md5(Server::get('REMOTE_ADDR') . $apbct->api_key . $apbct->data['salt']),
+                SFW::makePassKey(
+                    TT::toString(Server::get('REMOTE_ADDR')),
+                    TT::toString($apbct->api_key),
+                    TT::toString($apbct->data['salt']),
+                    '0'
+                ),
                 time() + 1200,
                 '/',
                 ''
