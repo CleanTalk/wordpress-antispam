@@ -90,7 +90,10 @@ class TestConnectionReports extends TestCase
         $this->assertEquals('test.moderate1.cleantalk.org,test.moderate1.cleantalk.org', $data[0]['failed_work_urls']);
         $this->assertEquals('moderate', $data[0]['source']);
 
-        $this->assertNotEmpty($this->connection_reports->prepareNegativeReportsHtmlForSettingsPage());
+        $html = $this->connection_reports->prepareNegativeReportsHtmlForSettingsPage();
+        $this->assertStringContainsString("id='apbct_negative_reports_table'", $html);
+        $this->assertStringContainsString('Blocked via JS', $html);
+        $this->assertStringNotContainsString('apbct_negative_reports_table_api', $html);
         $this->assertTrue($this->connection_reports->hasUnsentReports());
 
         $this->assertEquals('1 reports were sent.', $this->connection_reports->sendUnsentReports());
@@ -202,7 +205,11 @@ class TestConnectionReports extends TestCase
         $this->assertStringNotContainsString('secret_key', $data[0]['request_content']);
         $this->assertStringNotContainsString('secret_token', $data[0]['request_content']);
         $this->assertStringContainsString('[truncated]', $data[0]['request_content']);
-        $this->assertStringContainsString('API: spam_check_cms', $this->connection_reports->prepareNegativeReportsHtmlForSettingsPage());
+        $html = $this->connection_reports->prepareNegativeReportsHtmlForSettingsPage();
+        $this->assertStringContainsString('apbct_negative_reports_table_api', $html);
+        $this->assertStringContainsString('<td>spam_check_cms</td>', $html);
+        $this->assertStringNotContainsString("id='apbct_negative_reports_table'", $html);
+        $this->assertStringNotContainsString('Blocked via JS', $html);
         $this->assertTrue($this->connection_reports->hasUnsentReports());
     }
 

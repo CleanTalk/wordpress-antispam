@@ -562,7 +562,8 @@ button[value="save_changes"]:disabled {
     color: red;
 }
 
-#apbct_negative_reports_table {
+#apbct_negative_reports_table,
+#apbct_negative_reports_table_api {
     width: 100%;
     border-collapse: collapse;
     margin: 10px 5px;

@@ -475,30 +475,75 @@ class ConnectionReports
             return '';
         }
 
-        $rows = '';
-        $reports_html = '<div>' . $this->prepareStatsHtml() . '</div>';
+        $moderate_reports = self::filterReportsBySource($reports_data, self::SOURCE_MODERATE);
+        $api_reports = self::filterReportsBySource($reports_data, self::SOURCE_API);
 
-        foreach ($reports_data as $key => $report) {
-            $rows .= $this->prepareReportRow($key, $report);
+        $reports_html = '<div>' . $this->prepareStatsParagraph($this->reports_count, 'Anti-Spam') . '</div>';
+        if ( ! empty($moderate_reports) ) {
+            $rows = '';
+            foreach ($moderate_reports as $key => $report) {
+                $rows .= $this->prepareModerateReportRow($key, $report);
+            }
+            $reports_html .= self::prepareReportsTable(
+                'apbct_negative_reports_table',
+                'Failed connection reports',
+                array('Date', 'Page URL', 'Report', 'Server IP', 'Blocked via JS', 'Status'),
+                $rows
+            );
         }
 
-        $reports_html .= "
-                <table id='apbct_negative_reports_table'>
-                <th colspan='8'>Failed connection reports</th>
-                <tr>
-                    <td>#</td>
-                    <td><b>Date</b></td>
-                    <td><b>Page URL</b></td>
-                    <td><b>Request type</b></td>
-                    <td><b>Report</b></td>
-                    <td><b>Server IP</b></td>
-                    <td><b>Blocked via JS</b></td>
-                    <td><b>Status</b></td>
-                </tr>"
-                         . $rows
-                         . "</table>";
+        if ( ! empty($this->api_reports_count['total']) || ! empty($api_reports) ) {
+            $reports_html .= '<div>' . $this->prepareStatsParagraph($this->api_reports_count, 'API') . '</div>';
+            if ( ! empty($api_reports) ) {
+                $rows = '';
+                foreach ($api_reports as $key => $report) {
+                    $rows .= $this->prepareApiReportRow($key, $report);
+                }
+                $reports_html .= self::prepareReportsTable(
+                    'apbct_negative_reports_table_api',
+                    'Failed API connection reports',
+                    array('Date', 'Page URL', 'API method', 'Report', 'API URL', 'Status'),
+                    $rows
+                );
+            }
+        }
 
         return $reports_html;
+    }
+
+    /**
+     * Get reports of the source, reindexed from 0
+     * @param array $reports_data
+     * @param string $source
+     * @return array
+     */
+    private static function filterReportsBySource($reports_data, $source)
+    {
+        return array_values(array_filter($reports_data, static function ($report) use ($source) {
+            return self::getReportSource($report) === $source;
+        }));
+    }
+
+    /**
+     * Prepare reports table HTML for the settings page
+     * @param string $table_id
+     * @param string $title
+     * @param string[] $headers Columns headers except the first "#" one
+     * @param string $rows Rows HTML, already escaped
+     * @return string
+     */
+    private static function prepareReportsTable($table_id, $title, $headers, $rows)
+    {
+        $headers_html = '<td>#</td>';
+        foreach ($headers as $header) {
+            $headers_html .= '<td><b>' . Escape::escHtml($header) . '</b></td>';
+        }
+
+        return "<table id='" . Escape::escAttr($table_id) . "'>"
+               . "<th colspan='" . (count($headers) + 1) . "'>" . Escape::escHtml($title) . '</th>'
+               . '<tr>' . $headers_html . '</tr>'
+               . $rows
+               . '</table>';
     }
 
     /**
@@ -535,34 +580,26 @@ class ConnectionReports
     }
 
     /**
-     * Human-readable request type of the report
+     * Get report status label and row color
      * @param array $report
-     * @return string
+     * @return string[] [status, color]
      */
-    private static function getReportTypeLabel($report)
+    private static function getReportStatus($report)
     {
-        if (self::getReportSource($report) === self::SOURCE_API) {
-            return 'API: ' . (isset($report['method_name']) ? TT::toString($report['method_name']) : '');
-        }
-        return 'Anti-Spam';
+        return isset($report['sent_on']) && $report['sent_on']
+            ? array('Sent', 'gray')
+            : array('New', 'black');
     }
 
     /**
-     * Prepare single report row HTML
+     * Prepare single Anti-Spam report row HTML
      * @param int $key
      * @param array $report
      * @return string
      */
-    private function prepareReportRow($key, $report)
+    private function prepareModerateReportRow($key, $report)
     {
-        // Determine status and color
-        if (isset($report['sent_on']) && $report['sent_on']) {
-            $status = 'Sent';
-            $color = 'gray';
-        } else {
-            $status = 'New';
-            $color = 'black';
-        }
+        list($status, $color) = self::getReportStatus($report);
 
         $report_date = isset($report['date']) ? $report['date'] : time();
         $report_page_url = isset($report['page_url']) ? $report['page_url'] : '';
@@ -574,10 +611,36 @@ class ConnectionReports
                . '<td>' . Escape::escHtml((int)$key + 1) . '.</td>'
                . '<td>' . Escape::escHtml($report_date) . '</td>'
                . '<td>' . Escape::escUrl($report_page_url) . '</td>'
-               . '<td>' . Escape::escHtml(self::getReportTypeLabel($report)) . '</td>'
                . '<td>' . Escape::escHtml($report_lib_report) . '</td>'
                . '<td>' . Escape::escHtml($report_failed_work_urls) . '</td>'
                . '<td>' . Escape::escHtml($report_js_block === '1' ? 'Yes' : 'No') . '</td>'
+               . '<td>' . Escape::escHtml($status) . '</td>'
+               . '</tr>';
+    }
+
+    /**
+     * Prepare single API report row HTML
+     * @param int $key
+     * @param array $report
+     * @return string
+     */
+    private function prepareApiReportRow($key, $report)
+    {
+        list($status, $color) = self::getReportStatus($report);
+
+        $report_date = isset($report['date']) ? $report['date'] : time();
+        $report_page_url = isset($report['page_url']) ? $report['page_url'] : '';
+        $report_method_name = isset($report['method_name']) ? $report['method_name'] : '';
+        $report_lib_report = isset($report['lib_report']) ? $report['lib_report'] : '';
+        $report_api_url = isset($report['failed_work_urls']) ? $report['failed_work_urls'] : '';
+
+        return '<tr style="color:' . $color . '">'
+               . '<td>' . Escape::escHtml((int)$key + 1) . '.</td>'
+               . '<td>' . Escape::escHtml($report_date) . '</td>'
+               . '<td>' . Escape::escUrl($report_page_url) . '</td>'
+               . '<td>' . Escape::escHtml($report_method_name) . '</td>'
+               . '<td>' . Escape::escHtml($report_lib_report) . '</td>'
+               . '<td>' . Escape::escHtml($report_api_url) . '</td>'
                . '<td>' . Escape::escHtml($status) . '</td>'
                . '</tr>';
     }
@@ -756,39 +819,73 @@ class ConnectionReports
     {
         global $apbct;
 
+        $moderate_reports = self::filterReportsBySource($selection, self::SOURCE_MODERATE);
+        $api_reports = self::filterReportsBySource($selection, self::SOURCE_API);
+
         $message = '
             <html lang="en">
                 <head>
                     <title></title>
                 </head>
                 <body>
-                    ' . $this->prepareStatsHtml() . '
+                    ' . $this->prepareStatsHtml();
+
+        if ( ! empty($moderate_reports) ) {
+            $message .= '
                     <p>Negative report:</p>
                     <table>
                         <tr>
                             <td>&nbsp;</td>
                             <td><b>Date</b></td>
                             <td><b>Page URL</b></td>
-                            <td><b>Request type</b></td>
                             <td><b>Library report</b></td>
                             <td><b>Server IP</b></td>
                             <td><b>Blocked via JS</b></td>
                         </tr>';
 
-        $counter = 0;
-        foreach ($selection as $report) {
-            $message .= '<tr>'
-                        . '<td>' . (++$counter) . '.</td>'
-                        . '<td>' . TT::toString($report['date']) . '</td>'
-                        . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
-                        . '<td>' . Escape::escHtml(self::getReportTypeLabel($report)) . '</td>'
-                        . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
-                        . '<td>' . Escape::escHtml($report['failed_work_urls']) . '</td>'
-                        . '<td>' . ($report['js_block'] === '1' ? 'Yes' : 'No') . '</td>'
-                        . '</tr>';
+            $counter = 0;
+            foreach ($moderate_reports as $report) {
+                $message .= '<tr>'
+                            . '<td>' . (++$counter) . '.</td>'
+                            . '<td>' . TT::toString($report['date']) . '</td>'
+                            . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
+                            . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
+                            . '<td>' . Escape::escHtml($report['failed_work_urls']) . '</td>'
+                            . '<td>' . ($report['js_block'] === '1' ? 'Yes' : 'No') . '</td>'
+                            . '</tr>';
+            }
+
+            $message .= '</table><br>';
         }
 
-        $message .= '</table><br>';
+        if ( ! empty($api_reports) ) {
+            $message .= '
+                    <p>Negative API report:</p>
+                    <table>
+                        <tr>
+                            <td>&nbsp;</td>
+                            <td><b>Date</b></td>
+                            <td><b>Page URL</b></td>
+                            <td><b>API method</b></td>
+                            <td><b>Library report</b></td>
+                            <td><b>API URL</b></td>
+                        </tr>';
+
+            $counter = 0;
+            foreach ($api_reports as $report) {
+                $message .= '<tr>'
+                            . '<td>' . (++$counter) . '.</td>'
+                            . '<td>' . TT::toString($report['date']) . '</td>'
+                            . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
+                            . '<td>' . Escape::escHtml(isset($report['method_name']) ? $report['method_name'] : '') . '</td>'
+                            . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
+                            . '<td>' . Escape::escHtml($report['failed_work_urls']) . '</td>'
+                            . '</tr>';
+            }
+
+            $message .= '</table><br>';
+        }
+
         $message .= '<br>' . ($is_cron_task ? 'This is a cron task.' : 'This is a manual task.') . '<br>';
         $message .= '<br>Site service_id: ' . $apbct->data['service_id'] . '<br>';
         $message .= '</body></html>';
