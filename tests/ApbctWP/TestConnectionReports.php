@@ -41,6 +41,11 @@ class TestConnectionReports extends TestCase
 
     }
 
+    public function tearDown(): void
+    {
+        $this->connection_reports->wipeReportsData();
+    }
+
     public function testCRIsTableExists()
     {
         $this->assertTrue($this->db->isTableExists(APBCT_TBL_CONNECTION_REPORTS));
@@ -83,6 +88,7 @@ class TestConnectionReports extends TestCase
         $this->assertEquals('TEST 404 ERROR', $data[0]['lib_report']);
         $this->assertEquals('1', $data[0]['js_block']);
         $this->assertEquals('test.moderate1.cleantalk.org,test.moderate1.cleantalk.org', $data[0]['failed_work_urls']);
+        $this->assertEquals('moderate', $data[0]['source']);
 
         $this->assertNotEmpty($this->connection_reports->prepareNegativeReportsHtmlForSettingsPage());
         $this->assertTrue($this->connection_reports->hasUnsentReports());
@@ -138,5 +144,101 @@ class TestConnectionReports extends TestCase
         $this->assertFalse($this->connection_reports->hasUnsentReports());
         $this->assertEquals('', $this->connection_reports->prepareNegativeReportsHtmlForSettingsPage());
         $this->assertEquals(array(), $this->connection_reports->remoteCallOutput());
+    }
+
+    public function testApiConnectionErrorDetection()
+    {
+        $cr = $this->connection_reports;
+
+        $this->assertNull($cr->getApiConnectionError(array('some' => 'data'), 200));
+        $this->assertNull($cr->getApiConnectionError(true, 200));
+        $this->assertNull($cr->getApiConnectionError(array('error' => 'NO_DATA'), 200));
+        $this->assertNull($cr->getApiConnectionError(array('error' => 'COULDNT_ADD_WL_IP'), 200));
+        $this->assertNull($cr->getApiConnectionError(array('error' => 'SERVER_ERROR NO: 1 MSG: bad key'), 200));
+
+        $this->assertEquals('cURL error 28: timeout', $cr->getApiConnectionError(array('error' => 'cURL error 28: timeout')));
+        $this->assertEquals('HTTP_CODE_200: JSON_DECODE_ERROR', $cr->getApiConnectionError(array('error' => 'JSON_DECODE_ERROR'), 200));
+        $this->assertEquals('HTTP_CODE_502: JSON_DECODE_ERROR', $cr->getApiConnectionError(array('error' => 'JSON_DECODE_ERROR'), 502));
+        $this->assertEquals('HTTP_CODE_500', $cr->getApiConnectionError(array('data' => 1), 500));
+    }
+
+    public function testApiSuccessReport()
+    {
+        global $apbct;
+        $this->connection_reports->wipeReportsData();
+        $positive_before = $this->connection_reports->api_reports_count['positive'];
+        $moderate_before = $this->connection_reports->reports_count;
+
+        $this->connection_reports->handleApiRequest('notice_paid_till', array('auth_key' => 'secret'), array('valid' => 1), 'https://api.cleantalk.org', 200);
+
+        $this->assertFalse($this->connection_reports->hasNegativeReports());
+        $this->assertEquals($positive_before + 1, $this->connection_reports->api_reports_count['positive']);
+        $this->assertEquals($positive_before + 1, $apbct->data['connection_reports_count_api']['positive']);
+        $this->assertEquals($moderate_before, $this->connection_reports->reports_count);
+    }
+
+    public function testApiNegativeReport()
+    {
+        $this->connection_reports->wipeReportsData();
+
+        $this->connection_reports->handleApiRequest(
+            'spam_check_cms',
+            array(
+                'method_name' => 'spam_check_cms',
+                'auth_key' => 'secret_key',
+                'user_token' => 'secret_token',
+                'data' => str_repeat('a', 1000),
+            ),
+            array('error' => 'cURL error 28: Operation timed out'),
+            'https://api.cleantalk.org'
+        );
+
+        $data = $this->connection_reports->remoteCallOutput();
+        $this->assertCount(1, $data);
+        $this->assertEquals('api', $data[0]['source']);
+        $this->assertEquals('spam_check_cms', $data[0]['method_name']);
+        $this->assertEquals('cURL error 28: Operation timed out', $data[0]['lib_report']);
+        $this->assertEquals('https://api.cleantalk.org', $data[0]['failed_work_urls']);
+        $this->assertStringNotContainsString('secret_key', $data[0]['request_content']);
+        $this->assertStringNotContainsString('secret_token', $data[0]['request_content']);
+        $this->assertStringContainsString('[truncated]', $data[0]['request_content']);
+        $this->assertStringContainsString('API: spam_check_cms', $this->connection_reports->prepareNegativeReportsHtmlForSettingsPage());
+        $this->assertTrue($this->connection_reports->hasUnsentReports());
+    }
+
+    public function testApiExcludedMethodIsIgnored()
+    {
+        $this->connection_reports->wipeReportsData();
+        $before = $this->connection_reports->api_reports_count;
+
+        $this->connection_reports->handleApiRequest('2s_blacklists_db', array(), array('error' => 'cURL error'), 'https://api.cleantalk.org');
+
+        $this->assertFalse($this->connection_reports->hasNegativeReports());
+        $this->assertEquals($before, $this->connection_reports->api_reports_count);
+    }
+
+    public function testSeparateRotationLimits()
+    {
+        $this->connection_reports->wipeReportsData();
+
+        $this->ct_response->errno = 500;
+        $this->ct_response->errstr = 'MODERATE ERROR';
+        for ($i = 0; $i < 5; $i++) {
+            $this->connection_reports->handleRequest($this->ct_request, $this->ct_response, 0);
+        }
+        for ($i = 0; $i < 25; $i++) {
+            $this->connection_reports->handleApiRequest('notice_paid_till', array(), array('error' => 'API ERROR ' . $i), 'https://api.cleantalk.org');
+        }
+
+        $data = $this->connection_reports->remoteCallOutput();
+        $moderate = array_filter($data, function ($row) {
+            return $row['source'] !== 'api';
+        });
+        $api = array_filter($data, function ($row) {
+            return $row['source'] === 'api';
+        });
+
+        $this->assertCount(5, $moderate);
+        $this->assertCount(20, $api);
     }
 }
