@@ -4,7 +4,13 @@ jQuery(document).ready(function(){
 	jQuery(".ct_widget_refresh_link").on('click', function(){
 		jQuery('.ct_preloader').show();
 		setTimeout(function(){window.scrollTo(0, jQuery('#ct_widget_wrapper').offset().top - 130);}, 1);
-		setTimeout(function(){jQuery("#ct_refresh_form").submit();}, 2500);
+		jQuery.post(apbctDashboardWidget.ajax_url, {
+			action: 'apbct_brief_refresh',
+			security: apbctDashboardWidget.nonce
+		}).always(function(){
+			location.href = location.pathname + location.search + '#ct_widget';
+			location.reload();
+		});
 	});
 
 	if(location.hash == '#ct_widget')
