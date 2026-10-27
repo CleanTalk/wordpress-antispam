@@ -904,6 +904,36 @@ function apbct_sfw__check()
         }
     }
 
+    // Skip the check (legacy way, remove in future)
+    if ( ! empty(Get::get('access')) ) {
+        $spbc_settings = get_option('spbc_settings');
+        $spbc_key      = ! empty($spbc_settings['spbc_key']) ? $spbc_settings['spbc_key'] : false;
+        if ( Get::get('access') === $apbct->api_key || ($spbc_key !== false && Get::get('access') === $spbc_key) ) {
+            Cookie::set(
+                'spbc_firewall_pass_key',
+                md5(Server::get('REMOTE_ADDR') . $spbc_key),
+                time() + 1200,
+                '/',
+                ''
+            );
+            Cookie::set(
+                'ct_sfw_pass_key',
+                SFW::makePassKey(
+                    TT::toString(Server::get('REMOTE_ADDR')),
+                    TT::toString($apbct->api_key),
+                    TT::toString($apbct->data['salt']),
+                    '0'
+                ),
+                time() + 1200,
+                '/',
+                ''
+            );
+
+            return;
+        }
+        unset($spbc_settings, $spbc_key);
+    }
+
     // Turn off the SpamFireWall if Remote Call is in progress
     if ( $apbct->rc_running || ( ! empty($spbc) && $spbc->rc_running) ) {
         return;
