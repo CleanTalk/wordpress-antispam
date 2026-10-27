@@ -209,6 +209,7 @@ class State extends \Cleantalk\Common\State
         'feedback_request'            => '',
         'key_is_ok'                   => 0,
         'salt'                        => '',
+        'static_js_key_salt'          => '',
 
         // Comment's test
         'count_checked_comments'      => 0,
@@ -595,9 +596,7 @@ class State extends \Cleantalk\Common\State
             if ($wpdb_option_name === 'cleantalk_data') {
                 $option = is_array($option) ? array_merge($this->default_data, $option) : $this->default_data;
                 // Generate salt
-                $option['salt'] = empty($option['salt'])
-                    ? str_pad((string)rand(0, getrandmax()), 6, '0') . str_pad((string)rand(0, getrandmax()), 6, '0')
-                    : $option['salt'];
+                $option = $this->generateSalt($option);
             }
 
             // Setting default errors
@@ -622,6 +621,52 @@ class State extends \Cleantalk\Common\State
 
             $this->$option_name = is_array($option) ? new ArrayObject($option) : $option;
         }
+    }
+
+    /**
+     * Generates random salt. The numeric salt of the previous versions is replaced once,
+     * the static JS key keeps it to stay valid on the cached pages.
+     *
+     * @param array $data
+     *
+     * @return array
+     */
+    private function generateSalt($data)
+    {
+        $is_salt_stored = ! empty($data['salt']);
+
+        // Skip if the salt is already random or the main site data is used
+        if (
+            $is_salt_stored &&
+            (
+                ! preg_match('/^\d+$/', (string)$data['salt']) ||
+                (! is_main_site() && $this->network_settings['multisite__work_mode'] == 2)
+            )
+        ) {
+            return $data;
+        }
+
+        try {
+            $salt               = bin2hex(random_bytes(32));
+            $static_js_key_salt = bin2hex(random_bytes(32));
+        } catch (\Exception $e) {
+            if ( ! $is_salt_stored ) {
+                $data['salt'] = str_pad((string)rand(0, getrandmax()), 6, '0') . str_pad((string)rand(0, getrandmax()), 6, '0');
+            }
+
+            return $data;
+        }
+
+        if ( empty($data['static_js_key_salt']) ) {
+            $data['static_js_key_salt'] = $is_salt_stored ? (string)$data['salt'] : $static_js_key_salt;
+        }
+        $data['salt'] = $salt;
+
+        if ( $is_salt_stored ) {
+            update_option($this->option_prefix . '_data', $data);
+        }
+
+        return $data;
     }
 
     protected function init()

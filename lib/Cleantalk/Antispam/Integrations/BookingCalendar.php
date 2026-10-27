@@ -6,25 +6,26 @@ class BookingCalendar extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        if (isset($_POST['calendar_request_params']) && is_array($_POST['calendar_request_params'])) {
-            $calendar_request_params = $_POST['calendar_request_params'];
-        } elseif (isset($_POST['calendar_request_params'])) {
-            $calendar_request_params = json_decode(stripslashes($_POST['calendar_request_params']), true);
-        } else {
-            return null;
+        // The plugin reads the booking params from $_REQUEST
+        $calendar_request_params = [];
+        if (isset($_REQUEST['calendar_request_params']) && is_array($_REQUEST['calendar_request_params'])) {
+            $calendar_request_params = $_REQUEST['calendar_request_params'];
+        } elseif (isset($_REQUEST['calendar_request_params']) && is_string($_REQUEST['calendar_request_params'])) {
+            $calendar_request_params = json_decode(stripslashes($_REQUEST['calendar_request_params']), true);
         }
 
-        if (isset($calendar_request_params['formdata'])) {
-            $formdata = $calendar_request_params['formdata'];
-        } else {
-            return null;
-        }
+        // Check the booking request even without the form data
+        $formdata = isset($calendar_request_params['formdata']) ? $calendar_request_params['formdata'] : '';
 
         $parsed_formdata = $this->parseBookingCalendarFormdata($formdata);
 
+        $resource_id = isset($calendar_request_params['resource_id']) && is_scalar($calendar_request_params['resource_id'])
+            ? (int)$calendar_request_params['resource_id']
+            : 1;
+
         // Extract prepared data for ct_gfa_dto
         $nickname = $this->extractNickname($parsed_formdata);
-        $email = $this->extractPrimaryEmail($parsed_formdata);
+        $email = $this->extractPrimaryEmail($parsed_formdata, $resource_id);
         $emails_array = $this->extractEmailsArray($parsed_formdata);
         $filtered_formdata = $this->filterFormdataForMessage($parsed_formdata);
 
@@ -62,21 +63,18 @@ class BookingCalendar extends IntegrationBase
 
     /**
      * Extract primary email from email or email_val fields.
-     * Priority: email_val1 > email1 > first found email field
+     * Priority: email field of the booking resource (email1) > first found email field
      *
      * @param array $parsed_formdata
+     * @param int $resource_id
      * @return string
      */
-    private function extractPrimaryEmail(array $parsed_formdata)
+    private function extractPrimaryEmail(array $parsed_formdata, $resource_id)
     {
-        // Try email_val1 first
-        if (isset($parsed_formdata['email_val1']['value']) && $this->isValidEmail($parsed_formdata['email_val1']['value'])) {
-            return $parsed_formdata['email_val1']['value'];
-        }
-
-        // Try email1
-        if (isset($parsed_formdata['email1']['value']) && $this->isValidEmail($parsed_formdata['email1']['value'])) {
-            return $parsed_formdata['email1']['value'];
+        // The vendor saves the email field of the booking resource
+        $field_name = 'email' . $resource_id;
+        if (isset($parsed_formdata[$field_name]['value']) && $this->isValidEmail($parsed_formdata[$field_name]['value'])) {
+            return $parsed_formdata[$field_name]['value'];
         }
 
         // Fallback: find first email by pattern
@@ -85,8 +83,7 @@ class BookingCalendar extends IntegrationBase
     }
 
     /**
-     * Extract all emails from email_val fields into array.
-     * Searches for: email_val1, email_val2, email_val3, ...
+     * Extract all emails from the form fields into array.
      *
      * @param array $parsed_formdata
      * @return array
@@ -95,25 +92,10 @@ class BookingCalendar extends IntegrationBase
     {
         $emails = [];
 
-        foreach ($parsed_formdata as $key => $field) {
-            // Match email_val1, email_val2, etc.
-            if (preg_match('/^email_val\d*$/i', $key)) {
-                $value = isset($field['value']) ? $field['value'] : '';
-                if ($this->isValidEmail($value)) {
-                    $emails[$key] = $value;
-                }
-            }
-        }
-
-        // If no email_val found, try email1, email2, etc.
-        if (empty($emails)) {
-            foreach ($parsed_formdata as $key => $field) {
-                if (preg_match('/^email\d*$/i', $key) && !preg_match('/_val/i', $key)) {
-                    $value = isset($field['value']) ? $field['value'] : '';
-                    if ($this->isValidEmail($value)) {
-                        $emails[$key] = $value;
-                    }
-                }
+        foreach ($parsed_formdata as $field) {
+            $value = isset($field['value']) ? $field['value'] : '';
+            if ($this->isValidEmail($value)) {
+                $emails[] = $value;
             }
         }
 
@@ -161,7 +143,7 @@ class BookingCalendar extends IntegrationBase
 
     /**
      * Filter formdata to remove duplicates and already extracted fields.
-     * Keeps only textarea fields for message, removes email/name fields and non-_val duplicates.
+     * Keeps only textarea fields for message, removes name fields and non-_val duplicates.
      *
      * @param array $parsed_formdata
      * @return array
@@ -171,13 +153,6 @@ class BookingCalendar extends IntegrationBase
         $result = [];
 
         foreach ($parsed_formdata as $key => $field) {
-            $type = isset($field['type']) ? $field['type'] : '';
-
-            // Skip email fields - already extracted
-            if ($type === 'email' || preg_match('/^email/i', $key)) {
-                continue;
-            }
-
             // Skip name fields - already extracted
             if (preg_match('/^(first|second|last|nick)?name/i', $key)) {
                 continue;

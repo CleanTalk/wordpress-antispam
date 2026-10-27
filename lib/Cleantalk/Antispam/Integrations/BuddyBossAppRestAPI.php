@@ -2,15 +2,13 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\ApbctWP\Variables\Server;
-
 class BuddyBossAppRestAPI extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
         if (
             apbct_is_plugin_active('buddyboss-app/buddyboss-app.php') &&
-            Server::getString('REQUEST_URI') === '/wp-json/buddyboss-app/v1/signup'
+            stripos(apbct_get_request_path(), '/wp-json/buddyboss-app/v1/signup') !== false
         ) {
             return ct_gfa(apply_filters('apbct__filter_post', $_POST));
         }

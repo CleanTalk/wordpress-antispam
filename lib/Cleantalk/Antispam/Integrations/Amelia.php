@@ -2,42 +2,43 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 
 class Amelia extends IntegrationBase
 {
     public function doPrepareActions($argument)
     {
-        $call = Get::getString('call');
+        // Amelia call path
+        $call = isset($_GET['call']) && is_string($_GET['call']) ? $_GET['call'] : '';
+        $call = strtolower('/' . ltrim(rawurldecode($call), '/'));
 
         return $call === '/bookings' || $call === '/payment/wc';
     }
 
     public function getDataForChecking($argument)
     {
-        $raw = file_get_contents('php://input');
-        if ( ! $raw ) {
-            return null;
-        }
-
-        $payload = json_decode($raw, true);
+        // Amelia accepts JSON and form data
+        $payload = json_decode((string)file_get_contents('php://input'), true);
         if ( ! is_array($payload) ) {
-            return null;
+            $payload = $_POST;
         }
 
-        $email = '';
-        if ( ! empty($payload['customer']['email']) ) {
-            $email = (string) $payload['customer']['email'];
-        } elseif ( ! empty($payload['bookings'][0]['customer']['email']) ) {
-            $email = (string) $payload['bookings'][0]['customer']['email'];
-        } elseif ( ! empty($payload['email']) ) {
-            $email = (string) $payload['email'];
+        // The customer of the booking is created with the bookings customer email
+        $emails_array = array();
+        if ( ! empty($payload['bookings']) && is_array($payload['bookings']) ) {
+            foreach ( $payload['bookings'] as $booking ) {
+                if ( ! empty($booking['customer']['email']) && is_string($booking['customer']['email']) ) {
+                    $emails_array[] = $booking['customer']['email'];
+                }
+            }
         }
-
-        if ( ! $email ) {
-            return null;
+        if ( ! empty($payload['customer']['email']) && is_string($payload['customer']['email']) ) {
+            $emails_array[] = $payload['customer']['email'];
         }
+        if ( ! empty($payload['email']) && is_string($payload['email']) ) {
+            $emails_array[] = $payload['email'];
+        }
+        $email = $emails_array ? reset($emails_array) : '';
 
         $event_token = ! empty($payload['ct_bot_detector_event_token'])
             ? (string) $payload['ct_bot_detector_event_token']
@@ -50,8 +51,9 @@ class Amelia extends IntegrationBase
         }
 
         return array(
-            'email'       => $email,
-            'event_token' => $event_token,
+            'email'        => $email,
+            'emails_array' => array_values(array_unique($emails_array)),
+            'event_token'  => $event_token,
         );
     }
 

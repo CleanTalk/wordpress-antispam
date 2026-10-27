@@ -22,6 +22,10 @@ class EncodeContentSC extends EmailEncoderShortCode
      */
     protected $public_name = 'apbct_encode_data';
     /**
+     * @var bool Whether the opening tag of the shortcode may have attributes.
+     */
+    protected $has_attributes = true;
+    /**
      * @var array Stores replacements for shortcodes to protect them during encoding.
      */
     public $shortcode_replacements = array();
@@ -68,6 +72,11 @@ class EncodeContentSC extends EmailEncoderShortCode
             return '';
         }
 
+        // Skip content with markup
+        if ( $this->shortcodeContentContainsHtmlTags($content) ) {
+            return (string)$content;
+        }
+
         if ( Cookie::get('apbct_email_encoder_passed') === apbct_get_email_encoder_pass_key() ) {
             return (string)$content;
         }
@@ -78,7 +87,8 @@ class EncodeContentSC extends EmailEncoderShortCode
         }
 
         if (isset($_atts['replacing_text']) && !empty($_atts['replacing_text']) && is_string($_atts['replacing_text'])) {
-            $replacing_text = esc_html($_atts['replacing_text']);
+            // Cut the text if more than 100 symbols
+            $replacing_text = esc_html(mb_substr($_atts['replacing_text'], 0, 100));
         } else {
             $replacing_text = null;
         }
@@ -112,31 +122,19 @@ class EncodeContentSC extends EmailEncoderShortCode
             return $content;
         }
 
-        if ($this->isShortcodeInsideHtmlTag($content)) {
-            return $content;
-        }
-
         // skip encoding if the content is already encoded with hook
         // Extract shortcode content to protect it from email encoding, supports sc attributes(!)
-        $shortcode_exist_pattern = sprintf('/(\[%s(?:\s[^\]]*)?\])([\s\S]*?)(\[\/%s\])/s', $this->public_name, $this->public_name);
-        $content = preg_replace_callback($shortcode_exist_pattern, function ($matches) {
-            if ( ! isset($matches[1], $matches[2], $matches[3]) ) {
-                return isset($matches[0]) ? $matches[0] : '';
-            }
+        $pairs = $this->findAllowedShortcodePairs($content);
 
-            if ( $this->shortcodeContentContainsHtmlTags($matches[2]) ) {
-                return isset($matches[0]) ? $matches[0] : '';
-            }
-
+        return $this->replaceShortcodePairs($content, $pairs, function ($pair) {
             $placeholder = $this->buildPlaceholder($this->shortcode_counter++);
-            $prefix = $matches[1];
-            $entity = Escape::escKsesPost($matches[2]);
-            $suffix = $matches[3];
+            $prefix = $pair['opener'];
+            $entity = Escape::escKsesPost($pair['inner']);
+            $suffix = '[/' . $this->public_name . ']';
             $this->shortcode_replacements[$placeholder] = $prefix . $entity . $suffix;
 
             return $placeholder;
-        }, $content);
-        return $content;
+        });
     }
 
     /**
@@ -161,9 +159,7 @@ class EncodeContentSC extends EmailEncoderShortCode
         }
 
         // Restore shortcodes
-        foreach ($this->shortcode_replacements as $placeholder => $original) {
-            $content = str_replace($placeholder, $original, $content);
-        }
+        $content = $this->restorePlaceholdersInTextNodes($content, $this->shortcode_replacements);
 
         $result = $this->doCallbackAction($content);
         $this->resetShortcodeReplacements();

@@ -7,6 +7,7 @@ use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
 use Cleantalk\ApbctWP\ApbctJsBundleResolver;
+use Cleantalk\ApbctWP\RemoteCalls;
 
 /**
  * Class AntiFlood
@@ -26,6 +27,8 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
     private $apbct = array();
     private $store_interval = 60;
     private $chance_to_clean = 20;
+    private $pass_token_delay = 5;
+    private $pass_token_lifetime = 300;
 
     public $isExcluded = false;
 
@@ -112,9 +115,16 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
             }
 
             // Passed
-            if (Cookie::get('apbct_antiflood_passed') === md5($current_ip . $this->api_key)) {
-                if ( ! headers_sent()) {
-                    Cookie::set('apbct_antiflood_passed', '0', time() - 86400, '/', '', null, true);
+            $pass_token    = TT::toString(Cookie::get('apbct_antiflood_passed'));
+            $interval_end  = Helper::timeGetIntervalStart($this->store_interval) + $this->store_interval;
+            $interval_pass = $this->getPassTokenSign($current_ip, (string)$interval_end);
+            if ( hash_equals($interval_pass, $pass_token) || $this->usePassToken($current_ip, $pass_token) ) {
+                // The pass is valid till the end of the current interval
+                if ( $pass_token !== $interval_pass && ! headers_sent() ) {
+                    Cookie::set('apbct_antiflood_passed', $interval_pass, $interval_end, '/');
+                    if ( $apbct->data['cookies_type'] === 'native' ) {
+                        Cookie::setNativeCookie(apbct__get_cookie_prefix() . 'apbct_antiflood_passed', $interval_pass, $interval_end, '/');
+                    }
                 }
 
                 // Do logging an one passed request
@@ -144,7 +154,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
             return $results;
         } else {
             // Do logging entries
-            add_action('template_redirect', array(& $this, 'updateAcLog'), 999);
+            add_action('shutdown', array(& $this, 'updateAcLog'));
         }
 
         return $results;
@@ -152,11 +162,19 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
 
     public function updateAcLog()
     {
+        if ( ! apbct_sfw__is_visit_to_log() ) {
+            return;
+        }
+
         $interval_time = Helper::timeGetIntervalStart($this->store_interval);
 
         // @todo Rename ip column to sign. Use IP + UserAgent for it.
 
-        foreach ($this->ip_array as $_ip_origin => $current_ip) {
+        foreach ($this->ip_array as $ip_origin => $current_ip) {
+            // Do not count test IP
+            if ( $ip_origin === 'sfw_test' ) {
+                continue;
+            }
             $id = md5($current_ip . $interval_time);
             $this->db->execute(
                 "INSERT INTO " . $this->db__table__ac_logs . " SET
@@ -170,6 +188,69 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
 					interval_start = $interval_time;"
             );
         }
+    }
+
+    /**
+     * One-time pass token for the IP: creation time, random part and the sign.
+     *
+     * @param string $ip
+     *
+     * @return string
+     */
+    private function getPassToken($ip)
+    {
+        $token = sprintf('%08x%08x%08x', time(), wp_rand(), wp_rand());
+
+        return $token . $this->getPassTokenSign($ip, $token);
+    }
+
+    /**
+     * Sign of the pass token or of the interval end for the IP.
+     *
+     * @param string $ip
+     * @param string $token Pass token or interval end
+     *
+     * @return string
+     */
+    private function getPassTokenSign($ip, $token)
+    {
+        return hash_hmac('sha256', $ip . $token, $this->api_key . $this->apbct->data['salt']);
+    }
+
+    /**
+     * Checks the pass token and marks it as used.
+     * The token could be used once and not earlier than the block page sets it.
+     *
+     * @param string $ip
+     * @param string $pass_token
+     *
+     * @return bool
+     */
+    private function usePassToken($ip, $pass_token)
+    {
+        if ( ! preg_match('/^[a-f0-9]{88}$/', $pass_token) ) {
+            return false;
+        }
+
+        $created_at = (int)hexdec(substr($pass_token, 0, 8));
+
+        if (
+            time() < $created_at + $this->pass_token_delay ||
+            time() > $created_at + $this->pass_token_lifetime ||
+            ! hash_equals($this->getPassTokenSign($ip, substr($pass_token, 0, 24)), substr($pass_token, 24))
+        ) {
+            return false;
+        }
+
+        // Mark the token as used
+        return (bool)$this->db->execute(
+            "INSERT IGNORE INTO " . $this->db__table__ac_logs . " SET
+				id = '" . md5($pass_token) . "',
+				ip = '$ip',
+				ua = '',
+				entries = 0,
+				interval_start = " . ($created_at + $this->pass_token_lifetime) . ";"
+        );
     }
 
     public function clearTable()
@@ -269,7 +350,7 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
                 '{SERVICE_ID}'                     => esc_html($this->apbct->data['service_id']) . ', ' . esc_html($net_count),
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . "</p>",
-                '{COOKIE_ANTIFLOOD_PASSED}'        => md5($result['ip'] . $this->api_key),
+                '{COOKIE_ANTIFLOOD_PASSED}'        => $this->getPassToken($result['ip']),
                 '{SCRIPT_URL}'                     => esc_url($js_url),
 
                 // Custom Logo
@@ -278,6 +359,15 @@ class AntiFlood extends \Cleantalk\Common\Firewall\FirewallModule
 
             foreach ($replaces as $place_holder => $replace) {
                 $this->sfw_die_page = str_replace($place_holder, TT::toString($replace), $this->sfw_die_page);
+            }
+
+            // Print the page at once on init, except remote calls
+            if (
+                doing_action('init') &&
+                strpos($result['status'], 'DENY') !== false &&
+                ! RemoteCalls::check()
+            ) {
+                $this->printDiePage();
             }
 
             add_action('init', array($this, 'printDiePage'));

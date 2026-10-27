@@ -11,7 +11,8 @@ class CSCF extends IntegrationBase
         $data = apply_filters('apbct__filter_post', $_POST);
 
         if (defined('DOING_AJAX') && DOING_AJAX) {
-            if (!Post::hasString('action', 'cscf-submitform')) {
+            // The AJAX form is checked on the AJAX action
+            if (!Post::hasString('action', 'cscf-submitform') || current_filter() === 'cscf_spamfilter') {
                 return null;
             }
             $gfa_checked_data = ct_gfa_dto($data)->getArray();

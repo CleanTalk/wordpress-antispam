@@ -241,8 +241,12 @@ class CleantalkRequest
         $this->phone = !empty($params['phone']) ? (string)$params['phone'] : null;
         $this->js_on = isset($params['js_on']) ? (int)$params['js_on'] : null;
         $this->submit_time = isset($params['submit_time']) ? (int)$params['submit_time'] : null;
-        $this->post_info = isset($params['post_info']) ? (string)json_encode($params['post_info']) : null;
-        $this->sender_info = isset($params['sender_info']) ? (string)json_encode($params['sender_info']) : null;
+        $this->post_info = isset($params['post_info'])
+            ? (string)json_encode($params['post_info'], JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR)
+            : null;
+        $this->sender_info = isset($params['sender_info'])
+            ? (string)json_encode($params['sender_info'], JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR)
+            : null;
         $this->honeypot_field = isset($params['honeypot_field']) ? (int)$params['honeypot_field'] : null;
         $this->exception_action = isset($params['exception_action']) ? (int)$params['exception_action'] : null;
 

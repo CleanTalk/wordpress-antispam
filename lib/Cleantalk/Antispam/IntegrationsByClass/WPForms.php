@@ -204,9 +204,9 @@ class WPForms extends IntegrationByClassBase
 
         $email = $this->form_data['email'] ? $this->form_data['email'] : null;
 
-        // Fixed if the 'Enable email address confirmation' option is enabled
+        // Fixed if the 'Enable email address confirmation' option is enabled, the vendor uses the primary email
         if (is_array($email)) {
-            $email = reset($email);
+            $email = isset($email['primary']) && is_string($email['primary']) ? $email['primary'] : '';
         }
 
         $nickname = null;

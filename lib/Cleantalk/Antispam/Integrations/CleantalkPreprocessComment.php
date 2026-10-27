@@ -36,7 +36,7 @@ class CleantalkPreprocessComment extends IntegrationBase
         // this action is called just when WP process POST request (adds new comment)
         // this action is called by wp-comments-post.php
         // after processing WP makes redirect to post page with comment's form by GET request (see above)
-        global $current_user, $comment_post_id, $ct_comment_done, $ct_jp_comments, $apbct;
+        global $current_user, $comment_post_id, $ct_jp_comments, $apbct;
 
         $this->exception_action = false;
 
@@ -48,11 +48,10 @@ class CleantalkPreprocessComment extends IntegrationBase
 
         if (
             apbct_is_plugin_active('clean-and-simple-contact-form-by-meg-nicholas/clean-and-simple-contact-form-by-meg-nicholas.php') &&
-            Post::getString('cscf_nonce') &&
-            Post::getString('post-id') &&
+            doing_filter('cscf_spamfilter') &&
             $argument
         ) {
-            // if JS disabled the CSCF plugin run the preprocess_comment hook
+            // the CSCF plugin runs the preprocess_comment hook from its spam filter
             do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '(): is CSCF contact form - has own integration' . __LINE__, $_POST);
             return false;
         }
@@ -81,7 +80,7 @@ class CleantalkPreprocessComment extends IntegrationBase
         /**
          * Handling process skip ruleset
          */
-        $do_skip_on_line = $this->doSkipReason($current_user, $ct_comment_done);
+        $do_skip_on_line = $this->doSkipReason($current_user);
 
         if (false !== $do_skip_on_line) {
             //run debug plugin log
@@ -91,8 +90,6 @@ class CleantalkPreprocessComment extends IntegrationBase
             return false;
         }
 
-        //Set globally that CleanTalk commnent processing executed
-        $ct_comment_done = true;
         /**
          * Pre-action done. Run data collecting.
          */
@@ -149,7 +146,6 @@ class CleantalkPreprocessComment extends IntegrationBase
 
         if ($this->checkMaxCommentsPublishedByUser()) {
             $this->exception_action = true;
-            ct_hash(md5(time() . $this->wp_comment['comment_author_email']));
         }
 
         $http_host = is_string(Server::get('HTTP_HOST')) ? Server::get('HTTP_HOST') : '';
@@ -222,6 +218,9 @@ class CleantalkPreprocessComment extends IntegrationBase
      */
     public function allow()
     {
+        // The comment status hooks are applied to the checked comment only
+        add_action('comment_post', array($this, 'removeCommentStatusHooks'), 1000);
+
         $wp_comment_moderation_enabled = get_option('comment_moderation') === '1';
         $wp_auto_approve_for_user_who_has_approved_comment = get_option('comment_previously_approved') === '1';
         $cleantalk_option_skip_moderation_for_first_comment = self::firstCommentAutoModEnabled();
@@ -309,15 +308,40 @@ class CleantalkPreprocessComment extends IntegrationBase
      */
     private function addActionSetTRPHash()
     {
+        // Skip if the comment was not checked by the cloud
+        if ( $this->exception_action ) {
+            return;
+        }
+
         $callback = array(CleantalkRealPerson::class, 'setTRPHash');
         if (has_action('comment_post', $callback) === false) {
             add_action('comment_post', $callback, 999, 2);
         }
     }
 
+    /**
+     * Remove the comment status hooks after the checked comment is saved.
+     *
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function removeCommentStatusHooks()
+    {
+        remove_filter('pre_comment_approved', 'ct_set_approved', PHP_INT_MIN);
+        remove_filter('pre_comment_approved', 'ct_set_not_approved', 999);
+        remove_action('comment_post', 'ct_set_meta', 6);
+        remove_action('comment_post', array(CleantalkRealPerson::class, 'setTRPHash'), 999);
+        remove_action('comment_post', array($this, 'removeCommentStatusHooks'), 1000);
+    }
+
     public function doBlock($message)
     {
         $ct_result = $this->base_call_result['ct_result'];
+
+        // Comment via REST API
+        if ( current_filter() === 'rest_pre_insert_comment' ) {
+            return new \WP_Error('ct_error', $ct_result->comment, array('status' => 403));
+        }
 
         global $ct_comment, $ct_stop_words;
         $ct_comment = $message;
@@ -378,6 +402,10 @@ class CleantalkPreprocessComment extends IntegrationBase
     public function doFinalActions($argument)
     {
         global $apbct;
+
+        if ( is_wp_error($argument) ) {
+            return $argument;
+        }
 
         if ( $apbct->settings['comments__remove_comments_links'] == 1 ) {
             $this->removeLinksFromComment();
@@ -459,10 +487,9 @@ class CleantalkPreprocessComment extends IntegrationBase
 
     /**
      * @param WP_User $current_user global
-     * @param bool $ct_comment_done global sign of cleantalk comment action done
      * @return false|string String with reason to skip, false if no reasons
      */
-    private function doSkipReason($current_user, $ct_comment_done)
+    private function doSkipReason($current_user)
     {
         // Skip processing admin.
         if ( in_array("administrator", $current_user->roles) ) {
@@ -472,7 +499,8 @@ class CleantalkPreprocessComment extends IntegrationBase
         $comment_type = isset($this->wp_comment['comment_type']) ? $this->wp_comment['comment_type'] : 'comment';
 
         // Pingbacks and trackbacks are link notifications, not visitor form comments — no cloud check.
-        if ( in_array($comment_type, array('pingback', 'trackback'), true) ) {
+        // Notes are not public.
+        if ( in_array($comment_type, array('pingback', 'trackback', 'note'), true) ) {
             return __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__;
         }
 
@@ -482,26 +510,18 @@ class CleantalkPreprocessComment extends IntegrationBase
         if (
             apbct_is_user_enable() === false ||
             $this->apbct->settings['forms__comments_test'] == 0 ||
-            $ct_comment_done ||
-            is_admin()
+            current_user_can('moderate_comments')
         ) {
             return __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__;
         }
 
-        /**
-         * Check if wordpress integrated words/chars blacklists.
-         */
-        $wordpress_own_string_blacklists_result = apbct_wp_blacklist_check(
-            $this->wp_comment['comment_author'],
-            $this->wp_comment['comment_author_email'],
-            $this->wp_comment['comment_author_url'],
-            $this->wp_comment['comment_content'],
-            Server::get('REMOTE_ADDR'),
-            Server::get('HTTP_USER_AGENT')
-        );
-
-        // Go out if author in local blacklists, already stopped
-        if ( $wordpress_own_string_blacklists_result === true ) {
+        // wpDiscuz AJAX comments are checked by the direct integration
+        if (
+            doing_action('wp_ajax_wpdAddComment') ||
+            doing_action('wp_ajax_nopriv_wpdAddComment') ||
+            doing_action('wp_ajax_wpdAddInlineComment') ||
+            doing_action('wp_ajax_nopriv_wpdAddInlineComment')
+        ) {
             return __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__;
         }
 
@@ -573,10 +593,12 @@ class CleantalkPreprocessComment extends IntegrationBase
         if ($status !== 'approved' && $status !== 'not_approved') {
             return;
         }
-        $pre_comment_approved_callback_function = $status === 'approved'
-            ? 'ct_set_approved'
-            : 'ct_set_not_approved';
-        add_filter('pre_comment_approved', $pre_comment_approved_callback_function, 999, 2);
+        // Approve before other plugins filters to keep their decision
+        if ( $status === 'approved' ) {
+            add_filter('pre_comment_approved', 'ct_set_approved', PHP_INT_MIN, 2);
+        } else {
+            add_filter('pre_comment_approved', 'ct_set_not_approved', 999, 2);
+        }
 
         // Modify the email notification
         add_filter(

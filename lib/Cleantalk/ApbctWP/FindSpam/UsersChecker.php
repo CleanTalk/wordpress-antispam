@@ -133,11 +133,11 @@ class UsersChecker extends Checker
     private static function removeSkipRoles(array $users, array $skip_roles)
     {
         foreach ($users as $index => $user) {
-            if (empty($user->user_id) || !property_exists($user, 'user_id') === false) {
+            if ( empty($user->ID) ) {
                 continue;
             }
 
-            $user_meta  = get_userdata($user->user_id);
+            $user_meta  = get_userdata($user->ID);
             if ( !($user_meta instanceof \WP_User) ) {
                 continue;
             }
@@ -495,11 +495,12 @@ class UsersChecker extends Checker
     {
         $value = (string) $value;
 
-        if ( $value !== '' && preg_match('/^[\s]*[=+\-@\t\r|]/u', $value) ) {
-            $value = "'" . $value;
+        // Prefix formula symbols at the start of the value and after each separator
+        if ( $value !== '' ) {
+            $value = (string)preg_replace('/(^|[,;])(\s*[=+\-@\t\r|])/', "$1'$2", $value);
         }
 
-        if ( strpbrk($value, ",\"\n\r") !== false ) {
+        if ( strpbrk($value, ",;\"\t\n\r") !== false ) {
             $value = '"' . str_replace('"', '""', $value) . '"';
         }
 
@@ -552,8 +553,8 @@ class UsersChecker extends Checker
         $filename = ! empty(Post::get('filename')) ? Post::get('filename') : false;
 
         if ( $filename !== false ) {
-            header('Content-Type: text/csv');
-            echo esc_html($text);
+            header('Content-Type: text/csv; charset=utf-8');
+            echo $text;
         } else {
             echo 'Export error.'; // file not exists or empty $_POST['filename']
         }
@@ -655,6 +656,11 @@ class UsersChecker extends Checker
 
             if ( $users ) {
                 foreach ( $users as $user ) {
+                    // Skip administrators and the current user
+                    if ( (int)$user->ID === get_current_user_id() || user_can($user->ID, 'manage_options') ) {
+                        delete_user_meta($user->ID, 'ct_marked_as_spam');
+                        continue;
+                    }
                     wp_delete_user($user->ID);
                     usleep(5000);
                 }

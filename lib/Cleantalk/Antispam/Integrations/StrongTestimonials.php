@@ -9,18 +9,14 @@ class StrongTestimonials extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        if ( Post::get('action') === 'wpmtst_form' || Post::get('action') === 'wpmtst_form2' ) {
-            /**
-             * Filter for POST
-             */
-            $input_array = apply_filters('apbct__filter_post', $_POST);
+        /**
+         * Filter for POST
+         */
+        $input_array = apply_filters('apbct__filter_post', $_POST);
 
-            $nickname = TT::toString(Post::get('client_name'));
+        $nickname = TT::toString(Post::get('client_name'));
 
-            return ct_get_fields_any($input_array, '', $nickname);
-        }
-
-        return null;
+        return ct_get_fields_any($input_array, '', $nickname);
     }
 
     /**

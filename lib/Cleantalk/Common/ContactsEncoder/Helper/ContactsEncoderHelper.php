@@ -169,13 +169,12 @@ class ContactsEncoderHelper
             return false;
         }
 
-        $cc_position = strrpos(substr($content, 0, $position), 'cc=');
-        if ( $cc_position !== false && $cc_position + 3 == $position ) {
+        // Check only the symbols right before the match
+        if ( $position >= 3 && substr($content, $position - 3, 3) === 'cc=' ) {
             return true;
         }
 
-        $bcc_position = strrpos(substr($content, 0, $position), 'bcc=');
-        if ( $bcc_position !== false && $bcc_position + 4 == $position ) {
+        if ( $position >= 4 && substr($content, $position - 4, 4) === 'bcc=' ) {
             return true;
         }
 
@@ -407,6 +406,25 @@ class ContactsEncoderHelper
         }
 
         return $ranges;
+    }
+
+    /**
+     * Check whether the [start, end) part of the content lies inside one of the ranges.
+     *
+     * @param array[] $ranges Sorted list of [start, end) offsets
+     * @param int $start
+     * @param int $end
+     * @return bool
+     */
+    public function isInsideRanges($ranges, $start, $end)
+    {
+        if ( ! is_int($start) || ! is_int($end) ) {
+            return false;
+        }
+
+        $index = $this->findRangeIndex($ranges, $start);
+
+        return $index !== false && $end <= $ranges[$index][1];
     }
 
     /**

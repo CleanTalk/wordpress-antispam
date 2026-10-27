@@ -181,9 +181,9 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
             case 'ct_spam':
             case 'ct_bad':
             case 'ct_orders':
-                return TT::getArrayValueAsString($item, $column_name);
+                return esc_html(TT::getArrayValueAsString($item, $column_name));
             default:
-                return print_r($item, true);
+                return esc_html(print_r($item, true));
         }
     }
 
@@ -300,6 +300,11 @@ class Users extends \Cleantalk\ApbctWP\CleantalkListTable
 
             // Only act on users that were marked by CleanTalk
             if ( ! $is_marked_spam && ! $is_bad_user ) {
+                continue;
+            }
+
+            // Skip administrators and the current user
+            if ( $user_id === get_current_user_id() || user_can($user_id, 'manage_options') ) {
                 continue;
             }
 

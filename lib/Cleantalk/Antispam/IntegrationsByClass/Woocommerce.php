@@ -11,7 +11,6 @@ use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\WcSpamOrdersFunctions;
-use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\ApbctWP\Variables\Server;
 
 /**
@@ -70,6 +69,12 @@ class Woocommerce extends IntegrationByClassBase
     private $add_payment_method_block_message = '';
 
     /**
+     * Whether the order is already checked in this request.
+     * @var bool
+     */
+    private $is_order_checked = false;
+
+    /**
      * @return void
      * @psalm-suppress PossiblyUnusedMethod
      */
@@ -101,10 +106,14 @@ class Woocommerce extends IntegrationByClassBase
         $this->addPaymentMethodActions();
 
         // registration
-        if ( !$apbct->settings['forms__wc_register_from_order'] && (Request::get('wc-ajax') === 'checkout' || Request::get('wc-ajax') === 'complete_order') ) {
-            remove_filter('woocommerce_registration_errors', 'ct_registration_errors', 1);
-        } else {
-            add_filter('woocommerce_registration_errors', 'ct_registration_errors', 1, 3);
+        add_filter('woocommerce_registration_errors', 'ct_registration_errors', 1, 3);
+        if ( !$apbct->settings['forms__wc_register_from_order'] ) {
+            // Skip the account created by the checkout, the order is checked instead
+            add_action('woocommerce_checkout_process', function () {
+                if ( ! isset($_POST['register']) ) {
+                    remove_filter('woocommerce_registration_errors', 'ct_registration_errors', 1);
+                }
+            });
         }
 
         // collect data for spam orders
@@ -182,9 +191,13 @@ class Woocommerce extends IntegrationByClassBase
         $_cleantalk_hooked_actions[] = 'woocommerce_checkout';
         $_cleantalk_hooked_actions[] = 'wcfm_ajax_controller';
         add_action('woocommerce_after_checkout_validation', [$this, 'checkoutCheck'], 1, 2);
-        add_action('woocommerce_store_api_checkout_order_processed', [$this, 'checkoutCheckFromRest'], 1, 1);
+        // Check the order before the other plugins process its data
+        add_action('woocommerce_store_api_checkout_update_order_from_request', [$this, 'checkoutCheckFromRest'], 1, 2);
         add_action('woocommerce_checkout_update_order_meta', [$this, 'addRequestIdToOrderMeta']);
         add_action('woocommerce_store_api_checkout_update_customer_from_request', [$this, 'storeApiCheckoutUpdateCustomerFromRequest'], 10, 2);
+        // Orders created without the checkout validation, e.g. by express payments
+        add_action('woocommerce_checkout_order_created', [$this, 'checkoutCheckCreatedOrder'], 1, 1);
+        add_action('woocommerce_paypal_payments_woocommerce_order_created_from_cart', [$this, 'checkoutCheckCreatedOrder'], 1, 1);
     }
 
     /**
@@ -434,7 +447,7 @@ class Woocommerce extends IntegrationByClassBase
         return $wc_orders_sql;
     }
 
-    public function checkoutCheck($_data, $errors)
+    public function checkoutCheck($data, $errors)
     {
         global $apbct, $cleantalk_executed;
 
@@ -458,8 +471,9 @@ class Woocommerce extends IntegrationByClassBase
          */
         $input_array = apply_filters('apbct__filter_post', $_POST);
 
-        //Getting request params
-        $ct_temp_msg_data = ct_get_fields_any($input_array);
+        //Getting request params, the order is created with the billing email
+        $billing_email = isset($data['billing_email']) && is_string($data['billing_email']) ? $data['billing_email'] : '';
+        $ct_temp_msg_data = ct_get_fields_any($input_array, $billing_email);
 
         $sender_email    = isset($ct_temp_msg_data['email']) ? $ct_temp_msg_data['email'] : '';
         $sender_emails_array = isset($ct_temp_msg_data['emails_array']) ? $ct_temp_msg_data['emails_array'] : null;
@@ -488,6 +502,7 @@ class Woocommerce extends IntegrationByClassBase
         );
 
         $base_call_result = apbct_base_call($base_call_data);
+        $this->is_order_checked = true;
 
         if ( $apbct->settings['forms__wc_register_from_order'] ) {
             $cleantalk_executed = false;
@@ -522,14 +537,20 @@ class Woocommerce extends IntegrationByClassBase
 
     /**
      * @param $order
+     * @param \WP_REST_Request|null $request
      * @return void
      * @psalm-suppress UndefinedClass
      */
-    public function checkoutCheckFromRest($order)
+    public function checkoutCheckFromRest($order, $request = null)
     {
         global $apbct, $cleantalk_executed;
 
         if ( is_null($order) || ! ($order instanceof \WC_Order) ) {
+            return;
+        }
+
+        // The order is placed by POST only, other methods update the checkout form
+        if ( $request instanceof \WP_REST_Request && $request->get_method() !== 'POST' ) {
             return;
         }
 
@@ -541,6 +562,12 @@ class Woocommerce extends IntegrationByClassBase
         $sender_email    = $order->get_billing_email();
         $sender_nickname = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
         $message         = $order->get_customer_note();
+
+        // Express payments: take the address from the customer
+        if ( doing_action('woocommerce_checkout_order_created') && function_exists('wc') && wc()->customer instanceof \WC_Customer ) {
+            $sender_email    = wc()->customer->get_billing_email();
+            $sender_nickname = wc()->customer->get_billing_first_name() . ' ' . wc()->customer->get_billing_last_name();
+        }
 
         $post_info = array();
         $post_info['comment_type'] = 'order';
@@ -555,7 +582,13 @@ class Woocommerce extends IntegrationByClassBase
             'event_token'     => $this->event_token,
         );
 
+        // The order without an email is checked by the rest of the data
+        if ( $sender_email === '' ) {
+            $base_call_data['exception_action'] = 0;
+        }
+
         $base_call_result = apbct_base_call($base_call_data);
+        $this->is_order_checked = true;
 
         if ( $apbct->settings['forms__wc_register_from_order'] ) {
             $cleantalk_executed = false;
@@ -609,6 +642,37 @@ class Woocommerce extends IntegrationByClassBase
                 die(json_encode($store_api_response));
             }
         }
+    }
+
+    /**
+     * Check the order created without the checkout validation, e.g. by express payments.
+     *
+     * @param \WC_Order $order
+     *
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function checkoutCheckCreatedOrder($order)
+    {
+        global $apbct;
+
+        // The order is already checked in this request
+        if ( $this->is_order_checked ) {
+            return;
+        }
+
+        // Only the orders placed by the visitors
+        if ( (is_admin() && ! apbct_is_ajax()) || apbct_wp_doing_cron() || apbct_is_cli() ) {
+            return;
+        }
+
+        if ( $apbct->settings['data__protect_logged_in'] == 0 && is_user_logged_in() ) {
+            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+
+            return;
+        }
+
+        $this->checkoutCheckFromRest($order);
     }
 
     /**
@@ -908,10 +972,12 @@ class Woocommerce extends IntegrationByClassBase
     }
 
     /**
+     * @param bool $passed
+     *
      * @return bool
      * @psalm-suppress UndefinedFunction, PossiblyUnusedReturnValue
      */
-    public function addToCartUnloggedUser()
+    public function addToCartUnloggedUser($passed = true)
     {
         global $apbct;
 
@@ -959,7 +1025,7 @@ class Woocommerce extends IntegrationByClassBase
             }
         }
 
-        return true;
+        return $passed;
     }
 
     /**
@@ -1509,11 +1575,18 @@ class Woocommerce extends IntegrationByClassBase
      */
     public function isSkipIntegration()
     {
+        $wc_ajax = Get::getString('wc-ajax');
+
         if (
-                (isset($_GET['wc-ajax']) && $_GET['wc-ajax'] === 'update_order_review') ||
-                apbct_is_in_referer('wc-ajax=update_order_review') ||
-                apbct_is_in_uri('wc-ajax=iwd_opc_update_order_review') ||
-                apbct_is_in_uri('wc-ajax=apply_coupon')
+                in_array($wc_ajax, array('update_order_review', 'iwd_opc_update_order_review', 'apply_coupon'), true) &&
+                // Only WooCommerce AJAX requests without form handler fields
+                apbct_get_request_path() === '/?wc-ajax=' . $wc_ajax &&
+                ! apbct_is_in_uri('/' . rest_get_url_prefix() . '/') &&
+                ! isset($_POST['rest_route']) &&
+                ! isset($_POST['woocommerce_checkout_place_order']) &&
+                ! isset($_POST['register']) &&
+                ! isset($_POST['woocommerce_add_payment_method']) &&
+                ! isset($_REQUEST['add-to-cart'])
         ) {
             $skip_rules_base = array(
                     'get' => $_GET,

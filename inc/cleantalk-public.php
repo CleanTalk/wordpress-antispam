@@ -7,11 +7,11 @@ use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Localize\LocalizeHandler;
 use Cleantalk\ApbctWP\Sanitize;
 use Cleantalk\ApbctWP\Variables\Cookie;
-use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\ApbctWP\LinkConstructor;
 use Cleantalk\ApbctWP\ApbctJsBundleResolver;
+use Cleantalk\Antispam\Integrations\CleantalkExternalForms;
 
 // Prevent direct call
 if ( ! defined('ABSPATH') ) {
@@ -140,11 +140,11 @@ function apbct_init()
     }
 
     //hook for Anonymous Post
-    if ( $apbct->settings['data__general_postdata_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) ) {
+    if ( $apbct->settings['data__general_postdata_test'] == 1 ) {
         add_action('init', 'ct_contact_form_validate_postdata', 1000);
     }
 
-    if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) && ! apbct_is_direct_trackback() ) {
+    if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && ! apbct_is_direct_trackback() ) {
         add_action('CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata', 1);
         add_action('init', 'ct_contact_form_validate', 999);
         if (
@@ -156,14 +156,13 @@ function apbct_init()
         }
     }
 
-    if ( $apbct->settings['data__general_postdata_test'] == 1 && empty(Post::get('ct_checkjs_cf7')) ) {
+    if ( $apbct->settings['data__general_postdata_test'] == 1 ) {
         add_action('CMA_custom_post_type_nav', 'ct_contact_form_validate_postdata', 1);
     }
 
     // Fast Secure contact form
     if ( defined('FSCF_VERSION') ) {
         add_filter('si_contact_display_after_fields', 'ct_si_contact_display_after_fields');
-        add_filter('si_contact_form_validate', 'ct_si_contact_form_validate');
     }
 
     // WooCommerce whishlist
@@ -227,6 +226,8 @@ function apbct_init()
         add_action('bbp_theme_before_topic_form_content', 'ct_comment_form');
         add_action('bbp_theme_before_reply_form_content', 'ct_comment_form');
         add_action('bbp_edit_reply_pre_content', 'ct_bbp_edit_pre_content', 1, 2);
+        add_filter('bbp_edit_topic_pre_title', 'ct_bbp_get_topic', 1);
+        add_filter('bbp_edit_topic_pre_content', 'ct_bbp_edit_pre_content', 1, 2);
     }
 
     //Custom Contact Forms
@@ -280,12 +281,9 @@ function apbct_init()
     }
 
     //Pirate forms
-    if (
-        defined('PIRATE_FORMS_VERSION') &&
-        Post::get('pirate-forms-contact-name') &&
-        Post::get('pirate-forms-contact-email')
-    ) {
-        apbct_form__piratesForm__testSpam();
+    if ( defined('PIRATE_FORMS_VERSION') ) {
+        add_action('pirate_forms_send_email', 'apbct_form__piratesForm__testSpam', 1, 0);
+        add_filter('rest_pre_dispatch', 'apbct_form__piratesForm__testSpam__rest', 10, 3);
     }
 
     // QForms integration
@@ -301,9 +299,7 @@ function apbct_init()
     add_filter('pmpro_required_user_fields', function ($pmpro_required_user_fields) {
         if (
             ! empty($pmpro_required_user_fields['username']) &&
-            ! empty($pmpro_required_user_fields['bemail']) &&
-            ! empty($pmpro_required_user_fields['bconfirmemail']) &&
-            $pmpro_required_user_fields['bemail'] == $pmpro_required_user_fields['bconfirmemail']
+            ! empty($pmpro_required_user_fields['bemail'])
         ) {
             $check = ct_test_registration(
                 $pmpro_required_user_fields['username'],
@@ -337,12 +333,11 @@ function apbct_init()
     }
 
     if ( apbct_is_user_enable() ) {
-        if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && ! Post::get('comment_post_ID') && ! Get::get('for') && ! apbct_is_direct_trackback() ) {
+        if ( $apbct->settings['forms__general_contact_forms_test'] == 1 && ! apbct_is_script_request('wp-comments-post.php') && ! apbct_is_direct_trackback() ) {
             add_action('init', 'ct_contact_form_validate', 999);
         }
         if ( apbct_is_post() &&
              $apbct->settings['data__general_postdata_test'] == 1 &&
-             ! Post::get('ct_checkjs_cf7') &&
              ! is_admin() &&
              ! apbct_is_user_role_in(array('administrator', 'moderator'))
         ) {
@@ -470,108 +465,105 @@ function apbct_buffer__output()
         return;
     }
 
-    if ( apbct_is_plugin_active('flow-flow/flow-flow.php') || apbct_is_theme_active('epico') ) {
-        $output = apbct_buffer_modify_by_string();
-    } else {
-        $output = apbct_buffer_modify_by_dom();
-    }
-
-    die($output);
+    die(apbct_buffer_modify_by_html_api());
 }
 
-function apbct_buffer_modify_by_string()
+/**
+ * Directs the forms of the third party sites to this site.
+ * Only the form tags are changed, the rest of the page is kept as is.
+ *
+ * @return string
+ */
+function apbct_buffer_modify_by_html_api()
 {
     global $apbct, $wp;
 
-    $site_url   = get_option('home');
-    $site__host = parse_url($site_url, PHP_URL_HOST);
-
-    preg_match_all('/<form\s*.*>\s*.*<\/form>/', $apbct->buffer, $matches, PREG_SET_ORDER);
-
-    if ( count($matches) > 0 ) {
-        foreach ( $matches as $match ) {
-            if (!isset($match[0])) {
-                continue;
-            }
-            preg_match('/action="(\S*)"/', $match[0], $group_action);
-            if (!isset($group_action[1])) {
-                continue;
-            }
-            $action = $group_action[1];
-
-            $action__host = parse_url($action, PHP_URL_HOST);
-            if ( $action__host !== null && $site__host != $action__host ) {
-                preg_match('/method="(\S*)"/', $match[0], $group_method);
-                if (!isset($group_method[1])) {
-                    continue;
-                }
-                $method = $group_method[1];
-
-                $hidden_fields = '<input type="hidden" name="cleantalk_hidden_action" value="' . $action . '">';
-                $hidden_fields .= '<input type="hidden" name="cleantalk_hidden_method" value="' . $method . '">';
-
-                $modified_match = preg_replace(
-                    '/action="\S*"/',
-                    'action="' . home_url(add_query_arg(array(), $wp->request)) . '"',
-                    $match[0]
-                );
-                $modified_match = preg_replace('/method="\S*"/', 'method="POST"', $modified_match);
-                $modified_match = str_replace('</form>', $hidden_fields . '</form>', $modified_match);
-                $apbct->buffer  = str_replace($match[0], $modified_match, $apbct->buffer);
-            }
-        }
+    // WP HTML API is available since WordPress 6.2
+    if (
+        ! class_exists('WP_HTML_Tag_Processor') ||
+        stripos($apbct->buffer, '<html') === false ||
+        stripos($apbct->buffer, '<rss') !== false
+    ) {
+        return $apbct->buffer;
     }
 
-    return $apbct->buffer;
-}
-
-function apbct_buffer_modify_by_dom()
-{
-    global $apbct, $wp;
-
     $site_url   = get_option('home');
     $site__host = parse_url($site_url, PHP_URL_HOST);
+    $marker     = md5(wp_rand() . microtime());
+    $forms      = array();
 
-    $dom = new DOMDocument();
-    @$dom->loadHTML($apbct->buffer, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-
-    $forms = $dom->getElementsByTagName('form');
-
-    foreach ( $forms as $form ) {
-        $action       = $form->getAttribute('action');
-        $action       = $action ?: $site_url;
+    // Mark the forms directed to the third party sites
+    $html = new WP_HTML_Tag_Processor($apbct->buffer);
+    while ( $html->next_tag('form') ) {
+        $action       = $html->get_attribute('action');
+        $action       = is_string($action) && $action !== '' ? $action : $site_url;
         $action__host = parse_url($action, PHP_URL_HOST);
 
-        // Check if the form directed to the third party site
-        if ( $action__host !== null && $site__host != $action__host ) {
-            $method = $form->getAttribute('method');
-            $method = $method ?: 'get';
-            // Directs form to our site
-            $form->setAttribute('method', 'POST');
-            $form->setAttribute('action', home_url(add_query_arg(array(), $wp->request)));
-
-            // Add cleantalk_hidden_action
-            $new_input = $dom->createElement('input');
-            $new_input->setAttribute('type', 'hidden');
-            $new_input->setAttribute('name', 'cleantalk_hidden_action');
-            $new_input->setAttribute('value', $action);
-            $form->appendChild($new_input);
-
-            // Add cleantalk_hidden_method
-            $new_input = $dom->createElement('input');
-            $new_input->setAttribute('type', 'hidden');
-            $new_input->setAttribute('name', 'cleantalk_hidden_method');
-            $new_input->setAttribute('value', $method);
-            $form->appendChild($new_input);
+        if ( is_string($action__host) && $site__host != $action__host ) {
+            $method  = $html->get_attribute('method');
+            $forms[] = array(
+                'action' => $action,
+                'method' => is_string($method) && $method !== '' ? $method : 'get',
+            );
+            $html->set_attribute('data-apbct-form', $marker . (count($forms) - 1));
         }
     }
-    unset($form);
 
-    $html = $dom->getElementsByTagName('html');
+    if ( empty($forms) ) {
+        return $apbct->buffer;
+    }
 
-    return is_object($html) && isset($html[0], $html[0]->childNodes[0]) && $dom->getElementsByTagName('rss')->length == 0
-        ? $dom->saveHTML()
-        : $apbct->buffer;
+    $buffer  = $html->get_updated_html();
+    $output  = '';
+    $offset  = 0;
+    $skipped = array();
+
+    foreach ( $forms as $index => $form ) {
+        // The marker is added right after the tag name
+        $form_marker = ' data-apbct-form="' . $marker . $index . '"';
+        $start       = strpos($buffer, $form_marker, $offset);
+        if ( $start === false || $start < 5 || strcasecmp(substr($buffer, $start - 5, 5), '<form') !== 0 ) {
+            $skipped[] = $form_marker;
+            continue;
+        }
+        $start -= 5;
+
+        // Find the end of the form tag
+        $tag = null;
+        $end = $start;
+        for ( $i = 0; $i < 10; $i++ ) {
+            $end = strpos($buffer, '>', $end + 1);
+            if ( $end === false ) {
+                break;
+            }
+            $tag = new WP_HTML_Tag_Processor(str_replace($form_marker, '', substr($buffer, $start, $end - $start + 1)));
+            if ( $tag->next_tag('form') ) {
+                break;
+            }
+            $tag = null;
+        }
+        if ( ! $tag ) {
+            $skipped[] = $form_marker;
+            continue;
+        }
+
+        // Directs form to our site
+        $tag->set_attribute('method', 'POST');
+        $tag->set_attribute('action', home_url(add_query_arg(array(), $wp->request)));
+
+        $output .= substr($buffer, $offset, $start - $offset)
+            . $tag->get_updated_html()
+            . '<input type="hidden" name="cleantalk_hidden_action" value="' . esc_attr($form['action']) . '">'
+            . '<input type="hidden" name="cleantalk_hidden_method" value="' . esc_attr($form['method']) . '">'
+            . '<input type="hidden" name="cleantalk_hidden_sign" value="'
+            . esc_attr(CleantalkExternalForms::getActionSign(sanitize_textarea_field($form['action']))) . '">';
+        $offset = $end + 1;
+    }
+
+    $output .= substr($buffer, $offset);
+
+    // Remove the markers of the skipped forms
+    return $skipped ? str_replace($skipped, '', $output) : $output;
 }
 
 /**
@@ -1062,25 +1054,33 @@ function ct_post_url($comment_id, $comment_post_id)
 }
 
 /**
- * Public filter 'pre_comment_approved' - Mark comment unapproved always
- * @return    int Zero
+ * Public filter 'pre_comment_approved' - Mark comment unapproved if it's not rejected
+ *
+ * @param int|string|WP_Error $approved
+ * @param $_comment
+ *
+ * @return int|string|WP_Error "spam"|"trash"|WP_Error|0
  */
-function ct_set_not_approved()
+function ct_set_not_approved($approved = 0, $_comment = null)
 {
+    if ( is_wp_error($approved) || $approved === 'spam' || $approved === 'trash' ) {
+        return $approved;
+    }
+
     return 0;
 }
 
 /**
- * Public filter 'pre_comment_approved' - Mark comment approved if it's not 'spam' only
+ * Public filter 'pre_comment_approved' - Mark comment approved if it's not rejected
  *
- * @param $approved
+ * @param int|string|WP_Error $approved
  * @param $_comment
  *
- * @return int|string "spam"|1
+ * @return int|string|WP_Error "spam"|"trash"|WP_Error|1
  */
 function ct_set_approved($approved, $_comment)
 {
-    if ( $approved === 'spam' ) {
+    if ( is_wp_error($approved) || $approved === 'spam' || $approved === 'trash' ) {
         return $approved;
     }
 

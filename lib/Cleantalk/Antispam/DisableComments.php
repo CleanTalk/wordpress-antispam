@@ -214,19 +214,19 @@ class DisableComments
         }
     }
 
-    public function filterExistingComments($comments, $_post_id)
+    public function filterExistingComments($comments, $post_id)
     {
-        return $this->isCurrentTypeToDisable() ? array() : $comments;
+        return $this->isCurrentTypeToDisable(get_post_type($post_id)) ? array() : $comments;
     }
 
-    public function filterCommentStatus($open, $_post_id)
+    public function filterCommentStatus($open, $post_id)
     {
-        return $this->isCurrentTypeToDisable() ? false : $open;
+        return $this->isCurrentTypeToDisable(get_post_type($post_id)) ? false : $open;
     }
 
-    public function filterCommentsNumber($count, $_post_id)
+    public function filterCommentsNumber($count, $post_id)
     {
-        return $this->isCurrentTypeToDisable() ? 0 : $count;
+        return $this->isCurrentTypeToDisable(get_post_type($post_id)) ? 0 : $count;
     }
 
     public function removeCommentLinksWpms($wp_admin_bar)

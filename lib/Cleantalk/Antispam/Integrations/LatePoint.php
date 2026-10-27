@@ -3,11 +3,37 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
 class LatePoint extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
+        // LatePoint 5 processes the customer data on the customer step
+        if ( current_action() === 'latepoint_process_step' ) {
+            $params = isset($this->hook_arguments[2]) ? TT::toArray($this->hook_arguments[2]) : array();
+            if (
+                strpos(TT::toString($argument), 'customer') !== 0 ||
+                ! isset($params['customer']) ||
+                ! is_array($params['customer'])
+            ) {
+                return null;
+            }
+
+            $customer = $params['customer'];
+            unset($customer['password'], $customer['password_confirmation']);
+            $email = TT::getArrayValueAsString($customer, 'email');
+            $nickname = trim(
+                TT::getArrayValueAsString($customer, 'first_name') . ' ' . TT::getArrayValueAsString($customer, 'last_name'),
+                " \n\r\t\v\x00"
+            );
+
+            $data = ct_gfa_dto(apply_filters('apbct__filter_post', $customer), $email, $nickname)->getArray();
+            $data['event_token'] = TT::getArrayValueAsString($params, 'ct_bot_detector_event_token');
+
+            return $data;
+        }
+
         //signs
         if (
             ( apbct_is_plugin_active('latepoint/latepoint.php') )

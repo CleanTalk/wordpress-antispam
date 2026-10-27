@@ -18,13 +18,10 @@ class SmartForms extends IntegrationBase
         if (isset($input_array['formString']) && is_string($input_array['formString'])) {
             $form_data = json_decode(stripslashes($input_array['formString']), true);
             if (is_array($form_data)) {
-                foreach ($form_data as $field_value) {
-                    $value = $this->extractFieldValue($field_value);
-                    if ($value === null) {
-                        continue;
-                    }
-
-                    if (filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                // Take the value of the email field of the form
+                foreach ($this->getEmailFieldsIds(Post::getInt('form_id')) as $field_id) {
+                    $value = isset($form_data[$field_id]) ? $this->extractFieldValue($form_data[$field_id]) : null;
+                    if ($value !== null && filter_var($value, FILTER_VALIDATE_EMAIL)) {
                         $email = $value;
                         break;
                     }
@@ -33,6 +30,35 @@ class SmartForms extends IntegrationBase
         }
 
         return ct_gfa_dto($input_array, $email)->getArray();
+    }
+
+    /**
+     * Get IDs of the email fields of the form
+     *
+     * @param int $form_id
+     *
+     * @return array
+     */
+    private function getEmailFieldsIds($form_id)
+    {
+        global $wpdb;
+
+        $ids = array();
+        $table = defined('SMART_FORMS_TABLE_NAME') ? SMART_FORMS_TABLE_NAME : $wpdb->prefix . 'rednao_smart_forms_table_name';
+        $element_options = $wpdb->get_var(
+            $wpdb->prepare('SELECT element_options FROM ' . $table . ' WHERE form_id = %d', $form_id)
+        );
+        $element_options = is_string($element_options) ? json_decode($element_options, true) : null;
+
+        if (is_array($element_options)) {
+            foreach ($element_options as $element) {
+                if (isset($element['ClassName'], $element['Id']) && $element['ClassName'] === 'rednaoemail') {
+                    $ids[] = (string)$element['Id'];
+                }
+            }
+        }
+
+        return $ids;
     }
 
     /**

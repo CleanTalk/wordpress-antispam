@@ -21,11 +21,22 @@ class Cookie extends \Cleantalk\Variables\Cookie
     );
 
     /**
+     * Values of these names are set by the server only and stored in the alternative sessions.
+     *
+     * @var array
+     */
+    public static $server_side_cookies = array(
+        'apbct_email_encoder_passed',
+    );
+
+    /**
      * @inheritDoc
      */
     public function getVariable($name)
     {
         global $apbct;
+
+        $cookies_type = in_array($name, static::$server_side_cookies, true) ? 'server_side' : $apbct->data['cookies_type'];
 
         $name = apbct__get_cookie_prefix() . $name;
 
@@ -34,7 +45,10 @@ class Cookie extends \Cleantalk\Variables\Cookie
         // Return from memory. From $this->variables
         if ( ! isset(static::$instance->variables[$name]) ) {
             // Getting by alternative way if enabled
-            switch ( $apbct->data['cookies_type'] ) {
+            switch ( $cookies_type ) {
+                case 'server_side':
+                    $value = AltSessions::get($name);
+                    break;
                 case 'alternative':
                     $value = AltSessions::get($name);
                     // Try to get it from native cookies ^_^

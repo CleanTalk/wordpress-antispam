@@ -46,7 +46,7 @@ class Integrations
             // (init, wp_loaded, ...), and getCurrentIntegrationTriggered() would always
             // resolve to the first one in the list.
             $callback = function ($argument = null) use ($integration_name) {
-                return $this->checkSpam($argument, $integration_name);
+                return $this->checkSpam($argument, $integration_name, func_get_args());
             };
 
             $priority = isset($integration_info['priority']) ? (int)$integration_info['priority'] : 10;
@@ -66,10 +66,10 @@ class Integrations
             if ( !$integration_info['ajax'] || !empty($integration_info['ajax_and_post']) ) {
                 if ( is_array($integration_info['hook']) ) {
                     foreach ( $integration_info['hook'] as $hook ) {
-                        add_action($hook, $callback, $priority);
+                        add_action($hook, $callback, $priority, 3);
                     }
                 } else {
-                    add_action($integration_info['hook'], $callback, $priority);
+                    add_action($integration_info['hook'], $callback, $priority, 3);
                 }
             }
         }
@@ -78,10 +78,11 @@ class Integrations
     /**
      * @param $argument
      * @param string $set_current_integration
+     * @param array $hook_arguments all arguments of the hook
      * @return true|mixed
      * @psalm-suppress UnusedVariable
      */
-    public function checkSpam($argument, $set_current_integration = '')
+    public function checkSpam($argument, $set_current_integration = '', $hook_arguments = array())
     {
         global $cleantalk_executed;
 
@@ -111,6 +112,8 @@ class Integrations
                 if ($imetric_dto) {
                     $integration->setIMetricDTO($imetric_dto);
                 }
+
+                $integration->hook_arguments = $hook_arguments;
 
                 /**
                  * Run prepare actions.
@@ -169,7 +172,9 @@ class Integrations
                         }
                         // common case
                         $base_call_data = array(
-                            'message'         => ! empty($data['message']) ? json_encode($data['message']) : '',
+                            'message'         => ! empty($data['message'])
+                                ? json_encode($data['message'], JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR)
+                                : '',
                             'sender_email'    => ! empty($data['email']) ? $data['email'] : '',
                             'sender_nickname' => ! empty($data['nickname']) ? $data['nickname'] : '',
                             'sender_info'     => $sender_info,

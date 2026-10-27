@@ -47,8 +47,9 @@ class ContactsEncoder
      * double-quoted values don't incorrectly terminate the match.
      */
     const ARIA_LABEL_PATTERN = '/aria-label\s*=\s*(["\'])(?:(?!\1).)*\1/';
-    const EMAIL_PATTERN = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b';
-    const EMAIL_PATTERN_DOMAIN_CATCHING = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b)';
+    // Lengths of the address parts are limited as in RFC 5321
+    const EMAIL_PATTERN = '[_A-Za-z0-9-\.]{1,64}@[_A-Za-z0-9-\.]{1,255}\.[A-Za-z]{2,63}\b';
+    const EMAIL_PATTERN_DOMAIN_CATCHING = '[_A-Za-z0-9-\.]{1,64}@[_A-Za-z0-9-\.]{1,255}(\.[A-Za-z]{2,63}\b)';
     const PHONE_NUMBER = '\+\d{8,12}';
     /**
      * URI schemes are case-insensitive (RFC 3986). Clients often write Mailto:/Tel:.
@@ -61,17 +62,22 @@ class ContactsEncoder
      *
      * Two alternatives are used on purpose:
      *  - inside an attribute the query may contain spaces ("?subject=Hello World"),
-     *    so it is only terminated by the closing quote;
+     *    so it is only terminated by the closing quote (up to 2048 symbols);
      *  - in plain text there is no closing quote, so the query must stop at the
      *    first whitespace instead of swallowing the rest of the sentence.
      */
-    const MAILTO_QUERY_PATTERN = '(?:\?(?:[^"\'<>]*?(?=["\'])|[^"\'<>\s]*))?';
+    const MAILTO_QUERY_PATTERN = '(?:\?(?:[^"\'<>]{0,2048}?(?=["\'])|[^"\'<>\s]*))?';
     const PHONE_NUMBERS_PATTERNS = [
         '(' . self::TEL_SCHEME_PATTERN . self::PHONE_NUMBER . ')', // tel:+XXXXXXXXXX
         '([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)',                       // +X XXX XXXXXXX, +X(XXX)XXXXX, etc.
         '(\(\d{3}\)\s?\d{3}-\d{4})',                               // (XXX) XXX-XXXX, (XXX) XXX XXXX
         '(\+\d{1,3}\.\d{1,3}\.((\d{3}\.\d{4})|\d{7})(?![\w.]))',   // +X?.XX?.XXX.XXXX
     ];
+
+    /**
+     * Max number of contacts encoded in one content.
+     */
+    const MAX_CONTACTS_TO_ENCODE = 1000;
 
     /**
      * @var string example: '/aria-label.?=.?[\'"].+?[\'"]/'
@@ -310,12 +316,22 @@ class ContactsEncoder
         }
 
         $this->temp_content = $content;
-        $this->helper->indexMarkup($this->temp_content);
+        $text_ranges = $this->getTextNodeRanges($content);
+        if ( $text_ranges === false ) {
+            $this->helper->indexMarkup($this->temp_content);
+        }
 
         $match_cursor = 0;
         $match_offsets = $this->collectMatchOffsets($this->global_email_pattern, $content);
         $match_offset_index = 0;
-        $replacing_result = preg_replace_callback($this->global_email_pattern, function ($matches) use ($match_offsets, &$match_offset_index, &$match_cursor) {
+        $encoded_count = 0;
+        $replacing_result = preg_replace_callback($this->global_email_pattern, function ($matches) use (
+            $match_offsets,
+            &$match_offset_index,
+            &$match_cursor,
+            $text_ranges,
+            &$encoded_count
+        ) {
             if ( ! isset($matches[0]) ) {
                 return '';
             }
@@ -328,6 +344,10 @@ class ContactsEncoder
 
             if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
                 return $matches[0];
+            }
+
+            if ( $text_ranges !== false ) {
+                return $this->encodeTextNodeEmail($matches[0], $position, $text_ranges, $encoded_count);
             }
 
             // Raw text of script/style/template blocks is never markup we may rewrite.
@@ -364,6 +384,10 @@ class ContactsEncoder
             return $this->encodePlainEmail($matches[0]);
         }, $content);
 
+        if ( ! is_string($replacing_result) ) {
+            $replacing_result = $content;
+        }
+
         if ( $owns_aria_protection ) {
             $replacing_result = $this->handleAriaLabelContent($replacing_result, true);
         }
@@ -387,15 +411,19 @@ class ContactsEncoder
         }
 
         $this->temp_content = $content;
-        $this->helper->indexMarkup($this->temp_content);
+        $text_ranges = $this->getTextNodeRanges($content);
+        if ( $text_ranges === false ) {
+            $this->helper->indexMarkup($this->temp_content);
+        }
 
         $phones_pattern = $this->global_phones_pattern;
         $match_cursor = 0;
         $match_offsets = $this->collectMatchOffsets($phones_pattern, $content);
         $match_offset_index = 0;
+        $encoded_count = 0;
         $replacing_result = preg_replace_callback(
             $phones_pattern,
-            function ($matches) use ($match_offsets, &$match_offset_index, &$match_cursor) {
+            function ($matches) use ($match_offsets, &$match_offset_index, &$match_cursor, $text_ranges, &$encoded_count) {
                 if ( ! isset($matches[0]) ) {
                     return '';
                 }
@@ -404,6 +432,10 @@ class ContactsEncoder
 
                 if ( $this->exclusions->isContactExcluded($matches[0]) ) {
                     return $matches[0];
+                }
+
+                if ( $text_ranges !== false ) {
+                    return $this->encodeTextNodePhone($matches[0], $position, $text_ranges, $encoded_count);
                 }
 
                 // Raw text of script/style/template blocks is never markup we may rewrite.
@@ -445,6 +477,10 @@ class ContactsEncoder
             },
             $content
         );
+
+        if ( ! is_string($replacing_result) ) {
+            $replacing_result = $content;
+        }
 
         if ( $owns_aria_protection ) {
             $replacing_result = $this->handleAriaLabelContent($replacing_result, true);
@@ -515,6 +551,98 @@ class ContactsEncoder
         return $offsets;
     }
 
+    /**
+     * Get offsets of the text nodes of the content.
+     * Override it to use a markup parser of the host application.
+     *
+     * @param string $_content
+     *
+     * @return array[]|false List of [start, end] or false if the markup is not parsed
+     */
+    protected function getTextNodeRanges($_content)
+    {
+        return false;
+    }
+
+    /**
+     * Encode the email placed in a text node of the content.
+     *
+     * @param string $email_str
+     * @param int|false $position
+     * @param array[] $text_ranges
+     * @param int $encoded_count
+     *
+     * @return string
+     */
+    private function encodeTextNodeEmail($email_str, $position, $text_ranges, &$encoded_count)
+    {
+        // Encode in the text nodes only
+        if ( $position === false || ! $this->helper->isInsideRanges($text_ranges, $position, $position + strlen($email_str)) ) {
+            return $email_str;
+        }
+
+        if ( $this->helper->isMailtoAdditionalCopy($email_str, $this->temp_content, $position) ) {
+            return '';
+        }
+
+        if ( ++$encoded_count > self::MAX_CONTACTS_TO_ENCODE ) {
+            return $email_str;
+        }
+
+        // mailto: written as a text, encode the emails only
+        if ( $this->helper->isMailto($email_str) ) {
+            $encoded = preg_replace_callback($this->plain_email_pattern, function ($matches) {
+                return isset($matches[0]) ? $this->encodePlainEmail($matches[0]) : '';
+            }, $email_str);
+
+            return is_string($encoded) ? $encoded : $email_str;
+        }
+
+        return $this->encodePlainEmail($email_str);
+    }
+
+    /**
+     * Encode the phone number placed in a text node of the content.
+     *
+     * @param string $phone_str
+     * @param int|false $position
+     * @param array[] $text_ranges
+     * @param int $encoded_count
+     *
+     * @return string
+     */
+    private function encodeTextNodePhone($phone_str, $position, $text_ranges, &$encoded_count)
+    {
+        // Encode in the text nodes only
+        if ( $position === false || ! $this->helper->isInsideRanges($text_ranges, $position, $position + strlen($phone_str)) ) {
+            return $phone_str;
+        }
+
+        $prefix = '';
+        if ( $this->helper->isTelTag($phone_str) ) {
+            // tel: written as a text, encode the number only
+            $prefix = substr($phone_str, 0, 4);
+            $phone_str = substr($phone_str, 4);
+        } else {
+            // check length
+            $item_length = strlen(str_replace([' ', '(', ')', '-', '+', '.'], '', $phone_str));
+            if ( $item_length > 12 || $item_length < 8 ) {
+                return $phone_str;
+            }
+        }
+
+        if ( ++$encoded_count > self::MAX_CONTACTS_TO_ENCODE ) {
+            return $prefix . $phone_str;
+        }
+
+        return $prefix . $this->encodeAny(
+            $phone_str,
+            $this->global_obfuscation_mode,
+            $this->global_replacing_text,
+            true
+        );
+    }
+
     /*
      * =============== ENCODE ENTITIES ===============
      */
@@ -565,6 +693,8 @@ class ContactsEncoder
             $obfuscated_string = $is_phone_number
                 ? $obfuscator->processPhone($string)
                 : $obfuscator->processString($string);
+            // Escape the visible part
+            $obfuscated_string = htmlspecialchars($obfuscated_string, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false);
         }
 
         $string_with_effect = $this->applyEffectsOnMode(
@@ -663,6 +793,7 @@ class ContactsEncoder
     private function buildSchemeLinkAttributes($encoded, $position)
     {
         $has_own_title = $this->helper->enclosingTagHasAttribute($this->temp_content, (int)$position, 'title');
+        $encoded = htmlspecialchars($encoded, ENT_QUOTES, 'UTF-8', false);
 
         if ( $has_own_title ) {
             return '" data-original-string="' . $encoded;
@@ -745,10 +876,9 @@ class ContactsEncoder
      */
     private function constructEncodedSpan($encoded_string, $obfuscated_string)
     {
-        return "<span 
-                data-original-string='" . $encoded_string . "'
-                class='apbct-email-encoder'
-                title='" . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8') . "'>" . $obfuscated_string . "</span>";
+        return '<span data-original-string="' . htmlspecialchars($encoded_string, ENT_QUOTES, 'UTF-8', false) . '"'
+            . ' class="apbct-email-encoder"'
+            . ' title="' . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8') . '">' . $obfuscated_string . '</span>';
     }
 
     /**
@@ -905,10 +1035,23 @@ class ContactsEncoder
                 'show_comment' => !$is_allowed,
                 'comment' => $this->getCheckRequestComment(),
                 'encoded_email' => strip_tags($encoded_email, '<a>'),
-                'decoded_email' => $is_allowed ? strip_tags($decoded_email, '<a>') : '',
+                'decoded_email' => $is_allowed ? $this->escapeDecodedString(strip_tags($decoded_email, '<a>')) : '',
             );
         }
         return $result;
+    }
+
+    /**
+     * Escape the decoded string to show it as a text.
+     * "$" is encoded too, the string is used as a replacement of String.replace() in JS.
+     *
+     * @param string $decoded_string
+     *
+     * @return string
+     */
+    protected function escapeDecodedString($decoded_string)
+    {
+        return str_replace('$', '&#36;', htmlspecialchars((string)$decoded_string, ENT_QUOTES, 'UTF-8', false));
     }
 
     /*
@@ -950,7 +1093,7 @@ class ContactsEncoder
      * @param string $content The content to process.
      * @return string The content with attributes removed.
      */
-    private function dropAttributesContainEmail($content, $tags)
+    protected function dropAttributesContainEmail($content, $tags)
     {
         $email_pattern = '/' . self::EMAIL_PATTERN . '/';
         $this->helper->indexMarkup($content);
@@ -965,50 +1108,47 @@ class ContactsEncoder
             // The target attribute inside that tag, value limited to its own quotes.
             $attribute_pattern = '/\s' . preg_quote($attribute, '/') . '\s*=\s*(["\'])(.*?)\1/is';
 
-            $replaced = preg_replace_callback(
-                $tag_pattern,
-                function ($tag_match) use ($attribute_pattern, $email_pattern, $content) {
-                    if ( ! isset($tag_match[0]) || ! is_array($tag_match[0]) || ! isset($tag_match[0][0], $tag_match[0][1]) ) {
-                        return '';
-                    }
-
-                    $opening_tag = $tag_match[0][0];
-                    $tag_offset = $tag_match[0][1];
-
-                    if ( ! is_string($opening_tag) || ! is_int($tag_offset) ) {
-                        return '';
-                    }
-
-                    if ( $this->helper->isInsideRawTextTag($opening_tag, $content, $tag_offset) ) {
-                        return $opening_tag;
-                    }
-
-                    $stripped = preg_replace_callback(
-                        $attribute_pattern,
-                        static function ($attribute_match) use ($email_pattern) {
-                            if ( ! isset($attribute_match[0], $attribute_match[2]) ) {
-                                return '';
-                            }
-
-                            return preg_match($email_pattern, $attribute_match[2])
-                                ? ''
-                                : $attribute_match[0];
-                        },
-                        $opening_tag
-                    );
-
-                    return $stripped === null ? $opening_tag : $stripped;
-                },
-                $content,
-                -1,
-                $count,
-                PREG_OFFSET_CAPTURE
-            );
-
-            if ( $replaced !== null && $count > 0 ) {
-                $content = $replaced;
-                $this->helper->indexMarkup($content);
+            if ( ! preg_match_all($tag_pattern, $content, $tag_matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) ) {
+                continue;
             }
+
+            $replaced = '';
+            $cursor = 0;
+            foreach ( $tag_matches as $tag_match ) {
+                if ( ! isset($tag_match[0][0], $tag_match[0][1]) ) {
+                    continue;
+                }
+
+                $opening_tag = $tag_match[0][0];
+                $tag_offset = $tag_match[0][1];
+
+                $replaced .= substr($content, $cursor, $tag_offset - $cursor);
+                $cursor = $tag_offset + strlen($opening_tag);
+
+                if ( $this->helper->isInsideRawTextTag($opening_tag, $content, $tag_offset) ) {
+                    $replaced .= $opening_tag;
+                    continue;
+                }
+
+                $stripped = preg_replace_callback(
+                    $attribute_pattern,
+                    static function ($attribute_match) use ($email_pattern) {
+                        if ( ! isset($attribute_match[0], $attribute_match[2]) ) {
+                            return '';
+                        }
+
+                        return preg_match($email_pattern, $attribute_match[2])
+                            ? ''
+                            : $attribute_match[0];
+                    },
+                    $opening_tag
+                );
+
+                $replaced .= $stripped === null ? $opening_tag : $stripped;
+            }
+
+            $content = $replaced . substr($content, $cursor);
+            $this->helper->indexMarkup($content);
         }
 
         return $content;
@@ -1022,14 +1162,15 @@ class ContactsEncoder
      *
      * @return string
      */
-    private function handleAriaLabelContent($content, $reverse = false)
+    protected function handleAriaLabelContent($content, $reverse = false)
     {
         if ( !$reverse ) {
             $this->aria_placeholders = array();
             if ( !$this->isSecureAriaLabelPlaceholderAvailable() ) {
                 return $content;
             }
-            return preg_replace_callback($this->aria_regex, array($this, 'replaceAriaLabelWithPlaceholder'), $content);
+            $result = preg_replace_callback($this->aria_regex, array($this, 'replaceAriaLabelWithPlaceholder'), $content);
+            return is_string($result) ? $result : $content;
         }
         if ( !empty($this->aria_placeholders) ) {
             foreach ($this->aria_placeholders as $placeholder => $original) {

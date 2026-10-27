@@ -10,7 +10,11 @@ class JobstackThemeRegistration extends IntegrationBase
     public function getDataForChecking($argument)
     {
         // Only Jobstack theme registration form
-        if ( ! Post::get('new_user_submit') || ! Post::get('new_user_email') ) {
+        if (
+            ! apbct_is_theme_active('jobstack') ||
+            ! Post::get('new_user_submit') ||
+            ! Post::get('new_user_email')
+        ) {
             return null;
         }
 

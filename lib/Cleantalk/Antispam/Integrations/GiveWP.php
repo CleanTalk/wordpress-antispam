@@ -10,6 +10,19 @@ class GiveWP extends IntegrationBase
     private $is_rest = false;
     public function getDataForChecking($argument)
     {
+        // Donation forms v3: take the validated fields from the hook
+        if ( current_filter() === 'givewp_donation_form_fields_validated' && is_array($argument) ) {
+            $this->is_rest = true;
+            $email = isset($argument['email']) && is_string($argument['email']) ? $argument['email'] : '';
+            $nickname = trim(
+                (isset($argument['firstName']) && is_string($argument['firstName']) ? $argument['firstName'] : '') . ' ' .
+                (isset($argument['lastName']) && is_string($argument['lastName']) ? $argument['lastName'] : ''),
+                " \n\r\t\v\x00"
+            );
+
+            return ct_gfa_dto(apply_filters('apbct__filter_post', $argument), $email, $nickname)->getArray();
+        }
+
         $this->is_rest = Get::equal('givewp-route', 'validate');
         if (
             Post::get('action') === 'give_process_donation' ||

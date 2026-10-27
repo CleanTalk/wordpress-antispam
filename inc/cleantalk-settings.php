@@ -3042,7 +3042,7 @@ function apbct_settings__get_key_auto($direct_call = false)
     $wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && ! SUBDOMAIN_INSTALL ? true : false;
     $white_label    = $apbct->network_settings['multisite__white_label'] ? true : false;
     $hoster_api_key = $apbct->network_settings['multisite__hoster_api_key'];
-    $admin_email    = Post::getString('email') ? Post::getString('email') : ct_get_admin_email();
+    $admin_email    = ! $direct_call && Post::getString('email') ? Post::getString('email') : ct_get_admin_email();
 
     /**
      * Filters the email to get Access key

@@ -482,7 +482,10 @@ class RemoteCalls
         }
 
         if ( Request::equal('out', 'json') ) {
-            die(json_encode($out));
+            array_walk($out, function (&$val, $_key) {
+                $val = is_object($val) ? (array)$val : $val;
+            });
+            die(json_encode(static::hideSensitiveData($out)));
         }
         array_walk($out, function (&$val, $_key) {
             $val = (array)$val;
@@ -509,14 +512,16 @@ class RemoteCalls
     public static function action__cron_update_task() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $update_result = false;
+        $cron          = new Cron();
 
         if (
             Request::get('task') &&
             Request::get('handler') &&
             Request::get('period') &&
-            Request::get('first_call')
+            Request::get('first_call') &&
+            // Only handlers of the existing tasks
+            in_array(Request::getString('handler'), array_column($cron->getTasks(), 'handler'), true)
         ) {
-            $cron          = new Cron();
             $update_result = $cron->updateTask(
                 Request::getString('task'),
                 Request::getString('handler'),
@@ -761,9 +766,10 @@ class RemoteCalls
 
         return
             $value_for_token &&
+            is_string($token) &&
             (
-                $token === strtolower(md5($value_for_token)) ||
-                $token === strtolower(hash('sha256', $value_for_token))
+                hash_equals(strtolower(md5($value_for_token)), $token) ||
+                hash_equals(strtolower(hash('sha256', $value_for_token)), $token)
             );
     }
 

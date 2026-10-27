@@ -12,6 +12,7 @@ use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
 use Cleantalk\ApbctWP\ApbctJsBundleResolver;
+use Cleantalk\ApbctWP\RemoteCalls;
 
 /**
  * Class AntiCrawler
@@ -54,10 +55,6 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
      * @var string
      */
     private $ua_id = 'null'; //User-Agent
-    /**
-     * @var string
-     */
-    private $ac_log_result = '';
     /**
      * @var bool
      */
@@ -314,25 +311,24 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
 
     /**
      * Return true when the visitor holds a valid antibot cookie whose value
-     * matches the SHA-256 hash of the API key and site salt.
+     * matches the value issued for the visitor IP and User-Agent.
      *
      * @return bool
      */
     private function visitorHasAntiBotCookie()
     {
-        $hash = apbct_get_anti_bot_cookie_hash($this->api_key, $this->apbct->data['salt']);
-        return Cookie::getString(self::COOKIE_NAME__ANTIBOT) === $hash;
+        return hash_equals(self::getAntiBotCookieValue(), Cookie::getString(self::COOKIE_NAME__ANTIBOT));
     }
 
     /**
-     * Return true when the bot-detector request parameter equals '1',
-     * indicating that the JS bot-detector script has confirmed the visitor is human.
+     * Return true when the bot-detector request parameter equals '1'
+     * and the visitor holds a valid antibot cookie.
      *
      * @return bool
      */
     private function visitorHasBotDetectorRequestParam()
     {
-        return RequestParameters::get(self::PARAM_NAME__BOT_DETECTOR_EXIST, true) == '1';
+        return RequestParameters::get(self::PARAM_NAME__BOT_DETECTOR_EXIST, true) == '1' && $this->visitorHasAntiBotCookie();
     }
 
     /**
@@ -419,8 +415,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
      */
     private function registerNewVisitorHooks()
     {
-        if ( empty(Cookie::getString(self::COOKIE_NAME__ANTIBOT, '')) ) {
-            add_action('template_redirect', array(& $this, 'updateAcLog'), 999);
+        if ( ! $this->visitorHasAntiBotCookie() ) {
+            add_action('shutdown', array(& $this, 'updateAcLog'));
         }
 
         add_action('wp_head', array('\Cleantalk\ApbctWP\Firewall\AntiCrawler', 'setCookie'));
@@ -430,13 +426,21 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     /**
      * Insert or update the visitor's IP and User-Agent signature in the AntiCrawler
      * log table for the current time interval.
-     * Intended to be called as a WordPress 'template_redirect' action hook.
+     * Intended to be called as a WordPress 'shutdown' action hook.
      */
     public function updateAcLog()
     {
+        if ( ! apbct_sfw__is_visit_to_log() ) {
+            return;
+        }
+
         $interval_time = Helper::timeGetIntervalStart($this->store_interval);
 
-        foreach ( $this->ip_array as $_ip_origin => $current_ip ) {
+        foreach ( $this->ip_array as $ip_origin => $current_ip ) {
+            // Do not count test IP
+            if ( $ip_origin === 'sfw_test' ) {
+                continue;
+            }
             $id = md5($current_ip . $this->sign . $interval_time);
             $this->db->execute(
                 "INSERT INTO " . $this->db__table__ac_logs . " SET
@@ -461,15 +465,73 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
      */
     public static function setCookie()
     {
-        global $apbct;
-
+        // The value is set by the server for the current visitor
         $script = apbct_get_inline_script_tag(
             "window.addEventListener('DOMContentLoaded', function () {
-                ctSetCookie( " . json_encode(self::COOKIE_NAME__ANTIBOT) . ", '" . apbct_get_anti_bot_cookie_hash($apbct->api_key, $apbct->data['salt']) . "', 0 );
+                if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
+                    apbct_public_sendREST( 'apbct_antibot', {method: 'POST'} );
+                } else {
+                    apbct_public_sendAJAX( {action: 'apbct_anticrawler__set_cookie'}, {silent: true} );
+                }
             });"
         );
 
         echo $script;
+    }
+
+    /**
+     * Register REST route for setting the antibot cookie.
+     * Hooked by 'rest_api_init'.
+     *
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public static function registerRestRoute()
+    {
+        register_rest_route('cleantalk-antispam/v1', '/apbct_antibot', array(
+            array(
+                'methods'             => 'POST',
+                'callback'            => array(self::class, 'ajaxSetCookie'),
+                'permission_callback' => '__return_true',
+            )
+        ));
+    }
+
+    /**
+     * Set the antibot cookie for the current visitor.
+     * AJAX and REST handler for the script printed by setCookie().
+     *
+     * @return void
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public static function ajaxSetCookie()
+    {
+        global $apbct;
+
+        $value = self::getAntiBotCookieValue();
+
+        Cookie::set(self::COOKIE_NAME__ANTIBOT, $value);
+        if ( $apbct->data['cookies_type'] === 'native' ) {
+            Cookie::setNativeCookie(apbct__get_cookie_prefix() . self::COOKIE_NAME__ANTIBOT, $value, 0, '/');
+        }
+
+        wp_send_json_success();
+    }
+
+    /**
+     * Antibot cookie value for the current visitor IP and User-Agent.
+     *
+     * @return string
+     */
+    public static function getAntiBotCookieValue()
+    {
+        global $apbct;
+
+        return hash_hmac(
+            'sha256',
+            Helper::ipGet() . Server::getString('HTTP_USER_AGENT') . '_antibot',
+            $apbct->api_key . $apbct->data['salt']
+        );
     }
 
     /**
@@ -533,7 +595,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
 
     /**
      * Load the AntiCrawler block-page template, populate all placeholders, and
-     * schedule rendering via the 'init' action hook.
+     * render it at once on 'init' or schedule rendering via the 'init' action hook.
      *
      * @param array $result Check result entry containing at least the 'ip' key.
      */
@@ -588,7 +650,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                 '{REMOTE_ADDRESS}'                 => esc_html($ip),
                 '{SERVICE_ID}'                     => esc_html($this->apbct->data['service_id']) . ', ' . esc_html($net_count),
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
-                '{COOKIE_ANTICRAWLER}'             => apbct_get_anti_bot_cookie_hash($apbct->api_key, $apbct->data['salt']),
+                '{COOKIE_ANTICRAWLER}'             => self::getAntiBotCookieValue(),
                 '{COOKIE_ANTICRAWLER_PASSED}'      => '1',
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . "</p>",
                 '{SCRIPT_URL}'                     => esc_url($js_url),
@@ -601,19 +663,16 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
                 $this->sfw_die_page = str_replace($place_holder, $replace, $this->sfw_die_page);
             }
 
-            if ( Get::get('debug') ) {
-                $debug = '<h1>Headers</h1>'
-                         . esc_html(str_replace("\n", "<br>", print_r(\apache_request_headers(), true)))
-                         . '<h1>$_SERVER</h1>'
-                         . esc_html(str_replace("\n", "<br>", print_r($_SERVER, true)))
-                         . '<h1>AC_LOG_RESULT</h1>'
-                         . esc_html(str_replace("\n", "<br>", print_r($this->ac_log_result, true)))
-                         . '<h1>IPS</h1>'
-                         . esc_html(str_replace("\n", "<br>", print_r($this->ip_array, true)));
-            } else {
-                $debug = '';
-            }
-            $this->sfw_die_page = str_replace("{DEBUG}", $debug, $this->sfw_die_page);
+            $this->sfw_die_page = str_replace("{DEBUG}", '', $this->sfw_die_page);
+        }
+
+        // Print the page at once on init, except remote calls
+        if (
+            doing_action('init') &&
+            strpos(TT::getArrayValueAsString($result, 'status'), 'DENY') !== false &&
+            ! RemoteCalls::check()
+        ) {
+            $this->printDiePage();
         }
 
         add_action('init', array($this, 'printDiePage'));
@@ -622,7 +681,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     /**
      * Inject localised JS variables into the die page, send a 403 response header,
      * and terminate execution with the rendered block page.
-     * Registered as the 'init' action by diePage().
+     * Called or registered as the 'init' action by diePage().
      */
     public function printDiePage()
     {
@@ -676,23 +735,23 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
      * Determine whether the current request should bypass AntiCrawler checks.
      *
      * Returns true (excluded) when any of the following conditions is met:
-     * - The request uses the WordPress HTTP API loopback User-Agent (Site Health, cron, updates).
-     * - The request is a WP Rocket cache-preload hit (no JS, so it cannot pass the antibot cookie).
-     * - The URI points to a W3 Total Cache minified asset listed in the w3tc_minify option.
+     * - The request from this server uses the WordPress HTTP API loopback User-Agent (Site Health, cron, updates).
+     * - The request from this server is a WP Rocket cache-preload hit (no JS, so it cannot pass the antibot cookie).
+     * - The URI path points to a W3 Total Cache minified asset listed in the w3tc_minify option.
      * - The skip_anticrawler_on_rss_feed service constant is defined and the request is an RSS feed.
-     * - An SFW test is running and the visitor holds a valid antibot cookie or bot-detector param.
-     * - The current user has the 'administrator' or 'editor' role.
+     * - An SFW test is running and the visitor holds a valid antibot cookie.
+     * - The current user is logged in.
      *
      * @return bool True when the request should be excluded from AntiCrawler checks.
      */
     private function checkExclusions()
     {
-        if ( $this->isWordPressLoopbackUserAgent() ) {
+        if ( $this->isWordPressLoopbackUserAgent() && $this->isRequestFromThisServer() ) {
             $this->debug('exclusions precheck: WordPress loopback user-agent');
             return true;
         }
 
-        if ( strpos($this->server__http_user_agent, 'WP Rocket/Preload') !== false ) {
+        if ( strpos($this->server__http_user_agent, 'WP Rocket/Preload') !== false && $this->isRequestFromThisServer() ) {
             $this->debug('exclusions precheck: WP Rocket preload user-agent');
             return true;
         }
@@ -705,8 +764,8 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
          * 2. W3 option w3tc_minify contains this sign
          */
         if (Server::get('REQUEST_URI') && apbct_is_plugin_active('w3-total-cache/w3-total-cache.php')) {
-            //get match in uri
-            preg_match_all('/\/wp-content\/cache\/minify\/(.+\.(js|css))/', $this->server__request_uri, $matches);
+            //get match in uri path
+            preg_match_all('/\/wp-content\/cache\/minify\/(.+\.(js|css))/', TT::toString(parse_url($this->server__request_uri, PHP_URL_PATH)), $matches);
             $w3tc_js_file_name_in_uri = isset($matches[1], $matches[1][0]) ? $matches[1][0] : null;
             if ( !empty($w3tc_js_file_name_in_uri) ) {
                 //get option
@@ -729,7 +788,7 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         // skip for RSS Feed requests
         if (Constant::is(Constant::APBCT_SERVICE__SKIP_ANTICRAWLER_ON_RSS_FEED)) {
             if (Server::getString('REQUEST_URI') &&
-                preg_match_all('/feed/i', Server::getString('REQUEST_URI'))
+                preg_match_all('/feed/i', TT::toString(parse_url(Server::getString('REQUEST_URI'), PHP_URL_PATH)))
             ) {
                 $this->debug(
                     'exclusions precheck: RSS feed requests disabled by service constant',
@@ -746,28 +805,15 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
         //skip check if SFW test is running
         if (
             Get::get('sfw_test_ip') &&
-            (Cookie::getString(self::COOKIE_NAME__ANTIBOT) == apbct_get_anti_bot_cookie_hash(
-                $this->api_key,
-                $this->apbct->data['salt']
-            ) ||
-            RequestParameters::get(self::PARAM_NAME__BOT_DETECTOR_EXIST, true) == '1')
+            $this->visitorHasAntiBotCookie()
         ) {
             $this->debug('exclusions precheck: SFW test request sign');
             return true;
         }
 
-        $allowed_roles = array('administrator', 'editor');
-        $user          = apbct_wp_get_current_user();
-
-        if ( ! $user ) {
-            return false;
-        }
-
-        foreach ( $allowed_roles as $role ) {
-            if ( in_array($role, (array)$user->roles) ) {
-                $this->debug('exclusions precheck: allowed user role found', $role);
-                return true;
-            }
+        if ( apbct_wp_get_current_user() ) {
+            $this->debug('exclusions precheck: logged in user');
+            return true;
         }
 
         return false;
@@ -786,34 +832,33 @@ class AntiCrawler extends \Cleantalk\Common\Firewall\FirewallModule
     }
 
     /**
-     * Return true when the current response is a 301/302 redirect, or when a
-     * Cloudflare-proxied request arrives from a different host than its referer,
+     * Return true when the visitor IP is the server address or a local network address.
+     *
+     * @return bool
+     */
+    private function isRequestFromThisServer()
+    {
+        $ip         = Helper::ipGet('real', false);
+        $ip_version = Helper::ipValidate($ip);
+
+        if ( ! $ip_version ) {
+            return false;
+        }
+
+        return
+            $ip === Helper::ipV6MappedToV4(Server::getString('SERVER_ADDR')) ||
+            Helper::ipIsPrivateNetwork($ip_version === 'v6' ? Helper::ipV6Normalize($ip) : $ip, $ip_version);
+    }
+
+    /**
+     * Return true when the current response is a 301/302 redirect,
      * indicating that the visitor was just redirected to this page.
      *
      * @return bool
      */
     private function requestIsRedirected()
     {
-        $is_redirect = false;
-        if ( $this->server__http_referer !== '' && $this->server__http_host !== '' && $this->serverIsOnCloudflare() ) {
-            $parse_referer = parse_url($this->server__http_referer);
-            if ( $parse_referer && isset($parse_referer['host']) ) {
-                $is_redirect = $this->server__http_host !== $parse_referer['host'];
-            }
-        }
-
-        return http_response_code() === 301 || http_response_code() === 302 || $is_redirect;
-    }
-
-    /**
-     * Return true when the request carries Cloudflare-specific HTTP headers
-     * (CF-Ray, CF-Connecting-IP, CF-Request-ID), indicating it was proxied through Cloudflare.
-     *
-     * @return bool
-     */
-    private function serverIsOnCloudflare()
-    {
-        return Server::get('HTTP_CF_RAY') && Server::get('HTTP_CF_CONNECTING_IP') && Server::get('HTTP_CF_REQUEST_ID');
+        return http_response_code() === 301 || http_response_code() === 302;
     }
 
     /**

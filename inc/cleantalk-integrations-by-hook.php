@@ -22,7 +22,7 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'CleantalkPreprocessComment'         => array(
-        'hook'    => 'preprocess_comment',
+        'hook'    => array('preprocess_comment', 'rest_pre_insert_comment'),
         'setting' => 'forms__comments_test',
         'ajax'    => true,
         'ajax_and_post' => true
@@ -64,7 +64,7 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'SimpleMembership'    => array(
-        'hook'    => 'swpm_front_end_registration_complete_user_data',
+        'hook'    => 'swpm_validate_registration_form_submission',
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
@@ -73,9 +73,14 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
+    'DWQuestionAnswer'    => array(
+        'hook'    => 'dwqa_insert_comment_args',
+        'setting' => 'forms__comments_test',
+        'ajax'    => false
+    ),
     'Wpdiscuz'            => array(
         'hook'    => array('wpdAddComment', 'wpdAddInlineComment', 'wpdSaveEditedComment'),
-        'setting' => array('forms__comments_test', 'data__protect_logged_in'),
+        'setting' => 'forms__comments_test',
         'ajax'    => true
     ),
     'Forminator'          => array(
@@ -94,7 +99,7 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'CalculatedFieldsForm' => array(
-        'hook'    => 'cpcff_process_data',
+        'hook'    => array('cpcff_process_data', 'cpcff_free_process_data_before_insert'),
         'setting' => 'forms__general_contact_forms_test',
         'ajax'    => false
     ),
@@ -134,18 +139,38 @@ $apbct_active_integrations = array(
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
+    'WPUserFrontend' => array(
+        'hook'    => 'wpuf_process_registration_errors',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
+    'LeakyPaywallListBuilder' => array(
+        'hook'    => 'lp_list_builder_signup_validation',
+        'setting' => 'forms__registrations_test',
+        'ajax'    => false
+    ),
     'MemberPress' => array(
         'hook'    => 'mepr-validate-signup',
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
     'EasyDigitalDownloads' => array(
-        'hook'    => array('edd_pre_process_register_form', 'edd_insert_user_args', 'edd_customer_pre_create'),
+        'hook'    => array(
+            'edd_pre_process_register_form',
+            'edd_insert_user_args',
+            'edd_customer_pre_create',
+            'edd_checkout_user_error_checks'
+        ),
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
     'WpForo' => array(
-        'hook'    => array('wpforo_action_topic_add', 'wpforo_action_post_add'),
+        'hook'    => array(
+            'wpforo_action_topic_add',
+            'wpforo_action_post_add',
+            'wpforo_action_topic_edit',
+            'wpforo_action_post_edit'
+        ),
         'setting' => 'data__protect_logged_in',
         'ajax'    => false
     ),
@@ -154,6 +179,12 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true,
         'ajax_and_post' => true
+    ),
+    // Site Reviews validates the review of the form, AJAX and REST submits here
+    'SiteReviews' => array(
+        'hook'    => 'site-reviews/validate/custom',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
     ),
     'NewUserApprove' => array(
         'hook'    => 'nua_pass_create_new_user',
@@ -185,6 +216,13 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
     ),
+    // Contact Form by Supsystic processes the form sent without ajax on init:5
+    'SupsysticNoAjax' => array(
+        'hook'    => 'init',
+        'setting' => 'forms__contact_forms_test',
+        'priority' => 1,
+        'ajax'    => false
+    ),
     'LeadFormBuilder' => array(
         'hook'    => 'Save_Form_Data',
         'setting' => 'forms__contact_forms_test',
@@ -211,14 +249,16 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'LatePoint' => array(
-        'hook'    => array('latepoint_route_call'),
+        'hook'    => array('latepoint_route_call', 'latepoint_process_step'),
         'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
+        'priority' => 5,
+        'ajax'    => true,
+        'ajax_and_post' => true
     ),
     'MailPoet' => array(
-        'hook'    => array('mailpoet'),
+        'hook'    => array('mailpoet_subscription_before_subscribe'),
         'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
+        'ajax'    => false
     ),
     'MailPoet2' => array(
         'hook'    => array('wysija_ajax'),
@@ -241,10 +281,12 @@ $apbct_active_integrations = array(
         // important!
         'ajax'    => false
     ),
+    // The plugin fires the action for the AJAX and REST API subscriptions
     'BackInStockNotifier'           => array(
-        'hook'    => array('cwginstock_product_subscribe'),
+        'hook'    => array('cwginstock_ajax_data'),
         'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
+        'priority' => 1,
+        'ajax'    => false
     ),
     'ProductEnquiryPro'           => array(
         'hook'    => array('mgc_pe_sender_email'),
@@ -252,7 +294,7 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'WpGeoDirectory' => array(
-        'hook'    => array('geodir_validate_ajax_save_post_data'),
+        'hook'    => array('geodir_validate_ajax_save_post_data', 'geodir_validate_auto_save_post_data'),
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
@@ -319,6 +361,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
+    'ContactFormToEmail' => array(
+        'hook'    => 'cfte_process_data_before_insert',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
+    ),
     'KadenceBlocks' => array(
         'hook'    => 'kb_process_ajax_submit',
         'setting' => 'forms__contact_forms_test',
@@ -330,10 +377,9 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'WordpressFileUpload' => array(
-        'hook'    => 'wfu_before_upload',
+        'hook'    => array('wfu_before_file_check', 'wfu_before_data_submit'),
         'setting' => 'forms__contact_forms_test',
-        'ajax'    => true,
-        'ajax_and_post' => true
+        'ajax'    => false
     ),
     'LearnPress' => array(
         'hook'    => 'lp/before_create_new_customer',
@@ -362,9 +408,10 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'OtterBlocksForm'         => array(
-        'hook'    => 'cleantalk_force_otterform_check',
+        'hook'    => array('cleantalk_force_otterform_check', 'otter_form_anti_spam_validation'),
         'setting' => 'forms__contact_forms_test',
-        'ajax'    => true
+        'ajax'    => true,
+        'ajax_and_post' => true
     ),
     'ElfsightForm'            => array(
         'hook'    => 'cleantalk_force_elfsight_check',
@@ -414,8 +461,9 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'AwesomeSupportTickets' => array(
-        'hook'    => 'wpas_open_ticket_before_assigned',
+        'hook'    => array('wpas_open_ticket_before_assigned', 'wpas_do_submit_new_reply'),
         'setting' => 'forms__contact_forms_test',
+        'priority' => 9,
         'ajax'    => false
     ),
     'Listeo' => array(
@@ -434,7 +482,7 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'WPZOOMForms' => array(
-        'hook'    => 'admin_post_nopriv_wpzf_submit',
+        'hook'    => array('admin_post_nopriv_wpzf_submit', 'admin_post_wpzf_submit'),
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
     ),
@@ -456,6 +504,12 @@ $apbct_active_integrations = array(
         'hook'    => 'chaty_front_form_save_data',
         'setting' => 'forms__contact_forms_test',
         'ajax'    => true
+    ),
+    // Newsletters (Tribulant) - the subscription form with and without AJAX
+    'NewslettersTribulant' => array(
+        'hook'    => 'wpml_subscriber_add_new',
+        'setting' => 'forms__contact_forms_test',
+        'ajax'    => false
     ),
     'LoginSignupPopup'         => array(
         'hook'    => 'xoo_el_form_action',
@@ -481,6 +535,7 @@ $apbct_active_integrations = array(
         'hook'    => array(
             'asgarosforum_filter_before_topic_submit',
             'asgarosforum_filter_before_post_submit',
+            'asgarosforum_filter_before_edit_post_submit',
         ),
         'setting' => 'forms__contact_forms_test',
         'ajax'    => false
@@ -496,7 +551,7 @@ $apbct_active_integrations = array(
         'ajax'    => false
     ),
     'LifterLMS' => array(
-        'hook'    => 'lifterlms_before_new_user_registration',
+        'hook'    => 'lifterlms_user_registration_data',
         'setting' => 'forms__registrations_test',
         'ajax'    => false
     ),
@@ -506,9 +561,10 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'GwolleGuestbook' => array(
-        'hook'    => 'gwolle_gb_new_entry_frontend',
+        'hook'    => array('gwolle_gb_new_entry_frontend', 'gwolle_gb_entry_edit'),
         'setting' => 'forms__contact_forms_test',
-        'ajax'    => false
+        'ajax'    => true,
+        'ajax_and_post' => true
     ),
     'FLBuilderForms' => array(
         'hook'    => 'fl_builder_subscribe_form_submit',

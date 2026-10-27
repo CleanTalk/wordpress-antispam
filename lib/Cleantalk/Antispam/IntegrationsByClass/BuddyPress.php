@@ -33,6 +33,10 @@ class BuddyPress extends IntegrationByClassBase
         // BuddyPress private messages check
         add_action('messages_message_before_save', array($this, 'privateMsgCheck'), 1);
 
+        // BuddyPress activity check, the activity can be posted via AJAX, REST or a form
+        add_filter('bp_activity_is_spam_before_save', array($this, 'activityWall'), 999, 2);
+        add_action('bp_locate_template', array($this, 'getTemplateName'), 10, 6);
+
         // Handle buddyPress users manage hooks to cathch spam/not spam feedback
         add_action('make_spam_user', array($this, 'sendFeedback'));
         add_action('make_ham_user', array($this, 'sendFeedback'));
@@ -46,12 +50,6 @@ class BuddyPress extends IntegrationByClassBase
         add_action('bp_core_signups_after_add', array($this, 'updateCTHashOnUserRegistration'), 10, 3);
         //add ct_hash to meta on user registartion AFTER user created
         add_action('bp_core_activated_user', array($this, 'updateCTHashOnUserActivation'), 10, 3);
-    }
-
-    public function doAdminWork()
-    {
-        add_filter('bp_activity_is_spam_before_save', array($this, 'activityWall'), 999, 2);
-        add_action('bp_locate_template', array($this, 'getTemplateName'), 10, 6);
     }
 
     /**
@@ -169,11 +167,17 @@ class BuddyPress extends IntegrationByClassBase
     {
         global $apbct;
 
-        $allowed_post_actions = array('post_update', 'new_activity_comment');
-
-        if ( ! in_array(Post::get('action'), $allowed_post_actions) ||
-            $activity_obj === null ||
-            ! Post::get('action') ||
+        // Only new activities posted by the current user
+        if ( $activity_obj === null ||
+            ! empty($activity_obj->id) ||
+            empty($activity_obj->content) ||
+            (int)$activity_obj->user_id !== get_current_user_id() ||
+            ! (
+                in_array($activity_obj->type, array('activity_update', 'activity_comment'), true) ||
+                apbct_is_in_path('/buddypress/v1/activity')
+            ) ||
+            bp_current_user_can('bp_moderate') ||
+            ($apbct->settings['data__protect_logged_in'] == 0 && is_user_logged_in()) ||
             (isset($activity_obj->privacy) && $activity_obj->privacy == 'media') ||
             apbct_exclusions_check() ||
             ! $apbct->settings['forms__contact_forms_test']

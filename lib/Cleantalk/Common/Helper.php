@@ -2,6 +2,7 @@
 
 namespace Cleantalk\Common;
 
+use Cleantalk\ApbctWP\Constant;
 use Cleantalk\Common\HTTP\Request;
 use Cleantalk\Templates\Singleton;
 use Cleantalk\ApbctWP\Variables\Server;
@@ -41,6 +42,71 @@ class Helper
         'v6' => array(
             '0:0:0:0:0:0:0:1/128', // localhost
             '0:0:0:0:0:0:a:1/128', // ::ffff:127.0.0.1
+            'fc00:0:0:0:0:0:0:0/7', // unique local
+            'fe80:0:0:0:0:0:0:0/10', // link-local
+        ),
+    );
+
+    /**
+     * @var array Published networks of the CDN providers whose headers are trusted
+     */
+    public static $cdn_networks = array(
+        'cloud_flare' => array(
+            'v4' => array(
+                '173.245.48.0/20',
+                '103.21.244.0/22',
+                '103.22.200.0/22',
+                '103.31.4.0/22',
+                '141.101.64.0/18',
+                '108.162.192.0/18',
+                '190.93.240.0/20',
+                '188.114.96.0/20',
+                '197.234.240.0/22',
+                '198.41.128.0/17',
+                '162.158.0.0/15',
+                '104.16.0.0/13',
+                '104.24.0.0/14',
+                '172.64.0.0/13',
+                '131.0.72.0/22',
+            ),
+            'v6' => array(
+                '2400:cb00:0:0:0:0:0:0/32',
+                '2606:4700:0:0:0:0:0:0/32',
+                '2803:f800:0:0:0:0:0:0/32',
+                '2405:b500:0:0:0:0:0:0/32',
+                '2405:8100:0:0:0:0:0:0/32',
+                '2a06:98c0:0:0:0:0:0:0/29',
+                '2c0f:f248:0:0:0:0:0:0/32',
+            ),
+        ),
+        'sucury' => array(
+            'v4' => array(
+                '192.88.134.0/23',
+                '185.93.228.0/22',
+                '66.248.200.0/22',
+                '208.109.0.0/22',
+            ),
+            'v6' => array(
+                '2a02:fe80:0:0:0:0:0:0/29',
+            ),
+        ),
+        'incapsula' => array(
+            'v4' => array(
+                '199.83.128.0/21',
+                '198.143.32.0/19',
+                '149.126.72.0/21',
+                '103.28.248.0/22',
+                '45.64.64.0/22',
+                '185.11.124.0/22',
+                '192.230.64.0/18',
+                '107.154.0.0/16',
+                '45.60.0.0/16',
+                '45.223.0.0/16',
+                '131.125.128.0/17',
+            ),
+            'v6' => array(
+                '2a02:e980:0:0:0:0:0:0/29',
+            ),
         ),
     );
 
@@ -86,14 +152,9 @@ class Helper
                 $headers = $headers ?: self::httpGetHeaders();
                 if (
                     isset($headers['Cf-Connecting-Ip']) &&
-                    (isset($headers['Cf-Ray']) || isset($headers['X-Wpe-Request-Id'])) &&
-                    ! isset($headers['X-Gt-Clientip'])
+                    (isset($headers['Cf-Ray']) || isset($headers['X-Wpe-Request-Id']))
                 ) {
-                    if (isset($headers['Cf-Pseudo-Ipv4'], $headers['Cf-Pseudo-Ipv6'])) {
-                        $source = $headers['Cf-Pseudo-Ipv6'];
-                    } else {
-                        $source = $headers['Cf-Connecting-Ip'];
-                    }
+                    $source = $headers['Cf-Connecting-Ip'];
                     $tmp = strpos($source, ',') !== false
                         ? explode(',', $source)
                         : (array)$source;
@@ -229,11 +290,12 @@ class Helper
 
             // Remote addr
             case 'remote_addr':
-                $ip_version = self::ipValidate(Server::getString('REMOTE_ADDR'));
+                $remote_addr = self::ipV6MappedToV4(Server::getString('REMOTE_ADDR'));
+                $ip_version  = self::ipValidate($remote_addr);
                 if ($ip_version) {
                     $out = $ip_version === 'v6' && ! $v4_only ? self::ipV6Normalize(
-                        Server::getString('REMOTE_ADDR')
-                    ) : Server::getString('REMOTE_ADDR');
+                        $remote_addr
+                    ) : $remote_addr;
                 }
                 break;
 
@@ -264,41 +326,40 @@ class Helper
                 break;
 
             // Real
-            // Getting real IP from REMOTE_ADDR or Cf_Connecting_Ip if set or from (X-Forwarded-For, X-Real-Ip) if REMOTE_ADDR is local.
+            // Getting real IP from REMOTE_ADDR, or from the proxy headers if the request came from the CDN network
+            // or from the trusted proxy (X-Forwarded-For, X-Real-Ip are used if REMOTE_ADDR is local).
             case 'real':
-                // Detect IP type
-                $out = self::ipGet('cloud_flare', $v4_only, $headers);
-                $out = $out ?: self::ipGet('sucury', $v4_only, $headers);
-                $out = $out ?: self::ipGet('gtranslate', $v4_only, $headers);
-                $out = $out ?: self::ipGet('ezoic', $v4_only, $headers);
-                $out = $out ?: self::ipGet('stackpath', $v4_only, $headers);
-                $out = $out ?: self::ipGet('x_forwarded_by', $v4_only, $headers);
-                $out = $out ?: self::ipGet('ico_x_forwarded_for', $v4_only, $headers);
-                $out = $out ?: self::ipGet('ovh', $v4_only, $headers);
-                $out = $out ?: self::ipGet('incapsula', $v4_only, $headers);
-                $out = $out ?: self::ipGet('clientside', $v4_only, $headers);
+                $headers = $headers ?: self::httpGetHeaders();
+                $peer_ip = self::ipGetPeer($headers);
 
-                $ip_version = self::ipValidate($out);
-
-                // Is private network
-                if (
-                    ! $out ||
-                    (
-                        is_string($ip_version) && (
-                            self::ipIsPrivateNetwork($out, $ip_version) ||
-                            (
-                                $ip_version === self::ipValidate(Server::getString('SERVER_ADDR')) &&
-                                self::ipMaskMatch($out, Server::getString('SERVER_ADDR') . '/24', $ip_version)
-                            )
-                        )
-                    )
-                ) {
-                    //@todo Remove local IP from x-forwarded-for and x-real-ip
-                    $out = $out ?: self::ipGet('x_forwarded_for', $v4_only, $headers);
-                    $out = $out ?: self::ipGet('x_real_ip', $v4_only, $headers);
+                if ( self::ipIsCdnNetwork($peer_ip, 'cloud_flare') ) {
+                    $out = self::ipGet('cloud_flare', false, $headers);
+                } elseif ( self::ipIsCdnNetwork($peer_ip, 'sucury') ) {
+                    $out = self::ipGet('sucury', false, $headers);
+                } elseif ( self::ipIsCdnNetwork($peer_ip, 'incapsula') ) {
+                    $out = self::ipGet('incapsula', false, $headers);
+                    $out = $out ?: self::ipGet('clientside', false, $headers);
+                } elseif ( self::ipIsTrustedProxy($peer_ip) ) {
+                    $out = self::ipGet('cloud_flare', false, $headers);
+                    $out = $out ?: self::ipGet('sucury', false, $headers);
+                    $out = $out ?: self::ipGet('gtranslate', false, $headers);
+                    $out = $out ?: self::ipGet('ezoic', false, $headers);
+                    $out = $out ?: self::ipGet('stackpath', false, $headers);
+                    $out = $out ?: self::ipGet('x_forwarded_by', false, $headers);
+                    $out = $out ?: self::ipGet('ico_x_forwarded_for', false, $headers);
+                    $out = $out ?: self::ipGet('ovh', false, $headers);
+                    $out = $out ?: self::ipGet('incapsula', false, $headers);
+                    $out = $out ?: self::ipGet('clientside', false, $headers);
                 }
 
-                $out = $out ?: self::ipGet('remote_addr', $v4_only, $headers);
+                // GTranslate proxy behind the CDN
+                if ( $out && self::ipIsTrustedProxy($out) ) {
+                    $out = self::ipGet('gtranslate', false, $headers) ?: $out;
+                }
+
+                if ( ! $out && self::ipValidate($peer_ip) ) {
+                    $out = self::ipValidate($peer_ip) === 'v6' ? self::ipV6Normalize($peer_ip) : $peer_ip;
+                }
 
                 break;
 
@@ -335,6 +396,130 @@ class Helper
     public static function ipIsPrivateNetwork($ip, $ip_type = 'v4')
     {
         return self::ipMaskMatch($ip, self::$private_networks[$ip_type], $ip_type);
+    }
+
+    /**
+     * Checks if the IP belongs to the published networks of the CDN provider
+     *
+     * @param string $ip
+     * @param string $cdn Key of self::$cdn_networks
+     *
+     * @return bool
+     */
+    public static function ipIsCdnNetwork($ip, $cdn)
+    {
+        $ip_version = self::ipValidate($ip);
+
+        if ( ! $ip_version || ! isset(self::$cdn_networks[$cdn][$ip_version]) ) {
+            return false;
+        }
+
+        $ip = $ip_version === 'v6' ? self::ipV6Normalize($ip) : $ip;
+
+        return self::ipMaskMatch($ip, self::$cdn_networks[$cdn][$ip_version], $ip_version);
+    }
+
+    /**
+     * Checks if the IP is a trusted proxy: the local network or the address set by
+     * APBCT_SERVICE__TRUSTED_PROXIES constant like '192.0.2.1, 198.51.100.0/24'
+     *
+     * @param string $ip
+     *
+     * @return bool
+     */
+    public static function ipIsTrustedProxy($ip)
+    {
+        $ip_version = self::ipValidate($ip);
+
+        if ( ! $ip_version ) {
+            return false;
+        }
+
+        $ip = $ip_version === 'v6' ? self::ipV6Normalize($ip) : $ip;
+
+        if ( self::ipIsPrivateNetwork($ip, $ip_version) ) {
+            return true;
+        }
+
+        $trusted_proxies = explode(',', (string)Constant::getValue(Constant::APBCT_SERVICE__TRUSTED_PROXIES, ''));
+        foreach ( $trusted_proxies as $trusted_proxy ) {
+            $trusted_proxy = explode('/', trim($trusted_proxy, " \n\r\t\v\x00"), 2);
+            if ( self::ipValidate($trusted_proxy[0]) !== $ip_version ) {
+                continue;
+            }
+
+            $network = $ip_version === 'v6' ? self::ipV6Normalize($trusted_proxy[0]) : $trusted_proxy[0];
+            $mask    = isset($trusted_proxy[1]) ? (int)$trusted_proxy[1] : ($ip_version === 'v6' ? 128 : 32);
+
+            if ( self::ipMaskMatch($ip, $network . '/' . $mask, $ip_version) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the address of the visitor connection.
+     * REMOTE_ADDR, or the nearest untrusted address from X-Forwarded-For (X-Real-Ip) if REMOTE_ADDR is a trusted proxy.
+     *
+     * @param array $headers
+     *
+     * @return string
+     */
+    public static function ipGetPeer($headers = array())
+    {
+        $headers = $headers ?: self::httpGetHeaders();
+        $peer_ip = self::ipV6MappedToV4(Server::getString('REMOTE_ADDR'));
+
+        if ( ! self::ipIsTrustedProxy($peer_ip) ) {
+            return $peer_ip;
+        }
+
+        $forwarded_ips = '';
+        if ( isset($headers['X-Forwarded-For']) ) {
+            $forwarded_ips = $headers['X-Forwarded-For'];
+        } elseif ( isset($headers['X-Real-Ip']) ) {
+            $forwarded_ips = $headers['X-Real-Ip'];
+        }
+
+        // Take last 20 addresses, the nearest one is the last
+        $forwarded_ips = array_slice(explode(',', (string)$forwarded_ips), -20);
+        foreach ( array_reverse($forwarded_ips) as $forwarded_ip ) {
+            $forwarded_ip = self::ipV6MappedToV4(trim($forwarded_ip, " \n\r\t\v\x00"));
+            if ( ! self::ipValidate($forwarded_ip) ) {
+                break;
+            }
+
+            $peer_ip = $forwarded_ip;
+            if ( ! self::ipIsTrustedProxy($peer_ip) ) {
+                break;
+            }
+        }
+
+        return $peer_ip;
+    }
+
+    /**
+     * Get IPv4 from IPv4-mapped IPv6 address like ::ffff:192.0.2.1
+     *
+     * @param string $ip
+     *
+     * @return string
+     */
+    public static function ipV6MappedToV4($ip)
+    {
+        $ip_packed = strpos($ip, ':') !== false ? @inet_pton($ip) : false;
+
+        if (
+            is_string($ip_packed) &&
+            strlen($ip_packed) === 16 &&
+            strpos($ip_packed, str_repeat("\x00", 10) . "\xff\xff") === 0
+        ) {
+            return (string)inet_ntop(substr($ip_packed, 12));
+        }
+
+        return $ip;
     }
 
     /**

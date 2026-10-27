@@ -370,20 +370,14 @@ function ct_ajax_hook($message_obj = null)
     //Easy Forms for Mailchimp
     if ( Post::get('action') === 'process_form_submission' ) {
         $post_info['comment_type'] = 'contact_enquire_wordpress_easy_forms_for_mailchimp';
-        if ( Post::get('form_data') ) {
-            $form_data     = explode('&', urldecode(TT::toString(Post::get('form_data'))));
-            $form_data_arr = array();
-            foreach ( $form_data as $val ) {
-                $form_data_element                    = explode('=', $val);
-                if (isset($form_data_element[0], $form_data_element[1])) {
-                    $form_data_arr[$form_data_element[0]] = @$form_data_element[1];
-                }
-            }
+        if ( isset($_POST['form_data']) && is_string($_POST['form_data']) ) {
+            // Parse the form data
+            parse_str($_POST['form_data'], $form_data_arr);
             $ct_post_temp = array();
-            if ( isset($form_data_arr['EMAIL']) ) {
+            if ( isset($form_data_arr['EMAIL']) && is_string($form_data_arr['EMAIL']) ) {
                 $ct_post_temp['email'] = $form_data_arr['EMAIL'];
             }
-            if ( isset($form_data_arr['FNAME']) ) {
+            if ( isset($form_data_arr['FNAME']) && is_string($form_data_arr['FNAME']) ) {
                 $ct_post_temp['nickname'] = $form_data_arr['FNAME'];
             }
         }
@@ -495,7 +489,7 @@ function ct_ajax_hook($message_obj = null)
 
 
     // WP Foto Vote Fix
-    if ( ! empty($_FILES) ) {
+    if ( ! empty($_FILES) && apbct_is_plugin_active('wp-foto-vote/wp-foto-vote.php') ) {
         foreach ( $message as $key => $_value ) {
             if ( strpos($key, 'oje') !== false ) {
                 do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
@@ -527,12 +521,12 @@ function ct_ajax_hook($message_obj = null)
         'sender_email'    => $sender_email,
         'sender_nickname' => $sender_nickname,
         'post_info'       => $post_info,
+        'sender_info'     => array('sender_emails_array' => $sender_emails_array),
     );
 
     if ( apbct_is_exception_arg_request() ) {
         $base_call_params['exception_action'] = 1;
         $base_call_params['sender_info']['exception_description'] = apbct_is_exception_arg_request();
-        $base_call_params['sender_info']['sender_emails_array'] = $sender_emails_array;
     }
 
     // EZ Form Calculator - clearing the message
@@ -700,6 +694,7 @@ function ct_ajax_hook($message_obj = null)
 
         // Usernoise Contact Form
         if (
+            current_filter() === 'un_validate_feedback' &&
             Post::get('title') &&
             Post::get('email') &&
             Post::get('type') &&
@@ -721,7 +716,7 @@ function ct_ajax_hook($message_obj = null)
         }
 
         // MailChimp for Wordpress Premium
-        if ( ! empty(Post::get('_mc4wp_form_id')) ) {
+        if ( ! empty(Post::get('_mc4wp_form_id')) && current_filter() === 'mc4wp_form_errors' ) {
             return 'ct_mc4wp_response';
         }
 

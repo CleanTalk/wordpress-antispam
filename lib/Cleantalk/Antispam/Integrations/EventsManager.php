@@ -3,7 +3,7 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Get;
-use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\Common\TT;
 
 class EventsManager extends IntegrationBase
@@ -12,15 +12,16 @@ class EventsManager extends IntegrationBase
     {
         /**
          * Filter for POST
+         * Events Manager reads the booking fields from the request
          */
-        $input_array = apply_filters('apbct__filter_post', $_POST);
+        $input_array = apply_filters('apbct__filter_post', $_REQUEST);
 
-        return ct_gfa_dto($input_array)->getArray();
+        return ct_gfa_dto($input_array, Request::getString('user_email'))->getArray();
     }
 
     public function doBlock($message)
     {
-        if ( Post::hasString('action', 'em_booking_validate_after') ) {
+        if ( Request::hasString('action', 'em_booking_validate_after') ) {
             if ( Get::get('callback') ) {
                 $callback = htmlspecialchars(TT::toString(Get::get('callback')), ENT_QUOTES);
                 $output = array(
@@ -35,8 +36,8 @@ class EventsManager extends IntegrationBase
 
         // Events Manager Booking Form Integration
         if (
-            Post::hasString('action', 'booking_add') ||
-            Post::hasString('action', 'em_booking_add')
+            Request::hasString('action', 'booking_add') ||
+            Request::hasString('action', 'em_booking_add')
         ) {
             die(
                 json_encode(

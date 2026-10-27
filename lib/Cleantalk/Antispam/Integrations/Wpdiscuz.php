@@ -8,6 +8,13 @@ class Wpdiscuz extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
+        global $apbct;
+
+        // Skip processing for logged in users.
+        if ( $apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in() ) {
+            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+            return null;
+        }
 
         $event_token = Post::get('ct_bot_detector_event_token') ? Post::get('ct_bot_detector_event_token') : null;
 

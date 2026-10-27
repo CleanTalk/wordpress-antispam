@@ -11,6 +11,7 @@ use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
 use AllowDynamicProperties;
 use Cleantalk\ApbctWP\ApbctJsBundleResolver;
+use Cleantalk\ApbctWP\RemoteCalls;
 
 #[AllowDynamicProperties]
 class SFW extends \Cleantalk\Common\Firewall\FirewallModule
@@ -40,8 +41,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     private $db__table__data_personal;
 
     private $real_ip;
-    private $debug;
-    private $debug_data = '';
 
     /**
      * @var string Content of the die page
@@ -60,10 +59,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
      * @var string
      */
     private $server__request_uri;
-    /**
-     * @var string
-     */
-    private $server__remote_addr;
     /**
      * @var string
      */
@@ -94,8 +89,21 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         foreach ($params as $param_name => $param) {
             $this->$param_name = isset($this->$param_name) ? $param : false;
         }
+    }
 
-        $this->debug = (bool)Get::get('debug');
+    /**
+     * Pass key for the IP and the IP status (1 - whitelisted, 0 - not)
+     *
+     * @param string $ip
+     * @param string $status
+     *
+     * @return string
+     */
+    public static function getPassKey($ip, $status)
+    {
+        global $apbct;
+
+        return hash_hmac('sha256', $ip . $status, $apbct->api_key . $apbct->data['salt']) . $status;
     }
 
     /**
@@ -124,7 +132,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         global $apbct;
 
         $results = array();
-        $status  = 0;
 
         if (empty($apbct->key_is_ok) || empty($apbct->api_key)) {
             return $results;
@@ -143,10 +150,11 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         }
 
         // Skip by cookie
+        $pass_key = TT::toString(Cookie::get('ct_sfw_pass_key'));
         foreach ($this->ip_array as $current_ip) {
             if (
-                TT::toString(Cookie::get('ct_sfw_pass_key'))
-                && strpos(TT::toString(Cookie::get('ct_sfw_pass_key')), md5($current_ip . $this->api_key . $apbct->data['salt'])) === 0
+                $pass_key
+                && hash_equals(self::getPassKey($current_ip, substr($pass_key, -1)), $pass_key)
             ) {
                 if (Cookie::get('ct_sfw_passed')) {
                     if ( ! headers_sent()) {
@@ -176,11 +184,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     }
                 }
 
-                if (strlen(TT::toString(Cookie::get('ct_sfw_pass_key'))) > 32) {
-                    $status = substr(TT::toString(Cookie::get('ct_sfw_pass_key')), -1);
-                }
-
-                if ($status) {
+                if (substr($pass_key, -1) === '1') {
                     $results[] = array(
                         'ip'          => $current_ip,
                         'is_personal' => false,
@@ -194,11 +198,10 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
         // Common check
         foreach ($this->ip_array as $origin => $current_ip) {
-            $current_ip_v4 = sprintf("%u", ip2long($current_ip));
-            for ($needles = array(), $m = 6; $m <= 32; $m++) {
-                $mask      = str_repeat('1', $m);
-                $mask      = str_pad($mask, 32, '0');
-                $needles[] = sprintf("%u", bindec($mask & base_convert($current_ip_v4, 10, 2)));
+            $current_ip_long = (int)ip2long($current_ip);
+            $current_ip_v4   = sprintf("%u", $current_ip_long);
+            for ($needles = array(), $m = 1; $m <= 32; $m++) {
+                $needles[] = sprintf("%u", $current_ip_long & (-1 << (32 - $m)));
             }
             $needles = array_unique($needles);
 
@@ -357,10 +360,9 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
 
     public function actionsForPassed($result)
     {
-        global $apbct;
         if ($this->data__cookies_type === 'native' && ! headers_sent()) {
             $status     = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
-            $cookie_val = md5($result['ip'] . $this->api_key . $apbct->data['salt']) . $status;
+            $cookie_val = self::getPassKey($result['ip'], $status);
             Cookie::setNativeCookie(
                 'ct_sfw_pass_key',
                 $cookie_val,
@@ -399,7 +401,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $net_count = $apbct->stats['sfw']['entries'];
 
             $status     = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
-            $cookie_val = md5($result['ip'] . $this->api_key . $apbct->data['salt']) . $status;
+            $cookie_val = self::getPassKey($result['ip'], $status);
 
             $block_message = sprintf(
                 esc_html__('SpamFireWall is checking your browser and IP %s for spam bots', 'cleantalk-spam-protect'),
@@ -411,6 +413,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 // Remove "sfw_test_ip" get parameter from the uri
                 $request_uri = preg_replace('%sfw_test_ip=\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}&?%', '', $request_uri);
             }
+            // Link to the requested page of the site
+            $request_uri = '/' . ltrim(esc_url($request_uri), '/\\');
 
             // Custom Logo
             $custom_logo_img = '';
@@ -447,13 +451,13 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 '{SERVICE_ID}'                     => esc_html($apbct->data['service_id']) . ', ' . esc_html($net_count),
                 '{HOST}'                           => get_home_url() . ', ' . APBCT_VERSION,
                 '{GENERATED}'                      => '<p>The page was generated at&nbsp;' . date('D, d M Y H:i:s') . '</p>',
-                '{REQUEST_URI}'                    => esc_url($request_uri),
+                '{REQUEST_URI}'                    => $request_uri,
 
                 // Cookie
                 '{COOKIE_PREFIX}'                  => '',
                 '{COOKIE_DOMAIN}'                  => esc_html($this->cookie_domain),
                 '{COOKIE_SFW}'                     => $cookie_val,
-                '{COOKIE_ANTICRAWLER}'             => apbct_get_anti_bot_cookie_hash($apbct->api_key, $apbct->data['salt']),
+                '{COOKIE_ANTICRAWLER}'             => AntiCrawler::getAntiBotCookieValue(),
 
                 // Test
                 '{TEST_TITLE}'                     => '',
@@ -511,24 +515,20 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                 $replaces['{REAL_IP}']         = esc_html($this->real_ip);
             }
 
-            // Debug
-            if ($this->debug) {
-                $debug = '<h1>Headers</h1>'
-                         . '<pre>' . esc_html(var_export(apache_request_headers(), true)) . '</pre>'
-                         . '<h1>REMOTE_ADDR</h1>'
-                         . esc_html($this->server__remote_addr)
-                         . '<h1>SERVER_ADDR</h1>'
-                         . esc_html($this->server__remote_addr)
-                         . '<h1>IP_ARRAY</h1>'
-                         . esc_html(var_export($this->ip_array, true))
-                         . '<h1>ADDITIONAL</h1>'
-                         . esc_html(var_export($this->debug_data, true));
-            }
-            $replaces['{DEBUG}'] = isset($debug) ? $debug : '';
+            $replaces['{DEBUG}'] = '';
 
             foreach ($replaces as $place_holder => $replace) {
                 $this->sfw_die_page = str_replace($place_holder, $replace, $this->sfw_die_page);
             }
+        }
+
+        // Print the page at once on init, except remote calls
+        if (
+            doing_action('init') &&
+            strpos($result['status'], 'DENY') !== false &&
+            ! RemoteCalls::check()
+        ) {
+            $this->printDiePage();
         }
 
         add_action('init', array($this, 'printDiePage'));

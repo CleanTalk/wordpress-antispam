@@ -12,6 +12,7 @@
 */
 
 use Cleantalk\Antispam\ScriptsIntegration\CleantalkScriptsIntegrator;
+use Cleantalk\Antispam\Integrations;
 use Cleantalk\Antispam\ProtectByShortcode;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\AdminNotices;
@@ -232,19 +233,22 @@ if (
     ( ! is_admin() || apbct_is_ajax() ) &&
     current_action() !== 'wp_ajax_delete-plugin'
 ) {
-    $skip_email_encode = false;
+    // Init after plugins loaded
+    add_action('plugins_loaded', 'apbct_email_encoder__init');
+}
 
-    if (!empty($_POST)) {
-        foreach ( $_POST as $param => $_value ) {
-            if ( strpos((string)$param, 'et_pb_contactform_submit') === 0 ) {
-                $skip_email_encode = true;
-                break;
-            }
-        }
-    }
+/**
+ * Email encoder and Force protection init
+ * Hooked by 'plugins_loaded'
+ *
+ * @return void
+ */
+function apbct_email_encoder__init()
+{
+    global $apbct;
 
     $contacts_encoder = apbctGetContactsEncoder();
-    if ($apbct->settings['data__email_decoder'] && !$skip_email_encode && !apbct_is_amp_request()) {
+    if ($apbct->settings['data__email_decoder'] && !apbct_is_amp_request()) {
         // Encode content
         $contacts_encoder->runEncoding();
     }
@@ -394,6 +398,20 @@ if (
     ct_ajax_hook();
 }
 
+// NEX-Forms saves the entry when its plugin file is included
+if (
+    $apbct->settings['forms__contact_forms_test'] == 1 &&
+    ( ! empty($_REQUEST['nf_create_entry']) || ! empty($_REQUEST['nf_update_entry']) ) &&
+    (
+        apbct_is_plugin_active('nex-forms/main.php') ||
+        apbct_is_plugin_active('nex-forms-express-wp-form-builder/main.php')
+    )
+) {
+    require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-ajax.php');
+    $apbct_nex_forms_integration = new Integrations(array(), $apbct->settings);
+    $apbct_nex_forms_integration->checkSpam(array(), 'NEXForms');
+}
+
 // Facebook
 if ( $apbct->settings['forms__general_contact_forms_test'] == 1
      && ( Post::get('action') === 'fb_intialize')
@@ -413,6 +431,9 @@ new ProtectByShortcode();
 
 // WP Delicious integration
 add_filter('delicious_recipes_process_registration_errors', 'apbct_wp_delicious', 10, 4);
+
+// Comment changes
+add_filter('wp_update_comment_data', 'apbct_comment__check_update', PHP_INT_MAX, 3);
 
 $js_errors_arr = apbct_check_post_for_no_cookie_data();
 if ($js_errors_arr && isset($js_errors_arr['data'])) {
@@ -483,26 +504,8 @@ if (
     }
 }
 
-// Mailoptin. Pass without action because url for ajax request is domain.com/any-page/?mailoptin-ajax=subscribe_to_email_list
-if (
-    apbct_is_plugin_active('mailoptin/mailoptin.php') &&
-    sizeof($_POST) > 0 &&
-    Get::get('mailoptin-ajax') === 'subscribe_to_email_list'
-) {
-    apbct_form__mo_subscribe_to_email_list__testSpam();
-}
-
-// Metform
-if (
-    apbct_is_plugin_active('metform/metform.php') &&
-    sizeof($_POST) > 0 &&
-    (
-        apbct_is_in_uri('/wp-json/metform/') ||
-        (apbct_get_rest_url_only_path() !== 'index.php' && apbct_is_in_uri(apbct_get_rest_url_only_path() . 'metform/'))
-    )
-) {
-    apbct_form__metform_subscribe__testSpam();
-}
+// Mailoptin. The subscription data is taken from GET or POST on any page with ?mailoptin-ajax=subscribe_to_email_list
+add_filter('mailoptin_optin_subscription_request_body', 'apbct_form__mo_subscribe_to_email_list__testSpam', 1);
 
 // Memberpress integration
 // MemberPress sends mepr_process_signup_form='Y' or '1' — both must trigger the check
@@ -561,11 +564,10 @@ if (!empty($_POST) &&
     apbct_seedConfirmPro_request_test();
 }
 
-// LeakyPaywall
+// LeakyPaywall. The registration form is processed on any page.
 if (!empty($_POST) &&
     apbct_is_plugin_active('leaky-paywall/leaky-paywall.php') &&
-    apbct_is_in_uri('registration-form') &&
-    Post::get('level_id')
+    isset($_POST['leaky_paywall_register_nonce'])
 ) {
     apbct_leakyPaywall_request_test();
 }
@@ -604,6 +606,13 @@ add_filter('wppb_output_field_errors_filter', 'apbct_form_profile_builder__check
 // Advanced Classifieds & Directory Pro
 add_filter('acadp_is_spam', 'apbct_advanced_classifieds_directory_pro__check_register', 1, 2);
 
+// Fast Secure contact form. The form is processed on any page, admin-post.php and admin-ajax.php too.
+add_action('plugins_loaded', function () {
+    if ( defined('FSCF_VERSION') ) {
+        add_filter('si_contact_form_validate', 'ct_si_contact_form_validate');
+    }
+});
+
 // WP Foro register system integration
 add_filter('wpforo_create_profile', 'wpforo_create_profile__check_register', 1, 1);
 
@@ -630,18 +639,24 @@ if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
     $sci->run();
 
     SFWUpdateHelper::processSFWOutdatedError($apbct);
+}
 
-    // SpamFireWall check
-    if ( $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
-         $apbct->settings['sfw__enabled'] == 1 &&
-         $apbct->stats['sfw']['last_update_time'] &&
-         apbct_is_get() &&
-         ! apbct_wp_doing_cron() &&
-         ! Server::inUri('/favicon.ico') &&
-         ! apbct_is_cli()
-    ) {
-        add_action('init', 'apbct_sfw__init_wrapper', 1);
-    }
+// SpamFireWall check
+if ( ! is_admin() &&
+     $apbct->plugin_version == APBCT_VERSION && // Do not call with first start
+     $apbct->settings['sfw__enabled'] == 1 &&
+     $apbct->stats['sfw']['last_update_time'] &&
+     ! apbct_wp_doing_cron() &&
+     substr(TT::toString(parse_url(Server::getString('REQUEST_URI'), PHP_URL_PATH)), -12) !== '/favicon.ico' &&
+     ! apbct_is_cli()
+) {
+    add_action('init', 'apbct_sfw__init_wrapper', 1);
+}
+
+// AntiCrawler cookie for the visitor
+if ( $apbct->settings['sfw__anti_crawler'] ) {
+    $apbct->ajax_service->addPublicAction('apbct_anticrawler__set_cookie', array(AntiCrawler::class, 'ajaxSetCookie'));
+    add_action('rest_api_init', array(AntiCrawler::class, 'registerRestRoute'));
 }
 
 // Activation/deactivation functions must be in main plugin file.
@@ -777,14 +792,19 @@ if ( is_admin() || is_network_admin() ) {
         // if User is not logged in
         // if Unknown action or Known action with mandatory check
         if (
-            ( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1) &&
-            Post::get('action') !== '' &&
+            Request::getString('action') !== '' &&
             (
-                ! in_array(Post::get('action'), $_cleantalk_hooked_actions) ||
-                in_array(Post::get('action'), $_cleantalk_ajax_actions_to_check)
+                ! in_array(Request::getString('action'), $_cleantalk_hooked_actions) ||
+                in_array(Request::getString('action'), $_cleantalk_ajax_actions_to_check)
             )
         ) {
-            add_action('plugins_loaded', 'ct_ajax_hook');
+            add_action('plugins_loaded', function () {
+                global $apbct;
+
+                if ( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1 ) {
+                    ct_ajax_hook();
+                }
+            });
         }
 
         //QAEngine Theme answers
@@ -874,9 +894,139 @@ if ( is_admin() || is_network_admin() ) {
  */
 function apbct_sfw__init_wrapper()
 {
+    // Skip the Customizer preview
+    if ( is_customize_preview() ) {
+        return;
+    }
+
     wp_suspend_cache_addition(true);
     apbct_sfw__check();
     wp_suspend_cache_addition(false);
+}
+
+/**
+ * Checking if the request to index.php is the REST API route which starts with the given string.
+ *
+ * @param string $route The route, like 'wc/store/'
+ *
+ * @return bool
+ */
+function apbct_sfw__is_rest_route($route)
+{
+    // Skip relative paths
+    if ( strpos(rawurldecode(apbct_get_request_path()), '..') !== false ) {
+        return false;
+    }
+
+    return apbct_is_script_request('index.php') && apbct_is_rest_route($route);
+}
+
+/**
+ * Checking if the request must be skipped by the SpamFireWall:
+ * the plugin alt sessions route, WooCommerce API callbacks and authorized requests.
+ *
+ * @return bool
+ */
+function apbct_sfw__is_skip_request()
+{
+    // The plugin alt sessions route with the cookies only
+    if (
+        array_keys($_POST) === array('cookies') &&
+        is_string($_POST['cookies']) &&
+        empty($_FILES) &&
+        apbct_sfw__is_rest_route('cleantalk-antispam/v1/alt_sessions') &&
+        apbct_is_path_end('/cleantalk-antispam/v1/alt_sessions')
+    ) {
+        return true;
+    }
+
+    // WooCommerce API callbacks
+    if ( apbct_sfw__is_wc_api_request() ) {
+        return true;
+    }
+
+    // Non-GET and REST API requests of logged in users
+    if ( ( ! apbct_is_get() || apbct_sfw__is_rest_route('') ) && is_user_logged_in() ) {
+        return true;
+    }
+
+    // REST API requests with application password
+    if (
+        Server::getString('PHP_AUTH_USER') !== '' &&
+        apbct_sfw__is_rest_route('') &&
+        class_exists('WP_Application_Passwords') &&
+        wp_is_application_passwords_available() &&
+        WP_Application_Passwords::is_in_use()
+    ) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Checking if the visit must be logged by AntiFlood and AntiCrawler.
+ * Called on 'shutdown' by AntiFlood and AntiCrawler.
+ *
+ * @return bool
+ */
+function apbct_sfw__is_visit_to_log()
+{
+    $response_code = http_response_code();
+
+    // Skip redirects and blocked requests
+    if ( ($response_code >= 300 && $response_code < 400) || $response_code === 403 ) {
+        return false;
+    }
+
+    // Skip logged in users
+    if ( is_user_logged_in() ) {
+        return false;
+    }
+
+    // Skip WooCommerce API callbacks, AJAX and Store API
+    if (
+        apbct_sfw__is_wc_api_request() ||
+        (
+            apbct_is_plugin_active('woocommerce/woocommerce.php') &&
+            ( ! empty(Get::getString('wc-ajax')) || apbct_sfw__is_rest_route('wc/store/') )
+        )
+    ) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Checking if the request is the WooCommerce API callback (?wc-api= or /wc-api/)
+ *
+ * @return bool
+ */
+function apbct_sfw__is_wc_api_request()
+{
+    if (
+        ! apbct_is_plugin_active('woocommerce/woocommerce.php') ||
+        ! apbct_is_script_request('index.php') ||
+        isset($_POST['wc-api'])
+    ) {
+        return false;
+    }
+
+    // WooCommerce takes the value from GET first
+    if ( isset($_GET['wc-api']) ) {
+        return is_string($_GET['wc-api']) && ! empty(sanitize_key($_GET['wc-api']));
+    }
+
+    $path      = TT::toString(parse_url(Server::getString('REQUEST_URI'), PHP_URL_PATH));
+    $api_path  = TT::toString(parse_url(home_url('/wc-api/'), PHP_URL_PATH));
+    $permalink = TT::toString(get_option('permalink_structure'));
+
+    return
+        $permalink !== '' &&
+        strpos($permalink, '/index.php/') === false &&
+        strpos($path, $api_path) === 0 &&
+        ! empty(trim(rawurldecode(substr($path, strlen($api_path))), '/'));
 }
 
 /**
@@ -886,17 +1036,23 @@ function apbct_sfw__check()
 {
     global $apbct, $spbc, $cleantalk_url_exclusions;
 
-    // Turn off the SpamFireWall if current url in the exceptions list and WordPress core pages
-    $core_page_to_skip_check = array('/feed');
-    if ( ! empty($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions) ) {
-        $cleantalk_url_exclusions = array_merge($cleantalk_url_exclusions, $core_page_to_skip_check);
-    } else {
-        $cleantalk_url_exclusions = $core_page_to_skip_check;
+    // Turn off the SpamFireWall for WordPress feeds
+    if ( preg_match('#/feed(/|$)#', TT::toString(parse_url(Server::getString('REQUEST_URI'), PHP_URL_PATH))) ) {
+        return;
     }
-    foreach ( $cleantalk_url_exclusions as $v ) {
-        if ( apbct_is_in_uri($v) ) {
-            return;
+
+    // Turn off the SpamFireWall if current url in the exceptions list
+    if ( ! empty($cleantalk_url_exclusions) && is_array($cleantalk_url_exclusions) ) {
+        foreach ( $cleantalk_url_exclusions as $v ) {
+            if ( apbct_is_in_uri($v) ) {
+                return;
+            }
         }
+    }
+
+    // Skip service requests
+    if ( apbct_sfw__is_skip_request() ) {
+        return;
     }
 
     // Skip the check (legacy way, remove in future)
@@ -913,7 +1069,7 @@ function apbct_sfw__check()
             );
             Cookie::set(
                 'ct_sfw_pass_key',
-                md5(Server::get('REMOTE_ADDR') . $apbct->api_key . $apbct->data['salt']),
+                SFW::getPassKey(Server::getString('REMOTE_ADDR'), '0'),
                 time() + 1200,
                 '/',
                 ''
@@ -982,7 +1138,8 @@ function apbct_sfw__check()
         )
     );
 
-    if ( $apbct->settings['sfw__anti_crawler'] && $apbct->stats['sfw']['entries'] > 50 ) {
+    // AntiCrawler and AntiFlood check only GET requests
+    if ( $apbct->settings['sfw__anti_crawler'] && $apbct->stats['sfw']['entries'] > 50 && apbct_is_get() ) {
         $firewall->loadFwModule(
             new \Cleantalk\ApbctWP\Firewall\AntiCrawler(
                 APBCT_TBL_FIREWALL_LOG,
@@ -995,7 +1152,7 @@ function apbct_sfw__check()
         );
     }
 
-    if ( $apbct->settings['sfw__anti_flood'] && is_null(apbct_wp_get_current_user()) ) {
+    if ( $apbct->settings['sfw__anti_flood'] && is_null(apbct_wp_get_current_user()) && apbct_is_get() ) {
         $firewall->loadFwModule(
             new AntiFlood(
                 APBCT_TBL_FIREWALL_LOG,
@@ -3010,7 +3167,31 @@ function apbct_is_user_enable($user = null)
 
     $user = $user !== null ? $user : $current_user;
 
-    return ! (apbct_is_user_role_in(array('administrator', 'editor', 'author'), $user) || apbct_is_super_admin());
+    return ! (
+        apbct_is_user_role_in(array('administrator'), $user) ||
+        apbct_is_super_admin() ||
+        apbct_is_user_role_in(apbct_get_excluded_roles(), $user)
+    );
+}
+
+/**
+ * Get slugs of the roles from the "Roles Exclusions" setting
+ *
+ * @return array
+ */
+function apbct_get_excluded_roles()
+{
+    global $apbct;
+
+    $roles       = array();
+    $roles_names = function_exists('wp_roles') ? wp_roles()->get_names() : array();
+
+    foreach ( (array)$apbct->settings['exclusions__roles'] as $role ) {
+        $slug    = array_search($role, $roles_names, true);
+        $roles[] = $slug !== false ? $slug : $role;
+    }
+
+    return $roles;
 }
 
 /**
