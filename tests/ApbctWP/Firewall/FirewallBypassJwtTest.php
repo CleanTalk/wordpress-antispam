@@ -68,7 +68,10 @@ class FirewallBypassJwtTest extends \ApbctTestCase
      */
     private function resetEnvironment()
     {
+        global $wpdb;
+
         delete_transient($this->user_token_key);
+        $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE 'apbct\\_fw\\_bypass\\_jti\\_%'");
         unset($_POST['ct_fw_bypass_jwt'], $_COOKIE[$this->cookie_name]);
         $_SERVER['REMOTE_ADDR'] = self::VISITOR_IP;
         $this->resetRequestCache();
@@ -171,6 +174,36 @@ class FirewallBypassJwtTest extends \ApbctTestCase
         $this->assertRejected($this->postToken($token), 'The token has already been used.');
     }
 
+    public function testClaimedTokenIdIsRejected()
+    {
+        global $wpdb;
+
+        $jti = bin2hex(random_bytes(16));
+        $wpdb->insert(
+            $wpdb->options,
+            array('option_name' => 'apbct_fw_bypass_jti_' . hash('sha256', $jti), 'option_value' => (string)(time() + 300), 'autoload' => 'no')
+        );
+
+        $this->assertRejected($this->postToken($this->makeToken(array('jti' => $jti))), 'The token has already been used.');
+    }
+
+    public function testExpiredClaimsAreDropped()
+    {
+        global $wpdb;
+
+        $expired_claim = 'apbct_fw_bypass_jti_' . hash('sha256', 'expired');
+        $wpdb->insert(
+            $wpdb->options,
+            array('option_name' => $expired_claim, 'option_value' => (string)(time() - 1), 'autoload' => 'no')
+        );
+
+        $this->assertSame(admin_url(), $this->postToken($this->makeToken()));
+
+        $claims = $wpdb->get_col("SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE 'apbct\\_fw\\_bypass\\_jti\\_%'");
+        $this->assertNotContains($expired_claim, $claims);
+        $this->assertCount(1, $claims, 'Only the claim of the just used token must stay.');
+    }
+
     public function testTokenForOtherPluginIsSkipped()
     {
         // Signed with another key: the signature must not even be checked.
@@ -269,11 +302,24 @@ class FirewallBypassJwtTest extends \ApbctTestCase
         );
     }
 
-    public function testIpv6IsComparedNormalized()
+    /**
+     * @dataProvider equivalentIpProvider
+     */
+    public function testEquivalentIpNotationsMatch($request_ip, $token_ip)
     {
-        $_SERVER['REMOTE_ADDR'] = '2001:db8::1';
+        $_SERVER['REMOTE_ADDR'] = $request_ip;
 
-        $this->assertSame(admin_url(), $this->postToken($this->makeToken(array('ip' => '2001:0db8:0000:0000:0000:0000:0000:0001'))));
+        $this->assertSame(admin_url(), $this->postToken($this->makeToken(array('ip' => $token_ip))), (string)FirewallBypass::$last_error);
+    }
+
+    public function equivalentIpProvider()
+    {
+        return array(
+            'expanded IPv6'     => array('2001:db8::1', '2001:0db8:0000:0000:0000:0000:0000:0001'),
+            'upper case IPv6'   => array('2001:db8::1', '2001:0DB8::1'),
+            'compressed token'  => array('2001:0DB8:0:0:0:0:0:1', '2001:db8::1'),
+            'IPv4-mapped token' => array(self::VISITOR_IP, '::ffff:' . self::VISITOR_IP),
+        );
     }
 
     public function testMalformedTokenIsRejected()

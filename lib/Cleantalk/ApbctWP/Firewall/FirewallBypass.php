@@ -106,9 +106,10 @@ class FirewallBypass
     private const JWT_CLOCK_SKEW = 60;
 
     /**
-     * Prefix of the transients marking the used token IDs (jti). Makes every token single use.
+     * Prefix of the options claiming the used token IDs (jti). Makes every token single use.
+     * The value is the timestamp the claim may be dropped after.
      */
-    private const JWT_USED_ID_TRANSIENT_PREFIX = self::PLUGIN_PREFIX . 'fw_bypass_jti_';
+    private const JWT_USED_ID_OPTION_PREFIX = self::PLUGIN_PREFIX . 'fw_bypass_jti_';
 
     /**
      * Entry point of the `send_fw_bypass_email` remote call.
@@ -279,7 +280,7 @@ class FirewallBypass
             $claims = self::validateJwtPayload($payload);
 
             // Burn the token before the bypass is granted, so a parallel request can not reuse it.
-            self::markJwtIdUsed($claims['jti'], $claims['exp']);
+            self::claimJwtId($claims['jti'], $claims['exp']);
 
             $user_secret = self::generateToken();
             if ( ! is_string($user_secret) ) {
@@ -364,12 +365,13 @@ class FirewallBypass
             throw new \Exception('The token is issued for another site.');
         }
 
-        $request_ip = self::normalizeJwtIp(TT::toString(Helper::ipGet('real', false)));
+        // The same IP the firewall checks.
+        $request_ip = self::canonicalizeJwtIp(TT::toString(Helper::ipGet('real', false)));
         if (
             ! isset($payload['ip']) ||
             ! is_string($payload['ip']) ||
             $request_ip === '' ||
-            self::normalizeJwtIp($payload['ip']) !== $request_ip
+            self::canonicalizeJwtIp($payload['ip']) !== $request_ip
         ) {
             throw new \Exception('The token is issued for another IP.');
         }
@@ -379,38 +381,50 @@ class FirewallBypass
             throw new \Exception('The token ID is malformed.');
         }
 
-        if ( get_transient(self::getJwtUsedIdTransientKey($jti)) !== false ) {
-            throw new \Exception('The token has already been used.');
-        }
-
         return array('jti' => $jti, 'exp' => $expiration);
     }
 
     /**
-     * Marks the token ID as used until the token expires.
+     * Claims the token ID, so the token can be used only once.
+     *
+     * The claim is a single INSERT IGNORE on the unique option name: of several parallel requests
+     * with the same token exactly one inserts the row. Transients can not do this, a check and a write
+     * there are separate queries. Any storage failure rejects the token.
      *
      * @param string $jti
      * @param int    $expiration Token expiration timestamp.
      *
      * @return void
+     * @throws \Exception
      */
-    private static function markJwtIdUsed($jti, $expiration)
+    private static function claimJwtId($jti, $expiration)
     {
-        set_transient(
-            self::getJwtUsedIdTransientKey($jti),
-            1,
-            max(1, $expiration - time() + self::JWT_CLOCK_SKEW)
-        );
-    }
+        global $wpdb;
 
-    /**
-     * @param string $jti
-     *
-     * @return string
-     */
-    private static function getJwtUsedIdTransientKey($jti)
-    {
-        return self::JWT_USED_ID_TRANSIENT_PREFIX . hash('sha256', $jti);
+        // The expired claims are useless, drop them to keep the table clean.
+        $wpdb->query(
+            $wpdb->prepare(
+                "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s AND CAST(option_value AS UNSIGNED) < %d",
+                $wpdb->esc_like(self::JWT_USED_ID_OPTION_PREFIX) . '%',
+                time()
+            )
+        );
+
+        $claimed = $wpdb->query(
+            $wpdb->prepare(
+                "INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')",
+                self::JWT_USED_ID_OPTION_PREFIX . hash('sha256', $jti),
+                (string)($expiration + self::JWT_CLOCK_SKEW)
+            )
+        );
+
+        if ( $claimed === false ) {
+            throw new \Exception('Failed to claim the token ID.');
+        }
+
+        if ( $claimed !== 1 ) {
+            throw new \Exception('The token has already been used.');
+        }
     }
 
     /**
@@ -466,20 +480,33 @@ class FirewallBypass
     }
 
     /**
-     * Brings the IP to the comparable form: IPv6 is expanded to the full notation.
+     * Brings the IP to the canonical comparable form: the packed binary address in hex.
+     *
+     * Equivalent notations ("2001:DB8::1", "2001:0db8:0:0:0:0:0:1") give the same result.
+     * An IPv4-mapped IPv6 address ("::ffff:203.0.113.10") is the same client as the plain IPv4 one.
      *
      * @param string $ip
      *
      * @return string Empty string for an invalid IP.
      */
-    private static function normalizeJwtIp($ip)
+    private static function canonicalizeJwtIp($ip)
     {
-        $ip_version = Helper::ipValidate($ip);
-        if ( $ip_version === 'v6' ) {
-            return TT::toString(Helper::ipV6Normalize($ip));
+        $ip = trim($ip, " \n\r\t\v\x00");
+        if ( filter_var($ip, FILTER_VALIDATE_IP) === false ) {
+            return '';
         }
 
-        return $ip_version === 'v4' ? $ip : '';
+        $packed = inet_pton($ip);
+        if ( $packed === false ) {
+            return '';
+        }
+
+        $ipv4_mapped_prefix = str_repeat("\x00", 10) . "\xff\xff";
+        if ( strlen($packed) === 16 && strpos($packed, $ipv4_mapped_prefix) === 0 ) {
+            $packed = substr($packed, 12);
+        }
+
+        return bin2hex($packed);
     }
 
     /**
