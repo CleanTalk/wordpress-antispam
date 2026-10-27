@@ -624,6 +624,11 @@ add_action('mec_booking_end_form_step_2', function () {
     );
 });
 
+// Emergency firewall bypass: the control panel posts a signed token to admin-post.php.
+// SpamFireWall checks only GET requests on the public side, so this POST is never blocked by it.
+add_action('admin_post_nopriv_' . FirewallBypass::JWT_ACTION, array(FirewallBypass::class, 'handleJwtRequest'));
+add_action('admin_post_' . FirewallBypass::JWT_ACTION, array(FirewallBypass::class, 'handleJwtRequest'));
+
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
     $sci = new CleantalkScriptsIntegrator();
@@ -897,31 +902,6 @@ function apbct_sfw__check()
         if ( apbct_is_in_uri($v) ) {
             return;
         }
-    }
-
-    // Skip the check (legacy way, remove in future)
-    if ( ! empty(Get::get('access')) ) {
-        $spbc_settings = get_option('spbc_settings');
-        $spbc_key      = ! empty($spbc_settings['spbc_key']) ? $spbc_settings['spbc_key'] : false;
-        if ( Get::get('access') === $apbct->api_key || ($spbc_key !== false && Get::get('access') === $spbc_key) ) {
-            Cookie::set(
-                'spbc_firewall_pass_key',
-                md5(Server::get('REMOTE_ADDR') . $spbc_key),
-                time() + 1200,
-                '/',
-                ''
-            );
-            Cookie::set(
-                'ct_sfw_pass_key',
-                md5(Server::get('REMOTE_ADDR') . $apbct->api_key . $apbct->data['salt']),
-                time() + 1200,
-                '/',
-                ''
-            );
-
-            return;
-        }
-        unset($spbc_settings, $spbc_key);
     }
 
     // Turn off the SpamFireWall if Remote Call is in progress
