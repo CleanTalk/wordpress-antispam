@@ -74,15 +74,15 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
         $ip             = $item['ct_comment']->comment_author_IP;
 
         // Avatar, nickname
-        $column_content .= '<strong>' . $item['ct_comment']->comment_author . '</strong>';
+        $column_content .= '<strong>' . esc_html($item['ct_comment']->comment_author) . '</strong>';
         $column_content .= '<br /><br />';
 
         // Email
         if ( ! empty($email) ) {
             //HANDLE LINK
-            $column_content .= "<a href='mailto:$email'>$email</a>"
+            $column_content .= "<a href='mailto:" . esc_attr($email) . "'>" . esc_html($email) . "</a>"
                                . (! $this->apbct->white_label
-                    ? "<a href='https://cleantalk.org/blacklists/$email' target='_blank'>"
+                    ? "<a href='" . esc_url('https://cleantalk.org/blacklists/' . $email) . "' target='_blank'>"
                       . "&nbsp;<img src='" . APBCT_URL_PATH . "/inc/images/new_window.gif' alt='Ico: open in new window' border='0' style='float:none' />"
                       . "</a>"
                     : '');
@@ -93,13 +93,15 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
         $column_content .= '<br/>';
 
         // IP
-        if ( ! empty($ip) ) {
-            $column_content .= "<a href='edit-comments.php?s=$ip&mode=detail'>$ip</a>"
+        if ( ! empty($ip) && filter_var($ip, FILTER_VALIDATE_IP) ) {
+            $column_content .= "<a href='edit-comments.php?s=" . esc_attr($ip) . "&mode=detail'>" . esc_html($ip) . "</a>"
                                . (! $this->apbct->white_label
-                    ? "<a href='https://cleantalk.org/blacklists/$ip ' target='_blank'>"
+                    ? "<a href='" . esc_url('https://cleantalk.org/blacklists/' . $ip) . "' target='_blank'>"
                       . "&nbsp;<img src='" . APBCT_URL_PATH . "/inc/images/new_window.gif' alt='Ico: open in new window' border='0' style='float:none' />"
                       . "</a>"
                     : '');
+        } elseif ( ! empty($ip) ) {
+            $column_content .= esc_html($ip);
         } else {
             $column_content .= esc_html__('No IP adress', 'cleantalk-spam-protect');
         }
@@ -131,7 +133,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
         $column_content .= '</div>';
 
-        $column_content .= '<p>' . $item['ct_comment']->comment_content . '</p>';
+        $column_content .= '<p>' . wp_kses_post($item['ct_comment']->comment_content) . '</p>';
 
         $column_content .= '</div>';
 
@@ -174,11 +176,11 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
         <div>
             <span>
                 <a href="/wp-admin/post.php?post=<?php
-                echo $post_id; ?>&action=edit"><?php
-                    print get_the_title($post_id); ?></a>
+                echo (int)$post_id; ?>&action=edit"><?php
+                    print esc_html(get_the_title($post_id)); ?></a>
                 <br/>
                 <a href="/wp-admin/edit-comments.php?p=<?php
-                echo $post_id; ?>" class="post-com-count">
+                echo (int)$post_id; ?>" class="post-com-count">
                     <span class="comment-count"><?php
                         $p_cnt = wp_count_comments($post_id);
                         echo $p_cnt->total_comments;
@@ -186,7 +188,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
                 </a>
             </span>
             <a href="<?php
-            print get_permalink($post_id); ?>"><?php
+            print esc_url(get_permalink($post_id)); ?>"><?php
                 _e('View Post'); ?></a>
         </div>
         <?php
@@ -211,9 +213,9 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
             case 'ct_checked':
             case 'ct_spam':
             case 'ct_bad':
-                return TT::getArrayValueAsString($item, $column_name);
+                return esc_html(TT::getArrayValueAsString($item, $column_name));
             default:
-                return print_r($item, true);
+                return esc_html(print_r($item, true));
         }
     }
 

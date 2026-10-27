@@ -79,8 +79,12 @@ class CleantalkRealPerson
      */
     public static function setTRPHash($comment_id)
     {
+        static $saved_hashes = [];
+
         $hash = ct_hash();
-        if ( ! empty($hash) ) {
+        // Each hash is used for the one comment only
+        if ( ! empty($hash) && ! isset($saved_hashes[$hash]) ) {
+            $saved_hashes[$hash] = true;
             if (CleantalkPreprocessComment::firstCommentAutoModEnabled()) {
                 update_comment_meta((int)$comment_id, self::$meta_hash_name__automod, $hash);
             } else {

@@ -46,11 +46,6 @@ class Pagelayer extends IntegrationBase
         wp_die();
     }
 
-    public function allow()
-    {
-        return 1;
-    }
-
     /**
      * Pagelayer copies $_POST into its own $formdata right after this filter returns,
      * so service fields have to be dropped here to keep them out of the email body.

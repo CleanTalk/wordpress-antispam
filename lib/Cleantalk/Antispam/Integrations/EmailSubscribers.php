@@ -5,20 +5,13 @@ namespace Cleantalk\Antispam\Integrations;
 class EmailSubscribers extends IntegrationBase
 {
     /**
-     * Skip checking if already executed or if ES already returned an error (filter path).
+     * Skip checking if ES already returned an error (filter path).
      *
      * @param mixed $argument For AJAX: empty. For filter: $validate_response array.
      * @return bool|mixed true to proceed, false to skip, non-bool to return directly.
      */
     public function doPrepareActions($argument)
     {
-        global $cleantalk_executed;
-
-        // Skip if CleanTalk already checked this request (e.g. AJAX hook ran, then filter fires)
-        if ( ! empty($cleantalk_executed) ) {
-            return false;
-        }
-
         // For the filter path: skip if ES validation already returned an error
         if ( is_array($argument) && ! empty($argument['status']) && 'ERROR' === $argument['status'] ) {
             return false;
@@ -33,7 +26,11 @@ class EmailSubscribers extends IntegrationBase
      */
     public function getDataForChecking($argument)
     {
-        $post_data = apply_filters('apbct__filter_post', $_POST);
+        // Filter path: take the subscription data the vendor validates
+        $form_data = isset($this->hook_arguments[1]) && is_array($this->hook_arguments[1])
+            ? $this->hook_arguments[1]
+            : wp_unslash($_POST);
+        $post_data = apply_filters('apbct__filter_post', $form_data);
         $email = isset($post_data['esfpx_email']) ? $post_data['esfpx_email'] : '';
         $nickname = isset($post_data['esfpx_name']) ? $post_data['esfpx_name'] : '';
 

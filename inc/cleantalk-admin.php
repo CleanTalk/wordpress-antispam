@@ -28,34 +28,12 @@ add_action('manage_users_extra_tablenav', 'apbct_add_buttons_to_comments_and_use
 // Check renew banner
 add_action('wp_ajax_apbct_settings__check_renew_banner', 'apbct_settings__check_renew_banner');
 
-// Crunch for Anti-Bot
-add_action('admin_head', 'apbct_admin_set_cookie_for_anti_bot');
-
 // Catch comment status change
 add_action('comment_approved_to_unapproved', 'apbct_comment__remove_meta_approved', 10, 1);
 add_action('comment_spam_to_unapproved', 'apbct_comment__remove_meta_approved', 10, 1);
 add_action('comment_trash_to_unapproved', 'apbct_comment__remove_meta_approved', 10, 1);
 
 UpdateChangelogNotice::register();
-/**
- * Crunch for Anti-Bot
- * Hooked by 'admin_head'
- *
- */
-function apbct_admin_set_cookie_for_anti_bot()
-{
-    global $apbct;
-
-    if ( $apbct->data['key_is_ok'] ) {
-        echo
-            '<script ' . (class_exists('Cookiebot_WP') ? 'data-cookieconsent="ignore"' : '') . '>
-                var ctSecure = location.protocol === "https:" ? "; secure" : "";
-                document.cookie = "apbct_antibot=' . apbct_get_anti_bot_cookie_hash() . '; path=/; expires=0; samesite=lax" + ctSecure;
-            </script>';
-    }
-}
-
-
 /**
  * Add buttons to comments list table
  * Hooked by 'manage_comments_nav' and 'manage_users_extra_tablenav'
@@ -154,6 +132,7 @@ function ct_dashboard_statistics_widget_output($_post, $_callback_args)
     </div>
     <form id='ct_refresh_form' method='POST' action='#ct_widget'>
         <input type='hidden' name='ct_brief_refresh' value='1'>
+        <?php wp_nonce_field('ct_brief_refresh', 'ct_brief_refresh_nonce', false); ?>
     </form>
     <h4 class='ct_widget_block_header' style='margin-left: 12px;'><?php
         _e('7 days Anti-Spam and SpamFireWall stats', 'cleantalk-spam-protect'); ?></h4>
@@ -365,7 +344,11 @@ function apbct_admin__init()
     }
 
     // Getting dashboard widget statistics
-    if ( Post::getInt('ct_brief_refresh') === 1 ) {
+    if (
+        Post::getInt('ct_brief_refresh') === 1 &&
+        wp_verify_nonce(Post::getString('ct_brief_refresh_nonce'), 'ct_brief_refresh') &&
+        apbct_is_user_role_in((array)apply_filters('apbct_hook_dashboard_widget_allowed_roles_list', array('administrator')))
+    ) {
         cleantalk_get_brief_data($apbct->api_key);
     }
 
@@ -373,6 +356,7 @@ function apbct_admin__init()
     if (
             ! is_main_site() &&
             $apbct->white_label &&
+            apbct_is_get() &&
             (empty($apbct->api_key) || $apbct->settings['apikey'] == $apbct->network_settings['apikey'])
     ) {
         $res = apbct_settings__get_key_auto(true);

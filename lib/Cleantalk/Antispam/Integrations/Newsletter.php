@@ -3,7 +3,6 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Post;
-use Cleantalk\ApbctWP\Variables\Request;
 
 class Newsletter extends IntegrationBase
 {
@@ -12,8 +11,8 @@ class Newsletter extends IntegrationBase
      */
     public function getDataForChecking($argument)
     {
-        if ( Request::getString('nhr') ) {
-            // Prevent double redundant requests - this is the `success redirect` request
+        // The standard form gets the antibot page first, the subscription is made by the next request
+        if ( ($argument === 's' || $argument === 'subscribe') && ! $this->isSubscriptionRequest() ) {
             return null;
         }
 
@@ -45,6 +44,27 @@ class Newsletter extends IntegrationBase
             return $data;
         }
         return null;
+    }
+
+    /**
+     * Checks if Newsletter makes the subscription in this request.
+     *
+     * @return bool
+     * @psalm-suppress UndefinedClass
+     */
+    private function isSubscriptionRequest()
+    {
+        if ( ! class_exists('NewsletterSubscription') || ! method_exists('NewsletterSubscription', 'antibot_form_check') ) {
+            return true;
+        }
+
+        $options = \NewsletterSubscription::instance()->get_options('antispam');
+
+        return
+            (defined('NEWSLETTER_TEST') && NEWSLETTER_TEST) ||
+            ! empty($_GET['_wp_amp_action_xhr_converted']) ||
+            ! empty($options['disabled']) ||
+            \NewsletterSubscription::antibot_form_check(! empty($options['captcha']));
     }
 
     /**

@@ -2,8 +2,6 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\ApbctWP\Variables\Post;
-
 /**
  * This class handles the integration with the MailChimp for WordPress plugin. Both types of request AJAX and POST.
  */
@@ -16,8 +14,9 @@ class MailChimp extends IntegrationBase
 
     public function doPrepareActions($argument)
     {
+        // MC4WP form ID
         if (
-            ! empty(Post::get('_mc4wp_form_id')) &&
+            isset($_POST['_mc4wp_form_id']) && (int)$_POST['_mc4wp_form_id'] > 0 &&
             apbct_is_plugin_active('mailchimp-for-wp/mailchimp-for-wp.php')
         ) {
             $this->is_ajax = apbct_is_ajax();
@@ -66,7 +65,7 @@ class MailChimp extends IntegrationBase
              * The message array prepared in the addFormResponse() method called in the hook mc4wp_form_messages
              * Important! The hook must be called on public validate functions
              */
-            if ( !empty(Post::get('_mc4wp_form_id')) ) {
+            if ( isset($_POST['_mc4wp_form_id']) && (int)$_POST['_mc4wp_form_id'] > 0 ) {
                 return ('ct_mc4wp_response');
             }
         } else {

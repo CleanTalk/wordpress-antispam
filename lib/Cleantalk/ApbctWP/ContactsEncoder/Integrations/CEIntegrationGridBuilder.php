@@ -28,6 +28,11 @@ class CEIntegrationGridBuilder
     private $style_capture_hooks_added = false;
 
     /**
+     * @var string Random part of the placeholders, new for each content
+     */
+    private $region_placeholder_nonce = '';
+
+    /**
      * @param string   $content
      * @param callable $encode_callback
      *
@@ -179,7 +184,7 @@ class CEIntegrationGridBuilder
                 . '</style>';
         }
 
-        $style_url = $this->getStyleUrl($content);
+        $style_url = stripos($content, 'wp-grid-builder/public/js/') !== false ? $this->getStyleUrl() : '';
         if (
             $style_url !== ''
             && stripos($content, 'wp-grid-builder/public/css/style.css') === false
@@ -301,6 +306,7 @@ class CEIntegrationGridBuilder
         }
 
         $this->region_placeholders = array();
+        $this->region_placeholder_nonce = wp_generate_password(32, false);
 
         foreach ( array('noscript', 'script', 'style') as $tag ) {
             $previous_content = $content;
@@ -319,7 +325,7 @@ class CEIntegrationGridBuilder
                         return $matches[0];
                     }
 
-                    $placeholder = '%%APBCT_WPGB_REGION_' . count($this->region_placeholders) . '%%';
+                    $placeholder = '%%APBCT_WPGB_REGION_' . count($this->region_placeholders) . '_' . $this->region_placeholder_nonce . '%%';
                     $this->region_placeholders[$placeholder] = $matches[0];
 
                     return $placeholder;
@@ -340,7 +346,7 @@ class CEIntegrationGridBuilder
                     return isset($matches[0]) ? $matches[0] : '';
                 }
 
-                $placeholder = '%%APBCT_WPGB_REGION_' . count($this->region_placeholders) . '%%';
+                $placeholder = '%%APBCT_WPGB_REGION_' . count($this->region_placeholders) . '_' . $this->region_placeholder_nonce . '%%';
                 $this->region_placeholders[$placeholder] = $matches[0];
 
                 return $placeholder;
@@ -407,6 +413,11 @@ class CEIntegrationGridBuilder
      */
     private function contentHasWpGridBuilder($content)
     {
+        // WP Grid Builder must be active
+        if ( ! defined('WPGB_VERSION') ) {
+            return false;
+        }
+
         return stripos($content, 'wp-grid-builder') !== false || stripos($content, 'wpgb') !== false;
     }
 
@@ -789,23 +800,31 @@ class CEIntegrationGridBuilder
     }
 
     /**
-     * @param string $content
+     * Get URL of the main stylesheet registered by WP Grid Builder.
      *
      * @return string
      */
-    private function getStyleUrl($content)
+    private function getStyleUrl()
     {
-        $patterns = array(
-            '#((?:https?:)?//[^"\'\\s]+/wp-content/plugins/wp-grid-builder)/public/js/[^"\'\\s]+\\?ver=([^"\'\\s&]+)#i',
-            '#(/wp-content/plugins/wp-grid-builder)/public/js/[^"\'\\s]+\\?ver=([^"\'\\s&]+)#i',
-        );
+        if ( ! function_exists('wp_styles') ) {
+            return '';
+        }
 
-        foreach ( $patterns as $pattern ) {
+        $wp_styles = wp_styles();
+
+        if ( ! is_object($wp_styles) || empty($wp_styles->registered) || ! is_array($wp_styles->registered) ) {
+            return '';
+        }
+
+        foreach ( $wp_styles->registered as $style ) {
             if (
-                preg_match($pattern, $content, $matches)
-                && isset($matches[1], $matches[2])
+                isset($style->src) &&
+                is_string($style->src) &&
+                stripos($style->src, 'wp-grid-builder/public/css/style.css') !== false
             ) {
-                return $matches[1] . '/public/css/style.css?ver=' . $matches[2];
+                $url = $this->resolveStyleSrc($style->src, $wp_styles);
+
+                return ! empty($style->ver) && is_string($style->ver) ? add_query_arg('ver', $style->ver, $url) : $url;
             }
         }
 

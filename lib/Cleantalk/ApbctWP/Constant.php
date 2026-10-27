@@ -174,6 +174,12 @@ class Constant
      * If defined, integration metrics will be disabled.
      */
     const APBCT_SERVICE__DISABLE_INTEGRATION_METRICS = 'APBCT_SERVICE__DISABLE_INTEGRATION_METRICS';
+
+    /**
+     * Trusted proxies whose forwarding headers are used to get the visitor IP, like '192.0.2.1, 198.51.100.0/24'.
+     */
+    const APBCT_SERVICE__TRUSTED_PROXIES = 'APBCT_SERVICE__TRUSTED_PROXIES';
+
     /**
      * Registry cache. Built once per request by self::getRegistry().
      *
@@ -468,6 +474,11 @@ class Constant
                     ),
                     'type'        => 'string',
                     'description' => 'Provides own URL of API server.',
+                ),
+                self::APBCT_SERVICE__TRUSTED_PROXIES                   => array(
+                    'names'       => array(self::APBCT_SERVICE__TRUSTED_PROXIES),
+                    'type'        => 'string',
+                    'description' => 'Trusted proxies whose forwarding headers are used to get the visitor IP.',
                 ),
                 self::APBCT_SERVICE__DISABLE_INTEGRATION_METRICS   => array(
                     'names'       => array(

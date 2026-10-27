@@ -12,7 +12,6 @@ class AltSessions
      * @var string[]
      */
     private static $allowed_alt_cookies = [
-        'apbct_email_encoder_passed' => 'hash',
         'apbct_bot_detector_exist' => 'bool',
         'ct_ps_timestamp' => 'int',
         'ct_fkp_timestamp' => 'int',

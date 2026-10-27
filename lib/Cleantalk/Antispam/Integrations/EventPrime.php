@@ -2,14 +2,17 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
+use Cleantalk\Common\TT;
+
 class EventPrime extends IntegrationBase
 {
     private $is_register_form;
     private $is_checkout_form;
     public function getDataForChecking($argument)
     {
-        $this->is_register_form = isset($_POST['ep-attendee-register-nonce']);
-        $this->is_checkout_form = isset($_POST['action']) && $_POST['action'] === 'ep_save_event_booking';
+        // The form is detected by the AJAX action processed now
+        $this->is_register_form = strpos(TT::toString(current_action()), 'ep_submit_register_form') !== false;
+        $this->is_checkout_form = strpos(TT::toString(current_action()), 'ep_save_event_booking') !== false;
         if ($this->is_register_form || $this->is_checkout_form) {
             /**
              * Filter for POST
@@ -21,10 +24,6 @@ class EventPrime extends IntegrationBase
                 parse_str($input_data['data'], $parsed_data);
                 unset($input_data['data']);
                 $input_data = array_merge($input_data, $parsed_data);
-            }
-
-            if ($this->is_checkout_form && !isset($input_data['ep_rg_field_email'])) {
-                return null;
             }
 
             apbct_form__get_no_cookie_data($input_data);

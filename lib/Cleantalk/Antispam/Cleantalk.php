@@ -27,6 +27,18 @@ class Cleantalk
     private $dataMaxSise = 32768;
 
     /**
+     * Maximum length of the data to send in bytes
+     * @var int
+     */
+    private $dataMaxLength = 524288;
+
+    /**
+     * Maximum request size in bytes
+     * @var int
+     */
+    private $requestMaxSize = 1000000;
+
+    /**
      * Data compression rate
      * @var int
      */
@@ -224,6 +236,11 @@ class Cleantalk
      */
     private function compressData($data = null)
     {
+        // Cut data if more than the maximum length
+        if ( $data != null && strlen($data) > $this->dataMaxLength ) {
+            $data = substr($data, 0, $this->dataMaxLength);
+        }
+
         if ( $data != null && strlen($data) > $this->dataMaxSise && function_exists('\gzencode') && function_exists('base64_encode') ) {
             $localData = \gzencode($data, $this->compressRate, FORCE_GZIP);
 
@@ -247,6 +264,17 @@ class Cleantalk
     public function httpRequest($msg)
     {
         $failed_urls = null;
+
+        // Do not send the request if it is too large for the server
+        if ( strlen((string)json_encode($msg)) > $this->requestMaxSize ) {
+            return new CleantalkResponse(
+                (object)array(
+                    'errno'  => 413,
+                    'errstr' => 'Request is too large.',
+                )
+            );
+        }
+
         // Using current server without changing it
         $result = ! empty($this->work_url) && $this->server_changed + 86400 > time()
             ? $this->sendRequest($msg, $this->work_url, $this->server_timeout)

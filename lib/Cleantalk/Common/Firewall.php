@@ -199,6 +199,10 @@ class Firewall
                     if ( $ip === '' || Helper::ipValidate($ip) === false ) {
                         continue;
                     }
+                    // Do not log test IP
+                    if ( isset($this->ip_array['sfw_test']) && $ip === $this->ip_array['sfw_test'] ) {
+                        continue;
+                    }
                     $module->updateLog(
                         $ip,
                         $status,

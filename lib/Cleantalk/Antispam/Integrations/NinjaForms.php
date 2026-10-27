@@ -8,7 +8,6 @@ use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Get;
-use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\Common\TT;
 
 class NinjaForms extends IntegrationBase
@@ -24,14 +23,9 @@ class NinjaForms extends IntegrationBase
     }
     public function getDataForChecking($argument)
     {
-        global $apbct, $cleantalk_executed;
+        global $apbct;
 
         if ( current_action() === 'ninja_forms_display_after_form' ) {
-            return null;
-        }
-
-        if ( $cleantalk_executed ) {
-            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
             return null;
         }
 
@@ -39,12 +33,6 @@ class NinjaForms extends IntegrationBase
             ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) || // Skip processing for logged in users.
             apbct_exclusions_check__url()
         ) {
-            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-            return null;
-        }
-
-        //skip ninja PRO service requests
-        if ( !empty(Post::getString('nonce_ts')) ) {
             do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
             return null;
         }
@@ -57,22 +45,15 @@ class NinjaForms extends IntegrationBase
             $gfa_dto = $this->getGFAOld();
         }
 
-        $form_data = json_decode(Post::getString('formData'), true);
-        if ( empty($form_data) ) {
-            $form_data = json_decode(stripslashes(Post::getString('formData')), true);
-        }
+        $form_data = $this->getFormData();
 
-        if (empty($form_data)) {
+        if (empty($form_data) && ! isset($_POST['formData'])) {
             do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
             return null;
         }
 
         if ( $gfa_dto->nickname === '' || $gfa_dto->email === '' ) {
-            $form_data = json_decode(Post::getString('formData'), true);
-            if ( empty($form_data) ) {
-                $form_data = json_decode(stripslashes(Post::getString('formData')), true);
-            }
-            $form_fields = $form_data['fields'] ?? array();
+            $form_fields = isset($form_data['fields']) && is_array($form_data['fields']) ? $form_data['fields'] : array();
             IMetricService::setCustomField($this->imetric_dto, 'nf_fields_count', count($form_fields));
             $gfa_dto = $this->updateEmailNicknameFromNFService($gfa_dto, $form_fields);
         }
@@ -102,6 +83,9 @@ class NinjaForms extends IntegrationBase
         global $apbct;
         // We have to use GLOBAL variable to transfer the comment to apbct_form__ninjaForms__changeResponse() function :(
         $apbct->response = $message;
+        // Do not run any action of the blocked submission
+        add_filter('ninja_forms_submission_actions', '__return_empty_array', PHP_INT_MAX);
+        add_filter('ninja_forms_submission_actions_preview', '__return_empty_array', PHP_INT_MAX);
         add_action(
             'ninja_forms_before_response',
             [$this, 'hookChangeResponse'],
@@ -171,10 +155,11 @@ class NinjaForms extends IntegrationBase
             return true;
         }
 
-        if (!empty($this->base_call_result)) {
+        if ( isset($this->base_call_result['ct_result']) && is_object($this->base_call_result['ct_result']) ) {
+            $ct_result = $this->base_call_result['ct_result'];
             // Change mail notification if license is out of date
             if ( $apbct->data['moderate'] == 0 &&
-                ($this->base_call_result->fast_submit == 1 || $this->base_call_result->blacklisted == 1 || $this->base_call_result->js_disabled == 1)
+                ($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
             ) {
                 $apbct->sender_email = $this->sender_email;
                 $apbct->sender_ip    = Helper::ipGet();
@@ -193,10 +178,7 @@ class NinjaForms extends IntegrationBase
     public function getGFANew(): GetFieldsAnyDTO
     {
         IMetricService::seek($this, __FUNCTION__);
-        $form_data = json_decode(Post::getString('formData'), true);
-        if ( ! $form_data ) {
-            $form_data = json_decode(stripslashes(TT::toString(Post::get('formData'))), true);
-        }
+        $form_data = $this->getFormData();
 
         if ( ! isset($form_data['fields'])) {
             throw new \Exception('No form data is provided');
@@ -236,13 +218,14 @@ class NinjaForms extends IntegrationBase
         $nf_prior_email = '';
         $nf_emails_array = array();
         $fields = [];
-        foreach ($nf_form_fields as $field) {
-            if ( isset($nf_form_fields_info_array[$field['id']]) ) {
-                $field_info = $nf_form_fields_info_array[$field['id']];
+        // Ninja Forms takes the field value by the key of the submitted fields
+        foreach ($nf_form_fields as $field_id => $field) {
+            if ( isset($nf_form_fields_info_array[$field_id], $field['value']) ) {
+                $field_info = $nf_form_fields_info_array[$field_id];
                 if ( isset($field_info['field_key'], $field_info['field_type']) ) {
                     $field_key = TT::toString($field_info['field_key']);
                     $field_type = TT::toString($field_info['field_type']);
-                    $fields['nf-field-' . $field['id'] . '-' . $field_type] = $field['value'];
+                    $fields['nf-field-' . $field_id . '-' . $field_type] = $field['value'];
                     if ( stripos($field_key, 'name') !== false && stripos($field_type, 'name') !== false ) {
                         $nickname .= ' ' . $field['value'];
                     }
@@ -262,6 +245,10 @@ class NinjaForms extends IntegrationBase
                     }
                 }
             }
+        }
+
+        if ( empty($fields) ) {
+            throw new \Exception('No fields are matched');
         }
 
         $gfa = ct_gfa_dto($fields, $nf_prior_email, $nickname, $nf_emails_array);
@@ -305,6 +292,47 @@ class NinjaForms extends IntegrationBase
     }
 
     /**
+     * Decodes the Ninja Forms form data
+     *
+     * @return array
+     */
+    private function getFormData()
+    {
+        if ( ! isset($_POST['formData']) || ! is_string($_POST['formData']) ) {
+            return array();
+        }
+
+        $form_data = json_decode($_POST['formData'], true);
+        if ( ! $form_data ) {
+            $form_data = json_decode(stripslashes($_POST['formData']), true);
+        }
+
+        if ( ! is_array($form_data) ) {
+            return array();
+        }
+
+        // Render Instance: the form and field ids have the instance suffix like "1_2", Ninja Forms removes it
+        if (
+            isset($form_data['id'], $form_data['fields']) &&
+            is_array($form_data['fields']) &&
+            strpos(TT::toString($form_data['id']), '_')
+        ) {
+            list($form_data['id']) = explode('_', TT::toString($form_data['id']));
+            $fields = array();
+            foreach ( $form_data['fields'] as $field_id => $field ) {
+                list($field_id) = explode('_', (string)$field_id);
+                if ( is_array($field) && isset($field['id']) ) {
+                    list($field['id']) = explode('_', TT::toString($field['id']));
+                }
+                $fields[$field_id] = $field;
+            }
+            $form_data['fields'] = $fields;
+        }
+
+        return $form_data;
+    }
+
+    /**
      * @param GetFieldsAnyDTO $gfa_dto
      * @param array $nf_form_fields
      * @return GetFieldsAnyDTO
@@ -326,8 +354,11 @@ class NinjaForms extends IntegrationBase
 
             $nickname = '';
             $email = '';
-            foreach ($nf_form_fields as $field) {
-                $field_info = $nf_form_fields_info_array[$field['id']];
+            foreach ($nf_form_fields as $field_id => $field) {
+                if ( ! isset($nf_form_fields_info_array[$field_id], $field['value']) ) {
+                    continue;
+                }
+                $field_info = $nf_form_fields_info_array[$field_id];
                 // handle nickname-like fields, add matches to existing nickname string
                 if ( stripos($field_info['field_key'], 'name') !== false ) {
                     $nickname = empty($nickname) ? $field['value'] : $nickname . ' ' . $field['value'];
@@ -451,7 +482,7 @@ class NinjaForms extends IntegrationBase
                 . PHP_EOL .
                 __('If you want to be sure activate protection in your Anti-Spam Dashboard: ', 'clentalk') .
                 //HANDLE LINK
-                'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=ninjaform_activate_antispam' . $apbct->user_token
+                'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=ninjaform_activate_antispam'
             );
         }
 

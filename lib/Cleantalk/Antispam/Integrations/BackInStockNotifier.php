@@ -6,11 +6,13 @@ class BackInStockNotifier extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        $email = isset($_POST['user_email']) && is_string($_POST['user_email']) ? sanitize_email($_POST['user_email']) : '';
-        $nickname = isset($_POST['subscriber_name']) && is_string($_POST['subscriber_name']) ? sanitize_text_field($_POST['subscriber_name']) : '';
+        // The subscription data validated by the plugin, the same for the AJAX and REST API requests
+        $post_data = is_array($argument) ? $argument : $_POST;
+        $email = isset($post_data['user_email']) && is_string($post_data['user_email']) ? sanitize_email($post_data['user_email']) : '';
+        $nickname = isset($post_data['subscriber_name']) && is_string($post_data['subscriber_name']) ? sanitize_text_field($post_data['subscriber_name']) : '';
         $data = array();
         if ( empty($email) || empty($nickname) ) {
-            $input_array = apply_filters('apbct__filter_post', $_POST);
+            $input_array = apply_filters('apbct__filter_post', $post_data);
             $data = ct_get_fields_any($input_array, is_string($email) ? $email : '', is_array($nickname) ? $nickname : array());
         } else {
             $data['email'] = $email;

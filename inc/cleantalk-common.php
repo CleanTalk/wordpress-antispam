@@ -109,7 +109,7 @@ function apbct_plugin_loaded()
  */
 function apbct_base_call($params = array(), $reg_flag = false)
 {
-    global $cleantalk_executed;
+    static $checked_requests = array();
 
     if ( isset($params['post_info']['comment_type']) && (
         ($params['post_info']['comment_type'] === 'site_search_wordpress') ||
@@ -119,12 +119,6 @@ function apbct_base_call($params = array(), $reg_flag = false)
     }
 
     /* Exclusions */
-    if ( $cleantalk_executed ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
-        return array('ct_result' => new CleantalkResponse());
-    }
-
     // URL, IP, Role, Form signs exclusions
     if ( apbct_exclusions_check() ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
@@ -140,37 +134,6 @@ function apbct_base_call($params = array(), $reg_flag = false)
     }
 
     global $apbct;
-
-    $cleantalk_executed = true;
-
-    /* Request ID rotation */
-    $tmp = array();
-    if ( $apbct->plugin_request_ids && ! empty($apbct->plugin_request_ids) ) {
-        $plugin_request_id__lifetime = 2;
-        foreach ( $apbct->plugin_request_ids as $request_id => $request_time ) {
-            if ( time() - $request_time < $plugin_request_id__lifetime ) {
-                $tmp[$request_id] = $request_time;
-            }
-        }
-    }
-    $apbct->plugin_request_ids = $tmp;
-    $apbct->save('plugin_request_ids');
-
-    // Skip duplicate requests
-    if (
-        isset($apbct->plugin_request_ids[ $apbct->plugin_request_id ]) &&
-        current_filter() !== 'woocommerce_registration_errors' && // Prevent skip checking woocommerce registration during checkout
-        current_filter() !== 'woocommerce_store_api_checkout_order_processed' && // Prevent skip checking woocommerce registration during checkout
-        current_filter() !== 'um_submit_form_register' // Prevent skip checking UltimateMember register
-    ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
-        return array('ct_result' => new CleantalkResponse());
-    }
-
-    $apbct->plugin_request_ids[ $apbct->plugin_request_id ] = time();
-    $apbct->save('plugin_request_ids');
-    /* End of Request ID rotation */
 
     if ( ! $apbct->stats['no_cookie_data_taken'] ) {
         apbct_form__get_no_cookie_data();
@@ -210,7 +173,9 @@ function apbct_base_call($params = array(), $reg_flag = false)
         strpos($params['post_info']['comment_type'], 'contact_form_wordpress_') === false &&
         ! preg_match('/comment$/', $params['post_info']['comment_type']) &&
         ! apbct_is_trackback() &&
-        ! defined('XMLRPC_REQUEST')
+        ! defined('XMLRPC_REQUEST') &&
+        // Do not skip the form if it has an email which was not recognized
+        ! apbct_is_email_in_post()
     ) {
         /**
          * If the constant APBCT_SERVICE__DISABLE_EMPTY_EMAIL_EXCEPTION is defined,
@@ -252,6 +217,21 @@ function apbct_base_call($params = array(), $reg_flag = false)
     // Send $_SERVER if couldn't find IP
     if ( empty($default_params['sender_ip']) ) {
         $default_params['sender_info']['server_info'] = $_SERVER;
+    }
+
+    // Skip the same data checking twice during the request. Registrations are checked by the email.
+    $checked_request_key = md5(
+        serialize(
+            array(
+                $reg_flag,
+                isset($params['sender_email']) ? $params['sender_email'] : '',
+                isset($params['sender_nickname']) && ! $reg_flag ? $params['sender_nickname'] : '',
+                isset($params['message']) && ! $reg_flag ? $params['message'] : '',
+            )
+        )
+    );
+    if ( isset($checked_requests[$checked_request_key]) ) {
+        return $checked_requests[$checked_request_key];
     }
 
     $ct         = new Cleantalk();
@@ -317,6 +297,8 @@ function apbct_base_call($params = array(), $reg_flag = false)
     $_POST = apbct_clear_superglobal_service_data($_POST, 'post');
     $_REQUEST = apbct_clear_superglobal_service_data($_REQUEST, 'request');
 
+    $checked_requests[$checked_request_key] = array('ct' => $ct, 'ct_result' => $ct_result);
+
     return array('ct' => $ct, 'ct_result' => $ct_result);
 }
 
@@ -347,9 +329,17 @@ function apbct_exclusions_check($func = null)
 
     // Common exclusions
     if (
-        apbct_exclusions_check__form_signs($_POST) ||
+        (
+            // Form signs do not exclude comments and registrations
+            ! in_array(
+                current_filter(),
+                array('preprocess_comment', 'rest_pre_insert_comment', 'wp_update_comment_data', 'register_post', 'registration_errors'),
+                true
+            ) &&
+            apbct_exclusions_check__form_signs($_POST)
+        ) ||
         apbct_exclusions_check__url() ||
-        apbct_is_user_role_in($apbct->settings['exclusions__roles'])
+        apbct_is_user_role_in(apbct_get_excluded_roles())
     ) {
         return true;
     }
@@ -358,22 +348,22 @@ function apbct_exclusions_check($func = null)
     switch ( $func ) {
         case 'ct_contact_form_validate_postdata':
             if (
-                (defined('DOING_AJAX') && DOING_AJAX) ||
-                apbct_array($_POST)->getKeys('members_search_submit')->result()
+                (defined('DOING_AJAX') && DOING_AJAX)
             ) {
                 return true;
             }
             break;
         case 'ct_contact_form_validate':
             if (
-                apbct_array($_POST)->getKeys('members_search_submit')->result()
-                || (
+                (
                     (int)$apbct->settings['data__protect_logged_in'] === 1
                     && (
                         Post::equal('wpfaction', 'topic_add')
                         || Post::equal('wpfaction', 'post_add')
                         )
                     && apbct_is_plugin_active('wpforo/wpforo.php')
+                    // The forum form of a logged in user has no email fields
+                    && ! apbct_is_email_in_post()
                 )
             ) {
                 return true;
@@ -415,57 +405,30 @@ function apbct_exclusions_check__url()
             $exclusions = explode(',', $apbct->settings['exclusions__urls']);
         }
 
-        //default haystack is request_uri
-        $url_haystack = Server::getString('REQUEST_URI');
-
-        /**
-         * Fix for AJAX and WP REST API forms
-         */
-        // case for admin-ajax routes, may contain get params(!)
-        $is_admin_ajax_like = stripos(Server::getString('REQUEST_URI'), '/wp-admin/admin-ajax.php') === 0;
-        // case for woocommerce-ajax routes, may contain get params(!)
-        $is_wc_ajax_like = stripos(Server::getString('REQUEST_URI'), '/?wc-ajax=') === 0;
-        // case for wp-json paths
-        $is_wp_json_like = stripos(Server::getString('REQUEST_URI'), '/wp-json/') === 0;
-        // case for rest paths
-        $rest_url_only_path = apbct_get_rest_url_only_path();
-        $is_rest_only_path =  $rest_url_only_path !== 'index.php' && stripos(Server::getString('REQUEST_URI'), $rest_url_only_path) === 0;
-
-        // if need to use http referrer as haystack
-        $do_use_http_referrer = (
-            Server::getString('HTTP_REFERER')  &&
-            (
-                $is_admin_ajax_like ||
-                $is_wc_ajax_like ||
-                $is_wp_json_like ||
-                $is_rest_only_path
-            )
-        );
-
-        // do combine actions from referrer if so
-        if ($do_use_http_referrer) {
-            $url_haystack = str_ireplace(
-                array('http://', 'https://', strval(TT::toString(Server::get('HTTP_HOST')))),
-                '',
-                Server::getString('HTTP_REFERER')
-            );
-        }
+        // Haystack is the request path without the query string
+        $url_haystack = apbct_get_request_path();
 
         // if exclusions is full-url like, modify haystack to being full-url also
         if ( $apbct->data['check_exclusion_as_url'] ) {
             $protocol = ! in_array(Server::get('HTTPS'), ['off', '']) || Server::get('SERVER_PORT') == 443 ? 'https://' : 'http://';
-            $url_haystack = $protocol . TT::toString(Server::get('SERVER_NAME')) . TT::toString($url_haystack);
+            $url_haystack = $protocol . TT::toString(Server::get('SERVER_NAME')) . $url_haystack;
         }
 
-        $url_haystack = TT::toString($url_haystack);
-
         foreach ( $exclusions as $exclusion ) {
+            $exclusion = trim($exclusion, " \n\r\t\v\x00");
+            if ( $exclusion === '' ) {
+                continue;
+            }
             if (
                 (
                     $apbct->settings['exclusions__urls__use_regexp'] &&
                     preg_match('@' . $exclusion . '@', $url_haystack) === 1
                 ) ||
-                stripos($url_haystack, $exclusion) !== false
+                (
+                    ! $apbct->settings['exclusions__urls__use_regexp'] &&
+                    // Compare whole path segments only
+                    stripos('/' . trim($url_haystack, '/') . '/', '/' . trim($exclusion, '/') . '/') !== false
+                )
             ) {
                 return true;
             }
@@ -500,8 +463,8 @@ function apbct_exclusions_check__form_signs($form_data)
                 $haystack = ($key === 'action' || $key === 'data') ? $value : $key;
                 if (
                     $haystack === $exclusion ||
-                    (is_string($haystack) && stripos($haystack, $exclusion) !== false)  ||
-                    (is_string($haystack) && preg_match('@' . $exclusion . '@', $haystack) === 1)
+                    // The whole field name should match
+                    (is_string($haystack) && preg_match('@^(' . $exclusion . ')$@', $haystack) === 1)
                 ) {
                     return true;
                 }
@@ -525,8 +488,9 @@ function apbct_get_sender_info()
 
     if ( count($_POST) > 0 ) {
         foreach ( $_POST as $k => $v ) {
-            if ( preg_match("/^(ct_check|checkjs).+/", (string)$k) ) {
-                $checkjs_data_post = $v;
+            if ( preg_match("/^(ct_check|checkjs).+/", (string)$k) && is_string($v) ) {
+                // Cut value if more than 128 symbols
+                $checkjs_data_post = substr($v, 0, 128);
             }
         }
     }
@@ -666,7 +630,7 @@ function apbct_get_sender_info()
             : null,
         'no_cookie_data_taken'      => isset($apbct->stats['no_cookie_data_taken']) ? $apbct->stats['no_cookie_data_taken'] : null,
         'no_cookie_data_post_source' => isset($apbct->stats['no_cookie_data_post_source'])
-            ? $apbct->stats['no_cookie_data_post_source']
+            ? substr(TT::toString($apbct->stats['no_cookie_data_post_source']), 0, 128)
             : null,
         'has_key_up' => Cookie::get('ct_has_key_up') !== ''
             ? json_encode(Cookie::get('ct_has_key_up'))
@@ -803,7 +767,7 @@ function ct_get_checkjs_value()
 
     // Use static JS keys
     if ( $apbct->settings['data__use_static_js_key'] == 1 ) {
-        $key = hash('sha256', $apbct->api_key . ct_get_admin_email() . $apbct->salt);
+        $key = hash('sha256', $apbct->api_key . ct_get_admin_email() . $apbct->data['static_js_key_salt']);
         // Auto detecting. Detected.
     } elseif (
         $apbct->settings['data__use_static_js_key'] == -1 &&
@@ -811,7 +775,7 @@ function ct_get_checkjs_value()
          (apbct_is_post() && isset($apbct->data['cache_detected']) && $apbct->data['cache_detected'] == 1)
         )
     ) {
-        $key = hash('sha256', $apbct->api_key . ct_get_admin_email() . $apbct->salt);
+        $key = hash('sha256', $apbct->api_key . ct_get_admin_email() . $apbct->data['static_js_key_salt']);
         if ( apbct_is_cache_plugins_exists() ) {
             $apbct->data['cache_detected'] = 1;
         }
@@ -1205,6 +1169,19 @@ function ct_checks_on_cleantalk_errors(CleantalkRequest $ct_request, CleantalkRe
 
     $post_blocked_via_js_check = false;
 
+    // Too large request was not sent to the server
+    if ( (int)$ct_result->errno === 413 ) {
+        $ct_result->allow   = 0;
+        $ct_result->spam    = '1';
+        $ct_result->comment = sprintf(
+            'We\'ve got an issue: %s Forbidden. %s.',
+            $ct_result->errstr,
+            $apbct->plugin_name
+        );
+
+        return $ct_result;
+    }
+
     if ( (int)($ct_result->errno) != 0 ) {
         if ( $ct_request->js_on === null || $ct_request->js_on != 1 ) {
             $ct_result->allow   = 0;
@@ -1436,15 +1413,16 @@ function apbct_need_to_process_unknown_post_request()
 }
 
 /**
- * Recursive. Check all post data for ct_no_cookie_hidden_field data.
+ * Check post data for ct_no_cookie_hidden_field data.
+ * Only the top level ct_no_cookie_hidden_field field is used.
  *
  * @param array $data
- * @param int $level Current recursion level
- * @param array $array_mapping
+ * @param int $_level
+ * @param array $_array_mapping
  *
  * @return array|false
  */
-function apbct_check_post_for_no_cookie_data($data = array(), $level = 0, $array_mapping = array())
+function apbct_check_post_for_no_cookie_data($data = array(), $_level = 0, $_array_mapping = array())
 {
     //top level check
     if ( Post::get('ct_no_cookie_hidden_field') ) {
@@ -1453,22 +1431,10 @@ function apbct_check_post_for_no_cookie_data($data = array(), $level = 0, $array
 
     $array = empty($data) ? $_POST : $data;
 
-    //recursion limit
-    if ( $level > 5 ) {
-        return false;
+    if ( is_array($array) && isset($array['ct_no_cookie_hidden_field']) && is_string($array['ct_no_cookie_hidden_field']) ) {
+        return array('data' => $array['ct_no_cookie_hidden_field'], 'mapping' => array('ct_no_cookie_hidden_field'));
     }
-    foreach ( $array as $key => $value ) {
-        if ( is_array($value) ) {
-            $array_mapping[] = $key;
-            $level++;
-            return apbct_check_post_for_no_cookie_data($value, $level, $array_mapping);
-        }
 
-        if ( strpos((string)$key, 'ct_no_cookie_hidden_field') !== false || strpos($value, '_ct_no_cookie_data_') !== false ) {
-            $array_mapping[] = $key;
-            return array('data' => $value, 'mapping' => $array_mapping);
-        }
-    }
     return array('data' => false, 'mapping' => null);
 }
 
@@ -1601,7 +1567,8 @@ function apbct_form__get_no_cookie_data($preprocessed_data = null, $need_filter 
     $apbct->stats['no_cookie_data_taken'] = $flag;
     //set a source if available
     if ( !empty($no_cookie_data['mapping']) && is_array($no_cookie_data['mapping']) ) {
-        $apbct->stats['no_cookie_data_post_source'] = '[' . implode('][', $no_cookie_data['mapping']) . ']';
+        // Cut value if more than 128 symbols
+        $apbct->stats['no_cookie_data_post_source'] = substr('[' . implode('][', $no_cookie_data['mapping']) . ']', 0, 128);
     }
     $apbct->save('stats');
 }

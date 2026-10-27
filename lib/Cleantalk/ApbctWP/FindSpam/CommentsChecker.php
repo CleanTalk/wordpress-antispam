@@ -140,7 +140,7 @@ class CommentsChecker extends Checker
             }
             $user_meta  = get_userdata($comment->user_id);
             if ( !($user_meta instanceof \WP_User) ) {
-                return $comments;
+                continue;
             }
             $user_roles = $user_meta->roles;
             foreach ($user_roles as $user_role) {
@@ -443,6 +443,11 @@ class CommentsChecker extends Checker
 
         foreach ( $c_spam as $iValue ) {
             if ($iValue instanceof \WP_Comment) {
+                // Skip comments of administrators
+                if ( $iValue->user_id && user_can((int)$iValue->user_id, 'manage_options') ) {
+                    delete_comment_meta((int)$iValue->comment_ID, 'ct_marked_as_spam');
+                    continue;
+                }
                 wp_trash_comment($iValue);
                 usleep(10000);
             }
@@ -485,6 +490,11 @@ class CommentsChecker extends Checker
 
         foreach ( $c_spam as $iValue ) {
             if ($iValue instanceof \WP_Comment) {
+                // Skip comments of administrators
+                if ( $iValue->user_id && user_can((int)$iValue->user_id, 'manage_options') ) {
+                    delete_comment_meta((int)$iValue->comment_ID, 'ct_marked_as_spam');
+                    continue;
+                }
                 wp_trash_comment($iValue);
                 usleep(10000);
             }

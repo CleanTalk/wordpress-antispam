@@ -37,14 +37,14 @@ function ct_contact_form_validate()
     }
 
     // Skip REST API requests
-    if ( Server::isPost() && Server::inUri('rest_route') ) {
+    if ( Server::isPost() && Get::getString('rest_route') !== '' && apbct_is_rest_route('') ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return null;
     }
 
     // Skip own service REST API requests
-    if ( Server::isPost() && Server::inUri('cleantalk-antispam/v1/apbct_decode_email') ) {
+    if ( Server::isPost() && apbct_is_rest_route('cleantalk-antispam/v1/apbct_decode_email') ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return null;
@@ -52,12 +52,16 @@ function ct_contact_form_validate()
 
     //Skip woocommerce checkout
     if (
-        apbct_is_in_uri('wc-ajax=update_order_review') ||
-        apbct_is_in_uri('wc-ajax=apply_coupon') ||
-        apbct_is_in_uri('wc-ajax=checkout') ||
-        !empty($_POST['woocommerce_checkout_place_order']) ||
-        apbct_is_in_uri('wc-ajax=wc_ppec_start_checkout') ||
-        apbct_is_in_referer('wc-ajax=update_order_review') ||
+        Get::equal('wc-ajax', 'update_order_review') ||
+        Get::equal('wc-ajax', 'apply_coupon') ||
+        Get::equal('wc-ajax', 'checkout') ||
+        (
+            apbct_is_plugin_active('woocommerce/woocommerce.php') &&
+            !empty($_POST['woocommerce_checkout_place_order']) &&
+            // The checkout form has emails only in its own fields
+            ! apbct_is_email_in_post(array(), array('billing_', 'shipping_', 'account_'))
+        ) ||
+        Get::equal('wc-ajax', 'wc_ppec_start_checkout') ||
         (
             //if WooCommerce check is disabled, skip Apple Pay service requests. Otherwise, the request will be skipped by $cleantalk_executed.
             $apbct->settings['forms__wc_checkout_test'] != 1 &&
@@ -89,16 +93,14 @@ function ct_contact_form_validate()
     }
 
     //Skip woocommerce add_to_cart
-    if ( ! empty($_POST['add-to-cart']) ||
-        (isset($_GET['wc-ajax']) && $_GET['wc-ajax'] === 'add_to_cart')
-    ) {
+    if ( isset($_GET['wc-ajax']) && $_GET['wc-ajax'] === 'add_to_cart' ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return null;
     }
 
     // Do not execute anti-spam test for logged in users.
-    if ( defined('LOGGED_IN_COOKIE') && isset($_COOKIE[LOGGED_IN_COOKIE]) && $apbct->settings['data__protect_logged_in'] != 1 ) {
+    if ( apbct_is_user_logged_in() && $apbct->settings['data__protect_logged_in'] != 1 ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return null;
@@ -133,18 +135,17 @@ function ct_contact_form_validate()
         return false;
     }
 
-    // Skip CalculatedFieldsForm
+    // Skip CalculatedFieldsForm - the form is already checked by the direct integration
     if (
-        apbct_is_plugin_active('calculated-fields-form/cp_calculatedfieldsf.php') ||
-        apbct_is_plugin_active('calculated-fields-form/cp_calculatedfieldsf_free.php')
+        (
+            apbct_is_plugin_active('calculated-fields-form/cp_calculatedfieldsf.php') ||
+            apbct_is_plugin_active('calculated-fields-form/cp_calculatedfieldsf_free.php')
+        ) &&
+        (did_action('cpcff_process_data') || did_action('cpcff_free_process_data_before_insert'))
     ) {
-        foreach ( array_keys($_POST) as $key ) {
-            if ( strpos((string)$key, 'calculatedfields') !== false ) {
-                do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
-                return null;
-            }
-        }
+        return null;
     }
 
     $post_info = [];
@@ -166,23 +167,11 @@ function ct_contact_form_validate()
      */
     $input_array = apply_filters('apbct__filter_post', $_POST);
 
-    $ct_tmp_email = null;
-    foreach ($input_array as $key => $value) {
-        if (is_string($key) &&
-            strpos($key, 'et_pb_contact_email') !== false &&
-            strpos($key, 'et_pb_contact_email_fields') === false &&
-            strpos($key, 'et_pb_contact_email_hidden_fields') === false
-        ) {
-            $ct_tmp_email = preg_replace('/[^a-zA-Z0-9@\.\-_]/', '', $value);
-            break;
-        }
-    }
-
     /**
      * Get fields any usage
      */
 
-    $ct_temp_msg_data = ct_get_fields_any($input_array, $ct_tmp_email);
+    $ct_temp_msg_data = ct_get_fields_any($input_array);
 
     /**
      * Email and emails array preparing
@@ -195,7 +184,7 @@ function ct_contact_form_validate()
     $sender_emails_array = isset($ct_temp_msg_data['emails_array']) && is_array($ct_temp_msg_data['emails_array'])
         ? $ct_temp_msg_data['emails_array']
         : array();
-    $sender_emails_array = json_encode($sender_emails_array);
+    $sender_emails_array = json_encode($sender_emails_array, JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR);
     $sender_emails_array = TT::toString($sender_emails_array);
 
     //prepare email data to sender info
@@ -448,25 +437,18 @@ function ct_contact_form_validate_postdata()
     }
 
     // ???
-    if ( strlen(json_encode($message)) < 10 ) {
+    if ( strlen((string)json_encode($message, JSON_INVALID_UTF8_SUBSTITUTE)) < 10 ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return null;
     }
 
 
-    // Skip if request contains params
-    $skip_params = array(
-        'ipn_track_id',   // PayPal IPN #
-        'txn_type',       // PayPal transaction type
-        'payment_status', // PayPal payment status
-    );
-    foreach ( $skip_params as $value ) {
-        if ( @array_key_exists($value, $_GET) || @array_key_exists($value, $_POST) ) {
-            do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
+    // Skip submission if "get fields any" decided this is not a contact form, e.g. PayPal IPN
+    if ( isset($ct_temp_msg_data['contact']) && $ct_temp_msg_data['contact'] === false ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
-            return null;
-        }
+        return null;
     }
 
     $base_call_result = apbct_base_call(

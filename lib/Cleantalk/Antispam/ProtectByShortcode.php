@@ -32,7 +32,9 @@ class ProtectByShortcode
         $data = ct_gfa($input_array);
 
         $base_call_data = array(
-            'message'         => ! empty($data['message']) ? json_encode($data['message']) : '',
+            'message'         => ! empty($data['message'])
+                ? json_encode($data['message'], JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR)
+                : '',
             'sender_email'    => ! empty($data['email']) ? $data['email'] : '',
             'sender_nickname' => ! empty($data['nickname']) ? $data['nickname'] : '',
             'event_token'     => ! empty($data['event_token']) ? $data['event_token'] : '',

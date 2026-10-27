@@ -8,12 +8,21 @@ class SureForms extends IntegrationBase
     {
         if (
             !apbct_is_plugin_active('sureforms/sureforms.php') ||
-            empty($argument['sureforms_form_submit'])
+            !is_array($argument)
         ) {
             return null;
         }
 
-        $data = ct_gfa_dto(apply_filters('apbct__filter_post', $argument))->getArray();
+        // Take the email from the email field of the form
+        $email = '';
+        foreach ($argument as $key => $value) {
+            if (strpos((string)$key, 'srfm-email') === 0 && is_string($value) && $value !== '') {
+                $email = $value;
+                break;
+            }
+        }
+
+        $data = ct_gfa_dto(apply_filters('apbct__filter_post', $argument), $email)->getArray();
         return $data;
     }
 

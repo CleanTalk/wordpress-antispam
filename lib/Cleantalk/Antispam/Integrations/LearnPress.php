@@ -6,14 +6,13 @@ class LearnPress extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        if ( ! empty($_POST) ) {
-            $data = ct_gfa(apply_filters('apbct__filter_post', $_POST));
-            $data['register'] = true;
+        // The e-mail is passed by the hook
+        $email = is_string($argument) ? $argument : '';
 
-            return $data;
-        }
+        $data = ct_gfa(apply_filters('apbct__filter_post', $_POST), $email);
+        $data['register'] = true;
 
-        return null;
+        return $data;
     }
 
     /**

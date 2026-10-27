@@ -2,7 +2,6 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\ApbctWP\Variables\Post;
 use WP_Error;
 
 class WPUserMeta extends IntegrationBase
@@ -18,15 +17,17 @@ class WPUserMeta extends IntegrationBase
                 ||
                 apbct_is_plugin_active('user-meta-pro/user-meta.php')
             )
-            && !empty($_POST)
-            && Post::get('user_email')
-            && Post::get('user_login')
+            && is_array($argument)
         ) {
+            // Check the user data the plugin is going to save
+            $email = isset($argument['user_email']) && is_string($argument['user_email']) ? $argument['user_email'] : '';
+            $nickname = isset($argument['user_login']) && is_string($argument['user_login']) ? $argument['user_login'] : '';
+
             /**
              * Filter for POST
              */
-            $input_array = apply_filters('apbct__filter_post', $_POST);
-            $data = ct_get_fields_any($input_array);
+            $input_array = apply_filters('apbct__filter_post', $argument);
+            $data = ct_get_fields_any($input_array, $email, $nickname);
             $data['register'] = true;
 
             return $data;

@@ -2,17 +2,18 @@
 
 namespace Cleantalk\Antispam\Integrations;
 
-use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\Common\TT;
 
+/**
+ * MailPoet integration.
+ * Note: the integration hook is "mailpoet_subscription_before_subscribe",
+ * MailPoet fires it for the subscription form sent by AJAX and by admin-post.php.
+ */
 class MailPoet extends IntegrationBase
 {
     public function getDataForChecking($argument)
     {
-        if ( !(apbct_is_plugin_active('mailpoet/mailpoet.php')
-            && !empty($_POST)
-            && Post::get('token')
-            && Post::get('method') === 'subscribe')
-        ) {
+        if ( ! is_array($argument) ) {
             return null;
         }
 
@@ -20,43 +21,30 @@ class MailPoet extends IntegrationBase
             $event_token = $_POST['data']['ct_bot_detector_event_token'];
         }
 
-        $data = apply_filters('apbct__filter_post', $_POST);
-        $data = ct_gfa($data);
-        $data['event_token'] = isset($event_token) ? $event_token : '';
+        // The subscriber data prepared by MailPoet
+        $email = TT::getArrayValueAsString($argument, 'email');
+        $nickname = trim(
+            TT::getArrayValueAsString($argument, 'first_name') . ' ' . TT::getArrayValueAsString($argument, 'last_name'),
+            " \n\r\t\v\x00"
+        );
 
-        //clean message from service fields
-        if ( isset($data['message']) && is_array($data['message']) ) {
-            $data['message'] = array_filter($data['message'], function ($_msg_string, $msg_value) {
-                if ( in_array($msg_value, array(
-                    'data_ct_no_cookie_hidden_field',
-                    'data_ct_bot_detector_event_token',
-                    'action',
-                    'token',
-                    'endpoint',
-                    'method',
-                    'api_version',
-                )) ) {
-                    return false;
-                }
-                return true;
-            }, ARRAY_FILTER_USE_BOTH);
-        }
+        $data = apply_filters('apbct__filter_post', $argument);
+        $data = ct_gfa($data, $email, $nickname);
+        $data['event_token'] = isset($event_token) ? $event_token : '';
 
         return $data;
     }
 
+    /**
+     * MailPoet shows the exception message to the visitor and does not create the subscriber.
+     *
+     * @param $message
+     *
+     * @return void
+     * @psalm-suppress UndefinedClass
+     */
     public function doBlock($message)
     {
-        wp_send_json(
-            array(
-                'errors' => [
-                    [
-                        'error' => 'bad_request',
-                        'message' => $message
-                    ]
-                ],
-            ),
-            403
-        );
+        throw new \MailPoet\UnexpectedValueException($message);
     }
 }

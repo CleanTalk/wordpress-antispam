@@ -23,16 +23,23 @@ class FluentForm extends IntegrationBase
          * Do not use Post:get() there - it uses sanitize_textarea and drops special symbols,
          * including whitespaces - this could concatenate parts of data in single string!
          **/
+        // Take the form data Fluent Forms saves
+        $form_data = null;
+        if (is_array($argument) && isset($argument['response']) && is_string($argument['response'])) {
+            $form_data = json_decode($argument['response'], true);
+        } elseif (isset($_POST['data']) && is_string($_POST['data'])) {
+            parse_str($_POST['data'], $form_data);
+        }
+
         if (
-            isset($_POST['data']) && is_string($_POST['data']) &&
+            is_array($form_data) &&
             (
                 $apbct->settings['data__protect_logged_in'] == 1 ||
                 ($apbct->settings['data__protect_logged_in'] == 0 && !is_user_logged_in())
             )
         ) {
-            parse_str($_POST['data'], $form_data);
             foreach ($form_data as $param => $param_value) {
-                if (strpos((string)$param, 'ct_no_cookie_hidden_field') !== false || (is_string($param_value) && strpos($param_value, '_ct_no_cookie_data_') !== false)) {
+                if ($param === 'ct_no_cookie_hidden_field') {
                     if ($apbct->data['cookies_type'] === 'none') {
                         \Cleantalk\ApbctWP\Variables\NoCookie::setDataFromHiddenField($param_value);
                         $apbct->stats['no_cookie_data_taken'] = true;

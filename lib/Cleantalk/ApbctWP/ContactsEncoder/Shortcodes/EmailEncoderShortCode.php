@@ -2,6 +2,10 @@
 
 namespace Cleantalk\ApbctWP\ContactsEncoder\Shortcodes;
 
+use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
+use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoderTagProcessor;
+use Cleantalk\Common\ContactsEncoder\Helper\ContactsEncoderHelper;
+
 /**
  * Email encoder shortcode base class.
  *
@@ -11,9 +15,19 @@ namespace Cleantalk\ApbctWP\ContactsEncoder\Shortcodes;
 class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
 {
     /**
+     * Max number of shortcode pairs processed in one content.
+     */
+    const MAX_SHORTCODES_TO_PROCESS = 100;
+
+    /**
      * @var string The public name of the shortcode.
      */
     protected $public_name;
+
+    /**
+     * @var bool Whether the opening tag of the shortcode may have attributes.
+     */
+    protected $has_attributes = false;
 
     /**
      * @var string Wrapper template overridden by child classes as the placeholder source.
@@ -95,6 +109,43 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
     }
 
     /**
+     * @inheritDoc
+     */
+    public function register()
+    {
+        parent::register();
+        add_filter('pre_do_shortcode_tag', array($this, 'skipMalformedShortcode'), 10, 4);
+    }
+
+    /**
+     * Leave the shortcode text as is if the shortcode has no enclosed content
+     * or its opening tag contains markup.
+     *
+     * @param false|string $output Short-circuit return value
+     * @param string $tag Shortcode name
+     * @param array $_attr Not used here
+     * @param array $m Regular expression match array
+     *
+     * @return false|string
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function skipMalformedShortcode($output, $tag, $_attr, $m)
+    {
+        if ( $output !== false || $tag !== $this->public_name || ! isset($m[0]) ) {
+            return $output;
+        }
+
+        $attributes = isset($m[3]) ? (string)$m[3] : '';
+        $content = isset($m[5]) ? (string)$m[5] : '';
+
+        if ( $content === '' || strpbrk($attributes, '<>') !== false ) {
+            return $m[0];
+        }
+
+        return $output;
+    }
+
+    /**
      * Process only this encoder's shortcode tags in the content.
      *
      * Must not call do_shortcode() on the full string: untrusted content (e.g. comments)
@@ -113,34 +164,15 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
             return $content;
         }
 
-        if ( ! has_shortcode($content, $this->public_name) ) {
-            return $content;
-        }
+        return $this->replaceShortcodePairs(
+            $content,
+            $this->findAllowedShortcodePairs($content),
+            function ($pair) {
+                $atts = shortcode_parse_atts($pair['atts']);
+                $result = $this->callback(is_array($atts) ? $atts : array(), $pair['inner'], $this->public_name);
 
-        $pattern = sprintf(
-            '/(\[%s(?:\s[^\]]*)?\])([\s\S]*?)(\[\/%s\])/s',
-            preg_quote($this->public_name, '/'),
-            preg_quote($this->public_name, '/')
-        );
-
-        return preg_replace_callback(
-            $pattern,
-            function ($matches) {
-                $atts = array();
-                if ( isset($matches[1]) && preg_match('/\[' . preg_quote($this->public_name, '/') . '([^\]]*)\]/', $matches[1], $tag_matches) && isset($tag_matches[1]) ) {
-                    $parsed_atts = shortcode_parse_atts($tag_matches[1]);
-                    $atts = is_array($parsed_atts) ? $parsed_atts : array();
-                }
-
-                $inner_content = isset($matches[2]) ? $matches[2] : '';
-
-                if ( $this->shortcodeContentContainsHtmlTags($inner_content) ) {
-                    return isset($matches[0]) ? $matches[0] : '';
-                }
-
-                return $this->callback($atts, $inner_content, $this->public_name);
-            },
-            $content
+                return is_string($result) ? $result : $pair['opener'] . $pair['inner'] . '[/' . $this->public_name . ']';
+            }
         );
     }
 
@@ -169,69 +201,214 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
     }
 
     /**
-     * Checks whether any shortcode occurrence is located inside an HTML tag.
+     * Find pairs of the opening and the closing tags of this shortcode.
+     * The opening tag is paired with the nearest closing tag after it.
      *
-     * This validation is used to prevent shortcode extraction from HTML
-     * attribute contexts such as:
+     * @param string $content
      *
-     * <a title="[apbct_encode_data]...[/apbct_encode_data]">
-     *
-     * Processing shortcodes inside HTML tags may lead to malformed markup
-     * after WordPress content filters (e.g. wptexturize()) mutate surrounding
-     * content. Such mutations may potentially lead to attribute injection or
-     * mutation-XSS issues.
-     *
-     * The method scans all opening and closing shortcode tags and verifies
-     * whether their offsets are located between an unclosed "<" and ">" pair.
-     *
-     * @param string $content The content to validate.
-     *
-     * @return bool True if any shortcode boundary is detected inside an HTML tag,
-     *              false otherwise.
+     * @return array[] list of pairs: start and end offsets, opening tag, attributes, inner content
      */
-    protected function isShortcodeInsideHtmlTag($content)
+    protected function findShortcodePairs($content)
     {
-        // is_string() is repeated here for Psalm: it cannot infer the type narrowing
-        // that happens inside contentMayContainShortcode().
-        if ( ! is_string($content) || ! $this->contentMayContainShortcode($content) ) {
-            return false;
+        $pairs = array();
+
+        $attributes_pattern = $this->has_attributes ? '[^\[\]\/]*(?:\/(?!\])[^\[\]\/]*)*' : '';
+        $pattern = '/\[(\/?)' . preg_quote($this->public_name, '/') . '(?![\w-])(' . $attributes_pattern . ')\]/';
+
+        if ( ! preg_match_all($pattern, $content, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) ) {
+            return $pairs;
         }
 
-        preg_match_all(
-            sprintf(
-                '/\[\/?%s(?:\s[^\]]*)?\]/', //supports sc attributes(!)
-                preg_quote($this->public_name, '/')
-            ),
-            $content,
-            $matches,
-            PREG_OFFSET_CAPTURE
-        );
-
-        if (isset($matches[0])) {
-            foreach ($matches[0] as $match) {
-                $offset = $match[1] ?? null;
-
-                if ($offset === null) {
-                    continue;
+        $opener = null;
+        foreach ( $matches as $match ) {
+            if ( $match[1][0] !== '/' ) {
+                if ( $opener === null ) {
+                    $opener = $match;
                 }
-
-                if ($this->isOffsetInsideHtmlTag($content, $offset)) {
-                    return true;
-                }
+                continue;
             }
+
+            if ( $opener === null || $match[2][0] !== '' ) {
+                continue;
+            }
+
+            $inner_start = $opener[0][1] + strlen($opener[0][0]);
+            $pairs[] = array(
+                'start'  => $opener[0][1],
+                'end'    => $match[0][1] + strlen($match[0][0]),
+                'opener' => $opener[0][0],
+                'atts'   => $opener[2][0],
+                'inner'  => (string)substr($content, $inner_start, $match[0][1] - $inner_start),
+            );
+            $opener = null;
         }
 
-        return false;
+        return $pairs;
     }
 
     /**
-     * Skip shortcode pairs whose inner content contains HTML tags.
+     * Find the shortcode pairs which can be processed: the whole pair is placed in one text node,
+     * it is not placed inside the opening tag of another shortcode and the inner content has no markup.
+     *
+     * @param string $content
+     *
+     * @return array[]
+     */
+    protected function findAllowedShortcodePairs($content)
+    {
+        $pairs = $this->findShortcodePairs($content);
+
+        if ( empty($pairs) || ! ContactsEncoder::isHtmlApiSupported() ) {
+            return array();
+        }
+
+        $helper = new ContactsEncoderHelper();
+        $text_ranges = ContactsEncoderTagProcessor::getTextRanges($content);
+        $other_shortcodes_pattern = $this->getOtherShortcodesPattern();
+
+        $allowed_pairs = array();
+        foreach ( $pairs as $pair ) {
+            if (
+                $this->shortcodeContentContainsHtmlTags($pair['inner']) ||
+                ! $helper->isInsideRanges($text_ranges, $pair['start'], $pair['end']) ||
+                $this->isInsideOtherShortcodeTag($content, $pair['start'], $other_shortcodes_pattern)
+            ) {
+                continue;
+            }
+
+            $allowed_pairs[] = $pair;
+
+            // Take first N pairs
+            if ( count($allowed_pairs) >= self::MAX_SHORTCODES_TO_PROCESS ) {
+                break;
+            }
+        }
+
+        return $allowed_pairs;
+    }
+
+    /**
+     * Replace the shortcode pairs in the content with the result of the callback.
+     *
+     * @param string $content
+     * @param array[] $pairs Pairs sorted by the offset
+     * @param callable $callback
+     *
+     * @return string
+     */
+    protected function replaceShortcodePairs($content, $pairs, $callback)
+    {
+        if ( empty($pairs) ) {
+            return $content;
+        }
+
+        $result = '';
+        $cursor = 0;
+        foreach ( $pairs as $pair ) {
+            $result .= substr($content, $cursor, $pair['start'] - $cursor) . call_user_func($callback, $pair);
+            $cursor = $pair['end'];
+        }
+
+        return $result . substr($content, $cursor);
+    }
+
+    /**
+     * Restore the placeholders of this shortcode.
+     * A placeholder found outside a text node is removed.
+     *
+     * @param string $content
+     * @param array $replacements Placeholder => replacement
+     *
+     * @return string
+     */
+    protected function restorePlaceholdersInTextNodes($content, $replacements)
+    {
+        if ( ! is_string($content) || $content === '' || empty($replacements) ) {
+            return $content;
+        }
+
+        $pattern = '/' . str_replace('EE_0', 'EE_\d+_[0-9a-z]+', (string)$this->exclusion_wrapper) . '/i';
+        if ( ! preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE) || ! isset($matches[0]) ) {
+            return $content;
+        }
+
+        $helper = new ContactsEncoderHelper();
+        $text_ranges = ContactsEncoder::isHtmlApiSupported() ? ContactsEncoderTagProcessor::getTextRanges($content) : array();
+        $other_shortcodes_pattern = $this->getOtherShortcodesPattern();
+
+        $result = '';
+        $cursor = 0;
+        foreach ( $matches[0] as $match ) {
+            // Skip placeholders of other passes
+            if ( ! isset($replacements[$match[0]]) ) {
+                continue;
+            }
+
+            $start = $match[1];
+            $end = $start + strlen($match[0]);
+            $is_in_text = $helper->isInsideRanges($text_ranges, $start, $end) &&
+                ! $this->isInsideOtherShortcodeTag($content, $start, $other_shortcodes_pattern);
+
+            $result .= substr($content, $cursor, $start - $cursor) . ($is_in_text ? $replacements[$match[0]] : '');
+            $cursor = $end;
+        }
+
+        return $result . substr($content, $cursor);
+    }
+
+    /**
+     * Check if the offset is placed inside the opening tag of another shortcode, like [caption class="..."].
+     *
+     * @param string $content
+     * @param int $offset
+     * @param string $pattern Pattern of the other shortcodes names
+     *
+     * @return bool
+     */
+    protected function isInsideOtherShortcodeTag($content, $offset, $pattern)
+    {
+        if ( $pattern === '' || $offset <= 0 ) {
+            return false;
+        }
+
+        // The opening tag of a shortcode ends with the first "]"
+        $previous_tag_end = strrpos($content, ']', $offset - strlen($content) - 1);
+        $start = $previous_tag_end === false ? 0 : $previous_tag_end + 1;
+
+        return (bool)preg_match($pattern, substr($content, $start, $offset - $start));
+    }
+
+    /**
+     * Pattern to find the opening tags of the other registered shortcodes.
+     *
+     * @return string Empty string if there are no other shortcodes
+     */
+    protected function getOtherShortcodesPattern()
+    {
+        global $shortcode_tags;
+
+        if ( empty($shortcode_tags) || ! is_array($shortcode_tags) ) {
+            return '';
+        }
+
+        $names = array();
+        foreach ( array_keys($shortcode_tags) as $name ) {
+            if ( is_string($name) && $name !== '' && $name !== $this->public_name ) {
+                $names[] = preg_quote($name, '/');
+            }
+        }
+
+        return empty($names) ? '' : '/\[(?:' . implode('|', $names) . ')(?![\w-])/';
+    }
+
+    /**
+     * Skip shortcode pairs whose inner content contains markup symbols.
      *
      * In buffer mode the lazy [tag]...[/tag] match can pair an opener in one
      * fragment with a closer in another and swallow everything between them
      * (comments, articles, any markup). A legitimate shortcode wraps text only.
      *
-     * @param string $content Inner shortcode content.
+     * @param string $content Raw inner shortcode content.
      *
      * @return bool
      */
@@ -241,50 +418,6 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
             return false;
         }
 
-        return (bool) preg_match('/<\/?[a-zA-Z][a-zA-Z0-9:-]*(?:\s[^<>]*)?>/', $content);
-    }
-
-    /**
-     * Determines whether a given character offset is located inside an HTML tag.
-     *
-     * The method locates the nearest "<" before the offset, then scans forward
-     * respecting quoted attribute values. If no unquoted ">" is found between
-     * the last "<" and the offset, the offset is considered inside an HTML tag.
-     *
-     * @param string $content The full content string.
-     * @param int    $offset  Character offset to validate.
-     *
-     * @return bool True if the offset is located inside an HTML tag,
-     *              false otherwise.
-     */
-    public function isOffsetInsideHtmlTag($content, $offset)
-    {
-        $before = substr($content, 0, $offset);
-
-        $last_open = strrpos($before, '<');
-        if ($last_open === false) {
-            return false;
-        }
-
-        // Scan from the last '<' to the offset and detect an unquoted '>'
-        $segment = substr($before, $last_open);
-        $in_single = false;
-        $in_double = false;
-        $len = strlen($segment);
-        for ($i = 0; $i < $len; $i++) {
-            $ch = $segment[$i];
-            if ($ch === "'" && ! $in_double) {
-                $in_single = ! $in_single;
-                continue;
-            }
-            if ($ch === '"' && ! $in_single) {
-                $in_double = ! $in_double;
-                continue;
-            }
-            if ($ch === '>' && ! $in_single && ! $in_double) {
-                return false;
-            }
-        }
-        return true;
+        return strpbrk($content, '"<>') !== false;
     }
 }

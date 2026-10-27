@@ -10,6 +10,7 @@ abstract class IntegrationBase
 
     public $base_call_result;
     public $visible_fields_data;
+    public $hook_arguments = array();
 
     /**
      * Legacy old way to collect data.

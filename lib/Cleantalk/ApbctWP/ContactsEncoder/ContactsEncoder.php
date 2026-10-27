@@ -8,9 +8,11 @@ use Cleantalk\ApbctWP\AJAXService;
 use Cleantalk\ApbctWP\ContactsEncoder\Shortcodes\ShortCodesService;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use Cleantalk\ApbctWP\ContactsEncoder\Exclusions\ExclusionsService;
 use Cleantalk\ApbctWP\ContactsEncoder\Integrations\CEIntegrationGridBuilder;
+use Cleantalk\Common\ContactsEncoder\Obfuscator\Obfuscator;
 use Cleantalk\Common\TT;
 use Cleantalk\Variables\Post;
 
@@ -46,6 +48,11 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     private $comment;
 
+    /**
+     * @var int Nesting level of the blocks being rendered
+     */
+    private static $render_block_level = 0;
+
     public function init($params)
     {
         parent::init($params);
@@ -53,9 +60,59 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $this->shortcodes = new ShortCodesService($params);
         $this->grid_builder_integration = new CEIntegrationGridBuilder();
 
-        $this->shortcodes->registerAll();
+        if ( self::isHtmlApiSupported() ) {
+            $this->shortcodes->registerAll();
+        }
 
         $this->registerHookHandler();
+    }
+
+    /**
+     * Check if the WordPress HTML API is available to parse the content (WordPress 6.5+).
+     *
+     * @return bool
+     */
+    public static function isHtmlApiSupported()
+    {
+        return class_exists('WP_HTML_Tag_Processor') && method_exists('WP_HTML_Tag_Processor', 'next_token');
+    }
+
+    /**
+     * @param mixed $pre_render
+     *
+     * @return mixed
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function increaseRenderBlockLevel($pre_render)
+    {
+        if ( $pre_render === null ) {
+            self::$render_block_level++;
+        }
+
+        return $pre_render;
+    }
+
+    /**
+     * @param string $block_content
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function decreaseRenderBlockLevel($block_content)
+    {
+        self::$render_block_level = max(0, self::$render_block_level - 1);
+
+        return $block_content;
+    }
+
+    /**
+     * Check if the block being rendered is inside another block.
+     *
+     * @return bool
+     */
+    public function isNestedRenderBlock()
+    {
+        return self::$render_block_level > 1 && current_filter() === 'render_block';
     }
 
     /**
@@ -82,13 +139,16 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     {
         global $apbct;
 
+        if ( ! self::isHtmlApiSupported() ) {
+            return;
+        }
+
         $hooks_to_encode = array(
             'the_title',
             'the_content',
             'the_excerpt',
             'get_footer',
             'get_header',
-            'get_the_excerpt',
             'widget_title',
             'widget_text',
             'widget_content',
@@ -125,6 +185,10 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
                 $this->shortcodes->addActionsAfterModifyEncodeOnly($hook, 999);
             }
         } else {
+            // Inner blocks are encoded with the outer block
+            add_filter('pre_render_block', array($this, 'increaseRenderBlockLevel'), PHP_INT_MAX);
+            add_filter('render_block', array($this, 'decreaseRenderBlockLevel'), PHP_INT_MAX);
+
             foreach ( $hooks_to_encode as $hook ) {
                 $this->shortcodes->addActionsBeforeModify($hook, 9);
                 //any hook that has actions BEFORE modify, must have actions AFTER
@@ -150,7 +214,6 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     public function modifyFormFieldDisplay($html, $field, $display_context, $post_id)
     {
         if (mb_stripos($html, 'mailto:') !== false) {
-            $html = html_entity_decode($html);
             return $this->modifyContent($html);
         }
 
@@ -171,18 +234,19 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $this->applyAttributeExclusionHooks();
 
         if ( ! is_string($content) || $content === '' || stripos($content, '<option') === false ) {
-            return parent::modifyGlobalEmails($content);
+            return $this->encodeSchemeLinks(parent::modifyGlobalEmails($content), 'mailto');
         }
 
         $placeholders = array();
+        $placeholder_nonce = wp_generate_password(32, false);
         $protected = preg_replace_callback(
-            '/<option\b[^>]*>.*?<\/option>/is',
-            static function ($matches) use (&$placeholders) {
+            '/<option\b[^<>]*>(?:(?!<\/?option\b).)*<\/option>/is',
+            static function ($matches) use (&$placeholders, $placeholder_nonce) {
                 if ( ! isset($matches[0]) ) {
                     return '';
                 }
 
-                $key = '%%APBCT_OPTION_SKIP_' . count($placeholders) . '%%';
+                $key = '%%APBCT_OPTION_SKIP_' . count($placeholders) . '_' . $placeholder_nonce . '%%';
                 $placeholders[$key] = $matches[0];
 
                 return $key;
@@ -191,16 +255,84 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         );
 
         if ( ! is_string($protected) ) {
-            return parent::modifyGlobalEmails($content);
+            return $this->encodeSchemeLinks(parent::modifyGlobalEmails($content), 'mailto');
         }
 
         $encoded = parent::modifyGlobalEmails($protected);
 
-        if ( $placeholders === array() ) {
-            return $encoded;
+        if ( $placeholders !== array() ) {
+            $encoded = strtr($encoded, $placeholders);
         }
 
-        return strtr($encoded, $placeholders);
+        return $this->encodeSchemeLinks($encoded, 'mailto');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function modifyGlobalPhoneNumbers($content)
+    {
+        return $this->encodeSchemeLinks(parent::modifyGlobalPhoneNumbers($content), 'tel');
+    }
+
+    /**
+     * Encode mailto: and tel: links. Only the href attribute of the links is changed.
+     *
+     * @param string $content
+     * @param string $scheme mailto|tel
+     *
+     * @return string
+     */
+    private function encodeSchemeLinks($content, $scheme)
+    {
+        if ( ! is_string($content) || stripos($content, $scheme . ':') === false ) {
+            return $content;
+        }
+
+        $processor = new \WP_HTML_Tag_Processor($content);
+        $encoded_count = 0;
+
+        while ( $encoded_count < self::MAX_CONTACTS_TO_ENCODE && $processor->next_tag() ) {
+            if ( ! in_array($processor->get_tag(), array('A', 'AREA'), true) ) {
+                continue;
+            }
+
+            $href = $processor->get_attribute('href');
+            if ( ! is_string($href) || $processor->get_attribute('data-original-string') !== null ) {
+                continue;
+            }
+
+            $href = trim($href, " \n\r\t\v\x00");
+            if ( stripos($href, $scheme . ':') !== 0 || $this->exclusions->isContactExcluded($href) ) {
+                continue;
+            }
+
+            $target = substr($href, strlen($scheme) + 1);
+
+            if ( $scheme === 'mailto' ) {
+                if ( ! preg_match('/^(' . self::EMAIL_PATTERN . ')(.*)$/s', $target, $matches) ) {
+                    continue;
+                }
+                // The visible copy must not contain cc=/bcc= addresses
+                $visible_target = $this->getObfuscatedEmailString($matches[1])
+                    . preg_replace('/\b(b?cc=)' . self::EMAIL_PATTERN . '/i', '$1', $matches[2]);
+            } else {
+                if ( ! preg_match('/^' . self::PHONE_NUMBER . '$/', $target) ) {
+                    continue;
+                }
+                $obfuscator = new Obfuscator();
+                $visible_target = $obfuscator->processPhone($target);
+            }
+
+            $processor->set_attribute('href', $scheme . ':' . $visible_target);
+            $processor->set_attribute('data-original-string', $this->encoder->encodeString($target));
+            if ( $processor->get_attribute('title') === null ) {
+                $processor->set_attribute('title', $this->getTooltip());
+            }
+            $encoded_count++;
+        }
+
+        return $processor->get_updated_html();
     }
 
     /**
@@ -214,6 +346,10 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     public function modifyContent($content = '', $skip_exclusions = false)
     {
+        if ( ! self::isHtmlApiSupported() || $this->isNestedRenderBlock() ) {
+            return $content;
+        }
+
         $this->applyAttributeExclusionHooks();
 
         if ( ! is_string($content) || $content === '' ) {
@@ -239,6 +375,55 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     public function getGridBuilderIntegration()
     {
         return $this->grid_builder_integration;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function getTextNodeRanges($content)
+    {
+        if ( ! self::isHtmlApiSupported() ) {
+            return array();
+        }
+
+        return ContactsEncoderTagProcessor::getTextRanges($content);
+    }
+
+    /**
+     * Contacts are encoded in the text nodes and links only, attribute values are not changed.
+     *
+     * @inheritDoc
+     */
+    protected function handleAriaLabelContent($content, $_reverse = false)
+    {
+        return $content;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function dropAttributesContainEmail($content, $tags)
+    {
+        if ( ! is_string($content) || $content === '' || ! self::isHtmlApiSupported() ) {
+            return $content;
+        }
+
+        $email_pattern = '/' . self::EMAIL_PATTERN . '/';
+        $processor = new \WP_HTML_Tag_Processor($content);
+
+        while ( $processor->next_tag() ) {
+            $tag = strtolower((string)$processor->get_tag());
+            if ( ! isset($tags[$tag]) || ! is_string($tags[$tag]) ) {
+                continue;
+            }
+
+            $value = $processor->get_attribute($tags[$tag]);
+            if ( is_string($value) && preg_match($email_pattern, $value) ) {
+                $processor->remove_attribute($tags[$tag]);
+            }
+        }
+
+        return $processor->get_updated_html();
     }
 
     /**
@@ -271,6 +456,12 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $parts = preg_split($this->plain_email_pattern, $content, -1, PREG_SPLIT_DELIM_CAPTURE);
 
         $result = '';
+        // The replacing text is shown once, more than 20 emails are encoded as one string
+        if ( $content !== '' && ($mode === Params::OBFUSCATION_MODE_REPLACE || ! is_array($parts) || count($parts) > 41) ) {
+            $result = $this->modifyAny($content, $mode, $replacing_text);
+            $parts = array();
+        }
+
         foreach ($parts as $part) {
             if (empty($part)) {
                 continue;
@@ -789,6 +980,10 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             $response = $this->compileResponse($this->decoded_contacts_array, false);
             wp_send_json_error($response);
         }
+        // Skip encoding for the visitor who passed the check
+        if ( ! $this->is_logged_in && $this->is_encode_allowed && ! empty($this->decoded_contacts_array) ) {
+            Cookie::set('apbct_email_encoder_passed', apbct_get_email_encoder_pass_key());
+        }
         $response = $this->compileResponse($this->decoded_contacts_array, $this->is_encode_allowed);
         wp_send_json_success($response);
     }
@@ -822,7 +1017,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
                 'show_comment' => !$is_allowed,
                 'comment' => Escape::escHtml($this->getCheckRequestComment()),
                 'encoded_email' => strip_tags($encoded_email, '<a>'),
-                'decoded_email' => $is_allowed ? Escape::escKsesPost(strip_tags($decoded_email, '<a>')) : '',
+                'decoded_email' => $is_allowed ? $this->escapeDecodedString(strip_tags($decoded_email, '<a>')) : '',
             );
         }
         return $result;

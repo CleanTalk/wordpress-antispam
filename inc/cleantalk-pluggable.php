@@ -67,68 +67,20 @@ function apbct_wp_set_current_user($user = null)
 /**
  * Validates authentication cookie.
  *
- * The checks include making sure that the authentication cookie is set and
- * pulling in the contents (if $cookie is not used).
- *
- * Makes sure the cookie is not expired. Verifies the hash in cookie is what is
- * should be and compares the two.
+ * Uses the WordPress core validation, which is available after pluggable.php is loaded.
  *
  * @param string $cookie Optional. If used, will validate contents instead of cookie's
  * @param string $scheme Optional. The cookie scheme to use: auth, secure_auth, or logged_in
  *
  * @return false|int False if invalid cookie, User ID if valid.
- * @global int $login_grace_period
- *
  */
 function apbct_wp_validate_auth_cookie($cookie = '', $scheme = '')
 {
-    $cookie_elements = apbct_wp_parse_auth_cookie($cookie, $scheme);
-
-    if (!is_array($cookie_elements) || empty($cookie_elements)) {
+    if ( ! function_exists('wp_validate_auth_cookie') || ! is_string($cookie) ) {
         return false;
     }
 
-    $scheme     = isset($cookie_elements['scheme']) ? $cookie_elements['scheme'] : '';
-    $username   = isset($cookie_elements['username']) ? $cookie_elements['username'] : '';
-    $hmac       = isset($cookie_elements['hmac']) ? $cookie_elements['hmac'] : '';
-    $token      = isset($cookie_elements['token']) ? $cookie_elements['token'] : '';
-    $expiration = isset($cookie_elements['expiration']) ? $cookie_elements['expiration'] : '';
-
-    // Allow a grace period for POST and Ajax requests
-    $expired = apbct_is_ajax() || apbct_is_post()
-        ? $expiration + HOUR_IN_SECONDS
-        : (isset($cookie_elements['expiration']) ? $cookie_elements['expiration'] : '');
-
-    // Quick check to see if an honest cookie has expired
-    if ( $expired >= time() ) {
-        $user = apbct_wp_get_user_by('login', $username);
-        if ( $user && is_object($user) ) {
-            $pass_frag = substr($user->user_pass, 8, 4);
-            $key       = apbct_wp_hash($username . '|' . $pass_frag . '|' . $expiration . '|' . $token, $scheme);
-            // If ext/hash is not present, compat.php's hash_hmac() does not support sha256.
-            $algo = function_exists('hash') ? 'sha256' : 'sha1';
-            $hash = hash_hmac($algo, $username . '|' . $expiration . '|' . $token, $key);
-            if ( hash_equals($hash, $hmac) && is_object($user) ) {
-                $sessions = get_user_meta($user->ID, 'session_tokens', true);
-                $sessions = is_array($sessions) ? current($sessions) : $sessions;
-                if ( is_array($sessions) ) {
-                    if ( isset($sessions['expiration']) && is_int($sessions['expiration']) && $sessions['expiration'] > time() ) {
-                        return $user->ID;
-                    } else {
-                        return false;
-                    }
-                } else {
-                    return false;
-                }
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
-    } else {
-        return false;
-    }
+    return wp_validate_auth_cookie($cookie, $scheme);
 }
 
 /**
@@ -276,59 +228,6 @@ function apbct_wp_get_user_by($field, $value)
 }
 
 /**
- * Get hash of given string.
- *
- * @param string $data Plain text to hash
- * @param string $scheme Authentication scheme (auth, secure_auth, logged_in, nonce)
- *
- * @return string Hash of $data
- */
-function apbct_wp_hash($data, $scheme = 'auth')
-{
-    $values = array(
-        'key'  => '',
-        'salt' => '',
-    );
-
-    foreach ( array('key', 'salt') as $type ) {
-        $const = strtoupper("{$scheme}_{$type}");
-        if ( defined($const) && constant($const) ) {
-            $values[$type] = constant($const);
-        } elseif ( ! $values[$type] ) {
-            $values[$type] = get_site_option("{$scheme}_{$type}");
-            if ( ! $values[$type] ) {
-                $values[$type] = '';
-            }
-        }
-    }
-
-    $salt = $values['key'] . $values['salt'];
-
-    return hash_hmac('md5', $data, $salt);
-}
-
-/**
- * Parse a cookie into its components
- *
- * @param string $cookie
- * @param string $scheme Optional. The cookie scheme to use: auth, secure_auth, or logged_in
- *
- * @return array|false Authentication cookie components
- *
- */
-function apbct_wp_parse_auth_cookie($cookie = '', $scheme = '')
-{
-    $cookie_elements = explode('|', $cookie);
-    if ( count($cookie_elements) !== 4 ) {
-        return false;
-    }
-
-    list($username, $expiration, $token, $hmac) = $cookie_elements;
-
-    return compact('username', 'expiration', 'token', 'hmac', 'scheme');
-}
-
-/**
  * Checks if the plugin is active
  *
  * @param string $plugin relative path from plugin folder like cleantalk-spam-protect/cleantalk.php
@@ -418,10 +317,20 @@ function apbct_is_cli()
  */
 function apbct_is_user_logged_in()
 {
-    $siteurl    = get_site_option('siteurl');
-    $cookiehash = $siteurl ? md5($siteurl) : '';
+    static $is_logged_in = null;
 
-    return count($_COOKIE) && isset($_COOKIE['wordpress_logged_in_' . $cookiehash]);
+    // The auth cookie can be validated only after pluggable.php is loaded
+    if ( ! function_exists('wp_validate_auth_cookie') ) {
+        return false;
+    }
+
+    if ( is_null($is_logged_in) ) {
+        $is_logged_in = defined('LOGGED_IN_COOKIE') &&
+            isset($_COOKIE[LOGGED_IN_COOKIE]) &&
+            (bool)apbct_wp_validate_auth_cookie($_COOKIE[LOGGED_IN_COOKIE], 'logged_in');
+    }
+
+    return $is_logged_in;
 }
 
 function apbct_is_post()
@@ -442,6 +351,153 @@ function apbct_is_in_referer($str)
 function apbct_is_in_uri($str)
 {
     return stripos(TT::toString(Server::get('REQUEST_URI')), $str) !== false;
+}
+
+/**
+ * Get the path of the current request without the query string.
+ * For the direct calls of the scripts returns the script name, for the REST and WC AJAX requests returns the route.
+ *
+ * @return string
+ */
+function apbct_get_request_path()
+{
+    $script_name = Server::getString('SCRIPT_NAME');
+    if ( $script_name !== '' && basename($script_name) !== 'index.php' ) {
+        return $script_name;
+    }
+
+    if ( Get::getString('rest_route') !== '' ) {
+        return '/' . rest_get_url_prefix() . '/' . ltrim(Get::getString('rest_route'), '/');
+    }
+
+    if ( Get::getString('wc-ajax') !== '' ) {
+        return '/?wc-ajax=' . Get::getString('wc-ajax');
+    }
+
+    $request_uri = Server::getString('REQUEST_URI');
+    $query_pos   = strpos($request_uri, '?');
+
+    return $query_pos === false ? $request_uri : substr($request_uri, 0, $query_pos);
+}
+
+/**
+ * Checks if the path of the current request contains the string. The query string is not checked.
+ *
+ * @param string $str
+ *
+ * @return bool
+ */
+function apbct_is_in_path($str)
+{
+    return stripos(apbct_get_request_path(), $str) !== false;
+}
+
+/**
+ * Checks if the request is served by the given script, e.g. wp-comments-post.php.
+ *
+ * @param string $script_name
+ *
+ * @return bool
+ */
+function apbct_is_script_request($script_name)
+{
+    return basename(Server::getString('SCRIPT_NAME')) === $script_name;
+}
+
+/**
+ * Checks if the path of the request ends with the given string, e.g. '/peepsoajax/profilefieldsajax.validate_register'.
+ *
+ * @param string $str
+ *
+ * @return bool
+ */
+function apbct_is_path_end($str)
+{
+    $path = rtrim(apbct_get_request_path(), '/');
+
+    return substr($path, -strlen($str)) === $str;
+}
+
+/**
+ * Checks if the request is sent to the REST API route which starts with the given string.
+ * The route is read from POST, from GET, from the start of the request path.
+ *
+ * @param string $route The route, like 'vendor/v1/submit'
+ *
+ * @return bool
+ */
+function apbct_is_rest_route($route)
+{
+    // WordPress takes the route from POST first
+    if ( isset($_POST['rest_route']) ) {
+        return false;
+    }
+
+    $route = '/' . ltrim($route, '/');
+
+    if ( isset($_GET['rest_route']) ) {
+        return ! empty($_GET['rest_route']) &&
+            is_string($_GET['rest_route']) &&
+            strpos('/' . ltrim($_GET['rest_route'], '/'), $route) === 0;
+    }
+
+    $rest_path = apbct_get_rest_url_only_path();
+
+    return substr($rest_path, -1) === '/' &&
+        strpos(Server::getString('REQUEST_URI'), rtrim($rest_path, '/') . $route) === 0;
+}
+
+/**
+ * Checks if the POST data contains an email.
+ *
+ * @param array $skip_fields Names of the fields to skip
+ * @param array $skip_prefixes Prefixes of the names of the fields to skip
+ *
+ * @return bool
+ */
+function apbct_is_email_in_post($skip_fields = array(), $skip_prefixes = array())
+{
+    static $post = null;
+    static $email_fields = array();
+
+    // Find the fields with emails once for the same POST data
+    if ( $post !== $_POST ) {
+        $post = $_POST;
+        $email_fields = array();
+        foreach ( $_POST as $key => $value ) {
+            $is_email_found = false;
+            $value = is_array($value) ? $value : array($value);
+            array_walk_recursive($value, function ($item) use (&$is_email_found) {
+                if (
+                    ! $is_email_found &&
+                    is_string($item) &&
+                    strpos($item, '@') !== false &&
+                    is_email(trim($item, " \n\r\t\v\x00"))
+                ) {
+                    $is_email_found = true;
+                }
+            });
+
+            if ( $is_email_found ) {
+                $email_fields[] = (string)$key;
+            }
+        }
+    }
+
+    foreach ( $email_fields as $key ) {
+        if ( in_array($key, $skip_fields, true) ) {
+            continue;
+        }
+        foreach ( $skip_prefixes as $prefix ) {
+            if ( strpos($key, $prefix) === 0 ) {
+                continue 2;
+            }
+        }
+
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -520,10 +576,12 @@ function apbct_is_customize_preview()
 function apbct_is_direct_trackback()
 {
     return
-        Server::hasString('REQUEST_URI', '/trackback') &&
+        apbct_is_in_path('/trackback') &&
         isset($_POST) &&
         ! empty(Post::get('url')) &&
-        ! empty(Post::get('title'));
+        ! empty(Post::get('title')) &&
+        // Trackbacks have no email fields
+        ! apbct_is_email_in_post();
 }
 
 /**
@@ -541,6 +599,68 @@ function apbct_is_trackback()
     }
 
     return $wp_query->is_trackback();
+}
+
+/**
+ * Checks if the request is the CleanTalk service AJAX request without any other data.
+ *
+ * @param string $action
+ * @param array $fields Names of the fields of the service request
+ *
+ * @return bool
+ */
+function apbct_is_service_ajax_request($action, $fields)
+{
+    if (
+        ! apbct_is_script_request('admin-ajax.php') ||
+        Post::getString('action') !== $action ||
+        ! empty($_FILES)
+    ) {
+        return false;
+    }
+
+    foreach ( array_keys($_POST) as $key ) {
+        if ( ! in_array($key, $fields, true) ) {
+            return false;
+        }
+    }
+
+    foreach ( array_keys($_GET) as $key ) {
+        if ( ! in_array($key, array('action', 'lang', 'pll_ajax_frontend'), true) ) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Checks if POST contains only the given fields and the CleanTalk service fields.
+ *
+ * @param array $fields Names of the fields
+ * @param array $prefixes Prefixes of the names of the fields
+ *
+ * @return bool
+ */
+function apbct_is_only_fields_in_post($fields, $prefixes = array())
+{
+    $prefixes[] = 'ct_';
+    $prefixes[] = 'apbct';
+
+    foreach ( array_keys($_POST) as $key ) {
+        if ( in_array($key, $fields, true) ) {
+            continue;
+        }
+        foreach ( $prefixes as $prefix ) {
+            if ( strpos((string)$key, $prefix) === 0 ) {
+                continue 2;
+            }
+        }
+
+        return false;
+    }
+
+    return true;
 }
 
 /**
@@ -563,7 +683,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
     }
 
     if (
-        TT::toString(Post::get('action')) === 'apbct_alt_session__save__AJAX' &&
+        apbct_is_service_ajax_request('apbct_alt_session__save__AJAX', array('action', '_ajax_nonce', 'cookies', 'no_cache')) &&
         wp_verify_nonce(TT::toString(Post::get('_ajax_nonce')), AJAXService::$public_nonce_id)
     ) {
         return 'CleanTalk AltCookies request.';
@@ -748,7 +868,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         }
 
         if ( ! apbct_is_user_enable($apbct->user) ) {
-            return 'User is admin, editor, author';
+            return 'User role is excluded';
         }
 
         if ( ! $apbct->settings['data__protect_logged_in'] && ($apbct->user instanceof WP_User) && $apbct->user->ID !== 0 ) {
@@ -760,15 +880,11 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         }
 
         /**
-         * Apply filtration list of actions to skip for the POST/GET request
+         * Apply filtration list of actions to skip for the action processed by WordPress
          */
 
-        if ( Post::getString('action') && in_array(Post::getString('action'), $skip_for_request_actions) ) {
-            return 'POST action skipped - ' . Post::getString('action');
-        }
-
-        if ( Get::getString('action') && in_array(Get::getString('action'), $skip_for_request_actions) ) {
-            return 'GET action skipped - ' . Get::getString('action');
+        if ( Request::getString('action') && in_array(Request::getString('action'), $skip_for_request_actions) ) {
+            return 'Action skipped - ' . Request::getString('action');
         }
 
         /**
@@ -878,6 +994,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         }
         // WP Discuz skip service requests. The plugin have the direct integration
         if ( apbct_is_plugin_active('wpdiscuz/class.WpdiscuzCore.php') &&
+            $apbct->settings['forms__comments_test'] &&
             strpos(TT::toString(Post::get('action')), 'wpd') !== false ) {
             return 'WpdiscuzCore';
         }
@@ -979,7 +1096,11 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             (apbct_is_plugin_active('elementor/elementor.php') || apbct_is_plugin_active('elementor-pro/elementor-pro.php')) &&
             (
                 // elementor builder action
-                (Post::getString('actions_save_builder_action') === 'save_builder' && is_admin()) ||
+                (
+                    Post::getString('action') === 'elementor_ajax' &&
+                    Post::getString('actions_save_builder_action') === 'save_builder' &&
+                    current_user_can('edit_posts')
+                ) ||
                 // elementor login widget WooCommerce for checkout
                 (Post::getString('action') === 'elementor_woocommerce_checkout_login_user')
             )
@@ -1027,7 +1148,8 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         // APBCT service actions
         if (
             apbct_is_plugin_active('cleantalk-spam-protect/cleantalk.php') &&
-            ( TT::toString(Post::get('action')) === 'apbct_get_pixel_url' && wp_verify_nonce(TT::toString(Post::get('_ajax_nonce')), AJAXService::$public_nonce_id) )
+            apbct_is_service_ajax_request('apbct_get_pixel_url', array('action', '_ajax_nonce', 'no_cache')) &&
+            wp_verify_nonce(TT::toString(Post::get('_ajax_nonce')), AJAXService::$public_nonce_id)
         ) {
             return 'APBCT service actions';
         }
@@ -1115,7 +1237,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         // Abandoned Cart Recovery for WooCommerce requests
         if (
             apbct_is_plugin_active('woo-abandoned-cart-recovery/woo-abandoned-cart-recovery.php') &&
-            Post::hasString('action', 'wacv_') &&
+            strpos(Request::getString('action'), 'wacv_') === 0 &&
             (
                 wp_verify_nonce(TT::toString(Post::get('nonce')), 'wacv_nonce') ||
                 wp_verify_nonce(TT::toString(Get::get('nonce')), 'wacv_nonce') ||
@@ -1374,7 +1496,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         // BackInStockNotifier skip - have the direct integration
         if (
             apbct_is_plugin_active('back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php') &&
-            Post::get('action') === 'cwginstock_product_subscribe'
+            Request::getString('action') === 'cwginstock_product_subscribe'
         ) {
             return 'BackInStockNotifier service action';
         }
@@ -1688,6 +1810,17 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'Gwolle Guestbook';
         }
 
+        // Lead Form Builder have the direct integration
+        if (
+            $apbct->settings['forms__contact_forms_test'] &&
+            apbct_is_plugin_active('lead-form-builder/lead-form-builder.php') &&
+            apbct_is_script_request('admin-ajax.php') &&
+            Post::getString('action') === 'Save_Form_Data' &&
+            ! apbct_is_email_in_post(array('fdata'))
+        ) {
+            return 'Lead Form Builder';
+        }
+
         // Newsletter Automated skip testing newsletter from admins
         if (
             apbct_is_plugin_active('newsletter-automated/automated.php') &&
@@ -1784,21 +1917,23 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         /*****************************************/
         /*  Here is non-ajax requests skipping   */
         /*****************************************/
-        //Skip RegistrationMagic main request - has own integration
+        //Skip RegistrationMagic main request - has own integration. The legacy forms are not processed by it.
         if (
             apbct_is_plugin_active('custom-registration-form-builder-with-submission-manager/registration_magic.php') &&
-            isset($_POST['rm_cond_hidden_fields'])
+            isset($_POST['rm_cond_hidden_fields']) &&
+            ! isset($_POST['rm_form_sub_id']) &&
+            ! apbct_is_email_in_post(array('email_confirmation'), array('Email_', 'SecEmail_'))
         ) {
             return 'RegistrationMagic main request';
         }
         // WC payment APIs
         if ( apbct_is_plugin_active('woocommerce/woocommerce.php') &&
-             apbct_is_in_uri('wc-api=2checkout_ipn_convert_plus') ) {
+             Get::equal('wc-api', '2checkout_ipn_convert_plus') ) {
             return 'wc-payment-api';
         }
         // WC experimental calc totals
         if ( apbct_is_plugin_active('woocommerce/woocommerce.php') &&
-             apbct_is_in_uri('__experimental_calc_totals=true') ) {
+             Get::equal('__experimental_calc_totals', 'true') ) {
             return 'WC experimental calc totals';
         }
         // BuddyPress edit profile checking skip
@@ -1813,7 +1948,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         }
         // UltimateMember password reset skip
         if ( apbct_is_plugin_active('gravityformspaypal/paypal.php') &&
-             (apbct_is_in_uri('page=gf_paypal_ipn') || apbct_is_in_uri('callback=gravityformspaypal')) ) {
+             (Get::equal('page', 'gf_paypal_ipn') || Get::equal('callback', 'gravityformspaypal')) ) {
             return 'gravityformspaypal_processing_skipped';
         }
         // MyListing theme service requests skip
@@ -1852,16 +1987,17 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         }
         // WC payment APIs
         if ( apbct_is_plugin_active('woocommerce/woocommerce.php') &&
-             apbct_is_in_uri('wc-ajax=iwd_opc_update_order_review') ) {
+             Get::equal('wc-ajax', 'iwd_opc_update_order_review') ) {
             return 'cartflows_save_cart';
         }
         // WC addon - Metorik Helper plugin service requests
         if ( apbct_is_plugin_active('metorik-helper/metorik-helper.php') &&
-             apbct_is_in_uri('wc-ajax=metorik_capture_customer_data') ) {
+             Get::equal('wc-ajax', 'metorik_capture_customer_data') ) {
             return 'metorik-helper skip';
         }
         // Vault Press (JetPack) plugin service requests
         if (
+            apbct_is_plugin_active('vaultpress/vaultpress.php') &&
             Post::get('do_backups') !== '' &&
             Get::get('vaultpress') === 'true' &&
             Get::get('action') !== '' &&
@@ -1880,17 +2016,16 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         // WSForms - this is the direct integration and service requests skip
         if (
             apbct_is_plugin_active('ws-form-pro/ws-form.php') &&
-            ( ( Post::get('wsf_form_id') !== '' && Post::get('wsf_post_id') !== '' ) ||
-            TT::toInt(Post::get('wsffid')) > 0 )
+            apbct_is_rest_route('ws-form/v1/submit')
         ) {
             return 'WSForms skip';
         }
         // Checkout For WC - service requests skip
         if (
             apbct_is_plugin_active('checkout-for-woocommerce/checkout-for-woocommerce.php') &&
-            ( ( apbct_is_in_uri('wc-ajax=update_checkout') && wp_verify_nonce(TT::toString(Post::get('security')), 'update-order-review') ) ||
-            apbct_is_in_uri('wc-ajax=account_exists') ||
-            apbct_is_in_uri('wc-ajax=complete_order') )
+            ( ( Get::equal('wc-ajax', 'update_checkout') && wp_verify_nonce(TT::toString(Post::get('security')), 'update-order-review') ) ||
+            Get::equal('wc-ajax', 'account_exists') ||
+            Get::equal('wc-ajax', 'complete_order') )
         ) {
             return 'Checkout For WC skip';
         }
@@ -1906,8 +2041,8 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         // APBCT service actions
         if (
             apbct_is_plugin_active('cleantalk-spam-protect/cleantalk.php') &&
-            (apbct_is_in_uri('cleantalk-antispam/v1/check_email_before_post') ||
-            apbct_is_in_uri('cleantalk-antispam/v1/check_email_exist_post'))
+            (apbct_is_rest_route('cleantalk-antispam/v1/check_email_before_post') ||
+            apbct_is_rest_route('cleantalk-antispam/v1/check_email_exist_post'))
         ) {
             return 'APBCT service actions';
         }
@@ -1957,28 +2092,11 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'Billige-teste theme 1st step checkout request';
         }
 
-        // Skip WS Forms Pro request - have the direct integration
-        if (
-            apbct_is_plugin_active('ws-form-pro/ws-form.php') &&
-            Post::get('wsf_form_id') &&
-            Post::get('wsf_post_mode') === 'submit'
-        ) {
-            return 'WS Forms Pro request';
-        }
-
-        // Skip Indeed Ultimate Membership Pro - have the direct integration
-        if (
-            apbct_is_plugin_active('indeed-membership-pro/indeed-membership-pro.php') &&
-            wp_verify_nonce(TT::toString(Post::get('ihc_user_add_edit_nonce')), 'ihc_user_add_edit_nonce')
-        ) {
-            return 'Indeed Ultimate Membership Pro - have the direct integration';
-        }
-
         // Plugin Name: OptimizeCheckouts - skip fields checks
         if (
             apbct_is_plugin_active('op-cart/op-checkouts.php') &&
-            ( apbct_is_in_uri('opc/v1/cart/recalculate') ||
-            apbct_is_in_uri('opc/v1/cart/update-payment-method') )
+            ( apbct_is_rest_route('opc/v1/cart/recalculate') ||
+            apbct_is_rest_route('opc/v1/cart/update-payment-method') )
         ) {
             return 'Plugin Name: OptimizeCheckouts skip fields checks';
         }
@@ -2016,13 +2134,41 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         }
 
         // Plugin Name: SureForms
-        if ( apbct_is_plugin_active('sureforms/sureforms.php') && apbct_is_in_uri('/sureforms/v1/submit-form')) {
+        if ( apbct_is_plugin_active('sureforms/sureforms.php') && apbct_is_rest_route('sureforms/v1/submit-form')) {
             return 'Plugin Name: SureForms skip fields checks';
         }
 
+        // Plugin Name: Site Reviews - have the direct integration
+        if ( apbct_is_plugin_active('site-reviews/site-reviews.php') && apbct_is_rest_route('site-reviews/v1/submissions')) {
+            return 'Plugin Name: Site Reviews skip fields checks';
+        }
+
+        // Plugin Name: ReviewX - have the direct integration
+        if ( apbct_is_plugin_active('reviewx/reviewx.php') && apbct_is_rest_route('reviewx/api/v1/storefront/reviews')) {
+            return 'Plugin Name: ReviewX skip fields checks';
+        }
+
         // Plugin Name: WPRecipeMaker
-        if ( apbct_is_plugin_active('wp-recipe-maker-premium/wp-recipe-maker-premium.php') && apbct_is_in_uri('/wp-recipe-maker/v1/user-rating/')) {
+        if ( apbct_is_plugin_active('wp-recipe-maker-premium/wp-recipe-maker-premium.php') && apbct_is_rest_route('wp-recipe-maker/v1/user-rating/')) {
             return 'Plugin Name: WPRecipeMaker skip fields checks';
+        }
+
+        // Plugin Name: MetForm - has the direct integration on the REST route
+        if (
+            $apbct->settings['forms__contact_forms_test'] &&
+            apbct_is_plugin_active('metform/metform.php') &&
+            apbct_is_rest_route('metform/v1/entries/insert/')
+        ) {
+            return 'Plugin Name: MetForm skip fields checks';
+        }
+
+        // Plugin Name: Back In Stock Notifier - has the direct integration on the REST route
+        if (
+            $apbct->settings['forms__contact_forms_test'] &&
+            apbct_is_plugin_active('back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php') &&
+            apbct_is_rest_route('back-in-stock/v1/subscriber/create')
+        ) {
+            return 'Plugin Name: Back In Stock Notifier skip fields checks';
         }
 
         // skip AsgarosForum - has direct integration
@@ -2031,7 +2177,9 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             (
                 Request::getString('submit_action') === 'add_topic' ||
                 Request::getString('submit_action') === 'add_post'
-            )
+            ) &&
+            // The forum form has no email fields
+            ! apbct_is_email_in_post()
         ) {
             return 'AsgarosForum';
         }
@@ -2039,7 +2187,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         // Plugin Name: HivePress
         if (
             apbct_is_plugin_active('hivepress/hivepress.php') &&
-            (apbct_is_in_uri('/hivepress/v1/listings/') || apbct_is_in_uri('/hivepress/v1/users'))
+            (apbct_is_rest_route('hivepress/v1/listings/') || apbct_is_rest_route('hivepress/v1/users'))
         ) {
             return 'Plugin Name: HivePress skip REST route checking';
         }
@@ -2047,8 +2195,13 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         // WooCommerce register request skipping - this have to be processed by hook `woocommerce_registration_errors`
         if (
             apbct_is_plugin_active('woocommerce/woocommerce.php') &&
-            Post::getString('woocommerce-register-nonce') &&
-            wp_verify_nonce(Post::getString('woocommerce-register-nonce'), 'woocommerce-register')
+            Post::getString('register') !== '' &&
+            wp_verify_nonce(Post::getString('woocommerce-register-nonce'), 'woocommerce-register') &&
+            apbct_is_only_fields_in_post(
+                array('username', 'email', 'password', 'register', 'woocommerce-register-nonce', '_wp_http_referer'),
+                array('wc_order_attribution_')
+            ) &&
+            ! apbct_is_email_in_post(array('username', 'email'))
         ) {
             return 'WooCommerce register request (have to be processed by hook `woocommerce_registration_errors`)';
         }
@@ -2056,14 +2209,15 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
 
     // WP Fusion Abandoned Cart Addon
     if ( apbct_is_plugin_active('wp-fusion-abandoned-cart/wp-fusion-abandoned-cart.php') &&
-        (Post::get('action') === 'wpf_abandoned_cart' || Post::get('action') === 'wpf_progressive_update_cart')
+        (Post::get('action') === 'wpf_abandoned_cart' || Post::get('action') === 'wpf_progressive_update_cart') &&
+        wp_doing_ajax()
     ) {
         return 'WP Fusion Abandoned Cart Addon service action';
     }
 
     // Elementor pro forms has a direct integration
     if (apbct_is_plugin_active('elementor-pro/elementor-pro.php')) {
-        if ( Post::get('action') === 'elementor_pro_forms_send_form') {
+        if ( wp_doing_ajax() && is_admin() && Request::getString('action') === 'elementor_pro_forms_send_form' ) {
             if (
                 Post::get('post_id') !== '' &&
                 Post::get('form_id') !== '' &&
@@ -2075,7 +2229,9 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             Post::get('queried_id') !== '' &&
             Post::get('post_id') !== '' &&
             Post::get('form_id') !== '' &&
-            Post::get('cfajax') === ''
+            Post::get('cfajax') === '' &&
+            // Only the fields of the Elementor form
+            apbct_is_only_fields_in_post(array('action', 'post_id', 'form_id', 'referer_title', 'queried_id', 'form_fields'))
         ) {
             return 'Elementor pro forms non ajax';
         }
@@ -2084,15 +2240,19 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
     //Skip wforms because of direct integration
     if (
         (apbct_is_plugin_active('wpforms/wpforms.php') || apbct_is_plugin_active('wpforms-lite/wpforms.php')) &&
-        (Post::get('wpforms') || Post::get('actions') === 'wpforms_submit')
+        (Post::get('wpforms') || Post::get('actions') === 'wpforms_submit') &&
+        ! apbct_is_email_in_post(array('wpforms'))
     ) {
         return 'wp_forms';
     }
 
     //Plugin Name: Kali Forms
     if (
-        apbct_is_plugin_active('product-enquiry-pro/kali-forms.php') ||
-        apbct_is_plugin_active('product-enquiry-pro/kali-forms-pro.php')
+        (
+            apbct_is_plugin_active('product-enquiry-pro/kali-forms.php') ||
+            apbct_is_plugin_active('product-enquiry-pro/kali-forms-pro.php')
+        ) &&
+        wp_doing_ajax()
     ) {
         if ( Post::get('action') === 'kaliforms_form_process' ) {
             return 'Plugin Name: Kali Forms - have the direct integration';
@@ -2108,6 +2268,7 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
         apbct_is_plugin_active('nobletitlecalc/nobletitle-calc.php')
         && Post::get('Calculate')
         && Post::get('coverageType')
+        && ! apbct_is_email_in_post()
     ) {
         return 'nobletitle-calc';
     }
@@ -2115,7 +2276,11 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
     // Otter Blocks have the direct integration
     if (
         apbct_is_plugin_active('otter-blocks/otter-blocks.php') &&
-        Post::get('form_data')
+        Post::get('form_data') &&
+        (
+            apbct_is_rest_route('otter/v1/form/frontend') ||
+            (wp_doing_ajax() && is_admin() && Request::getString('action') === 'cleantalk_force_otterform_check')
+        )
     ) {
         return 'Otter Blocks';
     }
@@ -2123,7 +2288,9 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
     // Nex Forms have the direct integration
     if (
         apbct_is_plugin_active('nex-forms/main.php') &&
-        Post::get('action') === 'submit_nex_form'
+        wp_doing_ajax() &&
+        is_admin() &&
+        Request::getString('action') === 'submit_nex_form'
     ) {
         return 'Nex Forms';
     }
@@ -2132,7 +2299,8 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
     // The form posts to admin-ajax.php?action=..., so the action arrives via GET.
     if (
         apbct_is_plugin_active('pagelayer/pagelayer.php') &&
-        Request::getString('action') === 'pagelayer_contact_submit'
+        Request::getString('action') === 'pagelayer_contact_submit' &&
+        wp_doing_ajax()
     ) {
         return 'Pagelayer contact form - has the direct integration';
     }

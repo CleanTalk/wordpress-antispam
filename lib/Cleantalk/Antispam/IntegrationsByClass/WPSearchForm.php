@@ -187,7 +187,6 @@ class WPSearchForm extends IntegrationByClassBase
 
         if (
             empty($search) ||
-            $cleantalk_executed ||
             $apbct->settings['forms__search_test'] == 0 ||
             ($apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in()) // Skip processing for logged in users.
         ) {
