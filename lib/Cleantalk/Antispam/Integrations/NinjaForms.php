@@ -7,6 +7,7 @@ use Cleantalk\ApbctWP\DTO\GetFieldsAnyDTO;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\GetFieldsAny;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\Validate;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\Common\TT;
@@ -171,10 +172,12 @@ class NinjaForms extends IntegrationBase
             return true;
         }
 
-        if (!empty($this->base_call_result)) {
+        $base_call_result = TT::toArray($this->base_call_result);
+        $ct_result = isset($base_call_result['ct_result']) ? $base_call_result['ct_result'] : null;
+        if (is_object($ct_result)) {
             // Change mail notification if license is out of date
             if ( $apbct->data['moderate'] == 0 &&
-                ($this->base_call_result->fast_submit == 1 || $this->base_call_result->blacklisted == 1 || $this->base_call_result->js_disabled == 1)
+                ($ct_result->fast_submit == 1 || $ct_result->blacklisted == 1 || $ct_result->js_disabled == 1)
             ) {
                 $apbct->sender_email = $this->sender_email;
                 $apbct->sender_ip    = Helper::ipGet();
@@ -440,7 +443,9 @@ class NinjaForms extends IntegrationBase
     {
         global $apbct;
 
-        if ( $action_settings['to'] !== $apbct->sender_email ) {
+        // Do not change the mail sent to the visitor
+        $to = isset($action_settings['to']) ? $action_settings['to'] : '';
+        if ( ! Validate::isEmailInRecipients($to, (string)$apbct->sender_email) ) {
             $message .= wpautop(
                 PHP_EOL . '---'
                 . PHP_EOL
@@ -451,7 +456,7 @@ class NinjaForms extends IntegrationBase
                 . PHP_EOL .
                 __('If you want to be sure activate protection in your Anti-Spam Dashboard: ', 'clentalk') .
                 //HANDLE LINK
-                'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=ninjaform_activate_antispam' . $apbct->user_token
+                'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=ninjaform_activate_antispam'
             );
         }
 

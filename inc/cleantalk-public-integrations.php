@@ -1543,7 +1543,7 @@ function apbct_form__contactForm7__testSpam($spam, $_submission = null)
         ) {
             $apbct->sender_email = $sender_email;
             $apbct->sender_ip    = Helper::ipGet();
-            add_filter('wpcf7_mail_components', 'apbct_form__contactForm7__changeMailNotification');
+            add_filter('wpcf7_mail_components', 'apbct_form__contactForm7__changeMailNotification', 10, 3);
         }
 
         if ( $ct_result->allow == 0 ) {
@@ -1604,12 +1604,26 @@ function apbct_form__contactForm7__showResponse($message, $status = 'spam')
  * Changes email notification for success subscription for Contact Form 7
  *
  * @param array $component Arguments for email notification
+ * @param object|null $_contact_form WPCF7_ContactForm
+ * @param object|null $mail WPCF7_Mail
  *
  * @return array Arguments for email notification
+ * @psalm-suppress PossiblyUnusedParam
  */
-function apbct_form__contactForm7__changeMailNotification($component)
+function apbct_form__contactForm7__changeMailNotification($component, $_contact_form = null, $mail = null)
 {
     global $apbct;
+
+    // Only the main mail goes to the site owner, Mail (2) is an autoresponder to the visitor
+    if ( is_object($mail) && method_exists($mail, 'name') && $mail->name() !== 'mail' ) {
+        return $component;
+    }
+    if (
+        isset($component['recipient']) &&
+        \Cleantalk\ApbctWP\Validate::isEmailInRecipients($component['recipient'], (string)$apbct->sender_email)
+    ) {
+        return $component;
+    }
 
     $original_body = isset($component['body']) ? $component['body'] : '';
 
@@ -1621,7 +1635,7 @@ function apbct_form__contactForm7__changeMailNotification($component)
         . PHP_EOL . sprintf(
             //HANDLE LINK
             __('If you want to be sure activate protection in your Anti-Spam Dashboard: %s.', 'clentalk'),
-            'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=cf7_activate_antispam&user_token=' . $apbct->user_token
+            'https://cleantalk.org/my/?cp_mode=antispam&utm_source=newsletter&utm_medium=email&utm_campaign=cf7_activate_antispam'
         )
         . PHP_EOL . '---' . PHP_EOL . PHP_EOL
         . $original_body;

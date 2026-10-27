@@ -1,0 +1,27 @@
+name: Make constants documentation
+description: Regenerate and commit the beta constants reference
+
+inputs:
+  source_file:
+    description: PHP class containing documented configuration constants
+    required: false
+    default: lib/Cleantalk/ApbctWP/Constant.php
+  output_file:
+    description: Generated Markdown reference
+    required: false
+    default: docs/CONSTANT.MD
+  target_branch:
+    description: Branch to push the documentation commit to
+    required: false
+    default: beta
+
+runs:
+  using: composite
+  steps:
+    - name: Rebuild constants reference
+      shell: bash
+      run: bash "${{ github.action_path }}/entrypoint.sh"
+      env:
+        INPUT_SOURCE_FILE: ${{ inputs.source_file }}
+        INPUT_OUTPUT_FILE: ${{ inputs.output_file }}
+        INPUT_TARGET_BRANCH: ${{ inputs.target_branch }}

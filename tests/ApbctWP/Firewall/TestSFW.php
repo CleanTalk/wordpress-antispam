@@ -119,8 +119,8 @@ class TestSFW extends TestCase
         $api_key = 'test_api_key';
         $salt = 'test_salt_value';
 
-        // New-style cookie: md5(ip + api_key + salt)
-        $new_cookie = md5($ip . $api_key . $salt) . '0';
+        // New-style cookie: md5(ip + api_key + salt + status) + status
+        $new_cookie = SFW::makePassKey($ip, $api_key, $salt, '0');
         $_COOKIE['ct_sfw_pass_key'] = $new_cookie;
         $_COOKIE['ct_sfw_passed'] = '1';
 
@@ -164,8 +164,8 @@ class TestSFW extends TestCase
         $api_key = 'test_api_key';
         $salt = 'test_salt_value';
 
-        // New-style cookie with whitelist status '1'
-        $new_cookie = md5($ip . $api_key . $salt) . '1';
+        // Whitelist cookie issued by the plugin, status '1' is signed
+        $new_cookie = SFW::makePassKey($ip, $api_key, $salt, '1');
         $_COOKIE['ct_sfw_pass_key'] = $new_cookie;
 
         $sfw = new SFW(
@@ -200,7 +200,7 @@ class TestSFW extends TestCase
         $api_key = 'test_api_key';
 
         // Cookie made with wrong salt
-        $wrong_salt_cookie = md5($ip . $api_key . 'wrong_salt') . '0';
+        $wrong_salt_cookie = SFW::makePassKey($ip, $api_key, 'wrong_salt', '0');
         $_COOKIE['ct_sfw_pass_key'] = $wrong_salt_cookie;
 
         $sfw = new SFW(
@@ -228,15 +228,72 @@ class TestSFW extends TestCase
 
     /**
      * @test
-     * actionsForPassed() sets cookie value using salt.
+     * makePassKey() signs the status: keys for '0' and '1' differ in the hash part, not only the suffix.
      */
-    public function testActionsForPassedUsesSaltInCookie()
+    public function testMakePassKeySignsStatus()
     {
-        global $apbct;
-
         $ip = '203.0.113.50';
         $api_key = 'test_api_key';
         $salt = 'test_salt_value';
+
+        $passed = SFW::makePassKey($ip, $api_key, $salt, '0');
+        $whitelisted = SFW::makePassKey($ip, $api_key, $salt, '1');
+
+        $this->assertSame(md5($ip . $api_key . $salt . '0') . '0', $passed);
+        $this->assertSame(md5($ip . $api_key . $salt . '1') . '1', $whitelisted);
+        $this->assertSame(33, strlen($passed));
+        $this->assertNotSame(substr($passed, 0, 32), substr($whitelisted, 0, 32));
+        $this->assertSame($passed, SFW::makePassKey($ip, $api_key, $salt, 'x'), 'Unknown status falls back to 0');
+    }
+
+    /**
+     * @test
+     * getPassKeyStatus() accepts only exact, correctly signed 33-char keys with status 0 or 1.
+     *
+     * @dataProvider passKeyProvider
+     */
+    public function testGetPassKeyStatus($pass_key, $expected)
+    {
+        $this->assertSame(
+            $expected,
+            SFW::getPassKeyStatus($pass_key, '203.0.113.50', 'test_api_key', 'test_salt_value')
+        );
+    }
+
+    public function passKeyProvider()
+    {
+        $ip = '203.0.113.50';
+        $api_key = 'test_api_key';
+        $salt = 'test_salt_value';
+        $passed = SFW::makePassKey($ip, $api_key, $salt, '0');
+        $whitelisted = SFW::makePassKey($ip, $api_key, $salt, '1');
+
+        return array(
+            'valid passed'                 => array($passed, '0'),
+            'valid whitelisted'            => array($whitelisted, '1'),
+            'status flipped 0 to 1'        => array(substr($passed, 0, 32) . '1', null),
+            'status flipped 1 to 0'        => array(substr($whitelisted, 0, 32) . '0', null),
+            'old unsigned status format'   => array(md5($ip . $api_key . $salt) . '1', null),
+            'status other than 0 or 1'     => array(substr($passed, 0, 32) . 'a', null),
+            'hash only, no status'         => array(substr($passed, 0, 32), null),
+            'extra trailing chars'         => array($passed . '1', null),
+            'other IP'                     => array(SFW::makePassKey('198.51.100.1', $api_key, $salt, '1'), null),
+            'empty'                        => array('', null),
+        );
+    }
+
+    /**
+     * @test
+     * A passed (status 0) cookie with its last char flipped to '1' must not give PASS_SFW__BY_WHITELIST.
+     */
+    public function testForgedWhitelistStatusIsRejected()
+    {
+        $ip = '10.0.0.1';
+        $api_key = 'test_api_key';
+        $salt = 'test_salt_value';
+
+        $forged = substr(SFW::makePassKey($ip, $api_key, $salt, '0'), 0, 32) . '1';
+        $_COOKIE['ct_sfw_pass_key'] = $forged;
 
         $sfw = new SFW(
             'test_log_table',
@@ -247,26 +304,16 @@ class TestSFW extends TestCase
                 'sfw_common_table_name' => 'test_data_table',
             )
         );
+        $sfw->setIpArray(array('real' => $ip));
+        $sfw->setDb($this->createDbStub(array()));
 
-        $result = array(
-            'ip' => $ip,
-            'status' => 'PASS_SFW',
-        );
+        $results = $sfw->check();
 
-        // actionsForPassed sets a cookie - we can't easily verify the cookie value
-        // in CLI, but we can verify the hash computation is correct
-        $expected_hash = md5($ip . $api_key . $salt) . '0';
-
-        // Verify that the hash formula includes salt
-        $this->assertNotEquals(
-            md5($ip . $api_key) . '0',
-            $expected_hash,
-            'Hash with salt must differ from hash without salt'
-        );
-        $this->assertEquals(
-            md5($ip . $api_key . $salt) . '0',
-            $expected_hash
-        );
+        $this->assertNotEmpty($results, 'Forged cookie must fall through to the regular DB check');
+        foreach ($results as $result) {
+            $this->assertNotEquals('PASS_SFW__BY_WHITELIST', $result['status']);
+            $this->assertNotEquals('PASS_SFW__BY_COOKIE', $result['status']);
+        }
     }
 
     // =========================================================================
@@ -564,6 +611,52 @@ class TestSFW extends TestCase
         $sfw->updateLog('', 'DENY_SFW');
         $sfw->updateLog('0.0.0.0', 'DENY_SFW');
         $sfw->updateLog('not-an-ip', 'DENY_SFW');
+    }
+
+    // =========================================================================
+    // Die page link to the requested page
+    // =========================================================================
+
+    /**
+     * @test
+     * @dataProvider externalRequestUriProvider
+     * getLocalUrl() must not return a URL that leads to another host.
+     */
+    public function testGetLocalUrlStaysOnSite($request_uri, $expected)
+    {
+        $url = SFW::getLocalUrl($request_uri);
+
+        $this->assertSame($expected, $url);
+        // The browser decodes entities of the href attribute before following it
+        $href = html_entity_decode($url, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $this->assertNull(wp_parse_url($href, PHP_URL_HOST));
+        $this->assertSame(0, strpos($href, '/'));
+        $this->assertNotSame(0, strpos($href, '//'));
+    }
+
+    public function externalRequestUriProvider()
+    {
+        return array(
+            'protocol relative'     => array('//evil.example/land?sfw_test_ip=1.2.3.4&debug=1', '/evil.example/land?sfw_test_ip=1.2.3.4&amp;debug=1'),
+            'decimal entity slash'  => array('/&#047;evil.example/land', '/&amp;#047;evil.example/land'),
+            'hex entity slash'      => array('/&#x2f;evil.example/land', '/&amp;#x2f;evil.example/land'),
+            'quote breakout'        => array("/x'onmouseover='alert(1)", '/x&#039;onmouseover=&#039;alert(1)'),
+            'many slashes'          => array('////evil.example/land', '/evil.example/land'),
+            'backslash'             => array('/\\evil.example/land', '/evil.example/land'),
+            'slash and backslash'   => array('/\\/evil.example/land', '/evil.example/land'),
+            'absolute url'          => array('http://evil.example/land', '/http://evil.example/land'),
+            'empty'                 => array('', '/'),
+        );
+    }
+
+    /**
+     * @test
+     * getLocalUrl() keeps a regular request URI.
+     */
+    public function testGetLocalUrlKeepsRegularUri()
+    {
+        $this->assertSame('/test-page/?a=1&amp;b=2', SFW::getLocalUrl('/test-page/?a=1&b=2'));
+        $this->assertSame('/', SFW::getLocalUrl('/'));
     }
 
     // =========================================================================

@@ -624,6 +624,11 @@ add_action('mec_booking_end_form_step_2', function () {
     );
 });
 
+// Emergency firewall bypass: the control panel posts a signed token to admin-post.php.
+// SpamFireWall checks only GET requests on the public side, so this POST is never blocked by it.
+add_action('admin_post_nopriv_' . FirewallBypass::JWT_ACTION, array(FirewallBypass::class, 'handleJwtRequest'));
+add_action('admin_post_' . FirewallBypass::JWT_ACTION, array(FirewallBypass::class, 'handleJwtRequest'));
+
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
     $sci = new CleantalkScriptsIntegrator();
@@ -777,14 +782,17 @@ if ( is_admin() || is_network_admin() ) {
         // if User is not logged in
         // if Unknown action or Known action with mandatory check
         if (
-            ( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1) &&
             Post::get('action') !== '' &&
             (
                 ! in_array(Post::get('action'), $_cleantalk_hooked_actions) ||
                 in_array(Post::get('action'), $_cleantalk_ajax_actions_to_check)
             )
         ) {
-            add_action('plugins_loaded', 'ct_ajax_hook');
+            add_action('plugins_loaded', function () use ($apbct) {
+                if ( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1 ) {
+                    ct_ajax_hook();
+                }
+            });
         }
 
         //QAEngine Theme answers
@@ -913,7 +921,12 @@ function apbct_sfw__check()
             );
             Cookie::set(
                 'ct_sfw_pass_key',
-                md5(Server::get('REMOTE_ADDR') . $apbct->api_key . $apbct->data['salt']),
+                SFW::makePassKey(
+                    TT::toString(Server::get('REMOTE_ADDR')),
+                    TT::toString($apbct->api_key),
+                    TT::toString($apbct->data['salt']),
+                    '0'
+                ),
                 time() + 1200,
                 '/',
                 ''
@@ -1001,7 +1014,6 @@ function apbct_sfw__check()
                 APBCT_TBL_FIREWALL_LOG,
                 APBCT_TBL_AC_LOG,
                 array(
-                    'api_key'    => $apbct->api_key,
                     'view_limit' => $apbct->settings['sfw__anti_flood__view_limit'],
                     'apbct'      => $apbct,
                 )

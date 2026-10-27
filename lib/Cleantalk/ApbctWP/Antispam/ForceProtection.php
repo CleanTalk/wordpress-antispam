@@ -3,8 +3,10 @@
 namespace Cleantalk\ApbctWP\Antispam;
 
 use Cleantalk\ApbctWP\BotDetectorService;
+use Cleantalk\ApbctWP\ContactsEncoder\PlaceholderNonce;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
+use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\Variables\Post;
 use Cleantalk\Antispam\CleantalkRequest;
 use Cleantalk\Antispam\Cleantalk;
@@ -14,6 +16,11 @@ use Cleantalk\Common\TT;
 class ForceProtection
 {
     use Singleton;
+
+    /**
+     * @var string Token of wrappers generated in the current response
+     */
+    private $wrapper_token = '';
 
     /**
      * @return void
@@ -88,6 +95,7 @@ class ForceProtection
         $config             = ct_get_server();
         $ct->server_url     = APBCT_MODERATE_URL;
         $ct->work_url       = isset($config['ct_work_url']) && preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+        $ct->work_ip        = isset($config['ct_work_ip']) ? $config['ct_work_ip'] : null;
         $ct->server_ttl     = isset($config['ct_server_ttl']) ? $config['ct_server_ttl'] : null;
         $ct->server_changed = isset($config['ct_server_changed']) ? $config['ct_server_changed'] : null;
         $api_response = $ct->checkBot($ct_request);
@@ -102,7 +110,12 @@ class ForceProtection
                 ),
             ));
         }
-        RequestParameters::set('apbct_force_protection_check', TT::toString($api_response->allow));
+        $pass_token = '0';
+        if ( (int)$api_response->allow === 1 ) {
+            $expires = time() + DAY_IN_SECONDS;
+            $pass_token = $expires . '.' . $this->getPassSignature($expires);
+        }
+        RequestParameters::set('apbct_force_protection_check', $pass_token);
 
         return json_encode(array(
             'allow' => $api_response->allow,
@@ -119,11 +132,15 @@ class ForceProtection
      */
     private function checkIframeForms($content)
     {
-        $content = preg_replace_callback('#<iframe\b[^>]*>.*?<\/iframe>#is', function ($matches) {
+        $is_passed = null;
+        $content = preg_replace_callback('#<iframe\b[^>]*>.*?<\/iframe>#is', function ($matches) use (&$is_passed) {
 
             $iframe = isset($matches[0]) ? $matches[0] : '';
 
-            if ( RequestParameters::get('apbct_force_protection_check') ) {
+            if ( $is_passed === null ) {
+                $is_passed = $this->hasValidPassToken();
+            }
+            if ( $is_passed ) {
                 return $iframe;
             }
 
@@ -146,6 +163,42 @@ class ForceProtection
         }, $content);
 
         return $content;
+    }
+
+    /**
+     * @return bool
+     */
+    private function hasValidPassToken()
+    {
+        $token = RequestParameters::get('apbct_force_protection_check');
+        if (
+            ! is_string($token) ||
+            ! preg_match('/^([0-9]{1,10})\.([a-f0-9]{64})$/D', $token, $parts) ||
+            ! isset($parts[1], $parts[2])
+        ) {
+            return false;
+        }
+
+        $expires = (int)$parts[1];
+        if ( $expires <= time() || $expires > time() + DAY_IN_SECONDS ) {
+            return false;
+        }
+
+        return hash_equals($this->getPassSignature($expires), $parts[2]);
+    }
+
+    /**
+     * Bind a successful challenge to this site, visitor and expiration time.
+     *
+     * @param int $expires
+     * @return string
+     */
+    private function getPassSignature($expires)
+    {
+        $data = 'apbct_force_protection_check|'
+            . get_home_url() . '|' . AltSessions::getID() . '|' . $expires;
+
+        return hash_hmac('sha256', $data, wp_salt('auth'));
     }
 
     /**
@@ -293,11 +346,36 @@ class ForceProtection
     private function generateWrapper($form)
     {
         $encoded_form = urlencode(base64_encode($form));
-        $wrapper = '<div class="ct-encoded-form-wrapper">'
+        $wrapper = '<div class="ct-encoded-form-wrapper" data-ct-wrapper-token="' . esc_attr($this->getWrapperToken()) . '">'
             . '<div class="ct-encoded-form-loader"></div>'
             . '<div class="ct-encoded-form" data-encoded-form="' . $encoded_form . '"></div>'
             . '</div>';
 
         return $wrapper;
+    }
+
+    /**
+     * Whether force protection was started for the current request (valid key, frontend).
+     *
+     * @return bool
+     */
+    public static function isInitialized()
+    {
+        return isset(static::$instance[static::class]);
+    }
+
+    /**
+     * Random token of the current response. JS decodes only wrappers with this token,
+     * so a wrapper planted in post content is never decoded.
+     *
+     * @return string
+     */
+    public function getWrapperToken()
+    {
+        if ($this->wrapper_token === '') {
+            $this->wrapper_token = PlaceholderNonce::generate();
+        }
+
+        return $this->wrapper_token;
     }
 }
