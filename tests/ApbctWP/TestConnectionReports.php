@@ -248,4 +248,36 @@ class TestConnectionReports extends TestCase
         $this->assertCount(5, $moderate);
         $this->assertCount(20, $api);
     }
+
+    public function testEmailContentHasBothListsAndAggregatesDuplicates()
+    {
+        $this->connection_reports->wipeReportsData();
+
+        for ($i = 0; $i < 3; $i++) {
+            $this->connection_reports->handleApiRequest('notice_paid_till', array(), array('error' => 'cURL error 6'), 'https://api.cleantalk.org');
+        }
+        $this->connection_reports->handleApiRequest('email_check', array(), array('error' => 'cURL error 6'), 'https://api.cleantalk.org');
+
+        $data = $this->connection_reports->remoteCallOutput();
+        $method = new ReflectionMethod($this->connection_reports, 'prepareEmailContent');
+        $method->setAccessible(true);
+        $html = $method->invoke($this->connection_reports, $data);
+
+        $this->assertStringContainsString('Anti-Spam (moderate servers) connection reports', $html);
+        $this->assertStringContainsString('API connection reports', $html);
+        // No moderate reports - the section is kept with a notice
+        $this->assertStringContainsString('No new reports.', $html);
+        // 4 API reports are aggregated into 2 rows
+        $this->assertEquals(1, substr_count($html, '<td>notice_paid_till</td>'));
+        $this->assertEquals(1, substr_count($html, '<td>email_check</td>'));
+        $this->assertStringContainsString('<td>notice_paid_till</td><td>cURL error 6</td><td>https://api.cleantalk.org</td><td>3</td>', $html);
+
+        $this->ct_response->errno = 500;
+        $this->ct_response->errstr = 'MODERATE ERROR';
+        $this->connection_reports->handleRequest($this->ct_request, $this->ct_response, 0);
+        $html = $method->invoke($this->connection_reports, $this->connection_reports->remoteCallOutput());
+
+        $this->assertStringNotContainsString('No new reports.', $html);
+        $this->assertStringContainsString('<td>MODERATE ERROR</td>', $html);
+    }
 }

@@ -547,19 +547,6 @@ class ConnectionReports
     }
 
     /**
-     * Prepare escaped HTML paragraphs with stats of both sources
-     * @return string
-     */
-    private function prepareStatsHtml()
-    {
-        $html = $this->prepareStatsParagraph($this->reports_count, 'Anti-Spam');
-        if ( ! empty($this->api_reports_count['total']) ) {
-            $html .= $this->prepareStatsParagraph($this->api_reports_count, 'API');
-        }
-        return $html;
-    }
-
-    /**
      * @param array $count
      * @param string $label
      * @return string
@@ -810,6 +797,100 @@ class ConnectionReports
     }
 
     /**
+     * Get report field as string
+     * @param array $report
+     * @param string $field
+     * @return string
+     */
+    private static function getReportField($report, $field)
+    {
+        return isset($report[$field]) ? TT::toString($report[$field]) : '';
+    }
+
+    /**
+     * Group identical reports (by the key fields) to avoid duplicates in the email.
+     * The newest groups go first.
+     * @param array $reports
+     * @param string[] $key_fields
+     * @return array<array{report: array, count: int, first_date: string, last_date: string, first_ts: int, last_ts: int}>
+     * @psalm-suppress MoreSpecificReturnType, LessSpecificReturnStatement
+     */
+    private static function aggregateReports(array $reports, array $key_fields)
+    {
+        $groups = array();
+        foreach ($reports as $report) {
+            $key_values = array();
+            foreach ($key_fields as $field) {
+                $key_values[] = self::getReportField($report, $field);
+            }
+            $key = md5((string)json_encode($key_values));
+
+            $timestamp = isset($report['date_timestamp']) ? (int)$report['date_timestamp'] : 0;
+            $date = self::getReportField($report, 'date');
+
+            if ( ! isset($groups[$key]) ) {
+                $groups[$key] = array(
+                    'report' => TT::toArray($report),
+                    'count' => 0,
+                    'first_date' => $date,
+                    'last_date' => $date,
+                    'first_ts' => $timestamp,
+                    'last_ts' => $timestamp,
+                );
+            }
+
+            $groups[$key]['count']++;
+            if ($timestamp < $groups[$key]['first_ts']) {
+                $groups[$key]['first_ts'] = $timestamp;
+                $groups[$key]['first_date'] = $date;
+            }
+            if ($timestamp >= $groups[$key]['last_ts']) {
+                $groups[$key]['last_ts'] = $timestamp;
+                $groups[$key]['last_date'] = $date;
+            }
+        }
+
+        usort($groups, static function ($a, $b) {
+            return $b['last_ts'] - $a['last_ts'];
+        });
+
+        return $groups;
+    }
+
+    /**
+     * Prepare email table of aggregated reports
+     * @param callable[] $columns Header => callback returning escaped cell HTML for the report
+     * @param array<array{report: array, count: int, first_date: string, last_date: string}> $groups Result of aggregateReports()
+     * @return string
+     */
+    private static function prepareEmailReportsTable(array $columns, array $groups)
+    {
+        if (empty($groups)) {
+            return '<p>No new reports.</p>';
+        }
+
+        $html = '<table><tr><td>&nbsp;</td>';
+        foreach (array_keys($columns) as $header) {
+            $html .= '<td><b>' . Escape::escHtml($header) . '</b></td>';
+        }
+        $html .= '<td><b>Count</b></td><td><b>First date</b></td><td><b>Last date</b></td></tr>';
+
+        $counter = 0;
+        foreach ($groups as $group) {
+            $html .= '<tr><td>' . (++$counter) . '.</td>';
+            foreach ($columns as $render_cell) {
+                $html .= '<td>' . $render_cell($group['report']) . '</td>';
+            }
+            $html .= '<td>' . Escape::escHtml($group['count']) . '</td>'
+                     . '<td>' . Escape::escHtml($group['first_date']) . '</td>'
+                     . '<td>' . Escape::escHtml($group['last_date']) . '</td>'
+                     . '</tr>';
+        }
+
+        return $html . '</table><br>';
+    }
+
+    /**
      * Prepare email content
      * @param array $selection
      * @param bool $is_cron_task
@@ -819,72 +900,61 @@ class ConnectionReports
     {
         global $apbct;
 
-        $moderate_reports = self::filterReportsBySource($selection, self::SOURCE_MODERATE);
-        $api_reports = self::filterReportsBySource($selection, self::SOURCE_API);
+        $moderate_groups = self::aggregateReports(
+            self::filterReportsBySource($selection, self::SOURCE_MODERATE),
+            array('page_url', 'lib_report', 'failed_work_urls', 'js_block')
+        );
+        $api_groups = self::aggregateReports(
+            self::filterReportsBySource($selection, self::SOURCE_API),
+            array('page_url', 'method_name', 'lib_report', 'failed_work_urls')
+        );
 
         $message = '
             <html lang="en">
                 <head>
                     <title></title>
                 </head>
-                <body>
-                    ' . $this->prepareStatsHtml();
+                <body>';
 
-        if ( ! empty($moderate_reports) ) {
-            $message .= '
-                    <p>Negative report:</p>
-                    <table>
-                        <tr>
-                            <td>&nbsp;</td>
-                            <td><b>Date</b></td>
-                            <td><b>Page URL</b></td>
-                            <td><b>Library report</b></td>
-                            <td><b>Server IP</b></td>
-                            <td><b>Blocked via JS</b></td>
-                        </tr>';
+        $message .= '<h3>Anti-Spam (moderate servers) connection reports</h3>'
+                    . $this->prepareStatsParagraph($this->reports_count, 'Anti-Spam')
+                    . self::prepareEmailReportsTable(
+                        array(
+                            'Page URL' => static function ($report) {
+                                return Escape::escUrl(self::getReportField($report, 'page_url'));
+                            },
+                            'Library report' => static function ($report) {
+                                return Escape::escHtml(self::getReportField($report, 'lib_report'));
+                            },
+                            'Server IP' => static function ($report) {
+                                return Escape::escHtml(self::getReportField($report, 'failed_work_urls'));
+                            },
+                            'Blocked via JS' => static function ($report) {
+                                return self::getReportField($report, 'js_block') === '1' ? 'Yes' : 'No';
+                            },
+                        ),
+                        $moderate_groups
+                    );
 
-            $counter = 0;
-            foreach ($moderate_reports as $report) {
-                $message .= '<tr>'
-                            . '<td>' . (++$counter) . '.</td>'
-                            . '<td>' . TT::toString($report['date']) . '</td>'
-                            . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
-                            . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
-                            . '<td>' . Escape::escHtml($report['failed_work_urls']) . '</td>'
-                            . '<td>' . ($report['js_block'] === '1' ? 'Yes' : 'No') . '</td>'
-                            . '</tr>';
-            }
-
-            $message .= '</table><br>';
-        }
-
-        if ( ! empty($api_reports) ) {
-            $message .= '
-                    <p>Negative API report:</p>
-                    <table>
-                        <tr>
-                            <td>&nbsp;</td>
-                            <td><b>Date</b></td>
-                            <td><b>Page URL</b></td>
-                            <td><b>API method</b></td>
-                            <td><b>Library report</b></td>
-                            <td><b>API URL</b></td>
-                        </tr>';
-
-            $counter = 0;
-            foreach ($api_reports as $report) {
-                $message .= '<tr>'
-                            . '<td>' . (++$counter) . '.</td>'
-                            . '<td>' . TT::toString($report['date']) . '</td>'
-                            . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
-                            . '<td>' . Escape::escHtml(isset($report['method_name']) ? $report['method_name'] : '') . '</td>'
-                            . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
-                            . '<td>' . Escape::escHtml($report['failed_work_urls']) . '</td>'
-                            . '</tr>';
-            }
-
-            $message .= '</table><br>';
-        }
+        $message .= '<h3>API connection reports</h3>'
+                    . $this->prepareStatsParagraph($this->api_reports_count, 'API')
+                    . self::prepareEmailReportsTable(
+                        array(
+                            'Page URL' => static function ($report) {
+                                return Escape::escUrl(self::getReportField($report, 'page_url'));
+                            },
+                            'API method' => static function ($report) {
+                                return Escape::escHtml(self::getReportField($report, 'method_name'));
+                            },
+                            'Library report' => static function ($report) {
+                                return Escape::escHtml(self::getReportField($report, 'lib_report'));
+                            },
+                            'API URL' => static function ($report) {
+                                return Escape::escHtml(self::getReportField($report, 'failed_work_urls'));
+                            },
+                        ),
+                        $api_groups
+                    );
 
         $message .= '<br>' . ($is_cron_task ? 'This is a cron task.' : 'This is a manual task.') . '<br>';
         $message .= '<br>Site service_id: ' . $apbct->data['service_id'] . '<br>';
