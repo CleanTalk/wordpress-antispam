@@ -704,6 +704,9 @@ if ( ! defined('WP_ALLOW_MULTISITE') || (defined('WP_ALLOW_MULTISITE') && WP_ALL
 // After plugin loaded - to load locale as described in manual
 add_action('init', 'apbct_plugin_loaded');
 
+// Extract and clear browser state data from POST
+add_action('plugins_loaded', array(BotDetectorService::class, 'extractBrowserStateFromPOST'), 0);
+
 // SiteGround Speed Optimizer: skip cache for URLs with apbct_no_cache.
 add_action('plugins_loaded', 'apbct_sgo_optimizer__register_bypass_query_params', 1);
 

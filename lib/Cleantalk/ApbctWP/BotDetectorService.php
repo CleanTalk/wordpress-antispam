@@ -10,6 +10,11 @@ use Cleantalk\Common\TT;
 
 class BotDetectorService
 {
+    /**
+     * @var array|null POST sources captured once per request.
+     */
+    private static $captured_sources = null;
+
     private static $default_browser_state = array(
         'frontend_data_log' => [],
         'botd_logic_loaded' => 0,
@@ -150,7 +155,53 @@ class BotDetectorService
     }
 
     /**
-     * Return bot detector frontend data log from Alt Sessions if data found.
+     * Capture POST browser state before form processing and remove its fields.
+     *
+     * @return void
+     */
+    public static function extractBrowserStateFromPOST()
+    {
+        if ( self::$captured_sources === null ) {
+            $post_browser_state = Post::getString('apbct_browser_state');
+            $post_data = Post::getArray('data');
+            self::$captured_sources = array(
+                'post_browser_state' => $post_browser_state,
+                'post_data' => isset($post_data['apbct_browser_state'])
+                    ? array('apbct_browser_state' => $post_data['apbct_browser_state'])
+                    : array(),
+            );
+        }
+
+        unset($_POST['apbct_browser_state']);
+        if ( isset($_POST['data']) && is_array($_POST['data']) ) {
+            unset($_POST['data']['apbct_browser_state']);
+        }
+
+        // Post keeps its own cached copy of each field.
+        $post = Post::getInstance();
+        unset($post->variables['apbct_browser_state']);
+        if ( isset($post->variables['data']) && is_array($post->variables['data']) ) {
+            unset($post->variables['data']['apbct_browser_state']);
+        }
+    }
+
+    /**
+     * Combine current request parameters with the POST sources captured at plugins_loaded.
+     * Read request parameters late because NoCookie data is populated during form processing.
+     *
+     * @return array
+     */
+    private static function getBrowserStateSources()
+    {
+        return array(
+            'request_parameters' => RequestParameters::get('apbct_browser_state'),
+            'post_browser_state' => self::$captured_sources['post_browser_state'] ?? '',
+            'post_data' => self::$captured_sources['post_data'] ?? array(),
+        );
+    }
+
+    /**
+     * Return bot detector frontend data log from request parameters or captured POST sources.
      * Format: JSON.
      *
      * @return string JSON encoded bot detector frontend data log.
@@ -173,13 +224,7 @@ class BotDetectorService
                 throw new \Exception('bot detector library usage is disabled');
             }
 
-            $sources = array(
-                'request_parameters' => RequestParameters::get('apbct_browser_state'), // NoCookie hidden field or alternative sessions are both covered by RequestParameters
-                'post_browser_state' => Post::getString('apbct_browser_state'), // XHR interception transport - look at the POST directly
-                'post_data' => Post::getArray('data'), //XHR interception transport - the state could be wrapped to the data[] array
-            );
-
-            $browser_state = self::getBrowserState($sources);
+            $browser_state = self::getBrowserState(self::getBrowserStateSources());
 
             if ( empty($browser_state) ) {
                 throw new \Exception('no browser state provided by the transport');
@@ -208,27 +253,22 @@ class BotDetectorService
      *
      * The state comes with the transport the site is currently configured to use:
      * NoCookie hidden field or alternative sessions are both covered by RequestParameters,
-     * the XHR interception passes the state as a plain POST field.
+     * the XHR interception passes the state through POST fields captured at plugins_loaded.
      * Native cookies do not store the state in cookies (cookie size limits)
+     *
+     * Prefer captured top-level POST, then nested POST, then request parameters.
+     * POST captures reflect the submitted form; request parameters may contain an earlier snapshot.
      *
      * @return array Empty array if no state provided.
      */
     public static function getBrowserState(array $sources = array())
     {
-        $raw_state = null;
         $log_source = 'unknown';
 
-        if (!empty($sources['request_parameters'])) {
-            $raw_state = $sources['request_parameters'];
-            $log_source = 'request_parameters';
-        }
-
-        // XHR interception transport - look at the POST directly
-        if ( empty($raw_state) ) {
-            $raw_state = $sources['post_browser_state'] ?? null;
-            if ($raw_state) {
-                $log_source = 'post_browser_state';
-            }
+        // XHR interception transport - use the captured POST field
+        $raw_state = $sources['post_browser_state'] ?? null;
+        if ($raw_state) {
+            $log_source = 'post_browser_state';
         }
 
         // XHR interception transport - the state could be wrapped to the data[] array
@@ -238,6 +278,11 @@ class BotDetectorService
                 $raw_state = $post_data['apbct_browser_state'];
                 $log_source = 'post_data';
             }
+        }
+
+        if ( empty($raw_state) && ! empty($sources['request_parameters']) ) {
+            $raw_state = $sources['request_parameters'];
+            $log_source = 'request_parameters';
         }
 
         if ( empty($raw_state) ) {
