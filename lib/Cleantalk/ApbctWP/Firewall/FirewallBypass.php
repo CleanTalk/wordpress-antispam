@@ -3,7 +3,9 @@
 namespace Cleantalk\ApbctWP\Firewall;
 
 use Cleantalk\ApbctWP\Escape;
+use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Variables\Cookie;
+use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use Cleantalk\Common\TT;
 
@@ -16,6 +18,10 @@ use Cleantalk\Common\TT;
  *  2. The admin opens the link. The ready token is consumed (single use) and a random secret is
  *     issued to the browser as an HttpOnly cookie, while only its SHA-256 hash is kept on the server.
  *  3. Every following request is matched by the cookie secret. The firewall is skipped on match.
+ *
+ * Alternative entry point instead of steps 1-2: the control panel posts a signed token (JWT HS256)
+ * to admin-post.php with the `ct_fw_bypass` action. The token is signed with the access key and bound
+ * to the site, the visitor IP and a short lifetime. A valid token grants the same cookie secret as the link.
  *
  * The bypass is bound to a secret known only to the browser that opened the link.
  * It is intentionally NOT bound to IP/User-Agent because both of them are spoofable.
@@ -63,6 +69,46 @@ class FirewallBypass
      * Name of the cookie holding the user secret.
      */
     private const USER_COOKIE_NAME = self::PLUGIN_PREFIX . 'fw_bypass';
+
+    /**
+     * The admin-post.php action the control panel posts the signed token to. Shared by both plugins.
+     */
+    public const JWT_ACTION = 'ct_fw_bypass';
+
+    /**
+     * POST parameter carrying the signed token.
+     */
+    private const JWT_REQUEST_PARAM = 'ct_fw_bypass_jwt';
+
+    /**
+     * Service the token must be issued for to be processed by this plugin.
+     */
+    private const JWT_SERVICE = 'antispam';
+
+    /**
+     * Services of both plugins. A token for the other one is left to its own handler.
+     */
+    private const JWT_KNOWN_SERVICES = array('antispam', 'security');
+
+    /**
+     * Longer values are rejected before any decoding.
+     */
+    private const JWT_MAX_LENGTH = 2048;
+
+    /**
+     * Maximal lifetime of the token in seconds.
+     */
+    private const JWT_LIFETIME = 300;
+
+    /**
+     * Allowed clock difference between the control panel and the site in seconds.
+     */
+    private const JWT_CLOCK_SKEW = 60;
+
+    /**
+     * Prefix of the transients marking the used token IDs (jti). Makes every token single use.
+     */
+    private const JWT_USED_ID_TRANSIENT_PREFIX = self::PLUGIN_PREFIX . 'fw_bypass_jti_';
 
     /**
      * Entry point of the `send_fw_bypass_email` remote call.
@@ -167,6 +213,273 @@ class FirewallBypass
         } catch (\Exception $e) {
             self::$last_error = $e->getMessage();
         }
+    }
+
+    /**
+     * Handler of the `admin_post(_nopriv)_ct_fw_bypass` actions: the control panel posts the signed token here.
+     *
+     * @return void
+     */
+    public static function handleJwtRequest()
+    {
+        $redirect_url = self::processJwtRequest();
+
+        // The token is issued for the other plugin, its handler is next on the same action.
+        if ( $redirect_url === null ) {
+            return;
+        }
+
+        // 303 makes the browser follow with GET, so a page reload does not resubmit the form.
+        wp_safe_redirect($redirect_url, 303);
+        exit;
+    }
+
+    /**
+     * Validates the signed token from the request and grants the bypass to the current browser on success.
+     *
+     * @return string|null URL to send the browser to: the admin area on success, the home page on failure.
+     *                     Null when the token is issued for the other plugin.
+     */
+    public static function processJwtRequest()
+    {
+        global $apbct;
+
+        self::$last_error = null;
+        $failure_url      = home_url('/');
+
+        try {
+            $jwt = Post::getString(self::JWT_REQUEST_PARAM);
+            if ( $jwt === '' || strlen($jwt) > self::JWT_MAX_LENGTH ) {
+                throw new \Exception('The token is missing or too long.');
+            }
+
+            $segments = explode('.', $jwt);
+            if ( count($segments) !== 3 ) {
+                throw new \Exception('The token is malformed.');
+            }
+            list($header_segment, $payload_segment, $signature_segment) = $segments;
+
+            $payload = self::decodeJwtSegment($payload_segment);
+            if (
+                ! is_array($payload) ||
+                ! isset($payload['svc']) ||
+                ! in_array($payload['svc'], self::JWT_KNOWN_SERVICES, true)
+            ) {
+                throw new \Exception('The token service is unknown.');
+            }
+
+            // Routing only, nothing is granted before the signature is verified below.
+            // Checking the signature first would reject the other plugin's token, it is signed with another key.
+            if ( $payload['svc'] !== self::JWT_SERVICE ) {
+                return null;
+            }
+
+            $key = TT::toString($apbct->api_key);
+            self::verifyJwtSignature($header_segment, $payload_segment, $signature_segment, $key);
+            $claims = self::validateJwtPayload($payload);
+
+            // Burn the token before the bypass is granted, so a parallel request can not reuse it.
+            self::markJwtIdUsed($claims['jti'], $claims['exp']);
+
+            $user_secret = self::generateToken();
+            if ( ! is_string($user_secret) ) {
+                throw new \Exception('Failed to generate bypass user secret.');
+            }
+
+            self::setUserToken($user_secret);
+
+            // The secret is stored and visible to the current request, otherwise the admin area stays blocked.
+            if ( ! self::bypassByUserToken() ) {
+                return $failure_url;
+            }
+
+            return admin_url();
+        } catch (\Exception $e) {
+            self::$last_error = $e->getMessage();
+            return $failure_url;
+        }
+    }
+
+    /**
+     * Checks the token header and the HMAC-SHA256 signature.
+     *
+     * @param string $header_segment
+     * @param string $payload_segment
+     * @param string $signature_segment
+     * @param string $key Access key the token is signed with.
+     *
+     * @return void
+     * @throws \Exception
+     */
+    private static function verifyJwtSignature($header_segment, $payload_segment, $signature_segment, $key)
+    {
+        if ( $key === '' ) {
+            throw new \Exception('The access key is not set.');
+        }
+
+        // Strict header: any other algorithm, including "none", is rejected.
+        $header = self::decodeJwtSegment($header_segment);
+        if ( ! isset($header['alg'], $header['typ']) || $header['alg'] !== 'HS256' || $header['typ'] !== 'JWT' ) {
+            throw new \Exception('The token header is not supported.');
+        }
+
+        $expected_signature = self::encodeJwtSegment(
+            hash_hmac('sha256', $header_segment . '.' . $payload_segment, $key, true)
+        );
+
+        // Constant time comparison to exclude any timing side channel.
+        if ( ! hash_equals($expected_signature, $signature_segment) ) {
+            throw new \Exception('The token signature is invalid.');
+        }
+    }
+
+    /**
+     * Checks the claims of the token with the verified signature.
+     *
+     * @param array $payload
+     *
+     * @return array{jti: string, exp: int} The claims needed to burn the token.
+     * @throws \Exception
+     */
+    private static function validateJwtPayload($payload)
+    {
+        $now        = time();
+        $expiration = isset($payload['exp']) && is_int($payload['exp']) ? $payload['exp'] : 0;
+        if (
+            $expiration < $now - self::JWT_CLOCK_SKEW ||
+            // There is no issue time in the token, so the lifetime is limited by the expiration itself.
+            $expiration > $now + self::JWT_LIFETIME + self::JWT_CLOCK_SKEW
+        ) {
+            throw new \Exception('The token is expired or its lifetime is too long.');
+        }
+
+        // One key may serve several sites, the token must not work on another one.
+        $site_host = TT::toString(parse_url(home_url(), PHP_URL_HOST));
+        if (
+            ! isset($payload['aud']) ||
+            ! is_string($payload['aud']) ||
+            $site_host === '' ||
+            self::normalizeJwtHost($payload['aud']) !== self::normalizeJwtHost($site_host)
+        ) {
+            throw new \Exception('The token is issued for another site.');
+        }
+
+        $request_ip = self::normalizeJwtIp(TT::toString(Helper::ipGet('real', false)));
+        if (
+            ! isset($payload['ip']) ||
+            ! is_string($payload['ip']) ||
+            $request_ip === '' ||
+            self::normalizeJwtIp($payload['ip']) !== $request_ip
+        ) {
+            throw new \Exception('The token is issued for another IP.');
+        }
+
+        $jti = isset($payload['jti']) && is_string($payload['jti']) ? $payload['jti'] : '';
+        if ( ! preg_match('/^[a-f0-9]{32}$/', $jti) ) {
+            throw new \Exception('The token ID is malformed.');
+        }
+
+        if ( get_transient(self::getJwtUsedIdTransientKey($jti)) !== false ) {
+            throw new \Exception('The token has already been used.');
+        }
+
+        return array('jti' => $jti, 'exp' => $expiration);
+    }
+
+    /**
+     * Marks the token ID as used until the token expires.
+     *
+     * @param string $jti
+     * @param int    $expiration Token expiration timestamp.
+     *
+     * @return void
+     */
+    private static function markJwtIdUsed($jti, $expiration)
+    {
+        set_transient(
+            self::getJwtUsedIdTransientKey($jti),
+            1,
+            max(1, $expiration - time() + self::JWT_CLOCK_SKEW)
+        );
+    }
+
+    /**
+     * @param string $jti
+     *
+     * @return string
+     */
+    private static function getJwtUsedIdTransientKey($jti)
+    {
+        return self::JWT_USED_ID_TRANSIENT_PREFIX . hash('sha256', $jti);
+    }
+
+    /**
+     * Decodes a base64url encoded JSON segment of the token.
+     *
+     * @param string $segment
+     *
+     * @return array|null Null if the segment is not a valid base64url JSON object.
+     */
+    private static function decodeJwtSegment($segment)
+    {
+        if ( ! preg_match('/^[A-Za-z0-9_-]+$/', $segment) ) {
+            return null;
+        }
+
+        $remainder = strlen($segment) % 4;
+        if ( $remainder ) {
+            $segment .= str_repeat('=', 4 - $remainder);
+        }
+
+        $json = base64_decode(strtr($segment, '-_', '+/'), true);
+        if ( $json === false ) {
+            return null;
+        }
+
+        $data = json_decode($json, true);
+
+        return is_array($data) ? $data : null;
+    }
+
+    /**
+     * @param string $data Raw binary data.
+     *
+     * @return string Base64url without padding.
+     */
+    private static function encodeJwtSegment($data)
+    {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+
+    /**
+     * Brings the host to the form the control panel puts into the token: lower case, without "www.".
+     *
+     * @param string $host
+     *
+     * @return string
+     */
+    private static function normalizeJwtHost($host)
+    {
+        $host = strtolower(trim($host));
+
+        return strpos($host, 'www.') === 0 ? substr($host, 4) : $host;
+    }
+
+    /**
+     * Brings the IP to the comparable form: IPv6 is expanded to the full notation.
+     *
+     * @param string $ip
+     *
+     * @return string Empty string for an invalid IP.
+     */
+    private static function normalizeJwtIp($ip)
+    {
+        $ip_version = Helper::ipValidate($ip);
+        if ( $ip_version === 'v6' ) {
+            return TT::toString(Helper::ipV6Normalize($ip));
+        }
+
+        return $ip_version === 'v4' ? $ip : '';
     }
 
     /**
