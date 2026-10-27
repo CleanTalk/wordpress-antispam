@@ -2305,7 +2305,7 @@ function apbct_get_email_encoder_pass_key()
 {
     global $apbct;
 
-    return md5(Helper::ipGetUncached('real', false) . $apbct->api_key . 'email_encoder');
+    return md5(Helper::ipGet('real', false) . $apbct->api_key . 'email_encoder');
 }
 
 /**
