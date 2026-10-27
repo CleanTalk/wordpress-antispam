@@ -460,7 +460,7 @@ class FirewallBypass
      */
     private static function normalizeJwtHost($host)
     {
-        $host = strtolower(trim($host));
+        $host = strtolower(trim($host, " \n\r\t\v\x00"));
 
         return strpos($host, 'www.') === 0 ? substr($host, 4) : $host;
     }
