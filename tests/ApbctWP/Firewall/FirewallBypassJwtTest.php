@@ -290,6 +290,31 @@ class FirewallBypassJwtTest extends \ApbctTestCase
         $this->assertSame(admin_url(), $this->postToken($this->makeToken(array('aud' => $aud))));
     }
 
+    public function testSubdirectorySiteIsBoundByPath()
+    {
+        $original_home = get_option('home');
+        $host          = parse_url($original_home, PHP_URL_HOST);
+        update_option('home', $original_home . '/site-a');
+
+        try {
+            $this->assertRejected(
+                $this->postToken($this->makeToken(array('aud' => $host))),
+                'The token is issued for another site.'
+            );
+            $this->assertRejected(
+                $this->postToken($this->makeToken(array('aud' => $host . '/site-b'))),
+                'The token is issued for another site.'
+            );
+            $this->assertSame(
+                admin_url(),
+                $this->postToken($this->makeToken(array('aud' => strtoupper($host) . '/Site-A/'))),
+                (string)FirewallBypass::$last_error
+            );
+        } finally {
+            update_option('home', $original_home);
+        }
+    }
+
     public function testIpIsChecked()
     {
         $this->assertRejected(

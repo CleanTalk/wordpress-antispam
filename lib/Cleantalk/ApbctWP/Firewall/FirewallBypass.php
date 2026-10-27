@@ -355,12 +355,12 @@ class FirewallBypass
         }
 
         // One key may serve several sites, the token must not work on another one.
-        $site_host = TT::toString(parse_url(home_url(), PHP_URL_HOST));
+        $site_audience = self::getSiteJwtAudience();
         if (
             ! isset($payload['aud']) ||
             ! is_string($payload['aud']) ||
-            $site_host === '' ||
-            self::normalizeJwtHost($payload['aud']) !== self::normalizeJwtHost($site_host)
+            $site_audience === '' ||
+            self::normalizeJwtAudience($payload['aud']) !== $site_audience
         ) {
             throw new \Exception('The token is issued for another site.');
         }
@@ -466,17 +466,41 @@ class FirewallBypass
     }
 
     /**
-     * Brings the host to the form the control panel puts into the token: lower case, without "www.".
+     * The audience the token must be issued for: the host with the path of the site home URL.
      *
-     * @param string $host
+     * The path matters: subsites of a subdirectory multisite share the host and the access key,
+     * so a token for "example.com/site-a" must not work on "example.com/site-b".
+     * A site in the root of the domain has no path, its audience is the host only.
+     *
+     * @return string Empty string if the home URL has no host.
+     */
+    private static function getSiteJwtAudience()
+    {
+        $home_url = home_url();
+        $host     = parse_url($home_url, PHP_URL_HOST);
+        $path     = parse_url($home_url, PHP_URL_PATH);
+
+        if ( ! is_string($host) || $host === '' ) {
+            return '';
+        }
+
+        return self::normalizeJwtAudience($host . (is_string($path) ? $path : ''));
+    }
+
+    /**
+     * Brings the audience to the form the control panel puts into the token:
+     * lower case, without "www." and the trailing slash, e.g. "example.com" or "example.com/site-a".
+     *
+     * @param string $audience
      *
      * @return string
      */
-    private static function normalizeJwtHost($host)
+    private static function normalizeJwtAudience($audience)
     {
-        $host = strtolower(trim($host, " \n\r\t\v\x00"));
+        $audience = strtolower(trim($audience, " \n\r\t\v\x00"));
+        $audience = strpos($audience, 'www.') === 0 ? substr($audience, 4) : $audience;
 
-        return strpos($host, 'www.') === 0 ? substr($host, 4) : $host;
+        return rtrim($audience, '/');
     }
 
     /**
