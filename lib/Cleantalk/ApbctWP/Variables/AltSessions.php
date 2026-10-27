@@ -55,8 +55,7 @@ class AltSessions
     public static function getID()
     {
         // Accept-Language is omitted: XHR and document POST often send different headers.
-        $id = Helper::ipGet()
-              . Server::getString('HTTP_USER_AGENT');
+        $id = Helper::ipGet('real', false) . Server::getString('HTTP_USER_AGENT');
 
         return substr(hash('sha256', $id), -16);
     }

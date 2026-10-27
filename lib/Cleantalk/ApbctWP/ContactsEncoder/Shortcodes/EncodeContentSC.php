@@ -4,7 +4,6 @@ namespace Cleantalk\ApbctWP\ContactsEncoder\Shortcodes;
 
 use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Escape;
-use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\Common\ContactsEncoder\Dto\Params;
 use Cleantalk\ApbctWP\ContactsEncoder\Exclusions\ExclusionsService;
 
@@ -68,7 +67,7 @@ class EncodeContentSC extends EmailEncoderShortCode
             return '';
         }
 
-        if ( Cookie::get('apbct_email_encoder_passed') === apbct_get_email_encoder_pass_key() ) {
+        if ( apbct_is_email_encoder_passed() ) {
             return (string)$content;
         }
 
