@@ -10,8 +10,11 @@ use Cleantalk\Common\TT;
 
 class ConnectionReports
 {
+    const SOURCE_MODERATE = 'moderate';
+    const SOURCE_API = 'api';
+
     /**
-     * Statistics of state
+     * Statistics of state (moderate requests)
      * @var int[]
      */
     public $reports_count = array(
@@ -20,6 +23,64 @@ class ConnectionReports
         'total' => 0,
         'stat_since' => 0
     );
+
+    /**
+     * Statistics of state (API requests)
+     * @var int[]
+     */
+    public $api_reports_count = array(
+        'positive' => 0,
+        'negative' => 0,
+        'total' => 0,
+        'stat_since' => 0
+    );
+
+    /**
+     * API methods which are not tracked. 2s_blacklists_db is handled by SFWUpdateSentinel.
+     * @var string[]
+     */
+    private $api_methods_excluded = array(
+        '2s_blacklists_db',
+    );
+
+    /**
+     * Error prefixes from API::checkResponse() which mean the server answered (business errors, not connection ones)
+     * @var string[]
+     */
+    private $api_business_errors_prefixes = array(
+        'SERVER_ERROR',
+        'NO_DATA',
+        'COULDNT_ADD_WL_IP',
+    );
+
+    /**
+     * Request data keys that must never be stored in reports
+     * @var string[]
+     */
+    private $api_sensitive_keys = array(
+        'auth_key',
+        'api_key',
+        'user_token',
+        'key',
+        'token',
+        'password',
+    );
+
+    /**
+     * Max length of a single API request field kept in report
+     * @var int
+     */
+    private $api_field_max_length = 500;
+
+    /**
+     * @var bool|null Cache for the table existence check
+     */
+    private $table_exists = null;
+
+    /**
+     * @var bool|null Cache for source/method_name columns existence (they appear after DB update)
+     */
+    private $has_source_columns = null;
 
     /**
      * Instance of DB object
@@ -34,10 +95,13 @@ class ConnectionReports
     private $cr_table_name;
 
     /**
-     * Limit of reports to keep
-     * @var int
+     * Limit of reports to keep, per source
+     * @var int[]
      */
-    private $reports_limit = 20;
+    private $reports_limits = array(
+        self::SOURCE_MODERATE => 20,
+        self::SOURCE_API => 20,
+    );
 
     /**
      * @var array Current reports data from DB
@@ -77,18 +141,64 @@ class ConnectionReports
      */
     private function initializeReportsCount($apbct)
     {
-        $this->reports_count['positive'] = isset($apbct->data['connection_reports_count']['positive'])
-            ? $apbct->data['connection_reports_count']['positive']
-            : 0;
-        $this->reports_count['negative'] = isset($apbct->data['connection_reports_count']['negative'])
-            ? $apbct->data['connection_reports_count']['negative']
-            : 0;
-        $this->reports_count['total'] = isset($apbct->data['connection_reports_count']['total'])
-            ? $apbct->data['connection_reports_count']['total']
-            : 0;
-        $this->reports_count['stat_since'] = isset($apbct->data['connection_reports_count']['stat_since'])
-            ? $apbct->data['connection_reports_count']['stat_since']
-            : date('d M');
+        $this->reports_count = $this->readCountFromData($apbct, 'connection_reports_count');
+        $this->api_reports_count = $this->readCountFromData($apbct, 'connection_reports_count_api');
+    }
+
+    /**
+     * @param mixed $apbct
+     * @param string $data_key
+     * @return array
+     */
+    private function readCountFromData($apbct, $data_key)
+    {
+        $stored = isset($apbct->data[$data_key]) && is_array($apbct->data[$data_key])
+            ? $apbct->data[$data_key]
+            : array();
+
+        return array(
+            'positive' => isset($stored['positive']) ? $stored['positive'] : 0,
+            'negative' => isset($stored['negative']) ? $stored['negative'] : 0,
+            'total' => isset($stored['total']) ? $stored['total'] : 0,
+            'stat_since' => isset($stored['stat_since']) ? $stored['stat_since'] : date('d M'),
+        );
+    }
+
+    /**
+     * Check once if the reports table exists
+     * @return bool
+     */
+    private function isTableExists()
+    {
+        if ($this->table_exists === null) {
+            $this->table_exists = $this->db->isTableExists($this->cr_table_name);
+        }
+        return $this->table_exists;
+    }
+
+    /**
+     * Check once if the table has source/method_name columns
+     * @return bool
+     */
+    private function hasSourceColumns()
+    {
+        if ($this->has_source_columns === null) {
+            $columns = $this->db->fetchAll('SHOW COLUMNS FROM ' . $this->cr_table_name . " LIKE 'method_name';");
+            $this->has_source_columns = ! empty($columns);
+        }
+        return $this->has_source_columns;
+    }
+
+    /**
+     * Get source of the report row. Legacy rows without source are moderate ones.
+     * @param array $report
+     * @return string
+     */
+    private static function getReportSource($report)
+    {
+        return isset($report['source']) && $report['source'] === self::SOURCE_API
+            ? self::SOURCE_API
+            : self::SOURCE_MODERATE;
     }
 
     /**
@@ -136,15 +246,49 @@ class ConnectionReports
 
     /**
      * Update global stats in state
+     * @param string $source
      */
-    private function updateStats()
+    private function updateStats($source = self::SOURCE_MODERATE)
     {
         global $apbct;
-        $positive = isset($this->reports_count['positive']) ? $this->reports_count['positive'] : 0;
-        $negative = isset($this->reports_count['negative']) ? $this->reports_count['negative'] : 0;
-        $this->reports_count['total'] = $positive + $negative;
-        $apbct->data['connection_reports_count'] = $this->reports_count;
+        if ($source === self::SOURCE_API) {
+            $this->api_reports_count = $this->recalculateTotal($this->api_reports_count);
+            $apbct->data['connection_reports_count_api'] = $this->api_reports_count;
+        } else {
+            $this->reports_count = $this->recalculateTotal($this->reports_count);
+            $apbct->data['connection_reports_count'] = $this->reports_count;
+        }
         $apbct->saveData();
+    }
+
+    /**
+     * @param array $count
+     * @return array
+     */
+    private function recalculateTotal($count)
+    {
+        $positive = isset($count['positive']) ? $count['positive'] : 0;
+        $negative = isset($count['negative']) ? $count['negative'] : 0;
+        $count['total'] = $positive + $negative;
+        return $count;
+    }
+
+    /**
+     * Increment positive or negative counter of the source
+     * @param string $source
+     * @param string $type positive|negative
+     */
+    private function incrementCount($source, $type)
+    {
+        if ($source === self::SOURCE_API) {
+            $this->api_reports_count[$type] = isset($this->api_reports_count[$type])
+                ? $this->api_reports_count[$type] + 1
+                : 1;
+        } else {
+            $this->reports_count[$type] = isset($this->reports_count[$type])
+                ? $this->reports_count[$type] + 1
+                : 1;
+        }
     }
 
     /**
@@ -192,9 +336,10 @@ class ConnectionReports
     }
 
     /**
-     * Rotates reports in DB, remove the oldest ones by limit and age (6 months).
+     * Rotates reports of the source in DB, remove the oldest ones by limit and age (6 months).
+     * @param string $source
      */
-    private function rotateReports()
+    private function rotateReports($source = self::SOURCE_MODERATE)
     {
         $reports_data = $this->getReportsData();
         $ids_to_delete = array();
@@ -207,10 +352,14 @@ class ConnectionReports
             }
         }
 
-        // Remove oldest reports if exceeding limit
-        if (count($reports_data) >= $this->reports_limit) {
-            $overlimit = count($reports_data) - $this->reports_limit + 1;
-            $reports_to_del = array_slice($reports_data, 0, $overlimit);
+        // Remove oldest reports of the source if exceeding the source limit
+        $source_reports = array_values(array_filter($reports_data, static function ($report) use ($source) {
+            return self::getReportSource($report) === $source;
+        }));
+        $limit = isset($this->reports_limits[$source]) ? $this->reports_limits[$source] : 20;
+        if (count($source_reports) >= $limit) {
+            $overlimit = count($source_reports) - $limit + 1;
+            $reports_to_del = array_slice($source_reports, 0, $overlimit);
 
             $overlimit_ids = array_column($reports_to_del, 'id');
             $ids_to_delete = array_unique(array_merge($ids_to_delete, $overlimit_ids));
@@ -259,12 +408,16 @@ class ConnectionReports
      * @param string $failed_work_urls Current work URLs of CT server that failed
      * @param array $request_content CleanTalk request content
      * @param bool $post_blocked_via_js_check Flag if JS check passed request or not
+     * @param string $source Report source, moderate|api
+     * @param string|null $method_name API method name
      */
     private function addReportToDb(
         $lib_report = '',
         $failed_work_urls = '',
         $request_content = array(),
-        $post_blocked_via_js_check = false
+        $post_blocked_via_js_check = false,
+        $source = self::SOURCE_MODERATE,
+        $method_name = null
     ) {
         $cr_data = array(
             'date' => time(),
@@ -272,27 +425,37 @@ class ConnectionReports
             'lib_report' => $lib_report,
             'failed_work_urls' => $failed_work_urls,
             'request_content' => json_encode(esc_sql($request_content)),
-            'js_block' => $post_blocked_via_js_check ? '1' : '0'
+            'js_block' => $post_blocked_via_js_check ? '1' : '0',
+            'source' => $source,
+            'method_name' => TT::toString($method_name),
         );
 
-        $this->db->prepare(
-            "INSERT INTO " . $this->cr_table_name . "
+        $query = "INSERT INTO " . $this->cr_table_name . "
             SET
                 date = %s,
                 page_url = %s,
                 lib_report = %s,
                 failed_work_urls = %s,
                 request_content = %s,
-                js_block = %s",
-            array(
-                $cr_data['date'],
-                $cr_data['page_url'],
-                $cr_data['lib_report'],
-                $cr_data['failed_work_urls'],
-                $cr_data['request_content'],
-                $cr_data['js_block'],
-            )
+                js_block = %s";
+        $params = array(
+            $cr_data['date'],
+            $cr_data['page_url'],
+            $cr_data['lib_report'],
+            $cr_data['failed_work_urls'],
+            $cr_data['request_content'],
+            $cr_data['js_block'],
         );
+
+        if ($this->hasSourceColumns()) {
+            $query .= ",
+                source = %s,
+                method_name = %s";
+            $params[] = $cr_data['source'];
+            $params[] = $cr_data['method_name'];
+        }
+
+        $this->db->prepare($query, $params);
 
         $this->db->execute($this->db->getQuery());
         $this->markReportsDataDirty();
@@ -312,58 +475,118 @@ class ConnectionReports
             return '';
         }
 
-        $rows = '';
-        $stat_since = isset($this->reports_count['stat_since']) ? $this->reports_count['stat_since'] : '';
-        $total = isset($this->reports_count['total']) ? $this->reports_count['total'] : '';
-        $positive = isset($this->reports_count['positive']) ? $this->reports_count['positive'] : '';
-        $negative = isset($this->reports_count['negative']) ? $this->reports_count['negative'] : '';
+        $moderate_reports = self::filterReportsBySource($reports_data, self::SOURCE_MODERATE);
+        $api_reports = self::filterReportsBySource($reports_data, self::SOURCE_API);
 
-        $reports_html = '<div><p>From '
-                        . Escape::escHtml($stat_since)
-                        . ' to ' . Escape::escHtml(date('d M')) . ' has been made '
-                        . Escape::escHtml($total)
-                        . ' calls, where ' . Escape::escHtml($positive) . ' were success and '
-                        . Escape::escHtml($negative) . ' were negative
-                    </p></div>';
-
-        foreach ($reports_data as $key => $report) {
-            $rows .= $this->prepareReportRow($key, $report);
+        $reports_html = '<div>' . $this->prepareStatsParagraph($this->reports_count, 'Anti-Spam') . '</div>';
+        if ( ! empty($moderate_reports) ) {
+            $rows = '';
+            foreach ($moderate_reports as $key => $report) {
+                $rows .= $this->prepareModerateReportRow($key, $report);
+            }
+            $reports_html .= self::prepareReportsTable(
+                'apbct_negative_reports_table',
+                'Failed connection reports',
+                array('Date', 'Page URL', 'Report', 'Server IP', 'Blocked via JS', 'Status'),
+                $rows
+            );
         }
 
-        $reports_html .= "
-                <table id='apbct_negative_reports_table'>
-                <th colspan='7'>Failed connection reports</th>
-                <tr>
-                    <td>#</td>
-                    <td><b>Date</b></td>
-                    <td><b>Page URL</b></td>
-                    <td><b>Report</b></td>
-                    <td><b>Server IP</b></td>
-                    <td><b>Blocked via JS</b></td>
-                    <td><b>Status</b></td>
-                </tr>"
-                         . $rows
-                         . "</table>";
+        if ( ! empty($this->api_reports_count['total']) || ! empty($api_reports) ) {
+            $reports_html .= '<div>' . $this->prepareStatsParagraph($this->api_reports_count, 'API') . '</div>';
+            if ( ! empty($api_reports) ) {
+                $rows = '';
+                foreach ($api_reports as $key => $report) {
+                    $rows .= $this->prepareApiReportRow($key, $report);
+                }
+                $reports_html .= self::prepareReportsTable(
+                    'apbct_negative_reports_table_api',
+                    'Failed API connection reports',
+                    array('Date', 'Page URL', 'API method', 'Report', 'API URL', 'Status'),
+                    $rows
+                );
+            }
+        }
 
         return $reports_html;
     }
 
     /**
-     * Prepare single report row HTML
+     * Get reports of the source, reindexed from 0
+     * @param array $reports_data
+     * @param string $source
+     * @return array
+     */
+    private static function filterReportsBySource($reports_data, $source)
+    {
+        return array_values(array_filter($reports_data, static function ($report) use ($source) {
+            return self::getReportSource($report) === $source;
+        }));
+    }
+
+    /**
+     * Prepare reports table HTML for the settings page
+     * @param string $table_id
+     * @param string $title
+     * @param string[] $headers Columns headers except the first "#" one
+     * @param string $rows Rows HTML, already escaped
+     * @return string
+     */
+    private static function prepareReportsTable($table_id, $title, $headers, $rows)
+    {
+        $headers_html = '<td>#</td>';
+        foreach ($headers as $header) {
+            $headers_html .= '<td><b>' . Escape::escHtml($header) . '</b></td>';
+        }
+
+        return "<table id='" . Escape::escAttr($table_id) . "'>"
+               . "<th colspan='" . (count($headers) + 1) . "'>" . Escape::escHtml($title) . '</th>'
+               . '<tr>' . $headers_html . '</tr>'
+               . $rows
+               . '</table>';
+    }
+
+    /**
+     * @param array $count
+     * @param string $label
+     * @return string
+     */
+    private function prepareStatsParagraph($count, $label)
+    {
+        $stat_since = isset($count['stat_since']) ? $count['stat_since'] : '';
+        $total = isset($count['total']) ? $count['total'] : '';
+        $positive = isset($count['positive']) ? $count['positive'] : '';
+        $negative = isset($count['negative']) ? $count['negative'] : '';
+
+        return '<p>' . Escape::escHtml($label) . ': from '
+               . Escape::escHtml($stat_since)
+               . ' to ' . Escape::escHtml(date('d M')) . ' has been made '
+               . Escape::escHtml($total)
+               . ' calls, where ' . Escape::escHtml($positive) . ' were success and '
+               . Escape::escHtml($negative) . ' were negative</p>';
+    }
+
+    /**
+     * Get report status label and row color
+     * @param array $report
+     * @return string[] [status, color]
+     */
+    private static function getReportStatus($report)
+    {
+        return isset($report['sent_on']) && $report['sent_on']
+            ? array('Sent', 'gray')
+            : array('New', 'black');
+    }
+
+    /**
+     * Prepare single Anti-Spam report row HTML
      * @param int $key
      * @param array $report
      * @return string
      */
-    private function prepareReportRow($key, $report)
+    private function prepareModerateReportRow($key, $report)
     {
-        // Determine status and color
-        if (isset($report['sent_on']) && $report['sent_on']) {
-            $status = 'Sent';
-            $color = 'gray';
-        } else {
-            $status = 'New';
-            $color = 'black';
-        }
+        list($status, $color) = self::getReportStatus($report);
 
         $report_date = isset($report['date']) ? $report['date'] : time();
         $report_page_url = isset($report['page_url']) ? $report['page_url'] : '';
@@ -378,6 +601,33 @@ class ConnectionReports
                . '<td>' . Escape::escHtml($report_lib_report) . '</td>'
                . '<td>' . Escape::escHtml($report_failed_work_urls) . '</td>'
                . '<td>' . Escape::escHtml($report_js_block === '1' ? 'Yes' : 'No') . '</td>'
+               . '<td>' . Escape::escHtml($status) . '</td>'
+               . '</tr>';
+    }
+
+    /**
+     * Prepare single API report row HTML
+     * @param int $key
+     * @param array $report
+     * @return string
+     */
+    private function prepareApiReportRow($key, $report)
+    {
+        list($status, $color) = self::getReportStatus($report);
+
+        $report_date = isset($report['date']) ? $report['date'] : time();
+        $report_page_url = isset($report['page_url']) ? $report['page_url'] : '';
+        $report_method_name = isset($report['method_name']) ? $report['method_name'] : '';
+        $report_lib_report = isset($report['lib_report']) ? $report['lib_report'] : '';
+        $report_api_url = isset($report['failed_work_urls']) ? $report['failed_work_urls'] : '';
+
+        return '<tr style="color:' . $color . '">'
+               . '<td>' . Escape::escHtml((int)$key + 1) . '.</td>'
+               . '<td>' . Escape::escHtml($report_date) . '</td>'
+               . '<td>' . Escape::escUrl($report_page_url) . '</td>'
+               . '<td>' . Escape::escHtml($report_method_name) . '</td>'
+               . '<td>' . Escape::escHtml($report_lib_report) . '</td>'
+               . '<td>' . Escape::escHtml($report_api_url) . '</td>'
                . '<td>' . Escape::escHtml($status) . '</td>'
                . '</tr>';
     }
@@ -406,27 +656,115 @@ class ConnectionReports
     ) {
         // Succeeded connection
         if ($request_response->errno === 0 && empty($request_response->errstr)) {
-            if (isset($this->reports_count['positive'])) {
-                $this->reports_count['positive']++;
-            } else {
-                $this->reports_count['positive'] = 1;
-            }
+            $this->incrementCount(self::SOURCE_MODERATE, 'positive');
         } else {
             // Failed to connect. Add a negative report
-            $this->rotateReports();
-            if (isset($this->reports_count['negative'])) {
-                $this->reports_count['negative']++;
-            } else {
-                $this->reports_count['negative'] = 1;
-            }
+            $this->rotateReports(self::SOURCE_MODERATE);
+            $this->incrementCount(self::SOURCE_MODERATE, 'negative');
             $this->addReportToDb(
                 $request_response->errstr,
                 $request_response->failed_connections_urls_string,
                 Helper::arrayObjectToArray($request),
-                $post_blocked_via_js_check
+                $post_blocked_via_js_check,
+                self::SOURCE_MODERATE
             );
         }
-        $this->updateStats();
+        $this->updateStats(self::SOURCE_MODERATE);
+    }
+
+    /**
+     * Connection reports handling for API (api.cleantalk.org) requests
+     * @param string $method_name API method name
+     * @param array $request_data Data sent to API
+     * @param mixed $result Result of API::sendRequest()
+     * @param string $url API URL
+     * @param int|null $http_code HTTP code of the response if it was received
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function handleApiRequest($method_name, $request_data, $result, $url, $http_code = null)
+    {
+        $method_name = TT::toString($method_name);
+
+        if (in_array($method_name, $this->api_methods_excluded, true) || ! $this->isTableExists()) {
+            return;
+        }
+
+        $error = $this->getApiConnectionError($result, $http_code);
+
+        if ($error === null) {
+            $this->incrementCount(self::SOURCE_API, 'positive');
+        } else {
+            $this->rotateReports(self::SOURCE_API);
+            $this->incrementCount(self::SOURCE_API, 'negative');
+            $this->addReportToDb(
+                $error,
+                TT::toString($url),
+                $this->sanitizeApiRequestData(is_array($request_data) ? $request_data : array()),
+                false,
+                self::SOURCE_API,
+                $method_name
+            );
+        }
+        $this->updateStats(self::SOURCE_API);
+    }
+
+    /**
+     * Get the connection error from API result. Business errors (the server has answered) are not connection errors.
+     * @param mixed $result
+     * @param int|null $http_code
+     * @return string|null Error text or null if there is no connection error
+     */
+    public function getApiConnectionError($result, $http_code = null)
+    {
+        $error = null;
+
+        if (is_array($result) && ! empty($result['error'])) {
+            $error = is_string($result['error']) ? $result['error'] : (string)json_encode($result['error']);
+            foreach ($this->api_business_errors_prefixes as $prefix) {
+                if (strpos($error, $prefix) === 0) {
+                    $error = null;
+                    break;
+                }
+            }
+        }
+
+        $http_code = (int)$http_code;
+        if ($http_code >= 500) {
+            $error = 'HTTP_CODE_' . $http_code . ($error !== null ? ': ' . $error : '');
+        } elseif ($error !== null && $http_code > 0) {
+            $error = 'HTTP_CODE_' . $http_code . ': ' . $error;
+        }
+
+        return $error;
+    }
+
+    /**
+     * Remove credentials and truncate large fields of API request data
+     * @param array $request_data
+     * @return array
+     */
+    private function sanitizeApiRequestData(array $request_data)
+    {
+        $result = array();
+        foreach ($request_data as $key => $value) {
+            if (in_array(strtolower((string)$key), $this->api_sensitive_keys, true)) {
+                $result[$key] = '***';
+                continue;
+            }
+            if (is_array($value) || is_object($value)) {
+                $value = (string)json_encode($value);
+            }
+            if (is_string($value)) {
+                $length = function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
+                if ($length > $this->api_field_max_length) {
+                    $value = (function_exists('mb_substr')
+                            ? mb_substr($value, 0, $this->api_field_max_length)
+                            : substr($value, 0, $this->api_field_max_length)) . '...[truncated]';
+                }
+            }
+            $result[$key] = $value;
+        }
+        return $result;
     }
 
     /**
@@ -459,6 +797,100 @@ class ConnectionReports
     }
 
     /**
+     * Get report field as string
+     * @param array $report
+     * @param string $field
+     * @return string
+     */
+    private static function getReportField($report, $field)
+    {
+        return isset($report[$field]) ? TT::toString($report[$field]) : '';
+    }
+
+    /**
+     * Group identical reports (by the key fields) to avoid duplicates in the email.
+     * The newest groups go first.
+     * @param array $reports
+     * @param string[] $key_fields
+     * @return array<array{report: array, count: int, first_date: string, last_date: string, first_ts: int, last_ts: int}>
+     * @psalm-suppress MoreSpecificReturnType, LessSpecificReturnStatement
+     */
+    private static function aggregateReports(array $reports, array $key_fields)
+    {
+        $groups = array();
+        foreach ($reports as $report) {
+            $key_values = array();
+            foreach ($key_fields as $field) {
+                $key_values[] = self::getReportField($report, $field);
+            }
+            $key = md5((string)json_encode($key_values));
+
+            $timestamp = isset($report['date_timestamp']) ? (int)$report['date_timestamp'] : 0;
+            $date = self::getReportField($report, 'date');
+
+            if ( ! isset($groups[$key]) ) {
+                $groups[$key] = array(
+                    'report' => TT::toArray($report),
+                    'count' => 0,
+                    'first_date' => $date,
+                    'last_date' => $date,
+                    'first_ts' => $timestamp,
+                    'last_ts' => $timestamp,
+                );
+            }
+
+            $groups[$key]['count']++;
+            if ($timestamp < $groups[$key]['first_ts']) {
+                $groups[$key]['first_ts'] = $timestamp;
+                $groups[$key]['first_date'] = $date;
+            }
+            if ($timestamp >= $groups[$key]['last_ts']) {
+                $groups[$key]['last_ts'] = $timestamp;
+                $groups[$key]['last_date'] = $date;
+            }
+        }
+
+        usort($groups, static function ($a, $b) {
+            return $b['last_ts'] - $a['last_ts'];
+        });
+
+        return $groups;
+    }
+
+    /**
+     * Prepare email table of aggregated reports
+     * @param callable[] $columns Header => callback returning escaped cell HTML for the report
+     * @param array<array{report: array, count: int, first_date: string, last_date: string}> $groups Result of aggregateReports()
+     * @return string
+     */
+    private static function prepareEmailReportsTable(array $columns, array $groups)
+    {
+        if (empty($groups)) {
+            return '<p>No new reports.</p>';
+        }
+
+        $html = '<table><tr><td>&nbsp;</td>';
+        foreach (array_keys($columns) as $header) {
+            $html .= '<td><b>' . Escape::escHtml($header) . '</b></td>';
+        }
+        $html .= '<td><b>Count</b></td><td><b>First date</b></td><td><b>Last date</b></td></tr>';
+
+        $counter = 0;
+        foreach ($groups as $group) {
+            $html .= '<tr><td>' . (++$counter) . '.</td>';
+            foreach ($columns as $render_cell) {
+                $html .= '<td>' . $render_cell($group['report']) . '</td>';
+            }
+            $html .= '<td>' . Escape::escHtml($group['count']) . '</td>'
+                     . '<td>' . Escape::escHtml($group['first_date']) . '</td>'
+                     . '<td>' . Escape::escHtml($group['last_date']) . '</td>'
+                     . '</tr>';
+        }
+
+        return $html . '</table><br>';
+    }
+
+    /**
      * Prepare email content
      * @param array $selection
      * @param bool $is_cron_task
@@ -467,43 +899,63 @@ class ConnectionReports
     private function prepareEmailContent(array $selection, $is_cron_task = false)
     {
         global $apbct;
-        $stat_since = isset($this->reports_count['stat_since']) ? $this->reports_count['stat_since'] : '';
-        $total = isset($this->reports_count['total']) ? $this->reports_count['total'] : '';
-        $positive = isset($this->reports_count['positive']) ? $this->reports_count['positive'] : '';
-        $negative = isset($this->reports_count['negative']) ? $this->reports_count['negative'] : '';
+
+        $moderate_groups = self::aggregateReports(
+            self::filterReportsBySource($selection, self::SOURCE_MODERATE),
+            array('page_url', 'lib_report', 'failed_work_urls', 'js_block')
+        );
+        $api_groups = self::aggregateReports(
+            self::filterReportsBySource($selection, self::SOURCE_API),
+            array('page_url', 'method_name', 'lib_report', 'failed_work_urls')
+        );
 
         $message = '
             <html lang="en">
                 <head>
                     <title></title>
                 </head>
-                <body>
-                    <p>From ' . Escape::escHtml($stat_since)  . ' to ' . Escape::escHtml(date('d M')) . ' has been made ' . Escape::escHtml($total) .
-                   ' calls, where ' . Escape::escHtml($positive) . ' were success and ' . Escape::escHtml($negative) . ' were negative</p>
-                    <p>Negative report:</p>
-                    <table>
-                        <tr>
-                            <td>&nbsp;</td>
-                            <td><b>Date</b></td>
-                            <td><b>Page URL</b></td>
-                            <td><b>Library report</b></td>
-                            <td><b>Server IP</b></td>
-                            <td><b>Blocked via JS</b></td>
-                        </tr>';
+                <body>';
 
-        $counter = 0;
-        foreach ($selection as $report) {
-            $message .= '<tr>'
-                        . '<td>' . (++$counter) . '.</td>'
-                        . '<td>' . TT::toString($report['date']) . '</td>'
-                        . '<td>' . Escape::escUrl($report['page_url']) . '</td>'
-                        . '<td>' . Escape::escHtml($report['lib_report']) . '</td>'
-                        . '<td>' . Escape::escHtml($report['failed_work_urls']) . '</td>'
-                        . '<td>' . ($report['js_block'] === '1' ? 'Yes' : 'No') . '</td>'
-                        . '</tr>';
-        }
+        $message .= '<h3>Anti-Spam (moderate servers) connection reports</h3>'
+                    . $this->prepareStatsParagraph($this->reports_count, 'Anti-Spam')
+                    . self::prepareEmailReportsTable(
+                        array(
+                            'Page URL' => static function ($report) {
+                                return Escape::escUrl(self::getReportField($report, 'page_url'));
+                            },
+                            'Library report' => static function ($report) {
+                                return Escape::escHtml(self::getReportField($report, 'lib_report'));
+                            },
+                            'Server IP' => static function ($report) {
+                                return Escape::escHtml(self::getReportField($report, 'failed_work_urls'));
+                            },
+                            'Blocked via JS' => static function ($report) {
+                                return self::getReportField($report, 'js_block') === '1' ? 'Yes' : 'No';
+                            },
+                        ),
+                        $moderate_groups
+                    );
 
-        $message .= '</table><br>';
+        $message .= '<h3>API connection reports</h3>'
+                    . $this->prepareStatsParagraph($this->api_reports_count, 'API')
+                    . self::prepareEmailReportsTable(
+                        array(
+                            'Page URL' => static function ($report) {
+                                return Escape::escUrl(self::getReportField($report, 'page_url'));
+                            },
+                            'API method' => static function ($report) {
+                                return Escape::escHtml(self::getReportField($report, 'method_name'));
+                            },
+                            'Library report' => static function ($report) {
+                                return Escape::escHtml(self::getReportField($report, 'lib_report'));
+                            },
+                            'API URL' => static function ($report) {
+                                return Escape::escHtml(self::getReportField($report, 'failed_work_urls'));
+                            },
+                        ),
+                        $api_groups
+                    );
+
         $message .= '<br>' . ($is_cron_task ? 'This is a cron task.' : 'This is a manual task.') . '<br>';
         $message .= '<br>Site service_id: ' . $apbct->data['service_id'] . '<br>';
         $message .= '</body></html>';
@@ -575,7 +1027,7 @@ class ConnectionReports
             $sfw_outdated_message = '<br>' . __('Also, if enabled, a notification will appear in the plugin settings informing you that the SpamFireWall database is outdated.', 'cleantalk-spam-protect');
         }
         return TextPlateStatic::render(
-            '{{first_row}}<br>{{second_row}}<br>{{list_1}}{{list_2}}{{sfw_outdated_message}}',
+            '{{first_row}}<br>{{second_row}}<br>{{list_1}}<br>{{list_api}}{{list_2}}{{sfw_outdated_message}}',
             array(
                 'first_row' => __("Checking this box you allow plugin to send the information about your connection.", 'cleantalk-spam-protect'),
                 'second_row' => esc_html__(
@@ -587,6 +1039,12 @@ class ConnectionReports
                 'list_1' => esc_html__(
                     sprintf(
                         '- connection status to %s cloud during Anti-Spam request',
+                        TT::toString($brand_name, __('service', 'cleantalk-spam-protect'))
+                    )
+                ),
+                'list_api' => esc_html__(
+                    sprintf(
+                        '- connection status to %s cloud during API requests',
                         TT::toString($brand_name, __('service', 'cleantalk-spam-protect'))
                     )
                 ),
