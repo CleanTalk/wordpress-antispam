@@ -1,6 +1,6 @@
 === CleanTalk Anti-Spam – Complete Spam Protection === 
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
-Tags: anti-spam, spam protection, antispam, spam, captcha
+Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 7.1
 Requires PHP: 7.2
