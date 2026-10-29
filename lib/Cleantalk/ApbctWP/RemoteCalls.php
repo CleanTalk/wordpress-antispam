@@ -769,11 +769,21 @@ class RemoteCalls
 
     private static function hideSensitiveData($data)
     {
+        // State options ($apbct->data, stats, etc.) are ArrayObject instances
+        if ( $data instanceof \ArrayObject ) {
+            $data = $data->getArrayCopy();
+        }
+
         if ( ! is_array($data) ) {
             return $data;
         }
 
         foreach ( $data as $key => $value ) {
+            if ( $value instanceof \ArrayObject ) {
+                $value = $value->getArrayCopy();
+                $data[$key] = $value;
+            }
+
             if ( is_array($value) ) {
                 $data[$key] = self::hideSensitiveData($value);
             }
