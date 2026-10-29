@@ -22,11 +22,11 @@ Advanced antispam for comments, registrations & contact forms. No CAPTCHA, plus 
 * **Subscriptions and bookings** — filter unwanted and automated submissions.
 
 = ✨ More Than Just Anti-Spam = 
+* 🛡️ **Spam FireWall** — block known spam bots before they reach your forms.
 * ✉️  **Real-Time Email validation**   — detects fake, disposable, and suspicious email addresses.
 * 📋 **Anti-Spam Log** — shows every checked request, so you can see what was accepted or blocked and review possible false positives.
 * 🔒 **Contact Data Protection** — protects published email addresses and phone numbers from being harvested by bots.
 * 👤 **Real Person Badge!**  — identifies and highlights real people in WordPress comments and can automatically approve legitimate, non-spam comments.
-* 🛡️ **Spam FireWall** — block known spam bots before they reach your forms.
 
 = 🧩 No CAPTCHA. No Puzzles. Less Friction. =
 
