@@ -101,10 +101,12 @@ class TestContactFormValidate extends TestCase
         $_REQUEST['security'] = wp_create_nonce('wc-stripe-express-checkout-normalize-address');
         Request::getInstance()->variables = $_REQUEST;
 
-        add_action('apbct_skipped_request', function (...$arg) {
+        $assert_skip_reason = function (...$arg) {
             $this->assertStringContainsString('ct_contact_form_validate():WOOCOMMERCE_SERVICES', $arg[0]);
-        }, 10);
+        };
+        add_action('apbct_skipped_request', $assert_skip_reason, 10);
         $result = ct_contact_form_validate();
+        remove_action('apbct_skipped_request', $assert_skip_reason, 10);
         $this->assertNull($result);
 
         update_option( 'active_plugins', array(), true );
