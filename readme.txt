@@ -442,6 +442,7 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 == Changelog ==
 
 = 6.91 27.10.2026 =
+* Fix. Settings. Improve hide function.
 * Fix. SFW. AC/AF pass cookie value fixed. (#917)
 * Upd. Firewall. Improve fw check.
 * Fix. Settings. Getting brief fixed. (#914)
