@@ -524,6 +524,9 @@ https://cleantalk.org/faq#feedback_spam
 = Is the plugin fast? =
 We develop plugin to do it as optimized as possible, CleanTalk doesn't downgrade response time in backend or frontend. The plugin proccess only POST requests to WordPress core, it tackes less than 1 second to return results.
 
+= Configuration constants =
+For supported values and deprecated names, see the [constants reference](docs/CONSTANT.MD).
+
 = Related open-source projects by CleanTalk =
 Not on WordPress, or need bot filtering in your own PHP code? See our libraries on GitHub:
 <a href="https://github.com/CleanTalk/php-anticrawler">php-anticrawler</a> - blocks scrapers, SEO crawlers and bad bots by User-Agent, IP block lists and allow lists, no captcha for real visitors.

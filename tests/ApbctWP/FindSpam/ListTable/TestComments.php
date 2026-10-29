@@ -146,5 +146,76 @@ class TestComments extends \ApbctTestCase
         $this->assertStringContainsString('mailto:test@example.com', $result);
         $this->assertStringContainsString('cleantalk.org/blacklists/test@example.com', $result);
     }
+
+    /**
+     * column_ct_author escapes quotes in email, so it can not break out of the href attribute.
+     */
+    public function testColumnCtAuthorEscapesEmail(): void
+    {
+        global $apbct;
+        $apbct->white_label = false;
+
+        $comment = (object)[
+            'comment_author'       => 'Test Author',
+            'comment_author_email' => "x'class='apbct_dog_one'onanimationstart='alert(1)'@ev.il",
+            'comment_author_IP'    => '192.168.1.1',
+        ];
+        $item = ['ct_comment' => $comment];
+
+        $result = $this->columnCtAuthor->invoke($this->instance, $item);
+
+        $this->assertStringNotContainsString("'class='", $result);
+        $this->assertStringNotContainsString("onanimationstart='", $result);
+        $this->assertStringContainsString('mailto:x&#039;class=&#039;apbct_dog_one&#039;', $result);
+        $this->assertStringContainsString('cleantalk.org/blacklists/x&#039;class=&#039;', $result);
+    }
+
+    /**
+     * column_ct_author escapes author name and IP.
+     */
+    public function testColumnCtAuthorEscapesAuthorAndIp(): void
+    {
+        global $apbct;
+        $apbct->white_label = false;
+
+        $comment = (object)[
+            'comment_author'       => '<script>alert(1)</script>',
+            'comment_author_email' => 'test@example.com',
+            'comment_author_IP'    => "1.1.1.1' onmouseover='alert(1)",
+        ];
+        $item = ['ct_comment' => $comment];
+
+        $result = $this->columnCtAuthor->invoke($this->instance, $item);
+
+        $this->assertStringNotContainsString('<script>', $result);
+        $this->assertStringContainsString('&lt;script&gt;alert(1)&lt;/script&gt;', $result);
+        $this->assertStringNotContainsString("' onmouseover='", $result);
+        $this->assertStringContainsString('edit-comments.php?s=1.1.1.1&#039; onmouseover=&#039;', $result);
+    }
+
+    /**
+     * column_ct_comment strips dangerous HTML from comment content and keeps allowed tags.
+     */
+    public function testColumnCtCommentSanitizesContent(): void
+    {
+        $comment_id = wp_insert_comment(array(
+            'comment_post_ID' => 0,
+            'comment_content' => 'Hello',
+        ));
+        $comment = (object)[
+            'comment_content' => '<img src=x onerror=alert(1)><b>bold</b>',
+        ];
+        $item = ['ct_id' => $comment_id, 'ct_comment' => $comment];
+
+        $reflection = new \ReflectionClass(Comments::class);
+        $columnCtComment = $reflection->getMethod('column_ct_comment');
+        $columnCtComment->setAccessible(true);
+        $result = $columnCtComment->invoke($this->instance, $item);
+
+        wp_delete_comment($comment_id, true);
+
+        $this->assertStringNotContainsString('onerror', $result);
+        $this->assertStringContainsString('<b>bold</b>', $result);
+    }
 }
 

@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 6.90
+Stable tag: 6.91
 License: GPLv2
 
 Advanced antispam for comments, registrations & contact forms. No CAPTCHA, plus email validation and honeypot. We catch spam others miss!
@@ -423,6 +423,24 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 12. SpamFireWall in action. It blocks the most active and well-known spam bots before they reach your website’s content.
 
 == Changelog ==
+
+= 6.91 27.10.2026 =
+* Fix. Settings. Improve hide function.
+* Fix. SFW. AC/AF pass cookie value fixed. (#917)
+* Upd. Firewall. Improve fw check.
+* Fix. Settings. Getting brief fixed. (#914)
+* Fix.code.improve statement (#912)
+* Upd. Code. Editing token validation for ipv6
+* Upd. Code. Editing the definition of an authorized user
+* Fix. Code. Set cookie expires attribute fixed.
+* Fix. Anti Flood. Passed cookie fixed. (#910)
+* Fix. Integration. Brevo (Sendinblue) integration fixed. (#911)
+* Fix. Cookies. Sync event token on refresh events.
+* Fix. Alt Sessions. Removed duplicated request.
+* Fix. Contact Encoder. Fixed mobile layout.
+* Upd. Cleantalk.php. Rotate moderate. Now use CURLOPT_RESOLVE for IP instead of converting IP as string if IP is used as fallback. (#894)
+* New. Integration. LeakyPaywall plugin.
+* Fix. Code. Fix getID multi sign.
 
 = 6.90 13.10.2026 =
 * Fix. Comments checker. Feedback success message fixed. (#907)

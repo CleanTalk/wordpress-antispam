@@ -266,12 +266,20 @@ class ConnectionReports
         $request_content = array(),
         $post_blocked_via_js_check = false
     ) {
+        $auth_key = $request_content['auth_key'] ?? '';
+        unset($request_content['auth_key']);
+        $request_content = json_encode(esc_sql($request_content));
+        if ($auth_key !== '') {
+            // The same key can also occur in nested JSON strings such as sender_info.ct_options.
+            $request_content = str_replace($auth_key, '[************]', $request_content);
+        }
+
         $cr_data = array(
             'date' => time(),
             'page_url' => get_site_url() . TT::toString(Server::get('REQUEST_URI')),
             'lib_report' => $lib_report,
             'failed_work_urls' => $failed_work_urls,
-            'request_content' => json_encode(esc_sql($request_content)),
+            'request_content' => $request_content,
             'js_block' => $post_blocked_via_js_check ? '1' : '0'
         );
 

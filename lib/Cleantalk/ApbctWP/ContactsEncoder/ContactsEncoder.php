@@ -46,9 +46,15 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     private $comment;
 
+    /**
+     * @var Params
+     */
+    private $params;
+
     public function init($params)
     {
         parent::init($params);
+        $this->params = $params;
         $this->exclusions = new ExclusionsService($params);
         $this->shortcodes = new ShortCodesService($params);
         $this->grid_builder_integration = new CEIntegrationGridBuilder();
@@ -56,6 +62,25 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $this->shortcodes->registerAll();
 
         $this->registerHookHandler();
+
+        // The instance is created on plugin load, before WordPress authenticates the visitor.
+        add_action('set_current_user', array($this, 'syncLoggedInState'));
+    }
+
+    /**
+     * @return void
+     */
+    public function syncLoggedInState()
+    {
+        $is_logged_in = apbct_is_user_logged_in();
+        if ( $is_logged_in === $this->is_logged_in ) {
+            return;
+        }
+
+        // Params are shared with the exclusion services.
+        $this->params->is_logged_in = $is_logged_in;
+        $this->is_logged_in = $is_logged_in;
+        $this->encoder->useSSL(! $is_logged_in);
     }
 
     /**
@@ -150,11 +175,35 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     public function modifyFormFieldDisplay($html, $field, $display_context, $post_id)
     {
         if (mb_stripos($html, 'mailto:') !== false) {
-            $html = html_entity_decode($html);
+            $html = self::decodeEmailEntities($html);
             return $this->modifyContent($html);
         }
 
         return $html;
+    }
+
+    /**
+     * Business Directory obfuscates emails with numeric HTML entities.
+     * Decode only entities of characters allowed in email, other entities stay escaped.
+     *
+     * @param string $html
+     * @return string
+     */
+    public static function decodeEmailEntities($html)
+    {
+        return (string)preg_replace_callback(
+            '/&#(?:0*([0-9]{1,3})|[xX]0*([0-9a-fA-F]{1,2}));/',
+            function ($matches) {
+                $decimal = TT::getArrayValueAsString($matches, 1);
+                $code = $decimal !== ''
+                    ? (int)$decimal
+                    : (int)hexdec(TT::getArrayValueAsString($matches, 2));
+                return $code < 128 && preg_match('/^[a-z0-9._%+@-]$/i', chr($code))
+                    ? chr($code)
+                    : TT::getArrayValueAsString($matches, 0);
+            },
+            $html
+        );
     }
 
     /**
@@ -182,7 +231,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
                     return '';
                 }
 
-                $key = '%%APBCT_OPTION_SKIP_' . count($placeholders) . '%%';
+                $key = '%%APBCT_OPTION_SKIP_' . count($placeholders) . '_' . PlaceholderNonce::get() . '%%';
                 $placeholders[$key] = $matches[0];
 
                 return $key;
@@ -384,6 +433,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $ct->work_url       = preg_match('/https:\/\/.+/', $config_work_url)
             ? $config_work_url
             : '';
+        $ct->work_ip        = TT::getArrayValueAsString($config, 'ct_work_ip');
         $ct->server_ttl     = TT::getArrayValueAsInt($config, 'ct_server_ttl');
         $ct->server_changed = TT::getArrayValueAsInt($config, 'ct_server_changed');
         $api_response = $ct->checkBot($ct_request);
@@ -788,6 +838,9 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         if ( $this->has_connection_error ) {
             $response = $this->compileResponse($this->decoded_contacts_array, false);
             wp_send_json_error($response);
+        }
+        if ( ! $this->is_logged_in && ! empty($this->decoded_contacts_array) && $this->is_encode_allowed ) {
+            apbct_email_encoder_set_passed();
         }
         $response = $this->compileResponse($this->decoded_contacts_array, $this->is_encode_allowed);
         wp_send_json_success($response);

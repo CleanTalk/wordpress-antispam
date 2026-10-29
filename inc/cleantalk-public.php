@@ -361,8 +361,7 @@ function apbct_init()
      * Internal Forms - Sendinblue Integration https://wordpress.org/plugins/mailin/
      */
     if (
-        (int)$apbct->settings['forms__check_internal'] === 1
-        && !empty($_POST)
+        !empty($_POST)
         && Post::equal('sib_form_action', 'subscribe_form_submit')
         && apbct_is_plugin_active('mailin/sendinblue.php')
     ) {
