@@ -59,6 +59,9 @@ if ( ! defined('ABSPATH') ) {
     die('Not allowed!');
 }
 
+// Define plugin start time for performance metrics
+define('APBCT_PERF_PLUGIN_START', microtime(true));
+
 /**
  * @var State $apbct
  */

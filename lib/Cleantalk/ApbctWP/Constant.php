@@ -236,6 +236,11 @@ class Constant
      * @var bool
      */
     const APBCT_SERVICE__DISABLE_INTEGRATION_METRICS = 'APBCT_SERVICE__DISABLE_INTEGRATION_METRICS';
+
+    /**
+     * If true, js_keys__get responses carry a Server-Timing header with performance metrics.
+     */
+    const APBCT_SERVICE__PERF_METRICS_HEADER = 'APBCT_SERVICE__PERF_METRICS_HEADER';
     /**
      * Registry cache. Built once per request by self::getRegistry().
      *
@@ -537,6 +542,13 @@ class Constant
                     ),
                     'type'        => 'bool',
                     'description' => 'If defined, integration metrics will be disabled.',
+                ),
+                self::APBCT_SERVICE__PERF_METRICS_HEADER   => array(
+                    'names'       => array(
+                        self::APBCT_SERVICE__PERF_METRICS_HEADER,
+                    ),
+                    'type'        => 'bool',
+                    'description' => 'If true, js_keys__get responses carry a Server-Timing header with performance metrics. CI usage.',
                 ),
             );
         }
