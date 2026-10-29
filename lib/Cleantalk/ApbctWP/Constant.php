@@ -239,6 +239,8 @@ class Constant
 
     /**
      * If true, js_keys__get responses carry a Server-Timing header with performance metrics.
+     *
+     * @var bool
      */
     const APBCT_SERVICE__PERF_METRICS_HEADER = 'APBCT_SERVICE__PERF_METRICS_HEADER';
     /**
