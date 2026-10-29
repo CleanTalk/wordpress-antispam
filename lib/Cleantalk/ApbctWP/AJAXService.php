@@ -260,7 +260,7 @@ class AJAXService
         }
 
         $now           = microtime(true);
-        $request_start = isset($_SERVER['REQUEST_TIME_FLOAT']) ? (float)$_SERVER['REQUEST_TIME_FLOAT'] : $handler_start;
+        $request_start = isset($_SERVER['REQUEST_TIME_FLOAT']) ? $_SERVER['REQUEST_TIME_FLOAT'] : $handler_start;
         $plugin_start  = defined('APBCT_PERF_PLUGIN_START') ? (float)APBCT_PERF_PLUGIN_START : $request_start;
 
         $metrics = array(
