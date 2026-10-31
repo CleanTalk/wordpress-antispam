@@ -338,6 +338,7 @@ class SummaryAndSupportRenderer
                     'td' => array(),
                     'th' => array('colspan' => true),
                     'b' => array(),
+                    'p' => array(),
                     'span' => array('id' => true),
                     'div' => array('id' => true),
                     'table' => array('id' => true),

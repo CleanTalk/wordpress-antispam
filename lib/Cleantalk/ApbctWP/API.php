@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\HTTP\Request;
+use Cleantalk\Common\HTTP\Response;
 
 /**
  * Class API.
@@ -111,6 +112,43 @@ class API extends \Cleantalk\Common\API
             );
         }
 
-        return $request->request();
+        $result = $request->request();
+
+        $http_code = $request->response instanceof Response
+            ? $request->response->getResponseCode()
+            : null;
+        self::handleConnectionReport($data, $result, $url, $http_code);
+
+        return $result;
+    }
+
+    /**
+     * Add the API request result to connection reports. Never breaks the API call.
+     *
+     * @param array $data
+     * @param mixed $result
+     * @param string $url
+     * @param int|null $http_code
+     */
+    private static function handleConnectionReport($data, $result, $url, $http_code)
+    {
+        global $apbct;
+
+        if ( ! $apbct instanceof State || ! defined('APBCT_TBL_CONNECTION_REPORTS') ) {
+            return;
+        }
+
+        try {
+            $apbct->getConnectionReports()->handleApiRequest(
+                isset($data['method_name']) ? $data['method_name'] : 'unknown',
+                $data,
+                $result,
+                $url,
+                $http_code
+            );
+        } catch ( \Throwable $e ) {
+            // Reporting failures must not affect the API request result
+            return;
+        }
     }
 }
