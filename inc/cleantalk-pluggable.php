@@ -797,6 +797,26 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'ARM forms skip login';
         }
 
+        if (
+            apbct_is_plugin_active('armember-membership/armember-membership.php') &&
+            (
+                Post::getString('action') === 'arm_check_exist_field' ||
+                Get::getString('action') === 'arm_check_exist_field'
+            )
+        ) {
+            return 'ARMember field availability check';
+        }
+
+        if (
+            apbct_is_plugin_active('armember-membership/armember-membership.php') &&
+            Post::getString('action') === 'arm_membership_setup_form_ajax_action' &&
+            Post::getString('setup_action') === 'membership_setup' &&
+            Post::getInt('setup_id') > 0 &&
+            ! is_user_logged_in()
+        ) {
+            return 'ARMember setup registration has direct integration';
+        }
+
         if (apbct_is_plugin_active('ws-form/ws-form.php') && Post::getString('action') === 'the_ajax_hook') {
             return 'WS Form submit service request';
         }

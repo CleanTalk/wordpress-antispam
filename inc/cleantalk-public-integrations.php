@@ -884,6 +884,11 @@ function ct_registration_errors($errors, $sanitized_user_login = null, $user_ema
     global $ct_checkjs_register_form, $apbct_cookie_request_id_label, $apbct_cookie_register_ok_label, $apbct_cookie_request_id, $bp, $ct_signup_done, $ct_negative_comment, $apbct, $ct_registration_error_comment, $cleantalk_executed;
     $reg_flag = true;
 
+    if ( \Cleantalk\Antispam\IntegrationsByClass\ArmMember::isRegistrationInProgress() ) {
+        do_action('apbct_skipped_request', __FUNCTION__, array('ARMember has a dedicated registration check.'));
+        return $errors;
+    }
+
     // Go out if a registered user action
     if ( apbct_is_user_enable() === false ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);

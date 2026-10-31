@@ -543,6 +543,30 @@ class ApbctHandler {
     }
 
     /**
+     * Identify serialized ARMember registration forms, excluding login and profile forms.
+     * @param {string|object|null} body
+     * @return {boolean}
+     */
+    isArmMemberRegistrationRequest(body) {
+        if (typeof body !== 'string') {
+            return false;
+        }
+
+        const data = new URLSearchParams(body);
+        if (
+            !['arm_shortcode_form_ajax_action', 'arm_membership_setup_form_ajax_action']
+                .includes(data.get('action')) ||
+            !data.has('user_email') ||
+            !data.has('arm_form_id')
+        ) {
+            return false;
+        }
+
+        return Array.from(document.querySelectorAll('form[name="arm_form"] input[name="arm_form_id"]'))
+            .some((field) => field.value === data.get('arm_form_id'));
+    }
+
+    /**
      * Insert event_token and no_cookies_data to some ajax request
      * @return {void}
      */
@@ -561,6 +585,8 @@ class ApbctHandler {
             document.querySelector('div.fluent_booking_wrap') !== null || // Fluent Booking Pro
             document.querySelector('div.fcal_calendar_slot_wrap ') !== null || // Fluent Booking / Calendar Pro
             document.querySelectorAll('script[id*="smart-forms"]').length > 0 ||
+            document.querySelector('form[name="arm_form"] input[name="arm_form_id"]') !== null ||
+            document.querySelector('script[id="arm_common_js-js"]') !== null ||
             document.querySelector('[id^="amelia-app-booking"], .amelia-frontend, .amelia-v2-booking') !== null
         ) {
             const originalOpen = XMLHttpRequest.prototype.open;
@@ -575,8 +601,10 @@ class ApbctHandler {
 
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
+                const isArmMemberRegistrationRequest = new ApbctHandler().isArmMemberRegistrationRequest(body);
                 let isNeedToAddCleantalkDataCheckString = body && typeof body === 'string' &&
                     (
+                        isArmMemberRegistrationRequest ||
                         body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
                         body.indexOf('action=booked_add_appt') !== -1 ||
                         body.indexOf('action=cwginstock_product_subscribe') !== -1 ||
@@ -607,7 +635,8 @@ class ApbctHandler {
 
                 if (isNeedToAddCleantalkDataCheckString) {
                     let addidionalCleantalkData = '';
-                    const useUnwrappedCleantalkKeys = isDiviNewsletterRequest || isSmartFormsRequest;
+                    const useUnwrappedCleantalkKeys =
+                        isDiviNewsletterRequest || isSmartFormsRequest || isArmMemberRegistrationRequest;
                     const noCookieDataKey = useUnwrappedCleantalkKeys ?
                         'ct_no_cookie_hidden_field' :
                         'data%5Bct_no_cookie_hidden_field%5D';
