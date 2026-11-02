@@ -1238,6 +1238,22 @@ function apbct_is_skip_request($ajax = false, $ajax_message_obj = array())
             return 'Plugin Name: CartFlows; ajax action wcf_check_email_exists';
         }
 
+        // Plugin Name: MWB HubSpot for WooCommerce; ajax action get_order_detail
+        if (
+            apbct_is_plugin_active('makewebbetter-hubspot-for-woocommerce/makewebbetter-hubspot-for-woocommerce.php') &&
+            Post::get('action') === 'get_order_detail'
+        ) {
+            return 'Plugin Name: MWB HubSpot for WooCommerce; ajax action get_order_detail';
+        }
+
+        // Plugin Name: MWB HubSpot for WooCommerce; ajax action hubwoo_save_guest_user_cart
+        if (
+            apbct_is_plugin_active('makewebbetter-hubspot-for-woocommerce/makewebbetter-hubspot-for-woocommerce.php') &&
+            Post::get('action') === 'hubwoo_save_guest_user_cart'
+        ) {
+            return 'Plugin Name: MWB HubSpot for WooCommerce; ajax action hubwoo_save_guest_user_cart';
+        }
+
         // Plugin Name: Profile Builder; ajax action wppb_conditional_logic
         if (
             apbct_is_plugin_active('profile-builder/index.php') &&
