@@ -16,6 +16,8 @@ use Cleantalk\ApbctWP\ContactsEncoder\Exclusions\ExclusionsService;
  */
 class EncodeContentSC extends EmailEncoderShortCode
 {
+    const MAX_REPLACING_TEXT_LENGTH = 100;
+
     /**
      * @var string The public name of the shortcode.
      */
@@ -77,7 +79,7 @@ class EncodeContentSC extends EmailEncoderShortCode
         }
 
         if (isset($_atts['replacing_text']) && !empty($_atts['replacing_text']) && is_string($_atts['replacing_text'])) {
-            $replacing_text = esc_html($_atts['replacing_text']);
+            $replacing_text = esc_html(mb_substr($_atts['replacing_text'], 0, self::MAX_REPLACING_TEXT_LENGTH));
         } else {
             $replacing_text = null;
         }

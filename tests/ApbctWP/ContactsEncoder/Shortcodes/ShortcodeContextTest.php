@@ -289,4 +289,44 @@ class ShortcodeContextTest extends TestCase
 
         $this->assertSame(array(), $this->handlers(wptexturize($content)), $content);
     }
+
+    public function testReplacingTextIsPrintedOncePerShortcode()
+    {
+        $result = $this->encode->callback(
+            array('mode' => 'replace', 'replacing_text' => 'Show it'),
+            'a@b.cc, c@d.ee and text',
+            'apbct_encode_data'
+        );
+
+        $this->assertSame(1, substr_count($result, 'Show it'));
+        $this->assertStringNotContainsString('a@b.cc', $result);
+    }
+
+    public function testReplacingTextLengthIsLimited()
+    {
+        $result = $this->encode->callback(
+            array('mode' => 'replace', 'replacing_text' => str_repeat('R', 32000)),
+            'a@b.cc',
+            'apbct_encode_data'
+        );
+
+        $this->assertLessThanOrEqual(EncodeContentSC::MAX_REPLACING_TEXT_LENGTH, substr_count($result, 'R'));
+    }
+
+    public function testOutputOfManyContactsIsLimited()
+    {
+        $content = implode(',', array_fill(0, 4400, 'a@b.cc'));
+        $result = apbctGetContactsEncoder()->modifyShortcodeContent($content, 'blur', null);
+
+        $this->assertSame(1, substr_count($result, 'apbct-email-encoder'));
+        $this->assertLessThan(strlen($content) * 3, strlen($result));
+        $this->assertStringNotContainsString('a@b.cc', $result);
+    }
+
+    public function testFewContactsAreEncodedOneByOne()
+    {
+        $result = apbctGetContactsEncoder()->modifyShortcodeContent('text a@b.cc other c@d.ee', 'blur', null);
+
+        $this->assertGreaterThanOrEqual(2, substr_count($result, 'apbct-email-encoder'));
+    }
 }
