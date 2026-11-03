@@ -43,10 +43,7 @@ class ContactsEncoder
 
     /**
      * Regular expressions parts.
-     * Use backreference \1 so apostrophes (e.g. "Follow iBlogyou's account") inside
-     * double-quoted values don't incorrectly terminate the match.
      */
-    const ARIA_LABEL_PATTERN = '/aria-label\s*=\s*(["\'])(?:(?!\1).)*\1/';
     const EMAIL_PATTERN = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b';
     const EMAIL_PATTERN_DOMAIN_CATCHING = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b)';
     const PHONE_NUMBER = '\+\d{8,12}';
@@ -72,11 +69,6 @@ class ContactsEncoder
         '(\(\d{3}\)\s?\d{3}-\d{4})',                               // (XXX) XXX-XXXX, (XXX) XXX XXXX
         '(\+\d{1,3}\.\d{1,3}\.((\d{3}\.\d{4})|\d{7})(?![\w.]))',   // +X?.XX?.XXX.XXXX
     ];
-
-    /**
-     * @var string example: '/aria-label.?=.?[\'"].+?[\'"]/'
-     */
-    protected $aria_regex;
 
     /**
      * @var string example: '/((?i:mailto):\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b(?:\?(?:[^"\'<>]*?(?=["\'])|[^"\'<>\s]*))?)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b))/'
@@ -216,8 +208,6 @@ class ContactsEncoder
 
     private function prepareRegularExpressions()
     {
-        $this->aria_regex = self::ARIA_LABEL_PATTERN;
-
         $this->global_email_pattern = '/(' . self::MAILTO_SCHEME_PATTERN . '\b' . self::EMAIL_PATTERN . self::MAILTO_QUERY_PATTERN . ')|(\b' . self::EMAIL_PATTERN_DOMAIN_CATCHING . ')/';
         $this->global_phones_pattern = '/' . implode('|', self::PHONE_NUMBERS_PATTERNS) . '/';
         $this->global_mailto_pattern = '/' . self::MAILTO_SCHEME_PATTERN . '(' . self::EMAIL_PATTERN . ')' . self::MAILTO_QUERY_PATTERN . '/';
@@ -1016,7 +1006,7 @@ class ContactsEncoder
 
     /**
      * Modify content to skip aria-label cases correctly.
-     * Protects aria-label attributes from email encoding.
+     * Protects aria-label attributes of real tags from email encoding.
      * @param string $content
      * @param bool $reverse
      *
@@ -1026,10 +1016,10 @@ class ContactsEncoder
     {
         if ( !$reverse ) {
             $this->aria_placeholders = array();
-            if ( !$this->isSecureAriaLabelPlaceholderAvailable() ) {
+            if ( !is_string($content) || stripos($content, 'aria-label') === false || !$this->isSecureAriaLabelPlaceholderAvailable() ) {
                 return $content;
             }
-            return preg_replace_callback($this->aria_regex, array($this, 'replaceAriaLabelWithPlaceholder'), $content);
+            return $this->replaceAriaLabelsWithPlaceholders($content);
         }
         if ( !empty($this->aria_placeholders) ) {
             foreach ($this->aria_placeholders as $placeholder => $original) {
@@ -1041,22 +1031,37 @@ class ContactsEncoder
     }
 
     /**
-     * Callback for handleAriaLabelContent to replace each aria-label with a unique placeholder.
-     * @param array $matches
+     * Replace each quoted aria-label attribute with a unique placeholder.
+     * The same text outside of a tag is just a text, and must not hide the markup next to it.
+     *
+     * @param string $content
+     *
      * @return string
      */
-    private function replaceAriaLabelWithPlaceholder($matches)
+    private function replaceAriaLabelsWithPlaceholders($content)
     {
-        if (!isset($matches[0])) {
-            return '';
+        $result = '';
+        $position = 0;
+
+        foreach ( ContactsEncoderHelper::scanMarkup($content) as $token ) {
+            foreach ( $token['attributes'] as $attribute ) {
+                list($name, $name_start, , $value_end, $end) = $attribute;
+                if ( $name !== 'aria-label' || $value_end === $end ) {
+                    continue;
+                }
+
+                $placeholder = $this->generateAriaLabelPlaceholder();
+                if ( $placeholder === null ) {
+                    continue;
+                }
+
+                $this->aria_placeholders[$placeholder] = substr($content, $name_start, $end - $name_start);
+                $result .= substr($content, $position, $name_start - $position) . $placeholder;
+                $position = $end;
+            }
         }
-        $original = $matches[0];
-        $placeholder = $this->generateAriaLabelPlaceholder();
-        if ( $placeholder === null ) {
-            return $original;
-        }
-        $this->aria_placeholders[$placeholder] = $original;
-        return $placeholder;
+
+        return $result . substr($content, $position);
     }
 
     /**

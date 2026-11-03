@@ -87,6 +87,12 @@ class ShortcodeContextTest extends TestCase
             'well formed pair inside a value' => array(
                 '<abbr title="[apbct_encode_data]ab@c_d.com[/apbct_encode_data]">z</abbr><code>" onfocus="alert(1)" autofocus tabindex="2" x="</code>',
             ),
+            'aria-label as a text hides the tag start' => array(
+                '<code>aria-label="</code><a href="http://example.org/" title="ab@c_d.com">L</a><code>" onfocus="alert(1)" autofocus tabindex="1" x="</code>',
+            ),
+            'aria-label as a text and a skip pair inside a value' => array(
+                '<code>aria-label="</code><a href="http://example.org/" title="[apbct_skip_encoding]ab@c_d.com[/apbct_skip_encoding]">L</a><code>" onfocus="alert(1)" autofocus tabindex="1" x="</code>',
+            ),
         );
     }
 
@@ -127,5 +133,35 @@ class ShortcodeContextTest extends TestCase
 
         $this->assertSame($content, $this->exclude->changeContentBeforeEncoderModify($content));
         $this->assertLessThan(0.2, microtime(true) - $start);
+    }
+
+    public function testAriaLabelOfARealTagStaysIntact()
+    {
+        $html = '<button aria-label="Write to label@example.org" class="x">go</button> and text@example.org';
+        $result = apbctGetContactsEncoder()->modifyContent($html);
+
+        $this->assertStringContainsString('aria-label="Write to label@example.org"', $result);
+        $this->assertStringNotContainsString('text@example.org', $result);
+    }
+
+    public function testAriaLabelAsATextIsNotProtected()
+    {
+        $result = apbctGetContactsEncoder()->modifyContent('<p>aria-label="text@example.org"</p>');
+
+        $this->assertStringNotContainsString('text@example.org', $result);
+    }
+
+    public function testAriaLabelInsideACommentIsNotTouched()
+    {
+        $html = '<!-- <a aria-label="x"> -->';
+
+        $this->assertSame($html, apbctGetContactsEncoder()->modifyContent($html));
+    }
+
+    public function testLongAriaLabelValueDoesNotEmptyTheContent()
+    {
+        $html = '<button aria-label="' . str_repeat('x', 200000) . '">go</button> keep me';
+
+        $this->assertSame($html, apbctGetContactsEncoder()->modifyContent($html));
     }
 }
