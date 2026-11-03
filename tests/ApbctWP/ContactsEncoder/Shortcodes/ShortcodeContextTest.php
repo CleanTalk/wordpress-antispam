@@ -213,4 +213,43 @@ class ShortcodeContextTest extends TestCase
             'encode' => array('[caption class="[apbct_encode_data]a" autofocus tabindex="0" onfocus="alert(1)" x="[/apbct_encode_data]"]body[/caption]'),
         );
     }
+
+    /**
+     * @dataProvider commentMarkerProvider
+     */
+    public function testCommentMarkersInsidePairStayAsIs($payload)
+    {
+        $result = $this->run_encoder($payload . '<p>next</p> <!-- closed --> <p>after</p>');
+        $document = new \DOMDocument();
+        libxml_use_internal_errors(true);
+        $document->loadHTML('<!doctype html><html><body>' . $result . '</body></html>');
+        libxml_clear_errors();
+
+        $this->assertStringContainsString('after', $document->textContent, $result);
+    }
+
+    public function commentMarkerProvider()
+    {
+        return array(
+            'edges of the content' => array('Nice post! [apbct_encode_data]<!--a@b.cc xxxxxxxx-->[/apbct_encode_data] end'),
+            'skip pair' => array('Hello <!-- x> <b>k</b> [apbct_skip_encoding] -->y[/apbct_skip_encoding]'),
+        );
+    }
+
+    public function testVisiblePartOfEncodedStringIsEscaped()
+    {
+        $encoder = apbctGetContactsEncoder();
+        $result = $encoder->modifyShortcodeContent('<!--a@b.cc xxxxxxxx-->', 'blur', null);
+
+        $this->assertStringNotContainsString('<!--', $result);
+        $this->assertStringNotContainsString('-->', $result);
+    }
+
+    public function testVisiblePartKeepsBrokenMultibyteEdge()
+    {
+        $result = apbctGetContactsEncoder()->modifyAny('Привет мир', 'obfuscate', null);
+
+        $this->assertNotSame('', $result);
+        $this->assertStringContainsString('*', $result);
+    }
 }

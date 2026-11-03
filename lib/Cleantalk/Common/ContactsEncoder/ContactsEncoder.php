@@ -555,6 +555,8 @@ class ContactsEncoder
             $obfuscated_string = $is_phone_number
                 ? $obfuscator->processPhone($string)
                 : $obfuscator->processString($string);
+            // The edges stay as they are in the source. A text cut by bytes must not turn into an empty value.
+            $obfuscated_string = htmlspecialchars($obfuscated_string, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false);
         }
 
         $string_with_effect = $this->applyEffectsOnMode(

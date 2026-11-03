@@ -348,7 +348,8 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
             return false;
         }
 
-        return (bool) preg_match('/<\/?[a-zA-Z][a-zA-Z0-9:-]*(?:\s[^<>]*)?>/', $content);
+        // Any "less than" sign counts: a comment or a tag without its end is not matched by a tag pattern.
+        return strpos($content, '<') !== false || strpos($content, '-->') !== false;
     }
 
     /**
