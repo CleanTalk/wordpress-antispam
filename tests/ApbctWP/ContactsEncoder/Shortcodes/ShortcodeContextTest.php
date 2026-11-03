@@ -310,7 +310,9 @@ class ShortcodeContextTest extends TestCase
             'apbct_encode_data'
         );
 
-        $this->assertLessThanOrEqual(EncodeContentSC::MAX_REPLACING_TEXT_LENGTH, substr_count($result, 'R'));
+        $visible = wp_strip_all_tags($result);
+
+        $this->assertSame(EncodeContentSC::MAX_REPLACING_TEXT_LENGTH, substr_count($visible, 'R'));
     }
 
     public function testOutputOfManyContactsIsLimited()
@@ -360,5 +362,70 @@ class ShortcodeContextTest extends TestCase
         wp_delete_post($id, true);
 
         $this->assertSame('own-slug', $result['post_name']);
+    }
+
+    private function restoreLinks($html)
+    {
+        $reflection = new \ReflectionMethod($this->exclude, 'restorePageListLinkTitlesInHtml');
+        $reflection->setAccessible(true);
+
+        return $reflection->invoke($this->exclude, $html);
+    }
+
+    public function testLinkInsideACommentIsNotRestored()
+    {
+        $id = wp_insert_post(array('post_title' => '[apbct_skip_encoding]Notes[/apbct_skip_encoding]', 'post_status' => 'publish', 'post_type' => 'post'));
+        $html = 'Thanks! <!-- > <a href="' . home_url('/?p=' . $id) . '"> -->[apbct_skip_encoding] x</a> end';
+        $result = $this->restoreLinks($html);
+        wp_delete_post($id, true);
+
+        $this->assertSame($html, $result);
+    }
+
+    public function testLinkWithACommentInsideIsNotRestored()
+    {
+        $id = wp_insert_post(array('post_title' => '[apbct_skip_encoding]Notes[/apbct_skip_encoding]', 'post_status' => 'publish', 'post_type' => 'post'));
+        $html = '<a href="' . home_url('/?p=' . $id) . '"><!-- [apbct_skip_encoding] --></a>';
+        $result = $this->restoreLinks($html);
+        wp_delete_post($id, true);
+
+        $this->assertSame($html, $result);
+    }
+
+    public function testRealLinkIsRestored()
+    {
+        $id = wp_insert_post(array('post_title' => '[apbct_skip_encoding]Notes[/apbct_skip_encoding]', 'post_status' => 'publish', 'post_type' => 'post'));
+        $result = $this->restoreLinks('<li><a class="x" href="' . home_url('/?p=' . $id) . '"><span class="apbct-email-encoder">n***</span></a></li>');
+        wp_delete_post($id, true);
+
+        $this->assertStringContainsString('>Notes</a></li>', $result);
+    }
+
+    public function testLinkToNonPublicPostTypeIsNotRestored()
+    {
+        register_post_type('ce_private_cpt', array('public' => false));
+        $id = wp_insert_post(array('post_title' => '[apbct_skip_encoding]Hidden[/apbct_skip_encoding]', 'post_status' => 'publish', 'post_type' => 'ce_private_cpt'));
+        $html = '<a href="' . home_url('/?p=' . $id) . '">[apbct_skip_encoding] x</a>';
+        $result = $this->restoreLinks($html);
+        wp_delete_post($id, true);
+        unregister_post_type('ce_private_cpt');
+
+        $this->assertSame($html, $result);
+    }
+
+    public function testHeadingInsideACommentIsNotRestored()
+    {
+        $id = wp_insert_post(array('post_title' => '[apbct_skip_encoding]Notes[/apbct_skip_encoding]', 'post_status' => 'publish', 'post_type' => 'post'));
+        $reflection = new \ReflectionMethod($this->exclude, 'restorePostTitleInHtml');
+        $reflection->setAccessible(true);
+        $block = (object) array('context' => array('postId' => $id));
+        $html = '<!-- <h1 class="wp-block-post-title"> -->[apbct_skip_encoding] x</h1> end';
+        $real = '<h1 class="wp-block-post-title">[apbct_skip_encoding] x</h1> end';
+        $result = $reflection->invoke($this->exclude, $html, array(), $block);
+        $result_real = $reflection->invoke($this->exclude, $real, array(), $block);
+        wp_delete_post($id, true);
+
+        $this->assertSame($html, $result);
+        $this->assertStringContainsString('Notes</h1>', $result_real);
     }
 }

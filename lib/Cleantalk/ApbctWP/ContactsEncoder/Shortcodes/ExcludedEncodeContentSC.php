@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP\ContactsEncoder\Shortcodes;
 
+use Cleantalk\Common\ContactsEncoder\Helper\ContactsEncoderHelper;
+
 class ExcludedEncodeContentSC extends EmailEncoderShortCode
 {
     protected $public_name = 'apbct_skip_encoding';
@@ -376,35 +378,121 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return $content;
         }
 
-        return preg_replace_callback(
-            '/(<a\b[^>]*href=["\']([^"\']+)["\'][^>]*>)(.*?)(<\/a>)/is',
-            function ($matches) {
-                if ( ! isset($matches[0], $matches[1], $matches[2], $matches[3], $matches[4]) ) {
-                    return isset($matches[0]) ? $matches[0] : '';
-                }
-
+        return $this->replaceElementsInnerHtml(
+            $content,
+            static function ($token) {
+                return $token['name'] === 'a';
+            },
+            function ($inner, $token, $source) {
                 if (
-                    strpos($matches[3], 'apbct-email-encoder') === false
-                    && strpos($matches[3], '[apbct_skip_encoding]') === false
+                    strpos($inner, 'apbct-email-encoder') === false
+                    && strpos($inner, '[apbct_skip_encoding]') === false
                 ) {
-                    return $matches[0];
+                    return null;
                 }
 
-                $post_id = $this->resolvePostIdFromHref($matches[2]);
+                $href = $this->getTokenAttributeValue($token, $source, 'href');
+                $post_id = $href === '' ? 0 : $this->resolvePostIdFromHref($href);
                 if ( ! $post_id ) {
-                    return $matches[0];
+                    return null;
                 }
 
                 $title = $this->getRawPostTitle($post_id);
 
                 if ( ! is_string($title) || $title === '' || strpos($title, '[apbct_skip_encoding]') === false ) {
-                    return $matches[0];
+                    return null;
                 }
 
-                return $matches[1] . esc_html($this->processTitleString($title)) . $matches[4];
-            },
-            $content
+                return esc_html($this->processTitleString($title));
+            }
         );
+    }
+
+    /**
+     * Replace the inner HTML of real elements. A tag inside a comment is not a tag, and a comment in the
+     * replaced range would lose its end.
+     *
+     * @param string $content
+     * @param callable $is_target Receives a token of ContactsEncoderHelper::scanMarkup().
+     * @param callable $get_replacement Receives inner HTML, token, content. Null keeps the element.
+     * @param int $limit Max number of replacements, -1 for no limit.
+     *
+     * @return string
+     */
+    protected function replaceElementsInnerHtml($content, $is_target, $get_replacement, $limit = -1)
+    {
+        $tokens = ContactsEncoderHelper::scanMarkup($content);
+        $count = count($tokens);
+        $result = '';
+        $position = 0;
+
+        for ( $i = 0; $i < $count && $limit !== 0; $i++ ) {
+            $token = $tokens[$i];
+            if ( $token['closing'] || ! $is_target($token) ) {
+                continue;
+            }
+
+            $close = $this->findClosingToken($tokens, $i);
+            if ( $close === false ) {
+                continue;
+            }
+
+            $inner_start = $token['end'];
+            $inner = substr($content, $inner_start, $tokens[$close]['start'] - $inner_start);
+            if ( strpos($inner, '<!--') !== false || strpos($inner, '-->') !== false ) {
+                continue;
+            }
+
+            $replacement = $get_replacement($inner, $token, $content);
+            if ( $replacement === null ) {
+                continue;
+            }
+
+            $result .= substr($content, $position, $inner_start - $position) . $replacement;
+            $position = $tokens[$close]['start'];
+            $i = $close;
+            $limit--;
+        }
+
+        return $position === 0 ? $content : $result . substr($content, $position);
+    }
+
+    /**
+     * @param array[] $tokens
+     * @param int $open Index of an opening tag.
+     *
+     * @return int|false Index of its closing tag, false when the same element is opened again first.
+     */
+    private function findClosingToken($tokens, $open)
+    {
+        $name = $tokens[$open]['name'];
+        $count = count($tokens);
+
+        for ( $i = $open + 1; $i < $count; $i++ ) {
+            if ( $tokens[$i]['name'] === $name ) {
+                return $tokens[$i]['closing'] ? $i : false;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array $token
+     * @param string $content
+     * @param string $name
+     *
+     * @return string
+     */
+    private function getTokenAttributeValue($token, $content, $name)
+    {
+        foreach ( $token['attributes'] as $attribute ) {
+            if ( $attribute[0] === $name ) {
+                return substr($content, $attribute[2], $attribute[3] - $attribute[2]);
+            }
+        }
+
+        return '';
     }
 
     /**
@@ -422,7 +510,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
 
         $post_id = url_to_postid($href);
         if ( $post_id ) {
-            return (int)$post_id;
+            return $this->isPostPubliclyViewable((int)$post_id) ? (int)$post_id : 0;
         }
 
         $path = wp_parse_url($href, PHP_URL_PATH);
@@ -457,6 +545,20 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         }
 
         return 0;
+    }
+
+    /**
+     * @param int $post_id
+     *
+     * @return bool
+     */
+    private function isPostPubliclyViewable($post_id)
+    {
+        if ( function_exists('is_post_publicly_viewable') ) {
+            return is_post_publicly_viewable($post_id);
+        }
+
+        return get_post_status($post_id) === 'publish' && is_post_type_viewable(get_post_type($post_id));
     }
 
     /**
@@ -495,24 +597,23 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
 
         $processed = $this->processTitleString($title, false);
 
-        return preg_replace_callback(
-            '/(<h[1-6]\b[^>]*\bwp-block-post-title\b[^>]*>)(.*?)(<\/h[1-6]>)/is',
-            function ($matches) use ($processed) {
-                if ( ! isset($matches[0], $matches[1], $matches[2], $matches[3]) ) {
-                    return isset($matches[0]) ? $matches[0] : '';
-                }
-
-                if (
-                    strpos($matches[2], '[apbct_skip_encoding]') === false
-                    && strpos($matches[2], 'apbct-email-encoder') === false
-                    && strpos($matches[2], '%%APBCT_SHORT_CODE_SKIP') === false
-                ) {
-                    return $matches[0];
-                }
-
-                return $matches[1] . $processed . $matches[3];
+        return $this->replaceElementsInnerHtml(
+            $content,
+            function ($token) use ($content) {
+                return (bool)preg_match('/^h[1-6]$/', $token['name'])
+                    && strpos(' ' . $this->getTokenAttributeValue($token, $content, 'class') . ' ', ' wp-block-post-title ') !== false;
             },
-            $content
+            static function ($inner) use ($processed) {
+                if (
+                    strpos($inner, '[apbct_skip_encoding]') === false
+                    && strpos($inner, 'apbct-email-encoder') === false
+                    && strpos($inner, '%%APBCT_SHORT_CODE_SKIP') === false
+                ) {
+                    return null;
+                }
+
+                return $processed;
+            }
         );
     }
 
@@ -831,29 +932,27 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
 
         $processed = esc_html($this->processTitleString($raw_title));
 
-        return preg_replace_callback(
-            '/(<title[^>]*>)(.*?)(<\/title>)/is',
-            function ($matches) use ($processed) {
-                if ( ! isset($matches[0], $matches[1], $matches[2], $matches[3]) ) {
-                    return isset($matches[0]) ? $matches[0] : '';
-                }
-
+        return $this->replaceElementsInnerHtml(
+            $content,
+            static function ($token) {
+                return $token['name'] === 'title';
+            },
+            static function ($inner) use ($processed) {
                 if (
-                    strpos($matches[2], '[apbct_skip_encoding]') === false
-                    && strpos($matches[2], 'apbct-email-encoder') === false
-                    && strpos($matches[2], '%%APBCT_SHORT_CODE_SKIP') === false
+                    strpos($inner, '[apbct_skip_encoding]') === false
+                    && strpos($inner, 'apbct-email-encoder') === false
+                    && strpos($inner, '%%APBCT_SHORT_CODE_SKIP') === false
                 ) {
-                    return $matches[0];
+                    return null;
                 }
 
                 $suffix = '';
-                if ( preg_match('/^(.+?)(\s(?:&#8211;|&ndash;|–|-)\s.+)$/u', $matches[2], $parts) && isset($parts[2]) ) {
+                if ( preg_match('/^(.+?)(\s(?:&#8211;|&ndash;|–|-)\s.+)$/u', $inner, $parts) && isset($parts[2]) ) {
                     $suffix = $parts[2];
                 }
 
-                return $matches[1] . $processed . $suffix . $matches[3];
+                return $processed . $suffix;
             },
-            $content,
             1
         );
     }
