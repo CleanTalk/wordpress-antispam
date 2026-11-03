@@ -59,9 +59,10 @@ class ContactsEncoder
 
     /**
      * Regular expressions parts.
+     * Lengths are limited by RFC 5321: each attempt to match costs a limited number of steps without PCRE JIT too.
      */
-    const EMAIL_PATTERN = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b';
-    const EMAIL_PATTERN_DOMAIN_CATCHING = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b)';
+    const EMAIL_PATTERN = '[_A-Za-z0-9-\.]{1,64}@[_A-Za-z0-9-\.]{1,255}\.[A-Za-z]{2,63}\b';
+    const EMAIL_PATTERN_DOMAIN_CATCHING = '[_A-Za-z0-9-\.]{1,64}@[_A-Za-z0-9-\.]{1,255}(\.[A-Za-z]{2,63}\b)';
     const PHONE_NUMBER = '\+\d{8,12}';
     /**
      * URI schemes are case-insensitive (RFC 3986). Clients often write Mailto:/Tel:.
@@ -78,7 +79,7 @@ class ContactsEncoder
      *  - in plain text there is no closing quote, so the query must stop at the
      *    first whitespace instead of swallowing the rest of the sentence.
      */
-    const MAILTO_QUERY_PATTERN = '(?:\?(?:[^"\'<>]*?(?=["\'])|[^"\'<>\s]*))?';
+    const MAILTO_QUERY_PATTERN = '(?:\?(?:[^"\'<>]{0,2048}?(?=["\'])|[^"\'<>\s]{0,2048}))?';
     const PHONE_NUMBERS_PATTERNS = [
         '(' . self::TEL_SCHEME_PATTERN . self::PHONE_NUMBER . ')', // tel:+XXXXXXXXXX
         '([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)',                       // +X XXX XXXXXXX, +X(XXX)XXXXX, etc.
@@ -320,7 +321,8 @@ class ContactsEncoder
      */
     public function modifyGlobalEmails($content)
     {
-        if ( is_string($content) && substr_count($content, '@') > self::MAX_CONTACT_SIGNS_PER_CONTENT ) {
+        // Nothing to look for, or too much of it.
+        if ( is_string($content) && ( strpos($content, '@') === false || substr_count($content, '@') > self::MAX_CONTACT_SIGNS_PER_CONTENT ) ) {
             return $content;
         }
 

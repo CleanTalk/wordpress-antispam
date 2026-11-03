@@ -558,4 +558,39 @@ class ShortcodeContextTest extends TestCase
         $this->assertStringNotContainsString('c@d.ee', $result);
         $this->assertStringNotContainsString('title="a@b.cc"', $result);
     }
+
+    /**
+     * Compiled in a separate process: with JIT off the old patterns take tens of seconds on this text.
+     */
+    public function testEmailPatternsAreBounded()
+    {
+        $script = tempnam(sys_get_temp_dir(), 'ce');
+        file_put_contents($script, '<?php $t = str_repeat("a.", 15990) . "@" . str_repeat("a.", 15990) . "!";'
+            . ' $s = microtime(true); preg_match_all(' . var_export('/(\b' . \Cleantalk\Common\ContactsEncoder\ContactsEncoder::EMAIL_PATTERN . ')/', true) . ', $t, $m);'
+            . ' echo json_encode(array(microtime(true) - $s, preg_last_error()));');
+        $output = shell_exec(escapeshellarg(PHP_BINARY) . ' -d pcre.jit=0 ' . escapeshellarg($script) . ' 2>&1');
+        unlink($script);
+        $result = json_decode((string)$output, true);
+
+        $this->assertIsArray($result, (string)$output);
+        $this->assertLessThan(5, $result[0]);
+        $this->assertSame(0, $result[1]);
+    }
+
+    /**
+     * @dataProvider legitEmailProvider
+     */
+    public function testLegitEmailsAreStillFound($email)
+    {
+        $this->assertStringNotContainsString($email, apbctGetContactsEncoder()->modifyContent('write to ' . $email . ' please'));
+    }
+
+    public function legitEmailProvider()
+    {
+        return array(
+            array('a.b-c_d@sub.example.co.uk'),
+            array(str_repeat('l', 64) . '@example.org'),
+            array('x@' . str_repeat('d', 200) . '.museum'),
+        );
+    }
 }
