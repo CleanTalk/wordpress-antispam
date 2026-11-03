@@ -55,10 +55,10 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      * Callback for the shortcode
      *
      * @param $_atts array Not used here
-     * @param $content string|null Encoded content like `<span data-original-string='abc'>***@***.***</span>`
+     * @param $content string|null
      * @param $_tag string Not used here
      *
-     * @return string Decoded content like `abc@abc.com`
+     * @return string|null
      */
     public function callback($_atts, $content, $_tag)
     {
@@ -72,18 +72,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return $this->createPlaceholder($content);
         }
 
-        // Pattern to get data-original-string attribute
-        $pattern = '/data-original-string=(["\'])(.*?)\1/';
-        preg_match($pattern, $content, $matches);
-
-        if (isset($matches[2])) {
-            $encoder = apbctGetContactsEncoder();
-            $decoded_data = $encoder->decodeContactData([$matches[2]]);
-            if ( $decoded_data && is_array($decoded_data) ) {
-                return esc_html(current($decoded_data));
-            }
-        }
-
+        // Never decode here: the text comes from the page, and decoding is a checked request of a visitor.
         return wp_kses_post($content);
     }
 

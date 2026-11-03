@@ -60,7 +60,8 @@ class ExcludedEncodeContentSCTest extends TestCase
 
         $result = $this->exclude_content_sc->callback([], $encodedString, '');
 
-        $this->assertEquals($originalString, $result);
+        // The page text is never decoded here.
+        $this->assertStringNotContainsString($originalString, $result);
     }
 
     /**
@@ -421,26 +422,26 @@ class ExcludedEncodeContentSCTest extends TestCase
      */
     public function testCallbackSanitizesFallbackWithDataOriginalAndScript(): void
     {
-        // Content has data-original-string but decoding will fail,
-        // so fallback wp_kses_post should strip the script tag
+        // The text is not decoded, wp_kses_post strips the script tag. Its text stays as an inert text.
         $content = '<span data-original-string="nonexistent_encoded_data"><script>alert(1)</script></span>';
         $result = $this->exclude_content_sc->callback([], $content, '');
         $this->assertStringNotContainsString('<script>', $result);
-        $this->assertStringNotContainsString('alert(1)', $result);
     }
 
     /**
-     * Test that normal email decoding still works after sanitization
+     * A contact copied from the page into a shortcode must not be decoded without the visitor check.
      */
-    public function testCallbackDecodesEmailCorrectlyWithSanitization(): void
+    public function testCallbackDoesNotDecodeACopiedContact(): void
     {
+        global $apbct;
+        $apbct->settings['data__email_decoder_buffer'] = true;
+
         $originalString = 'test@example.com';
         $encodedString = $this->contacts_encoder->modifyContent($originalString);
 
         $result = $this->exclude_content_sc->callback([], $encodedString, '');
 
-        // esc_html should not affect a plain email address
-        $this->assertEquals($originalString, $result);
+        $this->assertStringNotContainsString($originalString, $result);
     }
 
     /**
@@ -603,5 +604,31 @@ class ExcludedEncodeContentSCTest extends TestCase
 
         $this->assertSame($body, $this->exclude_content_sc->finalizePlaceholderRestoreAfterRenderBlock($body, $item));
         $this->assertSame('a@example.org', $this->exclude_content_sc->finalizePlaceholderRestoreAfterRenderBlock($body, $outer));
+    }
+
+    /**
+     * Each pair in a page must not end up in a request to the cloud.
+     */
+    public function testBufferPairsDoNotCallTheCloud(): void
+    {
+        global $apbct;
+        $apbct->settings['data__email_decoder_buffer'] = true;
+
+        $encoder = $this->getMockBuilder(\Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(array('decodeContactData'))
+            ->getMock();
+        $encoder->expects($this->never())->method('decodeContactData');
+
+        $reflection = new \ReflectionProperty(\Cleantalk\Common\ContactsEncoder\ContactsEncoder::class, 'instance');
+        $reflection->setAccessible(true);
+        $saved = $reflection->getValue();
+        $reflection->setValue(null, $encoder);
+
+        $unit = "[apbct_skip_encoding][apbct_skip_encoding]data-original-string=''[/apbct_skip_encoding][/apbct_skip_encoding]";
+        $result = $this->exclude_content_sc->finalizeBufferAfterEncoding('<code>' . str_repeat($unit, 5) . '</code>');
+        $reflection->setValue(null, $saved);
+
+        $this->assertStringContainsString('<code>', $result);
     }
 }
