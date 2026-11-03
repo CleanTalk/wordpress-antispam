@@ -32,6 +32,14 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     private static $raw_titles_cache = array();
 
     /**
+     * @inheritDoc
+     */
+    protected function getOpeningTagPattern()
+    {
+        return '/\[apbct_skip_encoding()\]/';
+    }
+
+    /**
      * Callback for the shortcode
      *
      * @param $_atts array Not used here
@@ -91,19 +99,9 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return $content;
         }
 
-        $pattern = '/\[apbct_skip_encoding\](.*?)\[\/apbct_skip_encoding\]/s';
-
-        return preg_replace_callback($pattern, function ($matches) {
-            if ( isset($matches[1]) ) {
-                if ( $this->shortcodeContentContainsHtmlTags($matches[1]) ) {
-                    return isset($matches[0]) ? $matches[0] : '';
-                }
-
-                return $this->createPlaceholder($matches[1]);
-            }
-
-            return isset($matches[0]) ? $matches[0] : '';
-        }, $content);
+        return $this->replaceShortcodePairs($content, function ($pair) {
+            return $this->createPlaceholder($pair['inner']);
+        });
     }
 
     /**
@@ -184,19 +182,9 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return $content;
         }
 
-        $pattern = '/\[apbct_skip_encoding\](.*?)\[\/apbct_skip_encoding\]/s';
-
-        return preg_replace_callback($pattern, function ($matches) {
-            if ( isset($matches[1]) ) {
-                if ( $this->shortcodeContentContainsHtmlTags($matches[1]) ) {
-                    return isset($matches[0]) ? $matches[0] : '';
-                }
-
-                return $this->callback([], $matches[1], '');
-            }
-            /** @psalm-suppress PossiblyUndefinedIntArrayOffset */
-            return $matches[0];
-        }, $content);
+        return $this->replaceShortcodePairs($content, function ($pair) {
+            return $this->callback(array(), $pair['inner'], '');
+        });
     }
 
     /**

@@ -117,25 +117,12 @@ class EncodeContentSC extends EmailEncoderShortCode
 
         // skip encoding if the content is already encoded with hook
         // Extract shortcode content to protect it from email encoding, supports sc attributes(!)
-        $shortcode_exist_pattern = sprintf('/(\[%s(?:\s[^\]]*)?\])([\s\S]*?)(\[\/%s\])/s', $this->public_name, $this->public_name);
-        $content = preg_replace_callback($shortcode_exist_pattern, function ($matches) {
-            if ( ! isset($matches[1], $matches[2], $matches[3]) ) {
-                return isset($matches[0]) ? $matches[0] : '';
-            }
-
-            if ( $this->shortcodeContentContainsHtmlTags($matches[2]) ) {
-                return isset($matches[0]) ? $matches[0] : '';
-            }
-
+        return $this->replaceShortcodePairs($content, function ($pair) {
             $placeholder = $this->buildPlaceholder($this->shortcode_counter++);
-            $prefix = $matches[1];
-            $entity = Escape::escKsesPost($matches[2]);
-            $suffix = $matches[3];
-            $this->shortcode_replacements[$placeholder] = $prefix . $entity . $suffix;
+            $this->shortcode_replacements[$placeholder] = $pair['opener'] . Escape::escKsesPost($pair['inner']) . $pair['closer'];
 
             return $placeholder;
-        }, $content);
-        return $content;
+        });
     }
 
     /**

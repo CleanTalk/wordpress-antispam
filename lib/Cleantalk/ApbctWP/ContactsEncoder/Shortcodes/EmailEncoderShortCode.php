@@ -14,6 +14,11 @@ use Cleantalk\Common\ContactsEncoder\Helper\ContactsEncoderHelper;
 class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
 {
     /**
+     * Processing budget of one pass over a content.
+     */
+    const MAX_SHORTCODE_PAIRS = 200;
+
+    /**
      * @var string The public name of the shortcode.
      */
     protected $public_name;
@@ -116,35 +121,107 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
             return $content;
         }
 
-        if ( ! has_shortcode($content, $this->public_name) ) {
-            return $content;
-        }
+        return $this->replaceShortcodePairs($content, function ($pair) {
+            $parsed_atts = shortcode_parse_atts($pair['attributes']);
 
-        $pattern = sprintf(
-            '/(\[%s(?:\s[^\]]*)?\])([\s\S]*?)(\[\/%s\])/s',
-            preg_quote($this->public_name, '/'),
+            return $this->callback(
+                is_array($parsed_atts) ? $parsed_atts : array(),
+                $pair['inner'],
+                $this->public_name
+            );
+        });
+    }
+
+    /**
+     * Opening tag of this shortcode. A value can not contain quotes, brackets or tag signs: otherwise a tag
+     * started inside a value of a HTML attribute could be finished outside of that HTML tag.
+     *
+     * @return string
+     */
+    protected function getOpeningTagPattern()
+    {
+        return sprintf(
+            '/\[%s((?:\s++[a-zA-Z_][\w-]*+(?:\s*+=\s*+(?:"[^"\[\]<>]*+"|\'[^\'\[\]<>]*+\'|[^\s"\'\[\]<>=]++))?+)*+)\s*+\]/',
             preg_quote($this->public_name, '/')
         );
+    }
 
-        return preg_replace_callback(
-            $pattern,
-            function ($matches) {
-                $atts = array();
-                if ( isset($matches[1]) && preg_match('/\[' . preg_quote($this->public_name, '/') . '([^\]]*)\]/', $matches[1], $tag_matches) && isset($tag_matches[1]) ) {
-                    $parsed_atts = shortcode_parse_atts($tag_matches[1]);
-                    $atts = is_array($parsed_atts) ? $parsed_atts : array();
-                }
+    /**
+     * Find shortcode pairs in one pass: an opening tag is paired with the first closing tag after it.
+     *
+     * @param string $content
+     *
+     * @return array[] List of [opener_start, inner_start, closer_start, end, attributes, inner, opener, closer]
+     */
+    protected function findShortcodePairs($content)
+    {
+        $pairs = array();
 
-                $inner_content = isset($matches[2]) ? $matches[2] : '';
+        if ( ! preg_match_all($this->getOpeningTagPattern(), $content, $openers, PREG_OFFSET_CAPTURE) || ! isset($openers[0], $openers[1]) ) {
+            return $pairs;
+        }
 
-                if ( $this->shortcodeContentContainsHtmlTags($inner_content) ) {
-                    return isset($matches[0]) ? $matches[0] : '';
-                }
+        $closer = '[/' . $this->public_name . ']';
+        $cursor = 0;
 
-                return $this->callback($atts, $inner_content, $this->public_name);
-            },
-            $content
-        );
+        foreach ( $openers[0] as $index => $opener ) {
+            if ( ! isset($opener[0], $opener[1]) || $opener[1] < $cursor ) {
+                continue;
+            }
+
+            $inner_start = $opener[1] + strlen($opener[0]);
+            $closer_start = strpos($content, $closer, $inner_start);
+            if ( $closer_start === false ) {
+                break;
+            }
+
+            $cursor = $closer_start + strlen($closer);
+            $pairs[] = array(
+                'opener_start' => $opener[1],
+                'inner_start' => $inner_start,
+                'closer_start' => $closer_start,
+                'end' => $cursor,
+                'attributes' => isset($openers[1][$index][0]) ? $openers[1][$index][0] : '',
+                'inner' => substr($content, $inner_start, $closer_start - $inner_start),
+                'opener' => $opener[0],
+                'closer' => $closer,
+            );
+
+            if ( count($pairs) >= self::MAX_SHORTCODE_PAIRS ) {
+                break;
+            }
+        }
+
+        return $pairs;
+    }
+
+    /**
+     * Replace the pairs that are a text run of the content, all the others stay byte for byte.
+     *
+     * @param string $content
+     * @param callable $callback Receives a pair, returns the replacement.
+     *
+     * @return string
+     */
+    protected function replaceShortcodePairs($content, $callback)
+    {
+        $result = '';
+        $position = 0;
+
+        foreach ( $this->findShortcodePairs($content) as $pair ) {
+            if (
+                $this->isOffsetInsideHtmlTag($content, $pair['opener_start'])
+                || $this->isOffsetInsideHtmlTag($content, $pair['closer_start'])
+                || $this->shortcodeContentContainsHtmlTags($pair['inner'])
+            ) {
+                continue;
+            }
+
+            $result .= substr($content, $position, $pair['opener_start'] - $position) . $callback($pair);
+            $position = $pair['end'];
+        }
+
+        return $position === 0 ? $content : $result . substr($content, $position);
     }
 
     /**
