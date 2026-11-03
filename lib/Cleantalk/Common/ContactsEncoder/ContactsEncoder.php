@@ -391,6 +391,11 @@ class ContactsEncoder
             return $this->encodePlainEmail($matches[0]);
         }, $content);
 
+        // A failed regular expression returns null: a guard could have failed as well, encode nothing.
+        if ( ! is_string($replacing_result) ) {
+            $replacing_result = $content;
+        }
+
         if ( $owns_aria_protection ) {
             $replacing_result = $this->handleAriaLabelContent($replacing_result, true);
         }
@@ -479,6 +484,10 @@ class ContactsEncoder
             },
             $content
         );
+
+        if ( ! is_string($replacing_result) ) {
+            $replacing_result = $content;
+        }
 
         if ( $owns_aria_protection ) {
             $replacing_result = $this->handleAriaLabelContent($replacing_result, true);
@@ -1008,7 +1017,7 @@ class ContactsEncoder
             }
 
             // A whole tag, with quoted attribute values consumed as a unit so `>` inside them is kept.
-            $tag_pattern = '/<' . preg_quote($tag, '/') . '\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>/i';
+            $tag_pattern = '/<' . preg_quote($tag, '/') . '\b(?:[^>"\']++|"[^"]*+"|\'[^\']*+\')*+>/i';
             // The target attribute inside that tag, value limited to its own quotes.
             $attribute_pattern = '/\s' . preg_quote($attribute, '/') . '\s*=\s*(["\'])(.*?)\1/is';
 

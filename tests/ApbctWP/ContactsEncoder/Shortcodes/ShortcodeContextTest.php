@@ -519,4 +519,43 @@ class ShortcodeContextTest extends TestCase
 
         $this->assertSame('a@b.cc', $result);
     }
+
+    public function testFailedPatternKeepsTheContent()
+    {
+        $encoder = apbctGetContactsEncoder();
+        $property = new \ReflectionProperty($encoder, 'global_email_pattern');
+        $property->setAccessible(true);
+        $saved = $property->getValue($encoder);
+        $jit = ini_get('pcre.jit');
+        $limit = ini_get('pcre.backtrack_limit');
+
+        ini_set('pcre.jit', '0');
+        ini_set('pcre.backtrack_limit', '10');
+        $property->setValue($encoder, '/(a+)+@/');
+
+        $html = '<p>' . str_repeat('a', 500) . '</p> keep me';
+        $result = $encoder->modifyContent($html);
+
+        $property->setValue($encoder, $saved);
+        ini_set('pcre.jit', $jit);
+        ini_set('pcre.backtrack_limit', $limit);
+
+        $this->assertSame($html, $result);
+    }
+
+    public function testVeryLongAttributeLikeTextDoesNotEmptyTheContent()
+    {
+        $html = "Nice post <code>aria-label='" . str_repeat('x', 30000) . '</code> really';
+
+        $this->assertSame($html, apbctGetContactsEncoder()->modifyContent($html));
+    }
+
+    public function testVeryLongTagIsNotAFailure()
+    {
+        $html = '<a ' . str_repeat('x ', 100000) . 'title="a@b.cc" href="#">t</a> c@d.ee';
+        $result = apbctGetContactsEncoder()->modifyContent($html);
+
+        $this->assertStringNotContainsString('c@d.ee', $result);
+        $this->assertStringNotContainsString('title="a@b.cc"', $result);
+    }
 }
