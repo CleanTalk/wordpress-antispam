@@ -6,6 +6,11 @@ use Cleantalk\Common\ContactsEncoder\Helper\ContactsEncoderHelper;
 
 class ExcludedEncodeContentSC extends EmailEncoderShortCode
 {
+    /**
+     * Number of different links resolved to posts per request.
+     */
+    const MAX_LINK_LOOKUPS = 100;
+
     protected $public_name = 'apbct_skip_encoding';
 
     /**
@@ -32,6 +37,11 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      * @var array<int, string> Raw post titles captured before encoder mutates post objects.
      */
     private static $raw_titles_cache = array();
+
+    /**
+     * @var array<string, int> Link => post ID, resolved in this request.
+     */
+    private $resolved_links = array();
 
     /**
      * @inheritDoc
@@ -133,7 +143,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
 
             // widget_block_content (and similar hooks) re-run modifyContent() on already
             // rendered page-list HTML and encode skip titles again — restore after that.
-            return $this->restorePageListLinkTitlesInHtml($content);
+            return empty($this->render_block_stack) ? $this->restorePageListLinkTitlesInHtml($content) : $content;
         }
 
         if ( $apbct->settings['data__email_decoder_buffer'] ) {
@@ -337,7 +347,8 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      */
     public function restoreEncodedBlockTitlesFilter($content, $_parsed_block, $block = null)
     {
-        if ( $this->isBufferMode() ) {
+        // Outer blocks encode the output of inner blocks again: only the outermost result is final.
+        if ( $this->isBufferMode() || ! empty($this->render_block_stack) ) {
             return $content;
         }
 
@@ -508,6 +519,38 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return 0;
         }
 
+        if ( isset($this->resolved_links[$href]) ) {
+            return $this->resolved_links[$href];
+        }
+
+        if ( count($this->resolved_links) >= self::MAX_LINK_LOOKUPS || ! $this->isLinkToThisSite($href) ) {
+            return 0;
+        }
+
+        $this->resolved_links[$href] = $this->lookupPostIdByHref($href);
+
+        return $this->resolved_links[$href];
+    }
+
+    /**
+     * @param string $href
+     *
+     * @return bool
+     */
+    private function isLinkToThisSite($href)
+    {
+        $host = wp_parse_url($href, PHP_URL_HOST);
+
+        return ! is_string($host) || strcasecmp($host, (string)wp_parse_url(home_url(), PHP_URL_HOST)) === 0;
+    }
+
+    /**
+     * @param string $href
+     *
+     * @return int
+     */
+    private function lookupPostIdByHref($href)
+    {
         $post_id = url_to_postid($href);
         if ( $post_id ) {
             return $this->isPostPubliclyViewable((int)$post_id) ? (int)$post_id : 0;

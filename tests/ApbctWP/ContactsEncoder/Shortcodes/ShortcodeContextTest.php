@@ -428,4 +428,55 @@ class ShortcodeContextTest extends TestCase
         $this->assertSame($html, $result);
         $this->assertStringContainsString('Notes</h1>', $result_real);
     }
+
+    private function countLookups($html)
+    {
+        $lookups = 0;
+        $counter = static function ($url) use (&$lookups) {
+            $lookups++;
+            return $url;
+        };
+        add_filter('url_to_postid', $counter);
+        $this->restoreLinks($html);
+        remove_filter('url_to_postid', $counter);
+
+        return $lookups;
+    }
+
+    public function testLinkLookupsHaveABudget()
+    {
+        $html = '';
+        for ( $i = 0; $i < 1150; $i++ ) {
+            $html .= '<a href="' . home_url('/p1-' . $i . '/') . '"><span class="apbct-email-encoder">a</span></a>';
+        }
+
+        $this->assertLessThanOrEqual(ExcludedEncodeContentSC::MAX_LINK_LOOKUPS, $this->countLookups($html));
+    }
+
+    public function testTheSameLinkIsLookedUpOnce()
+    {
+        $html = str_repeat('<a href="' . home_url('/same/') . '"><span class="apbct-email-encoder">a</span></a>', 50);
+
+        $this->assertSame(1, $this->countLookups($html));
+    }
+
+    public function testForeignLinksAreNotLookedUp()
+    {
+        $this->assertSame(0, $this->countLookups('<a href="https://other.example.org/p/"><span class="apbct-email-encoder">a</span></a>'));
+    }
+
+    public function testNestedBlockSkipsTitleRestoreOuterRuns()
+    {
+        $id = wp_insert_post(array('post_title' => '[apbct_skip_encoding]Notes[/apbct_skip_encoding]', 'post_status' => 'publish', 'post_type' => 'post'));
+        $html = '<a href="' . home_url('/?p=' . $id) . '"><span class="apbct-email-encoder">n</span></a>';
+
+        $this->exclude->pushRenderBlockStack(null, array('blockName' => 'core/group'));
+        $nested = $this->exclude->restoreEncodedBlockTitlesFilter($html, array());
+        $this->exclude->finalizePlaceholderRestoreAfterRenderBlock('', array('blockName' => 'core/group'));
+        $outer = $this->exclude->restoreEncodedBlockTitlesFilter($html, array());
+        wp_delete_post($id, true);
+
+        $this->assertSame($html, $nested);
+        $this->assertStringContainsString('>Notes</a>', $outer);
+    }
 }
