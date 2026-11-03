@@ -164,4 +164,53 @@ class ShortcodeContextTest extends TestCase
 
         $this->assertSame($html, apbctGetContactsEncoder()->modifyContent($html));
     }
+
+    public function testSkipPlaceholderInAttributeOfAShortcodeIsEscapedOnRestore()
+    {
+        $placeholder = $this->exclude->changeContentBeforeEncoderModify('[apbct_skip_encoding]a" onfocus="alert(1)[/apbct_skip_encoding]');
+        $restored = $this->exclude->changeContentAfterEncoderModify('<figure class="x ' . $placeholder . '"></figure>');
+
+        $this->assertSame(array(), $this->handlers($restored), $restored);
+    }
+
+    public function testSkipTextWithQuotesStaysVisible()
+    {
+        $result = $this->run_encoder('[apbct_skip_encoding]Say "hi" to a@example.org[/apbct_skip_encoding]');
+
+        $this->assertSame('Say &quot;hi&quot; to a@example.org', $result);
+    }
+
+    public function testPairInsideAnotherShortcodeOpeningTagIsNotProtected()
+    {
+        $reflection = new \ReflectionMethod($this->exclude, 'isInsideOtherShortcodeTag');
+        $reflection->setAccessible(true);
+
+        $this->assertTrue($reflection->invoke($this->exclude, '[gallery ids="[apbct_skip_encoding]1', 13));
+        $this->assertFalse($reflection->invoke($this->exclude, '[gallery ids="1"] [apbct_skip_encoding]1', 17));
+        $this->assertFalse($reflection->invoke($this->exclude, 'list[0 [apbct_skip_encoding]1', 7));
+    }
+
+    /**
+     * @dataProvider captionProvider
+     */
+    public function testPairInsideCaptionAttribute($payload)
+    {
+        $content = $this->exclude->changeContentBeforeEncoderModify($payload);
+        $content = $this->encode->changeContentBeforeEncoderModify($content);
+        $this->assertStringNotContainsString('%%APBCT', $content);
+
+        $content = do_shortcode(apbctGetContactsEncoder()->modifyContent($content));
+        $content = $this->encode->changeContentAfterEncoderModify($content);
+        $content = $this->exclude->changeContentAfterEncoderModify($content);
+
+        $this->assertSame(array(), $this->handlers($content), $content);
+    }
+
+    public function captionProvider()
+    {
+        return array(
+            'skip' => array('[caption class="[apbct_skip_encoding]a" autofocus tabindex="0" onfocus="alert(1)" x="[/apbct_skip_encoding]"]body[/caption]'),
+            'encode' => array('[caption class="[apbct_encode_data]a" autofocus tabindex="0" onfocus="alert(1)" x="[/apbct_encode_data]"]body[/caption]'),
+        );
+    }
 }

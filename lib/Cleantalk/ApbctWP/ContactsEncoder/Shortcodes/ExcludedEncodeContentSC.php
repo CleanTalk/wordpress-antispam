@@ -203,7 +203,8 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
                 continue;
             }
 
-            $original = wp_kses_post($original);
+            // The text may land in an attribute built by another shortcode: only the markup of the do_shortcode() path stays.
+            $original = strpos($original, '<') === false ? esc_html($original) : wp_kses_post($original);
             //fix for wpautop when encoder is disabled
             if ( !$apbct->settings['data__email_decoder'] ) {
                 $original = wpautop($original);

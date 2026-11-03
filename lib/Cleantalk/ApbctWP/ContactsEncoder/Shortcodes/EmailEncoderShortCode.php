@@ -19,6 +19,11 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
     const MAX_SHORTCODE_PAIRS = 200;
 
     /**
+     * How far back the opening tag of an outer shortcode is searched.
+     */
+    const MAX_OUTER_TAG_LENGTH = 4096;
+
+    /**
      * @var string The public name of the shortcode.
      */
     protected $public_name;
@@ -212,6 +217,7 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
             if (
                 $this->isOffsetInsideHtmlTag($content, $pair['opener_start'])
                 || $this->isOffsetInsideHtmlTag($content, $pair['closer_start'])
+                || $this->isInsideOtherShortcodeTag($content, $pair['opener_start'])
                 || $this->shortcodeContentContainsHtmlTags($pair['inner'])
             ) {
                 continue;
@@ -222,6 +228,27 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
         }
 
         return $position === 0 ? $content : $result . substr($content, $position);
+    }
+
+    /**
+     * A placeholder hides quotes from the parser of the outer shortcode, which builds its attributes later.
+     *
+     * @param string $content
+     * @param int $offset Offset of the `[` of the checked shortcode.
+     *
+     * @return bool True for `[name attr="[apbct_...`.
+     */
+    protected function isInsideOtherShortcodeTag($content, $offset)
+    {
+        $outer = $offset > 0 ? strrpos(substr($content, max(0, $offset - self::MAX_OUTER_TAG_LENGTH), $offset - max(0, $offset - self::MAX_OUTER_TAG_LENGTH)), '[') : false;
+        if ( $outer === false ) {
+            return false;
+        }
+
+        $outer += max(0, $offset - self::MAX_OUTER_TAG_LENGTH);
+        $between = substr($content, $outer, $offset - $outer);
+
+        return strpos($between, ']') === false && (bool)preg_match('/^\[[a-zA-Z_][\w-]*\s[^=]*=/', $between);
     }
 
     /**
