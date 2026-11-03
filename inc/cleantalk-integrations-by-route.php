@@ -26,6 +26,11 @@ $apbct_active_rest_integrations = array(
         'setting' => 'forms__registrations_test',
         'rest'       => true,
     ),
+    'LeakyPaywallRegister'         => array(
+        'rest_route'    => '/lp-list-builder/v1/signup',
+        'setting' => 'forms__registrations_test',
+        'rest'       => true,
+    ),
 );
 
 add_filter('rest_pre_dispatch', function ($result, $_, $request) use ($apbct_active_rest_integrations) {

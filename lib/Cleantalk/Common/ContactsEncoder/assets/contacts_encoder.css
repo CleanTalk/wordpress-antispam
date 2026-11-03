@@ -29,10 +29,42 @@
 .apbct-email-encoder.no-blur .apbct-blur{
     filter: none;
 }
-.apbct-email-encoder-popup {
+.apbct-popup.apbct-email-encoder-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin-left: 0;
+    transform: translate(-50%, -50%);
     width: 30vw;
     min-width: 400px;
     font-size: 16px;
+}
+.apbct-email-encoder-popup__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: none;
+    width: 12px;
+    height: 12px;
+    border: 0;
+    padding: 0;
+    border-radius: 50%;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.apbct-email-encoder-popup__close:hover {
+    background: #e5e7eb;
+    color: #111827;
+}
+.apbct-email-encoder-popup__close--visible {
+    display: inline-flex;
 }
 .apbct-email-encoder--popup-header {
     font-size: 16px;
@@ -147,12 +179,10 @@
         display: block;
     }
 
-    .apbct-email-encoder-popup {
-        width: 20vw;
+    .apbct-popup.apbct-email-encoder-popup {
+        width: calc(90vw - 32px);
         min-width: 200px;
-        font-size: 16px;
-        top: 20%;
-        left: 75%;
+        max-width: 360px;
     }
 
     .apbct-email-encoder-elements_center {

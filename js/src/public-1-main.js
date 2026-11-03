@@ -1129,6 +1129,25 @@ class ApbctHandler {
                     }
                 }
 
+                // === LeakyPaywall register===
+                if (
+                    (
+                        document.querySelectorAll('form.lp-list-builder__form').length > 0 ||
+                        document.querySelectorAll('form.lp-list-builder-auth__form').length > 0
+                    ) &&
+                    typeof args[0].includes === 'function' &&
+                    args[0].includes('/wp-json/lp-list-builder/v1')
+                ) {
+                    try {
+                        args[1].body = attachFieldsToBody(
+                            args[1].body,
+                            selectFieldsData(+ctPublic.bot_detector_enabled),
+                        );
+                    } catch (e) {
+                        // Continue even if error
+                    }
+                }
+
                 // === WooCommerce add to cart (direct add-item URL) ===
                 if (
                     (
@@ -3031,21 +3050,14 @@ async function apbct_ready() {
     handler.catchWCRestRequestAsMiddleware();
 
     if (+ctPublic.bot_detector_enabled) {
-        let botDetectorEventTokenStored = false;
+        let lastStoredBotDetectorEventToken = null;
         window.addEventListener('botDetectorEventTokenUpdated', (event) => {
             const botDetectorEventToken = event.detail?.eventToken;
-            if (botDetectorEventToken && !botDetectorEventTokenStored) {
+            if (botDetectorEventToken && botDetectorEventToken !== lastStoredBotDetectorEventToken) {
                 ctSetCookie([
                     ['ct_bot_detector_event_token', botDetectorEventToken],
                 ]);
-                botDetectorEventTokenStored = true;
-                // @ToDo remove this block afret force_alt_cookies removed
-                if (typeof ctPublic.force_alt_cookies !== 'undefined' && ctPublic.force_alt_cookies) {
-                    ctSetAlternativeCookie(
-                        JSON.stringify({'ct_bot_detector_event_token': botDetectorEventToken}),
-                        {forceAltCookies: true},
-                    );
-                }
+                lastStoredBotDetectorEventToken = botDetectorEventToken;
             }
         });
     }
