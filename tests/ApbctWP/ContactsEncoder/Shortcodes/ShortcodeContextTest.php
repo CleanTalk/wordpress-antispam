@@ -479,4 +479,44 @@ class ShortcodeContextTest extends TestCase
         $this->assertSame($html, $nested);
         $this->assertStringContainsString('>Notes</a>', $outer);
     }
+
+    public function testContentStaysAsIsOverTheMatchesBudget()
+    {
+        $encoder = apbctGetContactsEncoder();
+        $property = new \ReflectionProperty($encoder, 'contact_matches_processed');
+        $property->setAccessible(true);
+        $saved = $property->getValue($encoder);
+
+        $property->setValue($encoder, $encoder::MAX_CONTACT_MATCHES_PER_REQUEST + 1);
+        $html = '<a aria-label="x@y.zz" href="#">a@b.cc</a> c@d.ee';
+        $over = $encoder->modifyContent($html);
+
+        $property->setValue($encoder, 0);
+        $under = $encoder->modifyContent($html);
+        $property->setValue($encoder, $saved);
+
+        $this->assertSame($html, $over);
+        $this->assertStringNotContainsString('c@d.ee', $under);
+    }
+
+    public function testContentWithTooManyContactSignsStaysAsIs()
+    {
+        $html = str_repeat('a@b.cc ', 5001);
+
+        $this->assertSame($html, apbctGetContactsEncoder()->modifyContent($html));
+    }
+
+    public function testEncodedContactsPerRequestAreLimited()
+    {
+        $encoder = apbctGetContactsEncoder();
+        $property = new \ReflectionProperty($encoder, 'encoded_contacts_count');
+        $property->setAccessible(true);
+        $saved = $property->getValue($encoder);
+
+        $property->setValue($encoder, $encoder::MAX_ENCODED_CONTACTS_PER_REQUEST);
+        $result = $encoder->modifyContent('a@b.cc');
+        $property->setValue($encoder, $saved);
+
+        $this->assertSame('a@b.cc', $result);
+    }
 }

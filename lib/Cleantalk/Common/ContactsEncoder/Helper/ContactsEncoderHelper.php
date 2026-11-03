@@ -50,10 +50,22 @@ class ContactsEncoderHelper
     private $raw_text_ranges = array();
 
     /**
-     * Sorted list of [start, end) offsets of every attribute value in the indexed content.
+     * Sorted list of [start, end, tag, attribute] of every attribute value in the indexed content.
      * @var array[]
      */
     private $attribute_value_ranges = array();
+
+    /**
+     * Sorted list of [start, end) offsets of the text of every option element in the indexed content.
+     * @var array[]
+     */
+    private $option_text_ranges = array();
+
+    /**
+     * Sorted list of [start, end, attribute names] of the tags with attributes in the indexed content.
+     * @var array[]
+     */
+    private $tags_with_attributes = array();
 
     /**
      * Elements whose inner text is not markup for a browser, the tokenizer jumps to their end tag.
@@ -277,58 +289,11 @@ class ContactsEncoderHelper
             return false;
         }
 
-        $tag_start = strrpos(substr($content, 0, $position), '<');
-        if ( $tag_start === false ) {
-            return false;
-        }
+        $this->indexMarkup($content);
 
-        $opening_tag = $this->readOpeningTag($content, $tag_start);
-        if ( $opening_tag === '' ) {
-            return false;
-        }
+        $index = $this->findRangeIndex($this->tags_with_attributes, $position);
 
-        return (bool)preg_match('/[\s\'"]' . preg_quote($attribute, '/') . '\s*=/i', $opening_tag);
-    }
-
-    /**
-     * Reads an opening tag starting at the given offset, honouring quoted attribute values so that
-     * a `>` inside a value does not terminate the tag prematurely.
-     *
-     * @param string $content
-     * @param int $tag_start Offset of the `<` character.
-     *
-     * @return string Empty string when the tag is not closed.
-     */
-    private function readOpeningTag($content, $tag_start)
-    {
-        $length = strlen($content);
-        $quote  = null;
-
-        for ( $i = $tag_start + 1; $i < $length; $i++ ) {
-            $char = $content[$i];
-
-            if ( $quote !== null ) {
-                if ( $char === $quote ) {
-                    $quote = null;
-                }
-                continue;
-            }
-
-            if ( $char === '"' || $char === "'" ) {
-                $quote = $char;
-                continue;
-            }
-
-            if ( $char === '>' ) {
-                return substr($content, $tag_start, $i - $tag_start + 1);
-            }
-
-            if ( $char === '<' ) {
-                return '';
-            }
-        }
-
-        return '';
+        return $index !== false && in_array(strtolower($attribute), $this->tags_with_attributes[$index][2], true);
     }
 
     /**
@@ -372,17 +337,8 @@ class ContactsEncoderHelper
             return false;
         }
 
-        $cc_position = strrpos(substr($content, 0, $position), 'cc=');
-        if ( $cc_position !== false && $cc_position + 3 == $position ) {
-            return true;
-        }
-
-        $bcc_position = strrpos(substr($content, 0, $position), 'bcc=');
-        if ( $bcc_position !== false && $bcc_position + 4 == $position ) {
-            return true;
-        }
-
-        return false;
+        // `bcc=` ends with `cc=`.
+        return $position >= 3 && substr($content, $position - 3, 3) === 'cc=';
     }
 
     /**
@@ -401,22 +357,9 @@ class ContactsEncoderHelper
             return false;
         }
 
-        $last_option_start = strrpos(substr($content, 0, $pos), '<option');
-        if ($last_option_start === false) {
-            return false;
-        }
+        $this->indexMarkup($content);
 
-        $option_tag_end = strpos($content, '>', $last_option_start);
-        if ($option_tag_end === false || $pos <= $option_tag_end) {
-            return false;
-        }
-
-        $option_close = stripos($content, '</option>', $last_option_start);
-        if ($option_close === false) {
-            return false;
-        }
-
-        return $pos > $option_tag_end && $pos < $option_close;
+        return $this->findRangeIndex($this->option_text_ranges, $pos) !== false;
     }
 
     /**
@@ -479,8 +422,11 @@ class ContactsEncoderHelper
         }
 
         $this->indexed_content = $content;
-        $this->raw_text_ranges = $this->buildRawTextRanges($content);
-        $this->attribute_value_ranges = $this->buildAttributeValueRanges($content);
+        // The tokens are big on a big page, only the ranges stay in the memory.
+        $tokens = self::scanMarkup($content);
+        $this->raw_text_ranges = $this->buildElementTextRanges($tokens, $this->raw_text_tags);
+        $this->option_text_ranges = $this->buildElementTextRanges($tokens, array('option'));
+        $this->buildAttributeRanges($tokens);
     }
 
     /**
@@ -509,103 +455,55 @@ class ContactsEncoderHelper
     }
 
     /**
-     * Offsets of every attribute value of every tag in the content.
+     * Offsets of every attribute value and of every tag with attributes.
      *
-     * Tags are matched as a whole first, so a `>` inside a quoted value cannot terminate the tag
-     * early. Attribute values are then located within the tag and their offsets translated back
-     * into offsets of the whole content.
-     *
-     * @param string $content
-     * @return array[] list of [start, end]
+     * @param array[] $tokens
+     * @return void
      */
-    private function buildAttributeValueRanges($content)
+    private function buildAttributeRanges($tokens)
     {
-        $ranges = array();
+        $this->attribute_value_ranges = array();
+        $this->tags_with_attributes = array();
 
-        $tag_pattern = '/<[a-zA-Z][\w:-]*(?:[^>"\']|"[^"]*"|\'[^\']*\')*>/';
-        if ( ! preg_match_all($tag_pattern, $content, $tag_matches, PREG_OFFSET_CAPTURE) ) {
-            return $ranges;
-        }
-
-        // Quoted values keep their own quotes out of the range, unquoted values stop at whitespace.
-        $attribute_pattern = '/[\s\/][^\s=\/>]+\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'>]+))/';
-
-        if (!isset($tag_matches[0])) {
-            return $ranges;
-        }
-
-        foreach ( $tag_matches[0] as $tag_match ) {
-            if ( ! isset($tag_match[0], $tag_match[1]) ) {
+        foreach ( $tokens as $token ) {
+            if ( empty($token['attributes']) ) {
                 continue;
             }
 
-            $tag = $tag_match[0];
-            $tag_offset = $tag_match[1];
-
-            if ( ! preg_match_all($attribute_pattern, $tag, $attribute_matches, PREG_OFFSET_CAPTURE) ) {
-                continue;
-            }
-
-            foreach ( array(1, 2, 3) as $group ) {
-                if ( ! isset($attribute_matches[$group]) ) {
-                    continue;
-                }
-
-                foreach ( $attribute_matches[$group] as $value_match ) {
-                    if ( ! isset($value_match[0], $value_match[1]) || $value_match[1] < 0 ) {
-                        continue;
-                    }
-
-                    $start = $tag_offset + $value_match[1];
-                    $ranges[] = array($start, $start + strlen($value_match[0]));
+            $names = array();
+            foreach ( $token['attributes'] as $attribute ) {
+                $names[] = $attribute[0];
+                if ( $attribute[3] > $attribute[2] ) {
+                    $this->attribute_value_ranges[] = array($attribute[2], $attribute[3], $token['name'], $attribute[0]);
                 }
             }
+            $this->tags_with_attributes[] = array($token['start'], $token['end'], $names);
         }
-
-        usort($ranges, static function ($left, $right) {
-            if ( $left[0] === $right[0] ) {
-                return 0;
-            }
-
-            return $left[0] < $right[0] ? -1 : 1;
-        });
-
-        return $ranges;
     }
 
     /**
-     * Offsets of the inner text of every raw text tag.
+     * Offsets of the inner text of the given elements.
      *
-     * @param string $content
+     * @param array[] $tokens
+     * @param string[] $tags
      * @return array[] list of [start, end, tag]
      */
-    private function buildRawTextRanges($content)
+    private function buildElementTextRanges($tokens, $tags)
     {
         $ranges = array();
-        if ( empty($this->raw_text_tags) ) {
-            return $ranges;
-        }
+        $open = null;
 
-        $tags = array();
-        foreach ( $this->raw_text_tags as $tag ) {
-            if ( is_string($tag) && $tag !== '' ) {
-                $tags[] = preg_quote($tag, '/');
-            }
-        }
-
-        if ( empty($tags) ) {
-            return $ranges;
-        }
-
-        $pattern = '/<(' . implode('|', $tags) . ')\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>(.*?)<\/\1\s*>/is';
-
-        if ( preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE) && isset($matches[2]) ) {
-            foreach ( $matches[2] as $index => $match ) {
-                if ( ! isset($match[0], $match[1]) || $match[1] < 0 ) {
-                    continue;
+        foreach ( $tokens as $token ) {
+            if ( $open === null ) {
+                if ( ! $token['closing'] && in_array($token['name'], $tags, true) ) {
+                    $open = $token;
                 }
-                $tag = isset($matches[1][$index][0]) ? strtolower($matches[1][$index][0]) : '';
-                $ranges[] = array($match[1], $match[1] + strlen($match[0]), $tag);
+                continue;
+            }
+
+            if ( $token['closing'] && $token['name'] === $open['name'] ) {
+                $ranges[] = array($open['end'], $token['start'], $token['name']);
+                $open = null;
             }
         }
 
@@ -749,6 +647,8 @@ class ContactsEncoderHelper
             if ( $position === false ) {
                 return false;
             }
+
+            return $this->isPositionInExcludedAttribute($temp_content, $position);
         }
 
         $quoted_match = preg_quote($email_match, '/');
@@ -770,6 +670,40 @@ class ContactsEncoderHelper
 
         foreach ( $this->attribute_exclusions_list as $attribute ) {
             if ( $this->isMatchInsideAttribute($quoted_match, $attribute, $temp_content, null, $position) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $content
+     * @param int $position
+     * @return bool
+     */
+    private function isPositionInExcludedAttribute($content, $position)
+    {
+        $this->indexMarkup($content);
+
+        $index = $this->findRangeIndex($this->attribute_value_ranges, $position);
+        if ( $index === false ) {
+            return false;
+        }
+
+        $tag = $this->attribute_value_ranges[$index][2];
+        $attribute = $this->attribute_value_ranges[$index][3];
+
+        if ( in_array($attribute, array_map('strtolower', $this->attribute_exclusions_list), true) ) {
+            return true;
+        }
+
+        foreach ( $this->getWorkingAttributeExclusionsSigns() as $sign_tag => $attributes ) {
+            if (
+                is_string($sign_tag) && is_array($attributes)
+                && strtolower($sign_tag) === $tag
+                && in_array($attribute, array_map('strtolower', array_filter($attributes, 'is_string')), true)
+            ) {
                 return true;
             }
         }

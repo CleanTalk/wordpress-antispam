@@ -223,7 +223,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     {
         $this->applyAttributeExclusionHooks();
 
-        if ( ! is_string($content) || $content === '' || stripos($content, '<option') === false ) {
+        if ( ! is_string($content) || $content === '' || stripos($content, '<option') === false || stripos($content, '</option') === false ) {
             return parent::modifyGlobalEmails($content);
         }
 

@@ -227,6 +227,9 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
             $position = $pair['end'];
         }
 
+        $this->markup_tokens_content = null;
+        $this->markup_tokens = array();
+
         return $position === 0 ? $content : $result . substr($content, $position);
     }
 

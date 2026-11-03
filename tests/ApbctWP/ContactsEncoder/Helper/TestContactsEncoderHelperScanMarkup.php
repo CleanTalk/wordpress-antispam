@@ -108,4 +108,58 @@ class TestContactsEncoderHelperScanMarkup extends TestCase
         ContactsEncoderHelper::scanMarkup(str_repeat('<script>', 8000));
         $this->assertLessThan(0.5, microtime(true) - $start);
     }
+
+    public function testGuardsDoNotDependOnContentSize()
+    {
+        $helper = new ContactsEncoderHelper();
+        $email = 'a@b.cd';
+        $content = 'Contacts: <abbr title="' . str_repeat($email . ' ', 9282) . '">x</abbr>';
+        $helper->indexMarkup($content);
+        $positions = array();
+        $offset = 0;
+        while ( ($offset = strpos($content, $email, $offset)) !== false ) {
+            $positions[] = $offset;
+            $offset += 6;
+        }
+
+        $start = microtime(true);
+        foreach ( $positions as $position ) {
+            $helper->isMailtoAdditionalCopy($email, $content, $position);
+            $helper->hasAttributeExclusions($email, $content, $position);
+            $helper->isInsideOptionTag($email, $content, $position);
+            $helper->isInsideAttributeValue($email, $content, $position);
+            $helper->enclosingTagHasAttribute($content, $position, 'title');
+        }
+
+        $this->assertLessThan(0.5, microtime(true) - $start);
+    }
+
+    /**
+     * @dataProvider guardProvider
+     */
+    public function testGuards($method, $content, $expected)
+    {
+        $helper = new ContactsEncoderHelper();
+
+        $this->assertSame($expected, $helper->$method('a@b.cd', $content, strpos($content, 'a@b.cd')));
+    }
+
+    public function guardProvider()
+    {
+        return array(
+            'cc' => array('isMailtoAdditionalCopy', 'mailto:x@y.zz?cc=a@b.cd', true),
+            'bcc' => array('isMailtoAdditionalCopy', 'mailto:x@y.zz?bcc=a@b.cd', true),
+            'not a copy' => array('isMailtoAdditionalCopy', 'succ a@b.cd', false),
+            'option text' => array('isInsideOptionTag', '<select><option value="1">a@b.cd</option></select>', true),
+            'option attribute' => array('isInsideOptionTag', '<option value="a@b.cd">x</option>', false),
+            'after option' => array('isInsideOptionTag', '<option>x</option> a@b.cd', false),
+            'input value' => array('hasAttributeExclusions', '<input type="text" value="a@b.cd">', true),
+            'img alt' => array('hasAttributeExclusions', '<img src="x" alt="a@b.cd">', true),
+            'abbr title' => array('hasAttributeExclusions', '<abbr title="a@b.cd">x</abbr>', false),
+            'text' => array('hasAttributeExclusions', '<input value="x"> a@b.cd', false),
+            'attribute with both quotes' => array('isInsideAttributeValue', '<a title="it\'s a@b.cd">x</a>', true),
+            'text after a quoted > ' => array('isInsideAttributeValue', '<a title="x>y">a@b.cd</a>', false),
+            'text after an unbalanced quote in a name' => array('isInsideAttributeValue', '<b x">a@b.cd</b>', false),
+        );
+    }
 }
