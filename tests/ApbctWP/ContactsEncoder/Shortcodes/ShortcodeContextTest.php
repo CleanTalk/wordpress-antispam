@@ -252,4 +252,41 @@ class ShortcodeContextTest extends TestCase
         $this->assertNotSame('', $result);
         $this->assertStringContainsString('*', $result);
     }
+
+    public function testEncodedSpanIsOneLineWithDoubleQuotes()
+    {
+        $result = apbctGetContactsEncoder()->encodePlainEmail('span@example.org');
+
+        $this->assertStringNotContainsString("\n", $result);
+        $this->assertSame(1, preg_match('/^<span data-original-string="[^"\']+" class="apbct-email-encoder" title="[^"\']+">/', $result), $result);
+    }
+
+    public function testExcerptStringFilterIsNotEncoded()
+    {
+        $encoder = apbctGetContactsEncoder();
+        $encoder->runEncoding();
+
+        $this->assertFalse(has_filter('get_the_excerpt', array($encoder, 'modifyContent')));
+        $this->assertSame(10, has_filter('the_excerpt', array($encoder, 'modifyContent')));
+    }
+
+    public function testCutSpanCanNotBeClosedByASingleQuoteOfOtherContent()
+    {
+        $span = apbctGetContactsEncoder()->encodePlainEmail('cut@example.org');
+        $cut = substr($span, 0, 40);
+        $html = '<div>' . $cut . '</div><h4><code>\' autofocus onfocus=alert(1) x=y </code></h4><p class="z">t</p>';
+
+        $this->assertSame(array(), $this->handlers($html), $html);
+    }
+
+    public function testCoreShortcodePassInsideAnAttributeStaysSafe()
+    {
+        $this->encode->register();
+        $content = '<a title="[apbct_encode_data]x@y.zz[/apbct_encode_data]" href="#">z</a><code>" onfocus="alert(1)" x="</code>';
+        $content = $this->encode->changeContentBeforeEncoderModify($content);
+        $content = do_shortcode(apbctGetContactsEncoder()->modifyContent($content));
+        $content = $this->encode->changeContentAfterEncoderModify($content);
+
+        $this->assertSame(array(), $this->handlers(wptexturize($content)), $content);
+    }
 }

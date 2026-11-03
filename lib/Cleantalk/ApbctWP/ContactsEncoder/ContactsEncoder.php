@@ -113,7 +113,6 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             'the_excerpt',
             'get_footer',
             'get_header',
-            'get_the_excerpt',
             'widget_title',
             'widget_text',
             'widget_content',

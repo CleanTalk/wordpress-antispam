@@ -737,10 +737,10 @@ class ContactsEncoder
      */
     private function constructEncodedSpan($encoded_string, $obfuscated_string)
     {
-        return "<span 
-                data-original-string='" . $encoded_string . "'
-                class='apbct-email-encoder'
-                title='" . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8') . "'>" . $obfuscated_string . "</span>";
+        // One line with double quotes: third-party code may cut the text, and the rest of a page uses double quotes.
+        return '<span data-original-string="' . htmlspecialchars($encoded_string, ENT_QUOTES, 'UTF-8')
+            . '" class="apbct-email-encoder" title="' . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8') . '">'
+            . $obfuscated_string . '</span>';
     }
 
     /**
