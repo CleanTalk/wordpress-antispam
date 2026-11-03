@@ -683,6 +683,6 @@ class GetFieldsAny
     public static function isEmailLike($value_for_email)
     {
         //todo This regex should be reinspected with moderate and management team. https://app.doboard.com/1/task/47742
-        return (bool)preg_match("/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $value_for_email);
+        return (bool)preg_match("/^[a-zA-Z0-9._%+~-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/", $value_for_email);
     }
 }
