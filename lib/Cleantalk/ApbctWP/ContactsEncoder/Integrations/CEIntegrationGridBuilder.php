@@ -2,6 +2,8 @@
 
 namespace Cleantalk\ApbctWP\ContactsEncoder\Integrations;
 
+use Cleantalk\ApbctWP\ContactsEncoder\PlaceholderNonce;
+
 /**
  * WP Grid Builder compatibility for Contacts Encoder buffer mode (#54940).
  */
@@ -319,7 +321,7 @@ class CEIntegrationGridBuilder
                         return $matches[0];
                     }
 
-                    $placeholder = '%%APBCT_WPGB_REGION_' . count($this->region_placeholders) . '%%';
+                    $placeholder = '%%APBCT_WPGB_REGION_' . count($this->region_placeholders) . '_' . PlaceholderNonce::get() . '%%';
                     $this->region_placeholders[$placeholder] = $matches[0];
 
                     return $placeholder;
@@ -340,7 +342,7 @@ class CEIntegrationGridBuilder
                     return isset($matches[0]) ? $matches[0] : '';
                 }
 
-                $placeholder = '%%APBCT_WPGB_REGION_' . count($this->region_placeholders) . '%%';
+                $placeholder = '%%APBCT_WPGB_REGION_' . count($this->region_placeholders) . '_' . PlaceholderNonce::get() . '%%';
                 $this->region_placeholders[$placeholder] = $matches[0];
 
                 return $placeholder;

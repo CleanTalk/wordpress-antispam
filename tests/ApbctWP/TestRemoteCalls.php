@@ -147,6 +147,33 @@ class TestRemoteCalls extends TestCase
     }
 
     /** @test */
+    public function itHidesSensitiveDataInArrayObject()
+    {
+        $input = [
+            'data' => new ArrayObject([
+                'salt' => 'qwerty12345',
+                'user_token' => 'abcdef',
+                'nested' => new ArrayObject(['apikey' => 'abcdefghij']),
+                'normal_key' => 'visible'
+            ])
+        ];
+
+        $method = new ReflectionMethod(RemoteCalls::class, 'hideSensitiveData');
+        $method->setAccessible(true);
+
+        $result = $method->invoke(null, $input);
+
+        $this->assertEquals('qw*******45', $result['data']['salt']);
+        $this->assertEquals('ab**ef', $result['data']['user_token']);
+        $this->assertEquals('ab******ij', $result['data']['nested']['apikey']);
+        $this->assertEquals('visible', $result['data']['normal_key']);
+        $this->assertStringNotContainsString('qwerty12345', json_encode($result));
+
+        $result = $method->invoke(null, new ArrayObject(['salt' => 'qwerty12345']));
+        $this->assertEquals('qw*******45', $result['salt']);
+    }
+
+    /** @test */
     public function itMasksShortSensitiveValues()
     {
         $input = [

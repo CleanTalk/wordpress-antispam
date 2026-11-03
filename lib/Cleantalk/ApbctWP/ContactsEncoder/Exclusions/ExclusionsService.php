@@ -3,7 +3,6 @@
 namespace Cleantalk\ApbctWP\ContactsEncoder\Exclusions;
 
 use Cleantalk\ApbctWP\State;
-use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
 use Cleantalk\Common\TT;
@@ -151,9 +150,7 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
      */
     private function byDecoderPassedCookie()
     {
-        $apbct_email_encoder_passed = Cookie::get('apbct_email_encoder_passed');
-
-        return $apbct_email_encoder_passed === apbct_get_email_encoder_pass_key();
+        return apbct_is_email_encoder_passed();
     }
 
     /**

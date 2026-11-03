@@ -98,7 +98,7 @@ function ct_contact_form_validate()
     }
 
     // Do not execute anti-spam test for logged in users.
-    if ( defined('LOGGED_IN_COOKIE') && isset($_COOKIE[LOGGED_IN_COOKIE]) && $apbct->settings['data__protect_logged_in'] != 1 ) {
+    if ( $apbct->settings['data__protect_logged_in'] != 1 && apbct_is_user_logged_in() ) {
         do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
 
         return null;
@@ -372,8 +372,7 @@ function ct_contact_form_validate()
                     );
                     die();
                 } elseif (
-                    (int)$apbct->settings['forms__check_internal'] === 1
-                    && !empty($_POST)
+                    !empty($_POST)
                     && apbct_is_ajax()
                     && Post::equal('sib_form_action', 'subscribe_form_submit')
                     && apbct_is_plugin_active('mailin/sendinblue.php')

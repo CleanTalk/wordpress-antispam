@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\FindSpam\ListTable;
 
+use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\Common\TT;
@@ -74,15 +75,15 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
         $ip             = $item['ct_comment']->comment_author_IP;
 
         // Avatar, nickname
-        $column_content .= '<strong>' . $item['ct_comment']->comment_author . '</strong>';
+        $column_content .= '<strong>' . Escape::escHtml($item['ct_comment']->comment_author) . '</strong>';
         $column_content .= '<br /><br />';
 
         // Email
         if ( ! empty($email) ) {
             //HANDLE LINK
-            $column_content .= "<a href='mailto:$email'>$email</a>"
+            $column_content .= "<a href='mailto:" . Escape::escAttr($email) . "'>" . Escape::escHtml($email) . "</a>"
                                . (! $this->apbct->white_label
-                    ? "<a href='https://cleantalk.org/blacklists/$email' target='_blank'>"
+                    ? "<a href='https://cleantalk.org/blacklists/" . Escape::escAttr($email) . "' target='_blank'>"
                       . "&nbsp;<img src='" . APBCT_URL_PATH . "/inc/images/new_window.gif' alt='Ico: open in new window' border='0' style='float:none' />"
                       . "</a>"
                     : '');
@@ -94,9 +95,9 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
         // IP
         if ( ! empty($ip) ) {
-            $column_content .= "<a href='edit-comments.php?s=$ip&mode=detail'>$ip</a>"
+            $column_content .= "<a href='edit-comments.php?s=" . Escape::escAttr($ip) . "&mode=detail'>" . Escape::escHtml($ip) . "</a>"
                                . (! $this->apbct->white_label
-                    ? "<a href='https://cleantalk.org/blacklists/$ip ' target='_blank'>"
+                    ? "<a href='https://cleantalk.org/blacklists/" . Escape::escAttr($ip) . "' target='_blank'>"
                       . "&nbsp;<img src='" . APBCT_URL_PATH . "/inc/images/new_window.gif' alt='Ico: open in new window' border='0' style='float:none' />"
                       . "</a>"
                     : '');
@@ -131,7 +132,7 @@ class Comments extends \Cleantalk\ApbctWP\CleantalkListTable
 
         $column_content .= '</div>';
 
-        $column_content .= '<p>' . $item['ct_comment']->comment_content . '</p>';
+        $column_content .= '<p>' . Escape::escKsesPost($item['ct_comment']->comment_content) . '</p>';
 
         $column_content .= '</div>';
 

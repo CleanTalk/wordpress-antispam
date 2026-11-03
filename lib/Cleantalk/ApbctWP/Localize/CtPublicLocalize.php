@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP\Localize;
 
+use Cleantalk\ApbctWP\Antispam\ForceProtection;
 use Cleantalk\ApbctWP\CleantalkRealPerson;
 
 class CtPublicLocalize
@@ -42,6 +43,10 @@ class CtPublicLocalize
             'varnishCacheExists' => apbct_is_varnish_cache_exists(),
             'wc_ajax_add_to_cart' => get_option('woocommerce_enable_ajax_add_to_cart') === 'yes',
         );
+        // Only when force protection was started in cleantalk.php, do not start it from here
+        if ( ForceProtection::isInitialized() ) {
+            $localize_array['force_protection_wrapper_token'] = ForceProtection::getInstance()->getWrapperToken();
+        }
         if ( $apbct->settings['comments__the_real_person'] ) {
             $localize_array = array_merge($localize_array, CleantalkRealPerson::getLocalizingData());
         }
