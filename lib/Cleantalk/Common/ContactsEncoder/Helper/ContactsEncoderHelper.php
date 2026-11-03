@@ -87,7 +87,7 @@ class ContactsEncoderHelper
      *
      * @param string $content
      *
-     * @return array[]
+     * @return array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}>
      */
     public static function scanMarkup($content)
     {
@@ -181,7 +181,7 @@ class ContactsEncoderHelper
      * @param bool $closing
      * @param int $length
      *
-     * @return array Token, see scanMarkup().
+     * @return array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>} Token, see scanMarkup().
      */
     private static function readTag($content, $start, $name_start, $closing, $length)
     {
@@ -245,7 +245,7 @@ class ContactsEncoderHelper
     }
 
     /**
-     * @param array[] $tokens Sorted result of scanMarkup().
+     * @param array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}> $tokens Sorted result of scanMarkup().
      * @param int $position
      *
      * @return int|false Index of the token containing the offset.
@@ -457,7 +457,7 @@ class ContactsEncoderHelper
     /**
      * Offsets of every attribute value and of every tag with attributes.
      *
-     * @param array[] $tokens
+     * @param array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}> $tokens
      * @return void
      */
     private function buildAttributeRanges($tokens)
@@ -484,7 +484,7 @@ class ContactsEncoderHelper
     /**
      * Offsets of the inner text of the given elements.
      *
-     * @param array[] $tokens
+     * @param array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}> $tokens
      * @param string[] $tags
      * @return array[] list of [start, end, tag]
      */

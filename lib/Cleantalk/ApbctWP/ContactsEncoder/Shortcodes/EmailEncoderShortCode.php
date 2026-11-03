@@ -42,7 +42,7 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
     private $markup_tokens_content;
 
     /**
-     * @var array[] Result of ContactsEncoderHelper::scanMarkup().
+     * @var array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}> Result of ContactsEncoderHelper::scanMarkup().
      */
     private $markup_tokens = array();
 
@@ -156,7 +156,7 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      *
      * @param string $content
      *
-     * @return array[] List of [opener_start, inner_start, closer_start, end, attributes, inner, opener, closer]
+     * @return array<int, array{opener_start: int, inner_start: int, closer_start: int, end: int, attributes: string, inner: string, opener: string, closer: string}>
      */
     protected function findShortcodePairs($content)
     {

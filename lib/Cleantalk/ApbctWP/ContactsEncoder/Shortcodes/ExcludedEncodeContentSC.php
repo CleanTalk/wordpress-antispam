@@ -58,7 +58,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      * @param $content string|null
      * @param $_tag string Not used here
      *
-     * @return string|null
+     * @return string
      */
     public function callback($_atts, $content, $_tag)
     {
@@ -82,7 +82,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      * @param string|null $content Content string, or null when hooked to get_header/get_footer actions.
      *
      * @return string
-     * @psalm-suppress NullableReturnStatement
+     * @psalm-suppress NullableReturnStatement, InvalidNullableReturnType
      */
     public function changeContentBeforeEncoderModify($content = '')
     {
@@ -458,7 +458,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     }
 
     /**
-     * @param array[] $tokens
+     * @param array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}> $tokens
      * @param int $open Index of an opening tag.
      *
      * @return int|false Index of its closing tag, false when the same element is opened again first.
@@ -478,7 +478,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     }
 
     /**
-     * @param array $token
+     * @param array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>} $token
      * @param string $content
      * @param string $name
      *
@@ -590,7 +590,9 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return is_post_publicly_viewable($post_id);
         }
 
-        return get_post_status($post_id) === 'publish' && is_post_type_viewable(get_post_type($post_id));
+        $post_type = get_post_type($post_id);
+
+        return $post_type !== false && get_post_status($post_id) === 'publish' && is_post_type_viewable($post_type);
     }
 
     /**
