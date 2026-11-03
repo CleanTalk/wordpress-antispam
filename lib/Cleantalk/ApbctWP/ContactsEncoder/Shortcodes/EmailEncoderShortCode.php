@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\ContactsEncoder\Shortcodes;
 
 use Cleantalk\ApbctWP\ContactsEncoder\PlaceholderNonce;
+use Cleantalk\Common\ContactsEncoder\Helper\ContactsEncoderHelper;
 
 /**
  * Email encoder shortcode base class.
@@ -24,6 +25,16 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
 
     // Placeholder nonce for ensuring unique placeholders per render.
     protected $placeholder_nonce = '';
+
+    /**
+     * @var string|null Content the markup tokens below were built for.
+     */
+    private $markup_tokens_content;
+
+    /**
+     * @var array[] Result of ContactsEncoderHelper::scanMarkup().
+     */
+    private $markup_tokens = array();
 
     /**
      * Lightweight pre-check to avoid running heavy regexes on every hit.
@@ -239,9 +250,7 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
     /**
      * Determines whether a given character offset is located inside an HTML tag.
      *
-     * The method locates the nearest "<" before the offset, then scans forward
-     * respecting quoted attribute values. If no unquoted ">" is found between
-     * the last "<" and the offset, the offset is considered inside an HTML tag.
+     * Tags and comments are found once per content, each offset costs a binary search only.
      *
      * @param string $content The full content string.
      * @param int    $offset  Character offset to validate.
@@ -251,32 +260,11 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      */
     public function isOffsetInsideHtmlTag($content, $offset)
     {
-        $before = substr($content, 0, $offset);
-
-        $last_open = strrpos($before, '<');
-        if ($last_open === false) {
-            return false;
+        if ( $this->markup_tokens_content !== $content ) {
+            $this->markup_tokens_content = $content;
+            $this->markup_tokens = ContactsEncoderHelper::scanMarkup($content);
         }
 
-        // Scan from the last '<' to the offset and detect an unquoted '>'
-        $segment = substr($before, $last_open);
-        $in_single = false;
-        $in_double = false;
-        $len = strlen($segment);
-        for ($i = 0; $i < $len; $i++) {
-            $ch = $segment[$i];
-            if ($ch === "'" && ! $in_double) {
-                $in_single = ! $in_single;
-                continue;
-            }
-            if ($ch === '"' && ! $in_single) {
-                $in_double = ! $in_double;
-                continue;
-            }
-            if ($ch === '>' && ! $in_single && ! $in_double) {
-                return false;
-            }
-        }
-        return true;
+        return ContactsEncoderHelper::findTokenIndex($this->markup_tokens, $offset) !== false;
     }
 }

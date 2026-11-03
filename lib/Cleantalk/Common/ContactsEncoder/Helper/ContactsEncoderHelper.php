@@ -56,6 +56,209 @@ class ContactsEncoderHelper
     private $attribute_value_ranges = array();
 
     /**
+     * Elements whose inner text is not markup for a browser, the tokenizer jumps to their end tag.
+     * @var string[]
+     */
+    private static $unparsed_text_tags = array('script', 'style', 'textarea', 'title', 'xmp', 'iframe', 'noembed', 'noframes');
+
+    /**
+     * One linear pass over the content, follows the way a browser splits it into tags.
+     * No PCRE here: the result must not depend on JIT stack or backtrack limits.
+     *
+     * Every token is an array:
+     *  - start, end: offsets of the whole token, the end is exclusive;
+     *  - name: lowercase tag name, `!--` for a comment, `!` for a declaration or a processing instruction;
+     *  - closing: true for an end tag;
+     *  - attributes: list of [name, name_start, value_start, value_end, end]. A value without a quote or
+     *    without a value at all has the same bounds as its `end`.
+     * A tag or a comment that is not closed takes the rest of the content, as it does in a browser.
+     *
+     * @param string $content
+     *
+     * @return array[]
+     */
+    public static function scanMarkup($content)
+    {
+        $tokens = array();
+
+        if ( ! is_string($content) || $content === '' ) {
+            return $tokens;
+        }
+
+        $length = strlen($content);
+        $offset = 0;
+
+        while ( $offset < $length ) {
+            $start = strpos($content, '<', $offset);
+            if ( $start === false ) {
+                break;
+            }
+
+            $next = $start + 1 < $length ? $content[$start + 1] : '';
+
+            if ( $next === '!' && substr($content, $start, 4) === '<!--' ) {
+                $end = self::findCommentEnd($content, $start, $length);
+                $tokens[] = array('start' => $start, 'end' => $end, 'name' => '!--', 'closing' => false, 'attributes' => array());
+                $offset = $end;
+                continue;
+            }
+
+            if ( $next === '!' || $next === '?' ) {
+                $close = strpos($content, '>', $start);
+                $end = $close === false ? $length : $close + 1;
+                $tokens[] = array('start' => $start, 'end' => $end, 'name' => '!', 'closing' => false, 'attributes' => array());
+                $offset = $end;
+                continue;
+            }
+
+            $closing = $next === '/';
+            $name_start = $closing ? $start + 2 : $start + 1;
+            if ( $name_start >= $length || ! ctype_alpha($content[$name_start]) ) {
+                // Just a "less than" sign in the text.
+                $offset = $start + 1;
+                continue;
+            }
+
+            $token = self::readTag($content, $start, $name_start, $closing, $length);
+            $tokens[] = $token;
+            $offset = $token['end'];
+
+            if ( ! $closing && in_array($token['name'], self::$unparsed_text_tags, true) ) {
+                $close = stripos($content, '</' . $token['name'], $offset);
+                $offset = $close === false ? $length : $close;
+            }
+        }
+
+        return $tokens;
+    }
+
+    /**
+     * @param string $content
+     * @param int $start Offset of `<!--`.
+     * @param int $length
+     *
+     * @return int Exclusive end of the comment.
+     */
+    private static function findCommentEnd($content, $start, $length)
+    {
+        // `<!-->` and `<!--->` are complete comments for a browser.
+        $search_from = $start + 2;
+
+        while ( true ) {
+            $dashes = strpos($content, '--', $search_from);
+            if ( $dashes === false ) {
+                return $length;
+            }
+
+            $tail = substr($content, $dashes + 2, 2);
+            if ( $tail !== '' && $tail[0] === '>' ) {
+                return $dashes + 3;
+            }
+            if ( $tail === '!>' ) {
+                return $dashes + 4;
+            }
+
+            $search_from = $dashes + 1;
+        }
+    }
+
+    /**
+     * @param string $content
+     * @param int $start Offset of `<`.
+     * @param int $name_start
+     * @param bool $closing
+     * @param int $length
+     *
+     * @return array Token, see scanMarkup().
+     */
+    private static function readTag($content, $start, $name_start, $closing, $length)
+    {
+        $space = " \t\r\n\f";
+        $name_length = strcspn($content, $space . '/>', $name_start);
+        $position = $name_start + $name_length;
+        $token = array(
+            'start' => $start,
+            'end' => $length,
+            'name' => strtolower(substr($content, $name_start, $name_length)),
+            'closing' => $closing,
+            'attributes' => array(),
+        );
+
+        while ( $position < $length ) {
+            $position += strspn($content, $space . '/', $position);
+            if ( $position >= $length ) {
+                break;
+            }
+            if ( $content[$position] === '>' ) {
+                $token['end'] = $position + 1;
+                break;
+            }
+
+            // A leading `=` belongs to the attribute name.
+            $attribute_start = $position;
+            $position += 1 + strcspn($content, $space . '/>=', $position + 1);
+            $attribute_name = strtolower(substr($content, $attribute_start, $position - $attribute_start));
+
+            $after_name = $position + strspn($content, $space, $position);
+            if ( $after_name >= $length || $content[$after_name] !== '=' ) {
+                $token['attributes'][] = array($attribute_name, $attribute_start, $position, $position, $position);
+                continue;
+            }
+
+            $value = $after_name + 1 + strspn($content, $space, $after_name + 1);
+            if ( $value >= $length ) {
+                $position = $length;
+                break;
+            }
+
+            $quote = $content[$value];
+            if ( $quote === '"' || $quote === "'" ) {
+                $close = strpos($content, $quote, $value + 1);
+                if ( $close === false ) {
+                    $token['attributes'][] = array($attribute_name, $attribute_start, $value + 1, $length, $length);
+                    $position = $length;
+                    break;
+                }
+                $token['attributes'][] = array($attribute_name, $attribute_start, $value + 1, $close, $close + 1);
+                $position = $close + 1;
+                continue;
+            }
+
+            $value_end = $value + strcspn($content, $space . '>', $value);
+            $token['attributes'][] = array($attribute_name, $attribute_start, $value, $value_end, $value_end);
+            $position = $value_end;
+        }
+
+        return $token;
+    }
+
+    /**
+     * @param array[] $tokens Sorted result of scanMarkup().
+     * @param int $position
+     *
+     * @return int|false Index of the token containing the offset.
+     */
+    public static function findTokenIndex($tokens, $position)
+    {
+        $low = 0;
+        $high = count($tokens) - 1;
+
+        while ( $low <= $high ) {
+            $middle = intdiv($low + $high, 2);
+
+            if ( $position < $tokens[$middle]['start'] ) {
+                $high = $middle - 1;
+            } elseif ( $position >= $tokens[$middle]['end'] ) {
+                $low = $middle + 1;
+            } else {
+                return $middle;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Checks whether the tag enclosing the given offset already declares the attribute.
      *
      * Scheme links are rewritten from the inside of the href value, so the encoder appends its own

@@ -460,4 +460,19 @@ class testEmailEncoderShortCodeEncode extends TestCase
         }
     }
 
+
+    /**
+     * The check of a shortcode boundary must not rescan the tag for each occurrence.
+     */
+    public function testBoundaryCheckIsLinearOnLongAttribute()
+    {
+        $content = 'Nice <abbr title="' . str_repeat('A', 32000) . '">'
+            . str_repeat('[apbct_encode_data]', 1590) . '</abbr>';
+
+        $start = microtime(true);
+        $reflection = new \ReflectionMethod($this->shortcode, 'isShortcodeInsideHtmlTag');
+        $reflection->setAccessible(true);
+        $this->assertFalse($reflection->invoke($this->shortcode, $content));
+        $this->assertLessThan(0.5, microtime(true) - $start);
+    }
 }
