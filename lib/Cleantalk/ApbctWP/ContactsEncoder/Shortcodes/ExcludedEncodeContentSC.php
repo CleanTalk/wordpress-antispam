@@ -1110,7 +1110,14 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
 
         $post_name = isset($data['post_name']) ? $data['post_name'] : '';
         $explicit_slug = isset($postarr['post_name']) && $postarr['post_name'] !== '';
-        $clean_slug = sanitize_title(self::stripShortcodesForSlug($data['post_title']));
+        // Core made the slug unique before this filter, the replacement has to keep that guarantee.
+        $clean_slug = wp_unique_post_slug(
+            sanitize_title(self::stripShortcodesForSlug($data['post_title'])),
+            $post_id,
+            $status,
+            isset($data['post_type']) ? $data['post_type'] : 'post',
+            isset($data['post_parent']) ? (int)$data['post_parent'] : 0
+        );
 
         if ( $post_name === '' && ! $explicit_slug ) {
             $data['post_name'] = $clean_slug;

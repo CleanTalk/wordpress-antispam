@@ -329,4 +329,36 @@ class ShortcodeContextTest extends TestCase
 
         $this->assertGreaterThanOrEqual(2, substr_count($result, 'apbct-email-encoder'));
     }
+
+    public function testCleanedSlugIsUnique()
+    {
+        $first = wp_insert_post(array('post_title' => 'Slug owner', 'post_status' => 'publish', 'post_type' => 'post'));
+        $data = array(
+            'post_title' => 'Slug owner[apbct_skip_encoding][/apbct_skip_encoding]',
+            'post_name' => 'slug-ownerapbct_skip_encoding',
+            'post_status' => 'publish',
+            'post_type' => 'post',
+            'post_parent' => 0,
+        );
+
+        $result = $this->exclude->filterPostDataForSlug($data, array('ID' => 0));
+        $data['post_name'] = '';
+        $result_empty = $this->exclude->filterPostDataForSlug($data, array('ID' => 0));
+        wp_delete_post($first, true);
+
+        $this->assertSame('slug-owner-2', $result['post_name']);
+        $this->assertSame('slug-owner-2', $result_empty['post_name']);
+    }
+
+    public function testCleanedSlugOfTheSamePostStaysTheSame()
+    {
+        $id = wp_insert_post(array('post_title' => 'Own slug', 'post_status' => 'publish', 'post_type' => 'post'));
+        $result = $this->exclude->filterPostDataForSlug(
+            array('post_title' => 'Own slug[apbct_skip_encoding][/apbct_skip_encoding]', 'post_name' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_parent' => 0),
+            array('ID' => $id)
+        );
+        wp_delete_post($id, true);
+
+        $this->assertSame('own-slug', $result['post_name']);
+    }
 }
