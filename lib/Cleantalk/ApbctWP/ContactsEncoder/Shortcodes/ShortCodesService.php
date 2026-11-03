@@ -41,7 +41,7 @@ class ShortCodesService
     private function registerRenderBlockNestingHooks()
     {
         add_filter('pre_render_block', array($this->shortcode_to_exclude, 'pushRenderBlockStack'), 10, 2);
-        add_filter('render_block', array($this->shortcode_to_exclude, 'finalizePlaceholderRestoreAfterRenderBlock'), 11);
+        add_filter('render_block', array($this->shortcode_to_exclude, 'finalizePlaceholderRestoreAfterRenderBlock'), 11, 2);
     }
 
     /**

@@ -198,15 +198,19 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
         $content = $content === null ? '' : $content;
 
         foreach ($this->shortcode_replacements as $placeholder => $original) {
+            // Another pass may run before the content with this placeholder is finished, e.g. the_title in a block.
+            if ( strpos($content, $placeholder) === false ) {
+                continue;
+            }
+
             $original = wp_kses_post($original);
             //fix for wpautop when encoder is disabled
             if ( !$apbct->settings['data__email_decoder'] ) {
                 $original = wpautop($original);
             }
             $content = str_replace($placeholder, $original, $content);
+            unset($this->shortcode_replacements[$placeholder]);
         }
-
-        $this->resetShortcodeReplacements();
 
         return $content;
     }
@@ -234,14 +238,21 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     /**
      * Restore placeholders once the outermost render_block finished ContactsEncoder::modifyContent().
      *
+     * Core renders post-template and comment-template items by WP_Block::render(): the render_block filter
+     * runs for them without pre_render_block. Pop only a block with the name that was really pushed.
+     *
      * @param string $content
+     * @param array|null $block
      *
      * @return string
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public function finalizePlaceholderRestoreAfterRenderBlock($content)
+    public function finalizePlaceholderRestoreAfterRenderBlock($content, $block = null)
     {
-        array_pop($this->render_block_stack);
+        $block_name = isset($block['blockName']) ? (string)$block['blockName'] : '';
+        if ( $block === null || end($this->render_block_stack) === $block_name ) {
+            array_pop($this->render_block_stack);
+        }
 
         if ( ! empty($this->render_block_stack) ) {
             return $content;

@@ -569,4 +569,39 @@ class ExcludedEncodeContentSCTest extends TestCase
             wp_delete_post($target_post_id, true);
         }
     }
+
+    /**
+     * A title rendered between encoding a post body and finishing its block must not drop the body placeholder.
+     */
+    public function testRestoreOnAnotherContentKeepsPendingPlaceholder(): void
+    {
+        global $apbct;
+        $apbct->settings['data__email_decoder_buffer'] = false;
+
+        $body = $this->exclude_content_sc->changeContentBeforeEncoderModify('Keep [apbct_skip_encoding]a@example.org[/apbct_skip_encoding] end');
+        $this->assertStringContainsString('%%APBCT_SHORT_CODE_SKIP', $body);
+
+        $title = $this->exclude_content_sc->changeContentAfterEncoderModify('Next post title');
+        $this->assertSame('Next post title', $title);
+
+        $this->assertSame('Keep a@example.org end', $this->exclude_content_sc->changeContentAfterEncoderModify($body));
+    }
+
+    /**
+     * Items of post-template and comment-template come to render_block without pre_render_block.
+     */
+    public function testRenderBlockWithoutPushDoesNotFinishOuterBlock(): void
+    {
+        global $apbct;
+        $apbct->settings['data__email_decoder_buffer'] = false;
+
+        $outer = array('blockName' => 'core/group', 'attrs' => array());
+        $item = array('blockName' => 'core/post-title', 'attrs' => array());
+
+        $this->exclude_content_sc->pushRenderBlockStack(null, $outer);
+        $body = $this->exclude_content_sc->changeContentBeforeEncoderModify('[apbct_skip_encoding]a@example.org[/apbct_skip_encoding]');
+
+        $this->assertSame($body, $this->exclude_content_sc->finalizePlaceholderRestoreAfterRenderBlock($body, $item));
+        $this->assertSame('a@example.org', $this->exclude_content_sc->finalizePlaceholderRestoreAfterRenderBlock($body, $outer));
+    }
 }
