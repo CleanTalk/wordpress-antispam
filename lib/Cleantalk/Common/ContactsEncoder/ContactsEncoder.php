@@ -340,12 +340,18 @@ class ContactsEncoder
             return $owns_aria_protection ? $this->handleAriaLabelContent($content, true) : $content;
         }
         $match_offset_index = 0;
-        $replacing_result = preg_replace_callback($this->global_email_pattern, function ($matches) use ($match_offsets, &$match_offset_index, &$match_cursor) {
+        $cut_mailto_end = 0;
+        $replacing_result = preg_replace_callback($this->global_email_pattern, function ($matches) use ($match_offsets, &$match_offset_index, &$match_cursor, &$cut_mailto_end) {
             if ( ! isset($matches[0]) ) {
                 return '';
             }
 
             $position = $this->resolveNextMatchOffset($matches[0], $match_offsets, $match_offset_index, $match_cursor);
+
+            // The tail of a link that stays as is, e.g. its cc= copies.
+            if ( $position !== false && $position < $cut_mailto_end ) {
+                return $matches[0];
+            }
 
             if ( $this->exclusions->isContactExcluded($matches[0]) ) {
                 return $matches[0];
@@ -368,6 +374,13 @@ class ContactsEncoder
             // mailto: links are encoded in place inside the href attribute, so they bypass the markup guards.
             if ( $this->helper->isMailto($matches[0]) ) {
                 $position = $position === false ? 0 : $position;
+
+                $target_end = $this->findCutMailtoTargetEnd($matches[0], $position);
+                if ( $target_end !== false ) {
+                    $cut_mailto_end = $target_end;
+
+                    return $matches[0];
+                }
 
                 return $this->encodeMailtoLink($matches[0], $position);
             }
@@ -634,6 +647,36 @@ class ContactsEncoder
         $encoded_string = $this->encoder->encodeString($string);
 
         return $this->constructEncodedSpan($encoded_string, $string_with_effect);
+    }
+
+    /**
+     * MAILTO_QUERY_PATTERN limits the length of a query: a longer one is matched partially.
+     * Encoding a part would put the rest of the target into the encoded attribute, so such a link stays as is.
+     *
+     * @param string $match
+     * @param int $position Offset of the match inside the content being processed.
+     *
+     * @return int|false End of the whole target, false when the match is the whole target.
+     */
+    private function findCutMailtoTargetEnd($match, $position)
+    {
+        if ( strpos($match, '?') === false ) {
+            return false;
+        }
+
+        $end = $position + strlen($match);
+        if ( $end >= strlen($this->temp_content) ) {
+            return false;
+        }
+
+        $next = $this->temp_content[$end];
+        $is_attribute = $this->helper->isInsideAttributeValue($match, $this->temp_content, $position);
+        $terminators = $is_attribute ? '"\'' : " \t\r\n\f\"'<>";
+        if ( strpos($terminators, $next) !== false ) {
+            return false;
+        }
+
+        return $end + strcspn($this->temp_content, $terminators, $end);
     }
 
     /**
