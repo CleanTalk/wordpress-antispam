@@ -51,7 +51,7 @@ class ContactsEncoderHelper
 
     /**
      * Sorted list of [start, end, tag, attribute] of every attribute value in the indexed content.
-     * @var array[]
+     * @var array<int, array{0: int, 1: int, 2: string, 3: string}>
      */
     private $attribute_value_ranges = array();
 
@@ -63,7 +63,7 @@ class ContactsEncoderHelper
 
     /**
      * Sorted list of [start, end, attribute names] of the tags with attributes in the indexed content.
-     * @var array[]
+     * @var array<int, array{0: int, 1: int, 2: array<int, string>}>
      */
     private $tags_with_attributes = array();
 
@@ -219,7 +219,6 @@ class ContactsEncoderHelper
 
             $value = $after_name + 1 + strspn($content, $space, $after_name + 1);
             if ( $value >= $length ) {
-                $position = $length;
                 break;
             }
 
@@ -228,7 +227,6 @@ class ContactsEncoderHelper
                 $close = strpos($content, $quote, $value + 1);
                 if ( $close === false ) {
                     $token['attributes'][] = array($attribute_name, $attribute_start, $value + 1, $length, $length);
-                    $position = $length;
                     break;
                 }
                 $token['attributes'][] = array($attribute_name, $attribute_start, $value + 1, $close, $close + 1);
@@ -249,6 +247,8 @@ class ContactsEncoderHelper
      * @param int $position
      *
      * @return int|false Index of the token containing the offset.
+     *
+     * @psalm-suppress PossiblyUnusedMethod Public API for host apps
      */
     public static function findTokenIndex($tokens, $position)
     {
