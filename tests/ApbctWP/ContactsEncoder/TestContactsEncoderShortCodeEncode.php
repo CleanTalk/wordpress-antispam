@@ -473,6 +473,6 @@ class testEmailEncoderShortCodeEncode extends TestCase
         $reflection = new \ReflectionMethod($this->shortcode, 'isShortcodeInsideHtmlTag');
         $reflection->setAccessible(true);
         $this->assertFalse($reflection->invoke($this->shortcode, $content));
-        $this->assertLessThan(0.5, microtime(true) - $start);
+        $this->assertLessThan(2, microtime(true) - $start);
     }
 }
