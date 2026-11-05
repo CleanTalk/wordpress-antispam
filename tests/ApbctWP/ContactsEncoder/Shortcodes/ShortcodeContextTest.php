@@ -507,6 +507,78 @@ class ShortcodeContextTest extends TestCase
         );
     }
 
+    private function renderNestedPostTitle($post_id, $inner)
+    {
+        $html = '<h2 class="wp-block-post-title">' . $inner . '</h2>';
+
+        return $this->exclude->restoreEncodedBlockTitlesFilter(
+            $html,
+            array('blockName' => 'core/post-title'),
+            (object) array('context' => array('postId' => $post_id))
+        );
+    }
+
+    /**
+     * Only the post-title block knows its post: the outer blocks of a query loop do not.
+     */
+    public function testNestedPostTitlesKeepTheirPosts()
+    {
+        $first = wp_insert_post(array('post_title' => 'One [apbct_skip_encoding]first@example.org[/apbct_skip_encoding]', 'post_status' => 'publish', 'post_type' => 'post'));
+        $second = wp_insert_post(array('post_title' => 'Two [apbct_skip_encoding]second@example.org[/apbct_skip_encoding]', 'post_status' => 'publish', 'post_type' => 'post'));
+        $encoded = '<span class="apbct-email-encoder">x</span>';
+
+        $this->exclude->pushRenderBlockStack(null, array('blockName' => 'core/query'));
+        $html = $this->renderNestedPostTitle($first, $encoded) . $this->renderNestedPostTitle($second, $encoded);
+        $deferred = $html;
+        $html = $this->exclude->finalizePlaceholderRestoreAfterRenderBlock($html, array('blockName' => 'core/query'));
+        $html = $this->exclude->restoreEncodedBlockTitlesFilter($html, array('blockName' => 'core/query'));
+        wp_delete_post($first, true);
+        wp_delete_post($second, true);
+
+        $this->assertStringNotContainsString('@example.org', $deferred, 'Outer passes must not see the contacts.');
+        $this->assertStringContainsString('One first@example.org</h2>', $html);
+        $this->assertStringContainsString('Two second@example.org</h2>', $html);
+        $this->assertStringNotContainsString('APBCT_SHORT_CODE_SKIP', $html);
+    }
+
+    /**
+     * The fallback to the current page belongs to its own title, not to the headings of other posts.
+     */
+    public function testOuterBlockDoesNotReplaceTitlesOfOtherPosts()
+    {
+        global $wp_query;
+        $page = wp_insert_post(array('post_title' => 'Page [apbct_skip_encoding]page@example.org[/apbct_skip_encoding]', 'post_status' => 'publish', 'post_type' => 'page'));
+        $saved = $wp_query;
+        $wp_query = new \WP_Query(array('page_id' => $page));
+        $wp_query->the_post();
+        $html = '<h2 class="wp-block-post-title"><span class="apbct-email-encoder">x</span></h2>';
+
+        $result = $this->exclude->restoreEncodedBlockTitlesFilter($html, array('blockName' => 'core/group'));
+
+        $wp_query = $saved;
+        wp_reset_postdata();
+        wp_delete_post($page, true);
+
+        $this->assertSame($html, $result);
+    }
+
+    /**
+     * A linked title keeps its link: the link text is restored by the href on the outermost block.
+     */
+    public function testNestedLinkedPostTitleKeepsItsLink()
+    {
+        $id = wp_insert_post(array('post_title' => '[apbct_skip_encoding]linked@example.org[/apbct_skip_encoding]', 'post_status' => 'publish', 'post_type' => 'post'));
+        $href = home_url('/?p=' . $id);
+
+        $this->exclude->pushRenderBlockStack(null, array('blockName' => 'core/query'));
+        $html = $this->renderNestedPostTitle($id, '<a href="' . $href . '"><span class="apbct-email-encoder">x</span></a>');
+        $html = $this->exclude->finalizePlaceholderRestoreAfterRenderBlock($html, array('blockName' => 'core/query'));
+        $html = $this->exclude->restoreEncodedBlockTitlesFilter($html, array('blockName' => 'core/query'));
+        wp_delete_post($id, true);
+
+        $this->assertStringContainsString('<a href="' . $href . '">linked@example.org</a>', $html);
+    }
+
     public function testContentStaysAsIsOverTheMatchesBudget()
     {
         $encoder = apbctGetContactsEncoder();

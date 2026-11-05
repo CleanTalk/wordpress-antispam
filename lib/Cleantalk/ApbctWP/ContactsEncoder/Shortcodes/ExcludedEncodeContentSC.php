@@ -336,14 +336,21 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      */
     public function restoreEncodedBlockTitlesFilter($content, $_parsed_block, $block = null)
     {
-        // Outer blocks encode the output of inner blocks again: only the outermost result is final.
-        if ( $this->isBufferMode() || ! empty($this->render_block_stack) ) {
+        if ( $this->isBufferMode() ) {
             return $content;
+        }
+
+        $is_post_title = isset($_parsed_block['blockName']) && $_parsed_block['blockName'] === 'core/post-title';
+
+        // Outer blocks encode the output of inner blocks again: only the outermost result is final.
+        if ( ! empty($this->render_block_stack) ) {
+            // Only this block knows its post. A placeholder keeps the title from the outer passes.
+            return $is_post_title ? $this->restorePostTitleInHtml($content, $_parsed_block, $block, true) : $content;
         }
 
         $content = $this->restorePageListLinkTitlesInHtml($content);
 
-        return $this->restorePostTitleInHtml($content, $_parsed_block, $block);
+        return $is_post_title ? $this->restorePostTitleInHtml($content, $_parsed_block, $block) : $content;
     }
 
     /**
@@ -601,10 +608,11 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      * @param string $content
      * @param array $_parsed_block
      * @param object|null $block
+     * @param bool $defer The block is nested: outer blocks will process the result again.
      *
      * @return string
      */
-    protected function restorePostTitleInHtml($content, $_parsed_block = array(), $block = null)
+    protected function restorePostTitleInHtml($content, $_parsed_block = array(), $block = null, $defer = false)
     {
         if ( strpos($content, 'wp-block-post-title') === false ) {
             return $content;
@@ -637,7 +645,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
                 return (bool)preg_match('/^h[1-6]$/', $token['name'])
                     && strpos(' ' . $this->getTokenAttributeValue($token, $content, 'class') . ' ', ' wp-block-post-title ') !== false;
             },
-            static function ($inner) use ($processed) {
+            function ($inner) use ($processed, $defer) {
                 if (
                     strpos($inner, '[apbct_skip_encoding]') === false
                     && strpos($inner, 'apbct-email-encoder') === false
@@ -646,7 +654,12 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
                     return null;
                 }
 
-                return $processed;
+                if ( ! $defer ) {
+                    return $processed;
+                }
+
+                // The text of a link is restored by its href on the outermost block.
+                return strpos($inner, '<a') === false ? $this->createPlaceholder($processed) : null;
             }
         );
     }
