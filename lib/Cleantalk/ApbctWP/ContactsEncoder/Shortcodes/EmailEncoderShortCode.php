@@ -37,6 +37,11 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
     protected $placeholder_nonce = '';
 
     /**
+     * @var string[] A title and a textarea are shown as a text: a pair in them is replaced.
+     */
+    private static $not_rendered_tags = array('script', 'style', 'xmp', 'iframe', 'noembed', 'noframes');
+
+    /**
      * @var string|null Content the markup tokens below were built for.
      */
     private $markup_tokens_content;
@@ -45,6 +50,11 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      * @var array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}> Result of ContactsEncoderHelper::scanMarkup().
      */
     private $markup_tokens = array();
+
+    /**
+     * @var array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}> Inner text of the elements a browser does not show.
+     */
+    private $not_rendered_ranges = array();
 
     /**
      * Lightweight pre-check to avoid running heavy regexes on every hit.
@@ -217,6 +227,7 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
             if (
                 $this->isOffsetInsideHtmlTag($content, $pair['opener_start'])
                 || $this->isOffsetInsideHtmlTag($content, $pair['closer_start'])
+                || $this->isOffsetInsideNotRenderedText($pair['opener_start'])
                 || $this->isInsideOtherShortcodeTag($content, $pair['opener_start'])
                 || $this->shortcodeContentContainsHtmlTags($pair['inner'])
             ) {
@@ -229,6 +240,7 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
 
         $this->markup_tokens_content = null;
         $this->markup_tokens = array();
+        $this->not_rendered_ranges = array();
 
         return $position === 0 ? $content : $result . substr($content, $position);
     }
@@ -371,8 +383,43 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
         if ( $this->markup_tokens_content !== $content ) {
             $this->markup_tokens_content = $content;
             $this->markup_tokens = ContactsEncoderHelper::scanMarkup($content);
+            $this->not_rendered_ranges = $this->buildNotRenderedRanges($this->markup_tokens, strlen($content));
         }
 
         return ContactsEncoderHelper::findTokenIndex($this->markup_tokens, $offset) !== false;
+    }
+
+    /**
+     * Text of a script is a string of a program, not a text of the page. Runs after isOffsetInsideHtmlTag() for this content.
+     *
+     * @param int $offset
+     *
+     * @return bool
+     */
+    private function isOffsetInsideNotRenderedText($offset)
+    {
+        return ContactsEncoderHelper::findTokenIndex($this->not_rendered_ranges, $offset) !== false;
+    }
+
+    /**
+     * The scanner goes from a raw text tag right to its end: the next token is the closing one.
+     *
+     * @param array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}> $tokens
+     * @param int $length
+     *
+     * @return array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}>
+     */
+    private function buildNotRenderedRanges($tokens, $length)
+    {
+        $ranges = array();
+
+        foreach ( $tokens as $index => $token ) {
+            if ( ! $token['closing'] && in_array($token['name'], self::$not_rendered_tags, true) ) {
+                $end = isset($tokens[$index + 1]) ? $tokens[$index + 1]['start'] : $length;
+                $ranges[] = array('start' => $token['end'], 'end' => $end, 'name' => $token['name'], 'closing' => false, 'attributes' => array());
+            }
+        }
+
+        return $ranges;
     }
 }

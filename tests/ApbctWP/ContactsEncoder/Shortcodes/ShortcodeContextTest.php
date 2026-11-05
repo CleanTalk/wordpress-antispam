@@ -579,6 +579,48 @@ class ShortcodeContextTest extends TestCase
         $this->assertStringContainsString('<a href="' . $href . '">linked@example.org</a>', $html);
     }
 
+    /**
+     * @dataProvider notRenderedTextProvider
+     */
+    public function testPairInNotRenderedTextStaysByteForByte($content)
+    {
+        $this->assertSame($content, $this->exclude->changeContentAfterEncoderModify($this->exclude->changeContentBeforeEncoderModify($content)));
+        $this->assertSame($content, $this->encode->changeContentBeforeEncoderModify($content));
+    }
+
+    public function notRenderedTextProvider()
+    {
+        $skip = '[apbct_skip_encoding]A&B[/apbct_skip_encoding]';
+
+        return array(
+            'markup in a script string' => array('<script>const s = "<a title=\'' . $skip . '\'>";</script>'),
+            'script string' => array('<script>s="' . $skip . '"</script>'),
+            'unclosed script' => array('<script>s="' . $skip . '"'),
+            'style' => array('<style>a{content:"' . $skip . '"}</style>'),
+            'iframe' => array('<iframe>' . $skip . '</iframe>'),
+        );
+    }
+
+    /**
+     * @dataProvider renderedTextProvider
+     */
+    public function testPairInRenderedTextIsReplaced($content, $expected)
+    {
+        $this->assertSame($expected, $this->exclude->changeContentAfterEncoderModify($this->exclude->changeContentBeforeEncoderModify($content)));
+    }
+
+    public function renderedTextProvider()
+    {
+        $skip = '[apbct_skip_encoding]A&B[/apbct_skip_encoding]';
+
+        return array(
+            'title' => array('<title>' . $skip . '</title>', '<title>A&amp;B</title>'),
+            'textarea' => array('<textarea>' . $skip . '</textarea>', '<textarea>A&amp;B</textarea>'),
+            'after a script' => array('<script>s=1</script><p>' . $skip . '</p>', '<script>s=1</script><p>A&amp;B</p>'),
+            'both' => array('<script>"' . $skip . '"</script>' . $skip, '<script>"' . $skip . '"</script>A&amp;B'),
+        );
+    }
+
     public function testContentStaysAsIsOverTheMatchesBudget()
     {
         $encoder = apbctGetContactsEncoder();
