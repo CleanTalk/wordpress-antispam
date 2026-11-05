@@ -382,6 +382,10 @@ class ContactsEncoder
                     return $matches[0];
                 }
 
+                if ( ! $this->reserveEncodedContact() ) {
+                    return $matches[0];
+                }
+
                 return $this->encodeMailtoLink($matches[0], $position);
             }
 
@@ -399,7 +403,7 @@ class ContactsEncoder
                 return $matches[0];
             }
 
-            if ( ++$this->encoded_contacts_count > self::MAX_ENCODED_CONTACTS_PER_REQUEST ) {
+            if ( ! $this->reserveEncodedContact() ) {
                 return $matches[0];
             }
 
@@ -469,6 +473,10 @@ class ContactsEncoder
                 if ( $this->helper->isTelTag($matches[0]) ) {
                     $position = $position === false ? 0 : $position;
 
+                    if ( ! $this->reserveEncodedContact() ) {
+                        return $matches[0];
+                    }
+
                     return $this->encodeTelLink($matches[0], $position);
                 }
 
@@ -487,6 +495,10 @@ class ContactsEncoder
 
                 // Encoding injects a <span>, which is only valid in a text node.
                 if ( $this->helper->isInsideAttributeValue($matches[0], $this->temp_content, $position) ) {
+                    return $matches[0];
+                }
+
+                if ( ! $this->reserveEncodedContact() ) {
                     return $matches[0];
                 }
 
@@ -627,6 +639,24 @@ class ContactsEncoder
      */
     protected function encodeAny($string, $mode = Params::OBFUSCATION_MODE_BLUR, $replacing_text = null, $is_phone_number = false)
     {
+        $string_with_effect = $this->maskAny($string, $mode, $replacing_text, $is_phone_number);
+        $encoded_string = $this->encoder->encodeString($string);
+
+        return $this->constructEncodedSpan($encoded_string, $string_with_effect);
+    }
+
+    /**
+     * The visible part of an encoded string.
+     *
+     * @param string $string of any data
+     * @param string $mode
+     * @param string $replacing_text
+     * @param bool $is_phone_number
+     *
+     * @return string
+     */
+    protected function maskAny($string, $mode = Params::OBFUSCATION_MODE_BLUR, $replacing_text = null, $is_phone_number = false)
+    {
         $obfuscated_string = $string;
 
         if ($mode !== Params::OBFUSCATION_MODE_REPLACE) {
@@ -638,15 +668,22 @@ class ContactsEncoder
             $obfuscated_string = htmlspecialchars($obfuscated_string, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false);
         }
 
-        $string_with_effect = $this->applyEffectsOnMode(
+        return $this->applyEffectsOnMode(
             false,
             $obfuscated_string,
             $mode,
             $replacing_text
         );
-        $encoded_string = $this->encoder->encodeString($string);
+    }
 
-        return $this->constructEncodedSpan($encoded_string, $string_with_effect);
+    /**
+     * All the ways to encode a contact in a request share one limit.
+     *
+     * @return bool False when the limit is reached.
+     */
+    protected function reserveEncodedContact()
+    {
+        return ++$this->encoded_contacts_count <= self::MAX_ENCODED_CONTACTS_PER_REQUEST;
     }
 
     /**

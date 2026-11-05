@@ -327,7 +327,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
 
         if ( ! is_array($parts) || count($parts) > self::MAX_SHORTCODE_PARTS ) {
             // The whole content is one encoded string: the size of the output does not depend on the contacts number.
-            $result = $this->modifyAny($content, $mode, $replacing_text);
+            $result = $this->modifyShortcodePart($content, $mode, $replacing_text);
         } else {
             $result = '';
             foreach ($parts as $part) {
@@ -336,9 +336,9 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
                 }
                 // if part is email, encode it
                 if (preg_match($this->plain_email_pattern, $part)) {
-                    $result .= $this->encodePlainEmail($part);
+                    $result .= $this->reserveEncodedContact() ? $this->encodePlainEmail($part) : $this->maskAny($part, $mode, $replacing_text);
                 } else {
-                    $result .= $this->modifyAny($part, $mode, $replacing_text);
+                    $result .= $this->modifyShortcodePart($part, $mode, $replacing_text);
                 }
             }
         }
@@ -349,6 +349,22 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         }
 
         return $result;
+    }
+
+    /**
+     * An author asked to hide this text: over the limit it stays masked and cannot be decoded.
+     *
+     * @param string $part
+     * @param string $mode
+     * @param string|null $replacing_text
+     *
+     * @return string
+     */
+    private function modifyShortcodePart($part, $mode, $replacing_text)
+    {
+        return $this->reserveEncodedContact()
+            ? $this->modifyAny($part, $mode, $replacing_text)
+            : $this->maskAny($part, $mode, $replacing_text);
     }
 
     /**

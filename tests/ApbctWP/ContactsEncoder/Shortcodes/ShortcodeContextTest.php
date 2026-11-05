@@ -480,6 +480,33 @@ class ShortcodeContextTest extends TestCase
         $this->assertStringContainsString('>Notes</a>', $outer);
     }
 
+    /**
+     * @dataProvider overBudgetShortcodeProvider
+     */
+    public function testShortcodeOverTheEncodedLimitStaysMasked($content, $secret)
+    {
+        $encoder = apbctGetContactsEncoder();
+        $property = new \ReflectionProperty(\Cleantalk\Common\ContactsEncoder\ContactsEncoder::class, 'encoded_contacts_count');
+        $property->setAccessible(true);
+        $saved = $property->getValue($encoder);
+
+        $property->setValue($encoder, $encoder::MAX_ENCODED_CONTACTS_PER_REQUEST);
+        $result = $encoder->modifyShortcodeContent($content);
+        $property->setValue($encoder, $saved);
+
+        $this->assertStringNotContainsString('data-original-string', $result);
+        $this->assertStringNotContainsString($secret, $result);
+    }
+
+    public function overBudgetShortcodeProvider()
+    {
+        return array(
+            'email' => array('write to secret-mail@example.org', 'secret-mail@example.org'),
+            'text' => array('secret text of the author', 'secret text of the author'),
+            'many parts' => array(implode(',', array_fill(0, 40, 'secret-mail@example.org')), 'secret-mail@example.org'),
+        );
+    }
+
     public function testContentStaysAsIsOverTheMatchesBudget()
     {
         $encoder = apbctGetContactsEncoder();
