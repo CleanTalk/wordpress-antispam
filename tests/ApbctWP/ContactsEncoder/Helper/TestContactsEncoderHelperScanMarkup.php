@@ -109,6 +109,33 @@ class TestContactsEncoderHelperScanMarkup extends TestCase
         $this->assertLessThan(2, microtime(true) - $start);
     }
 
+    /**
+     * @dataProvider rawTextEndProvider
+     */
+    public function testRawTextEndsOnlyAtTheFullTagName($content, $expected)
+    {
+        $this->assertSame($expected, $this->names($content));
+    }
+
+    public function rawTextEndProvider()
+    {
+        return array(
+            'longer name' => array('<script>a="</scriptx><style>"</script><b>', array('script', '/script', 'b')),
+            'upper case' => array('<script>a</SCRIPT ><b>', array('script', '/script', 'b')),
+            'slash' => array('<style>a</style/><b>', array('style', '/style', 'b')),
+            'no delimiter at the end' => array('<script>a</script', array('script')),
+            'other tag inside' => array('<textarea></textareas><b></textarea><i>', array('textarea', '/textarea', 'i')),
+        );
+    }
+
+    public function testRawTextEndSearchIsLinear()
+    {
+        $start = microtime(true);
+        ContactsEncoderHelper::scanMarkup('<script>' . str_repeat('</scriptx', 8000));
+        ContactsEncoderHelper::scanMarkup(str_repeat('<script></script>', 4000));
+        $this->assertLessThan(2, microtime(true) - $start);
+    }
+
     public function testGuardsDoNotDependOnContentSize()
     {
         $helper = new ContactsEncoderHelper();

@@ -136,8 +136,9 @@ class ContactsEncoderHelper
             $offset = $token['end'];
 
             if ( ! $closing && in_array($token['name'], self::$unparsed_text_tags, true) ) {
-                $close = stripos($content, '</' . $token['name'], $offset);
-                $offset = $close === false ? $length : $close;
+                // `</scriptx` does not end a script for a browser, the name must be followed by a delimiter.
+                $found = preg_match('~</' . $token['name'] . '(?=[ \t\r\n\f/>])~i', $content, $close, PREG_OFFSET_CAPTURE, $offset);
+                $offset = $found && isset($close[0][1]) ? $close[0][1] : $length;
             }
         }
 
