@@ -375,7 +375,7 @@ class ContactsEncoder
             if ( $this->helper->isMailto($matches[0]) ) {
                 $position = $position === false ? 0 : $position;
 
-                $target_end = $this->findCutMailtoTargetEnd($matches[0], $position);
+                $target_end = $this->findKeptLinkTargetEnd($matches[0], $position);
                 if ( $target_end !== false ) {
                     $cut_mailto_end = $target_end;
 
@@ -473,7 +473,7 @@ class ContactsEncoder
                 if ( $this->helper->isTelTag($matches[0]) ) {
                     $position = $position === false ? 0 : $position;
 
-                    if ( ! $this->reserveEncodedContact() ) {
+                    if ( $this->findKeptLinkTargetEnd($matches[0], $position) !== false || ! $this->reserveEncodedContact() ) {
                         return $matches[0];
                     }
 
@@ -687,29 +687,34 @@ class ContactsEncoder
     }
 
     /**
-     * MAILTO_QUERY_PATTERN limits the length of a query: a longer one is matched partially.
-     * Encoding a part would put the rest of the target into the encoded attribute, so such a link stays as is.
+     * Encoding a link appends attributes after the quote that closes its target. It works only for the whole
+     * value of a quoted attribute, another link stays as is: the rest of the target would get into the encoded
+     * attribute, and a value without quotes would leave an open quote that hides the next markup.
+     * MAILTO_QUERY_PATTERN limits the length of a query, so a match can be a part of a target in a text as well.
      *
      * @param string $match
      * @param int $position Offset of the match inside the content being processed.
      *
-     * @return int|false End of the whole target, false when the match is the whole target.
+     * @return int|false End of the whole target that stays as is, false when the link can be encoded.
      */
-    private function findCutMailtoTargetEnd($match, $position)
+    private function findKeptLinkTargetEnd($match, $position)
     {
-        if ( strpos($match, '?') === false ) {
-            return false;
-        }
-
         $end = $position + strlen($match);
-        if ( $end >= strlen($this->temp_content) ) {
+        $range = $this->helper->findAttributeValueRange($this->temp_content, $position);
+
+        if ( $range !== false ) {
+            $is_quoted = $range[0] > 0 && strspn($this->temp_content, '"\'', $range[0] - 1, 1) === 1;
+            $is_whole = $end + strspn($this->temp_content, " \t\r\n\f", $end) >= $range[1];
+
+            return $is_quoted && $is_whole ? false : $range[1];
+        }
+
+        if ( strpos($match, '?') === false || $end >= strlen($this->temp_content) ) {
             return false;
         }
 
-        $next = $this->temp_content[$end];
-        $is_attribute = $this->helper->isInsideAttributeValue($match, $this->temp_content, $position);
-        $terminators = $is_attribute ? '"\'' : " \t\r\n\f\"'<>";
-        if ( strpos($terminators, $next) !== false ) {
+        $terminators = " \t\r\n\f\"'<>";
+        if ( strspn($this->temp_content, $terminators, $end, 1) === 1 ) {
             return false;
         }
 

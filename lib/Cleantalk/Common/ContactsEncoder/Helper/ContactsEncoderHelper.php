@@ -298,6 +298,30 @@ class ContactsEncoderHelper
     }
 
     /**
+     * Bounds of the attribute value containing the offset.
+     *
+     * @param string $content
+     * @param int $position
+     *
+     * @return array{0: int, 1: int}|false Start and exclusive end of the value.
+     */
+    public function findAttributeValueRange($content, $position)
+    {
+        if ( ! is_string($content) || ! is_int($position) || $position < 0 ) {
+            return false;
+        }
+
+        $this->indexMarkup($content);
+
+        $index = $this->findRangeIndex($this->attribute_value_ranges, $position);
+        if ( $index === false ) {
+            return false;
+        }
+
+        return array($this->attribute_value_ranges[$index][0], $this->attribute_value_ranges[$index][1]);
+    }
+
+    /**
      * Checking if the string contains mailto: link
      *
      * @param string $string
