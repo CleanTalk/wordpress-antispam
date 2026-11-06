@@ -176,7 +176,7 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      *
      * @param string $content
      *
-     * @return array<int, array{opener_start: int, inner_start: int, closer_start: int, end: int, attributes: string, inner: string, opener: string, closer: string}>
+     * @return array<int, array{opener_start: int, inner_start: int, closer_start: int, end: int, attributes: string, inner: string, opener: string, closer: string, over_limit: bool}>
      */
     protected function findShortcodePairs($content)
     {
@@ -210,11 +210,9 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
                 'inner' => substr($content, $inner_start, $closer_start - $inner_start),
                 'opener' => $opener[0],
                 'closer' => $closer,
+                // Over the budget a pair is not processed, see replacePairOverLimit().
+                'over_limit' => count($pairs) >= self::MAX_SHORTCODE_PAIRS,
             );
-
-            if ( count($pairs) >= self::MAX_SHORTCODE_PAIRS ) {
-                break;
-            }
         }
 
         return $pairs;
@@ -244,7 +242,12 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
                 continue;
             }
 
-            $result .= substr($content, $position, $pair['opener_start'] - $position) . $callback($pair);
+            $replacement = $pair['over_limit'] ? $this->replacePairOverLimit($pair) : $callback($pair);
+            if ( $replacement === null ) {
+                continue;
+            }
+
+            $result .= substr($content, $position, $pair['opener_start'] - $position) . $replacement;
             $position = $pair['end'];
         }
 
@@ -253,6 +256,19 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
         $this->not_rendered_starts = $this->not_rendered_ends = array();
 
         return $position === 0 ? $content : $result . substr($content, $position);
+    }
+
+    /**
+     * A pair over the budget of a pass: null keeps it as it is.
+     *
+     * @param array{opener_start: int, inner_start: int, closer_start: int, end: int, attributes: string, inner: string, opener: string, closer: string, over_limit: bool} $pair
+     *
+     * @return string|null
+     * @psalm-suppress PossiblyUnusedParam
+     */
+    protected function replacePairOverLimit($pair)
+    {
+        return null;
     }
 
     /**

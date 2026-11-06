@@ -51,6 +51,18 @@ class EncodeContentSC extends EmailEncoderShortCode
 
 
     /**
+     * The author asked to hide this text: over the budget it is masked without encoding.
+     *
+     * @param array{opener_start: int, inner_start: int, closer_start: int, end: int, attributes: string, inner: string, opener: string, closer: string, over_limit: bool} $pair
+     *
+     * @return string
+     */
+    protected function replacePairOverLimit($pair)
+    {
+        return str_repeat('*', max(1, min(self::MAX_REPLACING_TEXT_LENGTH, mb_strlen($pair['inner']))));
+    }
+
+    /**
      * Callback function for the shortcode.
      *
      * Encodes the content using the EmailEncoder unless a specific cookie is set.

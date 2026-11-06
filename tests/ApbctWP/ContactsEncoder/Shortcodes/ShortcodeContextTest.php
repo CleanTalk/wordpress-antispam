@@ -123,7 +123,26 @@ class ShortcodeContextTest extends TestCase
             str_repeat('[apbct_skip_encoding]a[/apbct_skip_encoding]', 5000)
         );
 
-        $this->assertLessThanOrEqual(200, count($pairs));
+        $this->assertLessThanOrEqual(200, count(array_filter($pairs, static function ($pair) {
+            return empty($pair['over_limit']);
+        })));
+    }
+
+    /**
+     * Over the budget of a pass the text of an encode pair is masked, not shown as it is.
+     */
+    public function testEncodePairsOverTheLimitAreMasked()
+    {
+        $content = str_repeat('[apbct_encode_data]hidden text[/apbct_encode_data] ', 200)
+            . '[apbct_encode_data]last secret[/apbct_encode_data] [apbct_encode_data]x" y[/apbct_encode_data]';
+
+        $before = $this->encode->changeContentBeforeEncoderModify($content);
+        $result = $this->encode->changeContentAfterEncoderModify($before);
+
+        $this->assertStringNotContainsString('last secret', $result);
+        $this->assertStringNotContainsString('[apbct_encode_data]last', $result);
+        $this->assertStringContainsString('***********', $result);
+        $this->assertSame(200, substr_count($result, 'data-original-string'));
     }
 
     public function testManyOpenersWithoutACloserAreFast()
