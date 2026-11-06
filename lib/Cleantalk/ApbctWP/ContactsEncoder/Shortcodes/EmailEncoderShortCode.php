@@ -177,45 +177,57 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      * @param string $content
      *
      * @return array<int, array{opener_start: int, inner_start: int, closer_start: int, end: int, attributes: string, inner: string, opener: string, closer: string, over_limit: bool}>
+     * @psalm-suppress PossiblyUnusedMethod Kept for the subclasses, the pass itself uses walkShortcodePairs()
      */
     protected function findShortcodePairs($content)
     {
         $pairs = array();
-
-        if ( ! preg_match_all($this->getOpeningTagPattern(), $content, $openers, PREG_OFFSET_CAPTURE) || ! isset($openers[0], $openers[1]) ) {
-            return $pairs;
-        }
-
-        $closer = '[/' . $this->public_name . ']';
-        $cursor = 0;
-
-        foreach ( $openers[0] as $index => $opener ) {
-            if ( ! isset($opener[0], $opener[1]) || $opener[1] < $cursor ) {
-                continue;
-            }
-
-            $inner_start = $opener[1] + strlen($opener[0]);
-            $closer_start = strpos($content, $closer, $inner_start);
-            if ( $closer_start === false ) {
-                break;
-            }
-
-            $cursor = $closer_start + strlen($closer);
-            $pairs[] = array(
-                'opener_start' => $opener[1],
-                'inner_start' => $inner_start,
-                'closer_start' => $closer_start,
-                'end' => $cursor,
-                'attributes' => isset($openers[1][$index][0]) ? $openers[1][$index][0] : '',
-                'inner' => substr($content, $inner_start, $closer_start - $inner_start),
-                'opener' => $opener[0],
-                'closer' => $closer,
-                // Over the budget a pair is not processed, see replacePairOverLimit().
-                'over_limit' => count($pairs) >= self::MAX_SHORTCODE_PAIRS,
-            );
-        }
+        $this->walkShortcodePairs($content, /** @param array{opener_start: int, inner_start: int, closer_start: int, end: int, attributes: string, inner: string, opener: string, closer: string, over_limit: bool} $pair */ function ($pair) use (&$pairs) {
+            $pairs[] = $pair;
+        });
 
         return $pairs;
+    }
+
+    /**
+     * The pairs one by one, none of them is kept: shortcode-heavy content does not take memory per pair.
+     *
+     * @param string $content
+     * @param callable(array{opener_start: int, inner_start: int, closer_start: int, end: int, attributes: string, inner: string, opener: string, closer: string, over_limit: bool}):void $visit
+     *
+     * @return void
+     */
+    protected function walkShortcodePairs($content, $visit)
+    {
+        $pattern = $this->getOpeningTagPattern();
+        $closer = '[/' . $this->public_name . ']';
+        $offset = 0;
+        $count = 0;
+
+        while (
+            preg_match($pattern, $content, $opener, PREG_OFFSET_CAPTURE, $offset)
+            && isset($opener[0][0], $opener[0][1])
+        ) {
+            $inner_start = $opener[0][1] + strlen($opener[0][0]);
+            $closer_start = strpos($content, $closer, $inner_start);
+            if ( $closer_start === false ) {
+                return;
+            }
+
+            $offset = $closer_start + strlen($closer);
+            $visit(array(
+                'opener_start' => $opener[0][1],
+                'inner_start' => $inner_start,
+                'closer_start' => $closer_start,
+                'end' => $offset,
+                'attributes' => isset($opener[1][0]) ? $opener[1][0] : '',
+                'inner' => substr($content, $inner_start, $closer_start - $inner_start),
+                'opener' => $opener[0][0],
+                'closer' => $closer,
+                // Over the budget a pair is not processed, see replacePairOverLimit().
+                'over_limit' => $count++ >= self::MAX_SHORTCODE_PAIRS,
+            ));
+        }
     }
 
     /**
@@ -231,7 +243,7 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
         $result = '';
         $position = 0;
 
-        foreach ( $this->findShortcodePairs($content) as $pair ) {
+        $this->walkShortcodePairs($content, /** @param array{opener_start: int, inner_start: int, closer_start: int, end: int, attributes: string, inner: string, opener: string, closer: string, over_limit: bool} $pair */ function ($pair) use ($content, $callback, &$result, &$position) {
             if (
                 $this->isOffsetInsideHtmlTag($content, $pair['opener_start'])
                 || $this->isOffsetInsideHtmlTag($content, $pair['closer_start'])
@@ -239,17 +251,17 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
                 || $this->isInsideOtherShortcodeTag($content, $pair['opener_start'])
                 || $this->shortcodeContentContainsHtmlTags($pair['inner'])
             ) {
-                continue;
+                return;
             }
 
             $replacement = $pair['over_limit'] ? $this->replacePairOverLimit($pair) : $callback($pair);
             if ( $replacement === null ) {
-                continue;
+                return;
             }
 
             $result .= substr($content, $position, $pair['opener_start'] - $position) . $replacement;
             $position = $pair['end'];
-        }
+        });
 
         $this->markup_tokens_content = null;
         $this->tag_starts = $this->tag_ends = array();

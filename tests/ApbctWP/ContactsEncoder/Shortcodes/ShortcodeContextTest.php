@@ -129,6 +129,26 @@ class ShortcodeContextTest extends TestCase
     }
 
     /**
+     * The pairs are found one by one: the same pairs as a scan of the whole content would give.
+     */
+    public function testPairsAreFoundOneByOne()
+    {
+        $content = 'a [apbct_skip_encoding]one[/apbct_skip_encoding] [apbct_skip_encoding nested [apbct_skip_encoding]two[/apbct_skip_encoding]'
+            . ' [apbct_skip_encoding]three[/apbct_skip_encoding] [apbct_skip_encoding]open';
+        $find = new \ReflectionMethod($this->exclude, 'findShortcodePairs');
+        $find->setAccessible(true);
+        $pairs = $find->invoke($this->exclude, $content);
+
+        $this->assertSame(array('one', 'two', 'three'), array_column($pairs, 'inner'));
+        $this->assertSame(strpos($content, '[apbct_skip_encoding]two'), $pairs[1]['opener_start']);
+
+        $find = new \ReflectionMethod($this->encode, 'findShortcodePairs');
+        $find->setAccessible(true);
+        $pairs = $find->invoke($this->encode, '[apbct_encode_data mode="replace"]a[/apbct_encode_data]');
+        $this->assertSame(' mode="replace"', $pairs[0]['attributes']);
+    }
+
+    /**
      * Over the budget of a pass the text of an encode pair is masked, not shown as it is.
      */
     public function testEncodePairsOverTheLimitAreMasked()
