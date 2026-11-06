@@ -136,6 +136,33 @@ class TestContactsEncoderHelperScanMarkup extends TestCase
         $this->assertLessThan(2, microtime(true) - $start);
     }
 
+    /**
+     * The index keeps numbers, not a list of tokens: 64 KB of tags must not take tens of megabytes.
+     */
+    public function testIndexOfManyTagsIsCompact()
+    {
+        $content = str_repeat('<b a=1>', 9362);
+        $helper = new ContactsEncoderHelper();
+        $before = memory_get_usage();
+        $helper->indexMarkup($content);
+        $retained = memory_get_usage() - $before;
+
+        $this->assertLessThan(6 * 1048576, $retained);
+        $this->assertTrue($helper->enclosingTagHasAttribute($content, 7 * 100 + 2, 'a'));
+        $this->assertSame(array(705, 706), $helper->findAttributeValueRange($content, 705));
+    }
+
+    public function testWalkMarkupGivesTheTokensOfScanMarkup()
+    {
+        $content = '<a href="x">t</a><!-- c --><script>a<b</script><br/>';
+        $walked = array();
+        ContactsEncoderHelper::walkMarkup($content, function ($token) use (&$walked) {
+            $walked[] = $token;
+        });
+
+        $this->assertSame(ContactsEncoderHelper::scanMarkup($content), $walked);
+    }
+
     public function testGuardsDoNotDependOnContentSize()
     {
         $helper = new ContactsEncoderHelper();

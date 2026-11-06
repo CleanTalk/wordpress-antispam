@@ -1298,7 +1298,8 @@ class ContactsEncoder
         $result = '';
         $position = 0;
 
-        foreach ( ContactsEncoderHelper::scanMarkup($content) as $token ) {
+        // One pass, the tokens are not kept: a list of them is big on a big page.
+        ContactsEncoderHelper::walkMarkup($content, /** @param array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>} $token */ function ($token) use ($content, &$result, &$position) {
             foreach ( $token['attributes'] as $attribute ) {
                 list($name, $name_start, , $value_end, $end) = $attribute;
                 if ( $name !== 'aria-label' || $value_end === $end ) {
@@ -1314,7 +1315,7 @@ class ContactsEncoder
                 $result .= substr($content, $position, $name_start - $position) . $placeholder;
                 $position = $end;
             }
-        }
+        });
 
         return $result . substr($content, $position);
     }

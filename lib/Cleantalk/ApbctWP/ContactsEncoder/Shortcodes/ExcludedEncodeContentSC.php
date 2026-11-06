@@ -433,7 +433,17 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      */
     protected function replaceElementsInnerHtml($content, $is_target, $get_replacement, $limit = -1)
     {
-        $tokens = ContactsEncoderHelper::scanMarkup($content);
+        // The closing tag is looked for among the tags with the same name: only they and the targets are kept.
+        $tokens = array();
+        $names = array();
+        ContactsEncoderHelper::walkMarkup($content, /** @param array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>} $token */ function ($token) use (&$tokens, &$names, $is_target) {
+            if ( isset($names[$token['name']]) ) {
+                $tokens[] = $token;
+            } elseif ( ! $token['closing'] && $is_target($token) ) {
+                $names[$token['name']] = true;
+                $tokens[] = $token;
+            }
+        });
         $count = count($tokens);
         $result = '';
         $position = 0;

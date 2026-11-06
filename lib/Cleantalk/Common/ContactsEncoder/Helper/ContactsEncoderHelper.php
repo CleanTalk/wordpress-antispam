@@ -43,29 +43,71 @@ class ContactsEncoderHelper
      */
     private $indexed_content;
 
-    /**
-     * Sorted list of [start, end) offsets of every raw text block in the indexed content.
-     * @var array[]
+    /*
+     * Offset indexes of the indexed content. Each one is a set of parallel lists sorted by the start:
+     * a list of numbers takes 16 bytes per item, an array per range takes ten times more on a big page.
+     * Names are shared strings.
      */
-    private $raw_text_ranges = array();
 
     /**
-     * Sorted list of [start, end, tag, attribute] of every attribute value in the indexed content.
-     * @var array<int, array{0: int, 1: int, 2: string, 3: string}>
+     * @var int[] Inner text of raw text elements: starts.
      */
-    private $attribute_value_ranges = array();
+    private $raw_starts = array();
 
     /**
-     * Sorted list of [start, end) offsets of the text of every option element in the indexed content.
-     * @var array[]
+     * @var int[] Exclusive ends.
      */
-    private $option_text_ranges = array();
+    private $raw_ends = array();
 
     /**
-     * Sorted list of [start, end, attribute names] of the tags with attributes in the indexed content.
-     * @var array<int, array{0: int, 1: int, 2: array<int, string>}>
+     * @var string[] Tag names.
      */
-    private $tags_with_attributes = array();
+    private $raw_tags = array();
+
+    /**
+     * @var int[] Values of attributes: starts.
+     */
+    private $attr_starts = array();
+
+    /**
+     * @var int[] Exclusive ends.
+     */
+    private $attr_ends = array();
+
+    /**
+     * @var string[] Names of their tags.
+     */
+    private $attr_tags = array();
+
+    /**
+     * @var string[] Names of the attributes.
+     */
+    private $attr_names = array();
+
+    /**
+     * @var int[] Inner text of option elements: starts.
+     */
+    private $option_starts = array();
+
+    /**
+     * @var int[] Exclusive ends.
+     */
+    private $option_ends = array();
+
+    /**
+     * @var int[] Tags with attributes: starts.
+     */
+    private $tag_starts = array();
+
+    /**
+     * @var int[] Exclusive ends.
+     */
+    private $tag_ends = array();
+
+    /**
+     * @var string[] Names of their attributes, each one between spaces.
+     */
+    private $tag_names = array();
 
     /**
      * Elements whose inner text is not markup for a browser, the tokenizer jumps to their end tag.
@@ -88,13 +130,31 @@ class ContactsEncoderHelper
      * @param string $content
      *
      * @return array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}>
+     *
+     * @psalm-suppress PossiblyUnusedMethod Public API for host apps
      */
     public static function scanMarkup($content)
     {
         $tokens = array();
+        self::walkMarkup($content, /** @param array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>} $token */ function ($token) use (&$tokens) {
+            $tokens[] = $token;
+        });
 
+        return $tokens;
+    }
+
+    /**
+     * The same pass as scanMarkup(), each token goes to the callback and is not kept.
+     *
+     * @param string $content
+     * @param callable(array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}):void $visit Receives a token of scanMarkup().
+     *
+     * @return void
+     */
+    public static function walkMarkup($content, $visit)
+    {
         if ( ! is_string($content) || $content === '' ) {
-            return $tokens;
+            return;
         }
 
         $length = strlen($content);
@@ -110,7 +170,7 @@ class ContactsEncoderHelper
 
             if ( $next === '!' && substr($content, $start, 4) === '<!--' ) {
                 $end = self::findCommentEnd($content, $start, $length);
-                $tokens[] = array('start' => $start, 'end' => $end, 'name' => '!--', 'closing' => false, 'attributes' => array());
+                $visit(array('start' => $start, 'end' => $end, 'name' => '!--', 'closing' => false, 'attributes' => array()));
                 $offset = $end;
                 continue;
             }
@@ -118,7 +178,7 @@ class ContactsEncoderHelper
             if ( $next === '!' || $next === '?' ) {
                 $close = strpos($content, '>', $start);
                 $end = $close === false ? $length : $close + 1;
-                $tokens[] = array('start' => $start, 'end' => $end, 'name' => '!', 'closing' => false, 'attributes' => array());
+                $visit(array('start' => $start, 'end' => $end, 'name' => '!', 'closing' => false, 'attributes' => array()));
                 $offset = $end;
                 continue;
             }
@@ -132,7 +192,7 @@ class ContactsEncoderHelper
             }
 
             $token = self::readTag($content, $start, $name_start, $closing, $length);
-            $tokens[] = $token;
+            $visit($token);
             $offset = $token['end'];
 
             if ( ! $closing && in_array($token['name'], self::$unparsed_text_tags, true) ) {
@@ -141,8 +201,6 @@ class ContactsEncoderHelper
                 $offset = $found && isset($close[0][1]) ? $close[0][1] : $length;
             }
         }
-
-        return $tokens;
     }
 
     /**
@@ -272,6 +330,39 @@ class ContactsEncoderHelper
     }
 
     /**
+     * Binary search in a set of ranges that do not overlap.
+     *
+     * @param int[] $starts Sorted starts.
+     * @param int[] $ends Exclusive ends.
+     * @param int $position
+     *
+     * @return int|false Index of the range containing the offset.
+     */
+    public static function findRange($starts, $ends, $position)
+    {
+        $low = 0;
+        $high = count($starts) - 1;
+
+        while ( $low <= $high ) {
+            $middle = intdiv($low + $high, 2);
+
+            if ( ! isset($starts[$middle], $ends[$middle]) ) {
+                return false;
+            }
+
+            if ( $position < $starts[$middle] ) {
+                $high = $middle - 1;
+            } elseif ( $position >= $ends[$middle] ) {
+                $low = $middle + 1;
+            } else {
+                return $middle;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Checks whether the tag enclosing the given offset already declares the attribute.
      *
      * Scheme links are rewritten from the inside of the href value, so the encoder appends its own
@@ -292,9 +383,11 @@ class ContactsEncoderHelper
 
         $this->indexMarkup($content);
 
-        $index = $this->findRangeIndex($this->tags_with_attributes, $position);
+        $index = self::findRange($this->tag_starts, $this->tag_ends, $position);
 
-        return $index !== false && in_array(strtolower($attribute), $this->tags_with_attributes[$index][2], true);
+        return $index !== false
+            && isset($this->tag_names[$index])
+            && strpos($this->tag_names[$index], ' ' . strtolower($attribute) . ' ') !== false;
     }
 
     /**
@@ -313,12 +406,12 @@ class ContactsEncoderHelper
 
         $this->indexMarkup($content);
 
-        $index = $this->findRangeIndex($this->attribute_value_ranges, $position);
-        if ( $index === false ) {
+        $index = self::findRange($this->attr_starts, $this->attr_ends, $position);
+        if ( $index === false || ! isset($this->attr_starts[$index], $this->attr_ends[$index]) ) {
             return false;
         }
 
-        return array($this->attribute_value_ranges[$index][0], $this->attribute_value_ranges[$index][1]);
+        return array($this->attr_starts[$index], $this->attr_ends[$index]);
     }
 
     /**
@@ -384,7 +477,7 @@ class ContactsEncoderHelper
 
         $this->indexMarkup($content);
 
-        return $this->findRangeIndex($this->option_text_ranges, $pos) !== false;
+        return self::findRange($this->option_starts, $this->option_ends, $pos) !== false;
     }
 
     /**
@@ -419,12 +512,12 @@ class ContactsEncoderHelper
 
         $this->indexMarkup($content);
 
-        $index = $this->findRangeIndex($this->raw_text_ranges, $pos);
-        if ( $index === false || ! isset($this->raw_text_ranges[$index][2]) ) {
+        $index = self::findRange($this->raw_starts, $this->raw_ends, $pos);
+        if ( $index === false || ! isset($this->raw_tags[$index]) ) {
             return false;
         }
 
-        $range_tag = $this->raw_text_ranges[$index][2];
+        $range_tag = $this->raw_tags[$index];
 
         return $tags === null || in_array($range_tag, $tags, true);
     }
@@ -447,11 +540,62 @@ class ContactsEncoderHelper
         }
 
         $this->indexed_content = $content;
-        // The tokens are big on a big page, only the ranges stay in the memory.
-        $tokens = self::scanMarkup($content);
-        $this->raw_text_ranges = $this->buildElementTextRanges($tokens, $this->raw_text_tags);
-        $this->option_text_ranges = $this->buildElementTextRanges($tokens, array('option'));
-        $this->buildAttributeRanges($tokens);
+        $this->raw_starts = $this->raw_ends = $this->raw_tags = array();
+        $this->option_starts = $this->option_ends = array();
+        $this->attr_starts = $this->attr_ends = $this->attr_tags = $this->attr_names = array();
+        $this->tag_starts = $this->tag_ends = $this->tag_names = array();
+
+        // One pass, no list of tokens: only the numbers of the ranges stay in the memory.
+        $raw_open = null;
+        $option_open = null;
+        $shared = array();
+        $raw_text_tags = $this->raw_text_tags;
+
+        self::walkMarkup($content, /** @param array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>} $token */ function ($token) use (&$raw_open, &$option_open, &$shared, $raw_text_tags) {
+            $name = $token['name'];
+
+            if ( $raw_open === null ) {
+                if ( ! $token['closing'] && in_array($name, $raw_text_tags, true) ) {
+                    $raw_open = array($token['end'], $name);
+                }
+            } elseif ( $token['closing'] && $name === $raw_open[1] ) {
+                $this->raw_starts[] = $raw_open[0];
+                $this->raw_ends[] = $token['start'];
+                $this->raw_tags[] = $raw_open[1];
+                $raw_open = null;
+            }
+
+            if ( $option_open === null ) {
+                if ( ! $token['closing'] && $name === 'option' ) {
+                    $option_open = $token['end'];
+                }
+            } elseif ( $token['closing'] && $name === 'option' ) {
+                $this->option_starts[] = $option_open;
+                $this->option_ends[] = $token['start'];
+                $option_open = null;
+            }
+
+            if ( empty($token['attributes']) ) {
+                return;
+            }
+
+            $name = isset($shared[$name]) ? $shared[$name] : ($shared[$name] = $name);
+            $names = ' ';
+            foreach ( $token['attributes'] as $attribute ) {
+                $attribute_name = isset($shared[$attribute[0]]) ? $shared[$attribute[0]] : ($shared[$attribute[0]] = $attribute[0]);
+                $names .= $attribute_name . ' ';
+                if ( $attribute[3] > $attribute[2] ) {
+                    $this->attr_starts[] = $attribute[2];
+                    $this->attr_ends[] = $attribute[3];
+                    $this->attr_tags[] = $name;
+                    $this->attr_names[] = $attribute_name;
+                }
+            }
+
+            $this->tag_starts[] = $token['start'];
+            $this->tag_ends[] = $token['end'];
+            $this->tag_names[] = isset($shared[$names]) ? $shared[$names] : ($shared[$names] = $names);
+        });
     }
 
     /**
@@ -476,97 +620,7 @@ class ContactsEncoderHelper
 
         $this->indexMarkup($content);
 
-        return $this->findRangeIndex($this->attribute_value_ranges, $pos) !== false;
-    }
-
-    /**
-     * Offsets of every attribute value and of every tag with attributes.
-     *
-     * @param array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}> $tokens
-     * @return void
-     */
-    private function buildAttributeRanges($tokens)
-    {
-        $this->attribute_value_ranges = array();
-        $this->tags_with_attributes = array();
-
-        foreach ( $tokens as $token ) {
-            if ( empty($token['attributes']) ) {
-                continue;
-            }
-
-            $names = array();
-            foreach ( $token['attributes'] as $attribute ) {
-                $names[] = $attribute[0];
-                if ( $attribute[3] > $attribute[2] ) {
-                    $this->attribute_value_ranges[] = array($attribute[2], $attribute[3], $token['name'], $attribute[0]);
-                }
-            }
-            $this->tags_with_attributes[] = array($token['start'], $token['end'], $names);
-        }
-    }
-
-    /**
-     * Offsets of the inner text of the given elements.
-     *
-     * @param array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}> $tokens
-     * @param string[] $tags
-     * @return array[] list of [start, end, tag]
-     */
-    private function buildElementTextRanges($tokens, $tags)
-    {
-        $ranges = array();
-        $open = null;
-
-        foreach ( $tokens as $token ) {
-            if ( $open === null ) {
-                if ( ! $token['closing'] && in_array($token['name'], $tags, true) ) {
-                    $open = $token;
-                }
-                continue;
-            }
-
-            if ( $token['closing'] && $token['name'] === $open['name'] ) {
-                $ranges[] = array($open['end'], $token['start'], $token['name']);
-                $open = null;
-            }
-        }
-
-        return $ranges;
-    }
-
-    /**
-     * Index of the range containing the offset, or false when the offset is outside all of them.
-     *
-     * @param array[] $ranges
-     * @param int $position
-     * @return int|false
-     */
-    private function findRangeIndex($ranges, $position)
-    {
-        if ( ! is_array($ranges) || empty($ranges) ) {
-            return false;
-        }
-
-        $low = 0;
-        $high = count($ranges) - 1;
-
-        while ( $low <= $high ) {
-            $middle = intdiv($low + $high, 2);
-            if ( ! isset($ranges[$middle][0], $ranges[$middle][1]) ) {
-                return false;
-            }
-
-            if ( $position < $ranges[$middle][0] ) {
-                $high = $middle - 1;
-            } elseif ( $position >= $ranges[$middle][1] ) {
-                $low = $middle + 1;
-            } else {
-                return $middle;
-            }
-        }
-
-        return false;
+        return self::findRange($this->attr_starts, $this->attr_ends, $pos) !== false;
     }
 
     /**
@@ -711,13 +765,13 @@ class ContactsEncoderHelper
     {
         $this->indexMarkup($content);
 
-        $index = $this->findRangeIndex($this->attribute_value_ranges, $position);
-        if ( $index === false ) {
+        $index = self::findRange($this->attr_starts, $this->attr_ends, $position);
+        if ( $index === false || ! isset($this->attr_tags[$index], $this->attr_names[$index]) ) {
             return false;
         }
 
-        $tag = $this->attribute_value_ranges[$index][2];
-        $attribute = $this->attribute_value_ranges[$index][3];
+        $tag = $this->attr_tags[$index];
+        $attribute = $this->attr_names[$index];
 
         if ( in_array($attribute, array_map('strtolower', $this->attribute_exclusions_list), true) ) {
             return true;

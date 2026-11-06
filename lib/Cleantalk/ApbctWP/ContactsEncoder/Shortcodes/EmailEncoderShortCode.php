@@ -47,14 +47,24 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
     private $markup_tokens_content;
 
     /**
-     * @var array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}> Result of ContactsEncoderHelper::scanMarkup().
+     * @var int[] Starts of the tags of the content. Only numbers are kept: a list of tokens is big on a big page.
      */
-    private $markup_tokens = array();
+    private $tag_starts = array();
 
     /**
-     * @var array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}> Inner text of the elements a browser does not show.
+     * @var int[] Exclusive ends of the tags.
      */
-    private $not_rendered_ranges = array();
+    private $tag_ends = array();
+
+    /**
+     * @var int[] Starts of the inner text of the elements a browser does not show.
+     */
+    private $not_rendered_starts = array();
+
+    /**
+     * @var int[] Exclusive ends of that text.
+     */
+    private $not_rendered_ends = array();
 
     /**
      * Lightweight pre-check to avoid running heavy regexes on every hit.
@@ -239,8 +249,8 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
         }
 
         $this->markup_tokens_content = null;
-        $this->markup_tokens = array();
-        $this->not_rendered_ranges = array();
+        $this->tag_starts = $this->tag_ends = array();
+        $this->not_rendered_starts = $this->not_rendered_ends = array();
 
         return $position === 0 ? $content : $result . substr($content, $position);
     }
@@ -382,11 +392,10 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
     {
         if ( $this->markup_tokens_content !== $content ) {
             $this->markup_tokens_content = $content;
-            $this->markup_tokens = ContactsEncoderHelper::scanMarkup($content);
-            $this->not_rendered_ranges = $this->buildNotRenderedRanges($this->markup_tokens, strlen($content));
+            $this->indexTags($content);
         }
 
-        return ContactsEncoderHelper::findTokenIndex($this->markup_tokens, $offset) !== false;
+        return ContactsEncoderHelper::findRange($this->tag_starts, $this->tag_ends, $offset) !== false;
     }
 
     /**
@@ -398,28 +407,40 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      */
     private function isOffsetInsideNotRenderedText($offset)
     {
-        return ContactsEncoderHelper::findTokenIndex($this->not_rendered_ranges, $offset) !== false;
+        return ContactsEncoderHelper::findRange($this->not_rendered_starts, $this->not_rendered_ends, $offset) !== false;
     }
 
     /**
      * The scanner goes from a raw text tag right to its end: the next token is the closing one.
      *
-     * @param array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}> $tokens
-     * @param int $length
+     * @param string $content
      *
-     * @return array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}>
+     * @return void
      */
-    private function buildNotRenderedRanges($tokens, $length)
+    private function indexTags($content)
     {
-        $ranges = array();
+        $this->tag_starts = $this->tag_ends = array();
+        $this->not_rendered_starts = $this->not_rendered_ends = array();
+        $open = false;
 
-        foreach ( $tokens as $index => $token ) {
-            if ( ! $token['closing'] && in_array($token['name'], self::$not_rendered_tags, true) ) {
-                $end = isset($tokens[$index + 1]) ? $tokens[$index + 1]['start'] : $length;
-                $ranges[] = array('start' => $token['end'], 'end' => $end, 'name' => $token['name'], 'closing' => false, 'attributes' => array());
+        ContactsEncoderHelper::walkMarkup($content, /** @param array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>} $token */ function ($token) use (&$open) {
+            if ( $open !== false ) {
+                $this->not_rendered_starts[] = $open;
+                $this->not_rendered_ends[] = $token['start'];
+                $open = false;
             }
-        }
 
-        return $ranges;
+            $this->tag_starts[] = $token['start'];
+            $this->tag_ends[] = $token['end'];
+
+            if ( ! $token['closing'] && in_array($token['name'], self::$not_rendered_tags, true) ) {
+                $open = $token['end'];
+            }
+        });
+
+        if ( $open !== false ) {
+            $this->not_rendered_starts[] = $open;
+            $this->not_rendered_ends[] = strlen($content);
+        }
     }
 }

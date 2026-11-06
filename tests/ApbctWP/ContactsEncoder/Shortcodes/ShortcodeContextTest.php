@@ -684,6 +684,21 @@ class ShortcodeContextTest extends TestCase
         $this->assertSame(1000, $registered);
     }
 
+    /**
+     * The check of the pairs keeps the bounds of the tags only, not a list of tokens.
+     */
+    public function testTagIndexOfShortcodeCheckIsCompact()
+    {
+        $content = str_repeat('<b>', 21845);
+        $before = memory_get_usage();
+        $inside = $this->exclude->isOffsetInsideHtmlTag($content, 4);
+        $retained = memory_get_usage() - $before;
+
+        $this->assertTrue($inside);
+        $this->assertFalse($this->exclude->isOffsetInsideHtmlTag($content . ' x', strlen($content) + 1));
+        $this->assertLessThan(3 * 1048576, $retained);
+    }
+
     public function testContactsAreMaskedOverTheSignsBudget()
     {
         $encoder = apbctGetContactsEncoder();
