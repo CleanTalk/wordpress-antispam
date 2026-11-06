@@ -359,7 +359,8 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
 
         preg_match_all(
             sprintf(
-                '/\[\/?%s(?:\s[^\]]*)?\]/', //supports sc attributes(!)
+                // No brackets in attributes: an opener without its end is not read up to the end of the content.
+                '/\[\/?%s(?:\s[^\[\]]*+)?\]/',
                 preg_quote($this->public_name, '/')
             ),
             $content,

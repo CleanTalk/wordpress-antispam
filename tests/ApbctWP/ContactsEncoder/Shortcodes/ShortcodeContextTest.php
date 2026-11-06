@@ -174,6 +174,18 @@ class ShortcodeContextTest extends TestCase
         $this->assertLessThan(0.2, microtime(true) - $start);
     }
 
+    public function testManyOpenersWithAttributesWithoutTheirEndAreFast()
+    {
+        $comment = '<li><p>' . str_repeat('[apbct_skip_encoding [apbct_encode_data ', 1500) . '</p></li>';
+        $content = str_repeat($comment, 13);
+        $start = microtime(true);
+
+        $this->assertSame($content, $this->exclude->changeContentBeforeEncoderModify($content));
+        $this->assertSame($content, $this->encode->changeContentBeforeEncoderModify($content));
+        $this->assertSame($content, $this->exclude->changeContentAfterEncoderModify($content));
+        $this->assertLessThan(1, microtime(true) - $start);
+    }
+
     public function testAriaLabelOfARealTagStaysIntact()
     {
         $html = '<button aria-label="Write to label@example.org" class="x">go</button> and text@example.org';

@@ -713,8 +713,9 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return false;
         }
 
+        // No brackets in attributes: an opener without its end is not read up to the end of the content.
         preg_match_all(
-            '/\[\/?apbct_skip_encoding(?:\s[^\]]*)?\]/',
+            '/\[\/?apbct_skip_encoding(?:\s[^\[\]]*+)?\]/',
             $content,
             $matches,
             PREG_OFFSET_CAPTURE
