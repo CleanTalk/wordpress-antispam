@@ -684,7 +684,7 @@ class ShortcodeContextTest extends TestCase
         $this->assertSame(1000, $registered);
     }
 
-    public function testContentStaysAsIsOverTheMatchesBudget()
+    public function testContactsAreMaskedOverTheSignsBudget()
     {
         $encoder = apbctGetContactsEncoder();
         $property = new \ReflectionProperty($encoder, 'contact_signs_processed');
@@ -699,15 +699,17 @@ class ShortcodeContextTest extends TestCase
         $under = $encoder->modifyContent($html);
         $property->setValue($encoder, $saved);
 
-        $this->assertSame($html, $over);
+        $this->assertStringNotContainsString('a@b.cc', $over);
+        $this->assertStringNotContainsString('c@d.ee', $over);
+        $this->assertStringNotContainsString('data-original-string', $over);
         $this->assertStringNotContainsString('c@d.ee', $under);
     }
 
-    public function testContentWithTooManyContactSignsStaysAsIs()
+    public function testContentWithTooManyContactSignsIsMasked()
     {
         $html = str_repeat('a@b.cc ', 5001);
 
-        $this->assertSame($html, apbctGetContactsEncoder()->modifyContent($html));
+        $this->assertSame(str_repeat('*@*.cc ', 5001), apbctGetContactsEncoder()->modifyContent($html));
     }
 
     public function testEncodedContactsPerRequestAreLimited()
@@ -718,10 +720,11 @@ class ShortcodeContextTest extends TestCase
         $saved = $property->getValue($encoder);
 
         $property->setValue($encoder, $encoder::MAX_ENCODED_CONTACTS_PER_REQUEST);
-        $result = $encoder->modifyContent('a@b.cc');
+        $result = $encoder->modifyContent('<p>john.doe@example.org</p>');
         $property->setValue($encoder, $saved);
 
-        $this->assertSame('a@b.cc', $result);
+        $this->assertStringNotContainsString('john.doe@example.org', $result);
+        $this->assertStringNotContainsString('data-original-string', $result);
     }
 
     public function testFailedPatternKeepsTheContent()

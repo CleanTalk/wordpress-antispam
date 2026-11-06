@@ -21,7 +21,7 @@ class ContactsEncoder
     /**
      * Possible contacts to look for per request, all passes of nested render filters together.
      * A contact contains its sign, so the budget is taken before a regular expression runs:
-     * each sign costs up to 0.4 ms without PCRE JIT. A page that exceeds it stays as is.
+     * each sign costs up to 0.4 ms without PCRE JIT. Over it contacts are masked without encoding.
      */
     const MAX_CONTACT_SIGNS_PER_REQUEST = 5000;
 
@@ -328,8 +328,12 @@ class ContactsEncoder
         }
 
         $signs = substr_count($content, '@');
-        if ( $signs === 0 || $signs > self::MAX_CONTACT_SIGNS_PER_CONTENT || ! $this->reserveContactSigns($signs) ) {
+        if ( $signs === 0 ) {
             return $content;
+        }
+
+        if ( $signs > self::MAX_CONTACT_SIGNS_PER_CONTENT || ! $this->reserveContactSigns($signs) ) {
+            return $this->maskEmailsWithoutEncoding($content);
         }
 
         $owns_aria_protection = empty($this->aria_placeholders);
@@ -386,7 +390,7 @@ class ContactsEncoder
                 }
 
                 if ( ! $this->reserveEncodedContact() ) {
-                    return $matches[0];
+                    return $this->maskEmailsWithoutEncoding($matches[0]);
                 }
 
                 return $this->encodeMailtoLink($matches[0], $position);
@@ -407,7 +411,7 @@ class ContactsEncoder
             }
 
             if ( ! $this->reserveEncodedContact() ) {
-                return $matches[0];
+                return $this->maskAny($matches[0], $this->global_obfuscation_mode, $this->global_replacing_text);
             }
 
             return $this->encodePlainEmail($matches[0]);
@@ -440,8 +444,12 @@ class ContactsEncoder
         }
 
         $signs = substr_count($content, '+') + substr_count($content, '(');
-        if ( $signs === 0 || $signs > self::MAX_CONTACT_SIGNS_PER_CONTENT || ! $this->reserveContactSigns($signs) ) {
+        if ( $signs === 0 ) {
             return $content;
+        }
+
+        if ( $signs > self::MAX_CONTACT_SIGNS_PER_CONTENT || ! $this->reserveContactSigns($signs) ) {
+            return $this->maskPhonesWithoutEncoding($content);
         }
 
         $owns_aria_protection = empty($this->aria_placeholders);
@@ -478,8 +486,12 @@ class ContactsEncoder
                 if ( $this->helper->isTelTag($matches[0]) ) {
                     $position = $position === false ? 0 : $position;
 
-                    if ( $this->findKeptLinkTargetEnd($matches[0], $position) !== false || ! $this->reserveEncodedContact() ) {
+                    if ( $this->findKeptLinkTargetEnd($matches[0], $position) !== false ) {
                         return $matches[0];
+                    }
+
+                    if ( ! $this->reserveEncodedContact() ) {
+                        return $this->maskPhonesWithoutEncoding($matches[0]);
                     }
 
                     return $this->encodeTelLink($matches[0], $position);
@@ -504,7 +516,7 @@ class ContactsEncoder
                 }
 
                 if ( ! $this->reserveEncodedContact() ) {
-                    return $matches[0];
+                    return $this->maskAny($matches[0], $this->global_obfuscation_mode, $this->global_replacing_text, true);
                 }
 
                 return $this->encodeAny(
@@ -693,6 +705,87 @@ class ContactsEncoder
     protected function reserveEncodedContact()
     {
         return ++$this->encoded_contacts_count <= self::MAX_ENCODED_CONTACTS_PER_REQUEST;
+    }
+
+    /**
+     * Over a limit nothing is encoded, but contacts must not be shown open either.
+     * One linear pass without a regular expression: a short window around each sign.
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    protected function maskEmailsWithoutEncoding($content)
+    {
+        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.';
+        $result = '';
+        $cursor = 0;
+        $offset = 0;
+
+        while ( ($at = strpos($content, '@', $offset)) !== false ) {
+            $offset = $at + 1;
+            $from = max($cursor, $at - 64);
+            $local = strspn(strrev(substr($content, $from, $at - $from)), $chars);
+            $domain = substr($content, $at + 1, strspn($content, $chars, $at + 1, 255));
+            $dot = strrpos($domain, '.');
+
+            if ( $local === 0 || $dot === false || $dot === 0 ) {
+                continue;
+            }
+
+            $start = $at - $local;
+            $end = $at + 1 + strlen($domain);
+            if ( $this->exclusions->isContactExcluded(substr($content, $start, $end - $start)) ) {
+                continue;
+            }
+
+            $result .= substr($content, $cursor, $start - $cursor)
+                . str_repeat('*', $local) . '@' . str_repeat('*', $dot) . substr($domain, $dot);
+            $cursor = $end;
+            $offset = $end;
+        }
+
+        return $cursor === 0 ? $content : $result . substr($content, $cursor);
+    }
+
+    /**
+     * Phones over a limit: the digits of a run that starts with "+" or "(" are masked, except the last two.
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    protected function maskPhonesWithoutEncoding($content)
+    {
+        $length = strlen($content);
+        $result = '';
+        $cursor = 0;
+        $offset = 0;
+
+        while ( ($position = $offset + strcspn($content, '+(', $offset)) < $length ) {
+            $run = substr($content, $position, strspn($content, '+(0123456789 -.)', $position, 25));
+            $run = rtrim($run, ' -.(+');
+            $digits = strlen($run) - strlen(str_replace(array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'), '', $run));
+
+            if ( $digits < 8 || $digits > 15 || $this->exclusions->isContactExcluded($run) ) {
+                $offset = $position + 1;
+                continue;
+            }
+
+            $seen = 0;
+            $masked = '';
+            for ( $i = 0, $run_length = strlen($run); $i < $run_length; $i++ ) {
+                $is_digit = ctype_digit($run[$i]);
+                $seen += $is_digit ? 1 : 0;
+                $masked .= $is_digit && $seen <= $digits - 2 ? '*' : $run[$i];
+            }
+
+            $result .= substr($content, $cursor, $position - $cursor) . $masked;
+            $cursor = $position + strlen($run);
+            $offset = $cursor;
+        }
+
+        return $cursor === 0 ? $content : $result . substr($content, $cursor);
     }
 
     /**
