@@ -270,6 +270,27 @@ class ShortcodeContextTest extends TestCase
         $this->assertSame(10, has_filter('the_excerpt', array($encoder, 'modifyContent')));
     }
 
+    /**
+     * Feeds and embeds print the excerpt through their own filters, not through the_excerpt.
+     *
+     * @dataProvider excerptOutputFilterProvider
+     */
+    public function testExcerptOutputFiltersAreEncoded($hook)
+    {
+        $encoder = apbctGetContactsEncoder();
+        $encoder->runEncoding();
+
+        $this->assertSame(10, has_filter($hook, array($encoder, 'modifyContent')));
+    }
+
+    public function excerptOutputFilterProvider()
+    {
+        return array(
+            'rss' => array('the_excerpt_rss'),
+            'embed' => array('the_excerpt_embed'),
+        );
+    }
+
     public function testCutSpanCanNotBeClosedByASingleQuoteOfOtherContent()
     {
         $span = apbctGetContactsEncoder()->encodePlainEmail('cut@example.org');
