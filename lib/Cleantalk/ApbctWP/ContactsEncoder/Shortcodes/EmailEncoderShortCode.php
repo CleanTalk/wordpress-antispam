@@ -19,11 +19,6 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
     const MAX_SHORTCODE_PAIRS = 200;
 
     /**
-     * How far back the opening tag of an outer shortcode is searched.
-     */
-    const MAX_OUTER_TAG_LENGTH = 4096;
-
-    /**
      * @var string The public name of the shortcode.
      */
     protected $public_name;
@@ -263,11 +258,21 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
             $position = $pair['end'];
         });
 
+        $this->forgetTagIndex();
+
+        return $position === 0 ? $content : $result . substr($content, $position);
+    }
+
+    /**
+     * The index of tags is kept for one content only, see isOffsetInsideHtmlTag().
+     *
+     * @return void
+     */
+    protected function forgetTagIndex()
+    {
         $this->markup_tokens_content = null;
         $this->tag_starts = $this->tag_ends = array();
         $this->not_rendered_starts = $this->not_rendered_ends = array();
-
-        return $position === 0 ? $content : $result . substr($content, $position);
     }
 
     /**
@@ -293,15 +298,25 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      */
     protected function isInsideOtherShortcodeTag($content, $offset)
     {
-        $outer = $offset > 0 ? strrpos(substr($content, max(0, $offset - self::MAX_OUTER_TAG_LENGTH), $offset - max(0, $offset - self::MAX_OUTER_TAG_LENGTH)), '[') : false;
-        if ( $outer === false ) {
+        if ( $offset <= 0 ) {
             return false;
         }
 
-        $outer += max(0, $offset - self::MAX_OUTER_TAG_LENGTH);
-        $between = substr($content, $outer, $offset - $outer);
+        // The opening tag of a shortcode has no `]` before its end: an outer tag starts after the last one.
+        $last_end = strrpos($content, ']', $offset - strlen($content) - 1);
+        $from = $last_end === false ? 0 : $last_end + 1;
+        if ( strpos($content, '[', $from) === $offset ) {
+            return false;
+        }
 
-        return strpos($between, ']') === false && (bool)preg_match('/^\[[a-zA-Z_][\w-]*\s[^=]*=/', $between);
+        preg_match_all('/\[([^<>&\/\[\]\x00-\x20=]++)/', substr($content, $from, $offset - $from), $names);
+        foreach ( isset($names[1]) ? $names[1] : array() as $name ) {
+            if ( shortcode_exists($name) ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

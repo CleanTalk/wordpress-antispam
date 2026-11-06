@@ -27,6 +27,10 @@ class EncodeContentSC extends EmailEncoderShortCode
      */
     public $shortcode_replacements = array();
     /**
+     * @var array<string, string> Masks of the replacements, for a placeholder that lands inside a tag.
+     */
+    private $shortcode_masks = array();
+    /**
      * @var string The wrapper used to mark content for inclusion during encoding.
      */
     public $exclusion_wrapper = '%%APBCT_SHORT_CODE_INCLUDE_EE_0%%';
@@ -59,7 +63,17 @@ class EncodeContentSC extends EmailEncoderShortCode
      */
     protected function replacePairOverLimit($pair)
     {
-        return str_repeat('*', max(1, min(self::MAX_REPLACING_TEXT_LENGTH, mb_strlen($pair['inner']))));
+        return $this->maskText($pair['inner']);
+    }
+
+    /**
+     * @param string $text
+     *
+     * @return string
+     */
+    private function maskText($text)
+    {
+        return str_repeat('*', max(1, min(self::MAX_REPLACING_TEXT_LENGTH, mb_strlen($text))));
     }
 
     /**
@@ -134,6 +148,7 @@ class EncodeContentSC extends EmailEncoderShortCode
         return $this->replaceShortcodePairs($content, function ($pair) {
             $placeholder = $this->buildPlaceholder($this->shortcode_counter++);
             $this->shortcode_replacements[$placeholder] = $pair['opener'] . Escape::escKsesPost($pair['inner']) . $pair['closer'];
+            $this->shortcode_masks[$placeholder] = $this->maskText($pair['inner']);
 
             return $placeholder;
         });
@@ -160,15 +175,51 @@ class EncodeContentSC extends EmailEncoderShortCode
             return $content;
         }
 
-        // Restore shortcodes
-        foreach ($this->shortcode_replacements as $placeholder => $original) {
-            $content = str_replace($placeholder, $original, $content);
-        }
-
-        $result = $this->doCallbackAction($content);
+        $result = $this->doCallbackAction($this->restorePlaceholders($content));
         $this->resetShortcodeReplacements();
 
         return $result;
+    }
+
+    /**
+     * Restore the shortcodes. A placeholder inside a tag, e.g. in an attribute built by another shortcode,
+     * is not a text of the page: there the shortcode is not processed, so the text is masked.
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    private function restorePlaceholders($content)
+    {
+        if ( empty($this->shortcode_replacements) ) {
+            return $content;
+        }
+
+        $found = array();
+        foreach ( $this->shortcode_replacements as $placeholder => $_original ) {
+            $placeholder = (string)$placeholder;
+            for ( $at = strpos($content, $placeholder); $at !== false; $at = strpos($content, $placeholder, $at + strlen($placeholder)) ) {
+                $found[$at] = $placeholder;
+            }
+        }
+        ksort($found);
+
+        $result = '';
+        $position = 0;
+        foreach ( $found as $at => $placeholder ) {
+            if ( $at < $position ) {
+                continue;
+            }
+
+            $replacement = $this->isOffsetInsideHtmlTag($content, $at)
+                ? (isset($this->shortcode_masks[$placeholder]) ? $this->shortcode_masks[$placeholder] : '*')
+                : $this->shortcode_replacements[$placeholder];
+            $result .= substr($content, $position, $at - $position) . $replacement;
+            $position = $at + strlen($placeholder);
+        }
+        $this->forgetTagIndex();
+
+        return $position === 0 ? $content : $result . substr($content, $position);
     }
 
     /**
@@ -177,6 +228,7 @@ class EncodeContentSC extends EmailEncoderShortCode
     public function resetShortcodeReplacements()
     {
         $this->shortcode_replacements = array();
+        $this->shortcode_masks = array();
         $this->shortcode_counter = 0;
         $this->rotatePlaceholderNonce();
     }

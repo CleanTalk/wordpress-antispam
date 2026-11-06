@@ -224,6 +224,16 @@ class ShortcodeContextTest extends TestCase
         $this->assertSame(array(), $this->handlers($restored), $restored);
     }
 
+    public function testEncodePlaceholderInATagIsMaskedOnRestore()
+    {
+        $placeholder = $this->encode->changeContentBeforeEncoderModify('[apbct_encode_data]a" onfocus="alert(1)[/apbct_encode_data]');
+        $restored = $this->encode->changeContentAfterEncoderModify('<figure class="x ' . $placeholder . '"></figure><p>' . $placeholder . '</p>');
+
+        $this->assertSame(array(), $this->handlers($restored), $restored);
+        $this->assertStringStartsWith('<figure class="x ' . str_repeat('*', 20) . '"></figure><p>', $restored);
+        $this->assertStringContainsString('data-original-string', $restored);
+    }
+
     public function testSkipTextWithQuotesStaysVisible()
     {
         $result = $this->run_encoder('[apbct_skip_encoding]Say "hi" to a@example.org[/apbct_skip_encoding]');
@@ -262,6 +272,9 @@ class ShortcodeContextTest extends TestCase
         return array(
             'skip' => array('[caption class="[apbct_skip_encoding]a" autofocus tabindex="0" onfocus="alert(1)" x="[/apbct_skip_encoding]"]body[/caption]'),
             'encode' => array('[caption class="[apbct_encode_data]a" autofocus tabindex="0" onfocus="alert(1)" x="[/apbct_encode_data]"]body[/caption]'),
+            'skip far' => array('[caption title="' . str_repeat('a', 5000) . '" class="[apbct_skip_encoding]a" autofocus tabindex="0" onfocus="alert(1)" x="[/apbct_skip_encoding]"]body[/caption]'),
+            'encode far' => array('[caption title="' . str_repeat('a', 5000) . '" class="[apbct_encode_data]a" autofocus tabindex="0" onfocus="alert(1)" x="[/apbct_encode_data]"]body[/caption]'),
+            'encode after a bracket' => array('[caption title="a[b" class="[apbct_encode_data]a" autofocus tabindex="0" onfocus="alert(1)" x="[/apbct_encode_data]"]body[/caption]'),
         );
     }
 
