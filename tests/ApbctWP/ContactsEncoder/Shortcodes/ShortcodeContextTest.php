@@ -642,6 +642,48 @@ class ShortcodeContextTest extends TestCase
         );
     }
 
+    /**
+     * @dataProvider uncachedTitleProvider
+     */
+    public function testTitleIsQueriedOncePerRequest($title, $status)
+    {
+        global $wpdb;
+        $id = wp_insert_post(array('post_title' => $title, 'post_status' => $status, 'post_type' => 'post'));
+        $method = new \ReflectionMethod($this->exclude, 'getRawPostTitle');
+        $method->setAccessible(true);
+
+        $method->invoke($this->exclude, $id);
+        $queries = $wpdb->num_queries;
+        $method->invoke($this->exclude, $id);
+        $method->invoke($this->exclude, $id);
+        $after = $wpdb->num_queries;
+        wp_delete_post($id, true);
+
+        $this->assertSame($queries, $after);
+    }
+
+    public function uncachedTitleProvider()
+    {
+        return array(
+            'marker text in the title' => array('Notes apbct-email-encoder', 'publish'),
+            'not published' => array('Draft notes', 'draft'),
+        );
+    }
+
+    public function testBlockTitlesAreRestoredWhenTheEncoderIsOff()
+    {
+        global $apbct;
+        $apbct->settings['data__email_decoder'] = 0;
+
+        $service = new \Cleantalk\ApbctWP\ContactsEncoder\Shortcodes\ShortCodesService(new Params());
+        $service->registerTitleFilters();
+        $registered = has_filter('render_block', array($service->shortcode_to_exclude, 'restoreEncodedBlockTitlesFilter'));
+        remove_all_filters('render_block');
+        $apbct->settings['data__email_decoder'] = 1;
+
+        $this->assertSame(1000, $registered);
+    }
+
     public function testContentStaysAsIsOverTheMatchesBudget()
     {
         $encoder = apbctGetContactsEncoder();

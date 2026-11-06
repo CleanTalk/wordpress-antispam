@@ -55,13 +55,7 @@ class ShortCodesService
         add_filter('nav_menu_item_title', array($this->shortcode_to_exclude, 'filterNavMenuItemTitle'), 20, 2);
         add_filter('wp_insert_post_data', array($this->shortcode_to_exclude, 'filterPostDataForSlug'), 10, 2);
 
-        global $apbct;
-
-        // Nothing is encoded on the page when the option is off, so there is nothing to restore.
-        if ( empty($apbct->settings['data__email_decoder']) ) {
-            return;
-        }
-
+        // With the encoder off, the titles still need their shortcodes removed.
         add_filter('render_block', array($this->shortcode_to_exclude, 'restoreEncodedBlockTitlesFilter'), 1000, 3);
     }
 

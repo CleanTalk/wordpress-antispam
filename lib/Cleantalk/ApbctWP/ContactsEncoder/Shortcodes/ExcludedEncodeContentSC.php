@@ -39,6 +39,11 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
     private static $raw_titles_cache = array();
 
     /**
+     * @var array<int, string> Every title read from the database in this request, an empty one too.
+     */
+    private $queried_titles = array();
+
+    /**
      * @var array<string, int> Link => post ID, resolved in this request.
      */
     private $resolved_links = array();
@@ -856,6 +861,10 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             return $primed_title;
         }
 
+        if ( isset($this->queried_titles[$post_id]) ) {
+            return $this->queried_titles[$post_id];
+        }
+
         global $wpdb;
 
         $title = $wpdb->get_var(
@@ -864,6 +873,8 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
                 $post_id
             )
         );
+
+        $this->queried_titles[$post_id] = is_string($title) ? $title : '';
 
         if ( ! is_string($title) ) {
             return '';
