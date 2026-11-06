@@ -645,11 +645,11 @@ class ShortcodeContextTest extends TestCase
     public function testContentStaysAsIsOverTheMatchesBudget()
     {
         $encoder = apbctGetContactsEncoder();
-        $property = new \ReflectionProperty($encoder, 'contact_matches_processed');
+        $property = new \ReflectionProperty($encoder, 'contact_signs_processed');
         $property->setAccessible(true);
         $saved = $property->getValue($encoder);
 
-        $property->setValue($encoder, $encoder::MAX_CONTACT_MATCHES_PER_REQUEST + 1);
+        $property->setValue($encoder, $encoder::MAX_CONTACT_SIGNS_PER_REQUEST);
         $html = '<a aria-label="x@y.zz" href="#">a@b.cc</a> c@d.ee';
         $over = $encoder->modifyContent($html);
 

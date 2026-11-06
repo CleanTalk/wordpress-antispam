@@ -19,10 +19,11 @@ class ContactsEncoder
     const VERSION = '2.1.1';
 
     /**
-     * Found contacts to process per request, all passes of nested render filters together.
-     * A page that exceeds it stays as is instead of running out of the execution time.
+     * Possible contacts to look for per request, all passes of nested render filters together.
+     * A contact contains its sign, so the budget is taken before a regular expression runs:
+     * each sign costs up to 0.4 ms without PCRE JIT. A page that exceeds it stays as is.
      */
-    const MAX_CONTACT_MATCHES_PER_REQUEST = 200000;
+    const MAX_CONTACT_SIGNS_PER_REQUEST = 5000;
 
     /**
      * Possible contacts in one string. Checked before a regular expression: its matches take the memory.
@@ -165,7 +166,7 @@ class ContactsEncoder
     /**
      * @var int
      */
-    protected $contact_matches_processed = 0;
+    protected $contact_signs_processed = 0;
 
     /**
      * @var int
@@ -322,7 +323,12 @@ class ContactsEncoder
     public function modifyGlobalEmails($content)
     {
         // Nothing to look for, or too much of it.
-        if ( is_string($content) && ( strpos($content, '@') === false || substr_count($content, '@') > self::MAX_CONTACT_SIGNS_PER_CONTENT ) ) {
+        if ( ! is_string($content) ) {
+            return $content;
+        }
+
+        $signs = substr_count($content, '@');
+        if ( $signs === 0 || $signs > self::MAX_CONTACT_SIGNS_PER_CONTENT || ! $this->reserveContactSigns($signs) ) {
             return $content;
         }
 
@@ -336,9 +342,6 @@ class ContactsEncoder
 
         $match_cursor = 0;
         $match_offsets = $this->collectMatchOffsets($this->global_email_pattern, $content);
-        if ( $this->isContactMatchesBudgetExceeded($match_offsets) ) {
-            return $owns_aria_protection ? $this->handleAriaLabelContent($content, true) : $content;
-        }
         $match_offset_index = 0;
         $cut_mailto_end = 0;
         $replacing_result = preg_replace_callback($this->global_email_pattern, function ($matches) use ($match_offsets, &$match_offset_index, &$match_cursor, &$cut_mailto_end) {
@@ -432,7 +435,12 @@ class ContactsEncoder
      */
     public function modifyGlobalPhoneNumbers($content)
     {
-        if ( is_string($content) && substr_count($content, '+') + substr_count($content, '(') > self::MAX_CONTACT_SIGNS_PER_CONTENT ) {
+        if ( ! is_string($content) ) {
+            return $content;
+        }
+
+        $signs = substr_count($content, '+') + substr_count($content, '(');
+        if ( $signs === 0 || $signs > self::MAX_CONTACT_SIGNS_PER_CONTENT || ! $this->reserveContactSigns($signs) ) {
             return $content;
         }
 
@@ -447,9 +455,6 @@ class ContactsEncoder
         $phones_pattern = $this->global_phones_pattern;
         $match_cursor = 0;
         $match_offsets = $this->collectMatchOffsets($phones_pattern, $content);
-        if ( $this->isContactMatchesBudgetExceeded($match_offsets) ) {
-            return $owns_aria_protection ? $this->handleAriaLabelContent($content, true) : $content;
-        }
         $match_offset_index = 0;
         $replacing_result = preg_replace_callback(
             $phones_pattern,
@@ -564,14 +569,18 @@ class ContactsEncoder
     }
 
     /**
-     * @param int[] $match_offsets
-     * @return bool
+     * @param int $signs Possible contacts in the content.
+     * @return bool False when the request budget does not have them.
      */
-    private function isContactMatchesBudgetExceeded($match_offsets)
+    private function reserveContactSigns($signs)
     {
-        $this->contact_matches_processed += count($match_offsets);
+        if ( $this->contact_signs_processed + $signs > self::MAX_CONTACT_SIGNS_PER_REQUEST ) {
+            return false;
+        }
 
-        return $this->contact_matches_processed > self::MAX_CONTACT_MATCHES_PER_REQUEST;
+        $this->contact_signs_processed += $signs;
+
+        return true;
     }
 
     /**
