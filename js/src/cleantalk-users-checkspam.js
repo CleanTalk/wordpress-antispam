@@ -505,7 +505,7 @@ jQuery(document).ready(function(){
 	}
 
 	function stopBlinkElement(id) {
-		jQuery("#" + id).fadeTo(1)
+		jQuery("#" + id).fadeTo(1, 1)
 	}
 
 	// Request to Download CSV file.
@@ -523,7 +523,7 @@ jQuery(document).ready(function(){
 			url: ajaxurl,
 			data: data,
 			success: function(msg){
-				if( parseInt(msg) === 0 ) {
+				if( typeof msg !== 'string' || parseInt(msg) === 0 ) {
 					alert(ctUsersCheck.ct_bad_csv);
 				} else {
 					var url = URL.createObjectURL(new Blob([msg]));
@@ -535,6 +535,15 @@ jQuery(document).ready(function(){
 					document.body.appendChild(dummy);
 					dummy.click();
 				}
+			},
+			error: function(jqXHR){
+				var response = jqXHR.responseJSON;
+				var message = response && response.data && typeof response.data.message === 'string'
+					? response.data.message
+					: ctUsersCheck.ct_bad_csv;
+				alert(message);
+			},
+			complete: function(){
 				jQuery('.' + e.target.id).removeClass('disabled');
 				stopBlinkElement('ct_get_csv_file');
 			}
