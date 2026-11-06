@@ -17,6 +17,11 @@ use Cleantalk\Variables\Post;
 class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
 {
     /**
+     * Content of one shortcode split by contacts: above this number it is encoded as one string.
+     */
+    const MAX_SHORTCODE_PARTS = 40;
+
+    /**
      * @var ShortCodesService
      */
     private $shortcodes;
@@ -111,9 +116,10 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             'the_title',
             'the_content',
             'the_excerpt',
+            'the_excerpt_rss',
+            'the_excerpt_embed',
             'get_footer',
             'get_header',
-            'get_the_excerpt',
             'widget_title',
             'widget_text',
             'widget_content',
@@ -219,7 +225,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     {
         $this->applyAttributeExclusionHooks();
 
-        if ( ! is_string($content) || $content === '' || stripos($content, '<option') === false ) {
+        if ( ! is_string($content) || $content === '' || stripos($content, '<option') === false || stripos($content, '</option') === false ) {
             return parent::modifyGlobalEmails($content);
         }
 
@@ -317,18 +323,25 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     {
         global $apbct;
         // split content by emails to array
-        $parts = preg_split($this->plain_email_pattern, $content, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $parts = $mode === Params::OBFUSCATION_MODE_REPLACE
+            ? false
+            : preg_split($this->plain_email_pattern, $content, -1, PREG_SPLIT_DELIM_CAPTURE);
 
-        $result = '';
-        foreach ($parts as $part) {
-            if (empty($part)) {
-                continue;
-            }
-            // if part is email, encode it
-            if (preg_match($this->plain_email_pattern, $part)) {
-                $result .= $this->encodePlainEmail($part);
-            } else {
-                $result .= $this->modifyAny($part, $mode, $replacing_text);
+        if ( ! is_array($parts) || count($parts) > self::MAX_SHORTCODE_PARTS ) {
+            // The whole content is one encoded string: the size of the output does not depend on the contacts number.
+            $result = $this->modifyShortcodePart($content, $mode, $replacing_text);
+        } else {
+            $result = '';
+            foreach ($parts as $part) {
+                if (empty($part)) {
+                    continue;
+                }
+                // if part is email, encode it
+                if (preg_match($this->plain_email_pattern, $part)) {
+                    $result .= $this->reserveEncodedContact() ? $this->encodePlainEmail($part) : $this->maskAny($part, $mode, $replacing_text);
+                } else {
+                    $result .= $this->modifyShortcodePart($part, $mode, $replacing_text);
+                }
             }
         }
 
@@ -338,6 +351,22 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         }
 
         return $result;
+    }
+
+    /**
+     * An author asked to hide this text: over the limit it stays masked and cannot be decoded.
+     *
+     * @param string $part
+     * @param string $mode
+     * @param string|null $replacing_text
+     *
+     * @return string
+     */
+    private function modifyShortcodePart($part, $mode, $replacing_text)
+    {
+        return $this->reserveEncodedContact()
+            ? $this->modifyAny($part, $mode, $replacing_text)
+            : $this->maskAny($part, $mode, $replacing_text);
     }
 
     /**

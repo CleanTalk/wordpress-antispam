@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP\ContactsEncoder\Shortcodes;
 
 use Cleantalk\ApbctWP\ContactsEncoder\PlaceholderNonce;
+use Cleantalk\Common\ContactsEncoder\Helper\ContactsEncoderHelper;
 
 /**
  * Email encoder shortcode base class.
@@ -12,6 +13,11 @@ use Cleantalk\ApbctWP\ContactsEncoder\PlaceholderNonce;
  */
 class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
 {
+    /**
+     * Processing budget of one pass over a content.
+     */
+    const MAX_SHORTCODE_PAIRS = 200;
+
     /**
      * @var string The public name of the shortcode.
      */
@@ -24,6 +30,36 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
 
     // Placeholder nonce for ensuring unique placeholders per render.
     protected $placeholder_nonce = '';
+
+    /**
+     * @var string[] A title and a textarea are shown as a text: a pair in them is replaced.
+     */
+    private static $not_rendered_tags = array('script', 'style', 'xmp', 'iframe', 'noembed', 'noframes');
+
+    /**
+     * @var string|null Content the markup tokens below were built for.
+     */
+    private $markup_tokens_content;
+
+    /**
+     * @var int[] Starts of the tags of the content. Only numbers are kept: a list of tokens is big on a big page.
+     */
+    private $tag_starts = array();
+
+    /**
+     * @var int[] Exclusive ends of the tags.
+     */
+    private $tag_ends = array();
+
+    /**
+     * @var int[] Starts of the inner text of the elements a browser does not show.
+     */
+    private $not_rendered_starts = array();
+
+    /**
+     * @var int[] Exclusive ends of that text.
+     */
+    private $not_rendered_ends = array();
 
     /**
      * Lightweight pre-check to avoid running heavy regexes on every hit.
@@ -105,35 +141,182 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
             return $content;
         }
 
-        if ( ! has_shortcode($content, $this->public_name) ) {
-            return $content;
-        }
+        return $this->replaceShortcodePairs($content, function ($pair) {
+            $parsed_atts = shortcode_parse_atts($pair['attributes']);
 
-        $pattern = sprintf(
-            '/(\[%s(?:\s[^\]]*)?\])([\s\S]*?)(\[\/%s\])/s',
-            preg_quote($this->public_name, '/'),
+            return $this->callback(
+                is_array($parsed_atts) ? $parsed_atts : array(),
+                $pair['inner'],
+                $this->public_name
+            );
+        });
+    }
+
+    /**
+     * Opening tag of this shortcode. A value can not contain quotes, brackets or tag signs: otherwise a tag
+     * started inside a value of a HTML attribute could be finished outside of that HTML tag.
+     *
+     * @return string
+     */
+    protected function getOpeningTagPattern()
+    {
+        return sprintf(
+            '/\[%s((?:\s++[a-zA-Z_][\w-]*+(?:\s*+=\s*+(?:"[^"\[\]<>]*+"|\'[^\'\[\]<>]*+\'|[^\s"\'\[\]<>=]++))?+)*+)\s*+\]/',
             preg_quote($this->public_name, '/')
         );
+    }
 
-        return preg_replace_callback(
-            $pattern,
-            function ($matches) {
-                $atts = array();
-                if ( isset($matches[1]) && preg_match('/\[' . preg_quote($this->public_name, '/') . '([^\]]*)\]/', $matches[1], $tag_matches) && isset($tag_matches[1]) ) {
-                    $parsed_atts = shortcode_parse_atts($tag_matches[1]);
-                    $atts = is_array($parsed_atts) ? $parsed_atts : array();
-                }
+    /**
+     * Find shortcode pairs in one pass: an opening tag is paired with the first closing tag after it.
+     *
+     * @param string $content
+     *
+     * @return array<int, array{opener_start: int, inner_start: int, closer_start: int, end: int, attributes: string, inner: string, opener: string, closer: string, over_limit: bool}>
+     * @psalm-suppress PossiblyUnusedMethod Kept for the subclasses, the pass itself uses walkShortcodePairs()
+     */
+    protected function findShortcodePairs($content)
+    {
+        $pairs = array();
+        $this->walkShortcodePairs($content, /** @param array{opener_start: int, inner_start: int, closer_start: int, end: int, attributes: string, inner: string, opener: string, closer: string, over_limit: bool} $pair */ function ($pair) use (&$pairs) {
+            $pairs[] = $pair;
+        });
 
-                $inner_content = isset($matches[2]) ? $matches[2] : '';
+        return $pairs;
+    }
 
-                if ( $this->shortcodeContentContainsHtmlTags($inner_content) ) {
-                    return isset($matches[0]) ? $matches[0] : '';
-                }
+    /**
+     * The pairs one by one, none of them is kept: shortcode-heavy content does not take memory per pair.
+     *
+     * @param string $content
+     * @param callable(array{opener_start: int, inner_start: int, closer_start: int, end: int, attributes: string, inner: string, opener: string, closer: string, over_limit: bool}):void $visit
+     *
+     * @return void
+     */
+    protected function walkShortcodePairs($content, $visit)
+    {
+        $pattern = $this->getOpeningTagPattern();
+        $closer = '[/' . $this->public_name . ']';
+        $offset = 0;
+        $count = 0;
 
-                return $this->callback($atts, $inner_content, $this->public_name);
-            },
-            $content
-        );
+        while (
+            preg_match($pattern, $content, $opener, PREG_OFFSET_CAPTURE, $offset)
+            && isset($opener[0][0], $opener[0][1])
+        ) {
+            $inner_start = $opener[0][1] + strlen($opener[0][0]);
+            $closer_start = strpos($content, $closer, $inner_start);
+            if ( $closer_start === false ) {
+                return;
+            }
+
+            $offset = $closer_start + strlen($closer);
+            $visit(array(
+                'opener_start' => $opener[0][1],
+                'inner_start' => $inner_start,
+                'closer_start' => $closer_start,
+                'end' => $offset,
+                'attributes' => isset($opener[1][0]) ? $opener[1][0] : '',
+                'inner' => substr($content, $inner_start, $closer_start - $inner_start),
+                'opener' => $opener[0][0],
+                'closer' => $closer,
+                // Over the budget a pair is not processed, see replacePairOverLimit().
+                'over_limit' => $count++ >= self::MAX_SHORTCODE_PAIRS,
+            ));
+        }
+    }
+
+    /**
+     * Replace the pairs that are a text run of the content, all the others stay byte for byte.
+     *
+     * @param string $content
+     * @param callable $callback Receives a pair, returns the replacement.
+     *
+     * @return string
+     */
+    protected function replaceShortcodePairs($content, $callback)
+    {
+        $result = '';
+        $position = 0;
+
+        $this->walkShortcodePairs($content, /** @param array{opener_start: int, inner_start: int, closer_start: int, end: int, attributes: string, inner: string, opener: string, closer: string, over_limit: bool} $pair */ function ($pair) use ($content, $callback, &$result, &$position) {
+            if (
+                $this->isOffsetInsideHtmlTag($content, $pair['opener_start'])
+                || $this->isOffsetInsideHtmlTag($content, $pair['closer_start'])
+                || $this->isOffsetInsideNotRenderedText($pair['opener_start'])
+                || $this->isInsideOtherShortcodeTag($content, $pair['opener_start'])
+                || $this->shortcodeContentContainsHtmlTags($pair['inner'])
+            ) {
+                return;
+            }
+
+            $replacement = $pair['over_limit'] ? $this->replacePairOverLimit($pair) : $callback($pair);
+            if ( $replacement === null ) {
+                return;
+            }
+
+            $result .= substr($content, $position, $pair['opener_start'] - $position) . $replacement;
+            $position = $pair['end'];
+        });
+
+        $this->forgetTagIndex();
+
+        return $position === 0 ? $content : $result . substr($content, $position);
+    }
+
+    /**
+     * The index of tags is kept for one content only, see isOffsetInsideHtmlTag().
+     *
+     * @return void
+     */
+    protected function forgetTagIndex()
+    {
+        $this->markup_tokens_content = null;
+        $this->tag_starts = $this->tag_ends = array();
+        $this->not_rendered_starts = $this->not_rendered_ends = array();
+    }
+
+    /**
+     * A pair over the budget of a pass: null keeps it as it is.
+     *
+     * @param array{opener_start: int, inner_start: int, closer_start: int, end: int, attributes: string, inner: string, opener: string, closer: string, over_limit: bool} $pair
+     *
+     * @return string|null
+     * @psalm-suppress PossiblyUnusedParam
+     */
+    protected function replacePairOverLimit($pair)
+    {
+        return null;
+    }
+
+    /**
+     * A placeholder hides quotes from the parser of the outer shortcode, which builds its attributes later.
+     *
+     * @param string $content
+     * @param int $offset Offset of the `[` of the checked shortcode.
+     *
+     * @return bool True for `[name attr="[apbct_...`.
+     */
+    protected function isInsideOtherShortcodeTag($content, $offset)
+    {
+        if ( $offset <= 0 ) {
+            return false;
+        }
+
+        // The opening tag of a shortcode has no `]` before its end: an outer tag starts after the last one.
+        $last_end = strrpos($content, ']', $offset - strlen($content) - 1);
+        $from = $last_end === false ? 0 : $last_end + 1;
+        if ( strpos($content, '[', $from) === $offset ) {
+            return false;
+        }
+
+        preg_match_all('/\[([^<>&\/\[\]\x00-\x20=]++)/', substr($content, $from, $offset - $from), $names);
+        foreach ( isset($names[1]) ? $names[1] : array() as $name ) {
+            if ( shortcode_exists($name) ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -191,7 +374,8 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
 
         preg_match_all(
             sprintf(
-                '/\[\/?%s(?:\s[^\]]*)?\]/', //supports sc attributes(!)
+                // No brackets in attributes: an opener without its end is not read up to the end of the content.
+                '/\[\/?%s(?:\s[^\[\]]*+)?\]/',
                 preg_quote($this->public_name, '/')
             ),
             $content,
@@ -233,15 +417,14 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
             return false;
         }
 
-        return (bool) preg_match('/<\/?[a-zA-Z][a-zA-Z0-9:-]*(?:\s[^<>]*)?>/', $content);
+        // Any "less than" sign counts: a comment or a tag without its end is not matched by a tag pattern.
+        return strpos($content, '<') !== false || strpos($content, '-->') !== false;
     }
 
     /**
      * Determines whether a given character offset is located inside an HTML tag.
      *
-     * The method locates the nearest "<" before the offset, then scans forward
-     * respecting quoted attribute values. If no unquoted ">" is found between
-     * the last "<" and the offset, the offset is considered inside an HTML tag.
+     * Tags and comments are found once per content, each offset costs a binary search only.
      *
      * @param string $content The full content string.
      * @param int    $offset  Character offset to validate.
@@ -251,32 +434,57 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
      */
     public function isOffsetInsideHtmlTag($content, $offset)
     {
-        $before = substr($content, 0, $offset);
-
-        $last_open = strrpos($before, '<');
-        if ($last_open === false) {
-            return false;
+        if ( $this->markup_tokens_content !== $content ) {
+            $this->markup_tokens_content = $content;
+            $this->indexTags($content);
         }
 
-        // Scan from the last '<' to the offset and detect an unquoted '>'
-        $segment = substr($before, $last_open);
-        $in_single = false;
-        $in_double = false;
-        $len = strlen($segment);
-        for ($i = 0; $i < $len; $i++) {
-            $ch = $segment[$i];
-            if ($ch === "'" && ! $in_double) {
-                $in_single = ! $in_single;
-                continue;
+        return ContactsEncoderHelper::findRange($this->tag_starts, $this->tag_ends, $offset) !== false;
+    }
+
+    /**
+     * Text of a script is a string of a program, not a text of the page. Runs after isOffsetInsideHtmlTag() for this content.
+     *
+     * @param int $offset
+     *
+     * @return bool
+     */
+    private function isOffsetInsideNotRenderedText($offset)
+    {
+        return ContactsEncoderHelper::findRange($this->not_rendered_starts, $this->not_rendered_ends, $offset) !== false;
+    }
+
+    /**
+     * The scanner goes from a raw text tag right to its end: the next token is the closing one.
+     *
+     * @param string $content
+     *
+     * @return void
+     */
+    private function indexTags($content)
+    {
+        $this->tag_starts = $this->tag_ends = array();
+        $this->not_rendered_starts = $this->not_rendered_ends = array();
+        $open = false;
+
+        ContactsEncoderHelper::walkMarkup($content, /** @param array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>} $token */ function ($token) use (&$open) {
+            if ( $open !== false ) {
+                $this->not_rendered_starts[] = $open;
+                $this->not_rendered_ends[] = $token['start'];
+                $open = false;
             }
-            if ($ch === '"' && ! $in_single) {
-                $in_double = ! $in_double;
-                continue;
+
+            $this->tag_starts[] = $token['start'];
+            $this->tag_ends[] = $token['end'];
+
+            if ( ! $token['closing'] && in_array($token['name'], self::$not_rendered_tags, true) ) {
+                $open = $token['end'];
             }
-            if ($ch === '>' && ! $in_single && ! $in_double) {
-                return false;
-            }
+        });
+
+        if ( $open !== false ) {
+            $this->not_rendered_starts[] = $open;
+            $this->not_rendered_ends[] = strlen($content);
         }
-        return true;
     }
 }
