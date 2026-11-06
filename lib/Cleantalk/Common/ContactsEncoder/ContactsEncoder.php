@@ -390,7 +390,7 @@ class ContactsEncoder
                 }
 
                 if ( ! $this->reserveEncodedContact() ) {
-                    return $this->maskEmailsWithoutEncoding($matches[0]);
+                    return $this->maskEmailsWithoutEncoding($matches[0], false);
                 }
 
                 return $this->encodeMailtoLink($matches[0], $position);
@@ -491,7 +491,7 @@ class ContactsEncoder
                     }
 
                     if ( ! $this->reserveEncodedContact() ) {
-                        return $this->maskPhonesWithoutEncoding($matches[0]);
+                        return $this->maskPhonesWithoutEncoding($matches[0], false);
                     }
 
                     return $this->encodeTelLink($matches[0], $position);
@@ -712,10 +712,11 @@ class ContactsEncoder
      * One linear pass without a regular expression: a short window around each sign.
      *
      * @param string $content
+     * @param bool $check_context False for the target of one link, it is masked as a whole.
      *
      * @return string
      */
-    protected function maskEmailsWithoutEncoding($content)
+    protected function maskEmailsWithoutEncoding($content, $check_context = true)
     {
         $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.';
         $result = '';
@@ -735,7 +736,11 @@ class ContactsEncoder
 
             $start = $at - $local;
             $end = $at + 1 + strlen($domain);
-            if ( $this->exclusions->isContactExcluded(substr($content, $start, $end - $start)) ) {
+            $email = substr($content, $start, $end - $start);
+            if (
+                ( $check_context && ! $this->isMaskableContact($content, $email, $start, 'mailto:') )
+                || $this->exclusions->isContactExcluded($email)
+            ) {
                 continue;
             }
 
@@ -749,13 +754,40 @@ class ContactsEncoder
     }
 
     /**
+     * The fallback changes what the encoding would change: a text of the page and the target of a scheme link.
+     * A string of a script, a text of an option and other attributes stay as they are.
+     * The index of the markup is built once for the content and is reused for each contact.
+     *
+     * @param string $content
+     * @param string $contact
+     * @param int $position
+     * @param string $scheme
+     *
+     * @return bool
+     */
+    private function isMaskableContact($content, $contact, $position, $scheme)
+    {
+        if (
+            $this->helper->isInsideRawTextTag($contact, $content, $position)
+            || $this->helper->isInsideOptionTag($contact, $content, $position)
+        ) {
+            return false;
+        }
+
+        $range = $this->helper->findAttributeValueRange($content, $position);
+
+        return $range === false || strncasecmp(substr($content, $range[0], strlen($scheme)), $scheme, strlen($scheme)) === 0;
+    }
+
+    /**
      * Phones over a limit: the digits of a run that starts with "+" or "(" are masked, except the last two.
      *
      * @param string $content
+     * @param bool $check_context False for the target of one link, it is masked as a whole.
      *
      * @return string
      */
-    protected function maskPhonesWithoutEncoding($content)
+    protected function maskPhonesWithoutEncoding($content, $check_context = true)
     {
         $length = strlen($content);
         $result = '';
@@ -767,7 +799,11 @@ class ContactsEncoder
             $run = rtrim($run, ' -.(+');
             $digits = strlen($run) - strlen(str_replace(array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'), '', $run));
 
-            if ( $digits < 8 || $digits > 15 || $this->exclusions->isContactExcluded($run) ) {
+            if (
+                $digits < 8 || $digits > 15
+                || ( $check_context && ! $this->isMaskableContact($content, $run, $position, 'tel:') )
+                || $this->exclusions->isContactExcluded($run)
+            ) {
                 $offset = $position + 1;
                 continue;
             }
