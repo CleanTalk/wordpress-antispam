@@ -236,6 +236,54 @@ class TestCleantalkPublicBuffer extends TestCase
         $this->assertSame($buffer, $this->rewriteStringBuffer($buffer, 'capture-form'));
     }
 
+    public function testHtmlRewriteDoesNotReserializeOtherMarkup()
+    {
+        $opaque = '<noscript><abbr title="&lt;!--&lt;/noscript&gt;&lt;img src=x onerror=alert(1)&gt;--&gt;">'
+            . 'Text</abbr></noscript>';
+        $form = '<form action="https://external-forms.invalid/submit" method="get"></form>';
+        $buffer = '<html><body>' . $opaque . $form . '</body></html>';
+        $expected_form = '<form action="' . esc_url(home_url('capture-form')) . '" method="POST">'
+            . '<input type="hidden" name="cleantalk_hidden_action" value="https://external-forms.invalid/submit">'
+            . '<input type="hidden" name="cleantalk_hidden_method" value="get"></form>';
+
+        $this->assertSame(
+            '<html><body>' . $opaque . $expected_form . '</body></html>',
+            $this->rewriteHtmlBuffer($buffer, 'capture-form')
+        );
+    }
+
+    /**
+     * @dataProvider unsafeRequestProvider
+     */
+    public function testHtmlRewriteDoesNotTurnRequestIntoMarkup($request)
+    {
+        $buffer = '<html><body><form action="https://external-forms.invalid/submit" method="get"></form></body></html>';
+        $output = $this->rewriteHtmlBuffer($buffer, $request);
+        $dom = new \DOMDocument();
+        $this->assertTrue($dom->loadHTML($output));
+
+        $this->assertSame(1, $dom->getElementsByTagName('form')->length);
+        $this->assertSame(0, $dom->getElementsByTagName('img')->length);
+        $this->assertSame(0, $dom->getElementsByTagName('script')->length);
+        $this->assertSame(2, $dom->getElementsByTagName('input')->length);
+        $this->assertFalse($dom->getElementsByTagName('form')->item(0)->hasAttribute('onmouseover'));
+    }
+
+    private function rewriteHtmlBuffer($buffer, $request)
+    {
+        global $apbct, $wp;
+
+        $original_wp = $wp;
+        $wp = (object) array('request' => $request);
+        $apbct->buffer = $buffer;
+
+        try {
+            return apbct_buffer_modify_by_dom();
+        } finally {
+            $wp = $original_wp;
+        }
+    }
+
     private function rewriteStringBuffer($buffer, $request)
     {
         global $apbct, $wp;

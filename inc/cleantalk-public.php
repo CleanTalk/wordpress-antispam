@@ -531,49 +531,12 @@ function apbct_buffer_modify_by_dom()
 {
     global $apbct, $wp;
 
-    $site_url   = get_option('home');
-    $site__host = parse_url($site_url, PHP_URL_HOST);
-
-    $dom = new DOMDocument();
-    @$dom->loadHTML($apbct->buffer, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-
-    $forms = $dom->getElementsByTagName('form');
-
-    foreach ( $forms as $form ) {
-        $action       = $form->getAttribute('action');
-        $action       = $action ?: $site_url;
-        $action__host = parse_url($action, PHP_URL_HOST);
-
-        // Check if the form directed to the third party site
-        if ( $action__host !== null && $site__host != $action__host ) {
-            $method = $form->getAttribute('method');
-            $method = $method ?: 'get';
-            // Directs form to our site
-            $form->setAttribute('method', 'POST');
-            $form->setAttribute('action', home_url(add_query_arg(array(), $wp->request)));
-
-            // Add cleantalk_hidden_action
-            $new_input = $dom->createElement('input');
-            $new_input->setAttribute('type', 'hidden');
-            $new_input->setAttribute('name', 'cleantalk_hidden_action');
-            $new_input->setAttribute('value', $action);
-            $form->appendChild($new_input);
-
-            // Add cleantalk_hidden_method
-            $new_input = $dom->createElement('input');
-            $new_input->setAttribute('type', 'hidden');
-            $new_input->setAttribute('name', 'cleantalk_hidden_method');
-            $new_input->setAttribute('value', $method);
-            $form->appendChild($new_input);
-        }
-    }
-    unset($form);
-
-    $html = $dom->getElementsByTagName('html');
-
-    return is_object($html) && isset($html[0], $html[0]->childNodes[0]) && $dom->getElementsByTagName('rss')->length == 0
-        ? $dom->saveHTML()
-        : $apbct->buffer;
+    $rewriter = new \Cleantalk\ApbctWP\ExternalForms\HtmlBufferRewriter(
+        $apbct->buffer,
+        get_option('home'),
+        esc_url_raw(home_url(add_query_arg(array(), $wp->request)))
+    );
+    return $rewriter->rewrite();
 }
 
 /**
