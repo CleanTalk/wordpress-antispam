@@ -67,7 +67,7 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/check_email_exist_post", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => 'apbct_email_check_exist_post',
+                'callback'            => array($this, 'checkEmailExistPost'),
                 'args'                => array(
                     'email' => array(
                         'type'     => 'string',
@@ -150,6 +150,13 @@ class RestController extends \WP_REST_Controller
         $email = sanitize_textarea_field(TT::toString($request->get_param('email')));
 
         return new WP_REST_Response(apbct_email_check_before_post_result($email));
+    }
+
+    public function checkEmailExistPost(WP_REST_Request $request): WP_REST_Response
+    {
+        $email = sanitize_textarea_field(TT::toString($request->get_param('email')));
+
+        return new WP_REST_Response(apbct_email_check_exist_post_result($email));
     }
 
     public function saveAltSessions(WP_REST_Request $request): WP_REST_Response
