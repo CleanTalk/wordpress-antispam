@@ -33,7 +33,7 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/apbct_get_pixel_url", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => 'apbct_get_pixel_url',
+                'callback'            => array($this, 'getPixelUrl'),
                 'permission_callback' => '__return_true',
             )
         ));
@@ -150,6 +150,11 @@ class RestController extends \WP_REST_Controller
     public function getJSKeys(): WP_REST_Response
     {
         return new WP_REST_Response(AJAXService::getJSKeysData());
+    }
+
+    public function getPixelUrl(): WP_REST_Response
+    {
+        return new WP_REST_Response(apbct_get_pixel_url(true));
     }
 
     public function checkEmailBeforePost(WP_REST_Request $request): WP_REST_Response
