@@ -6293,7 +6293,7 @@ function checkEmailExist(e) { // eslint-disable-line no-unused-vars
     viewCheckEmailExist(e, 'load');
 
     // Using REST API handler
-    ctPublicFunctions.data__ajax_type = 'rest';
+
     if (ctPublicFunctions.data__ajax_type === 'rest') {
         apbct_public_sendREST(
             'check_email_exist_post',
