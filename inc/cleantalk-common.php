@@ -748,16 +748,38 @@ function apbct_get_pixel_url($direct_call = false)
  */
 function apbct_email_check_before_post()
 {
-    $email = trim(TT::toString(Post::get('email')), " \n\r\t\v\x00");
-
-    if ( $email ) {
-        $result = \Cleantalk\ApbctWP\API::methodEmailCheck($email);
-        if ( isset($result['data']) ) {
-            die(json_encode(array('result' => $result['data'])));
-        }
-        die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));
+    try {
+        $response = Helper::jsonEncode(apbct_email_check_before_post_result(TT::toString(Post::get('email'))));
+    } catch ( \UnexpectedValueException $e ) {
+        $response = $e->getMessage();
     }
-    die(json_encode(array('error' => 'EMPTY_DATA')));
+
+    die($response);
+}
+
+/**
+ * @param string $email
+ * @return array
+ */
+function apbct_email_check_before_post_result($email): array
+{
+    try {
+        $email = trim($email, " \n\r\t\v\x00");
+        if ( ! $email ) {
+            throw new \RuntimeException('EMPTY_DATA');
+        }
+
+        $result = \Cleantalk\ApbctWP\API::methodEmailCheck($email);
+        if ( ! isset($result['data']) ) {
+            throw new \RuntimeException('ERROR_CHECKING_EMAIL');
+        }
+
+        $response = array('result' => $result['data']);
+    } catch ( \RuntimeException $e ) {
+        $response = array('error' => $e->getMessage());
+    }
+
+    return $response;
 }
 
 /**
