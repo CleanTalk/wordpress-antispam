@@ -107,9 +107,7 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/apbct_rest_check", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => function () {
-                    return ['success' => true];
-                },
+                'callback'            => array($this, 'checkRest'),
                 'permission_callback' => function (WP_REST_Request $request) {
                     return wp_verify_nonce(TT::toString($request->get_header('x_wp_nonce')), 'wp_rest');
                 }
@@ -180,6 +178,11 @@ class RestController extends \WP_REST_Controller
         );
 
         return new WP_REST_Response($data);
+    }
+
+    public function checkRest(): WP_REST_Response
+    {
+        return new WP_REST_Response(array('success' => true));
     }
 
     public function checkBot(WP_REST_Request $request): WP_REST_Response
