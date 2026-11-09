@@ -19,7 +19,7 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/js_keys__get", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => array(AJAXService::class, 'getJSKeys'),
+                'callback'            => array($this, 'getJSKeys'),
                 'permission_callback' => '__return_true',
             )
         ));
@@ -138,6 +138,11 @@ class RestController extends \WP_REST_Controller
                 ),
             )
         ));
+    }
+
+    public function getJSKeys(): WP_REST_Response
+    {
+        return new WP_REST_Response(AJAXService::getJSKeysData());
     }
 
     public function saveAltSessions(WP_REST_Request $request): WP_REST_Response
