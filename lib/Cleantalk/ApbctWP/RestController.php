@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\Antispam\ForceProtection;
+use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\Common\TT;
 use WP_REST_Request;
@@ -10,6 +11,11 @@ use WP_REST_Response;
 
 class RestController extends \WP_REST_Controller
 {
+    /**
+     * @var ContactsEncoder
+     */
+    private $contacts_encoder;
+
     /**
      * @var ForceProtection
      */
@@ -85,18 +91,17 @@ class RestController extends \WP_REST_Controller
         ));
 
         // REST route for decoding email
+        $this->contacts_encoder = apbctGetContactsEncoder();
         register_rest_route($this->namespace, "/apbct_decode_email", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => array(apbctGetContactsEncoder(),
-                    'ajaxDecodeEmailHandler'
-                ),
+                'callback'            => array($this, 'decodeEmail'),
                 'permission_callback' => function (WP_REST_Request $request) {
                     return wp_verify_nonce(TT::toString($request->get_header('x_wp_nonce')), 'wp_rest');
                 },
                 'args'                => array(
                     'encodedEmails' => array(
-                        'type'     => 'array',
+                        'type'     => array('array', 'string'),
                         'required' => true,
                     ),
                 ),
@@ -176,6 +181,25 @@ class RestController extends \WP_REST_Controller
             'wp_rest',
             TT::toString($request->get_param('cookies'))
         );
+
+        return new WP_REST_Response($data);
+    }
+
+    /**
+     * Return contact-decoding data through REST without invoking the AJAX handler.
+     *
+     * Sanitizes encodedEmails and passes the REST parameters to the shared decoder.
+     * WordPress handles JSON serialization and response output.
+     *
+     * @param WP_REST_Request $request Request containing encodedEmails and decoding parameters.
+     * @return WP_REST_Response Response containing success and an array of contact results.
+     */
+    public function decodeEmail(WP_REST_Request $request): WP_REST_Response
+    {
+        $encoded_emails = \Cleantalk\Variables\Post::getInstance()->getAndSanitize(
+            $request->get_param('encodedEmails')
+        );
+        $data = $this->contacts_encoder->getDecodeEmailResult($encoded_emails, $request->get_params());
 
         return new WP_REST_Response($data);
     }
