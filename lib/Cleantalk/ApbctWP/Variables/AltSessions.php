@@ -4,7 +4,6 @@ namespace Cleantalk\ApbctWP\Variables;
 
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\Common\TT;
-use WP_REST_Request;
 
 class AltSessions
 {
@@ -163,133 +162,132 @@ class AltSessions
     /**
      * Sets session values from a remote request (ajax request).
      *
-     * This method processes incoming data from a remote request or POST data,
+     * This method processes incoming POST data,
      * validates the cookies against allowed types, and updates the session values.
      * It also handles JSON decoding errors and ensures proper data sanitization.
-     *
-     * @param WP_REST_Request|null $request
      *
      * @return void
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public static function setFromRemote($request = null)
+    public static function setFromAJAX()
     {
-        if ( $request instanceof WP_REST_Request ) {
-            $nonce = TT::toString($request->get_header('x_wp_nonce'));
-            $action = 'wp_rest';
-            $cookies_to_set = TT::toString($request->get_param('cookies'));
-        } else {
-            $nonce = TT::toString(Post::getString('_ajax_nonce'));
-            $action = 'ct_secret_stuff';
-            $cookies_to_set = Post::getString('cookies');
-        }
+        $nonce = TT::toString(Post::getString('_ajax_nonce'));
+        $action = 'ct_secret_stuff';
+        $cookies_to_set = Post::getString('cookies');
 
-        if ( ! $cookies_to_set ) {
-            wp_send_json(
-                array(
-                    'success' => false,
-                    'error' => 'AltSessions: No cookies data provided.'
-                )
-            );
-        }
+        wp_send_json(self::saveRemoteCookies($nonce, $action, $cookies_to_set));
+    }
 
-        if ( ! wp_verify_nonce($nonce, $action) ) {
-            wp_send_json(
-                array(
-                    'success' => false,
-                    'error' => 'AltSessions: Nonce verification failed. Please reload the page and try again.'
-                )
-            );
-        }
-
-        //clear from double slashes
-        $cookies_to_set = str_replace('\\', '', $cookies_to_set);
-
-        //handle php8+ JSON throws
+    /**
+     * @param string $nonce
+     * @param string $action
+     * @param string $cookies_to_set
+     * @return array
+     */
+    public static function saveRemoteCookies($nonce, $action, $cookies_to_set): array
+    {
         try {
-            $cookies_array = json_decode($cookies_to_set, true);
-        } catch ( \Exception $e ) {
-            unset($e);
-            wp_send_json(array(
-                'success' => false,
-                'error' => 'AltSessions: Internal JSON error:' . json_last_error_msg()));
-        }
+            if ( ! $cookies_to_set ) {
+                throw new \RuntimeException('AltSessions: No cookies data provided.');
+            }
 
-        // if cookies_array is array of arrays, then convert it to object
-        if (is_array($cookies_array) &&
-            isset($cookies_array[0]) &&
-            is_array($cookies_array[0])
-        ) {
-            $prepared_cookies_array = array();
-            foreach ($cookies_array as $cookie) {
-                if (is_array($cookie) && isset($cookie[0]) && isset($cookie[1])) {
-                    $prepared_cookies_array[$cookie[0]] = $cookie[1];
+            if ( ! wp_verify_nonce($nonce, $action) ) {
+                throw new \RuntimeException(
+                    'AltSessions: Nonce verification failed. Please reload the page and try again.'
+                );
+            }
+
+            //clear from double slashes
+            $cookies_to_set = str_replace('\\', '', $cookies_to_set);
+            $cookies_array = Helper::jsonDecode($cookies_to_set, true);
+
+            // if cookies_array is array of arrays, then convert it to object
+            if (is_array($cookies_array) &&
+                isset($cookies_array[0]) &&
+                is_array($cookies_array[0])
+            ) {
+                $prepared_cookies_array = array();
+                foreach ($cookies_array as $cookie) {
+                    if (is_array($cookie) && isset($cookie[0]) && isset($cookie[1])) {
+                        $prepared_cookies_array[$cookie[0]] = $cookie[1];
+                    }
+                }
+                $cookies_array = $prepared_cookies_array;
+            }
+
+            if ( ! is_array($cookies_array) ) {
+                throw new \UnexpectedValueException(
+                    'AltSessions: Internal JSON error: $cookies_array is not an array.'
+                );
+            }
+
+            // Incoming data validation against allowed alt cookies
+            foreach ($cookies_array as $name => $value) {
+                if ( ! array_key_exists($name, self::$allowed_alt_cookies) ) {
+                    unset($cookies_array[$name]);
+                    continue;
+                }
+
+                // Validate value type
+                switch (self::$allowed_alt_cookies[$name]) {
+                    case 'int':
+                        $cookies_array[$name] = (int)$value;
+                        break;
+                    case 'bool':
+                        $cookies_array[$name] = (bool)$value;
+                        break;
+                    case 'string':
+                        if (is_array($value) || is_object($value)) {
+                            unset($cookies_array[$name]);
+                            break;
+                        }
+                        $cookies_array[$name] = (string)$value;
+                        break;
+                    case 'json':
+                        if ( ! is_string($value) ) {
+                            unset($cookies_array[$name]);
+                            break;
+                        }
+                        try {
+                            $decoded_value = Helper::jsonDecode($value);
+                            if ( $decoded_value === null ) {
+                                unset($cookies_array[$name]);
+                            }
+                        } catch ( \UnexpectedValueException $e ) {
+                            unset($cookies_array[$name]);
+                        }
+                        break;
+                    case 'url':
+                        if ( ! filter_var($value, FILTER_VALIDATE_URL) ) {
+                            unset($cookies_array[$name]);
+                        }
+                        break;
+                    case 'hash':
+                        if ( ! preg_match('/^[a-f0-9]{32,128}$/', $value) ) {
+                            unset($cookies_array[$name]);
+                        }
+                        break;
+                    default:
+                        // If the type is not recognized, remove the cookie
+                        unset($cookies_array[$name]);
                 }
             }
-            $cookies_array = $prepared_cookies_array;
-        }
 
-        //other versions json errors if json_decode returns null
-        if ( ! is_array($cookies_array) ) {
-            wp_send_json(array(
-                'success' => false,
-                'error' => 'AltSessions: Internal JSON error: $cookies_array is not an array.'));
-        }
-
-        // Incoming data validation against allowed alt cookies
-        foreach ($cookies_array as $name => $value) {
-            if ( ! array_key_exists($name, self::$allowed_alt_cookies) ) {
-                unset($cookies_array[$name]);
-                continue;
+            if ( array_key_exists('apbct_force_alt_cookies', $cookies_array) ) {
+                Cookie::$force_alt_cookies_global = true;
             }
 
-            // Validate value type
-            switch (self::$allowed_alt_cookies[$name]) {
-                case 'int':
-                    $cookies_array[$name] = (int)$value;
-                    break;
-                case 'bool':
-                    $cookies_array[$name] = (bool)$value;
-                    break;
-                case 'string':
-                    if (is_array($value) || is_object($value)) {
-                        unset($cookies_array[$name]);
-                        break;
-                    }
-                    $cookies_array[$name] = (string)$value;
-                    break;
-                case 'json':
-                    if ( ! is_string($value) || json_decode($value) === null ) {
-                        unset($cookies_array[$name]);
-                    }
-                    break;
-                case 'url':
-                    if ( ! filter_var($value, FILTER_VALIDATE_URL) ) {
-                        unset($cookies_array[$name]);
-                    }
-                    break;
-                case 'hash':
-                    if ( ! preg_match('/^[a-f0-9]{32,128}$/', $value) ) {
-                        unset($cookies_array[$name]);
-                    }
-                    break;
-                default:
-                    // If the type is not recognized, remove the cookie
-                    unset($cookies_array[$name]);
-            }
+            $old_value = self::getValues();
+
+            $cookies_array = array_merge($old_value, $cookies_array);
+
+            self::setValues($cookies_array);
+            $response = array('success' => true);
+        } catch ( \RuntimeException $e ) {
+            $response = array('success' => false, 'error' => $e->getMessage());
         }
 
-        if ( array_key_exists('apbct_force_alt_cookies', $cookies_array) ) {
-            Cookie::$force_alt_cookies_global = true;
-        }
-
-        $old_value = self::getValues();
-
-        $cookies_array = array_merge($old_value, $cookies_array);
-
-        self::setValues($cookies_array);
-
-        wp_send_json(array('success' => true));
+        return $response;
     }
 
     public static function get($name)
@@ -372,7 +370,7 @@ class AltSessions
         // AJAX handler for saving alt cookies
         $ajax_service->addPublicAction(
             'apbct_alt_session__save__AJAX',
-            [self::class, 'setFromRemote']
+            [self::class, 'setFromAJAX']
         );
     }
 }

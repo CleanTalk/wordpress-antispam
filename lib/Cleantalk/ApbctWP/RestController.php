@@ -5,6 +5,7 @@ namespace Cleantalk\ApbctWP;
 use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\Common\TT;
 use WP_REST_Request;
+use WP_REST_Response;
 
 class RestController extends \WP_REST_Controller
 {
@@ -34,7 +35,7 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/alt_sessions", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => array(AltSessions::class, 'setFromRemote'),
+                'callback'            => array($this, 'saveAltSessions'),
                 'args'                => array(
                     'cookies' => array(
                         'type'     => 'string',
@@ -137,5 +138,16 @@ class RestController extends \WP_REST_Controller
                 ),
             )
         ));
+    }
+
+    public function saveAltSessions(WP_REST_Request $request): WP_REST_Response
+    {
+        $data = AltSessions::saveRemoteCookies(
+            TT::toString($request->get_header('x_wp_nonce')),
+            'wp_rest',
+            TT::toString($request->get_param('cookies'))
+        );
+
+        return new WP_REST_Response($data);
     }
 }
