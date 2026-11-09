@@ -835,7 +835,7 @@ function apbct_email_check_exist_post_result($email): array
  */
 function apbct_force_protection_check_bot()
 {
-    die(\Cleantalk\ApbctWP\Antispam\ForceProtection::getInstance()->checkBot());
+    die(\Cleantalk\ApbctWP\Antispam\ForceProtection::getInstance()->checkBotAJAX());
 }
 
 /**

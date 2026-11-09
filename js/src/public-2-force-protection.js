@@ -55,11 +55,24 @@ class ApbctForceProtection {
                 data,
                 method: 'POST',
                 callback: (result) => this.checkBotCallback(result),
+                onErrorCallback: (error) => this.checkBotErrorCallback(error),
             });
         } else if (ctPublicFunctions.data__ajax_type === 'admin_ajax') {
             data.action = 'apbct_force_protection_check_bot';
-            apbct_public_sendAJAX(data, {callback: (result) => this.checkBotCallback(result)});
+            apbct_public_sendAJAX(data, {
+                callback: (result) => this.checkBotCallback(result),
+                onErrorCallback: (error) => this.checkBotErrorCallback(error),
+            });
         }
+    }
+
+    /**
+     * @param {string} error
+     * @return {void}
+     */
+    checkBotErrorCallback(error) {
+        console.log('ApbctForceProtection request failed', error);
+        this.decodeForms();
     }
 
     /**

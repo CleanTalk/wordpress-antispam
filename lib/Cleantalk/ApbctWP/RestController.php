@@ -2,6 +2,7 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\ApbctWP\Antispam\ForceProtection;
 use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\Common\TT;
 use WP_REST_Request;
@@ -9,6 +10,11 @@ use WP_REST_Response;
 
 class RestController extends \WP_REST_Controller
 {
+    /**
+     * @var ForceProtection
+     */
+    private $force_protection;
+
     public function __construct()
     {
         $this->namespace = 'cleantalk-antispam/v1';
@@ -111,16 +117,17 @@ class RestController extends \WP_REST_Controller
         ));
 
         // REST route for force protection check bot
+        $this->force_protection = ForceProtection::getInstance();
         register_rest_route($this->namespace, "/force_protection_check_bot", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => array(\Cleantalk\ApbctWP\Antispam\ForceProtection::getInstance(), 'checkBot'),
+                'callback'            => array($this, 'checkBot'),
                 'permission_callback' => function (WP_REST_Request $request) {
                     return wp_verify_nonce(TT::toString($request->get_header('x_wp_nonce')), 'wp_rest');
                 },
                 'args'                => array(
                     'event_javascript_data' => array(
-                        'type'     => 'array',
+                        'type'     => array('array', 'string'),
                         'required' => false,
                     ),
                     'event_token' => array(
@@ -166,6 +173,13 @@ class RestController extends \WP_REST_Controller
             'wp_rest',
             TT::toString($request->get_param('cookies'))
         );
+
+        return new WP_REST_Response($data);
+    }
+
+    public function checkBot(WP_REST_Request $request): WP_REST_Response
+    {
+        $data = $this->force_protection->getCheckBotResult($request->get_params());
 
         return new WP_REST_Response($data);
     }

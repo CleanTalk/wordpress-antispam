@@ -7372,11 +7372,24 @@ class ApbctForceProtection {
                 data,
                 method: 'POST',
                 callback: (result) => this.checkBotCallback(result),
+                onErrorCallback: (error) => this.checkBotErrorCallback(error),
             });
         } else if (ctPublicFunctions.data__ajax_type === 'admin_ajax') {
             data.action = 'apbct_force_protection_check_bot';
-            apbct_public_sendAJAX(data, {callback: (result) => this.checkBotCallback(result)});
+            apbct_public_sendAJAX(data, {
+                callback: (result) => this.checkBotCallback(result),
+                onErrorCallback: (error) => this.checkBotErrorCallback(error),
+            });
         }
+    }
+
+    /**
+     * @param {string} error
+     * @return {void}
+     */
+    checkBotErrorCallback(error) {
+        console.log('ApbctForceProtection request failed', error);
+        this.decodeForms();
     }
 
     /**
@@ -7797,7 +7810,6 @@ function checkEmailExist(e) { // eslint-disable-line no-unused-vars
     viewCheckEmailExist(e, 'load');
 
     // Using REST API handler
-
     if (ctPublicFunctions.data__ajax_type === 'rest') {
         apbct_public_sendREST(
             'check_email_exist_post',
