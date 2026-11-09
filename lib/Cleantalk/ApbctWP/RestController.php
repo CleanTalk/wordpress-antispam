@@ -188,17 +188,15 @@ class RestController extends \WP_REST_Controller
     /**
      * Return contact-decoding data through REST without invoking the AJAX handler.
      *
-     * Sanitizes encodedEmails and passes the REST parameters to the shared decoder.
+     * Passes encodedEmails and the REST parameters to the shared decoder for validation and sanitization.
      * WordPress handles JSON serialization and response output.
      *
      * @param WP_REST_Request $request Request containing encodedEmails and decoding parameters.
-     * @return WP_REST_Response Response containing success and an array of contact results.
+     * @return WP_REST_Response Response containing success, contact results and client-cookie permission.
      */
     public function decodeEmail(WP_REST_Request $request): WP_REST_Response
     {
-        $encoded_emails = \Cleantalk\Variables\Post::getInstance()->getAndSanitize(
-            $request->get_param('encodedEmails')
-        );
+        $encoded_emails = $request->get_param('encodedEmails');
         $data = $this->contacts_encoder->getDecodeEmailResult($encoded_emails, $request->get_params());
 
         return new WP_REST_Response($data);

@@ -2311,11 +2311,11 @@ function apbct_get_email_encoder_pass_key()
 /**
  * Remembers on the server side that the visitor passed the contact decoding check.
  *
- * @return void
+ * @return bool Whether the server-side pass mark was saved.
  */
 function apbct_email_encoder_set_passed()
 {
-    AltSessions::set('apbct_email_encoder_verified', '1');
+    return AltSessions::set('apbct_email_encoder_verified', '1') !== false;
 }
 
 /**
