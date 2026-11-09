@@ -35,6 +35,7 @@ function ctCheckInternal(currForm) {
 }
 
 let ctInternalFormsIsInitialized = false;
+const ctProtectedInternalForms = new WeakSet();
 
 document.addEventListener('DOMContentLoaded', function() {
     // Some plugins dispatch a synthetic DOMContentLoaded, forms must not be re-wrapped
@@ -51,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ctProtectInternalForms();
     }, 500);
 
-    document.addEventListener('apbctForceProtectionAllowed', function() {
+    document.addEventListener('apbctForceProtectionDecoded', function() {
         ctProtectInternalForms();
     });
 });
@@ -67,6 +68,10 @@ function ctProtectInternalForms() {
     for ( let i = 0; i < document.forms.length; i++ ) {
         if ( typeof(document.forms[i].action) == 'string' ) {
             ctCurrForm = document.forms[i];
+            // The timer and the restored-form event may visit the same form.
+            if (ctProtectedInternalForms.has(ctCurrForm)) {
+                continue;
+            }
             ctCurrAction = ctCurrForm.action;
             if (
                 ctCurrAction.indexOf('https?://') !== null && // The protocol is obligatory
@@ -86,6 +91,7 @@ function ctProtectInternalForms() {
                     ctCheckInternal(event.target);
                     return false;
                 });
+                ctProtectedInternalForms.add(formClone);
             }
         }
     }

@@ -2,12 +2,25 @@
 
 namespace Cleantalk\ApbctWP;
 
+use Cleantalk\ApbctWP\Antispam\ForceProtection;
+use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\Common\TT;
 use WP_REST_Request;
+use WP_REST_Response;
 
 class RestController extends \WP_REST_Controller
 {
+    /**
+     * @var ContactsEncoder
+     */
+    private $contacts_encoder;
+
+    /**
+     * @var ForceProtection
+     */
+    private $force_protection;
+
     public function __construct()
     {
         $this->namespace = 'cleantalk-antispam/v1';
@@ -18,7 +31,7 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/js_keys__get", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => array(AJAXService::class, 'getJSKeys'),
+                'callback'            => array($this, 'getJSKeys'),
                 'permission_callback' => '__return_true',
             )
         ));
@@ -26,7 +39,7 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/apbct_get_pixel_url", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => 'apbct_get_pixel_url',
+                'callback'            => array($this, 'getPixelUrl'),
                 'permission_callback' => '__return_true',
             )
         ));
@@ -34,7 +47,7 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/alt_sessions", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => array(AltSessions::class, 'setFromRemote'),
+                'callback'            => array($this, 'saveAltSessions'),
                 'args'                => array(
                     'cookies' => array(
                         'type'     => 'string',
@@ -51,7 +64,7 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/check_email_before_post", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => 'apbct_email_check_before_post',
+                'callback'            => array($this, 'checkEmailBeforePost'),
                 'args'                => array(
                     'email' => array(
                         'type'     => 'string',
@@ -66,7 +79,7 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/check_email_exist_post", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => 'apbct_email_check_exist_post',
+                'callback'            => array($this, 'checkEmailExistPost'),
                 'args'                => array(
                     'email' => array(
                         'type'     => 'string',
@@ -78,18 +91,18 @@ class RestController extends \WP_REST_Controller
         ));
 
         // REST route for decoding email
+        $this->contacts_encoder = apbctGetContactsEncoder();
         register_rest_route($this->namespace, "/apbct_decode_email", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => array(apbctGetContactsEncoder(),
-                    'ajaxDecodeEmailHandler'
-                ),
+                'callback'            => array($this, 'decodeEmail'),
                 'permission_callback' => function (WP_REST_Request $request) {
                     return wp_verify_nonce(TT::toString($request->get_header('x_wp_nonce')), 'wp_rest');
                 },
                 'args'                => array(
                     'encodedEmails' => array(
-                        'type'     => 'array',
+                        // Match JSON strings before WordPress can sanitize them as lists.
+                        'type'     => array('string', 'array'),
                         'required' => true,
                     ),
                 ),
@@ -100,9 +113,7 @@ class RestController extends \WP_REST_Controller
         register_rest_route($this->namespace, "/apbct_rest_check", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => function () {
-                    return ['success' => true];
-                },
+                'callback'            => array($this, 'checkRest'),
                 'permission_callback' => function (WP_REST_Request $request) {
                     return wp_verify_nonce(TT::toString($request->get_header('x_wp_nonce')), 'wp_rest');
                 }
@@ -110,16 +121,18 @@ class RestController extends \WP_REST_Controller
         ));
 
         // REST route for force protection check bot
+        $this->force_protection = ForceProtection::getInstance();
         register_rest_route($this->namespace, "/force_protection_check_bot", array(
             array(
                 'methods'             => 'POST',
-                'callback'            => array(\Cleantalk\ApbctWP\Antispam\ForceProtection::getInstance(), 'checkBot'),
+                'callback'            => array($this, 'checkBot'),
                 'permission_callback' => function (WP_REST_Request $request) {
                     return wp_verify_nonce(TT::toString($request->get_header('x_wp_nonce')), 'wp_rest');
                 },
                 'args'                => array(
                     'event_javascript_data' => array(
-                        'type'     => 'array',
+                        // Match JSON strings before WordPress can sanitize them as lists.
+                        'type'     => array('string', 'array'),
                         'required' => false,
                     ),
                     'event_token' => array(
@@ -137,5 +150,91 @@ class RestController extends \WP_REST_Controller
                 ),
             )
         ));
+    }
+
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function getJSKeys(): WP_REST_Response
+    {
+        return new WP_REST_Response(AJAXService::getJSKeysData());
+    }
+
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function getPixelUrl(): WP_REST_Response
+    {
+        return new WP_REST_Response(apbct_get_pixel_url(true));
+    }
+
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function checkEmailBeforePost(WP_REST_Request $request): WP_REST_Response
+    {
+        $email = sanitize_textarea_field(TT::toString($request->get_param('email')));
+
+        return new WP_REST_Response(apbct_email_check_before_post_result($email));
+    }
+
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function checkEmailExistPost(WP_REST_Request $request): WP_REST_Response
+    {
+        $email = sanitize_textarea_field(TT::toString($request->get_param('email')));
+
+        return new WP_REST_Response(apbct_email_check_exist_post_result($email));
+    }
+
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function saveAltSessions(WP_REST_Request $request): WP_REST_Response
+    {
+        $data = AltSessions::saveRemoteCookies(
+            TT::toString($request->get_header('x_wp_nonce')),
+            'wp_rest',
+            TT::toString($request->get_param('cookies'))
+        );
+
+        return new WP_REST_Response($data);
+    }
+
+    /**
+     * Return contact-decoding data through REST without invoking the AJAX handler.
+     *
+     * Passes encodedEmails and the REST parameters to the shared decoder for validation and sanitization.
+     * WordPress handles JSON serialization and response output.
+     *
+     * @param WP_REST_Request $request Request containing encodedEmails and decoding parameters.
+     * @return WP_REST_Response Response containing success, contact results and client-cookie permission.
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function decodeEmail(WP_REST_Request $request): WP_REST_Response
+    {
+        $encoded_emails = $request->get_param('encodedEmails');
+        $data = $this->contacts_encoder->getDecodeEmailResult($encoded_emails, $request->get_params());
+
+        return new WP_REST_Response($data);
+    }
+
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function checkRest(): WP_REST_Response
+    {
+        return new WP_REST_Response(array('success' => true));
+    }
+
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public function checkBot(WP_REST_Request $request): WP_REST_Response
+    {
+        $data = $this->force_protection->getCheckBotResult($request->get_params());
+
+        return new WP_REST_Response($data);
     }
 }

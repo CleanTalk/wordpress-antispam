@@ -220,8 +220,10 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
                     data: data,
                     method: 'POST',
                     callback: function(result) {
-                        // set alternative cookie to skip next pages encoding
-                        ctSetCookie('apbct_email_encoder_passed', ctPublic.emailEncoderPassKey, '');
+                        // The backend permits this only after saving the server-side pass mark.
+                        if (result.set_passed_cookie === true) {
+                            ctSetCookie('apbct_email_encoder_passed', ctPublic.emailEncoderPassKey, '');
+                        }
                         apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource);
                     },
                     onErrorCallback: function(res) {
@@ -239,8 +241,10 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
                 {
                     notJson: false,
                     callback: function(result) {
-                        // set alternative cookie to skip next pages encoding
-                        ctSetCookie('apbct_email_encoder_passed', ctPublic.emailEncoderPassKey, '');
+                        // The backend permits this only after saving the server-side pass mark.
+                        if (result.set_passed_cookie === true) {
+                            ctSetCookie('apbct_email_encoder_passed', ctPublic.emailEncoderPassKey, '');
+                        }
                         apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource);
                     },
                     onErrorCallback: function(res) {
@@ -6181,7 +6185,6 @@ function checkEmailExist(e) { // eslint-disable-line no-unused-vars
     viewCheckEmailExist(e, 'load');
 
     // Using REST API handler
-    ctPublicFunctions.data__ajax_type = 'rest';
     if (ctPublicFunctions.data__ajax_type === 'rest') {
         apbct_public_sendREST(
             'check_email_exist_post',

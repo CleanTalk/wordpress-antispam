@@ -51,6 +51,11 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     private $params;
 
+    /**
+     * @var array|null
+     */
+    private $request_data;
+
     public function init($params)
     {
         parent::init($params);
@@ -381,29 +386,36 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     }
 
     /**
-     * Check if the decoding is allowed
+     * Request a contact-decoding decision from the CleanTalk API.
      *
-     * Set properties
-     *      this->api_response
-     *      this->comment
+     * Updates the connection-error flag and response comment. A connection failure
+     * allows local decoding, but the final response still reports the error.
      *
-     * @return bool
+     * @return bool Whether local contact decoding is allowed.
      */
     protected function checkRequest()
     {
         global $apbct;
-        $post_browser_sign = TT::toString(Post::get('browser_signature_params'));
+        $this->has_connection_error = false;
+        $post_browser_sign = TT::toString($this->getDecodeRequestValue('browser_signature_params'));
         $browser_sign          = hash('sha256', $post_browser_sign);
 
         $event_javascript_data = '';
         $event_token = '';
         if ( apbct__is_bot_detector_enabled() ) {
-            $event_token = Post::getString('event_token');
+            $event_token = TT::toString($this->getDecodeRequestValue('event_token'));
         } else {
-            $post_event_javascript_data = TT::toString(Post::get('event_javascript_data'));
+            $post_event_javascript_data = TT::toString($this->getDecodeRequestValue('event_javascript_data'));
             $event_javascript_data = Helper::isJson($post_event_javascript_data)
                 ? $post_event_javascript_data
                 : stripslashes($post_event_javascript_data);
+        }
+
+        try {
+            $message_to_log = Helper::jsonEncode(array_values($this->decoded_contacts_array), JSON_FORCE_OBJECT);
+        } catch ( \UnexpectedValueException $e ) {
+            $apbct->errorAdd('email_encoder', $e->getMessage());
+            $message_to_log = null;
         }
 
         $params = array(
@@ -414,17 +426,15 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             'browser_sign'          => $browser_sign,          // Browser ID
             'sender_ip'             => Helper::ipGet('real', false),        // IP address
             'event_type'            => 'CONTACT_DECODING',     // 'GENERAL_BOT_CHECK' || 'CONTACT_DECODING'
-            'message_to_log'        => json_encode(array_values($this->decoded_contacts_array), JSON_FORCE_OBJECT),   // Custom message
-            'page_url'              => Post::get('post_url'),
+            'message_to_log'        => $message_to_log,
+            'page_url'              => $this->getDecodeRequestValue('post_url'),
             'sender_info'           => array(
-                'site_referrer'         => Post::get('referrer'),
+                'site_referrer'         => $this->getDecodeRequestValue('referrer'),
             ),
         );
 
         $ct_request = new CleantalkRequest($params);
-
         $ct = new Cleantalk();
-        $this->has_connection_error = false;
 
         // Options store url without scheme because of DB error with ''://'
         $config             = ct_get_server();
@@ -438,21 +448,50 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $ct->server_changed = TT::getArrayValueAsInt($config, 'ct_server_changed');
         $api_response = $ct->checkBot($ct_request);
 
-        // Allow to see to the decoded contact if error occurred
-        // Send error as comment in this case
         if ( ! empty($api_response->errstr)) {
+            // Decode contacts on connection failure, but send the error as a comment.
             $this->comment = $api_response->errstr;
             $this->has_connection_error = true;
-            return true;
+            $is_allowed = true;
+        } else {
+            $stub_comment = $api_response->allow
+                ? esc_html__('Allowed', 'cleantalk-spam-protect')
+                : esc_html__('Blocked', 'cleantalk-spam-protect');
+            $this->comment = ! empty($api_response->comment) ? $api_response->comment : $stub_comment;
+            $is_allowed = $api_response->allow === 1;
         }
 
-        $stub_comment = $api_response->allow
-            ? esc_html__('Allowed', 'cleantalk-spam-protect')
-            : esc_html__('Blocked', 'cleantalk-spam-protect');
+        return $is_allowed;
+    }
 
-        $this->comment = ! empty($api_response->comment) ? $api_response->comment : $stub_comment;
+    /**
+     * Read a decoding parameter from the active REST context or AJAX POST input.
+     *
+     * REST arrays are JSON-encoded before text sanitization. AJAX values keep
+     * the existing Post::get() behavior.
+     *
+     * @param string $name Request parameter name.
+     * @return string|array|false Sanitized value or false from Post::get(); a missing parameter returns an empty string.
+     */
+    private function getDecodeRequestValue($name)
+    {
+        global $apbct;
 
-        return $api_response->allow === 1;
+        if ( $this->request_data === null ) {
+            return Post::get($name);
+        }
+
+        $value = isset($this->request_data[$name]) ? $this->request_data[$name] : '';
+        if ( is_array($value) ) {
+            try {
+                $value = Helper::jsonEncode($value, 0, true);
+            } catch ( \UnexpectedValueException $e ) {
+                $apbct->errorAdd('email_encoder', $e->getMessage());
+                $value = false;
+            }
+        }
+
+        return sanitize_textarea_field(TT::toString($value));
     }
 
     protected function getCheckRequestComment()
@@ -817,9 +856,12 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     }
 
     /**
-     * Ajax handler for the apbct_decode_email action
+     * Send the contact-decoding result for the apbct_decode_email AJAX action.
      *
-     * @return void returns json string to the JS
+     * Reads contacts from POST and delegates processing to getDecodeEmailResult().
+     * Sends the result through WordPress JSON helpers and terminates the request.
+     *
+     * @return void
      */
     public function ajaxDecodeEmailHandler()
     {
@@ -830,20 +872,110 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $encoded_emails_array = [];
         $encoded_emails_json = Post::getString('encodedEmails') ? Post::getString('encodedEmails') : false;
         if ( $encoded_emails_json ) {
-            $encoded_emails_json = str_replace('\\', '', $encoded_emails_json);
-            $encoded_emails_array = json_decode($encoded_emails_json, true);
+            $encoded_emails_array = $encoded_emails_json;
         }
 
-        $this->decoded_contacts_array = $this->decodeContactData($encoded_emails_array);
-        if ( $this->has_connection_error ) {
-            $response = $this->compileResponse($this->decoded_contacts_array, false);
-            wp_send_json_error($response);
+        wp_send_json($this->getDecodeEmailResult($encoded_emails_array));
+    }
+
+    /**
+     * Build the contact-decoding result shared by AJAX and REST without sending it.
+     *
+     * Empty results return success=false and data=[]. Cookie permission is returned
+     * only after the server-side pass mark is saved. The previous request context
+     * is restored after processing, including when an exception interrupts decoding.
+     *
+     * @param array|string|null $encoded_emails_array Encoded contacts or their JSON representation.
+     * @param array|null $request_data REST parameters; null uses the existing AJAX POST input.
+     * @return array{success: bool, data: array, set_passed_cookie: bool} Contact results and cookie permission.
+     */
+    public function getDecodeEmailResult($encoded_emails_array, $request_data = null): array
+    {
+        global $apbct;
+
+        $previous_request_data = $this->request_data;
+        $this->request_data = $request_data;
+        $this->decoded_contacts_array = [];
+        try {
+            $input_error = 'Invalid contact-decoding input.';
+            $is_rest_array = $request_data !== null && is_array($encoded_emails_array);
+            if ( $request_data !== null && is_string($encoded_emails_array) ) {
+                $encoded_emails_array = Post::getInstance()->getAndSanitize($encoded_emails_array);
+            }
+            if ( is_string($encoded_emails_array) && $encoded_emails_array ) {
+                try {
+                    $encoded_emails_array = Helper::jsonDecode(str_replace('\\', '', $encoded_emails_array), true);
+                } catch ( \UnexpectedValueException $e ) {
+                    $input_error = $e->getMessage();
+                    $encoded_emails_array = null;
+                }
+            }
+
+            $is_valid_input = is_array($encoded_emails_array) && ! empty($encoded_emails_array);
+            if ( $is_valid_input ) {
+                foreach ( $encoded_emails_array as $index => $encoded_email ) {
+                    if ( ! is_string($encoded_email) ) {
+                        $is_valid_input = false;
+                        break;
+                    }
+                    // Validate types before the REST sanitizer can convert scalars to strings.
+                    if ( $is_rest_array ) {
+                        $encoded_email = Post::getInstance()->getAndSanitize($encoded_email);
+                    }
+                    if ( $encoded_email === '' ) {
+                        $is_valid_input = false;
+                        break;
+                    }
+                    $encoded_emails_array[$index] = $encoded_email;
+                }
+            }
+
+            if ( $is_valid_input && is_array($encoded_emails_array) ) {
+                $this->decoded_contacts_array = $this->decodeContactData($encoded_emails_array);
+            } else {
+                $apbct->errorAdd('email_encoder', $input_error);
+            }
+            if ( $this->has_connection_error ) {
+                $data = $this->compileResponse($this->decoded_contacts_array, false);
+                $response = array('success' => false, 'data' => $data);
+            } else {
+                $data = $this->compileResponse($this->decoded_contacts_array, $this->is_encode_allowed);
+                $response = array('success' => true, 'data' => $data);
+            }
+            // compileResponse() returns false when no contacts are available.
+            // Mark this as a failed response with an empty list so the frontend
+            // does not access data[0] on a successful empty result.
+            if ( $response['data'] === false ) {
+                $response = array('success' => false, 'data' => array());
+            }
+
+            $response['set_passed_cookie'] = false;
+            if ( $this->shouldSetPassedCookie($is_valid_input) ) {
+                $response['set_passed_cookie'] = apbct_email_encoder_set_passed();
+                if ( ! $response['set_passed_cookie'] ) {
+                    $apbct->errorAdd('email_encoder', 'Failed to save the contact-decoding pass mark.');
+                }
+            }
+        } finally {
+            $this->request_data = $previous_request_data;
         }
-        if ( ! $this->is_logged_in && ! empty($this->decoded_contacts_array) && $this->is_encode_allowed ) {
-            apbct_email_encoder_set_passed();
-        }
-        $response = $this->compileResponse($this->decoded_contacts_array, $this->is_encode_allowed);
-        wp_send_json_success($response);
+
+        return $response;
+    }
+
+    /**
+     * Decide whether both the server pass mark and the client cookie may be set.
+     *
+     * Nonce verification belongs to the request handlers. For a valid guest request,
+     * connection failures allow local decoding; an explicit API denial does not.
+     * Decoding output is not required, so an internal decoding failure can still pass.
+     *
+     * @param bool $is_valid_input Whether the request contains a non-empty array of contact strings.
+     * @return bool Whether the caller may save the server mark and then permit the client cookie.
+     */
+    protected function shouldSetPassedCookie(bool $is_valid_input): bool
+    {
+        return $is_valid_input && ! $this->is_logged_in && $this->is_encode_allowed;
     }
 
     /**
