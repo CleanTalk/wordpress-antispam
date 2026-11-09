@@ -548,7 +548,7 @@ class HtmlBufferRewriter
     }
 
     /**
-     * Obtain a fallback attribute value after newline normalization and entity decoding.
+     * Obtain a fallback attribute value after HTML input normalization and reference decoding.
      *
      * The first matching attribute wins. Duplicate action/method attributes are
      * checked separately before a form can be rewritten.
@@ -562,11 +562,127 @@ class HtmlBufferRewriter
     {
         foreach ( $tag['attributes'] as $attribute ) {
             if ( $attribute['name'] === $name ) {
-                $value = str_replace(array("\r\n", "\r"), "\n", $attribute['value']);
-                return html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                $value = str_replace(array("\r\n", "\r", "\0"), array("\n", "\n", "\xEF\xBF\xBD"), $attribute['value']);
+                return $this->decodeAttributeValue($value);
             }
         }
         return '';
+    }
+
+    /**
+     * Decode numeric references with HTML rules, retaining PHP's named-reference behavior.
+     *
+     * Numeric references consume their digits once. Disjoint literal segments go
+     * through PHP's decoder, never the already-decoded numeric output. This keeps
+     * the pass linear and prevents references such as "&amp;#47;" decoding twice.
+     * Semicolonless named references remain unsupported, as before.
+     *
+     * @param string $value Attribute bytes after input newline and NUL normalization.
+     * @return string Decoded attribute value, without recursive decoding.
+     */
+    private function decodeAttributeValue(string $value): string
+    {
+        $parts = array();
+        $at = 0;
+        $length = strlen($value);
+        while ( $at < $length && ($start = strpos($value, '&#', $at)) !== false ) {
+            $parts[] = html_entity_decode(substr($value, $at, $start - $at), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $reference = $this->decodeNumericReference($value, $start);
+            if ( $reference === null ) {
+                $parts[] = '&#';
+                $at = $start + 2;
+            } else {
+                $parts[] = $reference['value'];
+                $at = $reference['end'];
+            }
+        }
+        $parts[] = html_entity_decode(substr($value, $at), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        return implode('', $parts);
+    }
+
+    /**
+     * Consume a decimal or hexadecimal reference, with an optional semicolon.
+     *
+     * Saturation above the Unicode range prevents integer overflow, even on
+     * 32-bit PHP. Remaining digits are still consumed before decoding continues.
+     *
+     * @param string $value Complete normalized attribute value.
+     * @param int $start Byte offset of the reference's opening ampersand.
+     * @return array{value: string, end: int}|null Decoded bytes and exclusive end, or null without digits.
+     */
+    private function decodeNumericReference(string $value, int $start): ?array
+    {
+        $length = strlen($value);
+        $at = $start + 2;
+        $base = 10;
+        if ( $at < $length && ($value[$at] === 'x' || $value[$at] === 'X') ) {
+            $base = 16;
+            ++$at;
+        }
+        $digits_start = $at;
+        $code_point = 0;
+        while ( $at < $length ) {
+            $byte = ord($value[$at]);
+            if ( $byte >= 48 && $byte <= 57 ) {
+                $digit = $byte - 48;
+            } elseif ( $base === 16 && $byte >= 65 && $byte <= 70 ) {
+                $digit = $byte - 55;
+            } elseif ( $base === 16 && $byte >= 97 && $byte <= 102 ) {
+                $digit = $byte - 87;
+            } else {
+                break;
+            }
+            if ( $code_point <= 0x10FFFF ) {
+                $code_point = min(0x110000, $code_point * $base + $digit);
+            }
+            ++$at;
+        }
+        if ( $at === $digits_start ) {
+            return null;
+        }
+        if ( $at < $length && $value[$at] === ';' ) {
+            ++$at;
+        }
+        return array('value' => $this->encodeReferenceCodePoint($code_point), 'end' => $at);
+    }
+
+    /**
+     * Apply HTML numeric-reference replacements and encode the resulting Unicode scalar.
+     *
+     * NUL, surrogates, and out-of-range values become U+FFFD. HTML also remaps
+     * selected C1 controls using Windows-1252; other controls and noncharacters
+     * are retained. Encoding here avoids mbstring and PHP entity-decoder differences.
+     *
+     * @param int $code_point Numeric value, saturated above the Unicode maximum.
+     * @return string UTF-8 bytes for exactly one resulting code point.
+     */
+    private function encodeReferenceCodePoint(int $code_point): string
+    {
+        static $replacements = array(
+            0x80 => 0x20AC, 0x82 => 0x201A, 0x83 => 0x0192, 0x84 => 0x201E, 0x85 => 0x2026,
+            0x86 => 0x2020, 0x87 => 0x2021, 0x88 => 0x02C6, 0x89 => 0x2030, 0x8A => 0x0160,
+            0x8B => 0x2039, 0x8C => 0x0152, 0x8E => 0x017D, 0x91 => 0x2018, 0x92 => 0x2019,
+            0x93 => 0x201C, 0x94 => 0x201D, 0x95 => 0x2022, 0x96 => 0x2013, 0x97 => 0x2014,
+            0x98 => 0x02DC, 0x99 => 0x2122, 0x9A => 0x0161, 0x9B => 0x203A, 0x9C => 0x0153,
+            0x9E => 0x017E, 0x9F => 0x0178,
+        );
+        if ( $code_point === 0 || $code_point > 0x10FFFF || ($code_point >= 0xD800 && $code_point <= 0xDFFF) ) {
+            $code_point = 0xFFFD;
+        } elseif ( isset($replacements[$code_point]) ) {
+            $code_point = $replacements[$code_point];
+        }
+        if ( $code_point <= 0x7F ) {
+            return chr($code_point);
+        }
+        if ( $code_point <= 0x7FF ) {
+            return chr(0xC0 | ($code_point >> 6)) . chr(0x80 | ($code_point & 0x3F));
+        }
+        if ( $code_point <= 0xFFFF ) {
+            return chr(0xE0 | ($code_point >> 12)) . chr(0x80 | (($code_point >> 6) & 0x3F))
+                . chr(0x80 | ($code_point & 0x3F));
+        }
+        return chr(0xF0 | ($code_point >> 18)) . chr(0x80 | (($code_point >> 12) & 0x3F))
+            . chr(0x80 | (($code_point >> 6) & 0x3F)) . chr(0x80 | ($code_point & 0x3F));
     }
 
     /**

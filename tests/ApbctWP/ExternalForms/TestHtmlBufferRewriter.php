@@ -50,8 +50,106 @@ class TestHtmlBufferRewriter extends TestCase
                 'https://external.example/submit',
                 'get',
             ),
+            'semicolonless decimal query separator' => array(
+                '<form id="target" action="https://external.example/submit?a=1&#38b=2" method="G&#69T">',
+                'https://external.example/submit?a=1&b=2',
+                'GET',
+            ),
+            'semicolonless decimal slashes' => array(
+                "<form id='target' action='https:&#47&#47external.example/submit'>",
+                'https://external.example/submit',
+                'get',
+            ),
+            'semicolonless hexadecimal slashes' => array(
+                '<form id=target action=https:&#x2f&#X2F;external.example/submit method=&#x50OST>',
+                'https://external.example/submit',
+                'POST',
+            ),
         );
         return $this->withBackends($cases);
+    }
+
+    /**
+     * Compare serialized fallback metadata without relying on libxml's HTML entity rules.
+     *
+     * @dataProvider provideFallbackReferences
+     * @param string $raw Reference text as it appears in the source attribute.
+     * @param string $decoded Expected browser-decoded text.
+     * @return void
+     */
+    public function testFallbackReferencesAreDecodedBeforeMetadataSerialization($raw, $decoded)
+    {
+        $action = 'https://external.example/submit?value=';
+        foreach ( array('"', "'") as $quote ) {
+            $html = $this->page(
+                '<form action=' . $quote . $action . $raw . $quote . ' method=' . $quote . $raw . $quote . '>'
+                . '<input name="email" value="member@example.org"></form>'
+            );
+            $output = $this->rewrite($html, true);
+            $this->assertStringContainsString(
+                'name="cleantalk_hidden_action" value="'
+                . htmlspecialchars($action . $decoded, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '"',
+                $output
+            );
+            $this->assertStringContainsString(
+                'name="cleantalk_hidden_method" value="'
+                . htmlspecialchars($decoded ?: 'get', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '"',
+                $output
+            );
+            $this->assertStringContainsString('<input name="email" value="member@example.org">', $output);
+        }
+    }
+
+    /**
+     * Cover numeric limits, unchanged PHP named-reference behavior, and single-pass decoding.
+     *
+     * @return array<string, array{string, string}> Raw and browser-decoded attribute fragments.
+     */
+    public function provideFallbackReferences(): array
+    {
+        $replacement = "\xEF\xBF\xBD";
+        return array(
+            'decimal without semicolon' => array('a=1&#38b=2', 'a=1&b=2'),
+            'hexadecimal without semicolon' => array('a=1&#x26z=2', 'a=1&z=2'),
+            'terminated numbers' => array('&#38;&#x2F;', '&/'),
+            'leading zeroes' => array('&#0000000047&#x00002f', '//'),
+            'missing digits' => array('&#;&#x;&#Xz;&#-1;', '&#;&#x;&#Xz;&#-1;'),
+            'trailing ampersand' => array('text&', 'text&'),
+            'embedded ampersands' => array('&&#38&&amp;', '&&&&'),
+            'nul reference' => array('&#0;&#x0;', $replacement . $replacement),
+            'surrogate limits' => array('&#xD800;&#xDFFF;', $replacement . $replacement),
+            'out of range' => array('&#1114112;&#x110000;', $replacement . $replacement),
+            'unicode maximum' => array('&#x10FFFF;', "\xF4\x8F\xBF\xBF"),
+            'noncharacter' => array('&#xFFFF;', "\xEF\xBF\xBF"),
+            'two byte encoding' => array('&#x7FF;', "\xDF\xBF"),
+            'three byte encoding' => array('&#x800;', "\xE0\xA0\x80"),
+            'astral character' => array('&#x1F600;', "\xF0\x9F\x98\x80"),
+            'c1 replacements' => array('&#128;&#x9F;', "\xE2\x82\xAC\xC5\xB8"),
+            'unmapped c1' => array('&#129;', "\xC2\x81"),
+            'other control' => array('&#1;', "\x01"),
+            'decoded newline' => array('&#10;', "\n"),
+            'decoded carriage return' => array('&#13;', "\r"),
+            'source normalization' => array("a\r\nb\rc\0d", "a\nb\nc" . $replacement . 'd'),
+            'decoded ampersand is not rescanned' => array('&amp;#47;&amp;amp;', '&#47;&amp;'),
+            'numeric ampersand is not rescanned' => array('&#38amp;', '&amp;'),
+            'semicolonless names remain unchanged' => array('&copy!&AMP!&amp', '&copy!&AMP!&amp'),
+            'legacy names before alphanumeric' => array('&copycat&notit;&amp1', '&copycat&notit;&amp1'),
+            'legacy names before equals' => array('&amp=2&copy=3', '&amp=2&copy=3'),
+            'only legacy names can omit semicolon' => array('&apos!&euro!&sol!', '&apos!&euro!&sol!'),
+            'case sensitive names' => array('&Amp;&COPY;', '&Amp;' . "\xC2\xA9"),
+            'complete name wins over legacy prefix' => array('&notin;', "\xE2\x88\x89"),
+            'multi-code-point name' => array('&NotEqualTilde;', "\xE2\x89\x82\xCC\xB8"),
+            'longest name' => array('&CounterClockwiseContourIntegral;', "\xE2\x88\xB3"),
+            'unknown name' => array('&definitelyUnknown;', '&definitelyUnknown;'),
+            'mixed reference kinds' => array('&copy;&#38;&amp;&#x2f;&apos;', "\xC2\xA9&&/'"),
+            'name before numeric reference' => array('&copy&#47', '&copy/'),
+            'numeric output before named reference' => array('&#38copy;&amp;', '&copy;&'),
+            'long decimal reference' => array('&#' . str_repeat('9', 4096) . ';tail', $replacement . 'tail'),
+            'long zero reference' => array('&#' . str_repeat('0', 4096) . '47tail', '/tail'),
+            'long hexadecimal reference' => array('&#x' . str_repeat('F', 4096) . ';tail', $replacement . 'tail'),
+            'long unknown name' => array('&' . str_repeat('a', 4096) . ';', '&' . str_repeat('a', 4096) . ';'),
+            'repeated failed candidates' => array(str_repeat('&#x&unknown', 512), str_repeat('&#x&unknown', 512)),
+        );
     }
 
     /**
