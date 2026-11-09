@@ -471,7 +471,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      * the existing Post::get() behavior.
      *
      * @param string $name Request parameter name.
-     * @return string|array Sanitized value; a missing parameter returns an empty string.
+     * @return string|array|false Sanitized value or false from Post::get(); a missing parameter returns an empty string.
      */
     private function getDecodeRequestValue($name)
     {
@@ -930,7 +930,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
                 }
             }
 
-            if ( $is_valid_input ) {
+            if ( $is_valid_input && is_array($encoded_emails_array) ) {
                 $this->decoded_contacts_array = $this->decodeContactData($encoded_emails_array);
             } else {
                 $apbct->errorAdd('email_encoder', $input_error);

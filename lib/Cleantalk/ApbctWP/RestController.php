@@ -152,16 +152,25 @@ class RestController extends \WP_REST_Controller
         ));
     }
 
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function getJSKeys(): WP_REST_Response
     {
         return new WP_REST_Response(AJAXService::getJSKeysData());
     }
 
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function getPixelUrl(): WP_REST_Response
     {
         return new WP_REST_Response(apbct_get_pixel_url(true));
     }
 
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function checkEmailBeforePost(WP_REST_Request $request): WP_REST_Response
     {
         $email = sanitize_textarea_field(TT::toString($request->get_param('email')));
@@ -169,6 +178,9 @@ class RestController extends \WP_REST_Controller
         return new WP_REST_Response(apbct_email_check_before_post_result($email));
     }
 
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function checkEmailExistPost(WP_REST_Request $request): WP_REST_Response
     {
         $email = sanitize_textarea_field(TT::toString($request->get_param('email')));
@@ -176,6 +188,9 @@ class RestController extends \WP_REST_Controller
         return new WP_REST_Response(apbct_email_check_exist_post_result($email));
     }
 
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function saveAltSessions(WP_REST_Request $request): WP_REST_Response
     {
         $data = AltSessions::saveRemoteCookies(
@@ -195,6 +210,7 @@ class RestController extends \WP_REST_Controller
      *
      * @param WP_REST_Request $request Request containing encodedEmails and decoding parameters.
      * @return WP_REST_Response Response containing success, contact results and client-cookie permission.
+     * @psalm-suppress PossiblyUnusedMethod
      */
     public function decodeEmail(WP_REST_Request $request): WP_REST_Response
     {
@@ -204,11 +220,17 @@ class RestController extends \WP_REST_Controller
         return new WP_REST_Response($data);
     }
 
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function checkRest(): WP_REST_Response
     {
         return new WP_REST_Response(array('success' => true));
     }
 
+    /**
+     * @psalm-suppress PossiblyUnusedMethod
+     */
     public function checkBot(WP_REST_Request $request): WP_REST_Response
     {
         $data = $this->force_protection->getCheckBotResult($request->get_params());
