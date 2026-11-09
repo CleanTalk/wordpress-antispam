@@ -160,7 +160,7 @@ class TestRestResponses extends TestCase
     /**
      * @dataProvider contactsPayloadProvider
      */
-    public function testContactsAcceptsArraysAndJsonStrings($payload, $dispatch)
+    public function testContactsAcceptsArraysAndJsonStrings($payload)
     {
         $encoder = $this->getMockBuilder(ContactsEncoder::class)
             ->disableOriginalConstructor()
@@ -171,7 +171,7 @@ class TestRestResponses extends TestCase
         $property->setValue($encoder, true);
         $encoder->has_connection_error = false;
         $encoder->expects($this->once())->method('decodeContactData')
-            ->with(array('encoded-contact'))->willReturn(array());
+            ->with(array('encoded-contact', 'second-contact'))->willReturn(array());
         $controller = $this->getController();
         $property = new \ReflectionProperty($controller, 'contacts_encoder');
         $property->setAccessible(true);
@@ -179,10 +179,9 @@ class TestRestResponses extends TestCase
         $request = new \WP_REST_Request('POST', '/cleantalk-antispam/v1/apbct_decode_email');
         $request->set_header('x_wp_nonce', wp_create_nonce('wp_rest'));
         $request->set_body_params(array('encodedEmails' => $payload));
-        $response = $dispatch
-            ? rest_get_server()->dispatch($request)
-            : $controller->decodeEmail($request);
+        $response = rest_get_server()->dispatch($request);
         $this->assertInstanceOf(\WP_REST_Response::class, $response);
+        $this->assertSame(200, $response->get_status());
         $this->assertSame(
             array('success' => false, 'data' => array(), 'set_passed_cookie' => false),
             $response->get_data()
@@ -192,8 +191,9 @@ class TestRestResponses extends TestCase
     public function contactsPayloadProvider()
     {
         return array(
-            'REST array' => array(array('encoded-contact'), true),
-            'callback JSON string' => array('["encoded-contact"]', false),
+            'REST array' => array(array('encoded-contact', 'second-contact')),
+            'REST JSON array' => array('["encoded-contact","second-contact"]'),
+            'REST JSON object' => array('{"0":"encoded-contact","1":"second-contact"}'),
         );
     }
 
@@ -458,6 +458,59 @@ class TestRestResponses extends TestCase
                 'allow' => 1,
                 'success' => false,
                 'error' => array('comment' => 'API unavailable'),
+            )),
+        );
+    }
+
+    /**
+     * @dataProvider forceProtectionEventDataProvider
+     */
+    public function testForceProtectionPreservesRestEventData($payload)
+    {
+        $received_request_data = null;
+        $result = array('allow' => 1, 'message' => 'Allowed', 'success' => true);
+        $protection = $this->getMockBuilder(ForceProtection::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(array('getCheckBotResult'))
+            ->getMock();
+        $protection->expects($this->once())->method('getCheckBotResult')
+            ->willReturnCallback(function ($request_data) use (&$received_request_data, $result) {
+                $received_request_data = $request_data;
+                return $result;
+            });
+        $controller = $this->getController();
+        $property = new \ReflectionProperty($controller, 'force_protection');
+        $property->setAccessible(true);
+        $property->setValue($controller, $protection);
+        $request = new \WP_REST_Request('POST', '/cleantalk-antispam/v1/force_protection_check_bot');
+        $request->set_header('x_wp_nonce', wp_create_nonce('wp_rest'));
+        $request->set_body_params(array(
+            'post_url' => 'https://example.org/form',
+            'referrer' => '',
+            'event_javascript_data' => $payload,
+        ));
+
+        $response = rest_get_server()->dispatch($request);
+
+        $this->assertInstanceOf(\WP_REST_Response::class, $response);
+        $this->assertSame(200, $response->get_status());
+        $this->assertSame($result, $response->get_data());
+        $this->assertIsArray($received_request_data);
+        $this->assertArrayHasKey('event_javascript_data', $received_request_data);
+        $this->assertSame($payload, $received_request_data['event_javascript_data']);
+        $this->assertNotContains('wp_send_json', $this->doing_it_wrong);
+    }
+
+    public function forceProtectionEventDataProvider()
+    {
+        return array(
+            'JSON object' => array(
+                '{"screen":{"width":1920,"height":1080},"events":["focus","key,up"],"label":"two words"}',
+            ),
+            'JSON array' => array('[{"type":"focus"},{"type":"key,up"}]'),
+            'array' => array(array(
+                array('type' => 'focus'),
+                array('type' => 'key,up', 'screen' => array('width' => 1920, 'height' => 1080)),
             )),
         );
     }

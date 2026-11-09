@@ -101,7 +101,8 @@ class RestController extends \WP_REST_Controller
                 },
                 'args'                => array(
                     'encodedEmails' => array(
-                        'type'     => array('array', 'string'),
+                        // Match JSON strings before WordPress can sanitize them as lists.
+                        'type'     => array('string', 'array'),
                         'required' => true,
                     ),
                 ),
@@ -130,7 +131,8 @@ class RestController extends \WP_REST_Controller
                 },
                 'args'                => array(
                     'event_javascript_data' => array(
-                        'type'     => array('array', 'string'),
+                        // Match JSON strings before WordPress can sanitize them as lists.
+                        'type'     => array('string', 'array'),
                         'required' => false,
                     ),
                     'event_token' => array(
