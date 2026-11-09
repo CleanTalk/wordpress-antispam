@@ -7428,24 +7428,34 @@ class ApbctForceProtection {
     }
 
     /**
-     * Decode forms
+     * Restore forms and notify listeners when wrappers have been replaced in the document.
      * @return {void}
      */
     decodeForms() {
         let form;
+        let formsDecoded = false;
 
         this.wrappers.forEach((wrapper) => {
+            if (!wrapper.isConnected) {
+                return;
+            }
+
             form = wrapper.querySelector('div.ct-encoded-form').dataset.encodedForm;
 
             try {
                 if (form && typeof(form) == 'string') {
                     const urlDecoded = decodeURIComponent(form);
                     wrapper.outerHTML = atob(urlDecoded);
+                    formsDecoded = true;
                 }
             } catch (error) {
                 console.log(error);
             }
         });
+
+        if (formsDecoded) {
+            document.dispatchEvent(new Event('apbctForceProtectionDecoded'));
+        }
     }
 
     /**
@@ -8374,6 +8384,7 @@ function ctCheckInternal(currForm) {
 }
 
 let ctInternalFormsIsInitialized = false;
+const ctProtectedInternalForms = new WeakSet();
 
 document.addEventListener('DOMContentLoaded', function() {
     // Some plugins dispatch a synthetic DOMContentLoaded, forms must not be re-wrapped
@@ -8390,7 +8401,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ctProtectInternalForms();
     }, 500);
 
-    document.addEventListener('apbctForceProtectionAllowed', function() {
+    document.addEventListener('apbctForceProtectionDecoded', function() {
         ctProtectInternalForms();
     });
 });
@@ -8406,6 +8417,10 @@ function ctProtectInternalForms() {
     for ( let i = 0; i < document.forms.length; i++ ) {
         if ( typeof(document.forms[i].action) == 'string' ) {
             ctCurrForm = document.forms[i];
+            // The timer and the restored-form event may visit the same form.
+            if (ctProtectedInternalForms.has(ctCurrForm)) {
+                continue;
+            }
             ctCurrAction = ctCurrForm.action;
             if (
                 ctCurrAction.indexOf('https?://') !== null && // The protocol is obligatory
@@ -8425,6 +8440,7 @@ function ctProtectInternalForms() {
                     ctCheckInternal(event.target);
                     return false;
                 });
+                ctProtectedInternalForms.add(formClone);
             }
         }
     }

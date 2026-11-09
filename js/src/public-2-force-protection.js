@@ -107,24 +107,34 @@ class ApbctForceProtection {
     }
 
     /**
-     * Decode forms
+     * Restore forms and notify listeners when wrappers have been replaced in the document.
      * @return {void}
      */
     decodeForms() {
         let form;
+        let formsDecoded = false;
 
         this.wrappers.forEach((wrapper) => {
+            if (!wrapper.isConnected) {
+                return;
+            }
+
             form = wrapper.querySelector('div.ct-encoded-form').dataset.encodedForm;
 
             try {
                 if (form && typeof(form) == 'string') {
                     const urlDecoded = decodeURIComponent(form);
                     wrapper.outerHTML = atob(urlDecoded);
+                    formsDecoded = true;
                 }
             } catch (error) {
                 console.log(error);
             }
         });
+
+        if (formsDecoded) {
+            document.dispatchEvent(new Event('apbctForceProtectionDecoded'));
+        }
     }
 
     /**
