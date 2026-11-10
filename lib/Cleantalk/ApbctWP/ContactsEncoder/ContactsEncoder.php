@@ -56,6 +56,13 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     private $params;
 
+    /**
+     * Blocks that print the content of visitors: it takes its own budget, see modifyVisitorContent().
+     *
+     * @var string[]
+     */
+    private static $visitor_blocks = array('core/comment-content', 'core/comment-author-name', 'core/latest-comments');
+
     public function init($params)
     {
         parent::init($params);
@@ -144,6 +151,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             foreach ( $hooks_to_encode as $hook ) {
                 if ( $hook === 'render_block' ) {
                     // Post content is handled on the_content after do_blocks (priority 9).
+                    add_filter('render_block', array($this, 'markVisitorBlock'), 10, 2);
                     continue;
                 }
                 if ( $hook === 'the_content' ) {
@@ -160,6 +168,10 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
                 $this->shortcodes->addActionsBeforeModify($hook, 9);
                 //any hook that has actions BEFORE modify, must have actions AFTER
                 $this->shortcodes->addActionsAfterModify($hook, 999);
+                if ( $hook === 'render_block' ) {
+                    add_filter($hook, array($this, 'modifyRenderedBlock'), 10, 2);
+                    continue;
+                }
                 add_filter($hook, array($this, 'modifyContent'), 10);
             }
         }
@@ -275,6 +287,21 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             return parent::modifyContent($content, $skip_exclusions);
         }
 
+        if ( strpos($content, $this->getVisitorMarker(false)) !== false ) {
+            return $this->modifyAroundVisitorContent($content, $skip_exclusions);
+        }
+
+        return $this->modifySiteContent($content, $skip_exclusions);
+    }
+
+    /**
+     * @param string $content
+     * @param bool $skip_exclusions
+     *
+     * @return string
+     */
+    private function modifySiteContent($content, $skip_exclusions)
+    {
         if ( ! $skip_exclusions && $this->exclusions->doReturnContentBeforeModify($content) ) {
             return $this->grid_builder_integration->applyCompatibilityFix($content);
         }
@@ -285,6 +312,117 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
                 return parent::modifyContent($protected_content, $skip_exclusions);
             }
         );
+    }
+
+    /**
+     * A block with the content of visitors is encoded with their budget and marked: the outer blocks keep it.
+     *
+     * @param string|null $content
+     * @param array $block
+     *
+     * @return string|null
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function modifyRenderedBlock($content, $block = array())
+    {
+        if ( ! is_string($content) ) {
+            return $content;
+        }
+        if ( $content === '' || ! $this->isVisitorBlock($block) ) {
+            return $this->modifyContent($content);
+        }
+
+        return $this->markVisitorContent($this->modifyVisitorContent($content));
+    }
+
+    /**
+     * Buffer mode encodes the whole page once: a mark keeps the content of visitors on their budget there.
+     *
+     * @param string|null $content
+     * @param array $block
+     *
+     * @return string|null
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function markVisitorBlock($content, $block = array())
+    {
+        return is_string($content) && $content !== '' && $this->isVisitorBlock($block)
+            ? $this->markVisitorContent($content)
+            : $content;
+    }
+
+    /**
+     * @param array $block
+     *
+     * @return bool
+     */
+    private function isVisitorBlock($block)
+    {
+        return is_array($block) && isset($block['blockName']) && in_array($block['blockName'], self::$visitor_blocks, true);
+    }
+
+    /**
+     * @param bool $closing
+     *
+     * @return string An HTML comment with the nonce of the request: visitors can not plant it.
+     */
+    private function getVisitorMarker($closing)
+    {
+        return '<!--' . ($closing ? '/' : '') . 'apbct-visitor-' . PlaceholderNonce::get() . '-->';
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return string
+     */
+    private function markVisitorContent($content)
+    {
+        return $this->getVisitorMarker(false) . $content . $this->getVisitorMarker(true);
+    }
+
+    /**
+     * The marked content of visitors stays out of this pass: it is encoded already, or in buffer mode it is
+     * encoded here with the budget of visitors. The rest takes the budget of the site.
+     *
+     * @param string $content
+     * @param bool $skip_exclusions
+     *
+     * @return string
+     */
+    private function modifyAroundVisitorContent($content, $skip_exclusions)
+    {
+        global $apbct;
+
+        $open = $this->getVisitorMarker(false);
+        $close = $this->getVisitorMarker(true);
+        $kept = array();
+        $rest = '';
+        $position = 0;
+
+        while ( ($start = strpos($content, $open, $position)) !== false ) {
+            $end = strpos($content, $close, $start + strlen($open));
+            if ( $end === false ) {
+                break;
+            }
+
+            $inner = substr($content, $start + strlen($open), $end - $start - strlen($open));
+            if ( ! empty($apbct->settings['data__email_decoder_buffer']) ) {
+                $inner = $this->modifyVisitorContent($inner);
+            }
+
+            $kept[] = $open . $inner . $close;
+            $rest .= substr($content, $position, $start - $position) . '<!--apbct-visitor-' . PlaceholderNonce::get() . '-' . (count($kept) - 1) . '-->';
+            $position = $end + strlen($close);
+        }
+        $rest .= substr($content, $position);
+
+        $result = $rest === '' ? $rest : $this->modifySiteContent($rest, $skip_exclusions);
+        foreach ( $kept as $index => $part ) {
+            $result = str_replace('<!--apbct-visitor-' . PlaceholderNonce::get() . '-' . $index . '-->', $part, $result);
+        }
+
+        return $result;
     }
 
     /**
