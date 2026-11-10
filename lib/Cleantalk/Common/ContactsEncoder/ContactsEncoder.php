@@ -810,7 +810,9 @@ class ContactsEncoder
             $start = $at - $local;
             $end = $at + 1 + strspn($content, $chars, $at + 1, 255);
             $email = substr($content, $start, $end - $start);
-            $ending = strtolower(substr($content, $domain_dot, strspn($content, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', $domain_dot + 1, 63) + 1));
+            // The encoding takes the last part of the domain, files.jpg.example.org is not an image.
+            $domain = rtrim(substr($content, $at + 1, $end - $at - 1), '.-');
+            $ending = strtolower((string)strrchr($domain, '.'));
             if ( in_array($ending, self::$image_extensions, true) ) {
                 continue;
             }
