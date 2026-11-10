@@ -303,15 +303,23 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
         }
 
         // The opening tag of a shortcode has no `]` before its end: an outer tag starts after the last one.
+        // A bracket inside a HTML tag is hidden from the parser of shortcodes, see do_shortcodes_in_html_tags().
         $last_end = strrpos($content, ']', $offset - strlen($content) - 1);
+        while ( $last_end !== false ) {
+            $tag = $this->findHtmlTagStart($content, $last_end);
+            if ( $tag === false ) {
+                break;
+            }
+            $last_end = $tag > 0 ? strrpos($content, ']', $tag - strlen($content) - 1) : false;
+        }
         $from = $last_end === false ? 0 : $last_end + 1;
         if ( strpos($content, '[', $from) === $offset ) {
             return false;
         }
 
-        preg_match_all('/\[([^<>&\/\[\]\x00-\x20=]++)/', substr($content, $from, $offset - $from), $names);
+        preg_match_all('/\[([^<>&\/\[\]\x00-\x20=]++)/', substr($content, $from, $offset - $from), $names, PREG_OFFSET_CAPTURE);
         foreach ( isset($names[1]) ? $names[1] : array() as $name ) {
-            if ( shortcode_exists($name) ) {
+            if ( shortcode_exists($name[0]) && $this->findHtmlTagStart($content, $from + $name[1]) === false ) {
                 return true;
             }
         }
@@ -440,6 +448,23 @@ class EmailEncoderShortCode extends \Cleantalk\ApbctWP\ShortCode
         }
 
         return ContactsEncoderHelper::findRange($this->tag_starts, $this->tag_ends, $offset) !== false;
+    }
+
+    /**
+     * @param string $content
+     * @param int $offset
+     *
+     * @return int|false Start of the HTML tag containing the offset.
+     */
+    private function findHtmlTagStart($content, $offset)
+    {
+        if ( ! $this->isOffsetInsideHtmlTag($content, $offset) ) {
+            return false;
+        }
+
+        $index = ContactsEncoderHelper::findRange($this->tag_starts, $this->tag_ends, $offset);
+
+        return $index === false || ! isset($this->tag_starts[$index]) ? false : $this->tag_starts[$index];
     }
 
     /**

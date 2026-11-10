@@ -147,7 +147,9 @@ class EncodeContentSC extends EmailEncoderShortCode
         // Extract shortcode content to protect it from email encoding, supports sc attributes(!)
         return $this->replaceShortcodePairs($content, function ($pair) {
             $placeholder = $this->buildPlaceholder($this->shortcode_counter++);
-            $this->shortcode_replacements[$placeholder] = $pair['opener'] . Escape::escKsesPost($pair['inner']) . $pair['closer'];
+            // The text has no tags, see shortcodeContentContainsHtmlTags(): quotes are escaped wherever it lands.
+            $inner = str_replace(array('"', "'"), array('&quot;', '&#039;'), Escape::escKsesPost($pair['inner']));
+            $this->shortcode_replacements[$placeholder] = $pair['opener'] . $inner . $pair['closer'];
             $this->shortcode_masks[$placeholder] = $this->maskText($pair['inner']);
 
             return $placeholder;
