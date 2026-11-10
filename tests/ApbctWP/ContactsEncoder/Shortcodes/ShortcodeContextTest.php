@@ -846,6 +846,27 @@ class ShortcodeContextTest extends TestCase
     }
 
     /**
+     * In a separate process: the peak of memory of this call only. Links are not kept one by one.
+     */
+    public function testInnerHtmlReplacementDoesNotKeepTheTags()
+    {
+        $script = tempnam(sys_get_temp_dir(), 'ce');
+        file_put_contents($script, '<?php define("ABSPATH", "/"); require ' . var_export(APBCT_DIR_PATH . 'lib/autoloader.php', true) . ';'
+            . ' $o = (new ReflectionClass(' . var_export(ExcludedEncodeContentSC::class, true) . '))->newInstanceWithoutConstructor();'
+            . ' $m = new ReflectionMethod($o, "replaceElementsInnerHtml"); $m->setAccessible(true);'
+            . ' $c = str_repeat("<li><p>" . str_repeat("<a href=\\"/x\\">a</a>", 3600) . "</p></li>", 14); $base = memory_get_usage();'
+            . ' $out = $m->invoke($o, $c, function ($t) { return $t["name"] === "a"; }, function ($inner) { return null; });'
+            . ' echo json_encode(array((memory_get_peak_usage() - $base) / 1048576, $out === $c));');
+        $output = shell_exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($script) . ' 2>&1');
+        unlink($script);
+        $result = json_decode((string)$output, true);
+
+        $this->assertIsArray($result, (string)$output);
+        $this->assertLessThan(8, $result[0]);
+        $this->assertTrue($result[1]);
+    }
+
+    /**
      * Compiled in a separate process: with JIT off the old patterns take tens of seconds on this text.
      */
     public function testEmailPatternsAreBounded()

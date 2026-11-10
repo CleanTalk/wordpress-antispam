@@ -433,70 +433,48 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      */
     protected function replaceElementsInnerHtml($content, $is_target, $get_replacement, $limit = -1)
     {
-        // The closing tag is looked for among the tags with the same name: only they and the targets are kept.
-        $tokens = array();
-        $names = array();
-        ContactsEncoderHelper::walkMarkup($content, /** @param array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>} $token */ function ($token) use (&$tokens, &$names, $is_target) {
-            if ( isset($names[$token['name']]) ) {
-                $tokens[] = $token;
-            } elseif ( ! $token['closing'] && $is_target($token) ) {
-                $names[$token['name']] = true;
-                $tokens[] = $token;
-            }
-        });
-        $count = count($tokens);
+        // One pass: an open target waits for the next tag with its name, no list of tags is kept.
         $result = '';
         $position = 0;
+        $open = array();
 
-        for ( $i = 0; $i < $count && $limit !== 0; $i++ ) {
-            $token = $tokens[$i];
-            if ( $token['closing'] || ! $is_target($token) ) {
-                continue;
+        ContactsEncoderHelper::walkMarkup($content, /** @param array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>} $token */ function ($token) use ($content, $is_target, $get_replacement, &$limit, &$result, &$position, &$open) {
+            $name = $token['name'];
+
+            if ( isset($open[$name]) ) {
+                $opener = $open[$name];
+                unset($open[$name]);
+
+                // The same element opened again first has no closing tag of its own.
+                if ( $token['closing'] ) {
+                    $inner_start = $opener['end'];
+                    $inner = substr($content, $inner_start, $token['start'] - $inner_start);
+                    if (
+                        $limit === 0
+                        || $inner_start < $position
+                        || strpos($inner, '<!--') !== false
+                        || strpos($inner, '-->') !== false
+                    ) {
+                        return;
+                    }
+
+                    $replacement = $get_replacement($inner, $opener, $content);
+                    if ( $replacement !== null ) {
+                        $result .= substr($content, $position, $inner_start - $position) . $replacement;
+                        $position = $token['start'];
+                        $limit--;
+                    }
+
+                    return;
+                }
             }
 
-            $close = $this->findClosingToken($tokens, $i);
-            if ( $close === false ) {
-                continue;
+            if ( ! $token['closing'] && $limit !== 0 && $is_target($token) ) {
+                $open[$name] = $token;
             }
-
-            $inner_start = $token['end'];
-            $inner = substr($content, $inner_start, $tokens[$close]['start'] - $inner_start);
-            if ( strpos($inner, '<!--') !== false || strpos($inner, '-->') !== false ) {
-                continue;
-            }
-
-            $replacement = $get_replacement($inner, $token, $content);
-            if ( $replacement === null ) {
-                continue;
-            }
-
-            $result .= substr($content, $position, $inner_start - $position) . $replacement;
-            $position = $tokens[$close]['start'];
-            $i = $close;
-            $limit--;
-        }
+        });
 
         return $position === 0 ? $content : $result . substr($content, $position);
-    }
-
-    /**
-     * @param array<int, array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>}> $tokens
-     * @param int $open Index of an opening tag.
-     *
-     * @return int|false Index of its closing tag, false when the same element is opened again first.
-     */
-    private function findClosingToken($tokens, $open)
-    {
-        $name = $tokens[$open]['name'];
-        $count = count($tokens);
-
-        for ( $i = $open + 1; $i < $count; $i++ ) {
-            if ( $tokens[$i]['name'] === $name ) {
-                return $tokens[$i]['closing'] ? $i : false;
-            }
-        }
-
-        return false;
     }
 
     /**
