@@ -174,6 +174,11 @@ class ContactsEncoder
     protected $encoded_contacts_count = 0;
 
     /**
+     * @var string[] A "contact" with such an ending is a name of an image file, e.g. logo@2x.png.
+     */
+    private static $image_extensions = array('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp');
+
+    /**
      * @var int Signs of contacts taken by the content of visitors, see modifyVisitorContent().
      */
     protected $visitor_contact_signs_processed = 0;
@@ -380,7 +385,7 @@ class ContactsEncoder
                 return $matches[0];
             }
 
-            if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
+            if ( isset($matches[3]) && in_array(strtolower($matches[3]), self::$image_extensions, true) ) {
                 return $matches[0];
             }
 
@@ -805,6 +810,10 @@ class ContactsEncoder
             $start = $at - $local;
             $end = $at + 1 + strspn($content, $chars, $at + 1, 255);
             $email = substr($content, $start, $end - $start);
+            $ending = strtolower(substr($content, $domain_dot, strspn($content, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', $domain_dot + 1, 63) + 1));
+            if ( in_array($ending, self::$image_extensions, true) ) {
+                continue;
+            }
 
             $kept_end = $check_context ? $this->findKeptContextEnd($content, $email, $start, 'mailto:') : false;
             if ( $kept_end !== false ) {
