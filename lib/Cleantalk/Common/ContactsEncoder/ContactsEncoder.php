@@ -737,10 +737,12 @@ class ContactsEncoder
             $start = $at - $local;
             $end = $at + 1 + strlen($domain);
             $email = substr($content, $start, $end - $start);
-            if (
-                ( $check_context && ! $this->isMaskableContact($content, $email, $start, 'mailto:') )
-                || $this->exclusions->isContactExcluded($email)
-            ) {
+            $kept_end = $check_context ? $this->findKeptContextEnd($content, $email, $start, 'mailto:') : false;
+            if ( $kept_end !== false ) {
+                $offset = max($offset, $kept_end);
+                continue;
+            }
+            if ( $this->exclusions->isContactExcluded($email) ) {
                 continue;
             }
 
@@ -763,20 +765,24 @@ class ContactsEncoder
      * @param int $position
      * @param string $scheme
      *
-     * @return bool
+     * @return int|false False when the contact is masked, otherwise the offset to search the next one from:
+     *                   other contacts of the same attribute value stay as they are too.
      */
-    private function isMaskableContact($content, $contact, $position, $scheme)
+    private function findKeptContextEnd($content, $contact, $position, $scheme)
     {
         if (
             $this->helper->isInsideRawTextTag($contact, $content, $position)
             || $this->helper->isInsideOptionTag($contact, $content, $position)
         ) {
-            return false;
+            return $position + 1;
         }
 
         $range = $this->helper->findAttributeValueRange($content, $position);
+        if ( $range === false || strncasecmp(substr($content, $range[0], strlen($scheme)), $scheme, strlen($scheme)) === 0 ) {
+            return false;
+        }
 
-        return $range === false || strncasecmp(substr($content, $range[0], strlen($scheme)), $scheme, strlen($scheme)) === 0;
+        return $range[1];
     }
 
     /**
@@ -799,12 +805,9 @@ class ContactsEncoder
             $run = rtrim($run, ' -.(+');
             $digits = strlen($run) - strlen(str_replace(array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'), '', $run));
 
-            if (
-                $digits < 8 || $digits > 15
-                || ( $check_context && ! $this->isMaskableContact($content, $run, $position, 'tel:') )
-                || $this->exclusions->isContactExcluded($run)
-            ) {
-                $offset = $position + 1;
+            $kept_end = $digits < 8 || $digits > 15 || ! $check_context ? false : $this->findKeptContextEnd($content, $run, $position, 'tel:');
+            if ( $digits < 8 || $digits > 15 || $kept_end !== false || $this->exclusions->isContactExcluded($run) ) {
+                $offset = $kept_end === false ? $position + 1 : max($position + 1, $kept_end);
                 continue;
             }
 
