@@ -883,22 +883,30 @@ class ContactsEncoder
      */
     protected function maskPhonesWithoutEncoding($content, $check_context = true)
     {
-        $length = strlen($content);
         $result = '';
         $cursor = 0;
         $offset = 0;
+        $pattern = '/' . implode('|', self::PHONE_NUMBERS_PATTERNS) . '/';
 
-        while ( ($position = $offset + strcspn($content, '+(', $offset)) < $length ) {
-            // A "+" starts the next phone: two numbers in a row are masked one by one.
-            $run = substr($content, $position, 1 + strspn($content, '(0123456789 -.)', $position + 1, 24));
-            $run = rtrim($run, ' -.(+');
+        // The same phones as the encoding finds, so no format of them stays open and two of them are not joined.
+        while ( preg_match($pattern, $content, $match, PREG_OFFSET_CAPTURE, $offset) && isset($match[0][0], $match[0][1]) ) {
+            $run = $match[0][0];
+            $position = $match[0][1];
+            $offset = $position + max(1, strlen($run));
+
+            $is_tel = strncasecmp($run, 'tel:', 4) === 0;
             $digits = strlen($run) - strlen(str_replace(array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'), '', $run));
+            // The length check of the encoding: other runs of digits are not phones for it.
+            if ( ! $is_tel && ( $digits < 8 || $digits > 12 ) ) {
+                continue;
+            }
 
-            // A run starts as a phone of PHONE_NUMBERS_PATTERNS does: (2019-2020) is not one.
-            $is_phone = $digits >= 8 && $digits <= 15 && preg_match('/\G(?:\+[\s-]?\(?\d|\(\d{3}\))/', $content, $_start, 0, $position);
-            $kept_end = $is_phone && $check_context ? $this->findKeptContextEnd($content, $run, $position, 'tel:') : false;
-            if ( ! $is_phone || $kept_end !== false || $this->exclusions->isContactExcluded($run) ) {
-                $offset = $kept_end === false ? $position + 1 : max($position + 1, $kept_end);
+            $kept_end = $check_context ? $this->findKeptContextEnd($content, $run, $position, 'tel:') : false;
+            if ( $kept_end !== false ) {
+                $offset = max($offset, $kept_end);
+                continue;
+            }
+            if ( $this->exclusions->isContactExcluded($run) ) {
                 continue;
             }
 
@@ -918,8 +926,7 @@ class ContactsEncoder
             }
 
             $result .= substr($content, $cursor, $position - $cursor) . $masked;
-            $cursor = $position + strlen($run);
-            $offset = $cursor;
+            $cursor = $offset = $position + strlen($run);
         }
 
         return $cursor === 0 ? $content : $result . substr($content, $cursor);
