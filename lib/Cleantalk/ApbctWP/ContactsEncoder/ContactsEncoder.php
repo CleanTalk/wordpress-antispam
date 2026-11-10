@@ -442,14 +442,14 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     private function registerClassicVisitorMarks()
     {
         add_filter('comment_text', array($this, 'markVisitorCommentPart'), PHP_INT_MAX, 2);
-        add_filter('get_comment_author_link', array($this, 'markVisitorCommentPart'), PHP_INT_MAX, 3);
+        add_filter('get_comment_author_link', array($this, 'markVisitorCommentAuthorLink'), PHP_INT_MAX, 3);
         add_filter('comment_reply_link', array($this, 'markVisitorCommentReplyLink'), PHP_INT_MAX, 3);
         add_filter('get_avatar', array($this, 'markVisitorCommentAvatar'), PHP_INT_MAX, 2);
     }
 
     /**
      * @param string|mixed $content
-     * @param mixed $comment WP_Comment for comment_text, a comment ID for get_comment_author_link.
+     * @param mixed $comment WP_Comment or its ID.
      *
      * @return string|mixed
      * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
@@ -463,6 +463,21 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         return is_string($content) && $content !== '' && is_numeric($comment) && $this->isVisitorComment((int)$comment)
             ? $this->markVisitorContent($content)
             : $content;
+    }
+
+    /**
+     * get_comment_author_link passes the name of the author before the ID of the comment.
+     *
+     * @param string|mixed $link
+     * @param string $_author
+     * @param mixed $comment_id
+     *
+     * @return string|mixed
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function markVisitorCommentAuthorLink($link, $_author = '', $comment_id = 0)
+    {
+        return $this->markVisitorCommentPart($link, $comment_id);
     }
 
     /**

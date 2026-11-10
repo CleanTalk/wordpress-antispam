@@ -170,7 +170,11 @@ class TestContactsEncoderVisitorBudget extends TestCase
         $admin_comment = get_comment($this->comment_by($admin));
 
         $this->assertStringStartsWith('<!--apbct-visitor-', $this->encoder->markVisitorCommentPart('<p>t</p>', $visitor_comment));
-        $this->assertStringStartsWith('<!--apbct-visitor-', $this->encoder->markVisitorCommentPart('<a>n</a>', (string)$visitor_comment->comment_ID));
+        // The filters with the arguments WordPress passes them.
+        $id = (string)$visitor_comment->comment_ID;
+        $this->assertStringStartsWith('<!--apbct-visitor-', $this->encoder->markVisitorCommentAuthorLink('<a>n</a>', 'Name a@b.cc', $id));
+        $this->assertStringStartsWith('<!--apbct-visitor-', $this->encoder->markVisitorCommentReplyLink('<a>r</a>', array(), $visitor_comment));
+        $this->assertSame('<a>n</a>', $this->encoder->markVisitorCommentAuthorLink('<a>n</a>', 'Admin', (string)$admin_comment->comment_ID));
         $this->assertStringStartsWith('<!--apbct-visitor-', $this->encoder->markVisitorCommentAvatar('<img alt="n">', $visitor_comment));
         $this->assertSame('<p>t</p>', $this->encoder->markVisitorCommentPart('<p>t</p>', $admin_comment));
         $this->assertSame('<img alt="n">', $this->encoder->markVisitorCommentAvatar('<img alt="n">', 'user@example.org'));
@@ -178,6 +182,29 @@ class TestContactsEncoderVisitorBudget extends TestCase
         wp_delete_comment($visitor_comment->comment_ID, true);
         wp_delete_comment($admin_comment->comment_ID, true);
         wp_delete_user($admin);
+    }
+
+    /**
+     * The classic filters are registered with the number of arguments WordPress passes.
+     */
+    public function testClassicFiltersMarkTheCommentOfAVisitor()
+    {
+        $method = new \ReflectionMethod($this->encoder, 'registerClassicVisitorMarks');
+        $method->setAccessible(true);
+        $method->invoke($this->encoder);
+        $comment = get_comment($this->comment_by(0));
+
+        $link = apply_filters('get_comment_author_link', '<a href="#">Name</a>', 'Name', $comment->comment_ID);
+        $text = apply_filters('comment_text', '<p>t</p>', $comment, array());
+
+        remove_filter('comment_text', array($this->encoder, 'markVisitorCommentPart'), PHP_INT_MAX);
+        remove_filter('get_comment_author_link', array($this->encoder, 'markVisitorCommentAuthorLink'), PHP_INT_MAX);
+        remove_filter('comment_reply_link', array($this->encoder, 'markVisitorCommentReplyLink'), PHP_INT_MAX);
+        remove_filter('get_avatar', array($this->encoder, 'markVisitorCommentAvatar'), PHP_INT_MAX);
+        wp_delete_comment($comment->comment_ID, true);
+
+        $this->assertStringStartsWith('<!--apbct-visitor-', $link);
+        $this->assertStringContainsString('<!--apbct-visitor-', $text);
     }
 
     /**
