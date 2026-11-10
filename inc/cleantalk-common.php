@@ -1363,22 +1363,38 @@ function apbct_admin_ip_whitelist__retry_key($ip)
  */
 function apbct_admin_ip_whitelist__ajax()
 {
-    global $apbct;
-
     \Cleantalk\ApbctWP\AJAXService::checkAdminNonce();
 
     if ( ! apbct_admin_ip_whitelist__is_needed() ) {
         wp_send_json_success(array('skipped' => true));
     }
 
-    $ip = TT::toString(Helper::ipGet('real', true));
+    if ( ! apbct_admin_ip_whitelist__add(TT::toString(Helper::ipGet('real', true))) ) {
+        wp_send_json_error('COULDNT_ADD_WL_IP');
+    }
+
+    wp_send_json_success();
+}
+
+/**
+ * Adds the IP to the local and the cloud SpamFireWall whitelist.
+ * On success sets the cookie ct_sfw_ip_wl for 30 days, on failure pauses retries for an hour.
+ *
+ * @param string $ip
+ * @param callable $cloud_add Adds the IP to the cloud whitelist, returns bool. Replaceable in tests.
+ *
+ * @return bool
+ */
+function apbct_admin_ip_whitelist__add($ip, $cloud_add = 'apbct_private_list_add')
+{
+    global $apbct;
 
     // Local record first: the admin is not blocked even if the cloud call fails.
     SFW::updateWriteToDbExclusions(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL, array($ip));
 
-    if ( ! apbct_private_list_add($ip) ) {
+    if ( ! call_user_func($cloud_add, $ip) ) {
         set_transient(apbct_admin_ip_whitelist__retry_key($ip), 1, HOUR_IN_SECONDS);
-        wp_send_json_error('COULDNT_ADD_WL_IP');
+        return false;
     }
 
     Cookie::set(
@@ -1392,7 +1408,7 @@ function apbct_admin_ip_whitelist__ajax()
         'Lax'
     );
 
-    wp_send_json_success();
+    return true;
 }
 
 /**
