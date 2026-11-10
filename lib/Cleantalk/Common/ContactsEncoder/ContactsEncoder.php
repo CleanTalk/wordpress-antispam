@@ -1221,6 +1221,47 @@ class ContactsEncoder
     }
 
     /**
+     * The same as a match of EMAIL_PATTERN, in one pass: a text of an attribute is not limited by the budget
+     * of contact signs, and without PCRE JIT the pattern backtracks on a long run of dots and signs.
+     *
+     * @param string $text
+     *
+     * @return bool
+     */
+    public static function textContainsEmail($text)
+    {
+        if ( strpos($text, '@') === false ) {
+            return false;
+        }
+
+        // Dots that end a domain: 2-63 letters up to a word boundary. A regular expression without backtracking.
+        if ( ! preg_match_all('/\.[A-Za-z]{2,63}+(?![A-Za-z0-9_])/', $text, $dots, PREG_OFFSET_CAPTURE) || ! isset($dots[0]) ) {
+            return false;
+        }
+
+        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.';
+        $length = strlen($text);
+        $next = 0;
+        $count = count($dots[0]);
+
+        for ( $at = strpos($text, '@'); $at !== false && $next < $count; $at = strpos($text, '@', $at + 1) ) {
+            if ( $at === 0 || $at + 1 >= $length || strspn($text, $chars, $at - 1, 1) === 0 ) {
+                continue;
+            }
+
+            // The first ending dot after one sign of the domain, all the signs before it are of a domain.
+            while ( $next < $count && $dots[0][$next][1] < $at + 2 ) {
+                $next++;
+            }
+            if ( $next < $count && $dots[0][$next][1] <= $at + strspn($text, $chars, $at + 1, 256) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Drop attributes contains email from tag in the content to avoid unnecessary encoding.
      *
      * Example: <code><a title="example1@mail.com" href="mailto:example2@mail.com">Email</a></code>
@@ -1236,7 +1277,6 @@ class ContactsEncoder
      */
     private function dropAttributesContainEmail($content, $tags)
     {
-        $email_pattern = '/' . self::EMAIL_PATTERN . '/';
         $this->helper->indexMarkup($content);
 
         foreach ($tags as $tag => $attribute) {
@@ -1251,7 +1291,7 @@ class ContactsEncoder
 
             $replaced = preg_replace_callback(
                 $tag_pattern,
-                function ($tag_match) use ($attribute_pattern, $email_pattern, $content) {
+                function ($tag_match) use ($attribute_pattern, $content) {
                     if ( ! isset($tag_match[0]) || ! is_array($tag_match[0]) || ! isset($tag_match[0][0], $tag_match[0][1]) ) {
                         return '';
                     }
@@ -1269,12 +1309,12 @@ class ContactsEncoder
 
                     $stripped = preg_replace_callback(
                         $attribute_pattern,
-                        static function ($attribute_match) use ($email_pattern) {
+                        static function ($attribute_match) {
                             if ( ! isset($attribute_match[0], $attribute_match[2]) ) {
                                 return '';
                             }
 
-                            return preg_match($email_pattern, $attribute_match[2])
+                            return self::textContainsEmail($attribute_match[2])
                                 ? ''
                                 : $attribute_match[0];
                         },
