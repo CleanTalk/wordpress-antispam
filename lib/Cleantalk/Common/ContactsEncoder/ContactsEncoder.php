@@ -863,7 +863,8 @@ class ContactsEncoder
         $offset = 0;
 
         while ( ($position = $offset + strcspn($content, '+(', $offset)) < $length ) {
-            $run = substr($content, $position, strspn($content, '+(0123456789 -.)', $position, 25));
+            // A "+" starts the next phone: two numbers in a row are masked one by one.
+            $run = substr($content, $position, 1 + strspn($content, '(0123456789 -.)', $position + 1, 24));
             $run = rtrim($run, ' -.(+');
             $digits = strlen($run) - strlen(str_replace(array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'), '', $run));
 
