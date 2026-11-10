@@ -431,13 +431,14 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
                         : '';
                 }
 
-                // A long title and many links to it would make the page grow without a limit.
+                // A long title and many links to it would make the page grow without a limit:
+                // over it the text of the link keeps its size, only the tags of the shortcode are removed.
                 $restored = $this->restored_link_titles[$post_id];
-                if (
-                    $restored === ''
-                    || $this->restored_link_titles_bytes + strlen($restored) > self::MAX_RESTORED_LINK_TITLES_BYTES
-                ) {
+                if ( $restored === '' ) {
                     return null;
+                }
+                if ( $this->restored_link_titles_bytes + strlen($restored) > self::MAX_RESTORED_LINK_TITLES_BYTES ) {
+                    return str_replace(array('[apbct_skip_encoding]', '[/apbct_skip_encoding]'), '', $inner);
                 }
                 $this->restored_link_titles_bytes += strlen($restored);
 

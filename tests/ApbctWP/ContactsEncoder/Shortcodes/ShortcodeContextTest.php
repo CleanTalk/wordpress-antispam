@@ -754,6 +754,18 @@ class ShortcodeContextTest extends TestCase
 
         $this->assertLessThan(2 * 1048576, strlen($result));
         $this->assertGreaterThan(0, substr_count($result, 'Long title Long title'));
+        $this->assertStringNotContainsString('[apbct_skip_encoding]', $result);
+    }
+
+    public function testVisiblePartOfATextWithQuotesHasNoBrokenEntities()
+    {
+        $placeholder = $this->encode->changeContentBeforeEncoderModify('<p>[apbct_encode_data]"Q" \'q\' "Q" a@b.cc[/apbct_encode_data]</p>');
+        $result = $this->encode->changeContentAfterEncoderModify($placeholder);
+
+        $this->assertStringContainsString('data-original-string', $result);
+        // The visible edges of an escaped text were "&amp;q" and "t;".
+        $this->assertStringNotContainsString('&amp;', $result);
+        $this->assertSame(0, preg_match('/(?<!&quot|&#039)[a-z0-9];</', $result), $result);
     }
 
     public function testRestoredTextIsNotWrappedInParagraphsWhenTheEncoderIsOff()

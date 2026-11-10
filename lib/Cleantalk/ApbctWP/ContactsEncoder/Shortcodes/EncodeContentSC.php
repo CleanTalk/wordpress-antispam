@@ -110,6 +110,9 @@ class EncodeContentSC extends EmailEncoderShortCode
             $replacing_text = null;
         }
 
+        // The quotes were escaped on restore for the pairs that are not expanded; the visible part is escaped anyway.
+        $content = str_replace(array('&quot;', '&#039;'), array('"', "'"), $content);
+
         return apbctGetContactsEncoder()->modifyShortcodeContent($content, $mode, $replacing_text);
     }
 
