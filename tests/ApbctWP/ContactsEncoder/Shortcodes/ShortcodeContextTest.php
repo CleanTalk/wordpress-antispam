@@ -734,6 +734,29 @@ class ShortcodeContextTest extends TestCase
         );
     }
 
+    public function testRestoredLinkTitlesAreLimited()
+    {
+        $title = '[apbct_skip_encoding]' . str_repeat('Long title ', 5400) . '[/apbct_skip_encoding]';
+        $id = wp_insert_post(array('post_title' => $title, 'post_status' => 'publish', 'post_type' => 'post'));
+        $html = str_repeat('<a href="' . home_url('/?p=' . $id) . '">[apbct_skip_encoding] x</a> ', 2000);
+        $result = $this->restoreLinks($html);
+        wp_delete_post($id, true);
+
+        $this->assertLessThan(2 * 1048576, strlen($result));
+        $this->assertGreaterThan(0, substr_count($result, 'Long title Long title'));
+    }
+
+    public function testRestoredTextIsNotWrappedInParagraphsWhenTheEncoderIsOff()
+    {
+        global $apbct;
+        $apbct->settings['data__email_decoder'] = 0;
+        $placeholder = $this->exclude->changeContentBeforeEncoderModify('[apbct_skip_encoding]Notes[/apbct_skip_encoding]');
+        $result = $this->exclude->changeContentAfterEncoderModify('<a href="/x">' . $placeholder . '</a>');
+        $apbct->settings['data__email_decoder'] = 1;
+
+        $this->assertSame('<a href="/x">Notes</a>', $result);
+    }
+
     public function testBlockTitlesAreRestoredWhenTheEncoderIsOff()
     {
         global $apbct;

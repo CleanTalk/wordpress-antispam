@@ -11,6 +11,11 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      */
     const MAX_LINK_LOOKUPS = 100;
 
+    /**
+     * Bytes of titles restored into links per request.
+     */
+    const MAX_RESTORED_LINK_TITLES_BYTES = 1048576;
+
     protected $public_name = 'apbct_skip_encoding';
 
     /**
@@ -42,6 +47,16 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
      * @var array<int, string> Every title read from the database in this request, an empty one too.
      */
     private $queried_titles = array();
+
+    /**
+     * @var array<int, string> Post ID => restored text of its links, in this request.
+     */
+    private $restored_link_titles = array();
+
+    /**
+     * @var int Bytes of titles restored into links in this request.
+     */
+    private $restored_link_titles_bytes = 0;
 
     /**
      * @var array<string, int> Link => post ID, resolved in this request.
@@ -212,7 +227,7 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
             // The text may land in an attribute built by another shortcode: only the markup of the do_shortcode() path stays.
             $original = strpos($original, '<') === false ? esc_html($original) : wp_kses_post($original);
             //fix for wpautop when encoder is disabled
-            if ( !$apbct->settings['data__email_decoder'] ) {
+            if ( ! $apbct->settings['data__email_decoder'] && strpos($original, "\n") !== false ) {
                 $original = wpautop($original);
             }
             $content = str_replace($placeholder, $original, $content);
@@ -409,13 +424,24 @@ class ExcludedEncodeContentSC extends EmailEncoderShortCode
                     return null;
                 }
 
-                $title = $this->getRawPostTitle($post_id);
-
-                if ( ! is_string($title) || $title === '' || strpos($title, '[apbct_skip_encoding]') === false ) {
-                    return null;
+                if ( ! isset($this->restored_link_titles[$post_id]) ) {
+                    $title = $this->getRawPostTitle($post_id);
+                    $this->restored_link_titles[$post_id] = is_string($title) && strpos($title, '[apbct_skip_encoding]') !== false
+                        ? esc_html($this->processTitleString($title))
+                        : '';
                 }
 
-                return esc_html($this->processTitleString($title));
+                // A long title and many links to it would make the page grow without a limit.
+                $restored = $this->restored_link_titles[$post_id];
+                if (
+                    $restored === ''
+                    || $this->restored_link_titles_bytes + strlen($restored) > self::MAX_RESTORED_LINK_TITLES_BYTES
+                ) {
+                    return null;
+                }
+                $this->restored_link_titles_bytes += strlen($restored);
+
+                return $restored;
             }
         );
     }
