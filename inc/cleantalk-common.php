@@ -1314,45 +1314,102 @@ function apbct_add_async_attribute($tag, $handle)
     return $tag;
 }
 
-function apbct_add_admin_ip_to_swf_whitelist($user)
+/**
+ * Whether the current admin IP has to be added to the SpamFireWall whitelist.
+ * Admin pages pass the result to JS, which calls apbct_admin_ip_whitelist__ajax() in the background,
+ * so the login request does not wait for the API.
+ *
+ * @return bool
+ */
+function apbct_admin_ip_whitelist__is_needed()
 {
     global $apbct;
 
-    $user = ! $user instanceof WP_User ? apbct_wp_get_current_user() : $user;
-    $ip   = Helper::ipGet('real', true);
-
     if (
-        $apbct->settings['sfw__enabled'] && // Break if the SpamFireWall is inactive
-        Server::isGet() &&
-        ! apbct_wp_doing_cron() &&
-        is_object($user) &&
-        in_array('administrator', (array)$user->roles, true) &&
-        Cookie::get('ct_sfw_ip_wl') !== md5($ip . $apbct->api_key) &&
-        SFW::updateWriteToDbExclusions(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL, array($ip)) &&
-        apbct_private_list_add($ip) &&
-        ! headers_sent()
+        empty($apbct->settings['sfw__enabled']) ||
+        empty($apbct->key_is_ok) ||
+        empty($apbct->api_key) ||
+        empty($apbct->data['service_id']) ||
+        ! apbct_is_user_role_in(array('administrator'))
     ) {
-        Cookie::set(
-            'ct_sfw_ip_wl',
-            md5($ip . $apbct->api_key),
-            time() + 86400 * 30,
-            '/',
-            '',
-            null,
-            true,
-            'Lax'
-        );
+        return false;
     }
+
+    $ip = Helper::ipGet('real', true);
+
+    return $ip &&
+        Helper::ipValidate($ip) &&
+        Cookie::get('ct_sfw_ip_wl') !== md5($ip . $apbct->api_key) &&
+        ! get_transient(apbct_admin_ip_whitelist__retry_key($ip));
 }
 
+/**
+ * Transient name that pauses retries after a failed API call, so a broken call is not repeated on every admin page.
+ *
+ * @param string $ip
+ *
+ * @return string
+ */
+function apbct_admin_ip_whitelist__retry_key($ip)
+{
+    return 'apbct_admin_ip_wl_retry_' . md5($ip);
+}
+
+/**
+ * AJAX handler: adds the current admin IP to the local and the cloud SpamFireWall whitelist.
+ * The cookie ct_sfw_ip_wl is set only after the cloud confirmed the record.
+ *
+ * @return void
+ */
+function apbct_admin_ip_whitelist__ajax()
+{
+    global $apbct;
+
+    \Cleantalk\ApbctWP\AJAXService::checkAdminNonce();
+
+    if ( ! apbct_admin_ip_whitelist__is_needed() ) {
+        wp_send_json_success(array('skipped' => true));
+    }
+
+    $ip = Helper::ipGet('real', true);
+
+    // Local record first: the admin is not blocked even if the cloud call fails.
+    SFW::updateWriteToDbExclusions(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL, array($ip));
+
+    if ( ! apbct_private_list_add($ip) ) {
+        set_transient(apbct_admin_ip_whitelist__retry_key($ip), 1, HOUR_IN_SECONDS);
+        wp_send_json_error('COULDNT_ADD_WL_IP');
+    }
+
+    Cookie::set(
+        'ct_sfw_ip_wl',
+        md5($ip . $apbct->api_key),
+        time() + 86400 * 30,
+        '/',
+        '',
+        null,
+        true,
+        'Lax'
+    );
+
+    wp_send_json_success();
+}
+
+/**
+ * Adds the IP to the cloud SpamFireWall personal whitelist.
+ *
+ * @param string $ip
+ *
+ * @return bool
+ */
 function apbct_private_list_add($ip)
 {
     global $apbct;
 
     if ( Helper::ipValidate($ip) ) {
-        $result = API::methodPrivateListAddSfwWl($apbct->data['user_token'], $ip, $apbct->data['service_id']);
+        $result = API::methodPrivateListAddSfwWl($apbct->api_key, $apbct->data['service_id'], $ip);
 
-        return empty($result['error']);
+        return $result === true;
     }
 
     return false;
