@@ -722,7 +722,7 @@ class API
      *
      *
      * @param string $auth_key Access key of the service
-     * @param string $service_id
+     * @param int|string $service_id
      * @param string $ip
      * @param string $service_type
      * @param int $product_id

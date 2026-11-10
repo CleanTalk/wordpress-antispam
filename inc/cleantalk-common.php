@@ -1371,7 +1371,7 @@ function apbct_admin_ip_whitelist__ajax()
         wp_send_json_success(array('skipped' => true));
     }
 
-    $ip = Helper::ipGet('real', true);
+    $ip = TT::toString(Helper::ipGet('real', true));
 
     // Local record first: the admin is not blocked even if the cloud call fails.
     SFW::updateWriteToDbExclusions(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL, array($ip));
