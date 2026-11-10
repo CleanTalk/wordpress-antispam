@@ -4022,12 +4022,13 @@ class ApbctHandler {
                 ) {
                     try {
                         const atomicFormBody = args[1].body;
-                        const useEventToken = +ctPublic.bot_detector_enabled &&
-                            !!apbctLocalStorage.get('bot_detector_event_token');
                         const fieldPairs = [
-                            selectFieldsData(useEventToken),
+                            selectFieldsData(false),
                             apbctGetBrowserStatePair(),
                         ];
+                        if (+ctPublic.bot_detector_enabled) {
+                            fieldPairs.push(selectFieldsData(true));
+                        }
                         for (const pair of fieldPairs) {
                             if (pair && !atomicFormBody.has(pair.key)) {
                                 atomicFormBody.append(pair.key, pair.value);
