@@ -4015,6 +4015,29 @@ class ApbctHandler {
                     }
                 }
 
+                // === Elementor Pro Atomic Forms (Elementor v4 e-form widget) ===
+                if (
+                    args[1].body instanceof FormData &&
+                    args[1].body.get('action') === 'elementor_pro_atomic_forms_send_form'
+                ) {
+                    try {
+                        const atomicFormBody = args[1].body;
+                        const useEventToken = +ctPublic.bot_detector_enabled &&
+                            !!apbctLocalStorage.get('bot_detector_event_token');
+                        const fieldPairs = [
+                            selectFieldsData(useEventToken),
+                            apbctGetBrowserStatePair(),
+                        ];
+                        for (const pair of fieldPairs) {
+                            if (pair && !atomicFormBody.has(pair.key)) {
+                                atomicFormBody.append(pair.key, pair.value);
+                            }
+                        }
+                    } catch (e) {
+                        // Continue even if error
+                    }
+                }
+
                 // === WP Recipe Maker ===
                 if (
                     document.querySelectorAll('form.wprm-user-ratings-modal-stars-container').length > 0 &&
