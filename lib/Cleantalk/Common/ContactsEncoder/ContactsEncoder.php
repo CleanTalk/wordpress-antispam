@@ -365,16 +365,11 @@ class ContactsEncoder
         $this->temp_content = $content;
         $this->helper->indexMarkup($this->temp_content);
 
-        $match_cursor = 0;
-        $match_offsets = $this->collectMatchOffsets($this->global_email_pattern, $content);
-        $match_offset_index = 0;
         $cut_mailto_end = 0;
-        $replacing_result = preg_replace_callback($this->global_email_pattern, function ($matches) use ($match_offsets, &$match_offset_index, &$match_cursor, &$cut_mailto_end) {
+        $replacing_result = $this->replaceEmailMatches($content, function ($matches, $position) use (&$cut_mailto_end) {
             if ( ! isset($matches[0]) ) {
                 return '';
             }
-
-            $position = $this->resolveNextMatchOffset($matches[0], $match_offsets, $match_offset_index, $match_cursor);
 
             // The tail of a link that stays as is, e.g. its cc= copies.
             if ( $position !== false && $position < $cut_mailto_end ) {
@@ -437,7 +432,7 @@ class ContactsEncoder
             }
 
             return $this->encodePlainEmail($matches[0]);
-        }, $content);
+        });
 
         // A failed regular expression returns null: a guard could have failed as well, encode nothing.
         if ( ! is_string($replacing_result) ) {
@@ -600,6 +595,56 @@ class ContactsEncoder
         }
 
         return $position;
+    }
+
+    /**
+     * The same replacement as preg_replace_callback() with global_email_pattern, but the pattern runs only near
+     * the signs that can be a part of an e-mail: a match contains its sign, so the search starts at most
+     * a local part and "mailto:" before it. Without PCRE JIT a long text with few addresses is not scanned whole.
+     *
+     * @param string $content
+     * @param callable(array<int, string>, int):string $callback Receives the groups and the offset of the match.
+     *
+     * @return string|null Null when the regular expression fails, as preg_replace_callback() does.
+     */
+    private function replaceEmailMatches($content, $callback)
+    {
+        $result = '';
+        $cursor = 0;
+        $dot = -1;
+
+        for ( $at = strpos($content, '@'); $at !== false; $at = strpos($content, '@', $at + 1) ) {
+            if ( $at < $cursor ) {
+                continue;
+            }
+            if ( self::findEmailDomainDot($content, $at, $dot) === false ) {
+                if ( $dot === false ) {
+                    break;
+                }
+                continue;
+            }
+
+            $found = preg_match($this->global_email_pattern, $content, $match, PREG_OFFSET_CAPTURE, max($cursor, $at - 72));
+            if ( $found === false ) {
+                return null;
+            }
+            $whole = $found === 1 && isset($match[0]) ? $match[0] : null;
+            if ( ! is_array($whole) || ! isset($whole[0], $whole[1]) ) {
+                break;
+            }
+
+            $position = $whole[1];
+            $length = strlen($whole[0]);
+            $groups = array();
+            foreach ( $match as $index => $group ) {
+                $groups[$index] = isset($group[0]) ? $group[0] : '';
+            }
+
+            $result .= substr($content, $cursor, $position - $cursor) . $callback($groups, $position);
+            $cursor = $position + max(1, $length);
+        }
+
+        return $cursor === 0 ? $content : $result . substr($content, $cursor);
     }
 
     /**
