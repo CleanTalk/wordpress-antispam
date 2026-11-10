@@ -184,6 +184,23 @@ class EncodeContentSC extends EmailEncoderShortCode
     }
 
     /**
+     * Restore and expand the pairs of a part of the content, the placeholders of the other parts are kept.
+     *
+     * @param string $content
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod Called through ShortCodesService::$encode in buffer mode.
+     */
+    public function expandPairs($content)
+    {
+        if ( ! is_string($content) || $content === '' ) {
+            return $content;
+        }
+
+        return $this->doCallbackAction($this->restorePlaceholders($content));
+    }
+
+    /**
      * Restore the shortcodes. A placeholder inside a tag, e.g. in an attribute built by another shortcode,
      * is not a text of the page: there the shortcode is not processed, so the text is masked.
      *

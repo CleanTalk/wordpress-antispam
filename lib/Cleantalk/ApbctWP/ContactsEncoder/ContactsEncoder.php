@@ -61,7 +61,18 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      *
      * @var string[]
      */
-    private static $visitor_blocks = array('core/comment-content', 'core/comment-author-name', 'core/latest-comments');
+    private static $visitor_blocks = array(
+        'core/comment-content',
+        'core/comment-author-name',
+        'core/comment-reply-link',
+        'core/avatar',
+        'core/latest-comments',
+    );
+
+    /**
+     * @var array<int, bool> Comment ID => the comment is written by a visitor, not a moderator.
+     */
+    private $visitor_comments = array();
 
     /**
      * @var bool[] States of the visitor budget before the visitor blocks being filtered now.
@@ -156,7 +167,8 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             foreach ( $hooks_to_encode as $hook ) {
                 if ( $hook === 'render_block' ) {
                     // Post content is handled on the_content after do_blocks (priority 9).
-                    add_filter('render_block', array($this, 'markVisitorBlock'), 10, 2);
+                    add_filter('render_block', array($this, 'markVisitorBlock'), 10, 3);
+                    $this->registerClassicVisitorMarks();
                     continue;
                 }
                 if ( $hook === 'the_content' ) {
@@ -175,8 +187,8 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
                 $this->shortcodes->addActionsAfterModify($hook, 999);
                 if ( $hook === 'render_block' ) {
                     // A visitor block is on the budget of visitors through all its filters, shortcodes at 999 too.
-                    add_filter($hook, array($this, 'enterVisitorBlock'), 8, 2);
-                    add_filter($hook, array($this, 'leaveVisitorBlock'), 1001, 2);
+                    add_filter($hook, array($this, 'enterVisitorBlock'), 8, 3);
+                    add_filter($hook, array($this, 'leaveVisitorBlock'), 1001, 3);
                 }
                 add_filter($hook, array($this, 'modifyContent'), 10);
             }
@@ -327,9 +339,9 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      * @return string|null
      * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
      */
-    public function enterVisitorBlock($content, $block = array())
+    public function enterVisitorBlock($content, $block = array(), $instance = null)
     {
-        if ( $this->isVisitorBlock($block) ) {
+        if ( $this->isVisitorBlock($block, $instance) ) {
             $this->visitor_block_states[] = $this->setVisitorContent(true);
         }
 
@@ -341,13 +353,14 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      *
      * @param string|null $content
      * @param array $block
+     * @param object|null $instance
      *
      * @return string|null
      * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
      */
-    public function leaveVisitorBlock($content, $block = array())
+    public function leaveVisitorBlock($content, $block = array(), $instance = null)
     {
-        if ( ! $this->isVisitorBlock($block) || empty($this->visitor_block_states) ) {
+        if ( ! $this->isVisitorBlock($block, $instance) || empty($this->visitor_block_states) ) {
             return $content;
         }
 
@@ -361,25 +374,122 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      *
      * @param string|null $content
      * @param array $block
+     * @param object|null $instance
      *
      * @return string|null
      * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
      */
-    public function markVisitorBlock($content, $block = array())
+    public function markVisitorBlock($content, $block = array(), $instance = null)
     {
-        return is_string($content) && $content !== '' && $this->isVisitorBlock($block)
+        return is_string($content) && $content !== '' && $this->isVisitorBlock($block, $instance)
             ? $this->markVisitorContent($content)
             : $content;
     }
 
     /**
+     * A block that prints a comment of a visitor: its text, the name of the author (also in the avatar and in
+     * the reply link) or a list of comments. A comment of a moderator is the content of the site.
+     *
      * @param array $block
+     * @param object|null $instance WP_Block, its context knows the comment.
      *
      * @return bool
      */
-    private function isVisitorBlock($block)
+    private function isVisitorBlock($block, $instance = null)
     {
-        return is_array($block) && isset($block['blockName']) && in_array($block['blockName'], self::$visitor_blocks, true);
+        if ( ! is_array($block) || ! isset($block['blockName']) || ! in_array($block['blockName'], self::$visitor_blocks, true) ) {
+            return false;
+        }
+
+        if ( $block['blockName'] === 'core/latest-comments' ) {
+            return true;
+        }
+
+        $comment_id = is_object($instance) && isset($instance->context) && is_array($instance->context) && isset($instance->context['commentId'])
+            ? (int)$instance->context['commentId']
+            : 0;
+
+        // An avatar outside a comment is the avatar of a user of the site.
+        if ( $comment_id === 0 ) {
+            return $block['blockName'] !== 'core/avatar';
+        }
+
+        return $this->isVisitorComment($comment_id);
+    }
+
+    /**
+     * @param int $comment_id
+     *
+     * @return bool
+     */
+    private function isVisitorComment($comment_id)
+    {
+        if ( ! isset($this->visitor_comments[$comment_id]) ) {
+            $comment = get_comment($comment_id);
+            $user_id = is_object($comment) && isset($comment->user_id) ? (int)$comment->user_id : 0;
+            $this->visitor_comments[$comment_id] = ! ( $user_id > 0 && user_can($user_id, 'moderate_comments') );
+        }
+
+        return $this->visitor_comments[$comment_id];
+    }
+
+    /**
+     * A classic theme prints comments without blocks: in buffer mode their parts are marked by these filters.
+     * Each one returns markup of the body, so a mark never lands inside an attribute.
+     *
+     * @return void
+     */
+    private function registerClassicVisitorMarks()
+    {
+        add_filter('comment_text', array($this, 'markVisitorCommentPart'), PHP_INT_MAX, 2);
+        add_filter('get_comment_author_link', array($this, 'markVisitorCommentPart'), PHP_INT_MAX, 3);
+        add_filter('comment_reply_link', array($this, 'markVisitorCommentReplyLink'), PHP_INT_MAX, 3);
+        add_filter('get_avatar', array($this, 'markVisitorCommentAvatar'), PHP_INT_MAX, 2);
+    }
+
+    /**
+     * @param string|mixed $content
+     * @param mixed $comment WP_Comment for comment_text, a comment ID for get_comment_author_link.
+     *
+     * @return string|mixed
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function markVisitorCommentPart($content, $comment = null)
+    {
+        if ( is_object($comment) && isset($comment->comment_ID) ) {
+            $comment = $comment->comment_ID;
+        }
+
+        return is_string($content) && $content !== '' && is_numeric($comment) && $this->isVisitorComment((int)$comment)
+            ? $this->markVisitorContent($content)
+            : $content;
+    }
+
+    /**
+     * @param string|mixed $link
+     * @param array $_args
+     * @param mixed $comment
+     *
+     * @return string|mixed
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function markVisitorCommentReplyLink($link, $_args = array(), $comment = null)
+    {
+        return $this->markVisitorCommentPart($link, $comment);
+    }
+
+    /**
+     * @param string|mixed $avatar
+     * @param mixed $id_or_email
+     *
+     * @return string|mixed
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function markVisitorCommentAvatar($avatar, $id_or_email = null)
+    {
+        return is_object($id_or_email) && $id_or_email instanceof \WP_Comment
+            ? $this->markVisitorCommentPart($avatar, $id_or_email)
+            : $avatar;
     }
 
     /**
@@ -393,13 +503,52 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     }
 
     /**
+     * Marks can be nested, e.g. the text of a comment inside its block in buffer mode.
+     *
+     * @param string $content
+     * @param int $from Offset right after an opening mark.
+     *
+     * @return int|false Offset of its closing mark.
+     */
+    private function findVisitorPartEnd($content, $from)
+    {
+        $open = $this->getVisitorMarker(false);
+        $close = $this->getVisitorMarker(true);
+        $depth = 1;
+
+        while ( ($end = strpos($content, $close, $from)) !== false ) {
+            $next_open = strpos($content, $open, $from);
+            if ( $next_open !== false && $next_open < $end ) {
+                $depth++;
+                $from = $next_open + strlen($open);
+                continue;
+            }
+
+            if ( --$depth === 0 ) {
+                return $end;
+            }
+            $from = $end + strlen($close);
+        }
+
+        return false;
+    }
+
+    /**
      * @param string $content
      *
      * @return string
      */
     private function markVisitorContent($content)
     {
-        return $this->getVisitorMarker(false) . $content . $this->getVisitorMarker(true);
+        $open = $this->getVisitorMarker(false);
+        $close = $this->getVisitorMarker(true);
+
+        // The comment content block applies comment_text itself: one mark is enough.
+        if ( strpos($content, $open) === 0 && substr($content, -strlen($close)) === $close ) {
+            return $content;
+        }
+
+        return $open . $content . $close;
     }
 
     /**
@@ -422,7 +571,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $position = 0;
 
         while ( ($start = strpos($content, $open, $position)) !== false ) {
-            $end = strpos($content, $close, $start + strlen($open));
+            $end = $this->findVisitorPartEnd($content, $start + strlen($open));
             if ( $end === false ) {
                 break;
             }
@@ -549,7 +698,43 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $this->buffer_modified = true;
         $apbct->buffer = $this->shortcodes->modifyBufferBefore($apbct->buffer);
         $apbct->buffer = $this->modifyContent($apbct->buffer);
+        $apbct->buffer = $this->expandVisitorShortcodes($apbct->buffer);
         $apbct->buffer = $this->shortcodes->modifyBufferAfter($apbct->buffer);
+    }
+
+    /**
+     * The shortcodes of the parts of visitors are expanded on their budget, before the rest of the page.
+     *
+     * @param string $buffer
+     *
+     * @return string
+     */
+    private function expandVisitorShortcodes($buffer)
+    {
+        $open = $this->getVisitorMarker(false);
+        $close = $this->getVisitorMarker(true);
+        if ( ! is_string($buffer) || strpos($buffer, $open) === false ) {
+            return $buffer;
+        }
+
+        $result = '';
+        $position = 0;
+        while ( ($start = strpos($buffer, $open, $position)) !== false ) {
+            $end = $this->findVisitorPartEnd($buffer, $start + strlen($open));
+            if ( $end === false ) {
+                break;
+            }
+
+            $inner_start = $start + strlen($open);
+            $was_visitor_content = $this->setVisitorContent(true);
+            $inner = $this->shortcodes->encode->expandPairs(substr($buffer, $inner_start, $end - $inner_start));
+            $this->setVisitorContent($was_visitor_content);
+
+            $result .= substr($buffer, $position, $inner_start - $position) . $inner . $close;
+            $position = $end + strlen($close);
+        }
+
+        return $position === 0 ? $buffer : $result . substr($buffer, $position);
     }
 
     public function bufferOutput()
