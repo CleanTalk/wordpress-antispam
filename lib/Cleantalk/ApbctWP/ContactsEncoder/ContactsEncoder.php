@@ -63,6 +63,11 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      */
     private static $visitor_blocks = array('core/comment-content', 'core/comment-author-name', 'core/latest-comments');
 
+    /**
+     * @var bool[] States of the visitor budget before the visitor blocks being filtered now.
+     */
+    private $visitor_block_states = array();
+
     public function init($params)
     {
         parent::init($params);
@@ -169,8 +174,9 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
                 //any hook that has actions BEFORE modify, must have actions AFTER
                 $this->shortcodes->addActionsAfterModify($hook, 999);
                 if ( $hook === 'render_block' ) {
-                    add_filter($hook, array($this, 'modifyRenderedBlock'), 10, 2);
-                    continue;
+                    // A visitor block is on the budget of visitors through all its filters, shortcodes at 999 too.
+                    add_filter($hook, array($this, 'enterVisitorBlock'), 8, 2);
+                    add_filter($hook, array($this, 'leaveVisitorBlock'), 1001, 2);
                 }
                 add_filter($hook, array($this, 'modifyContent'), 10);
             }
@@ -315,7 +321,23 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     }
 
     /**
-     * A block with the content of visitors is encoded with their budget and marked: the outer blocks keep it.
+     * @param string|null $content
+     * @param array $block
+     *
+     * @return string|null
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function enterVisitorBlock($content, $block = array())
+    {
+        if ( $this->isVisitorBlock($block) ) {
+            $this->visitor_block_states[] = $this->setVisitorContent(true);
+        }
+
+        return $content;
+    }
+
+    /**
+     * The encoded block of visitors is marked: the outer blocks keep it, see modifyAroundVisitorContent().
      *
      * @param string|null $content
      * @param array $block
@@ -323,16 +345,15 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      * @return string|null
      * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
      */
-    public function modifyRenderedBlock($content, $block = array())
+    public function leaveVisitorBlock($content, $block = array())
     {
-        if ( ! is_string($content) ) {
+        if ( ! $this->isVisitorBlock($block) || empty($this->visitor_block_states) ) {
             return $content;
         }
-        if ( $content === '' || ! $this->isVisitorBlock($block) ) {
-            return $this->modifyContent($content);
-        }
 
-        return $this->markVisitorContent($this->modifyVisitorContent($content));
+        $this->setVisitorContent((bool)array_pop($this->visitor_block_states));
+
+        return is_string($content) && $content !== '' ? $this->markVisitorContent($content) : $content;
     }
 
     /**

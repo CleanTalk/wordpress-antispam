@@ -631,14 +631,29 @@ class ContactsEncoder
      */
     public function modifyVisitorContent($content)
     {
-        $was_visitor_content = $this->is_visitor_content;
-        $this->is_visitor_content = true;
+        $was_visitor_content = $this->setVisitorContent(true);
 
         try {
             return $this->modifyContent($content);
         } finally {
-            $this->is_visitor_content = $was_visitor_content;
+            $this->setVisitorContent($was_visitor_content);
         }
+    }
+
+    /**
+     * Content of visitors is processed by several steps, e.g. its shortcodes after the main pass: all of them
+     * take the budget of visitors while it is on.
+     *
+     * @param bool $is_visitor_content
+     *
+     * @return bool The previous state.
+     */
+    public function setVisitorContent($is_visitor_content)
+    {
+        $was_visitor_content = $this->is_visitor_content;
+        $this->is_visitor_content = (bool)$is_visitor_content;
+
+        return $was_visitor_content;
     }
 
     /**
