@@ -102,6 +102,16 @@ class TestContactsEncoderVisitorBudget extends TestCase
         $this->assertSame(ContactsEncoder::MAX_ENCODED_CONTACTS_PER_REQUEST, $property->getValue($this->encoder));
     }
 
+    public function testManyCommentsAreRestoredInOnePass()
+    {
+        $comment = $this->encoder->markVisitorBlock('<p>' . str_repeat('x ', 1000) . '</p>', array('blockName' => 'core/comment-content'));
+        $page = str_repeat($comment, 2000);
+        $start = microtime(true);
+
+        $this->assertSame($page, $this->encoder->modifyContent($page));
+        $this->assertLessThan(1, microtime(true) - $start);
+    }
+
     public function testPlantedMarkerIsNotTrusted()
     {
         $page = $this->renderBlock('<p><!--apbct-visitor-x-->owner@example.org<!--/apbct-visitor-x--></p>', 'core/group');

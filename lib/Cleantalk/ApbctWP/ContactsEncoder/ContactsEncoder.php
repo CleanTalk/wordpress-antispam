@@ -432,18 +432,17 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
                 $inner = $this->modifyVisitorContent($inner);
             }
 
-            $kept[] = $open . $inner . $close;
-            $rest .= substr($content, $position, $start - $position) . '<!--apbct-visitor-' . PlaceholderNonce::get() . '-' . (count($kept) - 1) . '-->';
+            $placeholder = '<!--apbct-visitor-' . PlaceholderNonce::get() . '-' . count($kept) . '-->';
+            $kept[$placeholder] = $open . $inner . $close;
+            $rest .= substr($content, $position, $start - $position) . $placeholder;
             $position = $end + strlen($close);
         }
         $rest .= substr($content, $position);
 
         $result = $rest === '' ? $rest : $this->modifySiteContent($rest, $skip_exclusions);
-        foreach ( $kept as $index => $part ) {
-            $result = str_replace('<!--apbct-visitor-' . PlaceholderNonce::get() . '-' . $index . '-->', $part, $result);
-        }
 
-        return $result;
+        // One pass for all the parts.
+        return empty($kept) ? $result : strtr($result, $kept);
     }
 
     /**
