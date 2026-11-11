@@ -1291,10 +1291,12 @@ function ct_enqueue_styles_public()
         $apbct->settings['data__general_postdata_test']
     ) {
         ApbctEnqueue::getInstance()->css('cleantalk-public.css');
-        ApbctEnqueue::getInstance()->css('cleantalk-email-decoder.css');
     }
     if ( $apbct->settings['comments__the_real_person'] ) {
         ApbctEnqueue::getInstance()->css('cleantalk-trp.css');
+    }
+    if ( $apbct->settings['data__email_decoder'] ) {
+        ApbctEnqueue::getInstance()->css('cleantalk-email-decoder.css');
     }
 }
 

@@ -348,6 +348,16 @@ class TestGetFieldsAny extends TestCase {
         $this->assertArrayNotHasKey('visible_fields', $result);
     }
 
+    public function testGetFieldsWithTildeInEmail()
+    {
+        $email = 'bgg~671bkbz0p7mt7ywd@fextemp.com';
+        $result = (new GetFieldsAny(array('email' => $email)))->getFields();
+
+        $this->assertSame($email, $result['email']);
+        $this->assertSame(array('email' => $email), $result['emails_array']);
+        $this->assertSame(array(), $result['message']);
+    }
+
     /**
      * Tests the email-like patterns against predefined lists of valid and invalid email strings.
      *
@@ -367,6 +377,7 @@ class TestGetFieldsAny extends TestCase {
             'user-name@example.com',
             'user+tag@example.com',
             'user%test@example.com',
+            'bgg~671bkbz0p7mt7ywd@fextemp.com',
             'u123@example123.com',
             'user.name+tag+sorting@example.com',
             'user_name-test@example-domain.com',
