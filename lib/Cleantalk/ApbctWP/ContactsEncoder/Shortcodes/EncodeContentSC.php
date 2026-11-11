@@ -16,6 +16,8 @@ use Cleantalk\ApbctWP\ContactsEncoder\Exclusions\ExclusionsService;
  */
 class EncodeContentSC extends EmailEncoderShortCode
 {
+    const MAX_REPLACING_TEXT_LENGTH = 100;
+
     /**
      * @var string The public name of the shortcode.
      */
@@ -24,6 +26,10 @@ class EncodeContentSC extends EmailEncoderShortCode
      * @var array Stores replacements for shortcodes to protect them during encoding.
      */
     public $shortcode_replacements = array();
+    /**
+     * @var array<string, string> Masks of the replacements, for a placeholder that lands inside a tag.
+     */
+    private $shortcode_masks = array();
     /**
      * @var string The wrapper used to mark content for inclusion during encoding.
      */
@@ -47,6 +53,28 @@ class EncodeContentSC extends EmailEncoderShortCode
         $this->exclusions = new ExclusionsService($params);
     }
 
+
+    /**
+     * The author asked to hide this text: over the budget it is masked without encoding.
+     *
+     * @param array{opener_start: int, inner_start: int, closer_start: int, end: int, attributes: string, inner: string, opener: string, closer: string, over_limit: bool} $pair
+     *
+     * @return string
+     */
+    protected function replacePairOverLimit($pair)
+    {
+        return $this->maskText($pair['inner']);
+    }
+
+    /**
+     * @param string $text
+     *
+     * @return string
+     */
+    private function maskText($text)
+    {
+        return str_repeat('*', max(1, min(self::MAX_REPLACING_TEXT_LENGTH, mb_strlen($text))));
+    }
 
     /**
      * Callback function for the shortcode.
@@ -77,10 +105,13 @@ class EncodeContentSC extends EmailEncoderShortCode
         }
 
         if (isset($_atts['replacing_text']) && !empty($_atts['replacing_text']) && is_string($_atts['replacing_text'])) {
-            $replacing_text = esc_html($_atts['replacing_text']);
+            $replacing_text = esc_html(mb_substr($_atts['replacing_text'], 0, self::MAX_REPLACING_TEXT_LENGTH));
         } else {
             $replacing_text = null;
         }
+
+        // The quotes were escaped on restore for the pairs that are not expanded; the visible part is escaped anyway.
+        $content = str_replace(array('&quot;', '&#039;'), array('"', "'"), $content);
 
         return apbctGetContactsEncoder()->modifyShortcodeContent($content, $mode, $replacing_text);
     }
@@ -117,25 +148,15 @@ class EncodeContentSC extends EmailEncoderShortCode
 
         // skip encoding if the content is already encoded with hook
         // Extract shortcode content to protect it from email encoding, supports sc attributes(!)
-        $shortcode_exist_pattern = sprintf('/(\[%s(?:\s[^\]]*)?\])([\s\S]*?)(\[\/%s\])/s', $this->public_name, $this->public_name);
-        $content = preg_replace_callback($shortcode_exist_pattern, function ($matches) {
-            if ( ! isset($matches[1], $matches[2], $matches[3]) ) {
-                return isset($matches[0]) ? $matches[0] : '';
-            }
-
-            if ( $this->shortcodeContentContainsHtmlTags($matches[2]) ) {
-                return isset($matches[0]) ? $matches[0] : '';
-            }
-
+        return $this->replaceShortcodePairs($content, function ($pair) {
             $placeholder = $this->buildPlaceholder($this->shortcode_counter++);
-            $prefix = $matches[1];
-            $entity = Escape::escKsesPost($matches[2]);
-            $suffix = $matches[3];
-            $this->shortcode_replacements[$placeholder] = $prefix . $entity . $suffix;
+            // The text has no tags, see shortcodeContentContainsHtmlTags(): quotes are escaped wherever it lands.
+            $inner = str_replace(array('"', "'"), array('&quot;', '&#039;'), Escape::escKsesPost($pair['inner']));
+            $this->shortcode_replacements[$placeholder] = $pair['opener'] . $inner . $pair['closer'];
+            $this->shortcode_masks[$placeholder] = $this->maskText($pair['inner']);
 
             return $placeholder;
-        }, $content);
-        return $content;
+        });
     }
 
     /**
@@ -159,15 +180,68 @@ class EncodeContentSC extends EmailEncoderShortCode
             return $content;
         }
 
-        // Restore shortcodes
-        foreach ($this->shortcode_replacements as $placeholder => $original) {
-            $content = str_replace($placeholder, $original, $content);
-        }
-
-        $result = $this->doCallbackAction($content);
+        $result = $this->doCallbackAction($this->restorePlaceholders($content));
         $this->resetShortcodeReplacements();
 
         return $result;
+    }
+
+    /**
+     * Restore and expand the pairs of a part of the content, the placeholders of the other parts are kept.
+     *
+     * @param string $content
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod Called through ShortCodesService::$encode in buffer mode.
+     */
+    public function expandPairs($content)
+    {
+        if ( ! is_string($content) || $content === '' ) {
+            return $content;
+        }
+
+        return $this->doCallbackAction($this->restorePlaceholders($content));
+    }
+
+    /**
+     * Restore the shortcodes. A placeholder inside a tag, e.g. in an attribute built by another shortcode,
+     * is not a text of the page: there the shortcode is not processed, so the text is masked.
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    private function restorePlaceholders($content)
+    {
+        if ( empty($this->shortcode_replacements) ) {
+            return $content;
+        }
+
+        $found = array();
+        foreach ( $this->shortcode_replacements as $placeholder => $_original ) {
+            $placeholder = (string)$placeholder;
+            for ( $at = strpos($content, $placeholder); $at !== false; $at = strpos($content, $placeholder, $at + strlen($placeholder)) ) {
+                $found[$at] = $placeholder;
+            }
+        }
+        ksort($found);
+
+        $result = '';
+        $position = 0;
+        foreach ( $found as $at => $placeholder ) {
+            if ( $at < $position ) {
+                continue;
+            }
+
+            $replacement = $this->isOffsetInsideHtmlTag($content, $at)
+                ? (isset($this->shortcode_masks[$placeholder]) ? $this->shortcode_masks[$placeholder] : '*')
+                : $this->shortcode_replacements[$placeholder];
+            $result .= substr($content, $position, $at - $position) . $replacement;
+            $position = $at + strlen($placeholder);
+        }
+        $this->forgetTagIndex();
+
+        return $position === 0 ? $content : $result . substr($content, $position);
     }
 
     /**
@@ -176,6 +250,7 @@ class EncodeContentSC extends EmailEncoderShortCode
     public function resetShortcodeReplacements()
     {
         $this->shortcode_replacements = array();
+        $this->shortcode_masks = array();
         $this->shortcode_counter = 0;
         $this->rotatePlaceholderNonce();
     }
