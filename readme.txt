@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 6.91
+Stable tag: 6.92
 License: GPLv2
 
 Advanced antispam for comments, registrations & contact forms. No CAPTCHA, plus email validation and honeypot. We catch spam others miss!
@@ -423,6 +423,18 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 12. SpamFireWall in action. It blocks the most active and well-known spam bots before they reach your website’s content.
 
 == Changelog ==
+
+= 6.92 11.11.2026 =
+* Fix. CSV export. Regex forced.
+* Fix. WooCommerce. Block checkout account creation is checked as an order when registration during checkout check is off.
+* Fix. Integration. Elementor pro Atomic forms integration fixed #2.
+* Fix. Integration. Elementor pro Atomic forms integration fixed.
+* Code. Common libs updated.
+* Fix. Contacts encoder. Styles including fixed.
+* Fix. Get Fields Any. Email regex pattern fixed.
+* Fix. Helper. IP v6 normalization fixed.
+* Fix. Integrations. Service request excluded for MWB HubSpot for WooCommerce.
+* New. Integration. ARMembership registrations.
 
 = 6.91 27.10.2026 =
 * Fix. Settings. Improve hide function.

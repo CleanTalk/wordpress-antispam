@@ -1,5 +1,17 @@
 == Changelog ==
 
+= 6.92 11.11.2026 =
+* Fix. CSV export. Regex forced.
+* Fix. WooCommerce. Block checkout account creation is checked as an order when registration during checkout check is off.
+* Fix. Integration. Elementor pro Atomic forms integration fixed #2.
+* Fix. Integration. Elementor pro Atomic forms integration fixed.
+* Code. Common libs updated.
+* Fix. Contacts encoder. Styles including fixed.
+* Fix. Get Fields Any. Email regex pattern fixed.
+* Fix. Helper. IP v6 normalization fixed.
+* Fix. Integrations. Service request excluded for MWB HubSpot for WooCommerce.
+* New. Integration. ARMembership registrations.
+
 = 6.91 27.10.2026 =
 * Fix. Settings. Improve hide function.
 * Fix. SFW. AC/AF pass cookie value fixed. (#917)
