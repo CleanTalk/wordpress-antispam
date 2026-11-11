@@ -39,6 +39,14 @@
             }
         });
 
+        // Whitelist the admin IP in SpamFireWall in the background (once per 30 days, see ct_sfw_ip_wl cookie)
+        if (+ctAdminCommon.needToWhitelistAdminIp === 1) {
+            apbct_admin_sendAJAX(
+                {'action': 'apbct_admin_ip_whitelist'},
+                {'callback': null, 'notJson': true},
+            );
+        }
+
         let btnForceProtectionOn = document.querySelector('#apbct_setting_forms__force_protection__On');
         if (btnForceProtectionOn) {
             btnForceProtectionOn.addEventListener('click', function(e) {

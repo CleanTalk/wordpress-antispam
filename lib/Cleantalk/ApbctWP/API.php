@@ -19,22 +19,19 @@ use Cleantalk\ApbctWP\HTTP\Request;
 class API extends \Cleantalk\Common\API
 {
     /**
-     * @param $user_token
-     * @param $service_id
-     * @param $ip
-     * @param $servie_type
-     * @param $product_id
-     * @param $record_type
-     * @param $note
-     * @param $status
+     * Adds the website admin IP to the SpamFireWall personal whitelist for 30 days.
      *
-     * @return array|bool|string[]
+     * @param string $auth_key Access key of the service
+     * @param int|string $service_id
+     * @param string $ip
+     *
+     * @return array|bool|string[] true on success, array with 'error' otherwise
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public static function methodPrivateListAddSfwWl($user_token, $service_id, $ip)
+    public static function methodPrivateListAddSfwWl($auth_key, $service_id, $ip)
     {
         return static::methodPrivateListAdd(
-            $user_token,
+            $auth_key,
             $service_id,
             $ip,
             'spamfirewall',
