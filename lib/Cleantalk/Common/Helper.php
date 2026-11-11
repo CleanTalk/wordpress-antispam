@@ -493,7 +493,7 @@ class Helper
         // Searching for ::ffff:xx.xx.xx.xx patterns and turn it to IPv6
         if (preg_match('/^::ffff:([0-9]{1,3}\.?){4}$/', $ip)) {
             $ip = dechex((int)sprintf("%u", ip2long(substr($ip, 7))));
-            $ip = '0:0:0:0:0:0:' . (strlen($ip) > 4 ? substr('abcde', 0, -4) : '0') . ':' . substr($ip, -4, 4);
+            $ip = '0:0:0:0:0:0:' . (strlen($ip) > 4 ? substr($ip, 0, -4) : '0') . ':' . substr($ip, -4, 4);
             // Normalizing hextets number
         } elseif (strpos($ip, '::') !== false) {
             $ip = str_replace('::', str_repeat(':0', 8 - substr_count($ip, ':')) . ':', $ip);
