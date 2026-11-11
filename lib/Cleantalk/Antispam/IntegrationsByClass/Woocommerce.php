@@ -101,11 +101,7 @@ class Woocommerce extends IntegrationByClassBase
         $this->addPaymentMethodActions();
 
         // registration
-        if ( !$apbct->settings['forms__wc_register_from_order'] && (Request::get('wc-ajax') === 'checkout' || Request::get('wc-ajax') === 'complete_order') ) {
-            remove_filter('woocommerce_registration_errors', 'ct_registration_errors', 1);
-        } else {
-            add_filter('woocommerce_registration_errors', 'ct_registration_errors', 1, 3);
-        }
+        add_filter('woocommerce_registration_errors', [$this, 'registrationErrors'], 1, 3);
 
         // collect data for spam orders
         add_filter('woocommerce_register_shop_order_post_statuses', [$this, 'addOrdersSpamStatus']);
@@ -169,6 +165,46 @@ class Woocommerce extends IntegrationByClassBase
             'apbct_wc_spam_orders',
             [$this, 'renderSpamOrdersPage']
         );
+    }
+
+    /**
+     * WooCommerce registration check (woocommerce_registration_errors).
+     *
+     * The filter fires for the My Account form and for the account created during checkout.
+     * At checkout the customer is created before the order check runs: classic checkout after
+     * woocommerce_checkout_process, the block checkout (Store API) after
+     * woocommerce_store_api_checkout_update_customer_from_request. When the option
+     * "Spam test for registration during checkout" is off, the request must reach the order
+     * check, so the registration check is skipped there.
+     *
+     * @param \WP_Error|mixed $errors
+     * @param string|null $sanitized_user_login
+     * @param string|null $user_email
+     *
+     * @return \WP_Error|mixed
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function registrationErrors($errors, $sanitized_user_login = null, $user_email = null)
+    {
+        global $apbct;
+
+        if ( ! $apbct->settings['forms__wc_register_from_order'] && self::isCheckoutInProgress() ) {
+            return $errors;
+        }
+
+        return ct_registration_errors($errors, $sanitized_user_login, $user_email);
+    }
+
+    /**
+     * Whether the current request is a WooCommerce checkout which is processed now.
+     *
+     * @return bool
+     */
+    public static function isCheckoutInProgress()
+    {
+        return did_action('woocommerce_checkout_process') > 0 ||
+            did_action('woocommerce_store_api_checkout_update_customer_from_request') > 0 ||
+            in_array(Request::getString('wc-ajax'), ['checkout', 'complete_order'], true);
     }
 
     public function addActions()
