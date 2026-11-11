@@ -163,3 +163,11 @@ Remove the definition to allow normal metric collection.
 - **Type:** `bool`.
 - **Declaration:** [Constant.php:238](../lib/Cleantalk/ApbctWP/Constant.php#L238).
 - **Deprecated names:** none.
+
+## `APBCT_SERVICE__PERF_METRICS_HEADER`
+
+If true, js_keys__get responses carry a Server-Timing header with performance metrics.
+
+- **Type:** `bool`.
+- **Declaration:** [Constant.php:245](../lib/Cleantalk/ApbctWP/Constant.php#L245).
+- **Deprecated names:** none.
