@@ -494,7 +494,7 @@ class UsersChecker extends Checker
      * Escape a cell value for CSV export
      *
      * Take care when changing this: neutralize formula prefixes before CSV quoting,
-     * including after commas and semicolons. Do not HTML-escape the resulting CSV.
+     * including after commas, semicolons, and double quotes. Do not HTML-escape the resulting CSV.
      *
      * @param mixed $value
      * @return string
@@ -503,7 +503,7 @@ class UsersChecker extends Checker
     {
         $value = (string) $value;
 
-        $value = preg_replace('/(^|[,;])(\s*[=+\-@\t\r|])/u', '$1\'$2', $value);
+        $value = preg_replace('/(^|[,;"])(\s*[=+\-@\t\r|])/u', '$1\'$2', $value);
         if ( $value === null ) {
             wp_send_json_error(array(
                 'message' => __('CSV export failed. Please try again or contact support.', 'cleantalk-spam-protect'),

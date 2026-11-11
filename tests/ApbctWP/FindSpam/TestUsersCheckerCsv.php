@@ -45,6 +45,16 @@ class TestUsersCheckerCsv extends TestCase
             'tab after semicolon' => array("z;\tname;w", "\"z;'\tname;w\""),
             'consecutive separators' => array('x;,=1;,+2', '"x;,\'=1;,\'+2"'),
             'other formula prefixes after separators' => array('x;-1;@SUM(A1),+2', '"x;\'-1;\'@SUM(A1),\'+2"'),
+            'formula after semicolon and quote' => array('x;"=1+41;y', '"x;""\'=1+41;y"'),
+            'formula after ampersand and quote' => array('x&"=1+41;y', '"x&""\'=1+41;y"'),
+            'formula after repeated quotes' => array('x;""=1+41;y', '"x;""""\'=1+41;y"'),
+            'spaced formula after quote' => array('x;"  =1+41;y', '"x;""\'  =1+41;y"'),
+            'other formula prefixes after quotes' => array(
+                'x"+1;"-1;"@SUM(A1);"|command',
+                '"x""\'+1;""\'-1;""\'@SUM(A1);""\'|command"'
+            ),
+            'tab after quote' => array("x;\"\tname;y", "\"x;\"\"'\tname;y\""),
+            'carriage return after quote' => array("x;\"\rname;y", "\"x;\"\"'\rname;y\""),
             'ordinary equals sign' => array('Jane=Smith', 'Jane=Smith'),
             'ordinary formula characters' => array('jane@example.org + guest', 'jane@example.org + guest'),
             'HTML remains data' => array('<b>Jane & Doe</b>', '<b>Jane & Doe</b>'),
@@ -112,6 +122,36 @@ class TestUsersCheckerCsv extends TestCase
         } finally {
             fclose($stream);
         }
+    }
+
+    /**
+     * Quoted formula fragments must be neutralized before the exporter doubles CSV quotes.
+     *
+     * @return void
+     */
+    public function testActualExporterNeutralizesQuotedFormulasAndKeepsSixColumns()
+    {
+        $csv = $this->runExporter('x;"=1+41;y', 'x&"=1+41;y');
+        $this->assertStringContainsString('"x;""\'=1+41;y","x&""\'=1+41;y"', $csv);
+        $stream = fopen('php://temp', 'r+');
+        $this->assertIsResource($stream);
+        fwrite($stream, $csv);
+        rewind($stream);
+        try {
+            $this->assertSame(
+                array('login', 'email', 'ip', 'first_name', 'last_name', 'nickname'),
+                fgetcsv($stream, 0, ',', '"', "\0")
+            );
+            $this->assertSame(
+                array('csv-user', 'csv-user@example.org', '192.0.2.1', 'x;"\'=1+41;y', 'x&"\'=1+41;y', 'csv-user'),
+                fgetcsv($stream, 0, ',', '"', "\0")
+            );
+            $this->assertFalse(fgetcsv($stream, 0, ',', '"', "\0"));
+        } finally {
+            fclose($stream);
+        }
+        $this->assertStringNotContainsString('&quot;', $csv);
+        $this->assertStringNotContainsString('&amp;', $csv);
     }
 
     public function testSemicolonSplitDoesNotExposeReportFormulas()
