@@ -2874,14 +2874,13 @@ function ctNoCookieAttachHiddenFieldsToForms() {
 
             // Skip adding hidden fields for the external forms if this option is disabled
             if (
-                ! +ctPublic.settings__forms__check_external &&
                 typeof(forms[i].action) == 'string' &&
                 ( forms[i].action.indexOf('http://') !== -1 ||
                     forms[i].action.indexOf('https://') !== -1 )
             ) {
                 try {
                     const host = new URL(forms[i].action).hostname.toLowerCase();
-                    if (host !== location.hostname.toLowerCase()) {
+                    if (host !== location.hostname.toLowerCase() && +ctPublic.settings__forms__check_external) {
                         continue;
                     }
                 } catch (e) {
