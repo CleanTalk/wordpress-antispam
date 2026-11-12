@@ -927,7 +927,8 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             } else {
                 $wpdb->query('DELETE FROM ' . $db__table__data . ' WHERE network = ' . ip2long('127.0.0.1') . ';');
                 if ($wpdb->rows_affected > 0) {
-                    $apbct->fw_stats['expected_networks_count'] -= $wpdb->rows_affected;
+                    // Exclusions are written to the personal table, so its expected count is decreased
+                    $apbct->fw_stats['expected_networks_count_personal'] -= $wpdb->rows_affected;
                     $apbct->save('fw_stats');
                 }
             }
