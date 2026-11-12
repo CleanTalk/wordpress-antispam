@@ -425,6 +425,7 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 == Changelog ==
 
 = 6.92 11.11.2026 =
+* Fix. SFW. Update on local domains no longer hangs: removed 127.0.0.1 is subtracted from the personal expected count.
 * Fix. SFW. Admin IP whitelisting via background AJAX with auth_key.
 * Fix. CSV export. Regex forced.
 * Fix. WooCommerce. Block checkout account creation is checked as an order when registration during checkout check is off.
