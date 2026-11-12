@@ -580,20 +580,37 @@ function ctNoCookieAttachHiddenFieldsToForms() {
 
     if (forms) {
         for ( let i = 0; i < forms.length; i++ ) {
-            if ( new ApbctHandler().checkHiddenFieldsExclusions(document.forms[i], 'no_cookie') ) {
+            if ( new ApbctHandler().checkHiddenFieldsExclusions(forms[i], 'no_cookie') ) {
                 continue;
             }
 
+            // Skip adding hidden fields for the external forms if this option is disabled
+            if (
+                ! +ctPublic.settings__forms__check_external &&
+                typeof(forms[i].action) == 'string' &&
+                ( forms[i].action.indexOf('http://') !== -1 ||
+                    forms[i].action.indexOf('https://') !== -1 )
+            ) {
+                try {
+                    const host = new URL(forms[i].action).hostname.toLowerCase();
+                    if (host !== location.hostname.toLowerCase()) {
+                        continue;
+                    }
+                } catch (e) {
+                    // Unparsable action: treat as internal form
+                }
+            }
+
             // ignore forms with get method @todo We need to think about this
-            if (document.forms[i].getAttribute('method') === null ||
-                document.forms[i].getAttribute('method').toLowerCase() === 'post') {
+            if (forms[i].getAttribute('method') === null ||
+                forms[i].getAttribute('method').toLowerCase() === 'post') {
                 // remove old sets
                 let fields = forms[i].querySelectorAll('.ct_no_cookie_hidden_field');
                 for ( let j = 0; j < fields.length; j++ ) {
                     fields[j].outerHTML = '';
                 }
                 // add new set
-                document.forms[i].append(new ApbctAttachData().constructNoCookieHiddenField());
+                forms[i].append(new ApbctAttachData().constructNoCookieHiddenField());
             }
         }
     }
