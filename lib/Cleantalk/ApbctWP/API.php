@@ -137,7 +137,7 @@ class API extends \Cleantalk\Common\API
 
         try {
             $apbct->getConnectionReports()->handleApiRequest(
-                isset($data['method_name']) ? $data['method_name'] : 'unknown',
+                $data['method_name'] ?? 'unknown',
                 $data,
                 $result,
                 $url,

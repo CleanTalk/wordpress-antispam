@@ -66,7 +66,7 @@ class TestConnectionReports extends TestCase
         $this->connection_reports->handleRequest($this->ct_request, $this->ct_response, 0);
         $this->assertFalse($this->connection_reports->hasNegativeReports());
         $this->assertFalse($this->connection_reports->hasUnsentReports());
-        $this->assertEquals('Nothing to sent.', $this->connection_reports->sendUnsentReports());
+        $this->assertEquals('Nothing to send.', $this->connection_reports->sendUnsentReports());
     }
 
     public function testAddingNegativeReportProcess()
@@ -280,7 +280,7 @@ class TestConnectionReports extends TestCase
         $this->assertCount(20, $api);
     }
 
-    public function testEmailContentHasBothListsAndAggregatesDuplicates()
+    public function testEmailContentSeparatesSourcesAndAggregatesDuplicates()
     {
         $this->connection_reports->wipeReportsData();
 
@@ -292,12 +292,11 @@ class TestConnectionReports extends TestCase
         $data = $this->connection_reports->remoteCallOutput();
         $method = new ReflectionMethod($this->connection_reports, 'prepareEmailContent');
         $method->setAccessible(true);
-        $html = $method->invoke($this->connection_reports, $data);
+        $html = $method->invoke($this->connection_reports, $data, false, ConnectionReports::SOURCE_API);
 
-        $this->assertStringContainsString('Anti-Spam (moderate servers) connection reports', $html);
+        $this->assertStringNotContainsString('Anti-Spam (moderate servers) connection reports', $html);
         $this->assertStringContainsString('API connection reports', $html);
-        // No moderate reports - the section is kept with a notice
-        $this->assertStringContainsString('No new reports.', $html);
+        $this->assertStringNotContainsString('No new reports.', $html);
         // 4 API reports are aggregated into 2 rows
         $this->assertEquals(1, substr_count($html, '<td>notice_paid_till</td>'));
         $this->assertEquals(1, substr_count($html, '<td>email_check</td>'));
@@ -308,7 +307,22 @@ class TestConnectionReports extends TestCase
         $this->connection_reports->handleRequest($this->ct_request, $this->ct_response, 0);
         $html = $method->invoke($this->connection_reports, $this->connection_reports->remoteCallOutput());
 
+        $this->assertStringContainsString('Anti-Spam (moderate servers) connection reports', $html);
+        $this->assertStringNotContainsString('API connection reports', $html);
+        $this->assertStringNotContainsString('<td>notice_paid_till</td>', $html);
+        $this->assertStringNotContainsString('<td>email_check</td>', $html);
         $this->assertStringNotContainsString('No new reports.', $html);
         $this->assertStringContainsString('<td>MODERATE ERROR</td>', $html);
+
+        $html = $method->invoke(
+            $this->connection_reports,
+            $this->connection_reports->remoteCallOutput(),
+            false,
+            ConnectionReports::SOURCE_API
+        );
+        $this->assertStringNotContainsString('Anti-Spam (moderate servers) connection reports', $html);
+        $this->assertStringNotContainsString('<td>MODERATE ERROR</td>', $html);
+        $this->assertStringContainsString('API connection reports', $html);
+        $this->assertStringContainsString('<td>notice_paid_till</td>', $html);
     }
 }

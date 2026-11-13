@@ -60,6 +60,7 @@ class ConnectionReports
     private $api_sensitive_keys = array(
         'auth_key',
         'api_key',
+        'hoster_api_key',
         'user_token',
         'key',
         'token',
@@ -267,8 +268,8 @@ class ConnectionReports
      */
     private function recalculateTotal($count)
     {
-        $positive = isset($count['positive']) ? $count['positive'] : 0;
-        $negative = isset($count['negative']) ? $count['negative'] : 0;
+        $positive = $count['positive'] ?? 0;
+        $negative = $count['negative'] ?? 0;
         $count['total'] = $positive + $negative;
         return $count;
     }
@@ -356,7 +357,7 @@ class ConnectionReports
         $source_reports = array_values(array_filter($reports_data, static function ($report) use ($source) {
             return self::getReportSource($report) === $source;
         }));
-        $limit = isset($this->reports_limits[$source]) ? $this->reports_limits[$source] : 20;
+        $limit = $this->reports_limits[$source] ?? 20;
         if (count($source_reports) >= $limit) {
             $overlimit = count($source_reports) - $limit + 1;
             $reports_to_del = array_slice($source_reports, 0, $overlimit);
@@ -432,7 +433,7 @@ class ConnectionReports
             'page_url' => get_site_url() . TT::toString(Server::get('REQUEST_URI')),
             'lib_report' => $lib_report,
             'failed_work_urls' => $failed_work_urls,
-            'request_content' => json_encode(esc_sql($request_content)),
+            'request_content' => $request_content,
             'js_block' => $post_blocked_via_js_check ? '1' : '0',
             'source' => $source,
             'method_name' => TT::toString($method_name),
@@ -561,10 +562,10 @@ class ConnectionReports
      */
     private function prepareStatsParagraph($count, $label)
     {
-        $stat_since = isset($count['stat_since']) ? $count['stat_since'] : '';
-        $total = isset($count['total']) ? $count['total'] : '';
-        $positive = isset($count['positive']) ? $count['positive'] : '';
-        $negative = isset($count['negative']) ? $count['negative'] : '';
+        $stat_since = $count['stat_since'] ?? '';
+        $total = $count['total'] ?? '';
+        $positive = $count['positive'] ?? '';
+        $negative = $count['negative'] ?? '';
 
         return '<p>' . Escape::escHtml($label) . ': from '
                . Escape::escHtml($stat_since)
@@ -596,11 +597,11 @@ class ConnectionReports
     {
         list($status, $color) = self::getReportStatus($report);
 
-        $report_date = isset($report['date']) ? $report['date'] : time();
-        $report_page_url = isset($report['page_url']) ? $report['page_url'] : '';
-        $report_lib_report = isset($report['lib_report']) ? $report['lib_report'] : '';
-        $report_failed_work_urls = isset($report['failed_work_urls']) ? $report['failed_work_urls'] : '';
-        $report_js_block = isset($report['js_block']) ? $report['js_block'] : 0;
+        $report_date = $report['date'] ?? time();
+        $report_page_url = $report['page_url'] ?? '';
+        $report_lib_report = $report['lib_report'] ?? '';
+        $report_failed_work_urls = $report['failed_work_urls'] ?? '';
+        $report_js_block = $report['js_block'] ?? 0;
 
         return '<tr style="color:' . $color . '">'
                . '<td>' . Escape::escHtml((int)$key + 1) . '.</td>'
@@ -623,11 +624,11 @@ class ConnectionReports
     {
         list($status, $color) = self::getReportStatus($report);
 
-        $report_date = isset($report['date']) ? $report['date'] : time();
-        $report_page_url = isset($report['page_url']) ? $report['page_url'] : '';
-        $report_method_name = isset($report['method_name']) ? $report['method_name'] : '';
-        $report_lib_report = isset($report['lib_report']) ? $report['lib_report'] : '';
-        $report_api_url = isset($report['failed_work_urls']) ? $report['failed_work_urls'] : '';
+        $report_date = $report['date'] ?? time();
+        $report_method_name = $report['method_name'] ?? '';
+        $report_lib_report = $report['lib_report'] ?? '';
+        $report_api_url = $report['failed_work_urls'] ?? '';
+        $report_page_url = $report['page_url'] ?? '';
 
         return '<tr style="color:' . $color . '">'
                . '<td>' . Escape::escHtml((int)$key + 1) . '.</td>'
@@ -753,6 +754,16 @@ class ConnectionReports
      */
     private function sanitizeApiRequestData(array $request_data)
     {
+        if (
+            ($request_data['method_name'] ?? '') === 'service_update_local_settings'
+            && isset($request_data['settings'], $request_data['auth_key'])
+            && is_string($request_data['settings'])
+            && is_string($request_data['auth_key'])
+            && $request_data['auth_key'] !== ''
+        ) {
+            $request_data['settings'] = str_replace($request_data['auth_key'], '***', $request_data['settings']);
+        }
+
         $result = array();
         foreach ($request_data as $key => $value) {
             if (in_array(strtolower((string)$key), $this->api_sensitive_keys, true)) {
@@ -779,10 +790,11 @@ class ConnectionReports
      * Send email to welcome@cleantlk.org about failed connection reports
      * @param array $unsent_reports_ids IDs of reports that still not sent
      * @param bool $is_cron_task Set if this is a cron task
+     * @param string $source
      * @return bool
      * @psalm-suppress PossiblyUnusedMethod
      */
-    private function sendEmail(array $unsent_reports_ids, $is_cron_task = false)
+    private function sendEmail(array $unsent_reports_ids, $is_cron_task = false, $source = self::SOURCE_MODERATE)
     {
         global $apbct;
         $selection = $this->getReportsDataByIds($unsent_reports_ids);
@@ -792,9 +804,12 @@ class ConnectionReports
         }
 
         $to = $apbct->data['email_for_reports'];
-        $subject = "CleanTalk Service Report: Connection v" . APBCT_VERSION . " for " . Server::getString('HTTP_HOST') ;
+        $subject_prefix = $source === self::SOURCE_API
+            ? "CleanTalk Service Report: API Connection v"
+            : "CleanTalk Service Report: Connection v";
+        $subject = $subject_prefix . APBCT_VERSION . " for " . Server::getString('HTTP_HOST');
 
-        $message = $this->prepareEmailContent($selection, $is_cron_task);
+        $message = $this->prepareEmailContent($selection, $is_cron_task, $source);
         $headers = "Content-type: text/html; charset=utf-8 \r\n";
         $headers .= 'From: ' . ct_get_admin_email();
 
@@ -902,19 +917,20 @@ class ConnectionReports
      * Prepare email content
      * @param array $selection
      * @param bool $is_cron_task
+     * @param string $source
      * @return string
      */
-    private function prepareEmailContent(array $selection, $is_cron_task = false)
+    private function prepareEmailContent(array $selection, $is_cron_task = false, $source = self::SOURCE_MODERATE)
     {
         global $apbct;
 
-        $moderate_groups = self::aggregateReports(
-            self::filterReportsBySource($selection, self::SOURCE_MODERATE),
-            array('page_url', 'lib_report', 'failed_work_urls', 'js_block')
-        );
-        $api_groups = self::aggregateReports(
-            self::filterReportsBySource($selection, self::SOURCE_API),
-            array('page_url', 'method_name', 'lib_report', 'failed_work_urls')
+        $directions = $source === self::SOURCE_API
+            ? array('page_url', 'method_name', 'lib_report', 'failed_work_urls')
+            : array('page_url', 'lib_report', 'failed_work_urls', 'js_block');
+
+        $groups = self::aggregateReports(
+            self::filterReportsBySource($selection, $source),
+            $directions
         );
 
         $message = '
@@ -924,45 +940,47 @@ class ConnectionReports
                 </head>
                 <body>';
 
-        $message .= '<h3>Anti-Spam (moderate servers) connection reports</h3>'
-                    . $this->prepareStatsParagraph($this->reports_count, 'Anti-Spam')
-                    . self::prepareEmailReportsTable(
-                        array(
-                            'Page URL' => static function ($report) {
-                                return Escape::escUrl(self::getReportField($report, 'page_url'));
-                            },
-                            'Library report' => static function ($report) {
-                                return Escape::escHtml(self::getReportField($report, 'lib_report'));
-                            },
-                            'Server IP' => static function ($report) {
-                                return Escape::escHtml(self::getReportField($report, 'failed_work_urls'));
-                            },
-                            'Blocked via JS' => static function ($report) {
-                                return self::getReportField($report, 'js_block') === '1' ? 'Yes' : 'No';
-                            },
-                        ),
-                        $moderate_groups
-                    );
-
-        $message .= '<h3>API connection reports</h3>'
-                    . $this->prepareStatsParagraph($this->api_reports_count, 'API')
-                    . self::prepareEmailReportsTable(
-                        array(
-                            'Page URL' => static function ($report) {
-                                return Escape::escUrl(self::getReportField($report, 'page_url'));
-                            },
-                            'API method' => static function ($report) {
-                                return Escape::escHtml(self::getReportField($report, 'method_name'));
-                            },
-                            'Library report' => static function ($report) {
-                                return Escape::escHtml(self::getReportField($report, 'lib_report'));
-                            },
-                            'API URL' => static function ($report) {
-                                return Escape::escHtml(self::getReportField($report, 'failed_work_urls'));
-                            },
-                        ),
-                        $api_groups
-                    );
+        if ($source === self::SOURCE_API) {
+            $message .= '<h3>API connection reports</h3>'
+                        . $this->prepareStatsParagraph($this->api_reports_count, 'API')
+                        . self::prepareEmailReportsTable(
+                            array(
+                                'Page URL' => static function ($report) {
+                                    return Escape::escUrl(self::getReportField($report, 'page_url'));
+                                },
+                                'API method' => static function ($report) {
+                                    return Escape::escHtml(self::getReportField($report, 'method_name'));
+                                },
+                                'Library report' => static function ($report) {
+                                    return Escape::escHtml(self::getReportField($report, 'lib_report'));
+                                },
+                                'API URL' => static function ($report) {
+                                    return Escape::escHtml(self::getReportField($report, 'failed_work_urls'));
+                                },
+                            ),
+                            $groups
+                        );
+        } else {
+            $message .= '<h3>Anti-Spam (moderate servers) connection reports</h3>'
+                        . $this->prepareStatsParagraph($this->reports_count, 'Anti-Spam')
+                        . self::prepareEmailReportsTable(
+                            array(
+                                'Page URL' => static function ($report) {
+                                    return Escape::escUrl(self::getReportField($report, 'page_url'));
+                                },
+                                'Library report' => static function ($report) {
+                                    return Escape::escHtml(self::getReportField($report, 'lib_report'));
+                                },
+                                'Server IP' => static function ($report) {
+                                    return Escape::escHtml(self::getReportField($report, 'failed_work_urls'));
+                                },
+                                'Blocked via JS' => static function ($report) {
+                                    return self::getReportField($report, 'js_block') === '1' ? 'Yes' : 'No';
+                                },
+                            ),
+                            $groups
+                        );
+        }
 
         $message .= '<br>' . ($is_cron_task ? 'This is a cron task.' : 'This is a manual task.') . '<br>';
         $message .= '<br>Site service_id: ' . $apbct->data['service_id'] . '<br>';
@@ -980,14 +998,27 @@ class ConnectionReports
     public function sendUnsentReports($is_cron_task = false)
     {
         $unsent_reports_ids = $this->getUnsentReportsIds();
+        $selection = $this->getReportsDataByIds($unsent_reports_ids);
+        $sent_count = 0;
+        $sources = array(self::SOURCE_MODERATE, self::SOURCE_API);
 
-        if (!empty($unsent_reports_ids)) {
-            if ($this->sendEmail($unsent_reports_ids, $is_cron_task)) {
-                $this->setReportsAsSent($unsent_reports_ids);
-                return count($unsent_reports_ids) . ' reports were sent.';
+        foreach ($sources as $source) {
+            $reports = self::filterReportsBySource($selection, $source);
+            if (empty($reports)) {
+                continue;
+            }
+
+            $report_ids = array_column($reports, 'id');
+            if ($this->sendEmail($report_ids, $is_cron_task, $source)) {
+                $this->setReportsAsSent($report_ids);
+                $sent_count += count($report_ids);
             }
         }
-        return 'Nothing to sent.';
+
+        if ($sent_count > 0) {
+            return $sent_count . ' reports were sent.';
+        }
+        return 'Nothing to send.';
     }
 
     /**
