@@ -364,6 +364,9 @@ function apbct_admin__init()
     // Dashboard widget statistics refresh (authenticated AJAX only)
     add_action('wp_ajax_apbct_brief_refresh', 'apbct_brief_refresh');
 
+    // Background whitelisting of the admin IP in SpamFireWall
+    add_action('wp_ajax_apbct_admin_ip_whitelist', 'apbct_admin_ip_whitelist__ajax');
+
     // Getting Access key like a hoster. Only once!
     if (
             ! is_main_site() &&
@@ -548,6 +551,7 @@ function apbct_admin__enqueue_scripts($hook)
         'logo_small_colored' => '<img src="' . Escape::escUrl($apbct->logo__small__colored) . '" alt=""  height="" style="width: 17px; vertical-align: text-bottom;" />',
         'new_window_gif'     => APBCT_URL_PATH . "/inc/images/new_window.gif",
         'notice_when_deleting_user_text' => esc_html__('Warning! Users are deleted without the possibility of restoring them, you can only restore them from a site backup.', 'cleantalk-spam-protect'),
+        'needToWhitelistAdminIp' => apbct_admin_ip_whitelist__is_needed() ? 1 : 0,
         'apbctNoticeForceProtectionOn'       => esc_html__('This option affects the reflection of the page by checking the user and adds a cookie "apbct_force_protection_check", which serves as an indicator of successful or unsuccessful verification. If the check is successful, it will no longer run.', 'cleantalk-spam-protect'),
         'links' => array(
             'users_editscreen'    => LinkConstructor::buildCleanTalkLink('admin_blacklists_avatar_link', 'blacklists/{TARGET}'),

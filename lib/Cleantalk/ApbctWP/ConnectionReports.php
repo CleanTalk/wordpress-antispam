@@ -419,6 +419,14 @@ class ConnectionReports
         $source = self::SOURCE_MODERATE,
         $method_name = null
     ) {
+        $auth_key = $request_content['auth_key'] ?? '';
+        unset($request_content['auth_key']);
+        $request_content = json_encode(esc_sql($request_content));
+        if ($auth_key !== '') {
+            // The same key can also occur in nested JSON strings such as sender_info.ct_options.
+            $request_content = str_replace($auth_key, '[************]', $request_content);
+        }
+
         $cr_data = array(
             'date' => time(),
             'page_url' => get_site_url() . TT::toString(Server::get('REQUEST_URI')),

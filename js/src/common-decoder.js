@@ -14,6 +14,69 @@ function apbctSetEmailDecoderPopupAnimation() {
     return animationWrapper;
 }
 
+let apbctEmailEncoderOnClose = null;
+
+/**
+ * Close the popup and reveal decoded contacts once.
+ */
+function apbctEmailEncoderClosePopup() {
+    const onClose = apbctEmailEncoderOnClose;
+    document.body.classList.remove('apbct-popup-fade');
+    const popup = document.getElementById('apbct_popup');
+    if (popup) {
+        apbctEmailEncoderUnbindPopupEvents(popup);
+        popup.style.display = 'none';
+    }
+    if (onClose) {
+        apbctEmailEncoderOnClose = null;
+        onClose();
+    }
+}
+
+/**
+ * @param {MouseEvent} event Backdrop click event.
+ */
+function apbctEmailEncoderBackdropClickHandler(event) {
+    const popup = document.getElementById('apbct_popup');
+    if (
+        popup &&
+        popup.style.display !== 'none' &&
+        document.body.classList.contains('apbct-popup-fade') &&
+        !popup.contains(event.target)
+    ) {
+        apbctEmailEncoderClosePopup();
+    }
+}
+
+/**
+ * @param {HTMLElement} popup Popup with completed decoding.
+ * @param {function()} onClose Callback to reveal decoded contacts.
+ */
+function apbctEmailEncoderBindPopupEvents(popup, onClose) {
+    apbctEmailEncoderOnClose = onClose;
+    const closeButton = popup.querySelector('.apbct-email-encoder-popup__close');
+    if (closeButton) {
+        closeButton.classList.add('apbct-email-encoder-popup__close--visible');
+        closeButton.addEventListener('click', apbctEmailEncoderClosePopup);
+    }
+
+    document.body.addEventListener('click', apbctEmailEncoderBackdropClickHandler);
+}
+
+/**
+ * @param {HTMLElement} popup Popup awaiting decoding.
+ */
+function apbctEmailEncoderUnbindPopupEvents(popup) {
+    apbctEmailEncoderOnClose = null;
+    const closeButton = popup.querySelector('.apbct-email-encoder-popup__close');
+    if (closeButton) {
+        closeButton.classList.remove('apbct-email-encoder-popup__close--visible');
+        closeButton.removeEventListener('click', apbctEmailEncoderClosePopup);
+    }
+
+    document.body.removeEventListener('click', apbctEmailEncoderBackdropClickHandler);
+}
+
 /**
  * @param {mixed} event
  */
@@ -43,6 +106,12 @@ function ctFillDecodedEmailHandler(event = false) {
         let waitingPopup = document.createElement('div');
         waitingPopup.setAttribute('class', 'apbct-popup apbct-email-encoder-popup');
         waitingPopup.setAttribute('id', 'apbct_popup');
+
+        const closeButton = document.createElement('button');
+        closeButton.type = 'button';
+        closeButton.className = 'apbct-email-encoder-popup__close';
+        closeButton.setAttribute('aria-label', 'Close popup');
+        closeButton.innerHTML = '&times;';
 
         // construct text header
         let popupHeaderWrapper = document.createElement('span');
@@ -80,12 +149,14 @@ function ctFillDecodedEmailHandler(event = false) {
         }
 
         // appending
+        waitingPopup.append(closeButton);
         popupTextWrapper.append(popupTextWaiting);
         popupTextWrapper.append(popupTextDecoding);
         waitingPopup.append(popupHeaderWrapper);
         waitingPopup.append(popupTextWrapper);
         waitingPopup.append(apbctSetEmailDecoderPopupAnimation());
         document.body.append(waitingPopup);
+        encoderPopup = waitingPopup;
     } else {
         encoderPopup.setAttribute('style', 'display: inherit');
         if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_wait_for_decoding) {
@@ -94,6 +165,7 @@ function ctFillDecodedEmailHandler(event = false) {
             document.getElementById('apbct_popup_text').innerHTML = ctAdminCommon.text__ee_wait_for_decoding;
         }
     }
+    apbctEmailEncoderUnbindPopupEvents(encoderPopup);
 
     apbctAjaxEmailDecodeBulk(event, encodedEmail, clickSource);
 }
@@ -274,9 +346,7 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
                     }
                     button.classList = 'apbct-email-encoder-got-it-button';
                     button.addEventListener('click', function() {
-                        document.body.classList.remove('apbct-popup-fade');
-                        popup.setAttribute('style', 'display:none');
-                        fillDecodedNodes(encodedEmailNodes, result);
+                        apbctEmailEncoderClosePopup();
                         // click on mailto if so
                         if (typeof ctPublic !== 'undefined' && ctPublic.encodedEmailNodesIsMixed && clickSource) {
                             clickSource.click();
@@ -285,6 +355,9 @@ function apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource = 
                     buttonWrapper.append(button);
                     popup.append(buttonWrapper);
                 }
+                apbctEmailEncoderBindPopupEvents(popup, function() {
+                    fillDecodedNodes(encodedEmailNodes, result);
+                });
             }
         }, 3000);
     } else {
@@ -346,14 +419,13 @@ function ctShowDecodeComment(comment) {
     let popup = document.getElementById('apbct_popup');
     let popupText = document.getElementById('apbct_popup_text');
     if (popup !== null) {
-        document.body.classList.remove('apbct-popup-fade');
         if (typeof ctPublicFunctions !== 'undefined' && ctPublicFunctions.text__ee_email_decoder) {
             popupText.innerText = ctPublicFunctions.text__ee_email_decoder + ': ' + comment;
         } else {
             popupText.innerText = ctAdminCommon.text__ee_email_decoder + ': ' + comment;
         }
         setTimeout(function() {
-            popup.setAttribute('style', 'display:none');
+            apbctEmailEncoderClosePopup();
         }, 3000);
     }
 }

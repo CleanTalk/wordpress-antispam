@@ -124,7 +124,6 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         global $apbct;
 
         $results = array();
-        $status  = 0;
 
         if (empty($apbct->key_is_ok) || empty($apbct->api_key)) {
             return $results;
@@ -143,12 +142,16 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         }
 
         // Skip by cookie
+        $pass_key = Cookie::getString('ct_sfw_pass_key');
         foreach ($this->ip_array as $current_ip) {
-            if (
-                TT::toString(Cookie::get('ct_sfw_pass_key'))
-                && strpos(TT::toString(Cookie::get('ct_sfw_pass_key')), md5($current_ip . $this->api_key . $apbct->data['salt'])) === 0
-            ) {
-                if (Cookie::get('ct_sfw_passed')) {
+            $status = self::getPassKeyStatus(
+                $pass_key,
+                TT::toString($current_ip),
+                TT::toString($this->api_key),
+                TT::toString($apbct->data['salt'])
+            );
+            if ($status !== null) {
+                if (Cookie::getString('ct_sfw_passed')) {
                     if ( ! headers_sent()) {
                         Cookie::set(
                             'ct_sfw_passed',
@@ -176,11 +179,7 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
                     }
                 }
 
-                if (strlen(TT::toString(Cookie::get('ct_sfw_pass_key'))) > 32) {
-                    $status = substr(TT::toString(Cookie::get('ct_sfw_pass_key')), -1);
-                }
-
-                if ($status) {
+                if ($status === '1') {
                     $results[] = array(
                         'ip'          => $current_ip,
                         'is_personal' => false,
@@ -278,6 +277,47 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
     }
 
     /**
+     * Builds the ct_sfw_pass_key cookie value. The status is signed together with the IP.
+     *
+     * @param string $ip
+     * @param string $api_key
+     * @param string $salt
+     * @param string $status '1' - whitelisted, '0' - passed
+     *
+     * @return string
+     */
+    public static function makePassKey($ip, $api_key, $salt, $status)
+    {
+        $status = $status === '1' ? '1' : '0';
+
+        return md5($ip . $api_key . $salt . $status) . $status;
+    }
+
+    /**
+     * Validates the ct_sfw_pass_key cookie value.
+     *
+     * @param string $pass_key
+     * @param string $ip
+     * @param string $api_key
+     * @param string $salt
+     *
+     * @return string|null '1' or '0' for a valid key, null otherwise
+     */
+    public static function getPassKeyStatus($pass_key, $ip, $api_key, $salt)
+    {
+        if (strlen($pass_key) !== 33) {
+            return null;
+        }
+
+        $status = substr($pass_key, -1);
+        if ($status !== '0' && $status !== '1') {
+            return null;
+        }
+
+        return hash_equals(self::makePassKey($ip, $api_key, $salt, $status), $pass_key) ? $status : null;
+    }
+
+    /**
      * Add entry to SFW log.
      * Writes to database.
      *
@@ -360,7 +400,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
         global $apbct;
         if ($this->data__cookies_type === 'native' && ! headers_sent()) {
             $status     = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
-            $cookie_val = md5($result['ip'] . $this->api_key . $apbct->data['salt']) . $status;
+            $cookie_val = self::makePassKey(
+                TT::toString($result['ip']),
+                TT::toString($this->api_key),
+                TT::toString($apbct->data['salt']),
+                $status
+            );
             Cookie::setNativeCookie(
                 'ct_sfw_pass_key',
                 $cookie_val,
@@ -399,7 +444,12 @@ class SFW extends \Cleantalk\Common\Firewall\FirewallModule
             $net_count = $apbct->stats['sfw']['entries'];
 
             $status     = $result['status'] === 'PASS_SFW__BY_WHITELIST' ? '1' : '0';
-            $cookie_val = md5($result['ip'] . $this->api_key . $apbct->data['salt']) . $status;
+            $cookie_val = self::makePassKey(
+                TT::toString($result['ip']),
+                TT::toString($this->api_key),
+                TT::toString($apbct->data['salt']),
+                $status
+            );
 
             $block_message = sprintf(
                 esc_html__('SpamFireWall is checking your browser and IP %s for spam bots', 'cleantalk-spam-protect'),

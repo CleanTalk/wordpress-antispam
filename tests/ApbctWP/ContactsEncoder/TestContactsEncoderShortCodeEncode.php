@@ -48,6 +48,7 @@ class testEmailEncoderShortCodeEncode extends TestCase
     {
         $cookie_name = apbct__get_cookie_prefix() . 'apbct_email_encoder_passed';
         unset($_COOKIE[$cookie_name]);
+        \Cleantalk\ApbctWP\Variables\AltSessions::wipe();
 
         $cookie_instance = Cookie::getInstance();
         $ref = new \ReflectionClass($cookie_instance);
@@ -75,6 +76,7 @@ class testEmailEncoderShortCodeEncode extends TestCase
         $this->clearDecoderPassedCookie();
         $_COOKIE[$cookie_name] = $pass_key;
         Cookie::set('apbct_email_encoder_passed', $pass_key);
+        apbct_email_encoder_set_passed();
     }
 
     public function testCallbackEncodesContent()
@@ -458,4 +460,19 @@ class testEmailEncoderShortCodeEncode extends TestCase
         }
     }
 
+
+    /**
+     * The check of a shortcode boundary must not rescan the tag for each occurrence.
+     */
+    public function testBoundaryCheckIsLinearOnLongAttribute()
+    {
+        $content = 'Nice <abbr title="' . str_repeat('A', 32000) . '">'
+            . str_repeat('[apbct_encode_data]', 1590) . '</abbr>';
+
+        $start = microtime(true);
+        $reflection = new \ReflectionMethod($this->shortcode, 'isShortcodeInsideHtmlTag');
+        $reflection->setAccessible(true);
+        $this->assertFalse($reflection->invoke($this->shortcode, $content));
+        $this->assertLessThan(2, microtime(true) - $start);
+    }
 }

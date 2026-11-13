@@ -14,3 +14,5 @@ checkstyle.xml
 /coverage.xml
 /tests/.phpunit.result.cache
 .phpunit.result.cache
+__pycache__/
+*.pyc

@@ -481,6 +481,8 @@ class RemoteCalls
             $out = [$show_only => $out[$show_only]];
         }
 
+        $out = static::hideSensitiveData($out);
+
         if ( Request::equal('out', 'json') ) {
             die(json_encode($out));
         }
@@ -493,8 +495,6 @@ class RemoteCalls
                 $val = date('Y-m-d H:i:s', $val);
             }
         });
-
-        $out = static::hideSensitiveData($out);
 
         $out = print_r($out, true);
         $out = str_replace("\n", "<br>", $out);
@@ -769,11 +769,21 @@ class RemoteCalls
 
     private static function hideSensitiveData($data)
     {
+        // State options ($apbct->data, stats, etc.) are ArrayObject instances
+        if ( $data instanceof \ArrayObject ) {
+            $data = $data->getArrayCopy();
+        }
+
         if ( ! is_array($data) ) {
             return $data;
         }
 
         foreach ( $data as $key => $value ) {
+            if ( $value instanceof \ArrayObject ) {
+                $value = $value->getArrayCopy();
+                $data[$key] = $value;
+            }
+
             if ( is_array($value) ) {
                 $data[$key] = self::hideSensitiveData($value);
             }

@@ -32,7 +32,8 @@ class TestBotDetectorService extends ApbctTestCase
     /**
      * Every transport keeps its own state between calls:
      * Post caches each variable in the singleton, NoCookie holds a static array,
-     * AltSessions store the values in the DB. Without the full reset the tests
+     * BotDetectorService captures POST sources, AltSessions store the values in the DB.
+     * Without the full reset the tests
      * would depend on the execution order.
      */
     private function resetTransports()
@@ -40,6 +41,9 @@ class TestBotDetectorService extends ApbctTestCase
         $_POST = array();
         Post::getInstance()->variables = array();
         NoCookie::$no_cookies_data = array();
+        $property = new ReflectionProperty(BotDetectorService::class, 'captured_sources');
+        $property->setAccessible(true);
+        $property->setValue(null, null);
     }
 
     private function makeRawBrowserState($log = '[["success"],[true]]')
@@ -106,18 +110,19 @@ class TestBotDetectorService extends ApbctTestCase
         $this->assertSame(1, $state['botd_wrapper_loaded']);
     }
 
-    public function test_getBrowserState_requestParametersWinsOverPost()
+    public function test_getBrowserState_topLevelPostWinsOverOtherSources()
     {
         $winner = json_encode(array('botd_wrapper_loaded' => 1));
         $loser  = json_encode(array('botd_wrapper_loaded' => 0));
 
         $state = BotDetectorService::getBrowserState(array(
-            'request_parameters' => $winner,
-            'post_browser_state' => $loser,
+            'request_parameters' => $loser,
+            'post_browser_state' => $winner,
             'post_data' => array('apbct_browser_state' => $loser),
         ));
 
         $this->assertSame(1, $state['botd_wrapper_loaded']);
+        $this->assertSame('post_browser_state', $state['log_source']);
     }
 
     public function test_getBrowserState_fallsBackToPostBrowserState()
@@ -137,10 +142,25 @@ class TestBotDetectorService extends ApbctTestCase
         $raw = json_encode(array('botd_wrapper_loaded' => 1));
 
         $state = BotDetectorService::getBrowserState(array(
+            'request_parameters' => json_encode(array('botd_wrapper_loaded' => 0)),
+            'post_browser_state' => '',
             'post_data' => array('apbct_browser_state' => $raw),
         ));
 
         $this->assertSame(1, $state['botd_wrapper_loaded']);
+        $this->assertSame('post_data', $state['log_source']);
+    }
+
+    public function test_getBrowserState_fallsBackToRequestParametersWhenPostSourcesEmpty()
+    {
+        $state = BotDetectorService::getBrowserState(array(
+            'post_browser_state' => '',
+            'post_data' => array('apbct_browser_state' => ''),
+            'request_parameters' => $this->makeRawBrowserState(),
+        ));
+
+        $this->assertSame(array(array('success'), array(true)), $state['frontend_data_log']);
+        $this->assertSame('request_parameters', $state['log_source']);
     }
 
     public function test_getBrowserState_acceptsArraySource()
@@ -213,6 +233,14 @@ class TestBotDetectorService extends ApbctTestCase
         ));
 
         $this->assertSame(array(), $state);
+    }
+
+    public function test_extractBrowserStateFromPOST_registersEarlyExtractionHook()
+    {
+        $this->assertSame(
+            0,
+            has_action('plugins_loaded', array(BotDetectorService::class, 'extractBrowserStateFromPOST'))
+        );
     }
 
     // ------------------------------------------------------------------
@@ -312,6 +340,7 @@ class TestBotDetectorService extends ApbctTestCase
     public function test_getFrontendDataLog_readsFromPost()
     {
         $_POST['apbct_browser_state'] = $this->makeRawBrowserState();
+        BotDetectorService::extractBrowserStateFromPOST();
 
         $this->assertSuccessfulLogResult(BotDetectorService::getFrontendDataLog());
 
@@ -322,11 +351,133 @@ class TestBotDetectorService extends ApbctTestCase
     public function test_getFrontendDataLog_readsFromPostDataArray()
     {
         $_POST['data'] = array('apbct_browser_state' => $this->makeRawBrowserState());
+        BotDetectorService::extractBrowserStateFromPOST();
 
         $this->assertSuccessfulLogResult(BotDetectorService::getFrontendDataLog());
 
         $result = json_decode(BotDetectorService::getFrontendDataLog(), true);
         $this->assertSame('post_data', $result['apbct_browser_state']['log_source']);
+    }
+
+    public function test_extractBrowserStateFromPOST_removesOnlyBrowserStateFields()
+    {
+        $raw = $this->makeRawBrowserState();
+        $_POST = array(
+            'apbct_browser_state' => $raw,
+            'email' => 'user@example.com',
+            'data' => array('apbct_browser_state' => $raw, 'message' => 'Keep this'),
+        );
+        Post::getString('apbct_browser_state');
+        Post::getArray('data');
+
+        BotDetectorService::extractBrowserStateFromPOST();
+
+        $this->assertSame(array(
+            'email' => 'user@example.com',
+            'data' => array('message' => 'Keep this'),
+        ), $_POST);
+        $this->assertSame('', Post::getString('apbct_browser_state'));
+        $this->assertSame(array('message' => 'Keep this'), Post::getArray('data'));
+        $this->assertSuccessfulLogResult(BotDetectorService::getFrontendDataLog());
+    }
+
+    public function test_extractBrowserStateFromPOST_preservesFirstCapture()
+    {
+        $_POST['apbct_browser_state'] = $this->makeRawBrowserState();
+        BotDetectorService::extractBrowserStateFromPOST();
+        BotDetectorService::extractBrowserStateFromPOST();
+
+        $this->assertSuccessfulLogResult(BotDetectorService::getFrontendDataLog());
+        $this->assertSuccessfulLogResult(BotDetectorService::getFrontendDataLog());
+    }
+
+    public function test_extractBrowserStateFromPOST_keepsPostSourcePriority()
+    {
+        $_POST['apbct_browser_state'] = $this->makeRawBrowserState();
+        $_POST['data'] = array('apbct_browser_state' => json_encode(array('botd_wrapper_loaded' => 0)));
+        BotDetectorService::extractBrowserStateFromPOST();
+
+        $this->assertSuccessfulLogResult(BotDetectorService::getFrontendDataLog());
+        $result = json_decode(BotDetectorService::getFrontendDataLog(), true);
+        $this->assertSame('post_browser_state', $result['apbct_browser_state']['log_source']);
+    }
+
+    public function test_getFrontendDataLog_readsLateNoCookieWhenPostSourcesAbsent()
+    {
+        global $apbct;
+        $apbct->data['cookies_type'] = 'none';
+        BotDetectorService::extractBrowserStateFromPOST();
+        NoCookie::set('apbct_browser_state', $this->makeRawBrowserState());
+
+        $this->assertSuccessfulLogResult(BotDetectorService::getFrontendDataLog());
+        $result = json_decode(BotDetectorService::getFrontendDataLog(), true);
+        $this->assertSame('request_parameters', $result['apbct_browser_state']['log_source']);
+    }
+
+    /**
+     * @dataProvider postSourcesAndEmptyNoCookieLogs
+     */
+    public function test_getFrontendDataLog_postEventsOverrideEmptyNoCookieLog($source, $empty_log)
+    {
+        global $apbct;
+        $apbct->data['cookies_type'] = 'none';
+        $raw = $this->makeRawBrowserState();
+        if ( $source === 'post_browser_state' ) {
+            $_POST['apbct_browser_state'] = $raw;
+        } else {
+            $_POST['data'] = array('apbct_browser_state' => $raw);
+        }
+        BotDetectorService::extractBrowserStateFromPOST();
+        NoCookie::set('apbct_browser_state', json_encode(array(
+            'frontend_data_log' => $empty_log,
+            'botd_logic_loaded' => 0,
+            'botd_wrapper_loaded' => 0,
+            'transport_enabled' => 1,
+        )));
+
+        $this->assertSuccessfulLogResult(BotDetectorService::getFrontendDataLog());
+        $result = json_decode(BotDetectorService::getFrontendDataLog(), true);
+        $this->assertSame($source, $result['apbct_browser_state']['log_source']);
+        $this->assertArrayNotHasKey('apbct_browser_state', $_POST);
+        if ( $source === 'post_data' ) {
+            $this->assertArrayNotHasKey('apbct_browser_state', $_POST['data']);
+        }
+    }
+
+    public function postSourcesAndEmptyNoCookieLogs()
+    {
+        return array(
+            'top-level POST over null log' => array('post_browser_state', null),
+            'top-level POST over empty log' => array('post_browser_state', array()),
+            'nested POST over null log' => array('post_data', null),
+            'nested POST over empty log' => array('post_data', array()),
+        );
+    }
+
+    public function test_extractBrowserStateFromPOST_preservesNonArrayData()
+    {
+        $_POST['data'] = 'Keep this';
+
+        BotDetectorService::extractBrowserStateFromPOST();
+
+        $this->assertSame('Keep this', $_POST['data']);
+        $this->assertSame('Keep this', Post::getString('data'));
+    }
+
+    public function test_extractBrowserStateFromPOST_removesFieldsWhenDisabled()
+    {
+        global $apbct;
+        $apbct->data['bot_detector_enabled'] = '0';
+        $_POST['apbct_browser_state'] = $this->makeRawBrowserState();
+        $_POST['data'] = array('apbct_browser_state' => $this->makeRawBrowserState());
+
+        BotDetectorService::extractBrowserStateFromPOST();
+
+        $this->assertArrayNotHasKey('apbct_browser_state', $_POST);
+        $this->assertSame(array(), $_POST['data']);
+        $result = json_decode(BotDetectorService::getFrontendDataLog(), true);
+        $this->assertSame('ERROR', $result['plugin_status']);
+        $this->assertSame('bot detector library usage is disabled', $result['error_msg']);
     }
 
     public function test_getFrontendDataLog_returnsErrorWhenDisabled()

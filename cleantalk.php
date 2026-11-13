@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.90.99-dev
+  Version: 6.91.99-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -58,6 +58,9 @@ use Cleantalk\Common\TT;
 if ( ! defined('ABSPATH') ) {
     die('Not allowed!');
 }
+
+// Define plugin start time for performance metrics
+define('APBCT_PERF_PLUGIN_START', microtime(true));
 
 /**
  * @var State $apbct
@@ -218,7 +221,7 @@ function apbct_wp_login_actions($_user_login, $wp_user)
 {
     global $apbct;
     $apbct->login_ip_keeper->addUserIP($wp_user);
-    apbct_add_admin_ip_to_swf_whitelist($wp_user);
+    // Admin IP is whitelisted in the background from admin pages: see apbct_admin_ip_whitelist__ajax().
 }
 
 // Disabling comments
@@ -624,6 +627,11 @@ add_action('mec_booking_end_form_step_2', function () {
     );
 });
 
+// Emergency firewall bypass: the control panel posts a signed token to admin-post.php.
+// SpamFireWall checks only GET requests on the public side, so this POST is never blocked by it.
+add_action('admin_post_nopriv_' . FirewallBypass::JWT_ACTION, array(FirewallBypass::class, 'handleJwtRequest'));
+add_action('admin_post_' . FirewallBypass::JWT_ACTION, array(FirewallBypass::class, 'handleJwtRequest'));
+
 // Public actions
 if ( ! is_admin() && ! apbct_is_ajax() && ! apbct_is_customize_preview() ) {
     $sci = new CleantalkScriptsIntegrator();
@@ -704,6 +712,9 @@ if ( ! defined('WP_ALLOW_MULTISITE') || (defined('WP_ALLOW_MULTISITE') && WP_ALL
 // After plugin loaded - to load locale as described in manual
 add_action('init', 'apbct_plugin_loaded');
 
+// Extract and clear browser state data from POST
+add_action('plugins_loaded', array(BotDetectorService::class, 'extractBrowserStateFromPOST'), 0);
+
 // SiteGround Speed Optimizer: skip cache for URLs with apbct_no_cache.
 add_action('plugins_loaded', 'apbct_sgo_optimizer__register_bypass_query_params', 1);
 
@@ -777,14 +788,17 @@ if ( is_admin() || is_network_admin() ) {
         // if User is not logged in
         // if Unknown action or Known action with mandatory check
         if (
-            ( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1) &&
             Post::get('action') !== '' &&
             (
                 ! in_array(Post::get('action'), $_cleantalk_hooked_actions) ||
                 in_array(Post::get('action'), $_cleantalk_ajax_actions_to_check)
             )
         ) {
-            add_action('plugins_loaded', 'ct_ajax_hook');
+            add_action('plugins_loaded', function () use ($apbct) {
+                if ( ! apbct_is_user_logged_in() || $apbct->settings['data__protect_logged_in'] == 1 ) {
+                    ct_ajax_hook();
+                }
+            });
         }
 
         //QAEngine Theme answers
@@ -913,7 +927,12 @@ function apbct_sfw__check()
             );
             Cookie::set(
                 'ct_sfw_pass_key',
-                md5(Server::get('REMOTE_ADDR') . $apbct->api_key . $apbct->data['salt']),
+                SFW::makePassKey(
+                    TT::toString(Server::get('REMOTE_ADDR')),
+                    TT::toString($apbct->api_key),
+                    TT::toString($apbct->data['salt']),
+                    '0'
+                ),
                 time() + 1200,
                 '/',
                 ''
