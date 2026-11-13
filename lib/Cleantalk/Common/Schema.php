@@ -90,6 +90,8 @@ class Schema
             'request_content' => 'TEXT NULL DEFAULT NULL',
             'sent_on' => 'INT NULL DEFAULT NULL', //timestamp
             'js_block' => 'VARCHAR(1) NULL DEFAULT NULL',
+            'source' => 'VARCHAR(16) NULL DEFAULT NULL', // moderate|api, NULL for legacy rows means moderate
+            'method_name' => 'VARCHAR(64) NULL DEFAULT NULL',
             '__indexes' => 'PRIMARY KEY (`id`)',
             '__createkey' => 'INT unsigned primary KEY AUTO_INCREMENT FIRST'
         ),
