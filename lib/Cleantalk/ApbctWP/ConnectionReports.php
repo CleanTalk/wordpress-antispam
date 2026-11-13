@@ -778,11 +778,14 @@ class ConnectionReports
                 $value = (string)json_encode($value);
             }
             if (is_string($value)) {
-                $length = function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
-                if ($length > $this->api_field_max_length) {
-                    $value = (function_exists('mb_substr')
-                            ? mb_substr($value, 0, $this->api_field_max_length)
-                            : substr($value, 0, $this->api_field_max_length)) . '...[truncated]';
+                $truncated = $value;
+                if (function_exists('mb_substr')) {
+                    $truncated = mb_substr($value, 0, $this->api_field_max_length, 'UTF-8');
+                } elseif (preg_match('/\A.{0,' . $this->api_field_max_length . '}/us', $value, $matches) === 1) {
+                    $truncated = $matches[0] ?? '';
+                }
+                if ($truncated !== $value) {
+                    $value = $truncated . '...[truncated]';
                 }
             }
             $result[$key] = $value;
