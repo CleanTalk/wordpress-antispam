@@ -1154,12 +1154,6 @@ function apbct_settings__set_fields__network($fields)
                     'parent'           => 'multisite__work_mode',
                     'network'          => true,
                 ),
-                'multisite__service_utilization'                                => array(
-                    'type'     => 'field',
-                    'class'    => 'apbct_settings-field_wrapper--sub',
-                    'callback' => 'apbct_field_service_utilization',
-                    'display'  => APBCT_WPMS && is_main_site() && $apbct->network_settings['multisite__work_mode'] == 1,
-                ),
                 'multisite__white_label'                                        => array(
                     'type'        => 'checkbox',
                     'title'       => __('Enable White Label Mode', 'cleantalk-spam-protect'),
@@ -2148,39 +2142,6 @@ function apbct_settings__field__apikey()
     echo $template;
 }
 
-function apbct_field_service_utilization()
-{
-    global $apbct;
-
-    echo '<div class="apbct_wrapper_field">';
-
-    if ( $apbct->services_count && $apbct->services_max && $apbct->services_utilization ) {
-        echo sprintf(
-            __('Hoster account utilization: %s%% ( %s of %s websites ).', 'cleantalk-spam-protect'),
-            $apbct->services_utilization * 100,
-            Escape::escHtml($apbct->services_count),
-            Escape::escHtml($apbct->services_max)
-        );
-
-        // Link to the dashboard, so user could extend your subscription for more sites
-        if ( $apbct->services_utilization * 100 >= 90 ) {
-            echo '&nbsp';
-            echo sprintf(
-                __('You could extend your subscription %shere%s.', 'cleantalk-spam-protect'),
-                '<a href="' . Escape::escUrl($apbct->dashboard_link) . '" target="_blank">',
-                '</a>'
-            );
-        }
-    } else {
-        _e(
-            'Enter the Hoster Access key and synchronize with cloud to find out your hoster account utilization.',
-            'cleantalk-spam-protect'
-        );
-    }
-
-    echo '</div>';
-}
-
 function apbct_settings__field__action_buttons()
 {
     global $apbct;
@@ -2875,12 +2836,6 @@ function apbct_settings__sync($direct_call = false)
                 'service_id'  => $apbct->data['service_id'],
                 'user_id'  => $apbct->data['user_id'],
             );
-
-            if ( $apbct->network_settings['multisite__work_mode'] == 1 ) {
-                $apbct->data['services_count ']      = isset($result['services_count']) ? $result['services_count'] : '';
-                $apbct->data['services_max']         = isset($result['services_max']) ? $result['services_max'] : '';
-                $apbct->data['services_utilization'] = isset($result['services_utilization']) ? $result['services_utilization'] : '';
-            }
 
             $apbct->saveNetworkData();
             if ( isset($apbct->settings['multisite__use_settings_template_apply_for_current_list_sites']) && ! empty($apbct->settings['multisite__use_settings_template_apply_for_current_list_sites']) ) {
