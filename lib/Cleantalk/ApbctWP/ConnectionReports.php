@@ -694,7 +694,11 @@ class ConnectionReports
     {
         $method_name = TT::toString($method_name);
 
-        if (in_array($method_name, $this->api_methods_excluded, true) || ! $this->isTableExists()) {
+        if (
+            in_array($method_name, $this->api_methods_excluded, true)
+            || ! $this->isTableExists()
+            || ! $this->hasSourceColumns()
+        ) {
             return;
         }
 
