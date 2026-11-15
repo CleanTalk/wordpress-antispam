@@ -506,8 +506,8 @@ function apbct_buffer_modify_by_string()
                 }
                 $method = $group_method[1];
 
-                $hidden_fields = '<input type="hidden" name="cleantalk_hidden_action" value="' . esc_attr($action) . '">';
-                $hidden_fields .= '<input type="hidden" name="cleantalk_hidden_method" value="' . esc_attr($method) . '">';
+                $hidden_fields = '<input type="hidden" name="cleantalk_buffer_action" value="' . esc_attr($action) . '">';
+                $hidden_fields .= '<input type="hidden" name="cleantalk_buffer_method" value="' . esc_attr($method) . '">';
 
                 $local_action = esc_url(home_url(add_query_arg(array(), $wp->request)));
                 $modified_match = preg_replace_callback(

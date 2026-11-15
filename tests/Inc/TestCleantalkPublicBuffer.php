@@ -128,8 +128,8 @@ class TestCleantalkPublicBuffer extends TestCase
 
         $expected = '<p>Before</p><form action="' . esc_url(home_url('capture-form')) . '" method="POST">'
             . '<input name="email" value="member@example.org">'
-            . '<input type="hidden" name="cleantalk_hidden_action" value="' . esc_attr($action) . '">'
-            . '<input type="hidden" name="cleantalk_hidden_method" value="' . $method . '">'
+            . '<input type="hidden" name="cleantalk_buffer_action" value="' . esc_attr($action) . '">'
+            . '<input type="hidden" name="cleantalk_buffer_method" value="' . $method . '">'
             . '</form><p>After</p>';
 
         $this->assertSame($expected, $this->rewriteStringBuffer($buffer, 'capture-form'));
@@ -151,8 +151,8 @@ class TestCleantalkPublicBuffer extends TestCase
         $buffer = '<form action="https://external-forms.invalid/submit" method="get"></form>';
         $local_action = esc_url(home_url(add_query_arg(array(), $request)));
         $expected = '<form action="' . $local_action . '" method="POST">'
-            . '<input type="hidden" name="cleantalk_hidden_action" value="https://external-forms.invalid/submit">'
-            . '<input type="hidden" name="cleantalk_hidden_method" value="get"></form>';
+            . '<input type="hidden" name="cleantalk_buffer_action" value="https://external-forms.invalid/submit">'
+            . '<input type="hidden" name="cleantalk_buffer_method" value="get"></form>';
 
         $this->assertSame($expected, $this->rewriteStringBuffer($buffer, $request));
     }
@@ -243,8 +243,8 @@ class TestCleantalkPublicBuffer extends TestCase
         $form = '<form action="https://external-forms.invalid/submit" method="get"></form>';
         $buffer = '<html><body>' . $opaque . $form . '</body></html>';
         $expected_form = '<form action="' . esc_url(home_url('capture-form')) . '" method="POST">'
-            . '<input type="hidden" name="cleantalk_hidden_action" value="https://external-forms.invalid/submit">'
-            . '<input type="hidden" name="cleantalk_hidden_method" value="get"></form>';
+            . '<input type="hidden" name="cleantalk_buffer_action" value="https://external-forms.invalid/submit">'
+            . '<input type="hidden" name="cleantalk_buffer_method" value="get"></form>';
 
         $this->assertSame(
             '<html><body>' . $opaque . $expected_form . '</body></html>',

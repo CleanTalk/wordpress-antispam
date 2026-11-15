@@ -742,9 +742,9 @@ class HtmlBufferRewriter
                     $patches[] = array(
                         'start' => $form['start'],
                         'length' => 0,
-                        'text' => '<input type="hidden" name="cleantalk_hidden_action" value="'
+                        'text' => '<input type="hidden" name="cleantalk_buffer_action" value="'
                             . $this->escapeAttribute($action) . '">'
-                            . '<input type="hidden" name="cleantalk_hidden_method" value="'
+                            . '<input type="hidden" name="cleantalk_buffer_method" value="'
                             . $this->escapeAttribute($method) . '">',
                     );
                 }

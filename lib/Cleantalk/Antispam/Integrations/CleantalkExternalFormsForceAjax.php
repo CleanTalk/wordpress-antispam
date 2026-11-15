@@ -3,11 +3,21 @@
 namespace Cleantalk\Antispam\Integrations;
 
 use Cleantalk\ApbctWP\Variables\Post;
+use Cleantalk\ApbctWP\ExternalForms\Submission;
 
 class CleantalkExternalFormsForceAjax extends IntegrationBase
 {
+    public function doPrepareActions($argument)
+    {
+        return Submission::validate(true);
+    }
+
     public function getDataForChecking($argument)
     {
+        if ( ! Submission::validate(true) ) {
+            return null;
+        }
+
         if (Post::getString('action') === 'cleantalk_force_ajax_check') {
             unset($_POST['action']);
         }

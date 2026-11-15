@@ -16,6 +16,11 @@ $apbct_active_integrations = array(
         'setting' => 'forms__check_external',
         'ajax'    => false
     ),
+    'CleantalkExternalFormsBuffer'   => array(
+        'hook'    => 'init',
+        'setting' => 'forms__check_external',
+        'ajax'    => false
+    ),
     'CleantalkExternalFormsForceAjax'         => array(
         'hook'    => 'cleantalk_force_ajax_check',
         'setting' => 'forms__check_external',

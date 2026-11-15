@@ -25,7 +25,9 @@ class TestHtmlBufferRewriter extends TestCase
         $this->assertSame('POST', $form->getAttribute('method'));
         $inputs = $form->getElementsByTagName('input');
         $this->assertSame(3, $inputs->length);
+        $this->assertSame('cleantalk_buffer_action', $inputs->item(1)->getAttribute('name'));
         $this->assertSame($action, $inputs->item(1)->getAttribute('value'));
+        $this->assertSame('cleantalk_buffer_method', $inputs->item(2)->getAttribute('name'));
         $this->assertSame($method, $inputs->item(2)->getAttribute('value'));
         $this->assertStringContainsString($before, $output);
         $this->assertStringContainsString($fields, $output);
@@ -87,12 +89,12 @@ class TestHtmlBufferRewriter extends TestCase
             );
             $output = $this->rewrite($html, true);
             $this->assertStringContainsString(
-                'name="cleantalk_hidden_action" value="'
+                'name="cleantalk_buffer_action" value="'
                 . htmlspecialchars($action . $decoded, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '"',
                 $output
             );
             $this->assertStringContainsString(
-                'name="cleantalk_hidden_method" value="'
+                'name="cleantalk_buffer_method" value="'
                 . htmlspecialchars($decoded ?: 'get', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '"',
                 $output
             );
@@ -193,8 +195,8 @@ class TestHtmlBufferRewriter extends TestCase
     {
         $form = '<form id="target" action="https://external.example/submit" method="get"></form>';
         $expected_form = '<form id="target" action="https://site.example/capture?a=1&amp;b=2" method="POST">'
-            . '<input type="hidden" name="cleantalk_hidden_action" value="https://external.example/submit">'
-            . '<input type="hidden" name="cleantalk_hidden_method" value="get"></form>';
+            . '<input type="hidden" name="cleantalk_buffer_action" value="https://external.example/submit">'
+            . '<input type="hidden" name="cleantalk_buffer_method" value="get"></form>';
 
         $this->assertRewrittenPage(
             $this->page($opaque . $expected_form),
@@ -247,8 +249,8 @@ class TestHtmlBufferRewriter extends TestCase
         $comment = '<!--<form action="https://external.example/fake"></form>' . $first;
         $form = '<form action="https://external.example/submit" method="get"></form>';
         $expected_form = '<form action="https://site.example/capture?a=1&amp;b=2" method="POST">'
-            . '<input type="hidden" name="cleantalk_hidden_action" value="https://external.example/submit">'
-            . '<input type="hidden" name="cleantalk_hidden_method" value="get"></form>';
+            . '<input type="hidden" name="cleantalk_buffer_action" value="https://external.example/submit">'
+            . '<input type="hidden" name="cleantalk_buffer_method" value="get"></form>';
 
         $this->assertRewrittenPage(
             $this->page($comment . $expected_form . $later),
@@ -278,8 +280,8 @@ class TestHtmlBufferRewriter extends TestCase
         $middle = '<p>Between</p><form action="/internal"></form>';
         $output = $this->rewrite($this->page($form . $middle . $form), $fallback);
 
-        $this->assertSame(2, substr_count($output, 'name="cleantalk_hidden_action"'));
-        $this->assertSame(2, substr_count($output, 'name="cleantalk_hidden_method"'));
+        $this->assertSame(2, substr_count($output, 'name="cleantalk_buffer_action"'));
+        $this->assertSame(2, substr_count($output, 'name="cleantalk_buffer_method"'));
         $this->assertStringContainsString($middle, $output);
     }
 
@@ -295,8 +297,8 @@ class TestHtmlBufferRewriter extends TestCase
     {
         $form = '<form action="https://external.example/submit" method="get"></form>';
         $expected_form = '<form action="https://site.example/capture?a=1&amp;b=2" method="POST">'
-            . '<input type="hidden" name="cleantalk_hidden_action" value="https://external.example/submit">'
-            . '<input type="hidden" name="cleantalk_hidden_method" value="get"></form>';
+            . '<input type="hidden" name="cleantalk_buffer_action" value="https://external.example/submit">'
+            . '<input type="hidden" name="cleantalk_buffer_method" value="get"></form>';
         $this->assertRewrittenPage(
             $this->page($expected_form . $foreign . $form),
             $this->rewrite($this->page($form . $foreign . $form), $fallback)

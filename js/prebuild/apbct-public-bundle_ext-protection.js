@@ -5977,8 +5977,7 @@ new ApbctHandler().cronFormsHandler(2000);
  */
 function ctProtectExternal() {
     for (let i = 0; i < document.forms.length; i++) {
-        if (document.forms[i].cleantalk_hidden_action === undefined &&
-            document.forms[i].cleantalk_hidden_method === undefined) {
+        if (!apbctIsExternalFormRelay(document.forms[i])) {
             // current form
             const currentForm = document.forms[i];
 
@@ -6043,6 +6042,17 @@ function ctProtectExternal() {
     if (ctPublic.bot_detector_enabled != 1 && typeof ApbctGatheringData !== 'undefined') {
         new ApbctGatheringData().startFieldsListening();
     }
+}
+
+/**
+ * @param {HTMLFormElement} form
+ * @return {boolean}
+ */
+function apbctIsExternalFormRelay(form) {
+    return form.querySelector(
+        '[name="cleantalk_hidden_action"], [name="cleantalk_hidden_method"], ' +
+        '[name="cleantalk_buffer_action"], [name="cleantalk_buffer_method"]',
+    ) !== null;
 }
 
 /**
@@ -6195,6 +6205,10 @@ function apbctProcessIframes() {
  * @param {HTMLElement} documentObject
  */
 function apbctProcessExternalForm(currentForm, iterator, documentObject) {
+    if (apbctIsExternalFormRelay(currentForm)) {
+        return;
+    }
+
     const cleantalkPlaceholder = document.createElement('i');
     cleantalkPlaceholder.className = 'cleantalk_placeholder';
     cleantalkPlaceholder.style = 'display: none';
@@ -6303,6 +6317,10 @@ function apbctProcessExternalForm(currentForm, iterator, documentObject) {
  * @param {HTMLElement} documentObject
  */
 function apbctProcessExternalFormByFakeButton(currentForm, iterator, documentObject) {
+    if (apbctIsExternalFormRelay(currentForm)) {
+        return;
+    }
+
     let submitButtonOriginal = currentForm.querySelector('[type="submit"]');
     if (!submitButtonOriginal) {
         // sender.com form button by class
@@ -6743,6 +6761,10 @@ function ctProtectKlaviyoForm() {
  * @param {HTMLElement} documentObject
  */
 function apbctProcessExternalFormKlaviyo(form, iterator, documentObject) {
+    if (apbctIsExternalFormRelay(form)) {
+        return;
+    }
+
     const btn = form.querySelector('button[type="button"].needsclick');
     if (!btn) {
         return;
@@ -7184,7 +7206,7 @@ function catchDynamicRenderedFormHandler(forms, documentObject = document) {
     const neededFormIds = [];
     for (const form of forms) {
         // should be checked to do not handle form again on interval
-        if ( !form.hasOwnProperty('apbct_external_onsubmit_prev') ) {
+        if ( !form.hasOwnProperty('apbct_external_onsubmit_prev') && !apbctIsExternalFormRelay(form) ) {
             const formIdAttr = form.getAttribute('id');
             if (formIdAttr && formIdAttr.indexOf('hsForm') !== -1) {
                 neededFormIds.push(formIdAttr);
