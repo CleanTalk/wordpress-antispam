@@ -221,7 +221,7 @@ function apbct_wp_login_actions($_user_login, $wp_user)
 {
     global $apbct;
     $apbct->login_ip_keeper->addUserIP($wp_user);
-    apbct_add_admin_ip_to_swf_whitelist($wp_user);
+    // Admin IP is whitelisted in the background from admin pages: see apbct_admin_ip_whitelist__ajax().
 }
 
 // Disabling comments

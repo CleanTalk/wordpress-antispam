@@ -70,7 +70,7 @@ class Activator
                 $redirect_url .= '&signup_wizard=1';
             }
             add_option('ct_plugin_do_activation_redirect', $redirect_url);
-            apbct_add_admin_ip_to_swf_whitelist(null);
+            // Admin IP is whitelisted from the first admin page after activation: see apbct_admin_ip_whitelist__ajax().
         } else {
             // Do actions for the new blog created
             if ( apbct_is_plugin_active_for_network('cleantalk-spam-protect/cleantalk.php') ) {

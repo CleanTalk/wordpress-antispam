@@ -506,12 +506,15 @@ function apbct_buffer_modify_by_string()
                 }
                 $method = $group_method[1];
 
-                $hidden_fields = '<input type="hidden" name="cleantalk_hidden_action" value="' . $action . '">';
-                $hidden_fields .= '<input type="hidden" name="cleantalk_hidden_method" value="' . $method . '">';
+                $hidden_fields = '<input type="hidden" name="cleantalk_hidden_action" value="' . esc_attr($action) . '">';
+                $hidden_fields .= '<input type="hidden" name="cleantalk_hidden_method" value="' . esc_attr($method) . '">';
 
-                $modified_match = preg_replace(
+                $local_action = esc_url(home_url(add_query_arg(array(), $wp->request)));
+                $modified_match = preg_replace_callback(
                     '/action="\S*"/',
-                    'action="' . home_url(add_query_arg(array(), $wp->request)) . '"',
+                    static function () use ($local_action) {
+                        return 'action="' . $local_action . '"';
+                    },
                     $match[0]
                 );
                 $modified_match = preg_replace('/method="\S*"/', 'method="POST"', $modified_match);
@@ -528,49 +531,12 @@ function apbct_buffer_modify_by_dom()
 {
     global $apbct, $wp;
 
-    $site_url   = get_option('home');
-    $site__host = parse_url($site_url, PHP_URL_HOST);
-
-    $dom = new DOMDocument();
-    @$dom->loadHTML($apbct->buffer, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-
-    $forms = $dom->getElementsByTagName('form');
-
-    foreach ( $forms as $form ) {
-        $action       = $form->getAttribute('action');
-        $action       = $action ?: $site_url;
-        $action__host = parse_url($action, PHP_URL_HOST);
-
-        // Check if the form directed to the third party site
-        if ( $action__host !== null && $site__host != $action__host ) {
-            $method = $form->getAttribute('method');
-            $method = $method ?: 'get';
-            // Directs form to our site
-            $form->setAttribute('method', 'POST');
-            $form->setAttribute('action', home_url(add_query_arg(array(), $wp->request)));
-
-            // Add cleantalk_hidden_action
-            $new_input = $dom->createElement('input');
-            $new_input->setAttribute('type', 'hidden');
-            $new_input->setAttribute('name', 'cleantalk_hidden_action');
-            $new_input->setAttribute('value', $action);
-            $form->appendChild($new_input);
-
-            // Add cleantalk_hidden_method
-            $new_input = $dom->createElement('input');
-            $new_input->setAttribute('type', 'hidden');
-            $new_input->setAttribute('name', 'cleantalk_hidden_method');
-            $new_input->setAttribute('value', $method);
-            $form->appendChild($new_input);
-        }
-    }
-    unset($form);
-
-    $html = $dom->getElementsByTagName('html');
-
-    return is_object($html) && isset($html[0], $html[0]->childNodes[0]) && $dom->getElementsByTagName('rss')->length == 0
-        ? $dom->saveHTML()
-        : $apbct->buffer;
+    $rewriter = new \Cleantalk\ApbctWP\ExternalForms\HtmlBufferRewriter(
+        $apbct->buffer,
+        get_option('home'),
+        esc_url_raw(home_url(add_query_arg(array(), $wp->request)))
+    );
+    return $rewriter->rewrite();
 }
 
 /**

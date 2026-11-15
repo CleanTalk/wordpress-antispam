@@ -536,6 +536,8 @@ class ContactsEncoderHelper
         }
 
         if ( $this->indexed_content !== null && $this->indexed_content === $content ) {
+            // An equal copy, e.g. after a replacement that changed nothing: the next checks compare one string.
+            $this->indexed_content = $content;
             return;
         }
 

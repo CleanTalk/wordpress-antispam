@@ -173,6 +173,26 @@ class ContactsEncoder
      */
     protected $encoded_contacts_count = 0;
 
+    /**
+     * @var string[] A "contact" with such an ending is a name of an image file, e.g. logo@2x.png.
+     */
+    private static $image_extensions = array('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp');
+
+    /**
+     * @var int Signs of contacts taken by the content of visitors, see modifyVisitorContent().
+     */
+    protected $visitor_contact_signs_processed = 0;
+
+    /**
+     * @var int Contacts encoded in the content of visitors.
+     */
+    protected $visitor_encoded_contacts_count = 0;
+
+    /**
+     * @var bool The content of visitors is processed now.
+     */
+    private $is_visitor_content = false;
+
     protected static $instance;
 
     public function __construct()
@@ -327,7 +347,8 @@ class ContactsEncoder
             return $content;
         }
 
-        $signs = substr_count($content, '@');
+        // Only a sign that can be a contact is taken: an encoded or masked contact is not counted by an outer pass.
+        $signs = self::countEmailSigns($content, self::MAX_CONTACT_SIGNS_PER_CONTENT);
         if ( $signs === 0 ) {
             return $content;
         }
@@ -344,16 +365,11 @@ class ContactsEncoder
         $this->temp_content = $content;
         $this->helper->indexMarkup($this->temp_content);
 
-        $match_cursor = 0;
-        $match_offsets = $this->collectMatchOffsets($this->global_email_pattern, $content);
-        $match_offset_index = 0;
         $cut_mailto_end = 0;
-        $replacing_result = preg_replace_callback($this->global_email_pattern, function ($matches) use ($match_offsets, &$match_offset_index, &$match_cursor, &$cut_mailto_end) {
+        $replacing_result = $this->replaceEmailMatches($content, function ($matches, $position) use (&$cut_mailto_end) {
             if ( ! isset($matches[0]) ) {
                 return '';
             }
-
-            $position = $this->resolveNextMatchOffset($matches[0], $match_offsets, $match_offset_index, $match_cursor);
 
             // The tail of a link that stays as is, e.g. its cc= copies.
             if ( $position !== false && $position < $cut_mailto_end ) {
@@ -364,7 +380,7 @@ class ContactsEncoder
                 return $matches[0];
             }
 
-            if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
+            if ( isset($matches[3]) && in_array(strtolower($matches[3]), self::$image_extensions, true) ) {
                 return $matches[0];
             }
 
@@ -389,8 +405,9 @@ class ContactsEncoder
                     return $matches[0];
                 }
 
+                // A masked target would be a working link to another address.
                 if ( ! $this->reserveEncodedContact() ) {
-                    return $this->maskEmailsWithoutEncoding($matches[0], false);
+                    return '#';
                 }
 
                 return $this->encodeMailtoLink($matches[0], $position);
@@ -415,7 +432,7 @@ class ContactsEncoder
             }
 
             return $this->encodePlainEmail($matches[0]);
-        }, $content);
+        });
 
         // A failed regular expression returns null: a guard could have failed as well, encode nothing.
         if ( ! is_string($replacing_result) ) {
@@ -443,7 +460,7 @@ class ContactsEncoder
             return $content;
         }
 
-        $signs = substr_count($content, '+') + substr_count($content, '(');
+        $signs = self::countPhoneSigns($content);
         if ( $signs === 0 ) {
             return $content;
         }
@@ -491,7 +508,7 @@ class ContactsEncoder
                     }
 
                     if ( ! $this->reserveEncodedContact() ) {
-                        return $this->maskPhonesWithoutEncoding($matches[0], false);
+                        return '#';
                     }
 
                     return $this->encodeTelLink($matches[0], $position);
@@ -581,11 +598,70 @@ class ContactsEncoder
     }
 
     /**
+     * The same replacement as preg_replace_callback() with global_email_pattern, but the pattern runs only near
+     * the signs that can be a part of an e-mail: a match contains its sign, so the search starts at most
+     * a local part and "mailto:" before it. Without PCRE JIT a long text with few addresses is not scanned whole.
+     *
+     * @param string $content
+     * @param callable(array<int, string>, int):string $callback Receives the groups and the offset of the match.
+     *
+     * @return string|null Null when the regular expression fails, as preg_replace_callback() does.
+     */
+    private function replaceEmailMatches($content, $callback)
+    {
+        $result = '';
+        $cursor = 0;
+        $dot = -1;
+
+        for ( $at = strpos($content, '@'); $at !== false; $at = strpos($content, '@', $at + 1) ) {
+            if ( $at < $cursor ) {
+                continue;
+            }
+            if ( self::findEmailDomainDot($content, $at, $dot) === false ) {
+                if ( $dot === false ) {
+                    break;
+                }
+                continue;
+            }
+
+            $found = preg_match($this->global_email_pattern, $content, $match, PREG_OFFSET_CAPTURE, max($cursor, $at - 72));
+            if ( $found === false ) {
+                return null;
+            }
+            $whole = $found === 1 && isset($match[0]) ? $match[0] : null;
+            if ( ! is_array($whole) || ! isset($whole[0], $whole[1]) ) {
+                break;
+            }
+
+            $position = $whole[1];
+            $length = strlen($whole[0]);
+            $groups = array();
+            foreach ( $match as $index => $group ) {
+                $groups[$index] = isset($group[0]) ? $group[0] : '';
+            }
+
+            $result .= substr($content, $cursor, $position - $cursor) . $callback($groups, $position);
+            $cursor = $position + max(1, $length);
+        }
+
+        return $cursor === 0 ? $content : $result . substr($content, $cursor);
+    }
+
+    /**
      * @param int $signs Possible contacts in the content.
      * @return bool False when the request budget does not have them.
      */
     private function reserveContactSigns($signs)
     {
+        if ( $this->is_visitor_content ) {
+            if ( $this->visitor_contact_signs_processed + $signs > self::MAX_CONTACT_SIGNS_PER_REQUEST ) {
+                return false;
+            }
+            $this->visitor_contact_signs_processed += $signs;
+
+            return true;
+        }
+
         if ( $this->contact_signs_processed + $signs > self::MAX_CONTACT_SIGNS_PER_REQUEST ) {
             return false;
         }
@@ -593,6 +669,41 @@ class ContactsEncoder
         $this->contact_signs_processed += $signs;
 
         return true;
+    }
+
+    /**
+     * Content of visitors, e.g. comments, takes its own budget: it can not use up the budget of the site owner.
+     *
+     * @param string $content
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod Called by the CMS integration for comments.
+     */
+    public function modifyVisitorContent($content)
+    {
+        $was_visitor_content = $this->setVisitorContent(true);
+
+        try {
+            return $this->modifyContent($content);
+        } finally {
+            $this->setVisitorContent($was_visitor_content);
+        }
+    }
+
+    /**
+     * Content of visitors is processed by several steps, e.g. its shortcodes after the main pass: all of them
+     * take the budget of visitors while it is on.
+     *
+     * @param bool $is_visitor_content
+     *
+     * @return bool The previous state.
+     */
+    public function setVisitorContent($is_visitor_content)
+    {
+        $was_visitor_content = $this->is_visitor_content;
+        $this->is_visitor_content = (bool)$is_visitor_content;
+
+        return $was_visitor_content;
     }
 
     /**
@@ -704,6 +815,10 @@ class ContactsEncoder
      */
     protected function reserveEncodedContact()
     {
+        if ( $this->is_visitor_content ) {
+            return ++$this->visitor_encoded_contacts_count <= self::MAX_ENCODED_CONTACTS_PER_REQUEST;
+        }
+
         return ++$this->encoded_contacts_count <= self::MAX_ENCODED_CONTACTS_PER_REQUEST;
     }
 
@@ -722,30 +837,50 @@ class ContactsEncoder
         $result = '';
         $cursor = 0;
         $offset = 0;
+        $dot = -1;
 
         while ( ($at = strpos($content, '@', $offset)) !== false ) {
             $offset = $at + 1;
-            $from = max($cursor, $at - 64);
-            $local = strspn(strrev(substr($content, $from, $at - $from)), $chars);
-            $domain = substr($content, $at + 1, strspn($content, $chars, $at + 1, 255));
-            $dot = strrpos($domain, '.');
-
-            if ( $local === 0 || $dot === false || $dot === 0 ) {
+            // The same addresses as EMAIL_PATTERN: package@1.2.3 is not one.
+            $domain_dot = $at > $cursor ? self::findEmailDomainDot($content, $at, $dot) : false;
+            if ( $dot === false ) {
+                break;
+            }
+            if ( $domain_dot === false ) {
                 continue;
             }
 
+            $from = max($cursor, $at - 64);
+            $local = strspn(strrev(substr($content, $from, $at - $from)), $chars);
             $start = $at - $local;
-            $end = $at + 1 + strlen($domain);
+            $end = $at + 1 + strspn($content, $chars, $at + 1, 255);
             $email = substr($content, $start, $end - $start);
-            if (
-                ( $check_context && ! $this->isMaskableContact($content, $email, $start, 'mailto:') )
-                || $this->exclusions->isContactExcluded($email)
-            ) {
+            // The encoding takes the last part of the domain, files.jpg.example.org is not an image.
+            $domain = rtrim(substr($content, $at + 1, $end - $at - 1), '.-');
+            $ending = strtolower((string)strrchr($domain, '.'));
+            if ( in_array($ending, self::$image_extensions, true) ) {
+                continue;
+            }
+
+            $kept_end = $check_context ? $this->findKeptContextEnd($content, $email, $start, 'mailto:') : false;
+            if ( $kept_end !== false ) {
+                $offset = max($offset, $kept_end);
+                continue;
+            }
+            if ( $this->exclusions->isContactExcluded($email) ) {
+                continue;
+            }
+
+            // A masked target of a link would be a working link to another address.
+            $target = $check_context ? $this->helper->findAttributeValueRange($content, $start) : false;
+            if ( $target !== false ) {
+                $result .= substr($content, $cursor, $target[0] - $cursor) . '#';
+                $cursor = $offset = $target[1];
                 continue;
             }
 
             $result .= substr($content, $cursor, $start - $cursor)
-                . str_repeat('*', $local) . '@' . str_repeat('*', $dot) . substr($domain, $dot);
+                . str_repeat('*', $local) . '@' . str_repeat('*', $domain_dot - $at - 1) . substr($content, $domain_dot, $end - $domain_dot);
             $cursor = $end;
             $offset = $end;
         }
@@ -763,20 +898,24 @@ class ContactsEncoder
      * @param int $position
      * @param string $scheme
      *
-     * @return bool
+     * @return int|false False when the contact is masked, otherwise the offset to search the next one from:
+     *                   other contacts of the same attribute value stay as they are too.
      */
-    private function isMaskableContact($content, $contact, $position, $scheme)
+    private function findKeptContextEnd($content, $contact, $position, $scheme)
     {
         if (
             $this->helper->isInsideRawTextTag($contact, $content, $position)
             || $this->helper->isInsideOptionTag($contact, $content, $position)
         ) {
-            return false;
+            return $position + 1;
         }
 
         $range = $this->helper->findAttributeValueRange($content, $position);
+        if ( $range === false || strncasecmp(substr($content, $range[0], strlen($scheme)), $scheme, strlen($scheme)) === 0 ) {
+            return false;
+        }
 
-        return $range === false || strncasecmp(substr($content, $range[0], strlen($scheme)), $scheme, strlen($scheme)) === 0;
+        return $range[1];
     }
 
     /**
@@ -789,22 +928,37 @@ class ContactsEncoder
      */
     protected function maskPhonesWithoutEncoding($content, $check_context = true)
     {
-        $length = strlen($content);
         $result = '';
         $cursor = 0;
         $offset = 0;
+        $pattern = '/' . implode('|', self::PHONE_NUMBERS_PATTERNS) . '/';
 
-        while ( ($position = $offset + strcspn($content, '+(', $offset)) < $length ) {
-            $run = substr($content, $position, strspn($content, '+(0123456789 -.)', $position, 25));
-            $run = rtrim($run, ' -.(+');
+        // The same phones as the encoding finds, so no format of them stays open and two of them are not joined.
+        while ( preg_match($pattern, $content, $match, PREG_OFFSET_CAPTURE, $offset) && isset($match[0][0], $match[0][1]) ) {
+            $run = $match[0][0];
+            $position = $match[0][1];
+            $offset = $position + max(1, strlen($run));
+
+            $is_tel = strncasecmp($run, 'tel:', 4) === 0;
             $digits = strlen($run) - strlen(str_replace(array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'), '', $run));
+            // The length check of the encoding: other runs of digits are not phones for it.
+            if ( ! $is_tel && ( $digits < 8 || $digits > 12 ) ) {
+                continue;
+            }
 
-            if (
-                $digits < 8 || $digits > 15
-                || ( $check_context && ! $this->isMaskableContact($content, $run, $position, 'tel:') )
-                || $this->exclusions->isContactExcluded($run)
-            ) {
-                $offset = $position + 1;
+            $kept_end = $check_context ? $this->findKeptContextEnd($content, $run, $position, 'tel:') : false;
+            if ( $kept_end !== false ) {
+                $offset = max($offset, $kept_end);
+                continue;
+            }
+            if ( $this->exclusions->isContactExcluded($run) ) {
+                continue;
+            }
+
+            $target = $check_context ? $this->helper->findAttributeValueRange($content, $position) : false;
+            if ( $target !== false ) {
+                $result .= substr($content, $cursor, $target[0] - $cursor) . '#';
+                $cursor = $offset = $target[1];
                 continue;
             }
 
@@ -817,8 +971,7 @@ class ContactsEncoder
             }
 
             $result .= substr($content, $cursor, $position - $cursor) . $masked;
-            $cursor = $position + strlen($run);
-            $offset = $cursor;
+            $cursor = $offset = $position + strlen($run);
         }
 
         return $cursor === 0 ? $content : $result . substr($content, $cursor);
@@ -1218,6 +1371,100 @@ class ContactsEncoder
     }
 
     /**
+     * The same as a match of EMAIL_PATTERN, in one pass: a text of an attribute is not limited by the budget
+     * of contact signs, and without PCRE JIT the pattern backtracks on a long run of dots and signs.
+     *
+     * @param string $text
+     *
+     * @return bool
+     */
+    public static function textContainsEmail($text)
+    {
+        return self::countEmailSigns($text, 1) > 0;
+    }
+
+    /**
+     * Signs "@" that can be a part of a match of EMAIL_PATTERN: a sign of a local part before it and
+     * a domain after it up to a dot with 2-63 letters. One pass: the search for the next such dot
+     * starts after the previous one.
+     *
+     * @param string $text
+     * @param int $stop The count stops when it is over this number.
+     *
+     * @return int
+     */
+    public static function countEmailSigns($text, $stop)
+    {
+        if ( ! is_string($text) || strpos($text, '@') === false ) {
+            return 0;
+        }
+
+        $count = 0;
+        $dot = -1;
+
+        for ( $at = strpos($text, '@'); $at !== false; $at = strpos($text, '@', $at + 1) ) {
+            $end = self::findEmailDomainDot($text, $at, $dot);
+            if ( $dot === false ) {
+                break;
+            }
+            if ( $end !== false && ++$count > $stop ) {
+                break;
+            }
+        }
+
+        return $count;
+    }
+
+    /**
+     * Phones of PHONE_NUMBERS_PATTERNS: the visible part of an encoded phone is not one. No list of matches is kept.
+     *
+     * @param string $text
+     *
+     * @return int
+     */
+    public static function countPhoneSigns($text)
+    {
+        if ( ! is_string($text) || strpbrk($text, '+(') === false ) {
+            return 0;
+        }
+
+        $count = preg_match_all('/' . implode('|', self::PHONE_NUMBERS_PATTERNS) . '/', $text);
+
+        return is_int($count) ? $count : 0;
+    }
+
+    /**
+     * The dot before the last part of the domain of a possible e-mail around this sign.
+     *
+     * @param string $text
+     * @param int $at Offset of "@".
+     * @param int|false $dot The next ending dot found before, -1 at first; false when there is none more.
+     *
+     * @return int|false The dot, false when the sign is not a part of an e-mail.
+     */
+    private static function findEmailDomainDot($text, $at, &$dot)
+    {
+        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.';
+
+        if ( $dot === false || $at === 0 || $at + 2 >= strlen($text) || strspn($text, $chars, $at - 1, 1) === 0 ) {
+            return false;
+        }
+
+        // A dot followed by 2-63 letters up to a word boundary. Searched after the previous one: one pass.
+        if ( $dot < $at + 2 ) {
+            $dot = preg_match('/\.[A-Za-z]{2,63}+(?![A-Za-z0-9_])/', $text, $match, PREG_OFFSET_CAPTURE, $at + 2) && isset($match[0][1])
+                ? $match[0][1]
+                : false;
+            if ( $dot === false ) {
+                return false;
+            }
+        }
+
+        // All the signs between "@" and the dot are of a domain, 1-255 of them.
+        return $dot <= $at + strspn($text, $chars, $at + 1, 256) ? $dot : false;
+    }
+
+    /**
      * Drop attributes contains email from tag in the content to avoid unnecessary encoding.
      *
      * Example: <code><a title="example1@mail.com" href="mailto:example2@mail.com">Email</a></code>
@@ -1233,7 +1480,6 @@ class ContactsEncoder
      */
     private function dropAttributesContainEmail($content, $tags)
     {
-        $email_pattern = '/' . self::EMAIL_PATTERN . '/';
         $this->helper->indexMarkup($content);
 
         foreach ($tags as $tag => $attribute) {
@@ -1248,7 +1494,7 @@ class ContactsEncoder
 
             $replaced = preg_replace_callback(
                 $tag_pattern,
-                function ($tag_match) use ($attribute_pattern, $email_pattern, $content) {
+                function ($tag_match) use ($attribute_pattern, $content) {
                     if ( ! isset($tag_match[0]) || ! is_array($tag_match[0]) || ! isset($tag_match[0][0], $tag_match[0][1]) ) {
                         return '';
                     }
@@ -1266,12 +1512,12 @@ class ContactsEncoder
 
                     $stripped = preg_replace_callback(
                         $attribute_pattern,
-                        static function ($attribute_match) use ($email_pattern) {
+                        static function ($attribute_match) {
                             if ( ! isset($attribute_match[0], $attribute_match[2]) ) {
                                 return '';
                             }
 
-                            return preg_match($email_pattern, $attribute_match[2])
+                            return self::textContainsEmail($attribute_match[2])
                                 ? ''
                                 : $attribute_match[0];
                         },
