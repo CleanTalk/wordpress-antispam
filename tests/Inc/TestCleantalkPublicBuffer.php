@@ -3,6 +3,7 @@
 namespace Inc;
 
 use Cleantalk\ApbctWP\State;
+use Cleantalk\ApbctWP\ExternalForms\BufferFormSecurity;
 use PHPUnit\Framework\TestCase;
 
 class TestCleantalkPublicBuffer extends TestCase
@@ -130,6 +131,7 @@ class TestCleantalkPublicBuffer extends TestCase
             . '<input name="email" value="member@example.org">'
             . '<input type="hidden" name="cleantalk_buffer_action" value="' . esc_attr($action) . '">'
             . '<input type="hidden" name="cleantalk_buffer_method" value="' . $method . '">'
+            . $this->signatureField($action, $method)
             . '</form><p>After</p>';
 
         $this->assertSame($expected, $this->rewriteStringBuffer($buffer, 'capture-form'));
@@ -152,7 +154,8 @@ class TestCleantalkPublicBuffer extends TestCase
         $local_action = esc_url(home_url(add_query_arg(array(), $request)));
         $expected = '<form action="' . $local_action . '" method="POST">'
             . '<input type="hidden" name="cleantalk_buffer_action" value="https://external-forms.invalid/submit">'
-            . '<input type="hidden" name="cleantalk_buffer_method" value="get"></form>';
+            . '<input type="hidden" name="cleantalk_buffer_method" value="get">'
+            . $this->signatureField('https://external-forms.invalid/submit', 'get') . '</form>';
 
         $this->assertSame($expected, $this->rewriteStringBuffer($buffer, $request));
     }
@@ -181,7 +184,7 @@ class TestCleantalkPublicBuffer extends TestCase
         $this->assertSame(0, $dom->getElementsByTagName('img')->length);
         $this->assertSame(0, $dom->getElementsByTagName('script')->length);
         $this->assertFalse($dom->getElementsByTagName('form')->item(0)->hasAttribute('onmouseover'));
-        $this->assertSame(2, $dom->getElementsByTagName('input')->length);
+        $this->assertSame(3, $dom->getElementsByTagName('input')->length);
         $this->assertStringNotContainsString('https://external-forms.invalid/submit', $dom
             ->getElementsByTagName('form')->item(0)->getAttribute('action'));
     }
@@ -209,7 +212,7 @@ class TestCleantalkPublicBuffer extends TestCase
         $dom = new \DOMDocument();
         $this->assertTrue($dom->loadHTML('<meta charset="utf-8">' . $output));
         $inputs = $dom->getElementsByTagName('input');
-        $this->assertSame(2, $inputs->length);
+        $this->assertSame(3, $inputs->length);
         $this->assertSame(
             html_entity_decode($action, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
             $inputs->item(0)->getAttribute('value')
@@ -218,6 +221,11 @@ class TestCleantalkPublicBuffer extends TestCase
             html_entity_decode($method, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
             $inputs->item(1)->getAttribute('value')
         );
+        $this->assertTrue(BufferFormSecurity::hasValidSignature(
+            $inputs->item(0)->getAttribute('value'),
+            $inputs->item(1)->getAttribute('value'),
+            $inputs->item(2)->getAttribute('value')
+        ));
         $this->assertSame(0, $dom->getElementsByTagName('value')->length);
     }
 
@@ -244,7 +252,8 @@ class TestCleantalkPublicBuffer extends TestCase
         $buffer = '<html><body>' . $opaque . $form . '</body></html>';
         $expected_form = '<form action="' . esc_url(home_url('capture-form')) . '" method="POST">'
             . '<input type="hidden" name="cleantalk_buffer_action" value="https://external-forms.invalid/submit">'
-            . '<input type="hidden" name="cleantalk_buffer_method" value="get"></form>';
+            . '<input type="hidden" name="cleantalk_buffer_method" value="get">'
+            . $this->signatureField('https://external-forms.invalid/submit', 'get') . '</form>';
 
         $this->assertSame(
             '<html><body>' . $opaque . $expected_form . '</body></html>',
@@ -265,8 +274,14 @@ class TestCleantalkPublicBuffer extends TestCase
         $this->assertSame(1, $dom->getElementsByTagName('form')->length);
         $this->assertSame(0, $dom->getElementsByTagName('img')->length);
         $this->assertSame(0, $dom->getElementsByTagName('script')->length);
-        $this->assertSame(2, $dom->getElementsByTagName('input')->length);
+        $this->assertSame(3, $dom->getElementsByTagName('input')->length);
         $this->assertFalse($dom->getElementsByTagName('form')->item(0)->hasAttribute('onmouseover'));
+    }
+
+    private function signatureField($action, $method)
+    {
+        return '<input type="hidden" name="cleantalk_buffer_signature" value="'
+            . BufferFormSecurity::getSignature($action, $method) . '">';
     }
 
     private function rewriteHtmlBuffer($buffer, $request)

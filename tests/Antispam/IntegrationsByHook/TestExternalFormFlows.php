@@ -4,6 +4,7 @@ use Cleantalk\Antispam\Integrations\CleantalkExternalForms;
 use Cleantalk\Antispam\Integrations\CleantalkExternalFormsBuffer;
 use Cleantalk\Antispam\Integrations\CleantalkExternalFormsForceAjax;
 use Cleantalk\ApbctWP\ExternalForms\Submission;
+use Cleantalk\ApbctWP\ExternalForms\BufferFormSecurity;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
 use PHPUnit\Framework\TestCase;
@@ -19,6 +20,8 @@ class TestExternalFormFlows extends TestCase
         $this->server_global = $_SERVER;
         $_POST = array();
         $_SERVER['REQUEST_METHOD'] = 'POST';
+        unset($_SERVER['HTTP_ORIGIN']);
+        $_SERVER['HTTP_REFERER'] = get_home_url();
         $this->resetVariableCaches();
     }
 
@@ -44,6 +47,7 @@ class TestExternalFormFlows extends TestCase
             $action_field => 'https://external.example/submit',
             $method_field => 'get',
         );
+        $this->signBufferSubmission();
         $this->resetVariableCaches();
 
         $integration = new $class();
@@ -64,6 +68,7 @@ class TestExternalFormFlows extends TestCase
             'email' => 'member@example.org',
             'message' => 'External form test',
         );
+        $this->signBufferSubmission();
         $this->resetVariableCaches();
         $checked_post = null;
         $filter = static function ($post) use (&$checked_post) {
@@ -88,6 +93,7 @@ class TestExternalFormFlows extends TestCase
         $this->assertStringContainsString('form.submit();', $html);
         $this->assertStringNotContainsString($action_field, $html);
         $this->assertStringNotContainsString($method_field, $html);
+        $this->assertStringNotContainsString(Submission::BUFFER_SIGNATURE, $html);
     }
 
     public function relayFlowProvider()
@@ -106,6 +112,16 @@ class TestExternalFormFlows extends TestCase
                 CleantalkExternalForms::class,
             ),
         );
+    }
+
+    private function signBufferSubmission()
+    {
+        if ( isset($_POST[Submission::BUFFER_ACTION], $_POST[Submission::BUFFER_METHOD]) ) {
+            $_POST[Submission::BUFFER_SIGNATURE] = BufferFormSecurity::getSignature(
+                $_POST[Submission::BUFFER_ACTION],
+                $_POST[Submission::BUFFER_METHOD]
+            );
+        }
     }
 
     public function testDirectAjaxRemainsSeparateFromBothRelays()
@@ -136,18 +152,26 @@ class TestExternalFormFlows extends TestCase
         $handler = static function () use (&$response) {
             return static function ($message, $title, $args) use (&$response) {
                 $response = array('message' => $message, 'status' => $args['response']);
+                throw new RuntimeException('External form response completed.');
             };
         };
         add_filter('wp_die_handler', $handler);
 
         try {
-            $this->assertFalse((new CleantalkExternalForms())->doPrepareActions(null));
-            $this->assertSame(400, $response['status']);
-            $this->assertNotEmpty($response['message']);
-            $this->assertFalse((new CleantalkExternalFormsBuffer())->doPrepareActions(null));
-            $this->assertNull((new CleantalkExternalForms())->getDataForChecking(null));
-            $this->assertNull((new CleantalkExternalFormsBuffer())->getDataForChecking(null));
-            $this->assertSame($original_post, $_POST);
+            foreach ( array(new CleantalkExternalForms(), new CleantalkExternalFormsBuffer()) as $integration ) {
+                foreach ( array('doPrepareActions', 'getDataForChecking') as $method ) {
+                    $response = null;
+                    try {
+                        $integration->$method(null);
+                        $this->fail('A mixed relay submission must terminate.');
+                    } catch (RuntimeException $exception) {
+                        $this->assertSame('External form response completed.', $exception->getMessage());
+                    }
+                    $this->assertSame(400, $response['status']);
+                    $this->assertNotEmpty($response['message']);
+                    $this->assertSame($original_post, $_POST);
+                }
+            }
         } finally {
             remove_filter('wp_die_handler', $handler);
         }
@@ -197,6 +221,7 @@ class TestExternalFormFlows extends TestCase
             'buffer init and AJAX' => array(CleantalkExternalFormsBuffer::class, Submission::BUFFER_METHOD),
             'AJAX and JS' => array(CleantalkExternalFormsForceAjax::class, Submission::JS_ACTION),
             'AJAX and buffer' => array(CleantalkExternalFormsForceAjax::class, Submission::BUFFER_METHOD),
+            'AJAX and signature only' => array(CleantalkExternalFormsForceAjax::class, Submission::BUFFER_SIGNATURE),
         );
     }
 }

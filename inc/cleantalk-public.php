@@ -506,8 +506,17 @@ function apbct_buffer_modify_by_string()
                 }
                 $method = $group_method[1];
 
-                $hidden_fields = '<input type="hidden" name="cleantalk_buffer_action" value="' . esc_attr($action) . '">';
-                $hidden_fields .= '<input type="hidden" name="cleantalk_buffer_method" value="' . esc_attr($method) . '">';
+                $escaped_action = esc_attr($action);
+                $escaped_method = esc_attr($method);
+                // Sign the values the browser decodes from hidden attributes, not their HTML representation.
+                $signature = \Cleantalk\ApbctWP\ExternalForms\BufferFormSecurity::getSignature(
+                    html_entity_decode($escaped_action, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                    html_entity_decode($escaped_method, ENT_QUOTES | ENT_HTML5, 'UTF-8')
+                );
+                $hidden_fields = '<input type="hidden" name="cleantalk_buffer_action" value="' . $escaped_action . '">';
+                $hidden_fields .= '<input type="hidden" name="cleantalk_buffer_method" value="' . $escaped_method . '">';
+                $hidden_fields .= '<input type="hidden" name="cleantalk_buffer_signature" value="'
+                    . esc_attr($signature) . '">';
 
                 $local_action = esc_url(home_url(add_query_arg(array(), $wp->request)));
                 $modified_match = preg_replace_callback(

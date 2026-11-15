@@ -5,13 +5,28 @@ namespace Cleantalk\Antispam\Integrations;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\ExternalForms\Submission;
 
+/**
+ * Check direct integrations through JSON responses without creating an HTML relay.
+ */
 class CleantalkExternalFormsForceAjax extends IntegrationBase
 {
+    /**
+     * Reject relay fields before the direct AJAX integration consumes its action.
+     *
+     * @param mixed $argument
+     * @return bool
+     */
     public function doPrepareActions($argument)
     {
         return Submission::validate(true);
     }
 
+    /**
+     * Remove AJAX transport fields and extract the original form payload.
+     *
+     * @param mixed $argument
+     * @return array|null
+     */
     public function getDataForChecking($argument)
     {
         if ( ! Submission::validate(true) ) {

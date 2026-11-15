@@ -692,6 +692,7 @@ class HtmlBufferRewriter
      * Nested forms, duplicate action/method attributes, and missing closers prevent
      * rewriting. Original action and method values are retained in hidden inputs
      * inserted before the paired closing tag; a missing/empty method defaults to get.
+     * A site-bound signature covers the destination and method used by the relay.
      *
      * @param array $forms Ordered form tokens enriched with parsed action and method values.
      * @psalm-param list<HtmlForm> $forms
@@ -745,7 +746,9 @@ class HtmlBufferRewriter
                         'text' => '<input type="hidden" name="cleantalk_buffer_action" value="'
                             . $this->escapeAttribute($action) . '">'
                             . '<input type="hidden" name="cleantalk_buffer_method" value="'
-                            . $this->escapeAttribute($method) . '">',
+                            . $this->escapeAttribute($method) . '">'
+                            . '<input type="hidden" name="cleantalk_buffer_signature" value="'
+                            . $this->escapeAttribute(BufferFormSecurity::getSignature($action, $method)) . '">',
                     );
                 }
             }
