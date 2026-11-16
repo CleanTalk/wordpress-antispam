@@ -64,9 +64,10 @@ $apbct_active_integrations = array(
         'ajax'    => true
     ),
     'SimpleMembership'    => array(
-        'hook'    => 'swpm_front_end_registration_complete_user_data',
-        'setting' => 'forms__registrations_test',
-        'ajax'    => false
+        'hook'     => 'swpm_validate_registration_form_submission',
+        'setting'  => 'forms__registrations_test',
+        'ajax'     => false,
+        'priority' => PHP_INT_MAX,
     ),
     'WpMembers'           => array(
         'hook'    => 'wpmem_pre_register_data',

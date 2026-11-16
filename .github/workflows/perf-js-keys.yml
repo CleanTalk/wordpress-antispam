@@ -1,0 +1,92 @@
+name: Performance js_keys__get
+
+on:
+  push:
+    branches:
+      - beta
+  workflow_dispatch:
+
+concurrency:
+  group: perf-js-keys-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  WP_IMAGE: ${{ vars.PERF_WP_IMAGE || 'wordpress:php8.1-apache' }}
+  DB_IMAGE: mysql:8.0
+  DB_ENV: -e WORDPRESS_DB_HOST=db:3306 -e WORDPRESS_DB_USER=wordpress -e WORDPRESS_DB_PASSWORD=wordpress -e WORDPRESS_DB_NAME=wordpress
+
+jobs:
+  measure:
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start MySQL
+        run: |
+          docker network create wp
+          docker run -d --name db --network wp \
+            -e MYSQL_ROOT_PASSWORD=password \
+            -e MYSQL_DATABASE=wordpress \
+            -e MYSQL_USER=wordpress \
+            -e MYSQL_PASSWORD=wordpress \
+            "$DB_IMAGE"
+
+      - name: Start WordPress with the plugin mounted
+        run: |
+          docker run -d --name wp --network wp -p 8080:80 $DB_ENV \
+            -e WORDPRESS_CONFIG_EXTRA="define('APBCT_SERVICE__PERF_METRICS_HEADER', true);" \
+            -v "$GITHUB_WORKSPACE:/var/www/html/wp-content/plugins/cleantalk-spam-protect" \
+            "$WP_IMAGE"
+
+      - name: Wait for WordPress container
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/ || true)
+            if [ "$code" != "000" ] && docker exec wp test -f /var/www/html/wp-config.php; then
+              echo "WordPress container is up (HTTP $code)"
+              exit 0
+            fi
+            echo "Attempt $i/30: not ready yet"
+            sleep 3
+          done
+          docker logs wp
+          exit 1
+
+      - name: Install WordPress and activate the plugin
+        run: |
+          wp() {
+            docker run --rm --volumes-from wp --network wp $DB_ENV wordpress:cli wp "$@"
+          }
+          # MySQL 8 may restart once during init, so retry the install.
+          for i in $(seq 1 20); do
+            if wp core install --url="http://localhost:8080" --title="Perf" \
+                 --admin_user=admin --admin_password=password --admin_email=admin@example.com --skip-email; then
+              break
+            fi
+            echo "Attempt $i/20: DB not ready yet"
+            sleep 5
+          done
+          wp core is-installed
+          wp plugin activate cleantalk-spam-protect
+          wp plugin list --status=active
+          wp core version
+
+      - name: Measure js_keys__get
+        env:
+          PERF_URL: http://localhost:8080/?rest_route=/cleantalk-antispam/v1/js_keys__get
+          PERF_REQUESTS: ${{ vars.PERF_JS_KEYS_REQUESTS || '5' }}
+          PERF_WARMUP: '1'
+          PERF_JS_KEYS_CLIENT_MS: ${{ vars.PERF_JS_KEYS_CLIENT_MS }}
+          PERF_JS_KEYS_TOTAL_MS: ${{ vars.PERF_JS_KEYS_TOTAL_MS }}
+          PERF_JS_KEYS_INIT_MS: ${{ vars.PERF_JS_KEYS_INIT_MS }}
+          PERF_JS_KEYS_HANDLER_MS: ${{ vars.PERF_JS_KEYS_HANDLER_MS }}
+          PERF_JS_KEYS_SQL: ${{ vars.PERF_JS_KEYS_SQL }}
+          PERF_JS_KEYS_MEM_MB: ${{ vars.PERF_JS_KEYS_MEM_MB }}
+        run: python3 .github/perf/js_keys_perf.py

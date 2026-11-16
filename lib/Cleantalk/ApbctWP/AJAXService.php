@@ -233,6 +233,45 @@ class AJAXService
      */
     public static function getJSKeys()
     {
-        die(json_encode(array('js_key' => ct_get_checkjs_value())));
+        $handler_start = microtime(true);
+        $js_key        = ct_get_checkjs_value();
+
+        if ( Constant::is(Constant::APBCT_SERVICE__PERF_METRICS_HEADER, true) ) {
+            self::sendPerfMetricsHeader($handler_start);
+        }
+
+        die(json_encode(array('js_key' => $js_key)));
+    }
+
+    /**
+     * Sends Server-Timing header: boot (WP core before the plugin), init (plugin load + WP init + routing),
+     * handler, total. Non-time metrics are passed via desc.
+     *
+     * @param float $handler_start
+     *
+     * @return void
+     */
+    private static function sendPerfMetricsHeader($handler_start)
+    {
+        global $wpdb;
+
+        if ( headers_sent() ) {
+            return;
+        }
+
+        $now           = microtime(true);
+        $request_start = isset($_SERVER['REQUEST_TIME_FLOAT']) ? $_SERVER['REQUEST_TIME_FLOAT'] : $handler_start;
+        $plugin_start  = defined('APBCT_PERF_PLUGIN_START') ? (float)APBCT_PERF_PLUGIN_START : $request_start;
+
+        $metrics = array(
+            sprintf('boot;dur=%.2f', ($plugin_start - $request_start) * 1000), // Time taken for WP core before the plugin
+            sprintf('init;dur=%.2f', ($handler_start - $plugin_start) * 1000), // Time taken for plugin load + WP init + routing
+            sprintf('handler;dur=%.2f', ($now - $handler_start) * 1000), // Time taken for the AJAX handler
+            sprintf('total;dur=%.2f', ($now - $request_start) * 1000), // Total time taken for the request
+            sprintf('sql;desc="%d"', isset($wpdb->num_queries) ? (int)$wpdb->num_queries : 0), // Number of SQL queries executed
+            sprintf('mem;desc="%.2f"', memory_get_peak_usage(true) / 1048576), // Peak memory usage in MB
+        );
+
+        header('Server-Timing: ' . implode(', ', $metrics));
     }
 }

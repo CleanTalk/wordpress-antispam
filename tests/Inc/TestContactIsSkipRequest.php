@@ -36,6 +36,84 @@ class TestContactIsSkipRequest extends TestCase
         $GLOBALS['current_screen'] = null;
     }
 
+    /**
+     * @dataProvider armMemberActionProvider
+     */
+    public function testArmMemberFieldAvailabilityActionIsSkipped($source, $action, $plugin_slug, $expected)
+    {
+        global $apbct;
+
+        $post_backup = $_POST;
+        $get_backup = $_GET;
+        $request_backup = $_REQUEST;
+        $post_cache_backup = Post::getInstance()->variables;
+        $get_cache_backup = Get::getInstance()->variables;
+        $request_cache_backup = Request::getInstance()->variables;
+        $user_backup = get_current_user_id();
+        $plugins_backup = get_option('active_plugins', array());
+
+        try {
+            wp_set_current_user(0);
+            $apbct->user = new \WP_User(0);
+            $apbct->settings['forms__general_contact_forms_test'] = 1;
+            $apbct->settings['forms__check_external'] = 1;
+            update_option('active_plugins', $plugin_slug === '' ? array() : array($plugin_slug), false);
+
+            $data = array(
+                'action' => $action,
+                'field' => 'user_email',
+                'value' => 'member@example.com',
+            );
+            $_POST = $source === 'POST' ? $data : array();
+            $_GET = $source === 'GET' ? $data : array();
+            $_REQUEST = $data;
+            Post::getInstance()->variables = $_POST;
+            Get::getInstance()->variables = $_GET;
+            Request::getInstance()->variables = $_REQUEST;
+
+            $this->assertSame($expected, apbct_is_skip_request(true));
+        } finally {
+            $_POST = $post_backup;
+            $_GET = $get_backup;
+            $_REQUEST = $request_backup;
+            Post::getInstance()->variables = $post_cache_backup;
+            Get::getInstance()->variables = $get_cache_backup;
+            Request::getInstance()->variables = $request_cache_backup;
+            update_option('active_plugins', $plugins_backup, false);
+            wp_set_current_user($user_backup);
+        }
+    }
+
+    public function armMemberActionProvider()
+    {
+        return array(
+            'POST field availability' => array(
+                'POST', 'arm_check_exist_field', 'armember-membership/armember-membership.php',
+                'ARMember field availability check',
+            ),
+            'GET field availability' => array(
+                'GET', 'arm_check_exist_field', 'armember-membership/armember-membership.php',
+                'ARMember field availability check',
+            ),
+            'POST inactive plugin' => array('POST', 'arm_check_exist_field', '', false),
+            'GET inactive plugin' => array('GET', 'arm_check_exist_field', '', false),
+            'POST different plugin' => array('POST', 'arm_check_exist_field', 'other/plugin.php', false),
+            'GET different plugin' => array('GET', 'arm_check_exist_field', 'other/plugin.php', false),
+            'POST registration' => array(
+                'POST', 'arm_shortcode_form_ajax_action', 'armember-membership/armember-membership.php', false,
+            ),
+            'GET registration' => array(
+                'GET', 'arm_shortcode_form_ajax_action', 'armember-membership/armember-membership.php', false,
+            ),
+            'POST membership setup' => array(
+                'POST', 'arm_membership_setup_form_ajax_action', 'armember-membership/armember-membership.php', false,
+            ),
+            'GET membership setup' => array(
+                'GET', 'arm_membership_setup_form_ajax_action', 'armember-membership/armember-membership.php', false,
+            ),
+        );
+    }
+
     public function testElementorBuilderSkipIsAdmin()
     {
         $this->assertTrue(self::skipped(

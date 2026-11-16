@@ -194,6 +194,77 @@ class TestComments extends \ApbctTestCase
     }
 
     /**
+     * @dataProvider ipOutputProvider
+     */
+    public function testColumnCtAuthorKeepsIpInsideLinkAttributesAndText($ip, $white_label): void
+    {
+        global $apbct;
+        $comment = (object) array(
+            'comment_author' => 'Test Author',
+            'comment_author_email' => '',
+            'comment_author_IP' => $ip,
+        );
+        $previous_white_label = $apbct->white_label;
+        try {
+            $apbct->white_label = $white_label;
+            $result = $this->columnCtAuthor->invoke($this->instance, array('ct_comment' => $comment));
+        } finally {
+            $apbct->white_label = $previous_white_label;
+        }
+
+        $dom = new \DOMDocument();
+        // libxml may warn about the existing HTML5-valid "&mode=detail"; check the resulting DOM instead.
+        $previous_errors = libxml_use_internal_errors(true);
+        try {
+            $loaded = $dom->loadHTML('<!doctype html><html><body>' . $result . '</body></html>');
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previous_errors);
+        }
+        $this->assertTrue($loaded);
+        $links = $dom->getElementsByTagName('a');
+        $decoded_ip = html_entity_decode($ip, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        $this->assertSame($white_label ? 1 : 2, $links->length);
+        $this->assertSame('edit-comments.php?s=' . $decoded_ip . '&mode=detail', $links->item(0)->getAttribute('href'));
+        $this->assertSame($decoded_ip, $links->item(0)->textContent);
+        $this->assertSame(array('href'), $this->attributeNames($links->item(0)));
+
+        if ( ! $white_label ) {
+            $this->assertSame(
+                'https://cleantalk.org/blacklists/' . $decoded_ip,
+                $links->item(1)->getAttribute('href')
+            );
+            $this->assertSame('_blank', $links->item(1)->getAttribute('target'));
+            $this->assertSame(array('href', 'target'), $this->attributeNames($links->item(1)));
+        }
+
+        $this->assertSame($white_label ? 0 : 1, $dom->getElementsByTagName('img')->length);
+    }
+
+    public function ipOutputProvider()
+    {
+        return array(
+            'single quote with White Label' => array("1.1.1.1' onmouseover='alert(36)", true),
+            'single quote without White Label' => array("1.1.1.1' onmouseover='alert(36)", false),
+            'double quote' => array('1.1.1.1" onmouseover="alert(36)', false),
+            'image tag' => array("1.1.1.1'><img src=x onerror=alert(36)>", false),
+            'encoded quote' => array('1.1.1.1&#039; onmouseover=&#039;alert(36)', false),
+            'IPv6' => array('2001:db8::36', false),
+        );
+    }
+
+    private function attributeNames(\DOMElement $element)
+    {
+        $names = array();
+        foreach ( $element->attributes as $attribute ) {
+            $names[] = $attribute->name;
+        }
+        sort($names);
+        return $names;
+    }
+
+    /**
      * column_ct_comment strips dangerous HTML from comment content and keeps allowed tags.
      */
     public function testColumnCtCommentSanitizesContent(): void
@@ -218,4 +289,3 @@ class TestComments extends \ApbctTestCase
         $this->assertStringContainsString('<b>bold</b>', $result);
     }
 }
-
