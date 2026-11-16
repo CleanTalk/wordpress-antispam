@@ -721,8 +721,8 @@ class API
     /**
      *
      *
-     * @param string $user_token
-     * @param string $service_id
+     * @param string $auth_key Access key of the service
+     * @param int|string $service_id
      * @param string $ip
      * @param string $service_type
      * @param int $product_id
@@ -736,7 +736,7 @@ class API
      * @psalm-suppress PossiblyUnusedMethod
      */
     public static function methodPrivateListAdd(
-        $user_token,
+        $auth_key,
         $service_id,
         $ip,
         $service_type,
@@ -748,7 +748,7 @@ class API
     ) {
         $request = array(
             'method_name'  => 'private_list_add',
-            'user_token'   => $user_token,
+            'auth_key'     => $auth_key,
             'service_id'   => $service_id,
             'records'      => $ip,
             'service_type' => $service_type,
@@ -931,7 +931,9 @@ class API
                     : array('error' => 'NO_DATA');
 
             case 'private_list_add':
-                return isset($result['records'][0]['operation_status']) && $result['records'][0]['operation_status'] === 'SUCCESS'
+                // The API wraps records in "data": {"data":{"records":[{"operation_status":"SUCCESS",...}]}}
+                $records = isset($result['data']['records']) ? $result['data']['records'] : null;
+                return isset($records[0]['operation_status']) && $records[0]['operation_status'] === 'SUCCESS'
                     ? true
                     : array('error' => 'COULDNT_ADD_WL_IP');
 
