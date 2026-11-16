@@ -374,7 +374,8 @@ function apbct_admin__init()
             (empty($apbct->api_key) || $apbct->settings['apikey'] == $apbct->network_settings['apikey'])
     ) {
         $res = apbct_settings__get_key_auto(true);
-        if ( isset($res['auth_key'], $res['user_token']) ) {
+        // The API does not return user_token anymore, the key alone is enough to validate it
+        if ( ! empty($res['auth_key']) ) {
             $settings       = apbct_settings__validate(array(
                 'apikey' => $res['auth_key'],
             ));
