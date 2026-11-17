@@ -584,7 +584,7 @@ class TestRestResponses extends TestCase
             ->getMock();
         $service->expects($this->exactly(6))->method('addPublicAction')->withConsecutive(
             array('apbct_alt_session__save__AJAX', array(AltSessions::class, 'setFromAJAX')),
-            array('apbct_js_keys__get', array($service, 'getJSKeys')),
+            array('apbct_js_keys__get', array(AJAXService::class, 'getJSKeys')),
             array('apbct_get_pixel_url', 'apbct_get_pixel_url'),
             array('apbct_email_check_before_post', 'apbct_email_check_before_post'),
             array('apbct_email_check_exist_post', 'apbct_email_check_exist_post'),
