@@ -1147,7 +1147,7 @@ function apbct_cdn_checker__parse_request()
 /**
  * Send the self request to find CDN headers. Cron task handler.
  *
- * @return bool
+ * @return array|bool|string
  */
 function apbct_cdn_checker__send_request()
 {
