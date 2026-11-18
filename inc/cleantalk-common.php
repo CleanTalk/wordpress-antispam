@@ -748,16 +748,38 @@ function apbct_get_pixel_url($direct_call = false)
  */
 function apbct_email_check_before_post()
 {
-    $email = trim(TT::toString(Post::get('email')), " \n\r\t\v\x00");
-
-    if ( $email ) {
-        $result = \Cleantalk\ApbctWP\API::methodEmailCheck($email);
-        if ( isset($result['data']) ) {
-            die(json_encode(array('result' => $result['data'])));
-        }
-        die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));
+    try {
+        $response = Helper::jsonEncode(apbct_email_check_before_post_result(TT::toString(Post::get('email'))));
+    } catch ( \UnexpectedValueException $e ) {
+        $response = $e->getMessage();
     }
-    die(json_encode(array('error' => 'EMPTY_DATA')));
+
+    die($response);
+}
+
+/**
+ * @param string $email
+ * @return array
+ */
+function apbct_email_check_before_post_result($email): array
+{
+    try {
+        $email = trim($email, " \n\r\t\v\x00");
+        if ( ! $email ) {
+            throw new \RuntimeException('EMPTY_DATA');
+        }
+
+        $result = \Cleantalk\ApbctWP\API::methodEmailCheck($email);
+        if ( ! isset($result['data']) ) {
+            throw new \RuntimeException('ERROR_CHECKING_EMAIL');
+        }
+
+        $response = array('result' => $result['data']);
+    } catch ( \RuntimeException $e ) {
+        $response = array('error' => $e->getMessage());
+    }
+
+    return $response;
 }
 
 /**
@@ -765,26 +787,47 @@ function apbct_email_check_before_post()
  */
 function apbct_email_check_exist_post()
 {
+    try {
+        $response = Helper::jsonEncode(apbct_email_check_exist_post_result(TT::toString(Post::get('email'))));
+    } catch ( \UnexpectedValueException $e ) {
+        $response = $e->getMessage();
+    }
+
+    die($response);
+}
+
+/**
+ * @param string $email
+ * @return array
+ */
+function apbct_email_check_exist_post_result($email): array
+{
     global $apbct;
-    $email = trim(TT::toString(Post::get('email')), " \n\r\t\v\x00");
-    $api_key = $apbct->api_key;
-    $brandname = $apbct->data['wl_mode_enabled'] ? $apbct->data['wl_brandname'] : 'Anti-Spam by CleanTalk';
-    if ( $email && $api_key ) {
-        $result = \Cleantalk\ApbctWP\API::methodEmailCheckExist($email, $api_key);
-        if ( isset($result['result']) ) {
-            $text_result = '';
-            if ( $result['result'] != 'EXISTS' ) {
-                $text_result = __('The email doesn`t exist, double check the address.', 'cleantalk-spam-protect') . ' ' . $brandname . '.';
-            } else {
-                $text_result = __('The email exists and is good to use!', 'cleantalk-spam-protect') . ' ' . $brandname . '.';
-            }
-            $result['text_result'] = $text_result;
-            die(json_encode(array('result' => $result)));
+    try {
+        $email = trim($email, " \n\r\t\v\x00");
+        $api_key = $apbct->api_key;
+        $brandname = $apbct->data['wl_mode_enabled'] ? $apbct->data['wl_brandname'] : 'Anti-Spam by CleanTalk';
+        if ( ! $email || ! $api_key ) {
+            throw new \RuntimeException('EMPTY_DATA');
         }
 
-        die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));
+        $result = \Cleantalk\ApbctWP\API::methodEmailCheckExist($email, $api_key);
+        if ( ! isset($result['result']) ) {
+            throw new \RuntimeException('ERROR_CHECKING_EMAIL');
+        }
+
+        if ( $result['result'] != 'EXISTS' ) {
+            $text_result = __('The email doesn`t exist, double check the address.', 'cleantalk-spam-protect') . ' ' . $brandname . '.';
+        } else {
+            $text_result = __('The email exists and is good to use!', 'cleantalk-spam-protect') . ' ' . $brandname . '.';
+        }
+        $result['text_result'] = $text_result;
+        $response = array('result' => $result);
+    } catch ( \RuntimeException $e ) {
+        $response = array('error' => $e->getMessage());
     }
-    die(json_encode(array('error' => 'EMPTY_DATA')));
+
+    return $response;
 }
 
 /**
@@ -792,7 +835,7 @@ function apbct_email_check_exist_post()
  */
 function apbct_force_protection_check_bot()
 {
-    die(\Cleantalk\ApbctWP\Antispam\ForceProtection::getInstance()->checkBot());
+    die(\Cleantalk\ApbctWP\Antispam\ForceProtection::getInstance()->checkBotAJAX());
 }
 
 /**

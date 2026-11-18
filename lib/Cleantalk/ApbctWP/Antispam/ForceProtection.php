@@ -59,69 +59,119 @@ class ForceProtection
     }
 
     /**
-     * Check bot by Cleantalk API.
-     * Used in REST API and AJAX.
+     * Return the bot check result as JSON for AJAX.
      */
-    public function checkBot()
+    public function checkBotAJAX()
     {
         global $apbct;
 
-        $event_javascript_data = '';
-        $event_token = '';
-        if ( BotDetectorService::isEnabled() ) {
-            $event_token = Post::getString('event_token');
-        } else {
-            $event_javascript_data = Helper::isJson(TT::toString(Post::get('event_javascript_data')))
-                ? Post::get('event_javascript_data')
-                : stripslashes(TT::toString(Post::get('event_javascript_data')));
+        try {
+            $response = Helper::jsonEncode($this->getCheckBotResult());
+        } catch ( \UnexpectedValueException $e ) {
+            $apbct->errorAdd('force_protection', $e->getMessage());
+            RequestParameters::set('apbct_force_protection_check', '0');
+            $response = '{"allow":1,"success":false,"error":{"comment":"JSON encoding failed."}}';
         }
 
-        $params = array(
-            'auth_key'              => $apbct->api_key,
-            'agent'                 => APBCT_AGENT,
-            'event_javascript_data' => $event_javascript_data,
-            'event_token'           => $event_token,
-            'sender_ip'             => Helper::ipGet('real', false),
-            'event_type'            => 'GENERAL_BOT_CHECK',
-            'page_url'              => Post::get('post_url'),
-            'sender_info'           => array(
-                'site_referrer'         => Post::get('referrer'),
-            ),
-        );
+        return $response;
+    }
 
-        $ct_request = new CleantalkRequest($params);
-        $ct = new Cleantalk();
+    /**
+     * @param array|null $request_data
+     * @return array
+     */
+    public function getCheckBotResult($request_data = null): array
+    {
+        global $apbct;
 
-        $config             = ct_get_server();
-        $ct->server_url     = APBCT_MODERATE_URL;
-        $ct->work_url       = isset($config['ct_work_url']) && preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
-        $ct->work_ip        = isset($config['ct_work_ip']) ? $config['ct_work_ip'] : null;
-        $ct->server_ttl     = isset($config['ct_server_ttl']) ? $config['ct_server_ttl'] : null;
-        $ct->server_changed = isset($config['ct_server_changed']) ? $config['ct_server_changed'] : null;
-        $api_response = $ct->checkBot($ct_request);
+        try {
+            $event_javascript_data = '';
+            $event_token = '';
+            if ( BotDetectorService::isEnabled() ) {
+                $event_token = is_array($request_data)
+                    ? sanitize_textarea_field(TT::getArrayValueAsString($request_data, 'event_token'))
+                    : Post::getString('event_token');
+            } else {
+                if ( is_array($request_data) ) {
+                    $event_data = isset($request_data['event_javascript_data'])
+                        ? $request_data['event_javascript_data']
+                        : '';
+                    if ( is_array($event_data) ) {
+                        $event_data = Helper::jsonEncode($event_data, 0, true);
+                    }
+                    $event_data = sanitize_textarea_field(TT::toString($event_data));
+                } else {
+                    $event_data = Post::get('event_javascript_data');
+                }
+                $event_javascript_data = Helper::isJson(TT::toString($event_data))
+                    ? $event_data
+                    : stripslashes(TT::toString($event_data));
+            }
 
-        // Allow to see forms if error occurred
-        if ( ! empty($api_response->errstr)) {
-            return json_encode(array(
+            $params = array(
+                'auth_key'              => $apbct->api_key,
+                'agent'                 => APBCT_AGENT,
+                'event_javascript_data' => $event_javascript_data,
+                'event_token'           => $event_token,
+                'sender_ip'             => Helper::ipGet('real', false),
+                'event_type'            => 'GENERAL_BOT_CHECK',
+                'page_url'              => is_array($request_data)
+                    ? sanitize_textarea_field(TT::getArrayValueAsString($request_data, 'post_url'))
+                    : Post::get('post_url'),
+                'sender_info'           => array(
+                    'site_referrer'         => is_array($request_data)
+                        ? sanitize_textarea_field(TT::getArrayValueAsString($request_data, 'referrer'))
+                        : Post::get('referrer'),
+                ),
+            );
+
+            $ct_request = new CleantalkRequest($params);
+            $ct = new Cleantalk();
+
+            $config             = ct_get_server();
+            $ct->server_url     = APBCT_MODERATE_URL;
+            $ct->work_url       = isset($config['ct_work_url']) && preg_match('/https:\/\/.+/', $config['ct_work_url']) ? $config['ct_work_url'] : null;
+            $ct->work_ip        = isset($config['ct_work_ip']) ? $config['ct_work_ip'] : null;
+            $ct->server_ttl     = isset($config['ct_server_ttl']) ? $config['ct_server_ttl'] : null;
+            $ct->server_changed = isset($config['ct_server_changed']) ? $config['ct_server_changed'] : null;
+            $api_response = $ct->checkBot($ct_request);
+
+            if ( ! empty($api_response->errstr)) {
+                throw new \RuntimeException($api_response->errstr);
+            }
+            $pass_token = '0';
+            if ( (int)$api_response->allow === 1 ) {
+                $expires = time() + DAY_IN_SECONDS;
+                $pass_token = $expires . '.' . $this->getPassSignature($expires);
+            }
+            RequestParameters::set('apbct_force_protection_check', $pass_token);
+
+            $response = array(
+                'allow' => $api_response->allow,
+                'message' => $api_response->comment,
+                'success' => true,
+            );
+        } catch ( \UnexpectedValueException $e ) {
+            $apbct->errorAdd('force_protection', $e->getMessage());
+            $response = array(
                 'allow' => 1,
                 'success' => false,
                 'error' => array(
-                    'comment' => $api_response->errstr,
+                    'comment' => $e->getMessage(),
                 ),
-            ));
+            );
+        } catch ( \RuntimeException $e ) {
+            // Allow to see forms if error occurred.
+            $response = array(
+                'allow' => 1,
+                'success' => false,
+                'error' => array(
+                    'comment' => $e->getMessage(),
+                ),
+            );
         }
-        $pass_token = '0';
-        if ( (int)$api_response->allow === 1 ) {
-            $expires = time() + DAY_IN_SECONDS;
-            $pass_token = $expires . '.' . $this->getPassSignature($expires);
-        }
-        RequestParameters::set('apbct_force_protection_check', $pass_token);
 
-        return json_encode(array(
-            'allow' => $api_response->allow,
-            'message' => $api_response->comment,
-            'success' => true,
-        ));
+        return $response;
     }
 
     /**

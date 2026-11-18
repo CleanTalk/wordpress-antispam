@@ -233,6 +233,20 @@ class AJAXService
      */
     public static function getJSKeys()
     {
+        try {
+            $response = Helper::jsonEncode(self::getJSKeysData());
+        } catch ( \UnexpectedValueException $e ) {
+            $response = $e->getMessage();
+        }
+
+        die($response);
+    }
+
+    /**
+     * @return array
+     */
+    public static function getJSKeysData(): array
+    {
         $handler_start = microtime(true);
         $js_key        = ct_get_checkjs_value();
 
@@ -240,7 +254,7 @@ class AJAXService
             self::sendPerfMetricsHeader($handler_start);
         }
 
-        die(json_encode(array('js_key' => $js_key)));
+        return array('js_key' => $js_key);
     }
 
     /**

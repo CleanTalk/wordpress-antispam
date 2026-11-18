@@ -297,6 +297,48 @@ class Helper extends \Cleantalk\Common\Helper
     }
 
     /**
+     * @param mixed $value
+     * @param int $flags
+     * @param bool $use_wp_json_encode
+     * @return string
+     * @throws \UnexpectedValueException
+     */
+    public static function jsonEncode($value, $flags = 0, $use_wp_json_encode = false): string
+    {
+        $json = $use_wp_json_encode
+            ? wp_json_encode($value, $flags)
+            : json_encode($value, $flags);
+        if ( json_last_error() !== JSON_ERROR_NONE ) {
+            throw new \UnexpectedValueException('JSON encoding failed: ' . json_last_error_msg());
+        }
+        if ( $json === false ) {
+            throw new \UnexpectedValueException('JSON encoding returned false.');
+        }
+
+        return $json;
+    }
+
+    /**
+     * @param string $json
+     * @param bool $associative
+     * @return mixed
+     * @throws \UnexpectedValueException
+     */
+    public static function jsonDecode($json, $associative = false)
+    {
+        if ( ! is_string($json) ) {
+            throw new \UnexpectedValueException('JSON decoding requires a string.');
+        }
+
+        $value = json_decode($json, $associative);
+        if ( json_last_error() !== JSON_ERROR_NONE ) {
+            throw new \UnexpectedValueException('JSON decoding failed: ' . json_last_error_msg());
+        }
+
+        return $value;
+    }
+
+    /**
      * Validate if arg is valid JSON string
      *
      * @param string $string
