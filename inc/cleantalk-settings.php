@@ -976,6 +976,26 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                 ),
+                'misc__get_ip'                  => array(
+                    'type'             => 'select',
+                    'options_callback' => 'apbct_settings__get_ip_sources_options',
+                    'title'            => __('Get visitor IP from', 'cleantalk-spam-protect'),
+                    'description'      => __(
+                        'The source of the visitor IP address. If the selected header is not provided, the plugin uses Remote Addr.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'long_description' => true,
+                ),
+                'misc__get_ip__cdn_auto_self_check' => array(
+                    'type'        => 'checkbox',
+                    'title'       => __('Detect the IP source automatically', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'Once a day the plugin sends a request to the website itself to find which CDN or proxy headers really come to the site and sets the IP source above.',
+                        'cleantalk-spam-protect'
+                    )
+                        . '<br>'
+                        . \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::getLastCheckDescriptionHTML(),
+                ),
                 'wp__comment_notify'            => array(
                     'type'        => 'checkbox',
                     'title'       => __(
@@ -2247,6 +2267,30 @@ function apbct_get_all_roles()
     return $wp_roles->get_names();
 }
 
+/**
+ * Options for the "misc__get_ip" setting: Auto and every known IP source with the IP found in it.
+ *
+ * @return array
+ */
+function apbct_settings__get_ip_sources_options()
+{
+    $options = array(
+        array('val' => Helper::IP_SOURCE_AUTO, 'label' => esc_html__('Auto', 'cleantalk-spam-protect')),
+    );
+
+    foreach ( Helper::$known_ip_headers_collection as $source_id => $source ) {
+        $ip = Helper::ipGet($source['slug'], false);
+        $options[] = array(
+            'val'   => $source_id,
+            'label' => esc_html(
+                $source['name'] . ' (' . ($ip ?: __('not provided', 'cleantalk-spam-protect')) . ')'
+            ),
+        );
+    }
+
+    return $options;
+}
+
 function apbct_settings__field__draw($params = array())
 {
     $field = new SettingsField($params);
@@ -2439,6 +2483,26 @@ function apbct_settings__validate($incoming_settings)
 
     // Ensure the value is at least 5
     $incoming_settings['sfw__anti_flood__view_limit'] = max(5, $incoming_settings['sfw__anti_flood__view_limit']);
+
+    // IP source
+    $incoming_settings['misc__get_ip'] = isset($incoming_settings['misc__get_ip'])
+        ? TT::toInt($incoming_settings['misc__get_ip'])
+        : Helper::IP_SOURCE_AUTO;
+    if (
+        $incoming_settings['misc__get_ip'] !== Helper::IP_SOURCE_AUTO &&
+        ! isset(Helper::$known_ip_headers_collection[$incoming_settings['misc__get_ip']])
+    ) {
+        $incoming_settings['misc__get_ip'] = Helper::IP_SOURCE_AUTO;
+    }
+    if ( ! empty($incoming_settings['misc__get_ip__cdn_auto_self_check']) ) {
+        $cron = new Cron();
+        $cron->updateTask(
+            \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_TASK,
+            \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_HANDLER,
+            \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_PERIOD,
+            time() + 60
+        );
+    }
 
     // Validating Access key
     if (isset($incoming_settings['apikey'])) {
@@ -3338,6 +3402,13 @@ function apbct_settings__get_long_descriptions_data()
                 __('It determines what methods of using the HTTP cookies the Anti-Spam plugin for WordPress should switch to. It is necessary for the plugin to work properly. All CleanTalk cookies contain technical data. Data of the current website visitor is encrypted with the MD5 algorithm and being deleted when the browser session ends. %s', 'cleantalk-spam-protect'),
                 '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('apbct_hint_data__set_cookies', 'help/set-cookies-option')) . '" target="_blank">' . __('Learn more about suboptions', 'cleantalk-spam-protect') . '</a>'
             )
+        ),
+        'misc__get_ip' => array(
+            'title' => __('Get visitor IP from', 'cleantalk-spam-protect'),
+            'desc'  => __(
+                'If a header is selected, the plugin takes the visitor IP address only from this header. If the header is not provided, the plugin uses Remote Addr. Select a header only if your website works behind a CDN or a proxy which sets it, otherwise visitors could spoof their IP address. "Auto" searches the IP address in all known headers. If automatic detection is enabled, the plugin checks once a day which headers really come to the website and changes this option.',
+                'cleantalk-spam-protect'
+            ),
         ),
         'comments__hide_website_field' => array(
             'title' => __('Hide the "Website" field', 'cleantalk-spam-protect'),
