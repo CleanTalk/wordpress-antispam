@@ -6,6 +6,10 @@ if ( ! defined('ABSPATH') ) {
 }
 
 $apbct_integrations_by_class = array(
+    'ArmMember' => array(
+        'plugin_path' => 'armember-membership/armember-membership.php',
+        'plugin_class' => 'ARMemberLite',
+    ),
     'BuddyPress' => array(
         'plugin_path' => 'buddypress/bp-loader.php',
         'plugin_class' => 'BuddyPress',
