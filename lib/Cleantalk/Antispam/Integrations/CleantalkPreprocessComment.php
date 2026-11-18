@@ -9,7 +9,7 @@ use Cleantalk\ApbctWP\Variables\AltSessions;
 use Cleantalk\ApbctWP\Variables\Cookie;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
-use Cleantalk\Common\Helper;
+use Cleantalk\ApbctWP\Helper;
 use WP_User;
 
 class CleantalkPreprocessComment extends IntegrationBase

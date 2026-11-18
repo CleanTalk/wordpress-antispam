@@ -1404,3 +1404,19 @@ function apbct_update_to_6_89_0()
         $apbct->saveSettings();
     }
 }
+
+/**
+ * Schedule the IP source (CDN headers) self check.
+ *
+ * @return void
+ */
+function apbct_update_to_6_93_0()
+{
+    $cron = new Cron();
+    $cron->updateTask(
+        \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_TASK,
+        \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_HANDLER,
+        \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_PERIOD,
+        time() + 300
+    );
+}

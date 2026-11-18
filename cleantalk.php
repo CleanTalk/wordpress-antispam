@@ -33,6 +33,7 @@ use Cleantalk\ApbctWP\Firewall\FirewallBypass;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\HTTP\CDNHeadersChecker;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 use Cleantalk\ApbctWP\RequestParameters\SubmitTimeHandler;
@@ -1126,6 +1127,38 @@ function ct_get_cookie()
 // This action triggered by  wp_schedule_single_event( time() + 720, 'apbct_sfw_update__init' );
 add_action('apbct_sfw_update__init', 'apbct_sfw_update__init');
 
+
+/**
+ * Parse CDN checker self request to find CDN headers. Called by the cdn_check remote call.
+ *
+ * @return array
+ */
+function apbct_cdn_checker__parse_request()
+{
+    global $apbct;
+
+    if ( ! empty($apbct->settings['misc__get_ip__cdn_auto_self_check']) ) {
+        return CDNHeadersChecker::check();
+    }
+
+    return array('error' => 'CDN checker disabled');
+}
+
+/**
+ * Send the self request to find CDN headers. Cron task handler.
+ *
+ * @return bool
+ */
+function apbct_cdn_checker__send_request()
+{
+    global $apbct;
+
+    if ( ! empty($apbct->settings['misc__get_ip__cdn_auto_self_check']) ) {
+        return CDNHeadersChecker::sendCDNCheckerRequest();
+    }
+
+    return true;
+}
 
 /**
  * * * * * * SFW UPDATE ACTIONS * * * * * *

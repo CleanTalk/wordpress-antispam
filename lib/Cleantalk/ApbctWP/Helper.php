@@ -22,6 +22,131 @@ use Cleantalk\Common\TT;
 class Helper extends \Cleantalk\Common\Helper
 {
     /**
+     * Value of the "misc__get_ip" setting for the automatic IP source detection.
+     */
+    const IP_SOURCE_AUTO = 1;
+
+    /**
+     * Value of the "misc__get_ip" setting for the REMOTE_ADDR IP source.
+     */
+    const IP_SOURCE_REMOTE_ADDR = 2;
+
+    /**
+     * Known IP sources collection: array( id => array(slug, name), ... ).
+     * Ids are used as values of the "misc__get_ip" setting, slugs are ipGet() types, names are HTTP headers.
+     *
+     * @var array<int, array{slug: string, name: string}>
+     */
+    public static $known_ip_headers_collection = array(
+        2 => array('slug' => 'remote_addr', 'name' => 'Remote Addr'),
+        3 => array('slug' => 'x_forwarded_for', 'name' => 'X-Forwarded-For'),
+        4 => array('slug' => 'x_real_ip', 'name' => 'X-Real-Ip'),
+        5 => array('slug' => 'incapsula', 'name' => 'Incap-Client-Ip'),
+        6 => array('slug' => 'ico_x_forwarded_for', 'name' => 'Ico-X-Forwarded-For'),
+        7 => array('slug' => 'stackpath', 'name' => 'X-Sp-Forwarded-Ip'),
+        8 => array('slug' => 'x_forwarded_by', 'name' => 'X-Client-Ip'),
+        9 => array('slug' => 'sucury', 'name' => 'X-Sucuri-Clientip'),
+        10 => array('slug' => 'ezoic', 'name' => 'X-Middleton-Ip'),
+        11 => array('slug' => 'gtranslate', 'name' => 'X-Gt-Viewer-Ip'),
+        12 => array('slug' => 'cloud_flare', 'name' => 'Cf-Connecting-Ip'),
+        13 => array('slug' => 'ovh', 'name' => 'Remote-Ip'),
+    );
+
+    /**
+     * Get the visitor IP respecting the "misc__get_ip" setting.
+     *
+     * If a concrete IP source is selected, the "real" IP is taken from it only. If the selected
+     * header is not provided, REMOTE_ADDR is used: the request did not come through the selected proxy,
+     * so any other proxy header in it is untrusted.
+     *
+     * @param string $ip_type_to_get Type of IP you want to receive
+     * @param bool $v4_only
+     * @param array $headers
+     *
+     * @return string|null
+     */
+    public static function ipGet($ip_type_to_get = 'real', $v4_only = true, $headers = array())
+    {
+        $source_slug = $ip_type_to_get === 'real' ? self::getSelectedIpSourceSlug() : null;
+
+        if ( $source_slug === null ) {
+            return parent::ipGet($ip_type_to_get, $v4_only, $headers);
+        }
+
+        $ip = parent::ipGet($source_slug, $v4_only, $headers);
+
+        return $ip ?: parent::ipGet('remote_addr', $v4_only, $headers);
+    }
+
+    /**
+     * Slug of the IP source selected in the "misc__get_ip" setting. Null for the automatic detection.
+     *
+     * @return string|null
+     */
+    public static function getSelectedIpSourceSlug()
+    {
+        global $apbct;
+
+        if ( ! isset($apbct->settings['misc__get_ip']) ) {
+            return null;
+        }
+
+        $source_id = TT::toInt($apbct->settings['misc__get_ip']);
+
+        return isset(self::$known_ip_headers_collection[$source_id])
+            ? self::$known_ip_headers_collection[$source_id]['slug']
+            : null;
+    }
+
+    /**
+     * Returns list of known CDN headers names.
+     *
+     * @return string[]
+     */
+    public static function getKnownCDNHeadersNames()
+    {
+        return array_map(function ($cdn_record_data) {
+            return $cdn_record_data['name'];
+        }, self::$known_ip_headers_collection);
+    }
+
+    /**
+     * Returns IP source ID by slug.
+     *
+     * @param string $slug
+     *
+     * @return int|null
+     */
+    public static function getIpHeaderIDBySlug($slug = '')
+    {
+        foreach ( self::$known_ip_headers_collection as $header_id => $header_data ) {
+            if ( $header_data['slug'] === $slug ) {
+                return (int)$header_id;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns IP source slug by the header name.
+     *
+     * @param string $name
+     *
+     * @return string
+     */
+    public static function getIpHeaderSlugByName($name = '')
+    {
+        foreach ( self::$known_ip_headers_collection as $header_data ) {
+            if ( strtolower($header_data['name']) === strtolower($name) ) {
+                return $header_data['slug'];
+            }
+        }
+
+        return '';
+    }
+
+    /**
      * Function sends raw http request
      *
      * May use 4 presets(combining possible):

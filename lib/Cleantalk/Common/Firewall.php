@@ -83,7 +83,7 @@ class Firewall
      */
     public function ipGet($ips_input = 'real', $v4_only = true)
     {
-        $result = Helper::ipGet($ips_input, $v4_only);
+        $result = \Cleantalk\ApbctWP\Helper::ipGet($ips_input, $v4_only);
 
         return ! empty($result) ? array('real' => $result) : array();
     }

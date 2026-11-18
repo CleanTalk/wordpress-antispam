@@ -743,6 +743,23 @@ class RemoteCalls
         die('OK');
     }
 
+    /**
+     * Remote call: the site requests itself to detect which IP headers come through its CDN/proxy.
+     *
+     * @return void Dies with 'OK {...}' or with 'FAIL "..."'.
+     * @psalm-suppress PossiblyUnusedMethod
+     */
+    public static function action__cdn_check() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    {
+        $result_cdn_check = apbct_cdn_checker__parse_request();
+
+        die(
+            empty($result_cdn_check['error'])
+            ? 'OK ' . json_encode($result_cdn_check)
+            : 'FAIL ' . json_encode($result_cdn_check['error'])
+        );
+    }
+
     private static function isRcAllowed()
     {
         global $apbct;
