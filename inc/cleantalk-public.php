@@ -1284,7 +1284,7 @@ function apbct_enqueue_and_localize_public_scripts()
         // Attention! Skip old enqueue way for external script.
         wp_enqueue_script(
             'ct_bot_detector',
-            APBCT_BOT_DETECTOR_SCRIPT_URL,
+            BotDetectorService::getWrapperUrl(),
             [],
             APBCT_VERSION,
             array(

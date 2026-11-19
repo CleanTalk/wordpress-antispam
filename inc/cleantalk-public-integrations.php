@@ -1,5 +1,6 @@
 <?php
 
+use Cleantalk\ApbctWP\BotDetectorService;
 use Cleantalk\ApbctWP\Escape;
 use Cleantalk\ApbctWP\Helper;
 use Cleantalk\ApbctWP\Honeypot;
@@ -37,14 +38,14 @@ function apbct_print_public_scripts()
     global $apbct;
 
     $bundle_name = ApbctJsBundleResolver::getBundleName($apbct->settings) ?: 'apbct-public-bundle.min.js';
-    $js_url_wrapper = APBCT_BOT_DETECTOR_SCRIPT_URL;
+    $js_url_wrapper = BotDetectorService::getWrapperUrl();
     $js_url = APBCT_URL_PATH . '/js/' . $bundle_name . '?' . APBCT_VERSION;
 
     echo CtPublicFunctionsLocalize::getCode();
     echo CtPublicLocalize::getCode();
 
     echo '<script src="' . $js_url . '" type="application/javascript"></script>';
-    echo '<script src="' . $js_url_wrapper . '" async data-wp-strategy="async" type="application/javascript"></script>';
+    echo '<script src="' . esc_url($js_url_wrapper) . '" async data-wp-strategy="async" type="application/javascript"></script>';
 }
 
 /**

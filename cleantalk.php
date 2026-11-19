@@ -156,10 +156,6 @@ if ( defined('CLEANTALK_SERVER') ) {
     define('APBCT_MODERATE_URL', 'https://moderate.cleantalk.org'); // Api URL
 }
 
-if ( ! defined('APBCT_BOT_DETECTOR_SCRIPT_URL') ) {
-    define('APBCT_BOT_DETECTOR_SCRIPT_URL', BotDetectorService::getWrapperUrl());
-}
-
 /**
  * Require base classes.
  */
@@ -188,6 +184,11 @@ $apbct->plugin_name      = $apbct->network_settings['multisite__white_label__plu
 $apbct->api_key          = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->settings['apikey'] : $apbct->network_settings['apikey'];
 $apbct->key_is_ok        = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['key_is_ok'] : $apbct->network_data['key_is_ok'];
 $apbct->moderate         = ! APBCT_WPMS || $apbct->allow_custom_key || $apbct->white_label ? $apbct->data['moderate'] : $apbct->network_data['moderate'];
+
+if ( ! defined('APBCT_BOT_DETECTOR_SCRIPT_URL') ) {
+    define('APBCT_BOT_DETECTOR_SCRIPT_URL', BotDetectorService::getWrapperUrl());
+}
+
 // Init counter
 $apbct->data['user_counter']['since'] = isset($apbct->data['user_counter']['since'])
     ? $apbct->data['user_counter']['since']
@@ -3117,6 +3118,8 @@ function apbct_update_actions()
         if ( ! Transaction::get('updater')->perform() ) {
             return;
         }
+
+        BotDetectorService::scheduleWrapperUrlUpdate();
 
         // Main blog
         if ( is_main_site() ) {

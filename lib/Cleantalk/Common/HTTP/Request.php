@@ -324,6 +324,9 @@ class Request
                 'timeout' => $this->getSocketTimeout(),
             ],
         ];
+        if ( in_array('dont_follow_redirects', $this->presets, true) ) {
+            $context_options['http']['follow_location'] = 0;
+        }
 
         if ( $is_get ) {
             $context_options['http']['method'] = 'GET';

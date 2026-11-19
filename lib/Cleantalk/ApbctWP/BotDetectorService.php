@@ -21,9 +21,55 @@ class BotDetectorService
         'botd_wrapper_loaded' => 0,
     );
 
+    /** @var bool|null */
+    private static $wrapper_url_overridden = null;
+
     public static function getWrapperUrl(): string
     {
-        return 'https://fd.cleantalk.org/ct-bot-detector-wrapper.js';
+        global $apbct;
+
+        if ( self::hasWrapperUrlOverride() ) {
+            return (string) APBCT_BOT_DETECTOR_SCRIPT_URL;
+        }
+
+        return (new BotDetectorWrapper((string) ($apbct->api_key ?? '')))->getWrapperURL();
+    }
+
+    public static function scheduleWrapperUrlUpdate(): void
+    {
+        (new Cron())->addTask(
+            'get_bot_detector_wrapper_url',
+            self::class . '::updateWrapperUrl',
+            BotDetectorWrapper::CALL_PERIOD,
+            time()
+        );
+    }
+
+    public static function updateWrapperUrl(?string $api_key = null): void
+    {
+        global $apbct;
+
+        $api_key = $api_key ?: (string) ($apbct->api_key ?? '');
+        if (
+            $api_key === '' ||
+            ! self::isEnabled() ||
+            self::hasWrapperUrlOverride() ||
+            BotDetectorWrapper::usesMainSiteWrapper()
+        ) {
+            return;
+        }
+
+        (new BotDetectorWrapper($api_key))->updateWrapperURL();
+    }
+
+    private static function hasWrapperUrlOverride(): bool
+    {
+        if ( self::$wrapper_url_overridden === null ) {
+            // getWrapperUrl() checks this before cleantalk.php defines the default.
+            self::$wrapper_url_overridden = defined('APBCT_BOT_DETECTOR_SCRIPT_URL');
+        }
+
+        return self::$wrapper_url_overridden;
     }
 
     /**
