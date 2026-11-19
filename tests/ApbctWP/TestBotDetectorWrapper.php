@@ -5,6 +5,18 @@ use Cleantalk\Antispam\ScriptsIntegration\GiveWPScript;
 use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\BotDetectorService;
 use Cleantalk\ApbctWP\Cron;
+use WpOrg\Requests\Capability;
+use WpOrg\Requests\Requests;
+
+class TestBotDetectorWrapperApiTransport
+{
+    public static $callback;
+
+    public function request($url, $_headers, $data, $options): string
+    {
+        return call_user_func(self::$callback, $url, $data, $options);
+    }
+}
 
 class TestBotDetectorWrapper extends ApbctTestCase
 {
@@ -19,6 +31,8 @@ class TestBotDetectorWrapper extends ApbctTestCase
     private $api_response;
     private $wrapper_response;
     private $requests;
+    private $previous_api_transports;
+    private $previous_http_setting;
 
     protected function setUp(): void
     {
@@ -28,6 +42,14 @@ class TestBotDetectorWrapper extends ApbctTestCase
         $apbct->data['bot_detector_enabled'] = 1;
         delete_option(self::OPTION);
 
+        $this->previous_http_setting = $apbct->settings['wp__use_builtin_http_api'];
+        $apbct->settings['wp__use_builtin_http_api'] = 1;
+        $this->previous_api_transports = Requests::$transport;
+        foreach (array(false, true) as $ssl) {
+            Requests::$transport[serialize(array(Capability::SSL => $ssl))] = TestBotDetectorWrapperApiTransport::class;
+        }
+        TestBotDetectorWrapperApiTransport::$callback = array($this, 'mockApiRequest');
+
         $this->requests = array();
         $this->api_response = self::response(json_encode(array('data' => array('wrapper_url' => self::REGIONAL_URL))));
         $this->wrapper_response = self::response(self::WRAPPER_BODY);
@@ -36,8 +58,26 @@ class TestBotDetectorWrapper extends ApbctTestCase
 
     protected function tearDown(): void
     {
+        global $apbct;
+
+        TestBotDetectorWrapperApiTransport::$callback = null;
+        Requests::$transport = $this->previous_api_transports;
+        $apbct->settings['wp__use_builtin_http_api'] = $this->previous_http_setting;
         remove_filter('pre_http_request', array($this, 'mockHttpRequest'), 10);
         delete_option(self::OPTION);
+    }
+
+    public function mockApiRequest($url, $data, $options): string
+    {
+        $this->requests[] = array($options['type'], $url, $data);
+
+        $status = $this->api_response['response']['code'];
+        $headers = "HTTP/1.1 $status\r\nContent-Type: application/json\r\n";
+        if ( $status === 302 ) {
+            $headers .= "Location: https://example.test/redirect\r\n";
+        }
+
+        return $headers . "\r\n" . $this->api_response['body'];
     }
 
     public function mockHttpRequest($_response, $args, $url)
@@ -45,7 +85,7 @@ class TestBotDetectorWrapper extends ApbctTestCase
         parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
         $this->requests[] = array($args['method'], $url, $query);
 
-        return isset($query['method_name']) ? $this->api_response : $this->wrapper_response;
+        return $this->wrapper_response;
     }
 
     public function testUpdateStoresVerifiedUrlForTheEffectiveAccessKey(): void
@@ -92,6 +132,7 @@ class TestBotDetectorWrapper extends ApbctTestCase
         $regional = json_encode(array('data' => array('wrapper_url' => self::REGIONAL_URL)));
         return array(
             'API unavailable' => array($regional, 503, self::WRAPPER_BODY, 200, 1),
+            'API redirect' => array($regional, 302, self::WRAPPER_BODY, 200, 1),
             'invalid JSON' => array('broken JSON', 200, self::WRAPPER_BODY, 200, 1),
             'missing URL' => array('{"data":[]}', 200, self::WRAPPER_BODY, 200, 1),
             'unsupported host' => array(

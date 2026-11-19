@@ -19,25 +19,17 @@ use Cleantalk\Common\HTTP\Response;
  */
 class API extends \Cleantalk\Common\API
 {
+    private const METHOD_GET_BOT_DETECTOR_WRAPPER_URL = 'get_bot_detector_wrapper_url';
+
     public static function methodGetBotDetectorWrapperUrl(string $api_key): string
     {
-        $api_url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : self::$api_url;
-        $url = add_query_arg(array(
-            'method_name' => 'get_bot_detector_wrapper_url',
-            'auth_key' => rawurlencode($api_key),
-        ), $api_url);
+        $request = array(
+            'method_name' => self::METHOD_GET_BOT_DETECTOR_WRAPPER_URL,
+            'auth_key' => $api_key,
+        );
 
-        $response = wp_remote_get($url, array(
-            'timeout' => 5,
-            'redirection' => 0,
-            'limit_response_size' => 4096,
-        ));
-        if ( is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) !== 200 ) {
-            return '';
-        }
-
-        $result = json_decode(wp_remote_retrieve_body($response), true);
-        $wrapper_url = $result['data']['wrapper_url'] ?? '';
+        $result = self::sendRequest($request, 5);
+        $wrapper_url = $result['wrapper_url'] ?? '';
 
         return is_string($wrapper_url) ? $wrapper_url : '';
     }
@@ -104,6 +96,11 @@ class API extends \Cleantalk\Common\API
         // Adding agent version to data
         $data['agent'] = defined('APBCT_AGENT') ? APBCT_AGENT : '';
 
+        $is_wrapper_request = ($data['method_name'] ?? '') === self::METHOD_GET_BOT_DETECTOR_WRAPPER_URL;
+        $presets = $is_wrapper_request
+            ? ['retry_with_socket', 'get', 'dont_follow_redirects']
+            : ['retry_with_socket'];
+
         $options = ['timeout' => $timeout];
         // Proxy settings from wp-config.php constants.
         if ( defined('WP_PROXY_HOST') && WP_PROXY_HOST !== '' && defined('WP_PROXY_PORT') && WP_PROXY_PORT !== '' ) {
@@ -123,7 +120,7 @@ class API extends \Cleantalk\Common\API
 
         $request = $http->setUrl($url)
                     ->setData($data)
-                    ->setPresets(['retry_with_socket'])
+                    ->setPresets($presets)
                     ->setOptions($options);
         if ( isset($data['method_name']) ) {
             $request->addCallback(
@@ -137,6 +134,10 @@ class API extends \Cleantalk\Common\API
         $http_code = $request->response instanceof Response
             ? $request->response->getResponseCode()
             : null;
+        if ( $is_wrapper_request && $http_code !== 200 ) {
+            $result = ['error' => $result['error'] ?? 'UNEXPECTED_HTTP_STATUS'];
+        }
+
         self::handleConnectionReport($data, $result, $url, $http_code);
 
         return $result;
