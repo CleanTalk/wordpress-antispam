@@ -21,21 +21,14 @@ class BotDetectorService
         'botd_wrapper_loaded' => 0,
     );
 
-    private static $wrapper_url_overridden = false;
-
-    public static function initWrapperUrl(): void
-    {
-        self::$wrapper_url_overridden = defined('APBCT_BOT_DETECTOR_SCRIPT_URL');
-        if ( ! self::$wrapper_url_overridden ) {
-            define('APBCT_BOT_DETECTOR_SCRIPT_URL', self::getWrapperUrl());
-        }
-    }
+    /** @var bool|null */
+    private static $wrapper_url_overridden = null;
 
     public static function getWrapperUrl(): string
     {
         global $apbct;
 
-        if ( self::$wrapper_url_overridden ) {
+        if ( self::hasWrapperUrlOverride() ) {
             return (string) APBCT_BOT_DETECTOR_SCRIPT_URL;
         }
 
@@ -50,13 +43,23 @@ class BotDetectorService
         if (
             $api_key === '' ||
             ! self::isEnabled() ||
-            self::$wrapper_url_overridden ||
+            self::hasWrapperUrlOverride() ||
             BotDetectorWrapper::usesMainSiteWrapper()
         ) {
             return;
         }
 
         (new BotDetectorWrapper($api_key))->updateWrapperURL();
+    }
+
+    private static function hasWrapperUrlOverride(): bool
+    {
+        if ( self::$wrapper_url_overridden === null ) {
+            // getWrapperUrl() checks this before cleantalk.php defines the default.
+            self::$wrapper_url_overridden = defined('APBCT_BOT_DETECTOR_SCRIPT_URL');
+        }
+
+        return self::$wrapper_url_overridden;
     }
 
     /**
