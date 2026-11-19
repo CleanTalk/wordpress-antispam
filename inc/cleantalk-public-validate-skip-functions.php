@@ -59,6 +59,115 @@ function apbct_is_cf7_feedback_request()
 }
 
 /**
+ * Bind a rendered Gravity Forms submission to its form and frontend URL.
+ *
+ * @param int $form_id
+ * @return string
+ */
+function apbct_gravity_forms_route_token($form_id)
+{
+    $uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+    if ( ! is_string($uri) || strpos($uri, '/') !== 0 || strpos($uri, '//') === 0 ) {
+        return '';
+    }
+
+    $url = wp_parse_url($uri);
+    if ( empty($url['path']) || ! empty($url['host']) ) {
+        return '';
+    }
+
+    $route = untrailingslashit($url['path']) . '?' . ($url['query'] ?? '');
+
+    return wp_hash('apbct-gravity-forms:' . $form_id . ':' . $route);
+}
+
+/** @return bool */
+function apbct_is_gravity_forms_submission()
+{
+    global $apbct;
+
+    $form_id = Post::getString('gform_submit');
+    $token = Post::getString('apbct_gform_route');
+    if ( $token === '' || ! ctype_digit($form_id) || (int) $form_id <= 0
+        || $apbct->settings['forms__contact_forms_test'] != 1
+        || ! class_exists('GFAPI')
+        || has_filter('gform_entry_is_spam', 'apbct_form__gravityForms__testSpam') === false ) {
+        return false;
+    }
+
+    $expected = apbct_gravity_forms_route_token((int) $form_id);
+    if ( $expected === '' || ! hash_equals($expected, $token) ) {
+        return false;
+    }
+
+    $form = GFAPI::get_form((int) $form_id);
+
+    return is_array($form) && ! empty($form['is_active']) && empty($form['is_trash']);
+}
+
+/**
+ * Recognize the frontend cart form emitted by WooCommerce.
+ *
+ * @return bool
+ */
+function apbct_is_woocommerce_add_to_cart_form()
+{
+    global $apbct;
+
+    $product_id = $_POST['add-to-cart'] ?? '';
+    if ( ! is_string($product_id) || ! ctype_digit($product_id) || (int) $product_id <= 0
+        || ($_REQUEST['add-to-cart'] ?? '') !== $product_id || ! function_exists('wc_get_product')
+        || empty($apbct->settings['forms__wc_add_to_cart']) || apbct_is_user_logged_in()
+        || ! has_filter('woocommerce_add_to_cart_validation')
+        || has_action('wp_loaded', array('WC_Form_Handler', 'add_to_cart_action')) === false ) {
+        return false;
+    }
+
+    $product = wc_get_product((int) $product_id);
+    if ( ! $product || $product->get_status() !== 'publish' ) {
+        return false;
+    }
+
+    $url = apply_filters('woocommerce_add_to_cart_form_action', $product->get_permalink());
+
+    return is_string($url) && apbct_matches_request_url($url);
+}
+
+/** @return bool */
+function apbct_is_woocommerce_api_request()
+{
+    if ( ! did_action('init') || ! function_exists('WC') || ! apbct_is_plugin_active('woocommerce/woocommerce.php') ) {
+        return false;
+    }
+
+    $query_route = isset($_GET['wc-api']);
+    if ( $query_route ) {
+        $gateway = $_GET['wc-api'];
+    } else {
+        $path = wp_parse_url(Server::getString('REQUEST_URI'), PHP_URL_PATH);
+        if ( ! is_string($path) || preg_match('~/wc-api/([a-z0-9_-]+)/?$~iD', $path, $matches) !== 1 ) {
+            return false;
+        }
+        $gateway = $matches[1];
+    }
+
+    if ( ! is_string($gateway) || preg_match('/^[a-z0-9_-]+$/iD', $gateway) !== 1
+        || (isset($_POST['wc-api']) && $_POST['wc-api'] !== $gateway) ) {
+        return false;
+    }
+
+    $url = $query_route ? add_query_arg('wc-api', $gateway, home_url('/')) : WC()->api_request_url($gateway);
+    if ( ! is_string($url) || ! apbct_matches_request_url($url) ) {
+        return false;
+    }
+
+    // Some gateways register their callback when WooCommerce instantiates them.
+    WC()->payment_gateways();
+
+    return has_action('woocommerce_api_' . strtolower($gateway)) !== false;
+}
+
+/**
  * Match the nonce read by the WooCommerce form handler.
  *
  * @param string $field
@@ -86,10 +195,11 @@ function apbct_is_woocommerce_service_request()
 
     $action = Get::getString('wc-ajax');
     if ( $action === '' ) {
-        return (isset($_POST['woocommerce_checkout_place_order']) || isset($_POST['woocommerce_checkout_update_totals']))
-            && function_exists('wc_get_checkout_url') && wc_get_page_id('checkout') > 0
-            && apbct_matches_request_url(wc_get_checkout_url())
-            && apbct_verify_woocommerce_nonce('woocommerce-process-checkout-nonce', 'woocommerce-process_checkout');
+        return apbct_is_woocommerce_add_to_cart_form()
+            || ((isset($_POST['woocommerce_checkout_place_order']) || isset($_POST['woocommerce_checkout_update_totals']))
+                && function_exists('wc_get_checkout_url') && wc_get_page_id('checkout') > 0
+                && apbct_matches_request_url(wc_get_checkout_url())
+                && apbct_verify_woocommerce_nonce('woocommerce-process-checkout-nonce', 'woocommerce-process_checkout'));
     }
 
     $hook = 'wc_ajax_' . $action;
@@ -160,16 +270,18 @@ function apbct_is_woocommerce_account_request($endpoint, $field, $action)
 }
 
 /** @return bool */
-function apbct_is_invoice4u_callback()
+function apbct_is_woocommerce_password_form()
 {
-    if ( ! did_action('init') ) {
+    if ( ! isset($_POST['wc_reset_password']) ) {
         return false;
     }
 
-    return apbct_matches_request_url(rest_url('invoice4u/v1/callback'))
-        || (apbct_is_plugin_active('woocommerce/woocommerce.php') && function_exists('WC')
-            && has_action('woocommerce_api_wc_invoice4u')
-            && apbct_matches_request_url(WC()->api_request_url('WC_Invoice4U')));
+    if ( isset($_POST['password_1'], $_POST['password_2'], $_POST['reset_key'], $_POST['reset_login']) ) {
+        return apbct_is_woocommerce_account_request('lost-password', 'woocommerce-reset-password-nonce', 'reset_password');
+    }
+
+    return isset($_POST['user_login'])
+        && apbct_is_woocommerce_account_request('lost-password', 'woocommerce-lost-password-nonce', 'lost_password');
 }
 
 /**
@@ -186,6 +298,7 @@ function skip_for_ct_contact_form_validate_postdata()
          (isset($pagenow, $_GET['action']) && $pagenow === 'wp-login.php' && $_GET['action'] === 'lostpassword') ||
          apbct_is_woocommerce_service_request() ||
          apbct_is_cf7_feedback_request() ||
+         apbct_is_gravity_forms_submission() ||
          (defined('WP_ADMIN') && WP_ADMIN) ||
          apbct_matches_request_url(site_url('wp-comments-post.php')) ||
          apbct_matches_request_url(home_url('/login/')) ||
@@ -193,8 +306,8 @@ function skip_for_ct_contact_form_validate_postdata()
          (isset($_POST['signup_username'], $_POST['signup_password_confirm']) && isset($_POST['signup_submit'])) ||
          $apbct->settings['forms__general_contact_forms_test'] == 0 ||
          (isset($_POST['log'], $_POST['pwd'], $_POST['wp-submit'])) ||
-         (apbct_is_plugin_active('woocommerce/woocommerce.php') && apbct_matches_request_url(home_url('/wc-api/'))) ||
-         (isset($_POST['wc_reset_password']) && apbct_is_woocommerce_account_request('lost-password', 'woocommerce-lost-password-nonce', 'lost_password')) ||
+         apbct_is_woocommerce_api_request() ||
+         apbct_is_woocommerce_password_form() ||
          apbct_is_woocommerce_add_payment_method_form() || // WooCommerce Add payment method, checked as an order
          (isset($_POST['login'], $_POST['password']) && apbct_is_woocommerce_account_request('', 'woocommerce-login-nonce', 'woocommerce-login')) ||
          (isset($_POST['provider'], $_POST['authcode']) && $_POST['provider'] === 'Two_Factor_Totp') || //TwoFactor authorization
@@ -278,7 +391,7 @@ function skip_for_ct_contact_form_validate()
             (isset($_POST['signup_username'], $_POST['signup_password_confirm'], $_POST['signup_submit'])),
         '21' =>
             ($apbct->settings['forms__general_contact_forms_test'] == 0 && $apbct->settings['forms__check_external'] == 0 && $apbct->settings['forms__check_internal'] == 0),
-        '25' => apbct_is_plugin_active('woocommerce/woocommerce.php') && apbct_matches_request_url(home_url('/wc-api/')),
+        '25' => apbct_is_woocommerce_api_request(),
         '26' => (isset($_POST['log'], $_POST['pwd'], $_POST['wp-submit'])),
         '27' => (isset($_POST[$ct_checkjs_frm]) && $apbct->settings['forms__contact_forms_test'] == 1),
         // Formidable forms
@@ -286,21 +399,15 @@ function skip_for_ct_contact_form_validate()
         // The comment form && ! DW Question & Answer
         '30' => (isset($_POST['log'], $_POST['pwd'])),
         //WooCommerce Sensei login form fix
-        '31' => isset($_POST['wc_reset_password'])
-            && apbct_is_woocommerce_account_request('lost-password', 'woocommerce-lost-password-nonce', 'lost_password'),
+        '31' => apbct_is_woocommerce_password_form(),
         // WooCommerce recovery password form
         '32' => isset($_POST['login'], $_POST['password'])
             && apbct_is_woocommerce_account_request('', 'woocommerce-login-nonce', 'woocommerce-login'),
         // WooCommerce login form
-        '33' => (isset($_POST['wc-api']) && strtolower($_POST['wc-api']) === 'wc_gateway_systempay'),
-        // Woo Systempay payment plugin
-        '34' => apbct_is_in_uri('wc-api=WC_Gateway_Realex_Redirect'),
-        // Woo Realex payment Gateway plugin
-        '35' => apbct_is_in_uri('wc-api=WC_Gateway_Tpay_Basic'),
-        // Tpay payment Gateway plugin
         '36' => apbct_is_cf7_feedback_request(),
         '37' => (isset($_POST['hash'], $_POST['device_unique_id'], $_POST['device_name'])),
         //Mobile Assistant Connector fix
+        '38' => apbct_is_gravity_forms_submission(),
         '40' => (isset($_POST['ccf_form']) && intval($_POST['ccf_form']) == 1),
         '41' => (isset($_POST['contact_tags']) && strpos($_POST['contact_tags'], 'MBR:') !== false),
         '42' => (apbct_is_in_uri('bizuno.php') && ! empty($_POST['bizPass'])),
@@ -376,7 +483,7 @@ function skip_for_ct_contact_form_validate()
         '86' => (isset($_POST['action']) && $_POST['action'] === 'check_email_exists'),
         // Handling an unknown action check_email_exists
         '87' => Server::inUri('cleantalk-antispam/v1/alt_sessions'),
-        '88' => apbct_is_invoice4u_callback(),
+        '88' => did_action('init') && apbct_matches_request_url(rest_url('invoice4u/v1/callback')),
         // has direct integration lib/Cleantalk/Antispam/Integrations/MemberPress.php
         '89' => apbct_is_plugin_active('memberpress/memberpress.php') && Post::get('mepr_process_signup_form'),
         '91' => apbct_is_plugin_active('envira-gallery/envira-gallery.php') && Server::inUri('envira-background/v1/resize-image'),
