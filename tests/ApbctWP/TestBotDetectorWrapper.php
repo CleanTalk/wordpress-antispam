@@ -142,9 +142,94 @@ class TestBotDetectorWrapper extends ApbctTestCase
                 200,
                 1,
             ),
+            'untrusted CleanTalk domain suffix' => array(
+                '{"data":{"wrapper_url":"https://fd.cleantalk.example/bot.js"}}',
+                200,
+                self::WRAPPER_BODY,
+                200,
+                1,
+            ),
             'wrapper unavailable' => array($regional, 200, self::WRAPPER_BODY, 404, 2),
             'unexpected body' => array($regional, 200, '<html>Not a wrapper</html>', 200, 2),
         );
+    }
+
+    public function testPreviouslyStoredUrlOutsideTrustedDomainsIsIgnored(): void
+    {
+        update_option(self::OPTION, array(
+            'url' => 'https://fd.cleantalk.example/bot.js',
+            'key_hash' => hash('sha256', self::TEST_KEY),
+        ));
+
+        $this->assertSame(self::DEFAULT_URL, BotDetectorService::getWrapperUrl());
+        $this->assertSame(array(), $this->requests);
+    }
+
+    public function testSubsiteDelegatesOnlyWhenTheMainSiteCanRefreshItsWrapper(): void
+    {
+        if ( ! is_multisite() ) {
+            $this->markTestSkipped('Requires WordPress Multisite.');
+        }
+
+        global $apbct;
+
+        $main_site = get_main_site_id();
+        $main_plugins = get_blog_option($main_site, 'active_plugins', array());
+        $network_plugins = get_site_option('active_sitewide_plugins', array());
+        $allow_custom_key = $apbct->allow_custom_key;
+        $white_label = $apbct->white_label;
+
+        remove_action('wp_initialize_site', 'apbct_activation__new_blog', 10);
+        try {
+            $subsite_id = wpmu_create_blog(
+                'wrapper-test.' . wp_parse_url(home_url(), PHP_URL_HOST),
+                '/',
+                'Bot Detector wrapper',
+                1
+            );
+        } finally {
+            add_action('wp_initialize_site', 'apbct_activation__new_blog', 10, 2);
+        }
+        $this->assertIsInt($subsite_id);
+
+        $main_url = 'https://backup.cleantalk.org/ct-bot-detector-wrapper.js';
+        update_blog_option($main_site, self::OPTION, array(
+            'url' => $main_url,
+            'key_hash' => hash('sha256', self::TEST_KEY),
+        ));
+        update_blog_option($main_site, 'active_plugins', array());
+        update_site_option('active_sitewide_plugins', array());
+
+        switch_to_blog($subsite_id);
+        try {
+            update_option('active_plugins', array(APBCT_PLUGIN_BASE_NAME));
+            $apbct->allow_custom_key = false;
+            $apbct->white_label = false;
+
+            $this->assertSame(self::DEFAULT_URL, BotDetectorService::getWrapperUrl());
+            BotDetectorService::updateWrapperUrl();
+            $this->assertCount(2, $this->requests);
+            $this->assertSame(self::REGIONAL_URL, BotDetectorService::getWrapperUrl());
+            $this->assertSame(self::REGIONAL_URL, get_option(self::OPTION)['url']);
+
+            update_blog_option($main_site, 'active_plugins', array(APBCT_PLUGIN_BASE_NAME));
+            $this->assertSame($main_url, BotDetectorService::getWrapperUrl());
+            BotDetectorService::updateWrapperUrl();
+            $this->assertCount(2, $this->requests);
+
+            update_blog_option($main_site, 'active_plugins', array());
+            update_site_option('active_sitewide_plugins', array(APBCT_PLUGIN_BASE_NAME => time()));
+            $this->assertSame($main_url, BotDetectorService::getWrapperUrl());
+            BotDetectorService::updateWrapperUrl();
+            $this->assertCount(2, $this->requests);
+        } finally {
+            restore_current_blog();
+            update_blog_option($main_site, 'active_plugins', $main_plugins);
+            update_site_option('active_sitewide_plugins', $network_plugins);
+            $apbct->allow_custom_key = $allow_custom_key;
+            $apbct->white_label = $white_label;
+            wp_delete_site($subsite_id);
+        }
     }
 
     public function testFrontendAndIntegrationsUseTheUpdatedUrl(): void

@@ -20,7 +20,12 @@ class BotDetectorWrapper extends BotDetectorService
     {
         global $apbct;
 
-        return APBCT_WPMS && ! is_main_site() && ! $apbct->allow_custom_key && ! $apbct->white_label;
+        if ( ! APBCT_WPMS || is_main_site() || $apbct->allow_custom_key || $apbct->white_label ) {
+            return false;
+        }
+
+        return apbct_is_plugin_active_for_network(APBCT_PLUGIN_BASE_NAME)
+            || in_array(APBCT_PLUGIN_BASE_NAME, (array) get_blog_option(get_main_site_id(), 'active_plugins'), true);
     }
 
     protected function callAPIMethod(): string
