@@ -50,50 +50,8 @@ function ct_contact_form_validate()
         return null;
     }
 
-    //Skip woocommerce checkout
-    if (
-        apbct_is_in_uri('wc-ajax=update_order_review') ||
-        apbct_is_in_uri('wc-ajax=apply_coupon') ||
-        apbct_is_in_uri('wc-ajax=checkout') ||
-        !empty($_POST['woocommerce_checkout_place_order']) ||
-        apbct_is_in_uri('wc-ajax=wc_ppec_start_checkout') ||
-        apbct_is_in_referer('wc-ajax=update_order_review') ||
-        (
-            //if WooCommerce check is disabled, skip Apple Pay service requests. Otherwise, the request will be skipped by $cleantalk_executed.
-            $apbct->settings['forms__wc_checkout_test'] != 1 &&
-            !empty($_POST['payment_request_type']) &&
-            $_POST['payment_request_type'] === 'apple_pay'
-        ) ||
-        (
-            // Stripe express checkout address normalize
-            Get::getString('wc-ajax') === 'wc_stripe_normalize_address' &&
-            apbct_is_plugin_active('woocommerce-gateway-stripe/woocommerce-gateway-stripe.php') &&
-            1 == check_ajax_referer('wc-stripe-express-checkout-normalize-address', 'security', false)
-        ) ||
-        // Add payment method is checked on its own, with the account email and type "order".
-        (
-            apbct_is_plugin_active('woocommerce/woocommerce.php') &&
-            ! empty($_POST) &&
-            apbct_is_plugin_active('woocommerce-gateway-stripe/woocommerce-gateway-stripe.php') &&
-            apbct_is_in_referer('add-payment-method') &&
-            (
-                Get::getString('wc-ajax') === 'wc_stripe_create_setup_intent' ||
-                Get::getString('wc-ajax') === 'wc_stripe_init_setup_intent' ||
-                Post::getString('action') === 'wc_stripe_create_and_confirm_setup_intent'
-            )
-        )
-    ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . 'WOOCOMMERCE_SERVICES', $_POST);
-
-        return null;
-    }
-
-    //Skip woocommerce add_to_cart
-    if ( ! empty($_POST['add-to-cart']) ||
-        (isset($_GET['wc-ajax']) && $_GET['wc-ajax'] === 'add_to_cart')
-    ) {
-        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():' . __LINE__, $_POST);
-
+    if ( apbct_is_woocommerce_service_request() ) {
+        do_action('apbct_skipped_request', __FILE__ . ' -> ' . __FUNCTION__ . '():WOOCOMMERCE_SERVICES', $_POST);
         return null;
     }
 

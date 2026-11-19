@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 class TestContactFormValidate extends TestCase
 {
-    private $apbct;
+    private $apbctBackup;
     protected function setUp(): void
     {
         global $apbct;
@@ -50,65 +50,86 @@ class TestContactFormValidate extends TestCase
         self::assertStringContainsString('ct_contact_form_validate():SKIP_FOR_CT_CONTACT_FORM_VALIDATE', $arg[0]);
     }
 
-    public function testContactFormValidateWCExpressCheckout()
+    /**
+     * @dataProvider wooCommerceServiceProvider
+     */
+    public function testBothFormHandlersExcludeWooCommerceServices($action, $nonce_field, $nonce_action)
     {
-        update_option( 'active_plugins', array('woocommerce-gateway-stripe/woocommerce-gateway-stripe.php'), true );
-
-        $_GET = array (
-            'wc-ajax' => 'wc_stripe_normalize_address',
-        );
-        Get::getInstance()->variables = $_GET;
-
-        $_POST = array (
-            'security' => wp_create_nonce('wc-stripe-express-checkout-normalize-address'),
-            'data' =>
-                array (
-                    'billing_address' =>
-                        array (
-                            'first_name' => 'Test',
-                            'last_name' => 'Glynn',
-                            'company' => '',
-                            'email' => 's@cleantalk.org',
-                            'phone' => '2222',
-                            'country' => 'AU',
-                            'address_1' => '34A Wongawilli St',
-                            'address_2' => '',
-                            'city' => 'Tullimbar',
-                            'state' => 'NSW',
-                            'postcode' => '2527',
-                        ),
-                    'shipping_address' =>
-                        array (
-                            'first_name' => 'Test',
-                            'last_name' => 'Glynn',
-                            'company' => '',
-                            'phone' => '2222',
-                            'country' => 'AU',
-                            'address_1' => '25 Brushgrove Cct',
-                            'address_2' => '',
-                            'city' => 'Calderwood',
-                            'state' => 'NSW',
-                            'postcode' => '2527',
-                            'method' =>
-                                array (
-                                    0 => 'free_shipping:21',
-                                ),
-                        ),
-                ),
-        );
-        Post::getInstance()->variables = $_POST;
-
-        $_REQUEST['security'] = wp_create_nonce('wc-stripe-express-checkout-normalize-address');
-        Request::getInstance()->variables = $_REQUEST;
-
-        $assert_skip_reason = function (...$arg) {
-            $this->assertStringContainsString('ct_contact_form_validate():WOOCOMMERCE_SERVICES', $arg[0]);
+        $plugins = function () {
+            return array('woocommerce/woocommerce.php', 'woocommerce-gateway-stripe/woocommerce-gateway-stripe.php');
         };
-        add_action('apbct_skipped_request', $assert_skip_reason, 10);
-        $result = ct_contact_form_validate();
-        remove_action('apbct_skipped_request', $assert_skip_reason, 10);
-        $this->assertNull($result);
+        $request = $_REQUEST;
+        $post = $_POST;
+        $get_cache = Get::getInstance()->variables;
+        $reasons = array();
+        $log = function ($reason) use (&$reasons) {
+            $reasons[] = $reason;
+        };
+        $validate = function () {
+            ct_contact_form_validate();
+            ct_contact_form_validate_postdata();
+        };
 
-        update_option( 'active_plugins', array(), true );
+        $hook = 'wc_ajax_' . $action;
+        add_filter('pre_option_active_plugins', $plugins);
+        add_action($hook, $validate);
+        add_action('apbct_skipped_request', $log);
+        try {
+            Get::getInstance()->variables = array('wc-ajax' => $action);
+            $_POST = array('fixture' => 'WooCommerce service request');
+            if ($nonce_field !== null) {
+                $_POST[$nonce_field] = wp_create_nonce($nonce_action);
+            }
+            $_REQUEST = $_POST;
+
+            do_action($hook);
+
+            $this->assertCount(2, $reasons);
+            $this->assertStringContainsString('ct_contact_form_validate():WOOCOMMERCE_SERVICES', $reasons[0]);
+            $this->assertStringContainsString('ct_contact_form_validate_postdata()', $reasons[1]);
+        } finally {
+            remove_action('apbct_skipped_request', $log);
+            remove_action($hook, $validate);
+            remove_filter('pre_option_active_plugins', $plugins);
+            Get::getInstance()->variables = $get_cache;
+            $_REQUEST = $request;
+            $_POST = $post;
+        }
+    }
+
+    public function wooCommerceServiceProvider()
+    {
+        return array(
+            'Stripe address' => array('wc_stripe_normalize_address', 'security', 'wc-stripe-express-checkout-normalize-address'),
+            'checkout' => array('checkout', 'woocommerce-process-checkout-nonce', 'woocommerce-process_checkout'),
+            'coupon' => array('apply_coupon', 'security', 'apply-coupon'),
+            'cart fragments' => array('get_refreshed_fragments', null, null),
+        );
+    }
+
+    public function testRequestUrlMatchesTheConfiguredPathAndQuery()
+    {
+        $uri = $_SERVER['REQUEST_URI'] ?? null;
+        $get = $_GET;
+        $url = 'https://example.test/store/account/?page_id=42';
+        try {
+            $_GET = array('page_id' => '42');
+            $_SERVER['REQUEST_URI'] = '/store/account?page_id=42';
+            $this->assertTrue(apbct_matches_request_url($url));
+
+            $_SERVER['REQUEST_URI'] = '/store/account/settings/?page_id=42';
+            $this->assertFalse(apbct_matches_request_url($url));
+
+            $_GET = array('page_id' => '43');
+            $_SERVER['REQUEST_URI'] = '/store/account/?page_id=43';
+            $this->assertFalse(apbct_matches_request_url($url));
+        } finally {
+            if ($uri === null) {
+                unset($_SERVER['REQUEST_URI']);
+            } else {
+                $_SERVER['REQUEST_URI'] = $uri;
+            }
+            $_GET = $get;
+        }
     }
 }

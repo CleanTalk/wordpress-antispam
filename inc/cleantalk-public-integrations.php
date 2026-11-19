@@ -2159,7 +2159,9 @@ function apbct_form__gravityForms__addField($form_string, $form)
     // Adding JS code
     $js_code  = ct_add_hidden_fields($ct_hidden_field, true, false);
     $honeypot = Honeypot::generateHoneypotField('gravity_form');
-    $form_string = str_replace($search, TT::toString($js_code) . $honeypot . $search, $form_string);
+    $token = isset($form['id']) ? apbct_gravity_forms_route_token((int) $form['id']) : '';
+    $route_field = $token === '' ? '' : '<input type="hidden" name="apbct_gform_route" value="' . esc_attr($token) . '">';
+    $form_string = str_replace($search, TT::toString($js_code) . $honeypot . $route_field . $search, $form_string);
 
     // Adding field for multipage form. Look for cleantalk.php -> apbct_cookie();
     $append_string = isset($form['lastPageButton']) ? "<input type='hidden' name='ct_multipage_form' value='yes'>" : '';
