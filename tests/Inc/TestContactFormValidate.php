@@ -50,7 +50,10 @@ class TestContactFormValidate extends TestCase
         self::assertStringContainsString('ct_contact_form_validate():SKIP_FOR_CT_CONTACT_FORM_VALIDATE', $arg[0]);
     }
 
-    public function testBothFormHandlersExcludeTheStripeService()
+    /**
+     * @dataProvider wooCommerceServiceProvider
+     */
+    public function testBothFormHandlersExcludeWooCommerceServices($action, $nonce_field, $nonce_action)
     {
         $plugins = function () {
             return array('woocommerce/woocommerce.php', 'woocommerce-gateway-stripe/woocommerce-gateway-stripe.php');
@@ -67,26 +70,41 @@ class TestContactFormValidate extends TestCase
             ct_contact_form_validate_postdata();
         };
 
+        $hook = 'wc_ajax_' . $action;
         add_filter('pre_option_active_plugins', $plugins);
-        add_action('wc_ajax_wc_stripe_normalize_address', $validate);
+        add_action($hook, $validate);
         add_action('apbct_skipped_request', $log);
         try {
-            Get::getInstance()->variables = array('wc-ajax' => 'wc_stripe_normalize_address');
-            $_POST = $_REQUEST = array('security' => wp_create_nonce('wc-stripe-express-checkout-normalize-address'));
+            Get::getInstance()->variables = array('wc-ajax' => $action);
+            $_POST = array('fixture' => 'WooCommerce service request');
+            if ($nonce_field !== null) {
+                $_POST[$nonce_field] = wp_create_nonce($nonce_action);
+            }
+            $_REQUEST = $_POST;
 
-            do_action('wc_ajax_wc_stripe_normalize_address');
+            do_action($hook);
 
             $this->assertCount(2, $reasons);
             $this->assertStringContainsString('ct_contact_form_validate():WOOCOMMERCE_SERVICES', $reasons[0]);
             $this->assertStringContainsString('ct_contact_form_validate_postdata()', $reasons[1]);
         } finally {
             remove_action('apbct_skipped_request', $log);
-            remove_action('wc_ajax_wc_stripe_normalize_address', $validate);
+            remove_action($hook, $validate);
             remove_filter('pre_option_active_plugins', $plugins);
             Get::getInstance()->variables = $get_cache;
             $_REQUEST = $request;
             $_POST = $post;
         }
+    }
+
+    public function wooCommerceServiceProvider()
+    {
+        return array(
+            'Stripe address' => array('wc_stripe_normalize_address', 'security', 'wc-stripe-express-checkout-normalize-address'),
+            'checkout' => array('checkout', 'woocommerce-process-checkout-nonce', 'woocommerce-process_checkout'),
+            'coupon' => array('apply_coupon', 'security', 'apply-coupon'),
+            'cart fragments' => array('get_refreshed_fragments', null, null),
+        );
     }
 
     public function testRequestUrlMatchesTheConfiguredPathAndQuery()
