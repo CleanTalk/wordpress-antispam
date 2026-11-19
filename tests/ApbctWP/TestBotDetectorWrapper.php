@@ -24,9 +24,9 @@ class TestBotDetectorWrapper extends ApbctTestCase
     private const OPTION = 'cleantalk_bot_detector_wrapper_url';
     private const CRON_TASK = 'get_bot_detector_wrapper_url';
     private const DEFAULT_URL = 'https://fd.cleantalk.org/ct-bot-detector-wrapper.js';
-    private const REGIONAL_URL = 'https://fd.cleantalk.ru/ct-bot-detector-wrapper-ru.js?channel=stable';
+    private const API_WRAPPER_URL = 'https://fd-region.cleantalk.org/ct-bot-detector-wrapper.js?channel=stable';
     private const WRAPPER_BODY = 'const script = document.createElement("script");'
-        . 'script.src = "https://fd.cleantalk.ru/2.1/ct-bot-detector.min.js";';
+        . 'script.src = "https://fd-region.cleantalk.org/2.1/ct-bot-detector.min.js";';
 
     private $api_response;
     private $wrapper_response;
@@ -51,7 +51,7 @@ class TestBotDetectorWrapper extends ApbctTestCase
         TestBotDetectorWrapperApiTransport::$callback = array($this, 'mockApiRequest');
 
         $this->requests = array();
-        $this->api_response = self::response(json_encode(array('data' => array('wrapper_url' => self::REGIONAL_URL))));
+        $this->api_response = self::response(json_encode(array('data' => array('wrapper_url' => self::API_WRAPPER_URL))));
         $this->wrapper_response = self::response(self::WRAPPER_BODY);
         add_filter('pre_http_request', array($this, 'mockHttpRequest'), 10, 3);
     }
@@ -99,8 +99,8 @@ class TestBotDetectorWrapper extends ApbctTestCase
         $this->assertSame('GET', $this->requests[0][0]);
         $this->assertSame('get_bot_detector_wrapper_url', $this->requests[0][2]['method_name']);
         $this->assertSame(self::TEST_KEY, $this->requests[0][2]['auth_key']);
-        $this->assertSame(self::REGIONAL_URL, $this->requests[1][1]);
-        $this->assertSame(self::REGIONAL_URL, BotDetectorService::getWrapperUrl());
+        $this->assertSame(self::API_WRAPPER_URL, $this->requests[1][1]);
+        $this->assertSame(self::API_WRAPPER_URL, BotDetectorService::getWrapperUrl());
 
         $apbct->api_key = 'another-access-key';
         $this->assertSame(self::DEFAULT_URL, BotDetectorService::getWrapperUrl());
@@ -116,7 +116,7 @@ class TestBotDetectorWrapper extends ApbctTestCase
         int $expected_requests
     ): void {
         BotDetectorService::updateWrapperUrl();
-        $this->assertSame(self::REGIONAL_URL, BotDetectorService::getWrapperUrl());
+        $this->assertSame(self::API_WRAPPER_URL, BotDetectorService::getWrapperUrl());
 
         $this->api_response = self::response($api_body, $api_status);
         $this->wrapper_response = self::response($wrapper_body, $wrapper_status);
@@ -129,10 +129,10 @@ class TestBotDetectorWrapper extends ApbctTestCase
 
     public static function failedRefreshes(): array
     {
-        $regional = json_encode(array('data' => array('wrapper_url' => self::REGIONAL_URL)));
+        $valid_response = json_encode(array('data' => array('wrapper_url' => self::API_WRAPPER_URL)));
         return array(
-            'API unavailable' => array($regional, 503, self::WRAPPER_BODY, 200, 1),
-            'API redirect' => array($regional, 302, self::WRAPPER_BODY, 200, 1),
+            'API unavailable' => array($valid_response, 503, self::WRAPPER_BODY, 200, 1),
+            'API redirect' => array($valid_response, 302, self::WRAPPER_BODY, 200, 1),
             'invalid JSON' => array('broken JSON', 200, self::WRAPPER_BODY, 200, 1),
             'missing URL' => array('{"data":[]}', 200, self::WRAPPER_BODY, 200, 1),
             'unsupported host' => array(
@@ -149,15 +149,22 @@ class TestBotDetectorWrapper extends ApbctTestCase
                 200,
                 1,
             ),
-            'wrapper unavailable' => array($regional, 200, self::WRAPPER_BODY, 404, 2),
-            'unexpected body' => array($regional, 200, '<html>Not a wrapper</html>', 200, 2),
+            'cleantalk.ru returned by the API' => array(
+                '{"data":{"wrapper_url":"https://fd.cleantalk.ru/ct-bot-detector-wrapper-ru.js"}}',
+                200,
+                self::WRAPPER_BODY,
+                200,
+                1,
+            ),
+            'wrapper unavailable' => array($valid_response, 200, self::WRAPPER_BODY, 404, 2),
+            'unexpected body' => array($valid_response, 200, '<html>Not a wrapper</html>', 200, 2),
         );
     }
 
     public function testPreviouslyStoredUrlOutsideTrustedDomainsIsIgnored(): void
     {
         update_option(self::OPTION, array(
-            'url' => 'https://fd.cleantalk.example/bot.js',
+            'url' => 'https://fd.cleantalk.ru/ct-bot-detector-wrapper-ru.js',
             'key_hash' => hash('sha256', self::TEST_KEY),
         ));
 
@@ -209,8 +216,8 @@ class TestBotDetectorWrapper extends ApbctTestCase
             $this->assertSame(self::DEFAULT_URL, BotDetectorService::getWrapperUrl());
             BotDetectorService::updateWrapperUrl();
             $this->assertCount(2, $this->requests);
-            $this->assertSame(self::REGIONAL_URL, BotDetectorService::getWrapperUrl());
-            $this->assertSame(self::REGIONAL_URL, get_option(self::OPTION)['url']);
+            $this->assertSame(self::API_WRAPPER_URL, BotDetectorService::getWrapperUrl());
+            $this->assertSame(self::API_WRAPPER_URL, get_option(self::OPTION)['url']);
 
             update_blog_option($main_site, 'active_plugins', array(APBCT_PLUGIN_BASE_NAME));
             $this->assertSame($main_url, BotDetectorService::getWrapperUrl());
@@ -242,21 +249,21 @@ class TestBotDetectorWrapper extends ApbctTestCase
         try {
             $wp_scripts = new WP_Scripts();
             apbct_enqueue_and_localize_public_scripts();
-            $this->assertSame(self::REGIONAL_URL, $wp_scripts->registered['ct_bot_detector']->src);
+            $this->assertSame(self::API_WRAPPER_URL, $wp_scripts->registered['ct_bot_detector']->src);
 
             wp_deregister_script('ct_bot_detector');
             (new GiveWPScript())->integrate();
-            $this->assertSame(self::REGIONAL_URL, $wp_scripts->registered['ct_bot_detector']->src);
+            $this->assertSame(self::API_WRAPPER_URL, $wp_scripts->registered['ct_bot_detector']->src);
 
             ob_start();
             apbct_print_public_scripts();
             $booking_html = ob_get_clean();
-            $this->assertStringContainsString('src="' . self::REGIONAL_URL . '"', $booking_html);
+            $this->assertStringContainsString('src="' . self::API_WRAPPER_URL . '"', $booking_html);
 
             ob_start();
             (new FluentFormScript())->integrate();
             $form_html = ob_get_clean();
-            $this->assertStringContainsString(self::REGIONAL_URL . '&#038;ver=' . APBCT_VERSION, $form_html);
+            $this->assertStringContainsString(self::API_WRAPPER_URL . '&#038;ver=' . APBCT_VERSION, $form_html);
         } finally {
             $wp_scripts = $previous_scripts;
         }
@@ -304,7 +311,7 @@ class TestBotDetectorWrapper extends ApbctTestCase
             $due_tasks = $cron->checkTasks();
             $this->assertSame(array($task), $due_tasks);
             $this->assertSame(array($task => true), $cron->runTasks($due_tasks));
-            $this->assertSame(self::REGIONAL_URL, BotDetectorService::getWrapperUrl());
+            $this->assertSame(self::API_WRAPPER_URL, BotDetectorService::getWrapperUrl());
 
             $saved = get_option('cleantalk_cron');
             $this->assertSame($other_task['next_call'], $saved['send_feedback']['next_call']);

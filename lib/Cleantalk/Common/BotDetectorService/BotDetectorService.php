@@ -42,7 +42,7 @@ abstract class BotDetectorService
         return strtolower($parts['scheme'] ?? '') === 'https' &&
             ! isset($parts['user']) && ! isset($parts['pass']) &&
             ($parts['port'] ?? 443) === 443 &&
-            preg_match('/(?:^|\.)cleantalk\.(?:org|ru)\z/i', $parts['host'] ?? '') === 1;
+            preg_match('/(?:^|\.)cleantalk\.org\z/i', $parts['host'] ?? '') === 1;
     }
 
     abstract protected function callAPIMethod(): string;
