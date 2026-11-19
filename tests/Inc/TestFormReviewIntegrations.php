@@ -5,16 +5,16 @@ namespace Inc;
 use Cleantalk\ApbctWP\Variables\Get;
 use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Server;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @runTestsInSeparateProcesses
  * @preserveGlobalState disabled
  */
-class TestFormReviewIntegrations extends TestCase
+class TestFormReviewIntegrations extends \WP_UnitTestCase
 {
-    protected function setUp(): void
+    public function set_up()
     {
+        parent::set_up();
         require __DIR__ . '/FormReviewFixtures.inc';
 
         add_filter('pre_option_active_plugins', static function () {
