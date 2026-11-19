@@ -35,6 +35,16 @@ class BotDetectorService
         return (new BotDetectorWrapper((string) ($apbct->api_key ?? '')))->getWrapperURL();
     }
 
+    public static function scheduleWrapperUrlUpdate(): void
+    {
+        (new Cron())->addTask(
+            'get_bot_detector_wrapper_url',
+            self::class . '::updateWrapperUrl',
+            BotDetectorWrapper::CALL_PERIOD,
+            time()
+        );
+    }
+
     public static function updateWrapperUrl(?string $api_key = null): void
     {
         global $apbct;

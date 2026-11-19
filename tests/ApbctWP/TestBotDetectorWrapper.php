@@ -2,6 +2,7 @@
 
 use Cleantalk\Antispam\ScriptsIntegration\FluentFormScript;
 use Cleantalk\Antispam\ScriptsIntegration\GiveWPScript;
+use Cleantalk\ApbctWP\Activator;
 use Cleantalk\ApbctWP\BotDetectorService;
 use Cleantalk\ApbctWP\Cron;
 
@@ -9,6 +10,7 @@ class TestBotDetectorWrapper extends ApbctTestCase
 {
     private const TEST_KEY = 'apbct-wrapper-test';
     private const OPTION = 'cleantalk_bot_detector_wrapper_url';
+    private const CRON_TASK = 'get_bot_detector_wrapper_url';
     private const DEFAULT_URL = 'https://fd.cleantalk.org/ct-bot-detector-wrapper.js';
     private const REGIONAL_URL = 'https://fd.cleantalk.ru/ct-bot-detector-wrapper-ru.js?channel=stable';
     private const WRAPPER_BODY = 'const script = document.createElement("script");'
@@ -134,9 +136,29 @@ class TestBotDetectorWrapper extends ApbctTestCase
         }
     }
 
-    public function testCronAddsRefreshToTheExistingScheduleAndRunsItHourly(): void
+    public function testActivationRegistersTheWrapperRefresh(): void
     {
-        $task = 'get_bot_detector_wrapper_url';
+        $previous_tasks = get_option('cleantalk_cron', array());
+        $previous_start = get_option('cleantalk_cron_last_start', 0);
+
+        try {
+            delete_option('cleantalk_cron');
+            update_option('cleantalk_cron_last_start', time());
+            Activator::setCronJobs();
+
+            $tasks = get_option('cleantalk_cron');
+            $this->assertSame(BotDetectorService::class . '::updateWrapperUrl', $tasks[self::CRON_TASK]['handler']);
+            $this->assertSame(3600, $tasks[self::CRON_TASK]['period']);
+            $this->assertArrayHasKey('check_account_status', $tasks);
+        } finally {
+            update_option('cleantalk_cron', $previous_tasks);
+            update_option('cleantalk_cron_last_start', $previous_start);
+        }
+    }
+
+    public function testRegisteringTheRefreshKeepsExistingTasksAndRunsItHourly(): void
+    {
+        $task = self::CRON_TASK;
         $previous_tasks = get_option('cleantalk_cron', array());
         $previous_start = get_option('cleantalk_cron_last_start', 0);
         $previous_pid = get_option('cleantalk_cron_pid', 0);
@@ -149,6 +171,7 @@ class TestBotDetectorWrapper extends ApbctTestCase
                 'params' => array(),
             );
             update_option('cleantalk_cron', array('send_feedback' => $other_task));
+            BotDetectorService::scheduleWrapperUrlUpdate();
             update_option('cleantalk_cron_last_start', 0);
 
             $cron = Cron::getInstance();
@@ -161,6 +184,9 @@ class TestBotDetectorWrapper extends ApbctTestCase
             $this->assertSame($other_task['next_call'], $saved['send_feedback']['next_call']);
             $this->assertSame(3600, $saved[$task]['period']);
             $this->assertEqualsWithDelta($saved[$task]['last_call'] + 3600, $saved[$task]['next_call'], 1);
+
+            BotDetectorService::scheduleWrapperUrlUpdate();
+            $this->assertSame($saved, get_option('cleantalk_cron'));
         } finally {
             update_option('cleantalk_cron', $previous_tasks);
             update_option('cleantalk_cron_last_start', $previous_start);

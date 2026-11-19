@@ -11,19 +11,7 @@ class Cron extends \Cleantalk\Common\Cron
      */
     public static function getInstance()
     {
-        $cron = new self();
-
-        // Load the task into the active schedule for both new and already active sites.
-        if ( ! empty($cron->tasks) && ! isset($cron->tasks['get_bot_detector_wrapper_url']) ) {
-            $cron->tasks['get_bot_detector_wrapper_url'] = array(
-                'handler' => BotDetectorService::class . '::updateWrapperUrl',
-                'next_call' => time(),
-                'period' => BotDetectorWrapper::CALL_PERIOD,
-                'params' => array(),
-            );
-        }
-
-        return $cron;
+        return new self();
     }
 
     /**

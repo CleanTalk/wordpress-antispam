@@ -3119,6 +3119,8 @@ function apbct_update_actions()
             return;
         }
 
+        BotDetectorService::scheduleWrapperUrlUpdate();
+
         // Main blog
         if ( is_main_site() ) {
             require_once(CLEANTALK_PLUGIN_DIR . 'inc/cleantalk-updater.php');
