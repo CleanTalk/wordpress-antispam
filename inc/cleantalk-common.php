@@ -342,7 +342,7 @@ function apbct_rotate_moderate()
 
 function apbct_exclusions_check($func = null)
 {
-    global $apbct;
+    global $apbct, $pagenow;
 
     if ( Post::get('apbct_do_not_exclude') ) {
         return false;
@@ -361,7 +361,7 @@ function apbct_exclusions_check($func = null)
     switch ( $func ) {
         case 'ct_contact_form_validate_postdata':
             if (
-                (defined('DOING_AJAX') && DOING_AJAX) ||
+                (is_admin() && wp_doing_ajax() && $pagenow === 'admin-ajax.php') ||
                 apbct_array($_POST)->getKeys('members_search_submit')->result()
             ) {
                 return true;
