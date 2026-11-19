@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Antispam\ScriptsIntegration;
 
+use Cleantalk\ApbctWP\BotDetectorService;
+
 class FluentFormScript extends ScriptIntegrationPlugin
 {
     public $hook_name = 'wp_head';
@@ -14,8 +16,8 @@ class FluentFormScript extends ScriptIntegrationPlugin
             . APBCT_URL_PATH
             . '/js/apbct-public-bundle.min.js'
             . '?ver=' . APBCT_VERSION . '" id="ct_public_functions-js"></script>';
-        echo '<script src="' . APBCT_BOT_DETECTOR_SCRIPT_URL . '?ver='
-            . APBCT_VERSION . '" async id="ct_bot_detector-js" data-wp-strategy="async"></script>';
+        $wrapper_url = add_query_arg('ver', APBCT_VERSION, BotDetectorService::getWrapperUrl());
+        echo '<script src="' . esc_url($wrapper_url) . '" async id="ct_bot_detector-js" data-wp-strategy="async"></script>';
     }
 
     public function additionalChecks()

@@ -19,6 +19,29 @@ use Cleantalk\Common\HTTP\Response;
  */
 class API extends \Cleantalk\Common\API
 {
+    public static function methodGetBotDetectorWrapperUrl(string $api_key): string
+    {
+        $api_url = defined('CLEANTALK_API_URL') ? CLEANTALK_API_URL : self::$api_url;
+        $url = add_query_arg(array(
+            'method_name' => 'get_bot_detector_wrapper_url',
+            'auth_key' => rawurlencode($api_key),
+        ), $api_url);
+
+        $response = wp_remote_get($url, array(
+            'timeout' => 5,
+            'redirection' => 0,
+            'limit_response_size' => 4096,
+        ));
+        if ( is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) !== 200 ) {
+            return '';
+        }
+
+        $result = json_decode(wp_remote_retrieve_body($response), true);
+        $wrapper_url = $result['data']['wrapper_url'] ?? '';
+
+        return is_string($wrapper_url) ? $wrapper_url : '';
+    }
+
     /**
      * Adds the website admin IP to the SpamFireWall personal whitelist for 30 days.
      *

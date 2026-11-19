@@ -21,9 +21,42 @@ class BotDetectorService
         'botd_wrapper_loaded' => 0,
     );
 
+    private static $wrapper_url_overridden = false;
+
+    public static function initWrapperUrl(): void
+    {
+        self::$wrapper_url_overridden = defined('APBCT_BOT_DETECTOR_SCRIPT_URL');
+        if ( ! self::$wrapper_url_overridden ) {
+            define('APBCT_BOT_DETECTOR_SCRIPT_URL', self::getWrapperUrl());
+        }
+    }
+
     public static function getWrapperUrl(): string
     {
-        return 'https://fd.cleantalk.org/ct-bot-detector-wrapper.js';
+        global $apbct;
+
+        if ( self::$wrapper_url_overridden ) {
+            return (string) APBCT_BOT_DETECTOR_SCRIPT_URL;
+        }
+
+        return (new BotDetectorWrapper((string) ($apbct->api_key ?? '')))->getWrapperURL();
+    }
+
+    public static function updateWrapperUrl(?string $api_key = null): void
+    {
+        global $apbct;
+
+        $api_key = $api_key ?: (string) ($apbct->api_key ?? '');
+        if (
+            $api_key === '' ||
+            ! self::isEnabled() ||
+            self::$wrapper_url_overridden ||
+            BotDetectorWrapper::usesMainSiteWrapper()
+        ) {
+            return;
+        }
+
+        (new BotDetectorWrapper($api_key))->updateWrapperURL();
     }
 
     /**
