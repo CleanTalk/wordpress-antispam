@@ -570,9 +570,15 @@ function apbct_hook__wp_head__set_cookie__ct_checkjs()
         return null;
     }
 
+    $script_attrs = array('id' => 'apbct-init-js-check');
+    if ( class_exists('Cookiebot_WP') ) {
+        $script_attrs['data-cookieconsent'] = 'ignore';
+    }
+
     $script = apbct_get_inline_script_tag(
-        'document.cookie = ' . $encoded_cookie . ' + (location.protocol === "https:" ? "; secure" : "");',
-        array('id' => 'apbct-init-js-check')
+        '/* ' . $script_attrs['id'] . ' */ document.cookie = ' . $encoded_cookie
+        . ' + (location.protocol === "https:" ? "; secure" : "");',
+        $script_attrs
     );
     $allowed_html = apbct_get_inline_script_kses();
     $allowed_html['script']['id'] = true;
@@ -1404,6 +1410,7 @@ function apbct_rocket_delay_js_exclusions($excluded)
     return array_merge($excluded, array(
         'var ctPublicFunctions',
         'var ctPublic',
+        'apbct-init-js-check',
         '/cleantalk-spam-protect/(.*)'
     ));
 }
@@ -1424,6 +1431,7 @@ function apbct_perfmatters_delay_js_exclusions($excluded)
         'var ctPublic',
         'ctPublicFunctions',
         'ctPublic',
+        'apbct-init-js-check',
         '/cleantalk-spam-protect/(.*)'
     ));
 }
@@ -1444,6 +1452,7 @@ function apbct_perfmatters_remove_from_delayed_scripts($included)
     return array_filter($included, function ($item) {
         return stripos($item, 'ctPublicFunctions') === false &&
                stripos($item, 'ctPublic') === false &&
+               stripos($item, 'apbct-init-js-check') === false &&
                stripos($item, 'cleantalk-spam-protect') === false;
     });
 }

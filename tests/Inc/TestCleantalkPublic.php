@@ -72,8 +72,35 @@ class TestCleantalkPublic extends TestCase
         $this->assertStringContainsString('id="apbct-init-js-check"', $output);
         $this->assertStringContainsString('nonce="js-check-test-nonce"', $output);
         $this->assertStringContainsString(
-            'document.cookie = ' . wp_json_encode($cookie) . ' + (location.protocol === "https:" ? "; secure" : "");',
+            '/* apbct-init-js-check */ document.cookie = ' . wp_json_encode($cookie)
+            . ' + (location.protocol === "https:" ? "; secure" : "");',
             $output
+        );
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testApbctHeadJsCheckCookieIncludesCookiebotExemption()
+    {
+        $this->configureJsCheckCookie('native', '1', '1');
+        if (!class_exists('Cookiebot_WP')) {
+            class_alias(self::class, 'Cookiebot_WP');
+        }
+
+        $this->expectOutputRegex('/<script\b[^>]*\bdata-cookieconsent="ignore"/');
+        apbct_hook__wp_head__set_cookie__ct_checkjs();
+    }
+
+    public function testApbctHeadJsCheckCookieIsExcludedFromScriptDelay()
+    {
+        $marker = 'apbct-init-js-check';
+        $this->assertContains($marker, apply_filters('rocket_delay_js_exclusions', array()));
+        $this->assertContains($marker, apply_filters('perfmatters_delay_js_exclusions', array()));
+        $this->assertSame(
+            array('other-script'),
+            apply_filters('perfmatters_delayed_scripts', array('other-script', $marker))
         );
     }
 
