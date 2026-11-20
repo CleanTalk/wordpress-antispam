@@ -71,26 +71,12 @@ class TestCleantalkPublic extends TestCase
         $cookie = apbct__get_cookie_prefix() . 'ct_checkjs=' . ct_get_checkjs_value() . '; path=/; samesite=lax';
         $this->assertStringContainsString('id="apbct-init-js-check"', $output);
         $this->assertStringContainsString('nonce="js-check-test-nonce"', $output);
+        $this->assertStringNotContainsString('data-cookieconsent=', $output);
         $this->assertStringContainsString(
             '/* apbct-init-js-check */ document.cookie = ' . wp_json_encode($cookie)
             . ' + (location.protocol === "https:" ? "; secure" : "");',
             $output
         );
-    }
-
-    /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
-    public function testApbctHeadJsCheckCookieIncludesCookiebotExemption()
-    {
-        $this->configureJsCheckCookie('native', '1', '1');
-        if (!class_exists('Cookiebot_WP')) {
-            class_alias(self::class, 'Cookiebot_WP');
-        }
-
-        $this->expectOutputRegex('/<script\b[^>]*\bdata-cookieconsent="ignore"/');
-        apbct_hook__wp_head__set_cookie__ct_checkjs();
     }
 
     public function testApbctHeadJsCheckCookieIsExcludedFromScriptDelay()
