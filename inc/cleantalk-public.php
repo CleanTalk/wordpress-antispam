@@ -540,11 +540,38 @@ function apbct_buffer_modify_by_dom()
 }
 
 /**
- * Adds cookie script filed to head
+ * Makes the native JS check cookie available before the search form can be submitted.
  */
 function apbct_hook__wp_head__set_cookie__ct_checkjs()
 {
-    ct_add_hidden_fields('ct_checkjs', false, true, true);
+    global $apbct;
+
+    if ( $apbct->data['cookies_type'] !== 'native' || $apbct->settings['forms__search_test'] != 1 ) {
+        ct_add_hidden_fields('ct_checkjs', false, true, true);
+        return null;
+    }
+
+    if (
+        apbct_is_amp_request() ||
+        apbct_exclusions_check__url() ||
+        ( $apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in() )
+    ) {
+        return null;
+    }
+
+    $checkjs_key = ct_get_checkjs_value();
+    if ( $checkjs_key === null ) {
+        return null;
+    }
+
+    $cookie = apbct__get_cookie_prefix() . 'ct_checkjs=' . rawurlencode((string) $checkjs_key) . '; path=/; samesite=lax';
+    $script = apbct_get_inline_script_tag(
+        'document.cookie = ' . wp_json_encode($cookie) . ' + (location.protocol === "https:" ? "; secure" : "");',
+        array('id' => 'apbct-init-js-check')
+    );
+    $allowed_html = apbct_get_inline_script_kses();
+    $allowed_html['script']['id'] = true;
+    echo Escape::escKses($script, $allowed_html);
 
     return null;
 }
