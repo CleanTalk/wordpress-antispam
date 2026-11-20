@@ -565,8 +565,13 @@ function apbct_hook__wp_head__set_cookie__ct_checkjs()
     }
 
     $cookie = apbct__get_cookie_prefix() . 'ct_checkjs=' . rawurlencode((string) $checkjs_key) . '; path=/; samesite=lax';
+    $encoded_cookie = wp_json_encode($cookie);
+    if ( $encoded_cookie === false ) {
+        return null;
+    }
+
     $script = apbct_get_inline_script_tag(
-        'document.cookie = ' . wp_json_encode($cookie) . ' + (location.protocol === "https:" ? "; secure" : "");',
+        'document.cookie = ' . $encoded_cookie . ' + (location.protocol === "https:" ? "; secure" : "");',
         array('id' => 'apbct-init-js-check')
     );
     $allowed_html = apbct_get_inline_script_kses();
