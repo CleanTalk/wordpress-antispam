@@ -570,7 +570,13 @@ function apbct_hook__wp_head__set_cookie__ct_checkjs()
         return null;
     }
 
-    $script_attrs = array('id' => 'apbct-init-js-check');
+    $script_attrs = array(
+        'id' => 'apbct-init-js-check',
+        'data-no-defer' => '1',
+        'data-ezscrex' => 'false',
+        'data-cfasync' => 'false',
+        'data-pagespeed-no-defer' => true,
+    );
     if ( class_exists('Cookiebot_WP') ) {
         $script_attrs['data-cookieconsent'] = 'ignore';
     }
@@ -581,7 +587,7 @@ function apbct_hook__wp_head__set_cookie__ct_checkjs()
         $script_attrs
     );
     $allowed_html = apbct_get_inline_script_kses();
-    $allowed_html['script']['id'] = true;
+    $allowed_html['script'] = ($allowed_html['script'] ?? array()) + array_fill_keys(array_keys($script_attrs), true);
     echo Escape::escKses($script, $allowed_html);
 
     return null;

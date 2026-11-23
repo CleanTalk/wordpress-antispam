@@ -71,6 +71,10 @@ class TestCleantalkPublic extends TestCase
         $cookie = apbct__get_cookie_prefix() . 'ct_checkjs=' . ct_get_checkjs_value() . '; path=/; samesite=lax';
         $this->assertStringContainsString('id="apbct-init-js-check"', $output);
         $this->assertStringContainsString('nonce="js-check-test-nonce"', $output);
+        $this->assertStringContainsString('data-cfasync="false"', $output);
+        $this->assertStringContainsString('data-no-defer="1"', $output);
+        $this->assertStringContainsString('data-ezscrex="false"', $output);
+        $this->assertRegExp('/\sdata-pagespeed-no-defer(?=\s|=|>)/', $output);
         $this->assertStringNotContainsString('data-cookieconsent=', $output);
         $this->assertStringContainsString(
             '/* apbct-init-js-check */ document.cookie = ' . wp_json_encode($cookie)
