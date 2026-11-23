@@ -1712,6 +1712,7 @@ function apbct_sfw_update__process_files()
         $apbct->save('fw_stats');
 
         return array(
+            'result' => [$concrete_file => $result],
             'next_stage' => array(
                 'name' => 'apbct_sfw_update__process_files',
             )
