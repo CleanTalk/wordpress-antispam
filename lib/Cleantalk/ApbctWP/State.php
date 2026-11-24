@@ -123,6 +123,8 @@ class State extends \Cleantalk\Common\State
         'misc__async_js'                           => 0,
         'misc__store_urls'                         => 1,
         'misc__complete_deactivation'              => 0,
+        'misc__get_ip'                             => 1, // IP source: 1 - Auto, 2 - REMOTE_ADDR, 3+ - header, see Helper::$known_ip_headers_collection
+        'misc__get_ip__cdn_auto_self_check'        => 1, // Detect the IP source automatically by the self request
         'wp__use_builtin_http_api'                 => 1, // Using WordPress HTTP built in API
         'wp__comment_notify'                       => 1,
         'wp__comment_notify__roles'                => array('administrator'),
@@ -318,6 +320,8 @@ class State extends \Cleantalk\Common\State
         // WP nonce gathering
         'get_fresh_wpnonce'         => array('last_call' => 0,),
         'send_fw_bypass_email'         => array('last_call' => 0, 'cooldown' => 60),
+        // CDN headers self check
+        'cdn_check'          => array('last_call' => 0,),
     );
 
     /**
