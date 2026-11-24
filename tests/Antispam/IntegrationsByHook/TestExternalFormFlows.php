@@ -124,8 +124,98 @@ class TestExternalFormFlows extends TestCase
         }
     }
 
+    public function testLegacyRelayAcceptsItsOwnOriginWithoutASignature()
+    {
+        $home_filter = static function () {
+            return 'https://site.example/subdir';
+        };
+        add_filter('home_url', $home_filter);
+        $_SERVER['HTTP_ORIGIN'] = 'https://site.example';
+        $_POST = array(
+            Submission::JS_ACTION => 'https://external.example/submit',
+            Submission::JS_METHOD => 'post',
+            'email' => 'member@example.org',
+        );
+        $this->resetVariableCaches();
+
+        try {
+            $integration = new CleantalkExternalForms();
+            $this->assertTrue($integration->doPrepareActions(null));
+            $this->assertIsArray($integration->getDataForChecking(null));
+        } finally {
+            remove_filter('home_url', $home_filter);
+        }
+    }
+
+    /**
+     * @dataProvider untrustedLegacySubmissionProvider
+     */
+    public function testLegacyRelayRejectsUntrustedSourcesBeforeChecking($headers, $fields)
+    {
+        unset($_SERVER['HTTP_ORIGIN'], $_SERVER['HTTP_REFERER']);
+        $_SERVER = array_merge($_SERVER, $headers);
+        $_POST = $fields;
+        $this->resetVariableCaches();
+        $original_post = $_POST;
+        $response = null;
+        $checked = false;
+        $handler = static function () use (&$response) {
+            return static function ($message, $title, $args) use (&$response) {
+                $response = array('message' => $message, 'status' => $args['response']);
+                throw new RuntimeException('External form response completed.');
+            };
+        };
+        $filter = static function ($post) use (&$checked) {
+            $checked = true;
+            return $post;
+        };
+        add_filter('wp_die_handler', $handler);
+        add_filter('apbct__filter_post', $filter);
+
+        try {
+            $integration = new CleantalkExternalForms();
+            foreach ( array('doPrepareActions', 'getDataForChecking') as $method ) {
+                $response = null;
+                try {
+                    $integration->$method(null);
+                    $this->fail('An untrusted legacy submission must terminate.');
+                } catch (RuntimeException $exception) {
+                    $this->assertSame('External form response completed.', $exception->getMessage());
+                }
+                $this->assertSame(403, $response['status']);
+                $this->assertNotEmpty($response['message']);
+                $this->assertStringContainsString('CT05', $response['message']);
+                $this->assertFalse($checked);
+                $this->assertSame($original_post, $_POST);
+            }
+        } finally {
+            remove_filter('wp_die_handler', $handler);
+            remove_filter('apbct__filter_post', $filter);
+        }
+    }
+
+    public function untrustedLegacySubmissionProvider()
+    {
+        $fields = array(
+            Submission::JS_ACTION => 'https://external.example/submit',
+            Submission::JS_METHOD => 'post',
+            'email' => 'member@example.org',
+        );
+
+        return array(
+            'foreign origin with trusted referer' => array(array(
+                'HTTP_ORIGIN' => 'https://attacker.example',
+                'HTTP_REFERER' => get_home_url(),
+            ), $fields),
+            'missing source headers' => array(array(), $fields),
+            'action only with null value' => array(array(), array(Submission::JS_ACTION => null)),
+            'method only with empty value' => array(array(), array(Submission::JS_METHOD => '')),
+        );
+    }
+
     public function testDirectAjaxRemainsSeparateFromBothRelays()
     {
+        $_SERVER['HTTP_ORIGIN'] = 'https://attacker.example';
         $_POST = array(
             'action' => Submission::AJAX_ACTION,
             'email' => 'member@example.org',

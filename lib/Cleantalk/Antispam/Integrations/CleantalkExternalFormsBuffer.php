@@ -34,17 +34,21 @@ class CleantalkExternalFormsBuffer extends ExternalFormsRelayBase
         $action = $this->getActionFromRequest();
         $method = $this->getMethodFromRequest();
         $signature = $this->getPostString(Submission::BUFFER_SIGNATURE);
-        if ( ! apbct_is_post()
-            || ! $this->isAllowedExternalFormAction($action)
-            || ! $this->isAllowedExternalFormMethod($method)
-            || ! BufferFormSecurity::hasValidSignature($action, $method, $signature)
-            || ! BufferFormSecurity::hasTrustedSource()
-        ) {
+        $code = null;
+        if (!apbct_is_post()) {
+            $code = 'CT00';
+        } elseif (! $this->isAllowedExternalFormAction($action)) {
+            $code = 'CT01';
+        } elseif (! $this->isAllowedExternalFormMethod($method)) {
+            $code = 'CT02';
+        } elseif (! BufferFormSecurity::hasValidSignature($action, $method, $signature)) {
+            $code = 'CT03';
+        } elseif (! BufferFormSecurity::hasTrustedSource()) {
+            $code = 'CT04';
+        }
+        if ($code) {
             wp_die(
-                esc_html__(
-                    'External form verification failed. Please reload the form and try again.',
-                    'cleantalk-spam-protect'
-                ),
+                esc_html(parent::getValidationFailReason($code)),
                 '',
                 array('response' => 403)
             );

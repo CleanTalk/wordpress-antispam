@@ -28,6 +28,8 @@ class TestCleantalkExternalForms extends TestCase
         $this->post_global = $_POST;
         $this->server_global = $_SERVER;
         $_SERVER['REQUEST_METHOD'] = 'POST';
+        unset($_SERVER['HTTP_ORIGIN']);
+        $_SERVER['HTTP_REFERER'] = get_home_url();
         $this->resetVariableCaches();
     }
 

@@ -75,7 +75,7 @@ class TestCleantalkExternalFormsBuffer extends TestCase
     /**
      * @dataProvider invalidMetadataProvider
      */
-    public function testInvalidMetadataIsRejectedBeforeChecking($changes)
+    public function testInvalidMetadataIsRejectedBeforeChecking($changes, $expected_code)
     {
         foreach ( $changes as $field => $value ) {
             if ( $value === null ) {
@@ -86,19 +86,32 @@ class TestCleantalkExternalFormsBuffer extends TestCase
         }
         $this->resetVariableCaches();
 
-        $this->assertSubmissionRejected();
+        $this->assertSubmissionRejected($expected_code);
     }
 
     public function invalidMetadataProvider()
     {
         return array(
-            'missing signature' => array(array(Submission::BUFFER_SIGNATURE => null)),
-            'incorrect signature' => array(array(Submission::BUFFER_SIGNATURE => str_repeat('0', 64))),
-            'array signature' => array(array(Submission::BUFFER_SIGNATURE => array('invalid'))),
-            'changed destination' => array(array(Submission::BUFFER_ACTION => 'https://other.example/submit')),
-            'changed method' => array(array(Submission::BUFFER_METHOD => 'get')),
-            'signature only' => array(array(Submission::BUFFER_ACTION => null, Submission::BUFFER_METHOD => null)),
+            'missing signature' => array(array(Submission::BUFFER_SIGNATURE => null), 'CT03'),
+            'incorrect signature' => array(array(Submission::BUFFER_SIGNATURE => str_repeat('0', 64)), 'CT03'),
+            'array signature' => array(array(Submission::BUFFER_SIGNATURE => array('invalid')), 'CT03'),
+            'changed destination' => array(array(Submission::BUFFER_ACTION => 'https://other.example/submit'), 'CT03'),
+            'changed method' => array(array(Submission::BUFFER_METHOD => 'get'), 'CT03'),
+            'signature only' => array(
+                array(Submission::BUFFER_ACTION => null, Submission::BUFFER_METHOD => null),
+                'CT01'
+            ),
+            'invalid action' => array(array(Submission::BUFFER_ACTION => 'not-a-url'), 'CT01'),
+            'invalid method' => array(array(Submission::BUFFER_METHOD => 'put'), 'CT02'),
         );
+    }
+
+    public function testNonPostBufferSubmissionIsRejectedWithRequestMethodCode()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->resetVariableCaches();
+
+        $this->assertSubmissionRejected('CT00');
     }
 
     public function testAValidSignatureDoesNotAllowAForeignSource()
@@ -107,10 +120,10 @@ class TestCleantalkExternalFormsBuffer extends TestCase
         $_SERVER['HTTP_REFERER'] = 'https://site.example/subdir/form';
         $this->resetVariableCaches();
 
-        $this->assertSubmissionRejected();
+        $this->assertSubmissionRejected('CT04');
     }
 
-    private function assertSubmissionRejected()
+    private function assertSubmissionRejected($expected_code)
     {
         $original_post = $_POST;
         $response = null;
@@ -140,6 +153,7 @@ class TestCleantalkExternalFormsBuffer extends TestCase
                 }
                 $this->assertSame(403, $response['status']);
                 $this->assertNotEmpty($response['message']);
+                $this->assertStringContainsString($expected_code, $response['message']);
                 $this->assertFalse($checked);
                 $this->assertSame($original_post, $_POST);
             }

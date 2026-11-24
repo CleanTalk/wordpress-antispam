@@ -314,4 +314,17 @@ abstract class ExternalFormsRelayBase extends IntegrationBase
         return is_string($method)
             && in_array(strtolower($method), array('get', 'post'), true);
     }
+
+    /**
+     * @param string $code
+     * @return string
+     */
+    protected function getValidationFailReason(string $code)
+    {
+        $msg_template = __(
+            'External form verification failed. Reason code: %s. Please reload the form and try again.',
+            'cleantalk-spam-protect'
+        );
+        return sprintf($msg_template, $code);
+    }
 }
