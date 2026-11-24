@@ -2080,8 +2080,12 @@ function apbct_settings__field__apikey()
                 ! $apbct->allow_custom_key ||
                 Constant::is(Constant::APBCT_SERVICE__SELF_OWNED_ACCESS_KEY)
             );
-    $define_show_key_field = ! (apbct_api_key__is_correct($apbct->api_key) && isset($apbct->data["key_changed"]) && $apbct->data["key_changed"]);
-    $define_show_deobfuscating_href = apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok && (!isset($apbct->data["key_changed"]) || !$apbct->data["key_changed"]);
+
+    $define_key_is_locked_by_white_label = APBCT_WPMS && ! is_main_site() && $apbct->white_label && ! empty($apbct->settings['apikey']);
+    $define_key_change_is_pending = apbct_api_key__is_correct($apbct->api_key) && isset($apbct->data["key_changed"]) && $apbct->data["key_changed"];
+    $define_show_key_field = ! $define_key_is_locked_by_white_label && ! $define_key_change_is_pending;
+    $define_show_deobfuscating_href = ! $define_key_is_locked_by_white_label &&
+        apbct_api_key__is_correct($apbct->api_key) && $apbct->key_is_ok && (!isset($apbct->data["key_changed"]) || !$apbct->data["key_changed"]);
 
     $replaces = [
         'wpms_admin_provided' => '',
@@ -2129,7 +2133,7 @@ function apbct_settings__field__apikey()
     );
     //GET KEY AUTO — opens React signup wizard
     $show_signup_wizard_link = apbct_settings__needs_signup_wizard()
-        && $define_show_key_field
+        && ! $define_key_change_is_pending
         && ( empty($apbct->api_key) || ! apbct_settings__is_access_key_valid() );
     $replaces['get_key_auto_wrapper_display'] = $show_signup_wizard_link ? '' : 'style="display:none"';
     $replaces['get_key_auto_button_display'] = ! $apbct->ip_license ? '' : 'style="display:none"';

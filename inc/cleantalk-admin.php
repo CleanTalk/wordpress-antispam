@@ -376,11 +376,17 @@ function apbct_admin__init()
         $res = apbct_settings__get_key_auto(true);
         // The API does not return user_token anymore, the key alone is enough to validate it
         if ( ! empty($res['auth_key']) ) {
+            // The validator checks the key format against $apbct->api_key, so it must be set beforehand
+            $apbct->api_key = trim($res['auth_key'], " \n\r\t\v\x00");
             $settings       = apbct_settings__validate(array(
                 'apikey' => $res['auth_key'],
             ));
             $apbct->api_key = isset($settings['apikey']) ? $settings['apikey'] : null;
             $apbct->save('settings');
+            if ( $apbct->api_key ) {
+                ct_account_status_check($apbct->api_key, false);
+                $apbct->key_is_ok = $apbct->data['key_is_ok'];
+            }
         }
     }
 
