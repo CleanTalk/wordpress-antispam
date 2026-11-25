@@ -4,7 +4,7 @@ Tags: spam, antispam, anti-spam, comments, firewall
 Requires at least: 4.7
 Tested up to: 7.1
 Requires PHP: 7.2
-Stable tag: 6.92
+Stable tag: 6.93
 License: GPLv2
 
 Advanced antispam for comments, registrations & contact forms. No CAPTCHA, plus email validation and honeypot. We catch spam others miss!
@@ -423,6 +423,37 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 12. SpamFireWall in action. It blocks the most active and well-known spam bots before they reach your website’s content.
 
 == Changelog ==
+
+= 6.93 25.11.2026 =
+* Fix. General. Contact form exclusions. (#933)
+* Fix. Settings. Editing the key input field display on a multisite and transferring the key before validation
+* Fix. Helper. DNS resolve hostnames fixed.
+* Fix. Helper. Getting IP fixed. (#932)
+* Fix. SFW. SFW updating details added.
+* Fix. SFW. SFW updating errors output fixed.
+* Fix. Check email before POST. Fixed duplicated requests due blur exit on autocomplete forms.
+* Fix. JS keys get. Fixed static method callback call.
+* Upd. Connection Reports. Split API and Moderate emails.
+* Upd. Settings. Remove broken hoster account utilization (multisite__service_utilization).
+* Fix. Integration. External forms integration fixed #2.
+* Fix. Integration. External forms integration fixed.
+* Upd. Common libs.
+* Fix. Psalm.
+* Fix. REST. Preserve JSON strings in contacts and ForceProtection requests.
+* Fix. ForceProtection. Restore internal form protection after decoding.
+* Upd. ContactsEncoder. Passed cookie decision synchronized.
+* Upd. ContactsEncoder. REST/AJAX response splitted.
+* Upd. REST check. Response wrapped in WP_REST_Response.
+* Upd. Pixel. REST/AJAX response splitted.
+* Upd. ForceProtection. REST/AJAX response splitted.
+* Upd. Email exist check. REST/AJAX response splitted.
+* Upd. Email check before post. REST/AJAX response splitted.
+* Fix. Email exist check. Forgotten debug state for ajax/rest removed.
+* Upd. JS keys. REST/AJAX response splitted.
+* Upd. AltSessions. REST/AJAX response splitted.
+* Fix. Connection reports. Email template and data fixed.
+* Upd. Connection reports. Reports display updated.
+* New. Connection reports. Reports for API calls implemented.
 
 = 6.92 11.11.2026 =
 * Fix. WPMS. White Label subsite key is validated again: the API does not return user_token anymore.
