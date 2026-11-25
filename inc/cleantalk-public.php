@@ -540,11 +540,55 @@ function apbct_buffer_modify_by_dom()
 }
 
 /**
- * Adds cookie script filed to head
+ * Makes the native JS check cookie available before the search form can be submitted.
  */
 function apbct_hook__wp_head__set_cookie__ct_checkjs()
 {
-    ct_add_hidden_fields('ct_checkjs', false, true, true);
+    global $apbct;
+
+    if ( $apbct->data['cookies_type'] !== 'native' || $apbct->settings['forms__search_test'] != 1 ) {
+        ct_add_hidden_fields('ct_checkjs', false, true, true);
+        return null;
+    }
+
+    if (
+        apbct_is_amp_request() ||
+        apbct_exclusions_check__url() ||
+        ( $apbct->settings['data__protect_logged_in'] != 1 && is_user_logged_in() )
+    ) {
+        return null;
+    }
+
+    $checkjs_key = ct_get_checkjs_value();
+    if ( $checkjs_key === null ) {
+        return null;
+    }
+
+    $cookie = apbct__get_cookie_prefix() . 'ct_checkjs=' . rawurlencode((string) $checkjs_key) . '; path=/; samesite=lax';
+    $encoded_cookie = wp_json_encode($cookie);
+    if ( $encoded_cookie === false ) {
+        return null;
+    }
+
+    $script_attrs = array(
+        'id' => 'apbct-init-js-check',
+        'data-no-defer' => '1',
+        'data-ezscrex' => 'false',
+        'data-cfasync' => 'false',
+        'data-pagespeed-no-defer' => true,
+    );
+    if ( class_exists('Cookiebot_WP') ) {
+        $script_attrs['data-cookieconsent'] = 'ignore';
+    }
+
+    $script = apbct_get_inline_script_tag(
+        '/* ' . $script_attrs['id'] . ' */ document.cookie = ' . $encoded_cookie
+        . ' + (location.protocol === "https:" ? "; secure" : "");',
+        $script_attrs
+    );
+    $allowed_html = apbct_get_inline_script_kses();
+    $allowed_html['script'] = ($allowed_html['script'] ?? array()) + array_fill_keys(array_keys($script_attrs), true);
+    echo Escape::escKses($script, $allowed_html);
 
     return null;
 }
@@ -1372,6 +1416,7 @@ function apbct_rocket_delay_js_exclusions($excluded)
     return array_merge($excluded, array(
         'var ctPublicFunctions',
         'var ctPublic',
+        'apbct-init-js-check',
         '/cleantalk-spam-protect/(.*)'
     ));
 }
@@ -1392,6 +1437,7 @@ function apbct_perfmatters_delay_js_exclusions($excluded)
         'var ctPublic',
         'ctPublicFunctions',
         'ctPublic',
+        'apbct-init-js-check',
         '/cleantalk-spam-protect/(.*)'
     ));
 }
@@ -1412,6 +1458,7 @@ function apbct_perfmatters_remove_from_delayed_scripts($included)
     return array_filter($included, function ($item) {
         return stripos($item, 'ctPublicFunctions') === false &&
                stripos($item, 'ctPublic') === false &&
+               stripos($item, 'apbct-init-js-check') === false &&
                stripos($item, 'cleantalk-spam-protect') === false;
     });
 }
