@@ -5,6 +5,7 @@ namespace Antispam\IntegrationsByClass;
 use Cleantalk\Antispam\IntegrationsByClass\Woocommerce;
 use Cleantalk\ApbctWP\State;
 use Cleantalk\ApbctWP\Variables\Get;
+use Cleantalk\ApbctWP\Variables\Post;
 use Cleantalk\ApbctWP\Variables\Request;
 use PHPUnit\Framework\TestCase;
 
@@ -111,6 +112,7 @@ class TestWoocommerceRegistrationFromCheckout extends TestCase
             $_GET['wc-ajax'] = $_REQUEST['wc-ajax'] = $value;
         }
         Get::getInstance()->variables = array();
+        Post::getInstance()->variables = array();
         Request::getInstance()->variables = array();
     }
 
@@ -182,6 +184,34 @@ class TestWoocommerceRegistrationFromCheckout extends TestCase
         }
 
         $this->assertSame(0, $this->registration_check_calls);
+    }
+
+    /**
+     * A service wc-ajax must not drop the My Account registration. That form posts
+     * "register", and WooCommerce creates the account on wp_loaded, before dispatch.
+     */
+    public function testRegisterPostIsCheckedWhenWcAjaxLooksLikeCheckout()
+    {
+        global $apbct;
+        $apbct->settings['forms__wc_register_from_order'] = 0;
+
+        $_GET = array('wc-ajax' => 'get_refreshed_fragments');
+        $_POST = array('register' => 'Register');
+        Get::getInstance()->variables = array();
+        Post::getInstance()->variables = array();
+        Request::getInstance()->variables = array();
+
+        foreach ( array('checkout', 'complete_order') as $wc_ajax ) {
+            $this->registration_check_calls = 0;
+            $_POST['wc-ajax'] = $wc_ajax;
+            $_REQUEST = array_merge($_GET, $_POST);
+            Post::getInstance()->variables = array();
+            Request::getInstance()->variables = array();
+
+            $this->assertFalse(Woocommerce::isCheckoutInProgress());
+            $this->runRegistrationFilter();
+            $this->assertSame(1, $this->registration_check_calls);
+        }
     }
 
     public function testBlockCheckoutRunsRegistrationCheckWhenOptionIsOn()

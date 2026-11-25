@@ -101,17 +101,6 @@ class Woocommerce extends IntegrationByClassBase
         $this->addPaymentMethodActions();
 
         // registration
-        // WooCommerce creates the account on wp_loaded, before wc-ajax dispatch.
-        // The "register" field is that form, so a service wc-ajax must not drop the check.
-        if (
-            ! isset($_POST['register'])
-            && ! $apbct->settings['forms__wc_register_from_order']
-            && (Request::get('wc-ajax') === 'checkout' || Request::get('wc-ajax') === 'complete_order')
-        ) {
-            remove_filter('woocommerce_registration_errors', 'ct_registration_errors', 1);
-        } else {
-            add_filter('woocommerce_registration_errors', 'ct_registration_errors', 1, 3);
-        }
         add_filter('woocommerce_registration_errors', [$this, 'registrationErrors'], 1, 3);
 
         // collect data for spam orders
@@ -213,9 +202,20 @@ class Woocommerce extends IntegrationByClassBase
      */
     public static function isCheckoutInProgress()
     {
-        return did_action('woocommerce_checkout_process') > 0 ||
-            did_action('woocommerce_store_api_checkout_update_customer_from_request') > 0 ||
-            in_array(Request::getString('wc-ajax'), ['checkout', 'complete_order'], true);
+        if (
+            did_action('woocommerce_checkout_process') > 0 ||
+            did_action('woocommerce_store_api_checkout_update_customer_from_request') > 0
+        ) {
+            return true;
+        }
+
+        // The My Account form posts "register". WooCommerce creates that account on
+        // wp_loaded, before wc-ajax dispatch, so the parameter alone is not a checkout.
+        if (isset($_POST['register'])) {
+            return false;
+        }
+
+        return in_array(Request::getString('wc-ajax'), ['checkout', 'complete_order'], true);
     }
 
     public function addActions()
