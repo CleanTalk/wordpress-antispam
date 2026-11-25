@@ -15,7 +15,7 @@ class HooksRegistrar
         \Cleantalk\ApbctWP\Variables\AltSessions::registerHooks($ajax_service);
 
         // JS keys
-        $ajax_service->addPublicAction('apbct_js_keys__get', array($ajax_service, 'getJSKeys'));
+        $ajax_service->addPublicAction('apbct_js_keys__get', array(AJAXService::class, 'getJSKeys'));
 
         // Pixel URL
         $ajax_service->addPublicAction('apbct_get_pixel_url', 'apbct_get_pixel_url');

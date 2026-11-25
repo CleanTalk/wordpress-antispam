@@ -20,7 +20,7 @@ class IntegrationsTest extends TestCase {
 			'ContactBank'          => array( 'hook' => 'contact_bank_frontend_ajax_call', 'ajax' => true ),
 			'FluentForm'           => array( 'hook' => 'fluentform/before_insert_submission', 'ajax' => false ),
 			'ElfsightContactForm'  => array( 'hook' => 'elfsight_contact_form_mail', 'ajax' => true ),
-			'SimpleMembership'     => array( 'hook' => 'swpm_front_end_registration_complete_user_data', 'ajax' => false ),
+			'SimpleMembership'     => array( 'hook' => 'swpm_validate_registration_form_submission', 'ajax' => false ),
 			'EstimationForm'       => array( 'hook' => 'send_email', 'ajax' => true ),
 			'LandingPageBuilder'   => array( 'hook' => 'ulpb_formBuilderEmail_ajax', 'ajax' => true ),
 			'WpMembers'            => array( 'hook' => 'wpmem_pre_register_data', 'ajax' => false ),

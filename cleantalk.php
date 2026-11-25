@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.91.99-dev
+  Version: 6.92.99-dev
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -33,6 +33,7 @@ use Cleantalk\ApbctWP\Firewall\FirewallBypass;
 use Cleantalk\ApbctWP\Firewall\SFW;
 use Cleantalk\ApbctWP\Firewall\SFWUpdateHelper;
 use Cleantalk\ApbctWP\Helper;
+use Cleantalk\ApbctWP\HTTP\CDNHeadersChecker;
 use Cleantalk\ApbctWP\RemoteCalls;
 use Cleantalk\ApbctWP\RequestParameters\RequestParameters;
 use Cleantalk\ApbctWP\RequestParameters\SubmitTimeHandler;
@@ -221,7 +222,7 @@ function apbct_wp_login_actions($_user_login, $wp_user)
 {
     global $apbct;
     $apbct->login_ip_keeper->addUserIP($wp_user);
-    apbct_add_admin_ip_to_swf_whitelist($wp_user);
+    // Admin IP is whitelisted in the background from admin pages: see apbct_admin_ip_whitelist__ajax().
 }
 
 // Disabling comments
@@ -1126,6 +1127,38 @@ function ct_get_cookie()
 // This action triggered by  wp_schedule_single_event( time() + 720, 'apbct_sfw_update__init' );
 add_action('apbct_sfw_update__init', 'apbct_sfw_update__init');
 
+
+/**
+ * Parse CDN checker self request to find CDN headers. Called by the cdn_check remote call.
+ *
+ * @return array
+ */
+function apbct_cdn_checker__parse_request()
+{
+    global $apbct;
+
+    if ( ! empty($apbct->settings['misc__get_ip__cdn_auto_self_check']) ) {
+        return CDNHeadersChecker::check();
+    }
+
+    return array('error' => 'CDN checker disabled');
+}
+
+/**
+ * Send the self request to find CDN headers. Cron task handler.
+ *
+ * @return array|bool|string
+ */
+function apbct_cdn_checker__send_request()
+{
+    global $apbct;
+
+    if ( ! empty($apbct->settings['misc__get_ip__cdn_auto_self_check']) ) {
+        return CDNHeadersChecker::sendCDNCheckerRequest();
+    }
+
+    return true;
+}
 
 /**
  * * * * * * SFW UPDATE ACTIONS * * * * * *

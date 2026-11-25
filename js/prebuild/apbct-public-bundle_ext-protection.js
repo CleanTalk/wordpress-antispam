@@ -220,8 +220,10 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
                     data: data,
                     method: 'POST',
                     callback: function(result) {
-                        // set alternative cookie to skip next pages encoding
-                        ctSetCookie('apbct_email_encoder_passed', ctPublic.emailEncoderPassKey, '');
+                        // The backend permits this only after saving the server-side pass mark.
+                        if (result.set_passed_cookie === true) {
+                            ctSetCookie('apbct_email_encoder_passed', ctPublic.emailEncoderPassKey, '');
+                        }
                         apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource);
                     },
                     onErrorCallback: function(res) {
@@ -239,8 +241,10 @@ function apbctAjaxEmailDecodeBulk(event, encodedEmailNodes, clickSource) {
                 {
                     notJson: false,
                     callback: function(result) {
-                        // set alternative cookie to skip next pages encoding
-                        ctSetCookie('apbct_email_encoder_passed', ctPublic.emailEncoderPassKey, '');
+                        // The backend permits this only after saving the server-side pass mark.
+                        if (result.set_passed_cookie === true) {
+                            ctSetCookie('apbct_email_encoder_passed', ctPublic.emailEncoderPassKey, '');
+                        }
                         apbctEmailEncoderCallbackBulk(result, encodedEmailNodes, clickSource);
                     },
                     onErrorCallback: function(res) {
@@ -3432,6 +3436,30 @@ class ApbctHandler {
     }
 
     /**
+     * Identify serialized ARMember registration forms, excluding login and profile forms.
+     * @param {string|object|null} body
+     * @return {boolean}
+     */
+    isArmMemberRegistrationRequest(body) {
+        if (typeof body !== 'string') {
+            return false;
+        }
+
+        const data = new URLSearchParams(body);
+        if (
+            !['arm_shortcode_form_ajax_action', 'arm_membership_setup_form_ajax_action']
+                .includes(data.get('action')) ||
+            !data.has('user_email') ||
+            !data.has('arm_form_id')
+        ) {
+            return false;
+        }
+
+        return Array.from(document.querySelectorAll('form[name="arm_form"] input[name="arm_form_id"]'))
+            .some((field) => field.value === data.get('arm_form_id'));
+    }
+
+    /**
      * Insert event_token and no_cookies_data to some ajax request
      * @return {void}
      */
@@ -3450,6 +3478,8 @@ class ApbctHandler {
             document.querySelector('div.fluent_booking_wrap') !== null || // Fluent Booking Pro
             document.querySelector('div.fcal_calendar_slot_wrap ') !== null || // Fluent Booking / Calendar Pro
             document.querySelectorAll('script[id*="smart-forms"]').length > 0 ||
+            document.querySelector('form[name="arm_form"] input[name="arm_form_id"]') !== null ||
+            document.querySelector('script[id="arm_common_js-js"]') !== null ||
             document.querySelector('[id^="amelia-app-booking"], .amelia-frontend, .amelia-v2-booking') !== null
         ) {
             const originalOpen = XMLHttpRequest.prototype.open;
@@ -3464,8 +3494,10 @@ class ApbctHandler {
 
             const originalSend = XMLHttpRequest.prototype.send;
             XMLHttpRequest.prototype.send = function(body) {
+                const isArmMemberRegistrationRequest = new ApbctHandler().isArmMemberRegistrationRequest(body);
                 let isNeedToAddCleantalkDataCheckString = body && typeof body === 'string' &&
                     (
+                        isArmMemberRegistrationRequest ||
                         body.indexOf('action=wfu_ajax_action_ask_server') !== -1 ||
                         body.indexOf('action=booked_add_appt') !== -1 ||
                         body.indexOf('action=cwginstock_product_subscribe') !== -1 ||
@@ -3496,7 +3528,8 @@ class ApbctHandler {
 
                 if (isNeedToAddCleantalkDataCheckString) {
                     let addidionalCleantalkData = '';
-                    const useUnwrappedCleantalkKeys = isDiviNewsletterRequest || isSmartFormsRequest;
+                    const useUnwrappedCleantalkKeys =
+                        isDiviNewsletterRequest || isSmartFormsRequest || isArmMemberRegistrationRequest;
                     const noCookieDataKey = useUnwrappedCleantalkKeys ?
                         'ct_no_cookie_hidden_field' :
                         'data%5Bct_no_cookie_hidden_field%5D';
@@ -3981,6 +4014,30 @@ class ApbctHandler {
                             args[1].body,
                             selectFieldsData(+ctPublic.bot_detector_enabled),
                         );
+                    } catch (e) {
+                        // Continue even if error
+                    }
+                }
+
+                // === Elementor Pro Atomic Forms (Elementor v4 e-form widget) ===
+                if (
+                    args[1].body instanceof FormData &&
+                    args[1].body.get('action') === 'elementor_pro_atomic_forms_send_form'
+                ) {
+                    try {
+                        const atomicFormBody = args[1].body;
+                        const fieldPairs = [
+                            selectFieldsData(false),
+                            apbctGetBrowserStatePair(),
+                        ];
+                        if (+ctPublic.bot_detector_enabled) {
+                            fieldPairs.push(selectFieldsData(true));
+                        }
+                        for (const pair of fieldPairs) {
+                            if (pair && !atomicFormBody.has(pair.key)) {
+                                atomicFormBody.append(pair.key, pair.value);
+                            }
+                        }
                     } catch (e) {
                         // Continue even if error
                     }
@@ -7438,6 +7495,7 @@ function apbctGetBrowserStatePair() { // eslint-disable-line no-unused-vars
 
 let ctCheckedEmails = {};
 let ctCheckedEmailsExist = {};
+const ctCheckingEmails = new Set();
 
 /**
  * @param {mixed} e
@@ -7449,15 +7507,18 @@ function checkEmail(e) { // eslint-disable-line no-unused-vars
         return;
     }
 
-    if (currentEmail && !(currentEmail in ctCheckedEmails)) {
+    if (currentEmail && !(currentEmail in ctCheckedEmails) && !ctCheckingEmails.has(currentEmail)) {
         // Using REST API handler
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
+            ctCheckingEmails.add(currentEmail);
             apbct_public_sendREST(
                 'check_email_before_post',
                 {
                     method: 'POST',
                     data: {'email': currentEmail},
+                    onErrorCallback: () => ctCheckingEmails.delete(currentEmail),
                     callback: function(result) {
+                        ctCheckingEmails.delete(currentEmail);
                         if (result.result) {
                             ctCheckedEmails[currentEmail] = {
                                 'result': result.result,
@@ -7470,13 +7531,16 @@ function checkEmail(e) { // eslint-disable-line no-unused-vars
             );
             // Using AJAX request and handler
         } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
+            ctCheckingEmails.add(currentEmail);
             apbct_public_sendAJAX(
                 {
                     action: 'apbct_email_check_before_post',
                     email: currentEmail,
                 },
                 {
+                    onErrorCallback: () => ctCheckingEmails.delete(currentEmail),
                     callback: function(result) {
+                        ctCheckingEmails.delete(currentEmail);
                         if (result.result) {
                             ctCheckedEmails[currentEmail] = {
                                 'result': result.result,
@@ -7524,7 +7588,6 @@ function checkEmailExist(e) { // eslint-disable-line no-unused-vars
     viewCheckEmailExist(e, 'load');
 
     // Using REST API handler
-    ctPublicFunctions.data__ajax_type = 'rest';
     if (ctPublicFunctions.data__ajax_type === 'rest') {
         apbct_public_sendREST(
             'check_email_exist_post',

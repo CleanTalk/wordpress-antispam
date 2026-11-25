@@ -55,11 +55,24 @@ class ApbctForceProtection {
                 data,
                 method: 'POST',
                 callback: (result) => this.checkBotCallback(result),
+                onErrorCallback: (error) => this.checkBotErrorCallback(error),
             });
         } else if (ctPublicFunctions.data__ajax_type === 'admin_ajax') {
             data.action = 'apbct_force_protection_check_bot';
-            apbct_public_sendAJAX(data, {callback: (result) => this.checkBotCallback(result)});
+            apbct_public_sendAJAX(data, {
+                callback: (result) => this.checkBotCallback(result),
+                onErrorCallback: (error) => this.checkBotErrorCallback(error),
+            });
         }
+    }
+
+    /**
+     * @param {string} error
+     * @return {void}
+     */
+    checkBotErrorCallback(error) {
+        console.log('ApbctForceProtection request failed', error);
+        this.decodeForms();
     }
 
     /**
@@ -94,24 +107,34 @@ class ApbctForceProtection {
     }
 
     /**
-     * Decode forms
+     * Restore forms and notify listeners when wrappers have been replaced in the document.
      * @return {void}
      */
     decodeForms() {
         let form;
+        let formsDecoded = false;
 
         this.wrappers.forEach((wrapper) => {
+            if (!wrapper.isConnected) {
+                return;
+            }
+
             form = wrapper.querySelector('div.ct-encoded-form').dataset.encodedForm;
 
             try {
                 if (form && typeof(form) == 'string') {
                     const urlDecoded = decodeURIComponent(form);
                     wrapper.outerHTML = atob(urlDecoded);
+                    formsDecoded = true;
                 }
             } catch (error) {
                 console.log(error);
             }
         });
+
+        if (formsDecoded) {
+            document.dispatchEvent(new Event('apbctForceProtectionDecoded'));
+        }
     }
 
     /**

@@ -748,16 +748,38 @@ function apbct_get_pixel_url($direct_call = false)
  */
 function apbct_email_check_before_post()
 {
-    $email = trim(TT::toString(Post::get('email')), " \n\r\t\v\x00");
-
-    if ( $email ) {
-        $result = \Cleantalk\ApbctWP\API::methodEmailCheck($email);
-        if ( isset($result['data']) ) {
-            die(json_encode(array('result' => $result['data'])));
-        }
-        die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));
+    try {
+        $response = Helper::jsonEncode(apbct_email_check_before_post_result(TT::toString(Post::get('email'))));
+    } catch ( \UnexpectedValueException $e ) {
+        $response = $e->getMessage();
     }
-    die(json_encode(array('error' => 'EMPTY_DATA')));
+
+    die($response);
+}
+
+/**
+ * @param string $email
+ * @return array
+ */
+function apbct_email_check_before_post_result($email): array
+{
+    try {
+        $email = trim($email, " \n\r\t\v\x00");
+        if ( ! $email ) {
+            throw new \RuntimeException('EMPTY_DATA');
+        }
+
+        $result = \Cleantalk\ApbctWP\API::methodEmailCheck($email);
+        if ( ! isset($result['data']) ) {
+            throw new \RuntimeException('ERROR_CHECKING_EMAIL');
+        }
+
+        $response = array('result' => $result['data']);
+    } catch ( \RuntimeException $e ) {
+        $response = array('error' => $e->getMessage());
+    }
+
+    return $response;
 }
 
 /**
@@ -765,26 +787,47 @@ function apbct_email_check_before_post()
  */
 function apbct_email_check_exist_post()
 {
+    try {
+        $response = Helper::jsonEncode(apbct_email_check_exist_post_result(TT::toString(Post::get('email'))));
+    } catch ( \UnexpectedValueException $e ) {
+        $response = $e->getMessage();
+    }
+
+    die($response);
+}
+
+/**
+ * @param string $email
+ * @return array
+ */
+function apbct_email_check_exist_post_result($email): array
+{
     global $apbct;
-    $email = trim(TT::toString(Post::get('email')), " \n\r\t\v\x00");
-    $api_key = $apbct->api_key;
-    $brandname = $apbct->data['wl_mode_enabled'] ? $apbct->data['wl_brandname'] : 'Anti-Spam by CleanTalk';
-    if ( $email && $api_key ) {
-        $result = \Cleantalk\ApbctWP\API::methodEmailCheckExist($email, $api_key);
-        if ( isset($result['result']) ) {
-            $text_result = '';
-            if ( $result['result'] != 'EXISTS' ) {
-                $text_result = __('The email doesn`t exist, double check the address.', 'cleantalk-spam-protect') . ' ' . $brandname . '.';
-            } else {
-                $text_result = __('The email exists and is good to use!', 'cleantalk-spam-protect') . ' ' . $brandname . '.';
-            }
-            $result['text_result'] = $text_result;
-            die(json_encode(array('result' => $result)));
+    try {
+        $email = trim($email, " \n\r\t\v\x00");
+        $api_key = $apbct->api_key;
+        $brandname = $apbct->data['wl_mode_enabled'] ? $apbct->data['wl_brandname'] : 'Anti-Spam by CleanTalk';
+        if ( ! $email || ! $api_key ) {
+            throw new \RuntimeException('EMPTY_DATA');
         }
 
-        die(json_encode(array('error' => 'ERROR_CHECKING_EMAIL')));
+        $result = \Cleantalk\ApbctWP\API::methodEmailCheckExist($email, $api_key);
+        if ( ! isset($result['result']) ) {
+            throw new \RuntimeException('ERROR_CHECKING_EMAIL');
+        }
+
+        if ( $result['result'] != 'EXISTS' ) {
+            $text_result = __('The email doesn`t exist, double check the address.', 'cleantalk-spam-protect') . ' ' . $brandname . '.';
+        } else {
+            $text_result = __('The email exists and is good to use!', 'cleantalk-spam-protect') . ' ' . $brandname . '.';
+        }
+        $result['text_result'] = $text_result;
+        $response = array('result' => $result);
+    } catch ( \RuntimeException $e ) {
+        $response = array('error' => $e->getMessage());
     }
-    die(json_encode(array('error' => 'EMPTY_DATA')));
+
+    return $response;
 }
 
 /**
@@ -792,7 +835,7 @@ function apbct_email_check_exist_post()
  */
 function apbct_force_protection_check_bot()
 {
-    die(\Cleantalk\ApbctWP\Antispam\ForceProtection::getInstance()->checkBot());
+    die(\Cleantalk\ApbctWP\Antispam\ForceProtection::getInstance()->checkBotAJAX());
 }
 
 /**
@@ -1314,45 +1357,118 @@ function apbct_add_async_attribute($tag, $handle)
     return $tag;
 }
 
-function apbct_add_admin_ip_to_swf_whitelist($user)
+/**
+ * Whether the current admin IP has to be added to the SpamFireWall whitelist.
+ * Admin pages pass the result to JS, which calls apbct_admin_ip_whitelist__ajax() in the background,
+ * so the login request does not wait for the API.
+ *
+ * @return bool
+ */
+function apbct_admin_ip_whitelist__is_needed()
 {
     global $apbct;
 
-    $user = ! $user instanceof WP_User ? apbct_wp_get_current_user() : $user;
-    $ip   = Helper::ipGet('real', true);
-
     if (
-        $apbct->settings['sfw__enabled'] && // Break if the SpamFireWall is inactive
-        Server::isGet() &&
-        ! apbct_wp_doing_cron() &&
-        is_object($user) &&
-        in_array('administrator', (array)$user->roles, true) &&
-        Cookie::get('ct_sfw_ip_wl') !== md5($ip . $apbct->api_key) &&
-        SFW::updateWriteToDbExclusions(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL, array($ip)) &&
-        apbct_private_list_add($ip) &&
-        ! headers_sent()
+        empty($apbct->settings['sfw__enabled']) ||
+        empty($apbct->key_is_ok) ||
+        empty($apbct->api_key) ||
+        empty($apbct->data['service_id']) ||
+        ! apbct_is_user_role_in(array('administrator'))
     ) {
-        Cookie::set(
-            'ct_sfw_ip_wl',
-            md5($ip . $apbct->api_key),
-            time() + 86400 * 30,
-            '/',
-            '',
-            null,
-            true,
-            'Lax'
-        );
+        return false;
     }
+
+    $ip = Helper::ipGet('real', true);
+
+    return $ip &&
+        Helper::ipValidate($ip) &&
+        Cookie::get('ct_sfw_ip_wl') !== md5($ip . $apbct->api_key) &&
+        ! get_transient(apbct_admin_ip_whitelist__retry_key($ip));
 }
 
+/**
+ * Transient name that pauses retries after a failed API call, so a broken call is not repeated on every admin page.
+ *
+ * @param string $ip
+ *
+ * @return string
+ */
+function apbct_admin_ip_whitelist__retry_key($ip)
+{
+    return 'apbct_admin_ip_wl_retry_' . md5($ip);
+}
+
+/**
+ * AJAX handler: adds the current admin IP to the local and the cloud SpamFireWall whitelist.
+ * The cookie ct_sfw_ip_wl is set only after the cloud confirmed the record.
+ *
+ * @return void
+ */
+function apbct_admin_ip_whitelist__ajax()
+{
+    \Cleantalk\ApbctWP\AJAXService::checkAdminNonce();
+
+    if ( ! apbct_admin_ip_whitelist__is_needed() ) {
+        wp_send_json_success(array('skipped' => true));
+    }
+
+    if ( ! apbct_admin_ip_whitelist__add(TT::toString(Helper::ipGet('real', true))) ) {
+        wp_send_json_error('COULDNT_ADD_WL_IP');
+    }
+
+    wp_send_json_success();
+}
+
+/**
+ * Adds the IP to the local and the cloud SpamFireWall whitelist.
+ * On success sets the cookie ct_sfw_ip_wl for 30 days, on failure pauses retries for an hour.
+ *
+ * @param string $ip
+ * @param callable $cloud_add Adds the IP to the cloud whitelist, returns bool. Replaceable in tests.
+ *
+ * @return bool
+ */
+function apbct_admin_ip_whitelist__add($ip, $cloud_add = 'apbct_private_list_add')
+{
+    global $apbct;
+
+    // Local record first: the admin is not blocked even if the cloud call fails.
+    SFW::updateWriteToDbExclusions(DB::getInstance(), APBCT_TBL_FIREWALL_DATA_PERSONAL, array($ip));
+
+    if ( ! call_user_func($cloud_add, $ip) ) {
+        set_transient(apbct_admin_ip_whitelist__retry_key($ip), 1, HOUR_IN_SECONDS);
+        return false;
+    }
+
+    Cookie::set(
+        'ct_sfw_ip_wl',
+        md5($ip . $apbct->api_key),
+        time() + 86400 * 30,
+        '/',
+        '',
+        null,
+        true,
+        'Lax'
+    );
+
+    return true;
+}
+
+/**
+ * Adds the IP to the cloud SpamFireWall personal whitelist.
+ *
+ * @param string $ip
+ *
+ * @return bool
+ */
 function apbct_private_list_add($ip)
 {
     global $apbct;
 
     if ( Helper::ipValidate($ip) ) {
-        $result = API::methodPrivateListAddSfwWl($apbct->data['user_token'], $ip, $apbct->data['service_id']);
+        $result = API::methodPrivateListAddSfwWl($apbct->api_key, $apbct->data['service_id'], $ip);
 
-        return empty($result['error']);
+        return $result === true;
     }
 
     return false;

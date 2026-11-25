@@ -58,6 +58,10 @@ class UsersChecker extends Checker
             ),
             'ct_iusers'                => __('users.', 'cleantalk-spam-protect'),
             'ct_csv_filename'          => "user_check_by_" . $current_user->user_login,
+            'ct_bad_csv'               => __(
+                'CSV export failed. Please try again or contact support.',
+                'cleantalk-spam-protect'
+            ),
             'ct_status_string'         => __(
                 "Checked %s users (excluding admins), found %s spam users and %s non-checkable users (no IP and email found).",
                 'cleantalk-spam-protect'
@@ -488,6 +492,10 @@ class UsersChecker extends Checker
 
     /**
      * Escape a cell value for CSV export
+     *
+     * Take care when changing this: neutralize formula prefixes before CSV quoting,
+     * including after commas, semicolons, and double quotes. Do not HTML-escape the resulting CSV.
+     *
      * @param mixed $value
      * @return string
      */
@@ -495,11 +503,14 @@ class UsersChecker extends Checker
     {
         $value = (string) $value;
 
-        if ( $value !== '' && preg_match('/^[\s]*[=+\-@\t\r|]/u', $value) ) {
-            $value = "'" . $value;
+        $value = preg_replace('/(^|[,;"])(\s*[=+\-@\t\r|])/u', '$1\'$2', $value);
+        if ( $value === null ) {
+            wp_send_json_error(array(
+                'message' => __('CSV export failed. Please try again or contact support.', 'cleantalk-spam-protect'),
+            ), 500);
         }
 
-        if ( strpbrk($value, ",\"\n\r") !== false ) {
+        if ( strpbrk($value, ",;\"\t\n\r") !== false ) {
             $value = '"' . str_replace('"', '""', $value) . '"';
         }
 
@@ -553,7 +564,8 @@ class UsersChecker extends Checker
 
         if ( $filename !== false ) {
             header('Content-Type: text/csv');
-            echo esc_html($text);
+            // HTML escaping would corrupt the CSV quoting already applied to each field.
+            echo $text;
         } else {
             echo 'Export error.'; // file not exists or empty $_POST['filename']
         }

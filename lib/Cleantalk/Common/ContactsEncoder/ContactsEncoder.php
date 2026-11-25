@@ -18,6 +18,23 @@ class ContactsEncoder
 {
     const VERSION = '2.1.1';
 
+    /**
+     * Possible contacts to look for per request, all passes of nested render filters together.
+     * A contact contains its sign, so the budget is taken before a regular expression runs:
+     * each sign costs up to 0.4 ms without PCRE JIT. Over it contacts are masked without encoding.
+     */
+    const MAX_CONTACT_SIGNS_PER_REQUEST = 5000;
+
+    /**
+     * Possible contacts in one string. Checked before a regular expression: its matches take the memory.
+     */
+    const MAX_CONTACT_SIGNS_PER_CONTENT = 5000;
+
+    /**
+     * Encoded contacts per request. Each one adds about 0.5 KB of markup to all outer passes.
+     */
+    const MAX_ENCODED_CONTACTS_PER_REQUEST = 2000;
+
     protected $api_key;
 
     /**
@@ -43,12 +60,10 @@ class ContactsEncoder
 
     /**
      * Regular expressions parts.
-     * Use backreference \1 so apostrophes (e.g. "Follow iBlogyou's account") inside
-     * double-quoted values don't incorrectly terminate the match.
+     * Lengths are limited by RFC 5321: each attempt to match costs a limited number of steps without PCRE JIT too.
      */
-    const ARIA_LABEL_PATTERN = '/aria-label\s*=\s*(["\'])(?:(?!\1).)*\1/';
-    const EMAIL_PATTERN = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b';
-    const EMAIL_PATTERN_DOMAIN_CATCHING = '[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b)';
+    const EMAIL_PATTERN = '[_A-Za-z0-9-\.]{1,64}@[_A-Za-z0-9-\.]{1,255}\.[A-Za-z]{2,63}\b';
+    const EMAIL_PATTERN_DOMAIN_CATCHING = '[_A-Za-z0-9-\.]{1,64}@[_A-Za-z0-9-\.]{1,255}(\.[A-Za-z]{2,63}\b)';
     const PHONE_NUMBER = '\+\d{8,12}';
     /**
      * URI schemes are case-insensitive (RFC 3986). Clients often write Mailto:/Tel:.
@@ -65,18 +80,13 @@ class ContactsEncoder
      *  - in plain text there is no closing quote, so the query must stop at the
      *    first whitespace instead of swallowing the rest of the sentence.
      */
-    const MAILTO_QUERY_PATTERN = '(?:\?(?:[^"\'<>]*?(?=["\'])|[^"\'<>\s]*))?';
+    const MAILTO_QUERY_PATTERN = '(?:\?(?:[^"\'<>]{0,2048}?(?=["\'])|[^"\'<>\s]{0,2048}))?';
     const PHONE_NUMBERS_PATTERNS = [
         '(' . self::TEL_SCHEME_PATTERN . self::PHONE_NUMBER . ')', // tel:+XXXXXXXXXX
         '([\+][\s-]?\(?\d[\d\s\-()]{7,}\d)',                       // +X XXX XXXXXXX, +X(XXX)XXXXX, etc.
         '(\(\d{3}\)\s?\d{3}-\d{4})',                               // (XXX) XXX-XXXX, (XXX) XXX XXXX
         '(\+\d{1,3}\.\d{1,3}\.((\d{3}\.\d{4})|\d{7})(?![\w.]))',   // +X?.XX?.XXX.XXXX
     ];
-
-    /**
-     * @var string example: '/aria-label.?=.?[\'"].+?[\'"]/'
-     */
-    protected $aria_regex;
 
     /**
      * @var string example: '/((?i:mailto):\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+\.[A-Za-z]{2,}\b(?:\?(?:[^"\'<>]*?(?=["\'])|[^"\'<>\s]*))?)|(\b[_A-Za-z0-9-\.]+@[_A-Za-z0-9-\.]+(\.[A-Za-z]{2,}\b))/'
@@ -153,6 +163,36 @@ class ContactsEncoder
 
     protected $decoded_contacts_array = [];
 
+    /**
+     * @var int
+     */
+    protected $contact_signs_processed = 0;
+
+    /**
+     * @var int
+     */
+    protected $encoded_contacts_count = 0;
+
+    /**
+     * @var string[] A "contact" with such an ending is a name of an image file, e.g. logo@2x.png.
+     */
+    private static $image_extensions = array('.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp');
+
+    /**
+     * @var int Signs of contacts taken by the content of visitors, see modifyVisitorContent().
+     */
+    protected $visitor_contact_signs_processed = 0;
+
+    /**
+     * @var int Contacts encoded in the content of visitors.
+     */
+    protected $visitor_encoded_contacts_count = 0;
+
+    /**
+     * @var bool The content of visitors is processed now.
+     */
+    private $is_visitor_content = false;
+
     protected static $instance;
 
     public function __construct()
@@ -216,8 +256,6 @@ class ContactsEncoder
 
     private function prepareRegularExpressions()
     {
-        $this->aria_regex = self::ARIA_LABEL_PATTERN;
-
         $this->global_email_pattern = '/(' . self::MAILTO_SCHEME_PATTERN . '\b' . self::EMAIL_PATTERN . self::MAILTO_QUERY_PATTERN . ')|(\b' . self::EMAIL_PATTERN_DOMAIN_CATCHING . ')/';
         $this->global_phones_pattern = '/' . implode('|', self::PHONE_NUMBERS_PATTERNS) . '/';
         $this->global_mailto_pattern = '/' . self::MAILTO_SCHEME_PATTERN . '(' . self::EMAIL_PATTERN . ')' . self::MAILTO_QUERY_PATTERN . '/';
@@ -304,6 +342,21 @@ class ContactsEncoder
      */
     public function modifyGlobalEmails($content)
     {
+        // Nothing to look for, or too much of it.
+        if ( ! is_string($content) ) {
+            return $content;
+        }
+
+        // Only a sign that can be a contact is taken: an encoded or masked contact is not counted by an outer pass.
+        $signs = self::countEmailSigns($content, self::MAX_CONTACT_SIGNS_PER_CONTENT);
+        if ( $signs === 0 ) {
+            return $content;
+        }
+
+        if ( $signs > self::MAX_CONTACT_SIGNS_PER_CONTENT || ! $this->reserveContactSigns($signs) ) {
+            return $this->maskEmailsWithoutEncoding($content);
+        }
+
         $owns_aria_protection = empty($this->aria_placeholders);
         if ( $owns_aria_protection ) {
             $content = $this->handleAriaLabelContent($content);
@@ -312,21 +365,22 @@ class ContactsEncoder
         $this->temp_content = $content;
         $this->helper->indexMarkup($this->temp_content);
 
-        $match_cursor = 0;
-        $match_offsets = $this->collectMatchOffsets($this->global_email_pattern, $content);
-        $match_offset_index = 0;
-        $replacing_result = preg_replace_callback($this->global_email_pattern, function ($matches) use ($match_offsets, &$match_offset_index, &$match_cursor) {
+        $cut_mailto_end = 0;
+        $replacing_result = $this->replaceEmailMatches($content, function ($matches, $position) use (&$cut_mailto_end) {
             if ( ! isset($matches[0]) ) {
                 return '';
             }
 
-            $position = $this->resolveNextMatchOffset($matches[0], $match_offsets, $match_offset_index, $match_cursor);
+            // The tail of a link that stays as is, e.g. its cc= copies.
+            if ( $position !== false && $position < $cut_mailto_end ) {
+                return $matches[0];
+            }
 
             if ( $this->exclusions->isContactExcluded($matches[0]) ) {
                 return $matches[0];
             }
 
-            if ( isset($matches[3]) && in_array(strtolower($matches[3]), ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']) ) {
+            if ( isset($matches[3]) && in_array(strtolower($matches[3]), self::$image_extensions, true) ) {
                 return $matches[0];
             }
 
@@ -343,6 +397,18 @@ class ContactsEncoder
             // mailto: links are encoded in place inside the href attribute, so they bypass the markup guards.
             if ( $this->helper->isMailto($matches[0]) ) {
                 $position = $position === false ? 0 : $position;
+
+                $target_end = $this->findKeptLinkTargetEnd($matches[0], $position);
+                if ( $target_end !== false ) {
+                    $cut_mailto_end = $target_end;
+
+                    return $matches[0];
+                }
+
+                // A masked target would be a working link to another address.
+                if ( ! $this->reserveEncodedContact() ) {
+                    return '#';
+                }
 
                 return $this->encodeMailtoLink($matches[0], $position);
             }
@@ -361,8 +427,17 @@ class ContactsEncoder
                 return $matches[0];
             }
 
+            if ( ! $this->reserveEncodedContact() ) {
+                return $this->maskAny($matches[0], $this->global_obfuscation_mode, $this->global_replacing_text);
+            }
+
             return $this->encodePlainEmail($matches[0]);
-        }, $content);
+        });
+
+        // A failed regular expression returns null: a guard could have failed as well, encode nothing.
+        if ( ! is_string($replacing_result) ) {
+            $replacing_result = $content;
+        }
 
         if ( $owns_aria_protection ) {
             $replacing_result = $this->handleAriaLabelContent($replacing_result, true);
@@ -381,6 +456,19 @@ class ContactsEncoder
      */
     public function modifyGlobalPhoneNumbers($content)
     {
+        if ( ! is_string($content) ) {
+            return $content;
+        }
+
+        $signs = self::countPhoneSigns($content);
+        if ( $signs === 0 ) {
+            return $content;
+        }
+
+        if ( $signs > self::MAX_CONTACT_SIGNS_PER_CONTENT || ! $this->reserveContactSigns($signs) ) {
+            return $this->maskPhonesWithoutEncoding($content);
+        }
+
         $owns_aria_protection = empty($this->aria_placeholders);
         if ( $owns_aria_protection ) {
             $content = $this->handleAriaLabelContent($content);
@@ -415,6 +503,14 @@ class ContactsEncoder
                 if ( $this->helper->isTelTag($matches[0]) ) {
                     $position = $position === false ? 0 : $position;
 
+                    if ( $this->findKeptLinkTargetEnd($matches[0], $position) !== false ) {
+                        return $matches[0];
+                    }
+
+                    if ( ! $this->reserveEncodedContact() ) {
+                        return '#';
+                    }
+
                     return $this->encodeTelLink($matches[0], $position);
                 }
 
@@ -436,6 +532,10 @@ class ContactsEncoder
                     return $matches[0];
                 }
 
+                if ( ! $this->reserveEncodedContact() ) {
+                    return $this->maskAny($matches[0], $this->global_obfuscation_mode, $this->global_replacing_text, true);
+                }
+
                 return $this->encodeAny(
                     $matches[0],
                     $this->global_obfuscation_mode,
@@ -445,6 +545,10 @@ class ContactsEncoder
             },
             $content
         );
+
+        if ( ! is_string($replacing_result) ) {
+            $replacing_result = $content;
+        }
 
         if ( $owns_aria_protection ) {
             $replacing_result = $this->handleAriaLabelContent($replacing_result, true);
@@ -491,6 +595,115 @@ class ContactsEncoder
         }
 
         return $position;
+    }
+
+    /**
+     * The same replacement as preg_replace_callback() with global_email_pattern, but the pattern runs only near
+     * the signs that can be a part of an e-mail: a match contains its sign, so the search starts at most
+     * a local part and "mailto:" before it. Without PCRE JIT a long text with few addresses is not scanned whole.
+     *
+     * @param string $content
+     * @param callable(array<int, string>, int):string $callback Receives the groups and the offset of the match.
+     *
+     * @return string|null Null when the regular expression fails, as preg_replace_callback() does.
+     */
+    private function replaceEmailMatches($content, $callback)
+    {
+        $result = '';
+        $cursor = 0;
+        $dot = -1;
+
+        for ( $at = strpos($content, '@'); $at !== false; $at = strpos($content, '@', $at + 1) ) {
+            if ( $at < $cursor ) {
+                continue;
+            }
+            if ( self::findEmailDomainDot($content, $at, $dot) === false ) {
+                if ( $dot === false ) {
+                    break;
+                }
+                continue;
+            }
+
+            $found = preg_match($this->global_email_pattern, $content, $match, PREG_OFFSET_CAPTURE, max($cursor, $at - 72));
+            if ( $found === false ) {
+                return null;
+            }
+            $whole = $found === 1 && isset($match[0]) ? $match[0] : null;
+            if ( ! is_array($whole) || ! isset($whole[0], $whole[1]) ) {
+                break;
+            }
+
+            $position = $whole[1];
+            $length = strlen($whole[0]);
+            $groups = array();
+            foreach ( $match as $index => $group ) {
+                $groups[$index] = isset($group[0]) ? $group[0] : '';
+            }
+
+            $result .= substr($content, $cursor, $position - $cursor) . $callback($groups, $position);
+            $cursor = $position + max(1, $length);
+        }
+
+        return $cursor === 0 ? $content : $result . substr($content, $cursor);
+    }
+
+    /**
+     * @param int $signs Possible contacts in the content.
+     * @return bool False when the request budget does not have them.
+     */
+    private function reserveContactSigns($signs)
+    {
+        if ( $this->is_visitor_content ) {
+            if ( $this->visitor_contact_signs_processed + $signs > self::MAX_CONTACT_SIGNS_PER_REQUEST ) {
+                return false;
+            }
+            $this->visitor_contact_signs_processed += $signs;
+
+            return true;
+        }
+
+        if ( $this->contact_signs_processed + $signs > self::MAX_CONTACT_SIGNS_PER_REQUEST ) {
+            return false;
+        }
+
+        $this->contact_signs_processed += $signs;
+
+        return true;
+    }
+
+    /**
+     * Content of visitors, e.g. comments, takes its own budget: it can not use up the budget of the site owner.
+     *
+     * @param string $content
+     *
+     * @return string
+     * @psalm-suppress PossiblyUnusedMethod Called by the CMS integration for comments.
+     */
+    public function modifyVisitorContent($content)
+    {
+        $was_visitor_content = $this->setVisitorContent(true);
+
+        try {
+            return $this->modifyContent($content);
+        } finally {
+            $this->setVisitorContent($was_visitor_content);
+        }
+    }
+
+    /**
+     * Content of visitors is processed by several steps, e.g. its shortcodes after the main pass: all of them
+     * take the budget of visitors while it is on.
+     *
+     * @param bool $is_visitor_content
+     *
+     * @return bool The previous state.
+     */
+    public function setVisitorContent($is_visitor_content)
+    {
+        $was_visitor_content = $this->is_visitor_content;
+        $this->is_visitor_content = (bool)$is_visitor_content;
+
+        return $was_visitor_content;
     }
 
     /**
@@ -558,6 +771,24 @@ class ContactsEncoder
      */
     protected function encodeAny($string, $mode = Params::OBFUSCATION_MODE_BLUR, $replacing_text = null, $is_phone_number = false)
     {
+        $string_with_effect = $this->maskAny($string, $mode, $replacing_text, $is_phone_number);
+        $encoded_string = $this->encoder->encodeString($string);
+
+        return $this->constructEncodedSpan($encoded_string, $string_with_effect);
+    }
+
+    /**
+     * The visible part of an encoded string.
+     *
+     * @param string $string of any data
+     * @param string $mode
+     * @param string $replacing_text
+     * @param bool $is_phone_number
+     *
+     * @return string
+     */
+    protected function maskAny($string, $mode = Params::OBFUSCATION_MODE_BLUR, $replacing_text = null, $is_phone_number = false)
+    {
         $obfuscated_string = $string;
 
         if ($mode !== Params::OBFUSCATION_MODE_REPLACE) {
@@ -565,17 +796,220 @@ class ContactsEncoder
             $obfuscated_string = $is_phone_number
                 ? $obfuscator->processPhone($string)
                 : $obfuscator->processString($string);
+            // The edges stay as they are in the source. A text cut by bytes must not turn into an empty value.
+            $obfuscated_string = htmlspecialchars($obfuscated_string, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', false);
         }
 
-        $string_with_effect = $this->applyEffectsOnMode(
+        return $this->applyEffectsOnMode(
             false,
             $obfuscated_string,
             $mode,
             $replacing_text
         );
-        $encoded_string = $this->encoder->encodeString($string);
+    }
 
-        return $this->constructEncodedSpan($encoded_string, $string_with_effect);
+    /**
+     * All the ways to encode a contact in a request share one limit.
+     *
+     * @return bool False when the limit is reached.
+     */
+    protected function reserveEncodedContact()
+    {
+        if ( $this->is_visitor_content ) {
+            return ++$this->visitor_encoded_contacts_count <= self::MAX_ENCODED_CONTACTS_PER_REQUEST;
+        }
+
+        return ++$this->encoded_contacts_count <= self::MAX_ENCODED_CONTACTS_PER_REQUEST;
+    }
+
+    /**
+     * Over a limit nothing is encoded, but contacts must not be shown open either.
+     * One linear pass without a regular expression: a short window around each sign.
+     *
+     * @param string $content
+     * @param bool $check_context False for the target of one link, it is masked as a whole.
+     *
+     * @return string
+     */
+    protected function maskEmailsWithoutEncoding($content, $check_context = true)
+    {
+        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.';
+        $result = '';
+        $cursor = 0;
+        $offset = 0;
+        $dot = -1;
+
+        while ( ($at = strpos($content, '@', $offset)) !== false ) {
+            $offset = $at + 1;
+            // The same addresses as EMAIL_PATTERN: package@1.2.3 is not one.
+            $domain_dot = $at > $cursor ? self::findEmailDomainDot($content, $at, $dot) : false;
+            if ( $dot === false ) {
+                break;
+            }
+            if ( $domain_dot === false ) {
+                continue;
+            }
+
+            $from = max($cursor, $at - 64);
+            $local = strspn(strrev(substr($content, $from, $at - $from)), $chars);
+            $start = $at - $local;
+            $end = $at + 1 + strspn($content, $chars, $at + 1, 255);
+            $email = substr($content, $start, $end - $start);
+            // The encoding takes the last part of the domain, files.jpg.example.org is not an image.
+            $domain = rtrim(substr($content, $at + 1, $end - $at - 1), '.-');
+            $ending = strtolower((string)strrchr($domain, '.'));
+            if ( in_array($ending, self::$image_extensions, true) ) {
+                continue;
+            }
+
+            $kept_end = $check_context ? $this->findKeptContextEnd($content, $email, $start, 'mailto:') : false;
+            if ( $kept_end !== false ) {
+                $offset = max($offset, $kept_end);
+                continue;
+            }
+            if ( $this->exclusions->isContactExcluded($email) ) {
+                continue;
+            }
+
+            // A masked target of a link would be a working link to another address.
+            $target = $check_context ? $this->helper->findAttributeValueRange($content, $start) : false;
+            if ( $target !== false ) {
+                $result .= substr($content, $cursor, $target[0] - $cursor) . '#';
+                $cursor = $offset = $target[1];
+                continue;
+            }
+
+            $result .= substr($content, $cursor, $start - $cursor)
+                . str_repeat('*', $local) . '@' . str_repeat('*', $domain_dot - $at - 1) . substr($content, $domain_dot, $end - $domain_dot);
+            $cursor = $end;
+            $offset = $end;
+        }
+
+        return $cursor === 0 ? $content : $result . substr($content, $cursor);
+    }
+
+    /**
+     * The fallback changes what the encoding would change: a text of the page and the target of a scheme link.
+     * A string of a script, a text of an option and other attributes stay as they are.
+     * The index of the markup is built once for the content and is reused for each contact.
+     *
+     * @param string $content
+     * @param string $contact
+     * @param int $position
+     * @param string $scheme
+     *
+     * @return int|false False when the contact is masked, otherwise the offset to search the next one from:
+     *                   other contacts of the same attribute value stay as they are too.
+     */
+    private function findKeptContextEnd($content, $contact, $position, $scheme)
+    {
+        if (
+            $this->helper->isInsideRawTextTag($contact, $content, $position)
+            || $this->helper->isInsideOptionTag($contact, $content, $position)
+        ) {
+            return $position + 1;
+        }
+
+        $range = $this->helper->findAttributeValueRange($content, $position);
+        if ( $range === false || strncasecmp(substr($content, $range[0], strlen($scheme)), $scheme, strlen($scheme)) === 0 ) {
+            return false;
+        }
+
+        return $range[1];
+    }
+
+    /**
+     * Phones over a limit: the digits of a run that starts with "+" or "(" are masked, except the last two.
+     *
+     * @param string $content
+     * @param bool $check_context False for the target of one link, it is masked as a whole.
+     *
+     * @return string
+     */
+    protected function maskPhonesWithoutEncoding($content, $check_context = true)
+    {
+        $result = '';
+        $cursor = 0;
+        $offset = 0;
+        $pattern = '/' . implode('|', self::PHONE_NUMBERS_PATTERNS) . '/';
+
+        // The same phones as the encoding finds, so no format of them stays open and two of them are not joined.
+        while ( preg_match($pattern, $content, $match, PREG_OFFSET_CAPTURE, $offset) && isset($match[0][0], $match[0][1]) ) {
+            $run = $match[0][0];
+            $position = $match[0][1];
+            $offset = $position + max(1, strlen($run));
+
+            $is_tel = strncasecmp($run, 'tel:', 4) === 0;
+            $digits = strlen($run) - strlen(str_replace(array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'), '', $run));
+            // The length check of the encoding: other runs of digits are not phones for it.
+            if ( ! $is_tel && ( $digits < 8 || $digits > 12 ) ) {
+                continue;
+            }
+
+            $kept_end = $check_context ? $this->findKeptContextEnd($content, $run, $position, 'tel:') : false;
+            if ( $kept_end !== false ) {
+                $offset = max($offset, $kept_end);
+                continue;
+            }
+            if ( $this->exclusions->isContactExcluded($run) ) {
+                continue;
+            }
+
+            $target = $check_context ? $this->helper->findAttributeValueRange($content, $position) : false;
+            if ( $target !== false ) {
+                $result .= substr($content, $cursor, $target[0] - $cursor) . '#';
+                $cursor = $offset = $target[1];
+                continue;
+            }
+
+            $seen = 0;
+            $masked = '';
+            for ( $i = 0, $run_length = strlen($run); $i < $run_length; $i++ ) {
+                $is_digit = ctype_digit($run[$i]);
+                $seen += $is_digit ? 1 : 0;
+                $masked .= $is_digit && $seen <= $digits - 2 ? '*' : $run[$i];
+            }
+
+            $result .= substr($content, $cursor, $position - $cursor) . $masked;
+            $cursor = $offset = $position + strlen($run);
+        }
+
+        return $cursor === 0 ? $content : $result . substr($content, $cursor);
+    }
+
+    /**
+     * Encoding a link appends attributes after the quote that closes its target. It works only for the whole
+     * value of a quoted attribute, another link stays as is: the rest of the target would get into the encoded
+     * attribute, and a value without quotes would leave an open quote that hides the next markup.
+     * MAILTO_QUERY_PATTERN limits the length of a query, so a match can be a part of a target in a text as well.
+     *
+     * @param string $match
+     * @param int $position Offset of the match inside the content being processed.
+     *
+     * @return int|false End of the whole target that stays as is, false when the link can be encoded.
+     */
+    private function findKeptLinkTargetEnd($match, $position)
+    {
+        $end = $position + strlen($match);
+        $range = $this->helper->findAttributeValueRange($this->temp_content, $position);
+
+        if ( $range !== false ) {
+            $is_quoted = $range[0] > 0 && strspn($this->temp_content, '"\'', $range[0] - 1, 1) === 1;
+            $is_whole = $end + strspn($this->temp_content, " \t\r\n\f", $end) >= $range[1];
+
+            return $is_quoted && $is_whole ? false : $range[1];
+        }
+
+        if ( strpos($match, '?') === false || $end >= strlen($this->temp_content) ) {
+            return false;
+        }
+
+        $terminators = " \t\r\n\f\"'<>";
+        if ( strspn($this->temp_content, $terminators, $end, 1) === 1 ) {
+            return false;
+        }
+
+        return $end + strcspn($this->temp_content, $terminators, $end);
     }
 
     /**
@@ -745,10 +1179,10 @@ class ContactsEncoder
      */
     private function constructEncodedSpan($encoded_string, $obfuscated_string)
     {
-        return "<span 
-                data-original-string='" . $encoded_string . "'
-                class='apbct-email-encoder'
-                title='" . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8') . "'>" . $obfuscated_string . "</span>";
+        // One line with double quotes: third-party code may cut the text, and the rest of a page uses double quotes.
+        return '<span data-original-string="' . htmlspecialchars($encoded_string, ENT_QUOTES, 'UTF-8')
+            . '" class="apbct-email-encoder" title="' . htmlspecialchars($this->getTooltip(), ENT_QUOTES, 'UTF-8') . '">'
+            . $obfuscated_string . '</span>';
     }
 
     /**
@@ -937,6 +1371,100 @@ class ContactsEncoder
     }
 
     /**
+     * The same as a match of EMAIL_PATTERN, in one pass: a text of an attribute is not limited by the budget
+     * of contact signs, and without PCRE JIT the pattern backtracks on a long run of dots and signs.
+     *
+     * @param string $text
+     *
+     * @return bool
+     */
+    public static function textContainsEmail($text)
+    {
+        return self::countEmailSigns($text, 1) > 0;
+    }
+
+    /**
+     * Signs "@" that can be a part of a match of EMAIL_PATTERN: a sign of a local part before it and
+     * a domain after it up to a dot with 2-63 letters. One pass: the search for the next such dot
+     * starts after the previous one.
+     *
+     * @param string $text
+     * @param int $stop The count stops when it is over this number.
+     *
+     * @return int
+     */
+    public static function countEmailSigns($text, $stop)
+    {
+        if ( ! is_string($text) || strpos($text, '@') === false ) {
+            return 0;
+        }
+
+        $count = 0;
+        $dot = -1;
+
+        for ( $at = strpos($text, '@'); $at !== false; $at = strpos($text, '@', $at + 1) ) {
+            $end = self::findEmailDomainDot($text, $at, $dot);
+            if ( $dot === false ) {
+                break;
+            }
+            if ( $end !== false && ++$count > $stop ) {
+                break;
+            }
+        }
+
+        return $count;
+    }
+
+    /**
+     * Phones of PHONE_NUMBERS_PATTERNS: the visible part of an encoded phone is not one. No list of matches is kept.
+     *
+     * @param string $text
+     *
+     * @return int
+     */
+    public static function countPhoneSigns($text)
+    {
+        if ( ! is_string($text) || strpbrk($text, '+(') === false ) {
+            return 0;
+        }
+
+        $count = preg_match_all('/' . implode('|', self::PHONE_NUMBERS_PATTERNS) . '/', $text);
+
+        return is_int($count) ? $count : 0;
+    }
+
+    /**
+     * The dot before the last part of the domain of a possible e-mail around this sign.
+     *
+     * @param string $text
+     * @param int $at Offset of "@".
+     * @param int|false $dot The next ending dot found before, -1 at first; false when there is none more.
+     *
+     * @return int|false The dot, false when the sign is not a part of an e-mail.
+     */
+    private static function findEmailDomainDot($text, $at, &$dot)
+    {
+        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.';
+
+        if ( $dot === false || $at === 0 || $at + 2 >= strlen($text) || strspn($text, $chars, $at - 1, 1) === 0 ) {
+            return false;
+        }
+
+        // A dot followed by 2-63 letters up to a word boundary. Searched after the previous one: one pass.
+        if ( $dot < $at + 2 ) {
+            $dot = preg_match('/\.[A-Za-z]{2,63}+(?![A-Za-z0-9_])/', $text, $match, PREG_OFFSET_CAPTURE, $at + 2) && isset($match[0][1])
+                ? $match[0][1]
+                : false;
+            if ( $dot === false ) {
+                return false;
+            }
+        }
+
+        // All the signs between "@" and the dot are of a domain, 1-255 of them.
+        return $dot <= $at + strspn($text, $chars, $at + 1, 256) ? $dot : false;
+    }
+
+    /**
      * Drop attributes contains email from tag in the content to avoid unnecessary encoding.
      *
      * Example: <code><a title="example1@mail.com" href="mailto:example2@mail.com">Email</a></code>
@@ -952,7 +1480,6 @@ class ContactsEncoder
      */
     private function dropAttributesContainEmail($content, $tags)
     {
-        $email_pattern = '/' . self::EMAIL_PATTERN . '/';
         $this->helper->indexMarkup($content);
 
         foreach ($tags as $tag => $attribute) {
@@ -961,13 +1488,13 @@ class ContactsEncoder
             }
 
             // A whole tag, with quoted attribute values consumed as a unit so `>` inside them is kept.
-            $tag_pattern = '/<' . preg_quote($tag, '/') . '\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>/i';
+            $tag_pattern = '/<' . preg_quote($tag, '/') . '\b(?:[^>"\']++|"[^"]*+"|\'[^\']*+\')*+>/i';
             // The target attribute inside that tag, value limited to its own quotes.
             $attribute_pattern = '/\s' . preg_quote($attribute, '/') . '\s*=\s*(["\'])(.*?)\1/is';
 
             $replaced = preg_replace_callback(
                 $tag_pattern,
-                function ($tag_match) use ($attribute_pattern, $email_pattern, $content) {
+                function ($tag_match) use ($attribute_pattern, $content) {
                     if ( ! isset($tag_match[0]) || ! is_array($tag_match[0]) || ! isset($tag_match[0][0], $tag_match[0][1]) ) {
                         return '';
                     }
@@ -985,12 +1512,12 @@ class ContactsEncoder
 
                     $stripped = preg_replace_callback(
                         $attribute_pattern,
-                        static function ($attribute_match) use ($email_pattern) {
+                        static function ($attribute_match) {
                             if ( ! isset($attribute_match[0], $attribute_match[2]) ) {
                                 return '';
                             }
 
-                            return preg_match($email_pattern, $attribute_match[2])
+                            return self::textContainsEmail($attribute_match[2])
                                 ? ''
                                 : $attribute_match[0];
                         },
@@ -1016,7 +1543,7 @@ class ContactsEncoder
 
     /**
      * Modify content to skip aria-label cases correctly.
-     * Protects aria-label attributes from email encoding.
+     * Protects aria-label attributes of real tags from email encoding.
      * @param string $content
      * @param bool $reverse
      *
@@ -1026,10 +1553,10 @@ class ContactsEncoder
     {
         if ( !$reverse ) {
             $this->aria_placeholders = array();
-            if ( !$this->isSecureAriaLabelPlaceholderAvailable() ) {
+            if ( !is_string($content) || stripos($content, 'aria-label') === false || !$this->isSecureAriaLabelPlaceholderAvailable() ) {
                 return $content;
             }
-            return preg_replace_callback($this->aria_regex, array($this, 'replaceAriaLabelWithPlaceholder'), $content);
+            return $this->replaceAriaLabelsWithPlaceholders($content);
         }
         if ( !empty($this->aria_placeholders) ) {
             foreach ($this->aria_placeholders as $placeholder => $original) {
@@ -1041,22 +1568,38 @@ class ContactsEncoder
     }
 
     /**
-     * Callback for handleAriaLabelContent to replace each aria-label with a unique placeholder.
-     * @param array $matches
+     * Replace each quoted aria-label attribute with a unique placeholder.
+     * The same text outside of a tag is just a text, and must not hide the markup next to it.
+     *
+     * @param string $content
+     *
      * @return string
      */
-    private function replaceAriaLabelWithPlaceholder($matches)
+    private function replaceAriaLabelsWithPlaceholders($content)
     {
-        if (!isset($matches[0])) {
-            return '';
-        }
-        $original = $matches[0];
-        $placeholder = $this->generateAriaLabelPlaceholder();
-        if ( $placeholder === null ) {
-            return $original;
-        }
-        $this->aria_placeholders[$placeholder] = $original;
-        return $placeholder;
+        $result = '';
+        $position = 0;
+
+        // One pass, the tokens are not kept: a list of them is big on a big page.
+        ContactsEncoderHelper::walkMarkup($content, /** @param array{start: int, end: int, name: string, closing: bool, attributes: array<int, array{0: string, 1: int, 2: int, 3: int, 4: int}>} $token */ function ($token) use ($content, &$result, &$position) {
+            foreach ( $token['attributes'] as $attribute ) {
+                list($name, $name_start, , $value_end, $end) = $attribute;
+                if ( $name !== 'aria-label' || $value_end === $end ) {
+                    continue;
+                }
+
+                $placeholder = $this->generateAriaLabelPlaceholder();
+                if ( $placeholder === null ) {
+                    continue;
+                }
+
+                $this->aria_placeholders[$placeholder] = substr($content, $name_start, $end - $name_start);
+                $result .= substr($content, $position, $name_start - $position) . $placeholder;
+                $position = $end;
+            }
+        });
+
+        return $result . substr($content, $position);
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace Cleantalk\ApbctWP;
 
 use Cleantalk\ApbctWP\HTTP\Request;
+use Cleantalk\Common\HTTP\Response;
 
 /**
  * Class API.
@@ -19,22 +20,19 @@ use Cleantalk\ApbctWP\HTTP\Request;
 class API extends \Cleantalk\Common\API
 {
     /**
-     * @param $user_token
-     * @param $service_id
-     * @param $ip
-     * @param $servie_type
-     * @param $product_id
-     * @param $record_type
-     * @param $note
-     * @param $status
+     * Adds the website admin IP to the SpamFireWall personal whitelist for 30 days.
      *
-     * @return array|bool|string[]
+     * @param string $auth_key Access key of the service
+     * @param int|string $service_id
+     * @param string $ip
+     *
+     * @return array|bool|string[] true on success, array with 'error' otherwise
      * @psalm-suppress PossiblyUnusedMethod
      */
-    public static function methodPrivateListAddSfwWl($user_token, $service_id, $ip)
+    public static function methodPrivateListAddSfwWl($auth_key, $service_id, $ip)
     {
         return static::methodPrivateListAdd(
-            $user_token,
+            $auth_key,
             $service_id,
             $ip,
             'spamfirewall',
@@ -111,6 +109,43 @@ class API extends \Cleantalk\Common\API
             );
         }
 
-        return $request->request();
+        $result = $request->request();
+
+        $http_code = $request->response instanceof Response
+            ? $request->response->getResponseCode()
+            : null;
+        self::handleConnectionReport($data, $result, $url, $http_code);
+
+        return $result;
+    }
+
+    /**
+     * Add the API request result to connection reports. Never breaks the API call.
+     *
+     * @param array $data
+     * @param mixed $result
+     * @param string $url
+     * @param int|null $http_code
+     */
+    private static function handleConnectionReport($data, $result, $url, $http_code)
+    {
+        global $apbct;
+
+        if ( ! $apbct instanceof State || ! defined('APBCT_TBL_CONNECTION_REPORTS') ) {
+            return;
+        }
+
+        try {
+            $apbct->getConnectionReports()->handleApiRequest(
+                $data['method_name'] ?? 'unknown',
+                $data,
+                $result,
+                $url,
+                $http_code
+            );
+        } catch ( \Throwable $e ) {
+            // Reporting failures must not affect the API request result
+            return;
+        }
     }
 }

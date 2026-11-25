@@ -976,6 +976,26 @@ function apbct_settings__set_fields()
                         'cleantalk-spam-protect'
                     ),
                 ),
+                'misc__get_ip'                  => array(
+                    'type'             => 'select',
+                    'options_callback' => 'apbct_settings__get_ip_sources_options',
+                    'title'            => __('Get visitor IP from', 'cleantalk-spam-protect'),
+                    'description'      => __(
+                        'The source of the visitor IP address. If the selected header is not provided, the plugin uses Remote Addr.',
+                        'cleantalk-spam-protect'
+                    ),
+                    'long_description' => true,
+                ),
+                'misc__get_ip__cdn_auto_self_check' => array(
+                    'type'        => 'checkbox',
+                    'title'       => __('Detect the IP source automatically', 'cleantalk-spam-protect'),
+                    'description' => __(
+                        'Once a day the plugin sends a request to the website itself to find which CDN or proxy headers really come to the site and sets the IP source above.',
+                        'cleantalk-spam-protect'
+                    )
+                        . '<br>'
+                        . \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::getLastCheckDescriptionHTML(),
+                ),
                 'wp__comment_notify'            => array(
                     'type'        => 'checkbox',
                     'title'       => __(
@@ -1153,12 +1173,6 @@ function apbct_settings__set_fields__network($fields)
                     'disabled'         => ! isset($apbct->network_settings['multisite__work_mode']) || $apbct->network_settings['multisite__work_mode'] != 1,
                     'parent'           => 'multisite__work_mode',
                     'network'          => true,
-                ),
-                'multisite__service_utilization'                                => array(
-                    'type'     => 'field',
-                    'class'    => 'apbct_settings-field_wrapper--sub',
-                    'callback' => 'apbct_field_service_utilization',
-                    'display'  => APBCT_WPMS && is_main_site() && $apbct->network_settings['multisite__work_mode'] == 1,
                 ),
                 'multisite__white_label'                                        => array(
                     'type'        => 'checkbox',
@@ -2148,39 +2162,6 @@ function apbct_settings__field__apikey()
     echo $template;
 }
 
-function apbct_field_service_utilization()
-{
-    global $apbct;
-
-    echo '<div class="apbct_wrapper_field">';
-
-    if ( $apbct->services_count && $apbct->services_max && $apbct->services_utilization ) {
-        echo sprintf(
-            __('Hoster account utilization: %s%% ( %s of %s websites ).', 'cleantalk-spam-protect'),
-            $apbct->services_utilization * 100,
-            Escape::escHtml($apbct->services_count),
-            Escape::escHtml($apbct->services_max)
-        );
-
-        // Link to the dashboard, so user could extend your subscription for more sites
-        if ( $apbct->services_utilization * 100 >= 90 ) {
-            echo '&nbsp';
-            echo sprintf(
-                __('You could extend your subscription %shere%s.', 'cleantalk-spam-protect'),
-                '<a href="' . Escape::escUrl($apbct->dashboard_link) . '" target="_blank">',
-                '</a>'
-            );
-        }
-    } else {
-        _e(
-            'Enter the Hoster Access key and synchronize with cloud to find out your hoster account utilization.',
-            'cleantalk-spam-protect'
-        );
-    }
-
-    echo '</div>';
-}
-
 function apbct_settings__field__action_buttons()
 {
     global $apbct;
@@ -2284,6 +2265,30 @@ function apbct_get_all_roles()
     $wp_roles = new WP_Roles();
 
     return $wp_roles->get_names();
+}
+
+/**
+ * Options for the "misc__get_ip" setting: Auto and every known IP source with the IP found in it.
+ *
+ * @return array
+ */
+function apbct_settings__get_ip_sources_options()
+{
+    $options = array(
+        array('val' => Helper::IP_SOURCE_AUTO, 'label' => esc_html__('Auto', 'cleantalk-spam-protect')),
+    );
+
+    foreach ( Helper::$known_ip_headers_collection as $source_id => $source ) {
+        $ip = Helper::ipGet($source['slug'], false);
+        $options[] = array(
+            'val'   => $source_id,
+            'label' => esc_html(
+                $source['name'] . ' (' . ($ip ?: __('not provided', 'cleantalk-spam-protect')) . ')'
+            ),
+        );
+    }
+
+    return $options;
 }
 
 function apbct_settings__field__draw($params = array())
@@ -2478,6 +2483,26 @@ function apbct_settings__validate($incoming_settings)
 
     // Ensure the value is at least 5
     $incoming_settings['sfw__anti_flood__view_limit'] = max(5, $incoming_settings['sfw__anti_flood__view_limit']);
+
+    // IP source
+    $incoming_settings['misc__get_ip'] = isset($incoming_settings['misc__get_ip'])
+        ? TT::toInt($incoming_settings['misc__get_ip'])
+        : Helper::IP_SOURCE_AUTO;
+    if (
+        $incoming_settings['misc__get_ip'] !== Helper::IP_SOURCE_AUTO &&
+        ! isset(Helper::$known_ip_headers_collection[$incoming_settings['misc__get_ip']])
+    ) {
+        $incoming_settings['misc__get_ip'] = Helper::IP_SOURCE_AUTO;
+    }
+    if ( ! empty($incoming_settings['misc__get_ip__cdn_auto_self_check']) ) {
+        $cron = new Cron();
+        $cron->updateTask(
+            \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_TASK,
+            \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_HANDLER,
+            \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_PERIOD,
+            time() + 60
+        );
+    }
 
     // Validating Access key
     if (isset($incoming_settings['apikey'])) {
@@ -2876,12 +2901,6 @@ function apbct_settings__sync($direct_call = false)
                 'user_id'  => $apbct->data['user_id'],
             );
 
-            if ( $apbct->network_settings['multisite__work_mode'] == 1 ) {
-                $apbct->data['services_count ']      = isset($result['services_count']) ? $result['services_count'] : '';
-                $apbct->data['services_max']         = isset($result['services_max']) ? $result['services_max'] : '';
-                $apbct->data['services_utilization'] = isset($result['services_utilization']) ? $result['services_utilization'] : '';
-            }
-
             $apbct->saveNetworkData();
             if ( isset($apbct->settings['multisite__use_settings_template_apply_for_current_list_sites']) && ! empty($apbct->settings['multisite__use_settings_template_apply_for_current_list_sites']) ) {
                 apbct_update_blogs_options($apbct->settings);
@@ -3042,7 +3061,9 @@ function apbct_settings__get_key_auto($direct_call = false)
     $wpms           = APBCT_WPMS && defined('SUBDOMAIN_INSTALL') && ! SUBDOMAIN_INSTALL ? true : false;
     $white_label    = $apbct->network_settings['multisite__white_label'] ? true : false;
     $hoster_api_key = $apbct->network_settings['multisite__hoster_api_key'];
-    $admin_email    = Post::getString('email') ? Post::getString('email') : ct_get_admin_email();
+    $admin_email    = ! $direct_call && Post::getString('email')
+        ? Post::getString('email')
+        : ct_get_admin_email();
 
     /**
      * Filters the email to get Access key
@@ -3381,6 +3402,13 @@ function apbct_settings__get_long_descriptions_data()
                 __('It determines what methods of using the HTTP cookies the Anti-Spam plugin for WordPress should switch to. It is necessary for the plugin to work properly. All CleanTalk cookies contain technical data. Data of the current website visitor is encrypted with the MD5 algorithm and being deleted when the browser session ends. %s', 'cleantalk-spam-protect'),
                 '<a href="' . esc_attr(LinkConstructor::buildCleanTalkLink('apbct_hint_data__set_cookies', 'help/set-cookies-option')) . '" target="_blank">' . __('Learn more about suboptions', 'cleantalk-spam-protect') . '</a>'
             )
+        ),
+        'misc__get_ip' => array(
+            'title' => __('Get visitor IP from', 'cleantalk-spam-protect'),
+            'desc'  => __(
+                'If a header is selected, the plugin takes the visitor IP address only from this header. If the header is not provided, the plugin uses Remote Addr. Select a header only if your website works behind a CDN or a proxy which sets it, otherwise visitors could spoof their IP address. "Auto" searches the IP address in all known headers. If automatic detection is enabled, the plugin checks once a day which headers really come to the website and changes this option.',
+                'cleantalk-spam-protect'
+            ),
         ),
         'comments__hide_website_field' => array(
             'title' => __('Hide the "Website" field', 'cleantalk-spam-protect'),

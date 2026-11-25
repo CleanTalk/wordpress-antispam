@@ -70,7 +70,7 @@ class Activator
                 $redirect_url .= '&signup_wizard=1';
             }
             add_option('ct_plugin_do_activation_redirect', $redirect_url);
-            apbct_add_admin_ip_to_swf_whitelist(null);
+            // Admin IP is whitelisted from the first admin page after activation: see apbct_admin_ip_whitelist__ajax().
         } else {
             // Do actions for the new blog created
             if ( apbct_is_plugin_active_for_network('cleantalk-spam-protect/cleantalk.php') ) {
@@ -162,6 +162,12 @@ class Activator
         $ct_cron->addTask('rotate_moderate', 'apbct_rotate_moderate', 86400, time() + 3500); // Rotate moderate server
         $ct_cron->addTask('send_js_error_report', 'ct_cron_send_js_error_report_email', 86400); // Send js_error report to support@cleantalk.org
         $ct_cron->addTask('clear_old_session_data', 'apbct_cron_clear_old_session_data', 86400); // Clear old alt-cookies/no-cookies
+        $ct_cron->addTask(
+            \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_TASK,
+            \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_HANDLER,
+            \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_PERIOD,
+            time() + 300
+        ); // Detect the IP source (CDN headers)
     }
 
     /**

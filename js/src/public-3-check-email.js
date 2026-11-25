@@ -1,5 +1,6 @@
 let ctCheckedEmails = {};
 let ctCheckedEmailsExist = {};
+const ctCheckingEmails = new Set();
 
 /**
  * @param {mixed} e
@@ -11,15 +12,18 @@ function checkEmail(e) { // eslint-disable-line no-unused-vars
         return;
     }
 
-    if (currentEmail && !(currentEmail in ctCheckedEmails)) {
+    if (currentEmail && !(currentEmail in ctCheckedEmails) && !ctCheckingEmails.has(currentEmail)) {
         // Using REST API handler
         if ( ctPublicFunctions.data__ajax_type === 'rest' ) {
+            ctCheckingEmails.add(currentEmail);
             apbct_public_sendREST(
                 'check_email_before_post',
                 {
                     method: 'POST',
                     data: {'email': currentEmail},
+                    onErrorCallback: () => ctCheckingEmails.delete(currentEmail),
                     callback: function(result) {
+                        ctCheckingEmails.delete(currentEmail);
                         if (result.result) {
                             ctCheckedEmails[currentEmail] = {
                                 'result': result.result,
@@ -32,13 +36,16 @@ function checkEmail(e) { // eslint-disable-line no-unused-vars
             );
             // Using AJAX request and handler
         } else if ( ctPublicFunctions.data__ajax_type === 'admin_ajax' ) {
+            ctCheckingEmails.add(currentEmail);
             apbct_public_sendAJAX(
                 {
                     action: 'apbct_email_check_before_post',
                     email: currentEmail,
                 },
                 {
+                    onErrorCallback: () => ctCheckingEmails.delete(currentEmail),
                     callback: function(result) {
+                        ctCheckingEmails.delete(currentEmail);
                         if (result.result) {
                             ctCheckedEmails[currentEmail] = {
                                 'result': result.result,
@@ -86,7 +93,6 @@ function checkEmailExist(e) { // eslint-disable-line no-unused-vars
     viewCheckEmailExist(e, 'load');
 
     // Using REST API handler
-    ctPublicFunctions.data__ajax_type = 'rest';
     if (ctPublicFunctions.data__ajax_type === 'rest') {
         apbct_public_sendREST(
             'check_email_exist_post',

@@ -17,6 +17,11 @@ use Cleantalk\Variables\Post;
 class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
 {
     /**
+     * Content of one shortcode split by contacts: above this number it is encoded as one string.
+     */
+    const MAX_SHORTCODE_PARTS = 40;
+
+    /**
      * @var ShortCodesService
      */
     private $shortcodes;
@@ -50,6 +55,34 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
      * @var Params
      */
     private $params;
+
+    /**
+     * @var array|null
+     */
+    private $request_data;
+
+    /**
+     * Blocks that print the content of visitors: it takes its own budget, see modifyVisitorContent().
+     *
+     * @var string[]
+     */
+    private static $visitor_blocks = array(
+        'core/comment-content',
+        'core/comment-author-name',
+        'core/comment-reply-link',
+        'core/avatar',
+        'core/latest-comments',
+    );
+
+    /**
+     * @var array<int, bool> Comment ID => the comment is written by a visitor, not a moderator.
+     */
+    private $visitor_comments = array();
+
+    /**
+     * @var bool[] States of the visitor budget before the visitor blocks being filtered now.
+     */
+    private $visitor_block_states = array();
 
     public function init($params)
     {
@@ -111,9 +144,10 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             'the_title',
             'the_content',
             'the_excerpt',
+            'the_excerpt_rss',
+            'the_excerpt_embed',
             'get_footer',
             'get_header',
-            'get_the_excerpt',
             'widget_title',
             'widget_text',
             'widget_content',
@@ -138,6 +172,8 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             foreach ( $hooks_to_encode as $hook ) {
                 if ( $hook === 'render_block' ) {
                     // Post content is handled on the_content after do_blocks (priority 9).
+                    add_filter('render_block', array($this, 'markVisitorBlock'), 10, 3);
+                    $this->registerClassicVisitorMarks();
                     continue;
                 }
                 if ( $hook === 'the_content' ) {
@@ -154,6 +190,11 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
                 $this->shortcodes->addActionsBeforeModify($hook, 9);
                 //any hook that has actions BEFORE modify, must have actions AFTER
                 $this->shortcodes->addActionsAfterModify($hook, 999);
+                if ( $hook === 'render_block' ) {
+                    // A visitor block is on the budget of visitors through all its filters, shortcodes at 999 too.
+                    add_filter($hook, array($this, 'enterVisitorBlock'), 8, 3);
+                    add_filter($hook, array($this, 'leaveVisitorBlock'), 1001, 3);
+                }
                 add_filter($hook, array($this, 'modifyContent'), 10);
             }
         }
@@ -219,7 +260,7 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     {
         $this->applyAttributeExclusionHooks();
 
-        if ( ! is_string($content) || $content === '' || stripos($content, '<option') === false ) {
+        if ( ! is_string($content) || $content === '' || stripos($content, '<option') === false || stripos($content, '</option') === false ) {
             return parent::modifyGlobalEmails($content);
         }
 
@@ -269,6 +310,21 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             return parent::modifyContent($content, $skip_exclusions);
         }
 
+        if ( strpos($content, $this->getVisitorMarker(false)) !== false ) {
+            return $this->modifyAroundVisitorContent($content, $skip_exclusions);
+        }
+
+        return $this->modifySiteContent($content, $skip_exclusions);
+    }
+
+    /**
+     * @param string $content
+     * @param bool $skip_exclusions
+     *
+     * @return string
+     */
+    private function modifySiteContent($content, $skip_exclusions)
+    {
         if ( ! $skip_exclusions && $this->exclusions->doReturnContentBeforeModify($content) ) {
             return $this->grid_builder_integration->applyCompatibilityFix($content);
         }
@@ -279,6 +335,283 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
                 return parent::modifyContent($protected_content, $skip_exclusions);
             }
         );
+    }
+
+    /**
+     * @param string|null $content
+     * @param array $block
+     *
+     * @return string|null
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function enterVisitorBlock($content, $block = array(), $instance = null)
+    {
+        if ( $this->isVisitorBlock($block, $instance) ) {
+            $this->visitor_block_states[] = $this->setVisitorContent(true);
+        }
+
+        return $content;
+    }
+
+    /**
+     * The encoded block of visitors is marked: the outer blocks keep it, see modifyAroundVisitorContent().
+     *
+     * @param string|null $content
+     * @param array $block
+     * @param object|null $instance
+     *
+     * @return string|null
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function leaveVisitorBlock($content, $block = array(), $instance = null)
+    {
+        if ( ! $this->isVisitorBlock($block, $instance) || empty($this->visitor_block_states) ) {
+            return $content;
+        }
+
+        $this->setVisitorContent((bool)array_pop($this->visitor_block_states));
+
+        return is_string($content) && $content !== '' ? $this->markVisitorContent($content) : $content;
+    }
+
+    /**
+     * Buffer mode encodes the whole page once: a mark keeps the content of visitors on their budget there.
+     *
+     * @param string|null $content
+     * @param array $block
+     * @param object|null $instance
+     *
+     * @return string|null
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function markVisitorBlock($content, $block = array(), $instance = null)
+    {
+        return is_string($content) && $content !== '' && $this->isVisitorBlock($block, $instance)
+            ? $this->markVisitorContent($content)
+            : $content;
+    }
+
+    /**
+     * A block that prints a comment of a visitor: its text, the name of the author (also in the avatar and in
+     * the reply link) or a list of comments. A comment of a moderator is the content of the site.
+     *
+     * @param array $block
+     * @param object|null $instance WP_Block, its context knows the comment.
+     *
+     * @return bool
+     */
+    private function isVisitorBlock($block, $instance = null)
+    {
+        if ( ! is_array($block) || ! isset($block['blockName']) || ! in_array($block['blockName'], self::$visitor_blocks, true) ) {
+            return false;
+        }
+
+        if ( $block['blockName'] === 'core/latest-comments' ) {
+            return true;
+        }
+
+        $comment_id = is_object($instance) && isset($instance->context) && is_array($instance->context) && isset($instance->context['commentId'])
+            ? (int)$instance->context['commentId']
+            : 0;
+
+        // An avatar outside a comment is the avatar of a user of the site.
+        if ( $comment_id === 0 ) {
+            return $block['blockName'] !== 'core/avatar';
+        }
+
+        return $this->isVisitorComment($comment_id);
+    }
+
+    /**
+     * @param int $comment_id
+     *
+     * @return bool
+     */
+    private function isVisitorComment($comment_id)
+    {
+        if ( ! isset($this->visitor_comments[$comment_id]) ) {
+            $comment = get_comment($comment_id);
+            $user_id = is_object($comment) && isset($comment->user_id) ? (int)$comment->user_id : 0;
+            $this->visitor_comments[$comment_id] = ! ( $user_id > 0 && user_can($user_id, 'moderate_comments') );
+        }
+
+        return $this->visitor_comments[$comment_id];
+    }
+
+    /**
+     * A classic theme prints comments without blocks: in buffer mode their parts are marked by these filters.
+     * Each one returns markup of the body, so a mark never lands inside an attribute.
+     *
+     * @return void
+     */
+    private function registerClassicVisitorMarks()
+    {
+        add_filter('comment_text', array($this, 'markVisitorCommentPart'), PHP_INT_MAX, 2);
+        add_filter('get_comment_author_link', array($this, 'markVisitorCommentAuthorLink'), PHP_INT_MAX, 3);
+        add_filter('comment_reply_link', array($this, 'markVisitorCommentReplyLink'), PHP_INT_MAX, 3);
+        add_filter('get_avatar', array($this, 'markVisitorCommentAvatar'), PHP_INT_MAX, 2);
+    }
+
+    /**
+     * @param string|mixed $content
+     * @param mixed $comment WP_Comment or its ID.
+     *
+     * @return string|mixed
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function markVisitorCommentPart($content, $comment = null)
+    {
+        if ( is_object($comment) && isset($comment->comment_ID) ) {
+            $comment = $comment->comment_ID;
+        }
+
+        return is_string($content) && $content !== '' && is_numeric($comment) && $this->isVisitorComment((int)$comment)
+            ? $this->markVisitorContent($content)
+            : $content;
+    }
+
+    /**
+     * get_comment_author_link passes the name of the author before the ID of the comment.
+     *
+     * @param string|mixed $link
+     * @param string $_author
+     * @param mixed $comment_id
+     *
+     * @return string|mixed
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function markVisitorCommentAuthorLink($link, $_author = '', $comment_id = 0)
+    {
+        return $this->markVisitorCommentPart($link, $comment_id);
+    }
+
+    /**
+     * @param string|mixed $link
+     * @param array $_args
+     * @param mixed $comment
+     *
+     * @return string|mixed
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function markVisitorCommentReplyLink($link, $_args = array(), $comment = null)
+    {
+        return $this->markVisitorCommentPart($link, $comment);
+    }
+
+    /**
+     * @param string|mixed $avatar
+     * @param mixed $id_or_email
+     *
+     * @return string|mixed
+     * @psalm-suppress PossiblyUnusedMethod, PossiblyUnusedReturnValue
+     */
+    public function markVisitorCommentAvatar($avatar, $id_or_email = null)
+    {
+        return is_object($id_or_email) && $id_or_email instanceof \WP_Comment
+            ? $this->markVisitorCommentPart($avatar, $id_or_email)
+            : $avatar;
+    }
+
+    /**
+     * @param bool $closing
+     *
+     * @return string An HTML comment with the nonce of the request: visitors can not plant it.
+     */
+    private function getVisitorMarker($closing)
+    {
+        return '<!--' . ($closing ? '/' : '') . 'apbct-visitor-' . PlaceholderNonce::get() . '-->';
+    }
+
+    /**
+     * Marks can be nested, e.g. the text of a comment inside its block in buffer mode.
+     *
+     * @param string $content
+     * @param int $from Offset right after an opening mark.
+     *
+     * @return int|false Offset of its closing mark.
+     */
+    private function findVisitorPartEnd($content, $from)
+    {
+        $open = $this->getVisitorMarker(false);
+        $close = $this->getVisitorMarker(true);
+        $depth = 1;
+
+        while ( ($end = strpos($content, $close, $from)) !== false ) {
+            $next_open = strpos($content, $open, $from);
+            if ( $next_open !== false && $next_open < $end ) {
+                $depth++;
+                $from = $next_open + strlen($open);
+                continue;
+            }
+
+            if ( --$depth === 0 ) {
+                return $end;
+            }
+            $from = $end + strlen($close);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return string
+     */
+    private function markVisitorContent($content)
+    {
+        $open = $this->getVisitorMarker(false);
+        $close = $this->getVisitorMarker(true);
+
+        // The comment content block applies comment_text itself: one mark is enough.
+        if ( strpos($content, $open) === 0 && substr($content, -strlen($close)) === $close ) {
+            return $content;
+        }
+
+        return $open . $content . $close;
+    }
+
+    /**
+     * The marked content of visitors stays out of this pass: it is encoded already, or in buffer mode it is
+     * encoded here with the budget of visitors. The rest takes the budget of the site.
+     *
+     * @param string $content
+     * @param bool $skip_exclusions
+     *
+     * @return string
+     */
+    private function modifyAroundVisitorContent($content, $skip_exclusions)
+    {
+        global $apbct;
+
+        $open = $this->getVisitorMarker(false);
+        $close = $this->getVisitorMarker(true);
+        $kept = array();
+        $rest = '';
+        $position = 0;
+
+        while ( ($start = strpos($content, $open, $position)) !== false ) {
+            $end = $this->findVisitorPartEnd($content, $start + strlen($open));
+            if ( $end === false ) {
+                break;
+            }
+
+            $inner = substr($content, $start + strlen($open), $end - $start - strlen($open));
+            if ( ! empty($apbct->settings['data__email_decoder_buffer']) ) {
+                $inner = $this->modifyVisitorContent($inner);
+            }
+
+            $placeholder = '<!--apbct-visitor-' . PlaceholderNonce::get() . '-' . count($kept) . '-->';
+            $kept[$placeholder] = $open . $inner . $close;
+            $rest .= substr($content, $position, $start - $position) . $placeholder;
+            $position = $end + strlen($close);
+        }
+        $rest .= substr($content, $position);
+
+        $result = $rest === '' ? $rest : $this->modifySiteContent($rest, $skip_exclusions);
+
+        // One pass for all the parts.
+        return empty($kept) ? $result : strtr($result, $kept);
     }
 
     /**
@@ -317,18 +650,25 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     {
         global $apbct;
         // split content by emails to array
-        $parts = preg_split($this->plain_email_pattern, $content, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $parts = $mode === Params::OBFUSCATION_MODE_REPLACE
+            ? false
+            : preg_split($this->plain_email_pattern, $content, -1, PREG_SPLIT_DELIM_CAPTURE);
 
-        $result = '';
-        foreach ($parts as $part) {
-            if (empty($part)) {
-                continue;
-            }
-            // if part is email, encode it
-            if (preg_match($this->plain_email_pattern, $part)) {
-                $result .= $this->encodePlainEmail($part);
-            } else {
-                $result .= $this->modifyAny($part, $mode, $replacing_text);
+        if ( ! is_array($parts) || count($parts) > self::MAX_SHORTCODE_PARTS ) {
+            // The whole content is one encoded string: the size of the output does not depend on the contacts number.
+            $result = $this->modifyShortcodePart($content, $mode, $replacing_text);
+        } else {
+            $result = '';
+            foreach ($parts as $part) {
+                if (empty($part)) {
+                    continue;
+                }
+                // if part is email, encode it
+                if (preg_match($this->plain_email_pattern, $part)) {
+                    $result .= $this->reserveEncodedContact() ? $this->encodePlainEmail($part) : $this->maskAny($part, $mode, $replacing_text);
+                } else {
+                    $result .= $this->modifyShortcodePart($part, $mode, $replacing_text);
+                }
             }
         }
 
@@ -338,6 +678,22 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         }
 
         return $result;
+    }
+
+    /**
+     * An author asked to hide this text: over the limit it stays masked and cannot be decoded.
+     *
+     * @param string $part
+     * @param string $mode
+     * @param string|null $replacing_text
+     *
+     * @return string
+     */
+    private function modifyShortcodePart($part, $mode, $replacing_text)
+    {
+        return $this->reserveEncodedContact()
+            ? $this->modifyAny($part, $mode, $replacing_text)
+            : $this->maskAny($part, $mode, $replacing_text);
     }
 
     /**
@@ -362,7 +718,43 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $this->buffer_modified = true;
         $apbct->buffer = $this->shortcodes->modifyBufferBefore($apbct->buffer);
         $apbct->buffer = $this->modifyContent($apbct->buffer);
+        $apbct->buffer = $this->expandVisitorShortcodes($apbct->buffer);
         $apbct->buffer = $this->shortcodes->modifyBufferAfter($apbct->buffer);
+    }
+
+    /**
+     * The shortcodes of the parts of visitors are expanded on their budget, before the rest of the page.
+     *
+     * @param string $buffer
+     *
+     * @return string
+     */
+    private function expandVisitorShortcodes($buffer)
+    {
+        $open = $this->getVisitorMarker(false);
+        $close = $this->getVisitorMarker(true);
+        if ( ! is_string($buffer) || strpos($buffer, $open) === false ) {
+            return $buffer;
+        }
+
+        $result = '';
+        $position = 0;
+        while ( ($start = strpos($buffer, $open, $position)) !== false ) {
+            $end = $this->findVisitorPartEnd($buffer, $start + strlen($open));
+            if ( $end === false ) {
+                break;
+            }
+
+            $inner_start = $start + strlen($open);
+            $was_visitor_content = $this->setVisitorContent(true);
+            $inner = $this->shortcodes->encode->expandPairs(substr($buffer, $inner_start, $end - $inner_start));
+            $this->setVisitorContent($was_visitor_content);
+
+            $result .= substr($buffer, $position, $inner_start - $position) . $inner . $close;
+            $position = $end + strlen($close);
+        }
+
+        return $position === 0 ? $buffer : $result . substr($buffer, $position);
     }
 
     public function bufferOutput()
@@ -381,29 +773,36 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     }
 
     /**
-     * Check if the decoding is allowed
+     * Request a contact-decoding decision from the CleanTalk API.
      *
-     * Set properties
-     *      this->api_response
-     *      this->comment
+     * Updates the connection-error flag and response comment. A connection failure
+     * allows local decoding, but the final response still reports the error.
      *
-     * @return bool
+     * @return bool Whether local contact decoding is allowed.
      */
     protected function checkRequest()
     {
         global $apbct;
-        $post_browser_sign = TT::toString(Post::get('browser_signature_params'));
+        $this->has_connection_error = false;
+        $post_browser_sign = TT::toString($this->getDecodeRequestValue('browser_signature_params'));
         $browser_sign          = hash('sha256', $post_browser_sign);
 
         $event_javascript_data = '';
         $event_token = '';
         if ( apbct__is_bot_detector_enabled() ) {
-            $event_token = Post::getString('event_token');
+            $event_token = TT::toString($this->getDecodeRequestValue('event_token'));
         } else {
-            $post_event_javascript_data = TT::toString(Post::get('event_javascript_data'));
+            $post_event_javascript_data = TT::toString($this->getDecodeRequestValue('event_javascript_data'));
             $event_javascript_data = Helper::isJson($post_event_javascript_data)
                 ? $post_event_javascript_data
                 : stripslashes($post_event_javascript_data);
+        }
+
+        try {
+            $message_to_log = Helper::jsonEncode(array_values($this->decoded_contacts_array), JSON_FORCE_OBJECT);
+        } catch ( \UnexpectedValueException $e ) {
+            $apbct->errorAdd('email_encoder', $e->getMessage());
+            $message_to_log = null;
         }
 
         $params = array(
@@ -414,17 +813,15 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
             'browser_sign'          => $browser_sign,          // Browser ID
             'sender_ip'             => Helper::ipGet('real', false),        // IP address
             'event_type'            => 'CONTACT_DECODING',     // 'GENERAL_BOT_CHECK' || 'CONTACT_DECODING'
-            'message_to_log'        => json_encode(array_values($this->decoded_contacts_array), JSON_FORCE_OBJECT),   // Custom message
-            'page_url'              => Post::get('post_url'),
+            'message_to_log'        => $message_to_log,
+            'page_url'              => $this->getDecodeRequestValue('post_url'),
             'sender_info'           => array(
-                'site_referrer'         => Post::get('referrer'),
+                'site_referrer'         => $this->getDecodeRequestValue('referrer'),
             ),
         );
 
         $ct_request = new CleantalkRequest($params);
-
         $ct = new Cleantalk();
-        $this->has_connection_error = false;
 
         // Options store url without scheme because of DB error with ''://'
         $config             = ct_get_server();
@@ -438,21 +835,50 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $ct->server_changed = TT::getArrayValueAsInt($config, 'ct_server_changed');
         $api_response = $ct->checkBot($ct_request);
 
-        // Allow to see to the decoded contact if error occurred
-        // Send error as comment in this case
         if ( ! empty($api_response->errstr)) {
+            // Decode contacts on connection failure, but send the error as a comment.
             $this->comment = $api_response->errstr;
             $this->has_connection_error = true;
-            return true;
+            $is_allowed = true;
+        } else {
+            $stub_comment = $api_response->allow
+                ? esc_html__('Allowed', 'cleantalk-spam-protect')
+                : esc_html__('Blocked', 'cleantalk-spam-protect');
+            $this->comment = ! empty($api_response->comment) ? $api_response->comment : $stub_comment;
+            $is_allowed = $api_response->allow === 1;
         }
 
-        $stub_comment = $api_response->allow
-            ? esc_html__('Allowed', 'cleantalk-spam-protect')
-            : esc_html__('Blocked', 'cleantalk-spam-protect');
+        return $is_allowed;
+    }
 
-        $this->comment = ! empty($api_response->comment) ? $api_response->comment : $stub_comment;
+    /**
+     * Read a decoding parameter from the active REST context or AJAX POST input.
+     *
+     * REST arrays are JSON-encoded before text sanitization. AJAX values keep
+     * the existing Post::get() behavior.
+     *
+     * @param string $name Request parameter name.
+     * @return string|array|false Sanitized value or false from Post::get(); a missing parameter returns an empty string.
+     */
+    private function getDecodeRequestValue($name)
+    {
+        global $apbct;
 
-        return $api_response->allow === 1;
+        if ( $this->request_data === null ) {
+            return Post::get($name);
+        }
+
+        $value = isset($this->request_data[$name]) ? $this->request_data[$name] : '';
+        if ( is_array($value) ) {
+            try {
+                $value = Helper::jsonEncode($value, 0, true);
+            } catch ( \UnexpectedValueException $e ) {
+                $apbct->errorAdd('email_encoder', $e->getMessage());
+                $value = false;
+            }
+        }
+
+        return sanitize_textarea_field(TT::toString($value));
     }
 
     protected function getCheckRequestComment()
@@ -817,9 +1243,12 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
     }
 
     /**
-     * Ajax handler for the apbct_decode_email action
+     * Send the contact-decoding result for the apbct_decode_email AJAX action.
      *
-     * @return void returns json string to the JS
+     * Reads contacts from POST and delegates processing to getDecodeEmailResult().
+     * Sends the result through WordPress JSON helpers and terminates the request.
+     *
+     * @return void
      */
     public function ajaxDecodeEmailHandler()
     {
@@ -830,20 +1259,110 @@ class ContactsEncoder extends \Cleantalk\Common\ContactsEncoder\ContactsEncoder
         $encoded_emails_array = [];
         $encoded_emails_json = Post::getString('encodedEmails') ? Post::getString('encodedEmails') : false;
         if ( $encoded_emails_json ) {
-            $encoded_emails_json = str_replace('\\', '', $encoded_emails_json);
-            $encoded_emails_array = json_decode($encoded_emails_json, true);
+            $encoded_emails_array = $encoded_emails_json;
         }
 
-        $this->decoded_contacts_array = $this->decodeContactData($encoded_emails_array);
-        if ( $this->has_connection_error ) {
-            $response = $this->compileResponse($this->decoded_contacts_array, false);
-            wp_send_json_error($response);
+        wp_send_json($this->getDecodeEmailResult($encoded_emails_array));
+    }
+
+    /**
+     * Build the contact-decoding result shared by AJAX and REST without sending it.
+     *
+     * Empty results return success=false and data=[]. Cookie permission is returned
+     * only after the server-side pass mark is saved. The previous request context
+     * is restored after processing, including when an exception interrupts decoding.
+     *
+     * @param array|string|null $encoded_emails_array Encoded contacts or their JSON representation.
+     * @param array|null $request_data REST parameters; null uses the existing AJAX POST input.
+     * @return array{success: bool, data: array, set_passed_cookie: bool} Contact results and cookie permission.
+     */
+    public function getDecodeEmailResult($encoded_emails_array, $request_data = null): array
+    {
+        global $apbct;
+
+        $previous_request_data = $this->request_data;
+        $this->request_data = $request_data;
+        $this->decoded_contacts_array = [];
+        try {
+            $input_error = 'Invalid contact-decoding input.';
+            $is_rest_array = $request_data !== null && is_array($encoded_emails_array);
+            if ( $request_data !== null && is_string($encoded_emails_array) ) {
+                $encoded_emails_array = Post::getInstance()->getAndSanitize($encoded_emails_array);
+            }
+            if ( is_string($encoded_emails_array) && $encoded_emails_array ) {
+                try {
+                    $encoded_emails_array = Helper::jsonDecode(str_replace('\\', '', $encoded_emails_array), true);
+                } catch ( \UnexpectedValueException $e ) {
+                    $input_error = $e->getMessage();
+                    $encoded_emails_array = null;
+                }
+            }
+
+            $is_valid_input = is_array($encoded_emails_array) && ! empty($encoded_emails_array);
+            if ( $is_valid_input ) {
+                foreach ( $encoded_emails_array as $index => $encoded_email ) {
+                    if ( ! is_string($encoded_email) ) {
+                        $is_valid_input = false;
+                        break;
+                    }
+                    // Validate types before the REST sanitizer can convert scalars to strings.
+                    if ( $is_rest_array ) {
+                        $encoded_email = Post::getInstance()->getAndSanitize($encoded_email);
+                    }
+                    if ( $encoded_email === '' ) {
+                        $is_valid_input = false;
+                        break;
+                    }
+                    $encoded_emails_array[$index] = $encoded_email;
+                }
+            }
+
+            if ( $is_valid_input && is_array($encoded_emails_array) ) {
+                $this->decoded_contacts_array = $this->decodeContactData($encoded_emails_array);
+            } else {
+                $apbct->errorAdd('email_encoder', $input_error);
+            }
+            if ( $this->has_connection_error ) {
+                $data = $this->compileResponse($this->decoded_contacts_array, false);
+                $response = array('success' => false, 'data' => $data);
+            } else {
+                $data = $this->compileResponse($this->decoded_contacts_array, $this->is_encode_allowed);
+                $response = array('success' => true, 'data' => $data);
+            }
+            // compileResponse() returns false when no contacts are available.
+            // Mark this as a failed response with an empty list so the frontend
+            // does not access data[0] on a successful empty result.
+            if ( $response['data'] === false ) {
+                $response = array('success' => false, 'data' => array());
+            }
+
+            $response['set_passed_cookie'] = false;
+            if ( $this->shouldSetPassedCookie($is_valid_input) ) {
+                $response['set_passed_cookie'] = apbct_email_encoder_set_passed();
+                if ( ! $response['set_passed_cookie'] ) {
+                    $apbct->errorAdd('email_encoder', 'Failed to save the contact-decoding pass mark.');
+                }
+            }
+        } finally {
+            $this->request_data = $previous_request_data;
         }
-        if ( ! $this->is_logged_in && ! empty($this->decoded_contacts_array) && $this->is_encode_allowed ) {
-            apbct_email_encoder_set_passed();
-        }
-        $response = $this->compileResponse($this->decoded_contacts_array, $this->is_encode_allowed);
-        wp_send_json_success($response);
+
+        return $response;
+    }
+
+    /**
+     * Decide whether both the server pass mark and the client cookie may be set.
+     *
+     * Nonce verification belongs to the request handlers. For a valid guest request,
+     * connection failures allow local decoding; an explicit API denial does not.
+     * Decoding output is not required, so an internal decoding failure can still pass.
+     *
+     * @param bool $is_valid_input Whether the request contains a non-empty array of contact strings.
+     * @return bool Whether the caller may save the server mark and then permit the client cookie.
+     */
+    protected function shouldSetPassedCookie(bool $is_valid_input): bool
+    {
+        return $is_valid_input && ! $this->is_logged_in && $this->is_encode_allowed;
     }
 
     /**
