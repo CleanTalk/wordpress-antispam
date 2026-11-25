@@ -101,7 +101,13 @@ class Woocommerce extends IntegrationByClassBase
         $this->addPaymentMethodActions();
 
         // registration
-        if ( !$apbct->settings['forms__wc_register_from_order'] && (Request::get('wc-ajax') === 'checkout' || Request::get('wc-ajax') === 'complete_order') ) {
+        // WooCommerce creates the account on wp_loaded, before wc-ajax dispatch.
+        // The "register" field is that form, so a service wc-ajax must not drop the check.
+        if (
+            ! isset($_POST['register'])
+            && ! $apbct->settings['forms__wc_register_from_order']
+            && (Request::get('wc-ajax') === 'checkout' || Request::get('wc-ajax') === 'complete_order')
+        ) {
             remove_filter('woocommerce_registration_errors', 'ct_registration_errors', 1);
         } else {
             add_filter('woocommerce_registration_errors', 'ct_registration_errors', 1, 3);
