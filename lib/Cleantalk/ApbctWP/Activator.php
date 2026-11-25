@@ -163,6 +163,12 @@ class Activator
         $ct_cron->addTask('send_js_error_report', 'ct_cron_send_js_error_report_email', 86400); // Send js_error report to support@cleantalk.org
         $ct_cron->addTask('clear_old_session_data', 'apbct_cron_clear_old_session_data', 86400); // Clear old alt-cookies/no-cookies
         BotDetectorService::scheduleWrapperUrlUpdate();
+        $ct_cron->addTask(
+            \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_TASK,
+            \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_HANDLER,
+            \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_PERIOD,
+            time() + 300
+        ); // Detect the IP source (CDN headers)
     }
 
     /**
