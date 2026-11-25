@@ -202,9 +202,20 @@ class Woocommerce extends IntegrationByClassBase
      */
     public static function isCheckoutInProgress()
     {
-        return did_action('woocommerce_checkout_process') > 0 ||
-            did_action('woocommerce_store_api_checkout_update_customer_from_request') > 0 ||
-            in_array(Request::getString('wc-ajax'), ['checkout', 'complete_order'], true);
+        if (
+            did_action('woocommerce_checkout_process') > 0 ||
+            did_action('woocommerce_store_api_checkout_update_customer_from_request') > 0
+        ) {
+            return true;
+        }
+
+        // The My Account form posts "register". WooCommerce creates that account on
+        // wp_loaded, before wc-ajax dispatch, so the parameter alone is not a checkout.
+        if (isset($_POST['register'])) {
+            return false;
+        }
+
+        return in_array(Request::getString('wc-ajax'), ['checkout', 'complete_order'], true);
     }
 
     public function addActions()
