@@ -142,6 +142,9 @@ abstract class Queue
                 }
 
                 $stage_to_execute['status'] = 'FINISHED';
+                if ( isset($result['result']) ) {
+                    $stage_to_execute['result'] = $result['result'];
+                }
                 $this->saveQueue($this->queue);
 
                 return $result;

@@ -121,6 +121,7 @@ class SFWUpdateHelper
                 if ( file_exists($file_path) ) {
                     unlink($file_path);
                 }
+                return ['result' => "processCK result: expected_networks_count: $expected_networks_count, expected_ua_count: $expected_ua_count"];
             } else {
                 return array('error' => 'Can not unpack datafile');
             }

@@ -4,7 +4,7 @@
   Plugin Name: Anti-Spam by CleanTalk
   Plugin URI: https://cleantalk.org
   Description: Max power, all-in-one, no Captcha, premium anti-spam plugin. No comment spam, no registration spam, no contact spam, protects any WordPress forms.
-  Version: 6.92.99-dev
+  Version: 6.93
   Author: CleanTalk - Anti-Spam Protection <welcome@cleantalk.org>
   Author URI: https://cleantalk.org
   Text Domain: cleantalk-spam-protect
@@ -1456,12 +1456,12 @@ function apbct_sfw_update__worker($checker_work = false)
         $queue->queue['finished'] = time();
         $queue->saveQueue($queue->queue);
         foreach ( $queue->queue['stages'] as $stage ) {
-            if ( isset($stage['error'], $stage['status']) && $stage['status'] !== 'FINISHED' ) {
+            if ( isset($stage['error']) ) {
                 //there could be an array of errors of files processed
                 if ( is_array($stage['error']) ) {
                     $error = implode(" ", array_values($stage['error']));
                 } else {
-                    $error = $result['error'];
+                    $error = $stage['error'];
                 }
                 $apbct->errorAdd('sfw_update', $error);
             }
@@ -1746,6 +1746,7 @@ function apbct_sfw_update__process_files()
         $apbct->save('fw_stats');
 
         return array(
+            'result' => [$concrete_file => isset($result) ? $result : null],
             'next_stage' => array(
                 'name' => 'apbct_sfw_update__process_files',
             )
