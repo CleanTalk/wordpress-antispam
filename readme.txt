@@ -1,13 +1,13 @@
-=== Anti-Spam by CleanTalk – Spam Protection Without CAPTCHA === 
+=== Anti-Spam, Honeypot, CAPTCHA Free Spam Protection by CleanTalk === 
 Contributors: glomberg, alexandergull, sergefcleantalk, antonv1
-Tags: anti-spam, spam protection, contact form spam, spam, captcha
+Tags: spam, antispam, anti-spam, captcha, firewall
 Requires at least: 4.7
 Tested up to: 7.1
 Requires PHP: 7.2
 Stable tag: 6.92
 License: GPLv2
 
-Stop spam in contact forms, comments, registrations, and WooCommerce automatically. CAPTCHA free antispam plugin that works in the background.
+Advanced antispam for comments, fake registrations, orders & contact forms spam. No CAPTCHA, FireWall and honeypot. We catch spam others miss!
 
 == Description ==
 
