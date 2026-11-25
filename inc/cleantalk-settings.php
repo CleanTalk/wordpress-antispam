@@ -3,6 +3,7 @@
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentHandler;
 use Cleantalk\ApbctWP\AdjustToEnvironmentModule\AdjustToEnvironmentSettings;
 use Cleantalk\ApbctWP\AJAXService;
+use Cleantalk\ApbctWP\BotDetectorService;
 use Cleantalk\ApbctWP\Constant;
 use Cleantalk\ApbctWP\ContactsEncoder\ContactsEncoder;
 use Cleantalk\ApbctWP\Escape;
@@ -2939,6 +2940,7 @@ function apbct_settings__sync($direct_call = false)
     $apbct->data['key_changed'] = false;
 
     $apbct->saveData();
+    BotDetectorService::updateWrapperUrl((string) $apbct->settings['apikey']);
 
     if ( $direct_call ) {
         return $out;

@@ -2,6 +2,8 @@
 
 namespace Cleantalk\Antispam\ScriptsIntegration;
 
+use Cleantalk\ApbctWP\BotDetectorService;
+
 class GiveWPScript extends ScriptIntegrationPlugin
 {
     public $hook_name = 'givewp_donation_form_enqueue_scripts';
@@ -19,7 +21,7 @@ class GiveWPScript extends ScriptIntegrationPlugin
             // Attention! Skip old enqueue way for external script.
             wp_enqueue_script(
                 'ct_bot_detector',
-                APBCT_BOT_DETECTOR_SCRIPT_URL,
+                BotDetectorService::getWrapperUrl(),
                 [],
                 APBCT_VERSION,
                 array(

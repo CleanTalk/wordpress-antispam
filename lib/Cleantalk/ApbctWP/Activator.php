@@ -162,6 +162,7 @@ class Activator
         $ct_cron->addTask('rotate_moderate', 'apbct_rotate_moderate', 86400, time() + 3500); // Rotate moderate server
         $ct_cron->addTask('send_js_error_report', 'ct_cron_send_js_error_report_email', 86400); // Send js_error report to support@cleantalk.org
         $ct_cron->addTask('clear_old_session_data', 'apbct_cron_clear_old_session_data', 86400); // Clear old alt-cookies/no-cookies
+        BotDetectorService::scheduleWrapperUrlUpdate();
         $ct_cron->addTask(
             \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_TASK,
             \Cleantalk\ApbctWP\HTTP\CDNHeadersChecker::CRON_HANDLER,

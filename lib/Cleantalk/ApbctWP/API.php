@@ -19,6 +19,21 @@ use Cleantalk\Common\HTTP\Response;
  */
 class API extends \Cleantalk\Common\API
 {
+    private const METHOD_GET_BOT_DETECTOR_WRAPPER_URL = 'get_bot_detector_wrapper_url';
+
+    public static function methodGetBotDetectorWrapperUrl(string $api_key): string
+    {
+        $request = array(
+            'method_name' => self::METHOD_GET_BOT_DETECTOR_WRAPPER_URL,
+            'auth_key' => $api_key,
+        );
+
+        $result = self::sendRequest($request, 5);
+        $wrapper_url = $result['wrapper_url'] ?? '';
+
+        return is_string($wrapper_url) ? $wrapper_url : '';
+    }
+
     /**
      * Adds the website admin IP to the SpamFireWall personal whitelist for 30 days.
      *
@@ -81,6 +96,11 @@ class API extends \Cleantalk\Common\API
         // Adding agent version to data
         $data['agent'] = defined('APBCT_AGENT') ? APBCT_AGENT : '';
 
+        $is_wrapper_request = ($data['method_name'] ?? '') === self::METHOD_GET_BOT_DETECTOR_WRAPPER_URL;
+        $presets = $is_wrapper_request
+            ? ['retry_with_socket', 'get', 'dont_follow_redirects']
+            : ['retry_with_socket'];
+
         $options = ['timeout' => $timeout];
         // Proxy settings from wp-config.php constants.
         if ( defined('WP_PROXY_HOST') && WP_PROXY_HOST !== '' && defined('WP_PROXY_PORT') && WP_PROXY_PORT !== '' ) {
@@ -100,7 +120,7 @@ class API extends \Cleantalk\Common\API
 
         $request = $http->setUrl($url)
                     ->setData($data)
-                    ->setPresets(['retry_with_socket'])
+                    ->setPresets($presets)
                     ->setOptions($options);
         if ( isset($data['method_name']) ) {
             $request->addCallback(
@@ -114,6 +134,10 @@ class API extends \Cleantalk\Common\API
         $http_code = $request->response instanceof Response
             ? $request->response->getResponseCode()
             : null;
+        if ( $is_wrapper_request && $http_code !== 200 ) {
+            $result = ['error' => $result['error'] ?? 'UNEXPECTED_HTTP_STATUS'];
+        }
+
         self::handleConnectionReport($data, $result, $url, $http_code);
 
         return $result;
