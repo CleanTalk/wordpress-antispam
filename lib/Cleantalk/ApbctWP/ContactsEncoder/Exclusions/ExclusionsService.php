@@ -10,6 +10,16 @@ use Cleantalk\Common\TT;
 class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\ExclusionsService
 {
     /**
+     * Request data a visitor sends, in bytes. A page can show any of it: over this size no sign of the content counts.
+     */
+    const MAX_REQUEST_ECHO_BYTES = 65536;
+
+    /**
+     * Comparisons of the occurrences of one sign with the request data. Over it the sign does not count.
+     */
+    const MAX_ECHO_CHECKS = 2000;
+
+    /**
      * Keep arrays of exclusion signs in the array
      *
      * Each exclusion's array must contain two or more elements.
@@ -224,6 +234,8 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
      *
      * Applies filter "apbct_email_encoder_content_exclusions_signs" to extend the built-in signs.
      * Each item must be an array of strings; encoding is skipped when all strings of an item are found.
+     * A sign counts only outside the echo of the request: a visitor can not switch the encoding off by sending
+     * a sign that the page shows back, e.g. a search query in buffer mode.
      *
      * @see https://cleantalk.org/help/using-shortcodes-hooks-to-encode-contact-data#exclude
      *
@@ -244,18 +256,16 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
             $filtered_signs = $this->content_exclusions_signs;
         }
 
+        $lowercase_content = null;
+        $request_fragments = null;
         foreach ( array_values($filtered_signs) as $_signs_array => $signs ) {
             //process each of subarrays of signs
             $signs_found_count = 0;
             if ( isset($signs) && is_array($signs) ) {
                 //check all the signs in the sub-array
                 foreach ( $signs as $sign ) {
-                    if ( is_string($sign) ) {
-                        if ( strpos($content, $sign) === false ) {
-                            continue;
-                        } else {
-                            $signs_found_count++;
-                        }
+                    if ( is_string($sign) && $this->isSignOfSite($content, $sign, $lowercase_content, $request_fragments) ) {
+                        $signs_found_count++;
                     }
                 }
                 //if each of signs in the sub-array are found return true
@@ -269,5 +279,220 @@ class ExclusionsService extends \Cleantalk\Common\ContactsEncoder\Exclusions\Exc
         }
         //no signs found
         return false;
+    }
+
+    /**
+     * The sign is in the content, and at least one of its occurrences is not inside an echo of the request.
+     *
+     * @param string $content
+     * @param string $sign
+     * @param string|null $lowercase_content The content in lower case, made once for all the signs.
+     * @param string[]|false|null $request_fragments See getRequestFragments(), made once for all the signs.
+     *
+     * @return bool
+     */
+    private function isSignOfSite($content, $sign, &$lowercase_content, &$request_fragments)
+    {
+        $position = $sign === '' ? false : strpos($content, $sign);
+        if ( $position === false ) {
+            return false;
+        }
+
+        if ( $request_fragments === null ) {
+            $request_fragments = $this->getRequestFragments();
+        }
+        if ( $request_fragments === false ) {
+            return false;
+        }
+
+        $needle = strtolower($sign);
+        $echo_fragments = array();
+        foreach ( $request_fragments as $fragment ) {
+            if ( strpos($fragment, $needle) !== false ) {
+                $echo_fragments[] = $fragment;
+            }
+        }
+        if ( $echo_fragments === array() ) {
+            return true;
+        }
+
+        if ( $lowercase_content === null ) {
+            $lowercase_content = strtolower($content);
+        }
+
+        $checks = self::MAX_ECHO_CHECKS;
+        while ( $position !== false ) {
+            if ( ! $this->isInsideRequestEcho($lowercase_content, $position, $needle, $echo_fragments, $checks) ) {
+                return true;
+            }
+            if ( $checks <= 0 ) {
+                return false;
+            }
+            $position = strpos($content, $sign, $position + 1);
+        }
+
+        return false;
+    }
+
+    /**
+     * The echo of a value can be cut by the page, e.g. a long search query in a title: the part of the value from
+     * its start through the sign, or from the sign to its end, counts too. Such a part and a plain word of the
+     * request, e.g. "email" of utm_medium=email, are an echo only where they are not inside a longer word:
+     * a sign of the site like "from_email" contains them.
+     *
+     * @param string $lowercase_content
+     * @param int $position Offset of the sign in the content.
+     * @param string $needle The sign in lower case.
+     * @param string[] $fragments Values of the request that contain the sign.
+     * @param int $checks Comparisons left, see MAX_ECHO_CHECKS. When they are over, the sign is taken as an echo.
+     *
+     * @return bool
+     */
+    private function isInsideRequestEcho($lowercase_content, $position, $needle, $fragments, &$checks)
+    {
+        $content_length = strlen($lowercase_content);
+        $sign_end = $position + strlen($needle);
+
+        foreach ( $fragments as $fragment ) {
+            $length = strlen($fragment);
+            $is_word = ctype_alnum($fragment);
+            for ( $at = strpos($fragment, $needle); $at !== false; $at = strpos($fragment, $needle, $at + 1) ) {
+                if ( --$checks < 0 ) {
+                    return true;
+                }
+
+                $start = $position - $at;
+                $end = $start + $length;
+
+                if (
+                    $start >= 0
+                    && $end <= $content_length
+                    && substr_compare($lowercase_content, $fragment, $start, $length) === 0
+                    && ( ! $is_word || ( $this->isEchoEdge($lowercase_content, $start - 1, $fragment, -1) && $this->isEchoEdge($lowercase_content, $end, $fragment, $length) ) )
+                ) {
+                    return true;
+                }
+
+                if (
+                    $start >= 0
+                    && substr_compare($lowercase_content, $fragment, $start, $sign_end - $start) === 0
+                    && $this->isEchoEdge($lowercase_content, $start - 1, $fragment, -1)
+                    && $this->isEchoEdge($lowercase_content, $sign_end, $fragment, $at + strlen($needle))
+                ) {
+                    return true;
+                }
+
+                $tail_end = $position + $length - $at;
+                if (
+                    $tail_end <= $content_length
+                    && substr_compare($lowercase_content, (string)substr($fragment, $at), $position, $length - $at) === 0
+                    && $this->isEchoEdge($lowercase_content, $position - 1, $fragment, $at - 1)
+                    && $this->isEchoEdge($lowercase_content, $tail_end, $fragment, $length)
+                ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * A char next to a part of an echo: the end of the content, not a char of a word, or the next char of the value.
+     *
+     * @param string $lowercase_content
+     * @param int $offset Offset of the char in the content.
+     * @param string $fragment
+     * @param int $fragment_offset Offset of the same char in the value, out of it at the ends of the value.
+     *
+     * @return bool
+     */
+    private function isEchoEdge($lowercase_content, $offset, $fragment, $fragment_offset)
+    {
+        if ( $offset < 0 || $offset >= strlen($lowercase_content) ) {
+            return true;
+        }
+
+        $char = $lowercase_content[$offset];
+        if ( strspn($char, 'abcdefghijklmnopqrstuvwxyz0123456789_-') === 0 ) {
+            return true;
+        }
+
+        return $fragment_offset >= 0 && $fragment_offset < strlen($fragment) && $fragment[$fragment_offset] === $char;
+    }
+
+    /**
+     * Values a visitor sends and a page can show back: the URI, the query, the form data, cookies and headers.
+     * Each value is taken as a whole and by its words, in lower case, also decoded as a page could decode it:
+     * WordPress decodes a search query of the path twice.
+     *
+     * @return string[]|false False when the data is too big to check.
+     */
+    private function getRequestFragments()
+    {
+        $values = array(TT::toString(isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : ''));
+        foreach ( $_SERVER as $name => $value ) {
+            if ( strpos($name, 'HTTP_') === 0 && is_string($value) ) {
+                $values[] = $value;
+            }
+        }
+        $this->collectRequestValues($_GET, $values);
+        $this->collectRequestValues($_POST, $values);
+        $this->collectRequestValues($_COOKIE, $values);
+
+        $fragments = array();
+        $size = 0;
+        foreach ( $values as $value ) {
+            $size += strlen($value);
+            if ( $size > self::MAX_REQUEST_ECHO_BYTES ) {
+                return false;
+            }
+
+            $value = stripslashes($value);
+            $variants = array($value, rawurldecode($value));
+            $decoded = $value;
+            for ( $i = 0; $i < 3; $i++ ) {
+                $next = urldecode($decoded);
+                if ( $next === $decoded ) {
+                    break;
+                }
+                $variants[] = $decoded = $next;
+            }
+            foreach ( $variants as $variant ) {
+                $variant = strtolower($variant);
+                foreach ( array($variant, html_entity_decode($variant, ENT_QUOTES)) as $fragment ) {
+                    $fragments[$fragment] = true;
+                    $words = preg_split('/[^a-z0-9_-]+/', $fragment, -1, PREG_SPLIT_NO_EMPTY);
+                    foreach ( is_array($words) ? $words : array() as $word ) {
+                        $fragments[$word] = true;
+                    }
+                }
+            }
+        }
+        unset($fragments['']);
+
+        return array_map('strval', array_keys($fragments));
+    }
+
+    /**
+     * @param mixed $data
+     * @param string[] $values
+     *
+     * @return void
+     */
+    private function collectRequestValues($data, &$values)
+    {
+        if ( ! is_array($data) ) {
+            return;
+        }
+
+        foreach ( $data as $key => $value ) {
+            $values[] = (string)$key;
+            if ( is_array($value) ) {
+                $this->collectRequestValues($value, $values);
+            } elseif ( is_scalar($value) ) {
+                $values[] = (string)$value;
+            }
+        }
     }
 }

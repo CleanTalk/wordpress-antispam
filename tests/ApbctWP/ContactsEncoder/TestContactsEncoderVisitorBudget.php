@@ -237,4 +237,26 @@ class TestContactsEncoderVisitorBudget extends TestCase
 
         $this->assertStringNotContainsString('owner@example.org', $page);
     }
+
+    /**
+     * A search query is shown back on the page: in buffer mode it must not switch the encoding off for the whole page.
+     */
+    public function testBufferModeSearchQueryWithExclusionSignDoesNotDisableEncoding()
+    {
+        global $apbct;
+        $apbct->settings['data__email_decoder_buffer'] = 1;
+        $_SERVER['REQUEST_URI'] = '/?s=ics_calendar';
+        $_GET['s'] = 'ics_calendar';
+        $apbct->buffer = '<html><head><title>You searched for ics_calendar</title></head><body>'
+            . '<h1>Search Results for: ics_calendar</h1><footer>owner@example.org</footer></body></html>';
+        $flag = new \ReflectionProperty($this->encoder, 'buffer_modified');
+        $flag->setAccessible(true);
+        $flag->setValue($this->encoder, false);
+
+        $this->encoder->modifyBuffer();
+        unset($_GET['s']);
+
+        $this->assertStringNotContainsString('owner@example.org', $apbct->buffer);
+        $this->assertSame(1, substr_count($apbct->buffer, 'data-original-string'));
+    }
 }
