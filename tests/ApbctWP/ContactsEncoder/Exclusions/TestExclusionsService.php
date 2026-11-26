@@ -37,6 +37,9 @@ class TestExclusionsService extends TestCase
 
     protected function tearDown(): void
     {
+        $_GET = array();
+        $_COOKIE = array();
+
         // Clean up filters after each test
         remove_all_filters('apbct_skip_email_encoder_on_uri_chunk_list');
         remove_all_filters('apbct_email_encoder_content_exclusions_signs');
@@ -475,6 +478,86 @@ class TestExclusionsService extends TestCase
         $result = $this->invokePrivateMethod($this->exclusions_service, 'byContentSigns', [$content]);
 
         $this->assertTrue($result);
+    }
+
+    public function testByContentSignsIgnoresSignEchoedFromSearchQuery()
+    {
+        $_SERVER['REQUEST_URI'] = '/?s=ics_calendar';
+        $_GET['s'] = 'ics_calendar';
+        $content = '<title>Search Results for &#8220;ics_calendar&#8221;</title>'
+            . '<input type="search" value="ics_calendar"><a href="/page/2/?s=ics_calendar">2</a>'
+            . '<footer>owner@example.com</footer>';
+
+        $this->assertFalse($this->invokePrivateMethod($this->exclusions_service, 'byContentSigns', [$content]));
+    }
+
+    public function testByContentSignsKeepsSiteSignOutsideOfRequestEcho()
+    {
+        $_SERVER['REQUEST_URI'] = '/?s=my_ics_calendar_notes';
+        $_GET['s'] = 'my_ics_calendar_notes';
+        $content = '<h1>Search Results for: my_ics_calendar_notes</h1>'
+            . '<script id="ics-calendar-js-after">var ics_calendar_i18n = {};</script>';
+
+        $this->assertTrue($this->invokePrivateMethod($this->exclusions_service, 'byContentSigns', [$content]));
+    }
+
+    public function testByContentSignsIgnoresSignsEchoedFromCookie()
+    {
+        $_SERVER['REQUEST_URI'] = '/hello-world/';
+        $_COOKIE['comment_author_0123456789abcdef'] = 'Leaflet leaflet-map map-wrap';
+        $content = '<input id="author" name="author" value="Leaflet leaflet-map map-wrap"><footer>owner@example.com</footer>';
+
+        $this->assertFalse($this->invokePrivateMethod($this->exclusions_service, 'byContentSigns', [$content]));
+    }
+
+    public function testByContentSignsKeepsSignInsideWordOfSiteWhenRequestHasPlainWord()
+    {
+        $_SERVER['REQUEST_URI'] = '/contact/?utm_medium=email&utm_campaign=email-campaign';
+        $_GET['utm_medium'] = 'email';
+        $_GET['utm_campaign'] = 'email-campaign';
+        $content = '<form class="av_contact"><input type="email" name="from_email" /></form>';
+
+        $this->assertTrue($this->invokePrivateMethod($this->exclusions_service, 'byContentSigns', [$content]));
+    }
+
+    public function testByContentSignsIgnoresSignOfSearchPathDecodedTwice()
+    {
+        // WordPress decodes /search/ics%255fcalendar/ into "ics_calendar": parse_str() and then WP_Query.
+        $_SERVER['REQUEST_URI'] = '/search/ics%255fcalendar/';
+        $content = '<h1>Search Results for: ics_calendar</h1><footer>owner@example.com</footer>';
+
+        $this->assertFalse($this->invokePrivateMethod($this->exclusions_service, 'byContentSigns', [$content]));
+    }
+
+    public function testByContentSignsIgnoresSignOfCutEcho()
+    {
+        $_SERVER['REQUEST_URI'] = '/?s=ics_calendarzzzzzzzz&q=yyyyyyyyics_calendar';
+        $_GET['s'] = 'ics_calendarzzzzzzzz';
+        $_GET['q'] = 'yyyyyyyyics_calendar';
+        $content = '<h1>Search Results for: ics_calendarzz&hellip;</h1><h2>&hellip;yyics_calendar</h2>'
+            . '<footer>owner@example.com</footer>';
+
+        $this->assertFalse($this->invokePrivateMethod($this->exclusions_service, 'byContentSigns', [$content]));
+    }
+
+    public function testByContentSignsDoNotCountWhenRequestIsTooBigToCheck()
+    {
+        $_SERVER['REQUEST_URI'] = '/';
+        $_GET['padding'] = str_repeat('a', ExclusionsService::MAX_REQUEST_ECHO_BYTES + 1);
+        $content = '<div class="scc-form-field-item">Calculator field</div>';
+
+        $this->assertFalse($this->invokePrivateMethod($this->exclusions_service, 'byContentSigns', [$content]));
+    }
+
+    public function testByContentSignsLimitsTheWorkOnAHeavyEcho()
+    {
+        $_SERVER['REQUEST_URI'] = '/';
+        $_COOKIE['a'] = str_repeat('ics_calendar', 4000);
+        $content = str_repeat('<p>' . str_repeat('ics_calendar', 100) . '</p>', 100);
+        $start = microtime(true);
+
+        $this->assertFalse($this->invokePrivateMethod($this->exclusions_service, 'byContentSigns', [$content]));
+        $this->assertLessThan(1, microtime(true) - $start);
     }
 
     /**
