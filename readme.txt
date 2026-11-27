@@ -425,6 +425,7 @@ CleanTalk stops up to 99.998% of spam bots, so you can disable other anti-spam p
 == Changelog ==
 
 = 6.93 25.11.2026 =
+* Fix. Comments. Email indicator and Real Person Badge display.
 * Fix. General. Contact form exclusions. (#933)
 * Fix. Settings. Editing the key input field display on a multisite and transferring the key before validation
 * Fix. Helper. DNS resolve hostnames fixed.
