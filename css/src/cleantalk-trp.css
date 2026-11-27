@@ -60,7 +60,8 @@
     color: grey;
     font-style: italic;
 }
-.apbct-real-user-popup-content_row strong {
+.apbct-real-user-popup-content_row strong,
+.apbct-real-user-popup-header {
     color: initial;
     font-style: initial;
 }

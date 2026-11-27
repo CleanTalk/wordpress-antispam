@@ -72,7 +72,11 @@ document.addEventListener('DOMContentLoaded', function() {
         let trpDescription = document.createElement('div');
         trpDescription.setAttribute('class', 'apbct-real-user-popup');
 
-        let trpDescriptionHeading = document.createElement('strong');
+        // WordPress reads every .author strong when building moderation notices.
+        let trpDescriptionHeading = document.createElement(ctTrpIsAdminCommentsList ? 'span' : 'strong');
+        if (ctTrpIsAdminCommentsList) {
+            trpDescriptionHeading.classList.add('apbct-real-user-popup-header');
+        }
         trpDescriptionHeading.append(ctTrpLocalize.phrases.trpHeading);
 
         let trpDescriptionContent = document.createElement('div');
@@ -108,8 +112,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         trpDescription.append(trpDescriptionContent);
         trpLayout.append(trpImage);
-        element.append(trpLayout);
-        element.append(trpDescription);
+        if (ctTrpIsAdminCommentsList) {
+            element.after(trpLayout, trpDescription);
+        } else {
+            element.append(trpLayout);
+            element.append(trpDescription);
+        }
     });
 
     const badges = document.querySelectorAll('.apbct-real-user-badge');

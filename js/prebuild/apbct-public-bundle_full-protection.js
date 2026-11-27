@@ -7814,6 +7814,9 @@ function apbctGetBrowserStatePair() { // eslint-disable-line no-unused-vars
 let ctCheckedEmails = {};
 let ctCheckedEmailsExist = {};
 const ctCheckingEmails = new Set();
+let ctEmailExistCurrentInput = null;
+let ctEmailExistPositionListenersAdded = false;
+const ctEmailExistObservedInputs = new WeakSet();
 
 /**
  * @param {mixed} e
@@ -7989,10 +7992,7 @@ function viewCheckEmailExist(e, state, textResult) {
         envelope = document.createElement('div');
         envelope.setAttribute('class', 'apbct-check_email_exist-block');
         envelope.setAttribute('id', 'apbct-check_email_exist-block');
-        window.addEventListener('scroll', function() {
-            envelope.style.top = inputEmail.getBoundingClientRect().top + 'px';
-        });
-        parentElement.after(envelope);
+        document.body.append(envelope);
     }
 
     // hint
@@ -8002,11 +8002,7 @@ function viewCheckEmailExist(e, state, textResult) {
         hint = document.createElement('div');
         hint.setAttribute('class', 'apbct-check_email_exist-popup_description');
         hint.setAttribute('id', 'apbct-check_email_exist-popup_description');
-        window.addEventListener('scroll', function() {
-            hint.style.top = envelope.getBoundingClientRect().top + 'px';
-        });
-
-        envelope.after(hint);
+        document.body.append(hint);
     }
 
     // draw on init
@@ -8065,13 +8061,13 @@ function viewCheckEmailExist(e, state, textResult) {
  * @param {HTMLInputElement} inputEmail
  */
 function ctEmailExistSetElementsPositions(inputEmail) {
-    if (!inputEmail instanceof HTMLInputElement) {
+    if (!(inputEmail instanceof HTMLInputElement)) {
         return;
     }
     /** @type {DOMRect} */
     const inputRect = inputEmail.getBoundingClientRect();
-    const inputHeight = inputEmail.offsetHeight;
-    const inputWidth = inputEmail.offsetWidth;
+    const inputHeight = inputRect.height;
+    const inputWidth = inputRect.width;
     const envelopeWidth = inputHeight * 1.2;
     let backgroundSize;
     let fontSizeOrWidthAfterStyle = 0;
@@ -8120,6 +8116,7 @@ function ctEmailExistSetElementsPositions(inputEmail) {
     if (hint) {
         hint.style.width = `${inputWidth}px`;
         hint.style.left = `${inputRect.left}px`;
+        hint.style.top = `${inputRect.top - hint.getBoundingClientRect().height}px`;
     }
 }
 
@@ -8128,9 +8125,18 @@ function ctEmailExistSetElementsPositions(inputEmail) {
  * @param {HTMLInputElement} inputEmail - Dom element to change
  */
 function ctListenRequiredRedrawing(inputEmail) {
-    window.addEventListener('resize', function(event) {
-        ctEmailExistSetElementsPositions(inputEmail);
-    });
+    ctEmailExistCurrentInput = inputEmail;
+    if (!ctEmailExistPositionListenersAdded) {
+        const redraw = () => ctEmailExistSetElementsPositions(ctEmailExistCurrentInput);
+        window.addEventListener('resize', redraw);
+        window.addEventListener('scroll', redraw, true);
+        ctEmailExistPositionListenersAdded = true;
+    }
+
+    if (ctEmailExistObservedInputs.has(inputEmail)) {
+        return;
+    }
+    ctEmailExistObservedInputs.add(inputEmail);
 
     const formChangesToListen = [
         {
@@ -8156,7 +8162,7 @@ function ctListenRequiredRedrawing(inputEmail) {
             aForm.selector,
             aForm.observerConfig,
             () => {
-                ctEmailExistSetElementsPositions(aForm.emailElement);
+                ctEmailExistSetElementsPositions(ctEmailExistCurrentInput);
             });
     });
 }
@@ -8375,7 +8381,11 @@ document.addEventListener('DOMContentLoaded', function() {
         let trpDescription = document.createElement('div');
         trpDescription.setAttribute('class', 'apbct-real-user-popup');
 
-        let trpDescriptionHeading = document.createElement('strong');
+        // WordPress reads every .author strong when building moderation notices.
+        let trpDescriptionHeading = document.createElement(ctTrpIsAdminCommentsList ? 'span' : 'strong');
+        if (ctTrpIsAdminCommentsList) {
+            trpDescriptionHeading.classList.add('apbct-real-user-popup-header');
+        }
         trpDescriptionHeading.append(ctTrpLocalize.phrases.trpHeading);
 
         let trpDescriptionContent = document.createElement('div');
@@ -8411,8 +8421,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         trpDescription.append(trpDescriptionContent);
         trpLayout.append(trpImage);
-        element.append(trpLayout);
-        element.append(trpDescription);
+        if (ctTrpIsAdminCommentsList) {
+            element.after(trpLayout, trpDescription);
+        } else {
+            element.append(trpLayout);
+            element.append(trpDescription);
+        }
     });
 
     const badges = document.querySelectorAll('.apbct-real-user-badge');
