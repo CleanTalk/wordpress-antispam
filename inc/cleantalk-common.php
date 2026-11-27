@@ -1532,8 +1532,13 @@ function apbct_need_to_process_unknown_post_request()
 function apbct_check_post_for_no_cookie_data($data = array(), $level = 0, $array_mapping = array())
 {
     //top level check
-    if ( Post::get('ct_no_cookie_hidden_field') ) {
-        return array('data' => Post::get('ct_no_cookie_hidden_field'), 'mapping' => array('ct_no_cookie_hidden_field'));
+    $top_level_field = Post::get('ct_no_cookie_hidden_field');
+    if ( $top_level_field ) {
+        // The field may come as an array if the hidden field was injected into the form several times
+        if ( is_array($top_level_field) ) {
+            $top_level_field = apbct_get_first_no_cookie_string($top_level_field);
+        }
+        return array('data' => $top_level_field, 'mapping' => array('ct_no_cookie_hidden_field'));
     }
 
     $array = empty($data) ? $_POST : $data;
@@ -1555,6 +1560,24 @@ function apbct_check_post_for_no_cookie_data($data = array(), $level = 0, $array
         }
     }
     return array('data' => false, 'mapping' => null);
+}
+
+/**
+ * Get the first string value from a (possibly nested) array of ct_no_cookie_hidden_field values.
+ *
+ * @param array $values
+ *
+ * @return string|false
+ */
+function apbct_get_first_no_cookie_string($values)
+{
+    $found = false;
+    array_walk_recursive($values, function ($value) use (&$found) {
+        if ( $found === false && is_string($value) && strpos($value, '_ct_no_cookie_data_') !== false ) {
+            $found = $value;
+        }
+    });
+    return $found;
 }
 
 /**
@@ -1630,7 +1653,7 @@ function apbct_filter_post_no_cookie_data($map)
                 break;
         }
         $_POST = $cleared_post;
-    } catch ( Exception $e ) {
+    } catch ( \Throwable $e ) {
         return;
     }
 }
@@ -1649,6 +1672,10 @@ function apbct_filter_post_no_cookie_data($map)
  */
 function apbct_clear_query_from_service_fields($query_string, $service_field_name = '')
 {
+    if ( ! is_string($query_string) ) {
+        return false;
+    }
+
     $pattern = empty($service_field_name)
         ? '/(&?ct_bot_detector_event_token=|&?apbct_visible_fields=|&?ct_no_cookie_hidden_field=)/'
         : '/&?' . $service_field_name . '=/';
